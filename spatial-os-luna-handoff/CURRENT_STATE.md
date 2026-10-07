@@ -34,7 +34,9 @@ Both sb16 and sb16-2 passed:
 - All 60 cumulative P00/P01/P02/P03 acceptance tests.
 
 The same checks passed with AddressSanitizer and UndefinedBehaviorSanitizer on both hosts.
-The remaining 81 legacy acceptance tests are unrun.
+Of 141 legacy acceptance tests, 60 pass, one P04 diagnostic errors, and 80 remain unrun.
+The P04 diagnostic stops at the missing render.capture protobuf operation.
+Thus, 81 tests still lack passing evidence.
 Additional Spatial-M1, native-session, and physical-device requirements remain pending.
 
 The initial P03 diagnostic failed at actor.open before implementation.
