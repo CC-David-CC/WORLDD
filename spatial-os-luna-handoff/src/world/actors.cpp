@@ -87,9 +87,9 @@ std::string Actors::selected_workspace(const Actor& actor) {
     if (!allowed) { store_.clear_workspace(actor.entity.id()); return {}; }
     return selected;
 }
-wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request) {
+wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool require_observation_grant) {
     require(request.grants_size() <= 64, "Too many grants");
-    const std::set<std::string> allowed{"navigate", "interact", "world.write", "git.write", "process.launch"};
+    const std::set<std::string> allowed{"navigate", "interact", "observe", "world.write", "git.write", "process.launch"};
     std::set<std::string> grants;
     for (const auto& grant : request.grants()) {
         require(allowed.contains(grant), "Unknown actor grant");
@@ -113,6 +113,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request) {
     selected_workspace(actor);
     // An existing actor keeps its last valid pose, including a durable restore.
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
+    actor.require_observation_grant = require_observation_grant;
     actor.axes.fill(0); actor.expires = now_;
     actor.aim.Clear();
     sessions_.emplace(token, actor.entity.id());
@@ -181,6 +182,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         if (!actor.grants.contains("world.write")) throw WorldError(wire::FORBIDDEN, "World editing grant required");
         object_action(actor, request); break;
     case wire::ActorActionRequest::kObserve: {
+        if (actor.require_observation_grant && !actor.grants.contains("observe"))
+            throw WorldError(wire::FORBIDDEN, "World observation grant required");
         wire::ActorActionReply result; result.set_accepted(true);
         *result.mutable_observation() = observe(actor, request.observe());
         return result;

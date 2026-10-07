@@ -15,7 +15,7 @@ wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path);
 class Actors {
 public:
     Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr, RenderWorker* renderer = nullptr, BrokerClient* broker = nullptr);
-    wire::ActorOpenReply open(const wire::ActorOpenRequest& request);
+    wire::ActorOpenReply open(const wire::ActorOpenRequest& request, bool require_observation_grant = false);
     wire::ActorStateReply inspect(const std::string& token);
     wire::ActorCloseReply close(const std::string& token);
     wire::ActorActionReply act(const wire::ActorActionRequest& request);
@@ -36,6 +36,7 @@ private:
         wire::Entity entity;
         std::string token;
         std::set<std::string> grants;
+        bool require_observation_grant = false;
         std::array<double, 6> axes{};
         std::uint64_t sequence = 0;
         double expires = 0;

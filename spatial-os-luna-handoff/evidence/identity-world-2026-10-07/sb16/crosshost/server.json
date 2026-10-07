@@ -1,0 +1,8 @@
+{
+  "issuer_host": "sb16",
+  "world_host": "sb16-2",
+  "fixture_only": true,
+  "status": "passed",
+  "identityd_sha256": "d8fb16a10f13faff5db06e7ff07b6ab888e4a0fc5ab8ca62994892ba1653c8b9",
+  "test_sha256": "5f011d5f2af3b24b72a42dffd2f55f9b949898cd23a6372271851e706abb4303"
+}

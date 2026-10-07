@@ -1,0 +1,27 @@
+test_world_session_derives_identity_and_uses_real_actor (__main__.WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor) ... ERROR
+
+======================================================================
+ERROR: test_world_session_derives_identity_and_uses_real_actor (__main__.WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 136, in test_world_session_derives_identity_and_uses_real_actor
+    world=self.world(grants=['navigate']);peer=world.peers[0];opened=self.authenticate(peer)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 95, in world
+    self.worlds.append(world);world.management('system.hello');return world
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 68, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 34, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 31, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+----------------------------------------------------------------------
+Ran 1 test in 0.269s
+
+FAILED (errors=1)

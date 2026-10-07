@@ -1,0 +1,21 @@
+test_credential_revocation_releases_native_input_without_another_actor_request (__main__.WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request) ... FAIL
+
+======================================================================
+FAIL: test_credential_revocation_releases_native_input_without_another_actor_request (__main__.WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-session-final-mutation/source/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 241, in test_credential_revocation_releases_native_input_without_another_actor_request
+    world,peer,probe=self.held();self.revoke();self.released(world,probe)
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-session-final-mutation/source/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 128, in released
+    records=self.until(events,lambda rows:any(e['event']=='key' and not e['pressed'] for e in rows) and
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-session-final-mutation/source/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 111, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: [{'event': 'focus', 'focused': True, 'device': 9, 'xid': 4194305}, {'event': 'button', 'pressed': True, 'button': 1, 'x': 160, 'y': 120, 'device': 8, 'xid': 4194305}, {'event': 'key', 'pressed': True, 'keycode': 50, 'keysym': 65505, 'device': 9, 'xid': 4194305, 'text_hex': ''}]
+
+----------------------------------------------------------------------
+Ran 1 test in 4.881s
+
+FAILED (failures=1)

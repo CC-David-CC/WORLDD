@@ -1,0 +1,71 @@
+{
+  "status": "passed",
+  "issuer_host": "sb16",
+  "world_host": "sb16-2",
+  "actor_channel": "inherited private AF_UNIX socket",
+  "issuer_transport": "mutual TLS 1.3",
+  "shared_world_qualified": false,
+  "checks": [
+    "actor key generated on client host",
+    "remote issuer enrollment",
+    "fresh world authentication",
+    "explicit private admission",
+    "real native key and button hold",
+    "remote credential revocation",
+    "native key and button release without another actor request",
+    "application remains alive",
+    "further actor requests denied"
+  ],
+  "worldd_sha256": "d4211ea842baf5be70e863019136cc8e37f6afdae045d74d26b0bf8ae050bb2a",
+  "test_sha256": "5f011d5f2af3b24b72a42dffd2f55f9b949898cd23a6372271851e706abb4303",
+  "native_events": [
+    {
+      "event": "focus",
+      "focused": true,
+      "device": 9,
+      "xid": 4194305
+    },
+    {
+      "event": "button",
+      "pressed": true,
+      "button": 1,
+      "x": 160,
+      "y": 120,
+      "device": 8,
+      "xid": 4194305
+    },
+    {
+      "event": "key",
+      "pressed": true,
+      "keycode": 50,
+      "keysym": 65505,
+      "device": 9,
+      "xid": 4194305,
+      "text_hex": ""
+    },
+    {
+      "event": "button",
+      "pressed": false,
+      "button": 1,
+      "x": 160,
+      "y": 120,
+      "device": 8,
+      "xid": 4194305
+    },
+    {
+      "event": "key",
+      "pressed": false,
+      "keycode": 50,
+      "keysym": 65505,
+      "device": 9,
+      "xid": 4194305,
+      "text_hex": ""
+    },
+    {
+      "event": "focus",
+      "focused": false,
+      "device": 9,
+      "xid": 4194305
+    }
+  ]
+}

@@ -1,5 +1,59 @@
 # Implementation status
 
+## 2026-10-07: Authenticated local world sessions qualified
+
+worldd now accepts actor-only Protocol Buffer channels separately from trusted management.
+The supervisor supplies private unnamed local sockets. Their descriptors close before child program execution.
+The world verifies issuer signatures, current credential status, and fresh proofs bound to the channel and world.
+It derives persistent actor identity from issuer and actor identities.
+Clients cannot choose actor identities, provide grants, or transfer internal session tokens.
+Private admission and server-selected action grants remain separate.
+
+Authenticated channels call the existing production actor engine.
+Observation permission checks run inside that engine and consume denied action sequences.
+Trusted fixture behavior remains available through the management interface.
+The world checks current issuer status before protected actor operations.
+Revocation notifications cancel affected pending proofs and active sessions.
+Disconnects, oversized frames, and issuer failure also cancel dependent control.
+Cancellation releases native keys, buttons, focus, capture, motion, previews, and leases.
+Applications remain alive when their controller loses credentials.
+A read-only keepalive preserves the checked issuer connection during an idle session.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 402 core checks, including 20 new world-session checks.
+- All 51 harness checks.
+
+The first 18 session checks passed before review added idle and excessive-frame counterexamples.
+Review also moved observation checks into the shared sequence path and fixed callback cleanup.
+Existing assertions were preserved. Initial focused logs and final qualification logs are retained.
+Independent native witnesses verified key and button release without another actor request.
+The final-source mutation ignored world revocation events. A native witness detected the held input.
+The mutation never entered production.
+
+A world on sb16-2 authenticated through identityd on sb16.
+An actor key generated on sb16-2 completed real enrollment and fresh world authentication.
+Remote credential revocation released real held input while the fixture application stayed alive.
+This verifies cross-host issuer integration. It does not qualify a shared world or remote actor transport.
+Disposable keys, certificates, databases, native displays, and transfer archives were cleaned up.
+
+All 141 source hashes match reviewed local files and both hosts.
+The acceptance lock, locked assertions, core wire schema, oracles, and native witness remain unchanged.
+world_session.proto adds a separate versioned interface. World database schema remains unchanged.
+Evidence is in evidence/identity-world-2026-10-07. The contract is docs/WORLD_IDENTITY.md.
+No host configuration, permanent service, operator session, or actual David credential changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+M01 and full Spatial-M1 remain incomplete.
+Nonempty bootstrap profiles and persistent scoped grants remain required.
+Static baseline grants do not establish workspace or application authority.
+Remote actor transport and shared-world admission remain required.
+Issuer acknowledgement does not prove distributed cancellation. A revocation barrier or equivalent protocol remains required.
+All remaining M01-M16 and H01-H08 requirements stay mandatory.
+Next: scoped authority records and nonempty bootstrap profiles with M02 delegation integration.
+The full project goal remains active. No external blocker is recorded.
+
 ## 2026-10-07: M01 issuer revocation feed qualified
 
 The issuer now returns committed actor and credential revocations through versioned Protocol Buffers.

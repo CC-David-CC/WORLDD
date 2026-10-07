@@ -1,0 +1,48 @@
+syntax = "proto3";
+package spatial.identity.v1;
+import "core.proto";
+import "issuer.proto";
+
+// Trusted world configuration. Admission and action grants are independent.
+enum WorldAdmissionMode { WORLD_ADMISSION_UNSPECIFIED = 0; REGISTERED_ACTORS = 1; EXPLICIT_ACTORS = 2; }
+message WorldActorGrants { bytes actor_id = 1; repeated string grants = 2; }
+message WorldIdentityConfig {
+  uint32 protocol_version = 1;
+  string issuer_client_config = 2;
+  WorldAdmissionMode admission = 3;
+  repeated bytes admitted_actor_ids = 4;
+  repeated WorldActorGrants actor_grants = 5;
+}
+message WorldAuthenticationBegin {
+  SignedCredential credential = 1;
+  optional string room = 2;
+  spatial.core.v1.Pose pose = 3;
+}
+message WorldSessionInspect {}
+message WorldSessionClose {}
+message WorldSessionOpened { string actor_id = 1; string world_id = 2; IdentityStatus identity = 3; }
+// One inherited private channel has at most one authenticated actor session.
+// Caller-selected actor IDs, session tokens, and grants are not accepted.
+message WorldSessionRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    WorldAuthenticationBegin begin = 10;
+    AuthenticationComplete complete = 11;
+    WorldSessionInspect inspect = 12;
+    spatial.core.v1.ActorActionRequest action = 13;
+    WorldSessionClose close = 14;
+  }
+}
+message WorldSessionReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    spatial.core.v1.Error error = 10;
+    ChallengeReply challenge = 11;
+    WorldSessionOpened opened = 12;
+    spatial.core.v1.ActorStateReply state = 13;
+    spatial.core.v1.ActorActionReply action = 14;
+    spatial.core.v1.ActorCloseReply closed = 15;
+  }
+}

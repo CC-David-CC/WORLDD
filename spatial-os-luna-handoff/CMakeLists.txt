@@ -21,6 +21,7 @@ set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${
 protobuf_generate_cpp(broker_proto_sources broker_proto_headers proto/spatial/workspace/v1/broker.proto)
 protobuf_generate_cpp(key_proto_sources key_proto_headers proto/spatial/identity/v1/key.proto)
 protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/identity/v1/issuer.proto)
+protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
@@ -55,6 +56,14 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/issuer_pb2.py"
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/issuer.proto
     DEPENDS proto/spatial/identity/v1/issuer.proto proto/spatial/identity/v1/key.proto proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
 add_custom_target(issuer-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/issuer_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/world_session_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/world_session.proto
+    DEPENDS proto/spatial/identity/v1/world_session.proto proto/spatial/identity/v1/issuer.proto
+        proto/spatial/identity/v1/key.proto proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
+add_custom_target(world-session-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/world_session_pb2.py")
 
 option(SPATIAL_SANITIZERS "Enable address and undefined-behavior sanitizers" OFF)
 option(SPATIAL_INPUT_TESTS "Require the project XLibre actor-input counterexamples" OFF)
@@ -80,7 +89,7 @@ endforeach()
 string(SHA256 build_hash "${build_material}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
 
-add_library(spatial-protobuf STATIC ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers})
+add_library(spatial-protobuf STATIC ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
 target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
@@ -111,8 +120,8 @@ target_include_directories(spatial-core PUBLIC src)
 target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3)
 add_executable(spatialwm src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
 target_link_libraries(spatialwm PRIVATE spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
-add_executable(worldd src/world/main.cpp src/world/server.cpp)
-target_link_libraries(worldd PRIVATE spatial-core)
+add_executable(worldd src/world/main.cpp src/world/server.cpp src/world/identity_sessions.cpp)
+target_link_libraries(worldd PRIVATE spatial-core spatial-issuer-watch-lib)
 add_dependencies(worldd spatialwm)
 add_executable(spatial-app-init src/workspace/app_init.cpp)
 target_link_libraries(spatial-app-init PRIVATE spatial-scene)
@@ -191,6 +200,12 @@ if(BUILD_TESTING)
     set_tests_properties(actor-collision PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     if(SPATIAL_INPUT_TESTS)
+        add_test(NAME world-identity COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_identity.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+        set_tests_properties(world-identity PROPERTIES TIMEOUT 120
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>")
         add_test(NAME actor-objects COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_objects.py" $<TARGET_FILE:spatial-test-host>

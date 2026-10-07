@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "python3",
+    "/home/dflanag3/src/m01-session-cross-server.py"
+  ],
+  "exit_code": 0,
+  "helper_sha256": "d664f4fb654bc7d43f9ffe34f4758497ff52867ed14978b0d6f80a4fc1a22fd5",
+  "helper_source": "from pathlib import Path\nimport hashlib,json,os,socket,sqlite3,sys,tarfile,time\np=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff');assert socket.gethostname().split('.')[0]=='sb16'\nos.umask(0o077);sys.path[:0]=[str(p/'tests/core'),str(p/'build/python'),str(p)]\nsys.argv=[sys.argv[0],str(p/'build/identityd')]\nfrom test_identity_tls import TlsFixture\nimport issuer_pb2 as pb\nfixture=TlsFixture();fixture.setUp();folder=p/'local/m01-session-crosshost';folder.mkdir()\ntry:\n fixture.config.idle_timeout_ms=10000\n proc=fixture.launch('0.0.0.0');peer=fixture.connect()\n changed=fixture.execute(peer,fixture.challenge(peer,fixture.operation(pb.APPROVE_ALWAYS,profile='empty-v1')))\n assert changed.policy.policy.mode==pb.APPROVE_ALWAYS;peer.close()\n metadata={'host':'sb16','port':fixture.port,'issuer_id':fixture.info.issuer_id.hex(),'issuer_public_key':fixture.info.public_key.hex()}\n meta=fixture.root/'connection.json';meta.write_text(json.dumps(metadata))\n with tarfile.open(folder/'fixture.tar','w') as archive:\n  for file in [meta,fixture.server_cert,fixture.service_cert,fixture.service_key]:archive.add(file,arcname=file.name,recursive=False)\n print('READY',flush=True);deadline=time.monotonic()+180;revoked=False\n while not (folder/'stop').exists():\n  assert proc.poll() is None\n  if not revoked and (folder/'revoke').exists():\n   with sqlite3.connect(f'file:{fixture.state}/identity.db?mode=ro',uri=True) as db:\n    rows=list(db.execute('SELECT id FROM credential'))\n   assert len(rows)==1\n   peer=fixture.connect()\n   operation=pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(target=pb.IdentityReference(kind=pb.CREDENTIAL_TARGET,id=rows[0][0]),expected_security_revision=0,reason='cross-host world fixture'))\n   result=fixture.execute(peer,fixture.challenge(peer,operation));assert result.identity_status.credential_revoked\n   peer.close();revoked=True\n  if time.monotonic()>deadline:raise TimeoutError('Cross-host server expired')\n  time.sleep(.05)\n assert revoked\n record={'issuer_host':'sb16','world_host':'sb16-2','fixture_only':True,'status':'passed',\n         'identityd_sha256':hashlib.sha256((p/'build/identityd').read_bytes()).hexdigest(),\n         'test_sha256':hashlib.sha256((p/'tests/core/test_world_identity.py').read_bytes()).hexdigest()}\n (folder/'server.json').write_text(json.dumps(record,indent=2)+'\\n')\nfinally:\n fixture.doCleanups();(folder/'fixture.tar').unlink(missing_ok=True)\n",
+  "result": {
+    "issuer_host": "sb16",
+    "world_host": "sb16-2",
+    "fixture_only": true,
+    "status": "passed",
+    "identityd_sha256": "d8fb16a10f13faff5db06e7ff07b6ab888e4a0fc5ab8ca62994892ba1653c8b9",
+    "test_sha256": "5f011d5f2af3b24b72a42dffd2f55f9b949898cd23a6372271851e706abb4303"
+  },
+  "fixture_cleanup": "Temporary keys, certificates, issuer database, and transfer archives removed.",
+  "coordinator": {
+    "transport": "scp -3 relayed the disposable service bundle through the Windows SSH client with normal host verification.",
+    "trigger": "After WORLD_HOLDING_INPUT, the coordinator created the server revoke marker and the client release marker through their existing SSH connections.",
+    "assertions_changed": false
+  }
+}

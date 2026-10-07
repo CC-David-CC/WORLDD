@@ -1,0 +1,28 @@
+[0/2] Re-checking globbed directories...
+[1/27] Generating python/world_session_pb2.py
+[2/27] Running cpp protocol buffer compiler on proto/spatial/identity/v1/world_session.proto
+[3/27] Building CXX object CMakeFiles/spatial-protobuf.dir/world_session.pb.cc.o
+[4/27] Linking CXX static library libspatial-protobuf.a
+[5/27] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[6/27] Linking CXX executable spatial-key
+[7/27] Linking CXX executable spatial-issuer-client
+[8/27] Linking CXX static library libspatial-issuer.a
+[9/27] Linking CXX executable spatial-issuer-watch
+[10/27] Linking CXX executable identityd
+[11/27] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[12/27] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[13/27] Linking CXX executable spatialwm
+[14/27] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[15/27] Linking CXX static library libspatial-core.a
+[16/27] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[17/27] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[18/27] Linking CXX executable spatial-app-init
+[19/27] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[20/27] Linking CXX executable workspaced
+[21/27] Linking CXX executable spatial-issuer-client-probe
+[22/27] Linking CXX executable spatial-input-bridge
+[23/27] Building CXX object CMakeFiles/worldd.dir/src/world/identity_sessions.cpp.o
+[24/27] Linking CXX executable spatial-issuer-watch-probe
+[25/27] Linking CXX executable spatial-git-job-probe
+[26/27] Linking CXX executable worldd
+[27/27] Linking CXX executable spatial-test-host

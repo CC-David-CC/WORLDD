@@ -9,7 +9,9 @@ Manual and automatic issuance currently resolve only the empty-v1 profile, which
 Issuer-side credential and actor revocation and fresh authentication are qualified. See IDENTITY_REVOCATION.md for their limits.
 The issuer TLS service listener is qualified. See ISSUER_TLS.md for its interface and limits.
 The production checked issuer client is qualified. See ISSUER_CLIENT.md for its interface and limits.
-Nonempty bootstrap grants and authenticated world sessions with immediate revocation remain required work.
+The ordered revocation feed and bounded watcher are qualified. See ISSUER_WATCH.md.
+Authenticated local world channels and native credential cancellation are qualified. See WORLD_IDENTITY.md for their limits.
+Nonempty bootstrap grants, persistent scoped authority, remote actor transport, and distributed revocation acknowledgement remain required.
 
 ## Required integration
 

@@ -1,0 +1,25 @@
+[
+  {
+    "name": "bindings",
+    "argv": [
+      "protoc",
+      "--python_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-session-contract/python",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/world_session.proto"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "missing-feed",
+    "argv": [
+      "python3",
+      "tests/core/test_world_identity.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+      "WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor"
+    ],
+    "exit_code": 1
+  }
+]

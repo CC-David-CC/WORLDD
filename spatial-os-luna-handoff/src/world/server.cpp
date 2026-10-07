@@ -1,4 +1,5 @@
 #include "world/server.hpp"
+#include "world/identity_sessions.hpp"
 #include "core/protocol.hpp"
 #include "platform/render_worker.hpp"
 #include "platform/broker.hpp"
@@ -25,10 +26,23 @@ std::uint32_t length(const std::string& buffer) {
     return (std::uint32_t(h[0]) << 24) | (std::uint32_t(h[1]) << 16) | (std::uint32_t(h[2]) << 8) | h[3];
 }
 }
-void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker) {
+void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker, IdentitySessions* sessions) {
     nonblocking(STDIN_FILENO); nonblocking(STDOUT_FILENO);
     signal(SIGPIPE, SIG_IGN);
     const auto origin = Clock::now();
+    struct ClearCallbacks {
+        RenderWorker* renderer;
+        BrokerClient* broker;
+        IdentitySessions* sessions;
+        ~ClearCallbacks() {
+            if (renderer) renderer->set_tick([] {});
+            if (broker) broker->set_tick([] {});
+            if (sessions) sessions->set_tick([] {});
+        }
+    } clear_callbacks{renderer, broker, sessions};
+    if (sessions) sessions->set_tick([&] {
+        actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
+    });
     if (renderer) renderer->set_tick([&] { actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); });
     if (broker) broker->set_tick([&] {
         actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
@@ -38,11 +52,13 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* 
     std::size_t sent = 0;
     bool eof = false;
     while (true) {
+        if (sessions) sessions->tick();
         const auto now = Clock::now();
         actors.tick(std::chrono::duration<double>(now - origin).count());
         if (renderer) renderer->check_alive();
         if (broker) broker->check_alive();
         actors.flush_input();
+        if (sessions) sessions->pump();
         if (output.empty() && input.size() >= 4) {
             const auto size = length(input);
             if (size > max_frame_bytes) throw std::runtime_error("Frame exceeds size limit");

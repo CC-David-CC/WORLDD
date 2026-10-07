@@ -1,0 +1,85 @@
+{
+  "base": "f7b3e3fcf888272bd2fa862d65881e15535153a6",
+  "source_overlay": {
+    "base": "f7b3e3fcf888272bd2fa862d65881e15535153a6",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "b6fb334de2061317fd4c9c7cd0de24ad7fd30ddb75941c16605707ee8a0cdbab",
+        "after": "3f7b344162cdf680135dfe96468ff788e702ffaa8dce1686d8c1c68167b057be",
+        "previous": "3f7b344162cdf680135dfe96468ff788e702ffaa8dce1686d8c1c68167b057be"
+      },
+      "spatial-os-luna-handoff/docs/WORLD_IDENTITY.md": {
+        "before": null,
+        "after": "a5d1a52421f852489fdddf69f7b01cbee1c2a7188033cfefe717524135faaa66",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/world_session.proto": {
+        "before": null,
+        "after": "c59afa84295e61a726a3b9b6950fc96770565b8c85811cd67a7dfa5ea7d12dea",
+        "previous": "c59afa84295e61a726a3b9b6950fc96770565b8c85811cd67a7dfa5ea7d12dea"
+      },
+      "spatial-os-luna-handoff/src/world/actors.cpp": {
+        "before": "6dd1135759ec52caa4d3b14e668e1d7183dadb389382ac47b5f267f1b3e85732",
+        "after": "02aa81120875fe2938811f80822372ef04ecd13bcc6bf721c01aa5b25408c75e",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/world/actors.hpp": {
+        "before": "287b3d42314fe49d8490bd46d18d3afe0f30814d902bc5241d17da47fd5708ed",
+        "after": "28bedb2c029dfef76015f68adc175b967a76d575c6a4e787e288ea67f9ebf113",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/world/identity_sessions.cpp": {
+        "before": null,
+        "after": "15ac6a7ec950e8a412b546cb4f8fea7b137a14d22f58fc282a6117527352aa45",
+        "previous": "ba1544232715e1d139cf3582b3c29c7a9c38ef8a56e51417aaec4c0f92fe8814"
+      },
+      "spatial-os-luna-handoff/src/world/identity_sessions.hpp": {
+        "before": null,
+        "after": "eea2bc4687e71f3921a6ad761978571aac55730f1a71e0ff1db3c7e50b598edc",
+        "previous": "eea2bc4687e71f3921a6ad761978571aac55730f1a71e0ff1db3c7e50b598edc"
+      },
+      "spatial-os-luna-handoff/src/world/main.cpp": {
+        "before": "2dea4c24ba8400345652c6845ba653972a6f87f26a32638d74b6d06b30ddfe46",
+        "after": "8f266631a1e29531e79ee7f25e9d92d5bb01437347e921a27ae41afff7cb9cb8",
+        "previous": "8f266631a1e29531e79ee7f25e9d92d5bb01437347e921a27ae41afff7cb9cb8"
+      },
+      "spatial-os-luna-handoff/src/world/server.cpp": {
+        "before": "b8417117f98ab876c45ce6ac34b411f4b8d2935e70e5cb701e11ddd4a9f0e6db",
+        "after": "c70a417ebfce5ca0a377f90e6ede5bd262ea623752ee090a668d617f41dee76f",
+        "previous": "c70a417ebfce5ca0a377f90e6ede5bd262ea623752ee090a668d617f41dee76f"
+      },
+      "spatial-os-luna-handoff/src/world/server.hpp": {
+        "before": "d22906d6ad9472ba7e06dccaeb30fd23dfd2e22455a3ff71a4e419c31d3d024d",
+        "after": "d9fba7c2057ba196c48541ae3ece5e55efbd276cde7f43f5d47fb8506cbef764",
+        "previous": "d9fba7c2057ba196c48541ae3ece5e55efbd276cde7f43f5d47fb8506cbef764"
+      },
+      "spatial-os-luna-handoff/tasks/m1/identity.world_channel.json": {
+        "before": null,
+        "after": "43e4ebe3a67441ba24686e242bed4e0c7697d5221332176c553fd09ee186f5e8",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_world_identity.py": {
+        "before": null,
+        "after": "5f011d5f2af3b24b72a42dffd2f55f9b949898cd23a6372271851e706abb4303",
+        "previous": "20d66abeecadcabbdb17310232a8d4f31770421671ea2ec0e65e7e9798ff87d4"
+      }
+    }
+  },
+  "invariant": "Committed revocation cancels held native input without another actor request.",
+  "mutation": "Ignore revocation notifications in the world session consumer.",
+  "before_sha256": "15ac6a7ec950e8a412b546cb4f8fea7b137a14d22f58fc282a6117527352aa45",
+  "after_sha256": "e5303d22848a2a0331df487e4d46fffe37d0160dd6f7bf9fb727208e95e95e54",
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tests/core/test_world_identity.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-session-final-mutation/source/spatial-os-luna-handoff/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-session-final-mutation/source/spatial-os-luna-handoff/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-session-final-mutation/source/spatial-os-luna-handoff/build/worldd",
+    "WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request"
+  ],
+  "exit_code": 1,
+  "status": "detected"
+}

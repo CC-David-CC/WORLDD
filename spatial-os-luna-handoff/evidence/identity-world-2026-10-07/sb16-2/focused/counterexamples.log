@@ -1,0 +1,125 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 6
+    Start  6: issuer-client
+
+6: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_issuer_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client"
+6: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+6: Environment variables: 
+6:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+6: Test timeout computed to be: 90
+6: test_bad_reply_envelopes_poison_client (__main__.ClientTests.test_bad_reply_envelopes_poison_client) ... ok
+6: test_client_certificate_must_be_trusted_by_issuer (__main__.ClientTests.test_client_certificate_must_be_trusted_by_issuer) ... ok
+6: test_client_reaches_real_issuer_and_preserves_caller_request_ids (__main__.ClientTests.test_client_reaches_real_issuer_and_preserves_caller_request_ids) ... ok
+6: test_client_rejects_expired_server_certificate (__main__.ClientTests.test_client_rejects_expired_server_certificate) ... ok
+6: test_client_uses_sni_and_unique_internal_request_ids (__main__.ClientTests.test_client_uses_sni_and_unique_internal_request_ids) ... ok
+6: test_client_verifies_explicit_server_trust (__main__.ClientTests.test_client_verifies_explicit_server_trust) ... ok
+6: test_client_verifies_server_name (__main__.ClientTests.test_client_verifies_server_name) ... ok
+6: test_common_name_without_dns_san_is_rejected (__main__.ClientTests.test_common_name_without_dns_san_is_rejected) ... ok
+6: test_fragmented_reply_is_received_without_losing_frame_identity (__main__.ClientTests.test_fragmented_reply_is_received_without_losing_frame_identity) ... ok
+6: test_invalid_config_does_not_connect (__main__.ClientTests.test_invalid_config_does_not_connect) ... ok
+6: test_invalid_local_payload_does_not_poison_connection (__main__.ClientTests.test_invalid_local_payload_does_not_poison_connection) ... ok
+6: test_issuer_pins_are_checked_before_actor_data (__main__.ClientTests.test_issuer_pins_are_checked_before_actor_data) ... ok
+6: test_lost_reply_does_not_reconnect_or_replay (__main__.ClientTests.test_lost_reply_does_not_reconnect_or_replay) ... ok
+6: test_missing_production_capability_rejected_before_actor_data (__main__.ClientTests.test_missing_production_capability_rejected_before_actor_data) ... ok
+6: test_numeric_ipv6_endpoint_reaches_real_issuer (__main__.ClientTests.test_numeric_ipv6_endpoint_reaches_real_issuer) ... ok
+6: test_real_enrollment_authentication_and_revocation_use_checked_client (__main__.ClientTests.test_real_enrollment_authentication_and_revocation_use_checked_client) ... ok
+6: test_reply_deadline_is_not_refreshed_by_partial_progress (__main__.ClientTests.test_reply_deadline_is_not_refreshed_by_partial_progress) ... ok
+6: test_startup_reply_identity_is_checked (__main__.ClientTests.test_startup_reply_identity_is_checked) ... ok
+6: test_tcp_handshake_timeout_is_bounded (__main__.ClientTests.test_tcp_handshake_timeout_is_bounded) ... ok
+6: test_tick_callback_cancels_and_poisons_library_connection (__main__.ClientTests.test_tick_callback_cancels_and_poisons_library_connection) ... ok
+6: test_tls12_has_no_fallback (__main__.ClientTests.test_tls12_has_no_fallback) ... ok
+6: test_truncated_and_excessive_replies_fail_closed (__main__.ClientTests.test_truncated_and_excessive_replies_fail_closed) ... ok
+6: test_unsafe_client_key_fails_before_connect (__main__.ClientTests.test_unsafe_client_key_fails_before_connect) ... ok
+6: test_valid_issuer_error_keeps_connection_usable (__main__.ClientTests.test_valid_issuer_error_keeps_connection_usable) ... ok
+6: 
+6: ----------------------------------------------------------------------
+6: Ran 24 tests in 8.894s
+6: 
+6: OK
+1/3 Test  #6: issuer-client ....................   Passed    9.00 sec
+test 7
+    Start  7: identity-watch
+
+7: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_watch.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-watch"
+7: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+7: Environment variables: 
+7:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+7: Test timeout computed to be: 120
+7: test_actor_and_credential_events_keep_global_order (__main__.WatchTests.test_actor_and_credential_events_keep_global_order) ... ok
+7: test_bounded_queue_failure_is_visible_to_world_consumer (__main__.WatchTests.test_bounded_queue_failure_is_visible_to_world_consumer) ... ok
+7: test_committed_revocation_wakes_wait_without_waiting_for_heartbeat (__main__.WatchTests.test_committed_revocation_wakes_wait_without_waiting_for_heartbeat) ... ok
+7: test_current_baseline_and_committed_history_are_distinct (__main__.WatchTests.test_current_baseline_and_committed_history_are_distinct) ... ok
+7: test_duplicate_revocation_does_not_create_another_event (__main__.WatchTests.test_duplicate_revocation_does_not_create_another_event) ... ok
+7: test_future_cursor_and_excessive_wait_are_rejected (__main__.WatchTests.test_future_cursor_and_excessive_wait_are_rejected) ... ok
+7: test_history_is_bounded_to_128_contiguous_events (__main__.WatchTests.test_history_is_bounded_to_128_contiguous_events) ... ok
+7: test_history_survives_issuer_restart (__main__.WatchTests.test_history_survives_issuer_restart) ... ok
+7: test_invalid_feed_batches_disable_checked_client (__main__.WatchTests.test_invalid_feed_batches_disable_checked_client) ... ok
+7: test_issuer_failure_disables_watcher_without_reconnect (__main__.WatchTests.test_issuer_failure_disables_watcher_without_reconnect) ... ok
+7: test_missing_durable_history_is_a_storage_failure (__main__.WatchTests.test_missing_durable_history_is_a_storage_failure) ... ok
+7: test_production_watcher_delivers_baseline_then_real_revocation (__main__.WatchTests.test_production_watcher_delivers_baseline_then_real_revocation) ... ok
+7: test_reconnect_recovers_events_after_explicit_cursor (__main__.WatchTests.test_reconnect_recovers_events_after_explicit_cursor) ... ok
+7: test_rolled_back_revocation_has_no_event (__main__.WatchTests.test_rolled_back_revocation_has_no_event) ... ok
+7: test_tls_wait_has_heartbeat_and_does_not_block_another_peer (__main__.WatchTests.test_tls_wait_has_heartbeat_and_does_not_block_another_peer) ... ok
+7: test_watcher_explicit_cursor_delivers_durable_backlog (__main__.WatchTests.test_watcher_explicit_cursor_delivers_durable_backlog) ... ok
+7: test_watcher_stops_promptly_on_supervisor_eof (__main__.WatchTests.test_watcher_stops_promptly_on_supervisor_eof) ... ok
+7: 
+7: ----------------------------------------------------------------------
+7: Ran 17 tests in 17.424s
+7: 
+7: OK
+2/3 Test  #7: identity-watch ...................   Passed   17.56 sec
+test 12
+    Start 12: world-identity
+
+12: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+12: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+12: Environment variables: 
+12:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+12:  SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe
+12: Test timeout computed to be: 120
+12: test_actor_channel_does_not_expose_management (__main__.WorldIdentityTests.test_actor_channel_does_not_expose_management) ... ok
+12: test_actor_revocation_releases_native_input (__main__.WorldIdentityTests.test_actor_revocation_releases_native_input) ... ok
+12: test_anonymous_channel_cannot_act_or_inspect (__main__.WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect) ... ok
+12: test_caller_token_cannot_select_another_actor (__main__.WorldIdentityTests.test_caller_token_cannot_select_another_actor) ... ok
+12: test_credential_revocation_preserves_another_credential_for_actor (__main__.WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor) ... ok
+12: test_credential_revocation_releases_native_input_without_another_actor_request (__main__.WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request) ... ok
+12: test_current_status_blocks_actions_after_committed_revocation (__main__.WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation) ... ok
+12: test_disconnect_releases_real_native_input_and_keeps_application (__main__.WorldIdentityTests.test_disconnect_releases_real_native_input_and_keeps_application) ... ok
+12: test_excessive_frame_closes_actor_channel_and_releases_input (__main__.WorldIdentityTests.test_excessive_frame_closes_actor_channel_and_releases_input) ... ok
+12: test_idle_session_keeps_issuer_checks_available (__main__.WorldIdentityTests.test_idle_session_keeps_issuer_checks_available) ... ok
+12: test_issuer_failure_cancels_live_control_and_does_not_kill_application (__main__.WorldIdentityTests.test_issuer_failure_cancels_live_control_and_does_not_kill_application) ... ok
+12: test_private_world_requires_separate_admission (__main__.WorldIdentityTests.test_private_world_requires_separate_admission) ... ok
+12: test_proof_is_bound_to_its_channel (__main__.WorldIdentityTests.test_proof_is_bound_to_its_channel) ... ok
+12: test_public_admission_does_not_grant_action_authority (__main__.WorldIdentityTests.test_public_admission_does_not_grant_action_authority) ... ok
+12: test_revocation_between_challenge_and_completion_prevents_entry (__main__.WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry) ... ok
+12: test_revoked_credential_cannot_enter (__main__.WorldIdentityTests.test_revoked_credential_cannot_enter) ... ok
+12: test_session_reconnect_restores_saved_room_and_pose (__main__.WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose) ... ok
+12: test_world_audience_and_random_binding_are_checked (__main__.WorldIdentityTests.test_world_audience_and_random_binding_are_checked) ... ok
+12: test_world_session_derives_identity_and_uses_real_actor (__main__.WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor) ... ok
+12: test_wrong_key_and_replayed_completion_fail (__main__.WorldIdentityTests.test_wrong_key_and_replayed_completion_fail) ... ok
+12: 
+12: ----------------------------------------------------------------------
+12: Ran 20 tests in 21.545s
+12: 
+12: OK
+3/3 Test #12: world-identity ...................   Passed   21.80 sec
+
+The following tests passed:
+	issuer-client
+	identity-watch
+	world-identity
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =  48.35 sec

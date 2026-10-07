@@ -1,0 +1,88 @@
+{
+  "argv": [
+    "python3",
+    "/home/dflanag3/src/m01-session-cross-run.py"
+  ],
+  "exit_code": 0,
+  "helper_sha256": "ae11fc426aec51d33993c92f056c78573e2e8c8b50f047983cf7d390209713ba",
+  "helper_source": "from pathlib import Path\nimport hashlib,json,os,socket,sys,tarfile,time\nfrom google.protobuf import text_format\np=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff');assert socket.gethostname().split('.')[0]=='sb16-2'\nos.umask(0o077);sys.path[:0]=[str(p/'tests/core'),str(p/'build/python'),str(p)]\nsys.argv=[sys.argv[0],str(p/'build/identityd'),str(p/'build/spatial-issuer-client'),str(p/'build/worldd')]\nfrom test_world_identity import WorldProcess,session,core\nfrom test_issuer_client import ClientProcess\nfrom test_identity_enrollment import EnrollmentFixture\nfrom harness.probe import Probe\nfrom harness.oracles import pose\nimport issuer_pb2 as pb\nfixture=EnrollmentFixture();fixture.setUp();fixture.worlds=[]\nfolder=p/'local/m01-session-crosshost';folder.mkdir();bundle=p/'local/m01-session-crosshost-fixture.tar'\ndef until(fn,predicate):\n deadline=time.monotonic()+5\n while True:\n  value=fn()\n  if predicate(value):return value\n  if time.monotonic()>deadline:raise AssertionError(value)\n  time.sleep(.01)\ntry:\n with tarfile.open(bundle) as archive:\n  members=archive.getmembers();assert {m.name for m in members}=={'connection.json','server.crt','service.crt','service.pem'}\n  for member in members:\n   assert member.isfile() and member.size<65536\n   (fixture.root/member.name).write_bytes(archive.extractfile(member).read())\n meta=json.loads((fixture.root/'connection.json').read_text())\n config=pb.IssuerTlsClientConfig(protocol_version=1,address=socket.gethostbyname('sb16'),port=meta['port'],server_name='issuer.test',\n  server_ca_path=str(fixture.root/'server.crt'),certificate_path=str(fixture.root/'service.crt'),private_key_path=str(fixture.root/'service.pem'),\n  issuer_id=bytes.fromhex(meta['issuer_id']),issuer_public_key=bytes.fromhex(meta['issuer_public_key']),io_timeout_ms=3000)\n client_path=fixture.root/'client.textproto';client_path.write_text(text_format.MessageToString(config))\n client=ClientProcess(client_path,fixture.root/'client.log');fixture.addCleanup(client.close)\n info=client.call(info=pb.IssuerInfoRequest()).info;record=fixture.enroll(client);claims=fixture.claims(record,info);client.close()\n policy=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(client_path),admission=session.EXPLICIT_ACTORS,\n  admitted_actor_ids=[claims.actor_id],actor_grants=[session.WorldActorGrants(actor_id=claims.actor_id,grants=['interact'])])\n path=fixture.root/'world.textproto';path.write_text(text_format.MessageToString(policy))\n world=WorldProcess(fixture,path,fixture.root/'world-state',native=True);fixture.worlds.append(world);fixture.addCleanup(world.close)\n world.management('system.hello');peer=world.peers[0]\n challenge=peer.call(begin=session.WorldAuthenticationBegin(credential=record.credential)).challenge\n opened=peer.call(complete=pb.AuthenticationComplete(nonce=challenge.nonce,proof=fixture.proof(challenge,fixture.actor_key,fixture.actor_public)))\n assert opened.opened.identity.actor_id==claims.actor_id\n probe=Probe(fixture.root,xi2=True,display=os.environ['SPATIAL_TEST_DISPLAY']);fixture.addCleanup(probe.close)\n surface=until(lambda:world.management('surface.find',probe_id=probe.id),lambda r:r['surface'] is not None)['surface']\n world.management('surface.place',id=surface['id'],room=world.management('world.info')['entry_room'],pose=pose((0,0,-2)),size=[2,2])\n assert peer.act(aim=core.ActorAimRequest(direction=core.Vec3(z=-1))).HasField('action')\n assert peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)).HasField('action')\n assert peer.act(key=core.ActorKeyRequest(keysym='Shift_L',pressed=True)).HasField('action')\n state=peer.call(inspect=session.WorldSessionInspect()).state;assert state.held_keys and state.held_buttons\n print('WORLD_HOLDING_INPUT',flush=True);deadline=time.monotonic()+60\n while not (folder/'release').exists():\n  assert world.proc.poll() is None\n  if time.monotonic()>deadline:raise TimeoutError('Cross-host coordinator expired')\n  time.sleep(.05)\n def events():world.management('runtime.fence');return probe.input_events()\n actual=until(events,lambda rows:any(e['event']=='key' and not e['pressed'] for e in rows) and any(e['event']=='button' and not e['pressed'] for e in rows))\n assert peer.call(inspect=session.WorldSessionInspect()).error.code==core.UNAUTHORIZED\n assert probe.proc.poll() is None\n result={'status':'passed','issuer_host':'sb16','world_host':'sb16-2','actor_channel':'inherited private AF_UNIX socket',\n         'issuer_transport':'mutual TLS 1.3','shared_world_qualified':False,\n         'checks':['actor key generated on client host','remote issuer enrollment','fresh world authentication',\n                   'explicit private admission','real native key and button hold','remote credential revocation',\n                   'native key and button release without another actor request','application remains alive','further actor requests denied'],\n         'worldd_sha256':hashlib.sha256((p/'build/worldd').read_bytes()).hexdigest(),\n         'test_sha256':hashlib.sha256((p/'tests/core/test_world_identity.py').read_bytes()).hexdigest(),'native_events':actual}\n (folder/'client.json').write_text(json.dumps(result,indent=2)+'\\n');print('Cross-host world revocation passed',flush=True)\nfinally:\n fixture.doCleanups();bundle.unlink(missing_ok=True)\n",
+  "result": {
+    "status": "passed",
+    "issuer_host": "sb16",
+    "world_host": "sb16-2",
+    "actor_channel": "inherited private AF_UNIX socket",
+    "issuer_transport": "mutual TLS 1.3",
+    "shared_world_qualified": false,
+    "checks": [
+      "actor key generated on client host",
+      "remote issuer enrollment",
+      "fresh world authentication",
+      "explicit private admission",
+      "real native key and button hold",
+      "remote credential revocation",
+      "native key and button release without another actor request",
+      "application remains alive",
+      "further actor requests denied"
+    ],
+    "worldd_sha256": "d4211ea842baf5be70e863019136cc8e37f6afdae045d74d26b0bf8ae050bb2a",
+    "test_sha256": "5f011d5f2af3b24b72a42dffd2f55f9b949898cd23a6372271851e706abb4303",
+    "native_events": [
+      {
+        "event": "focus",
+        "focused": true,
+        "device": 9,
+        "xid": 4194305
+      },
+      {
+        "event": "button",
+        "pressed": true,
+        "button": 1,
+        "x": 160,
+        "y": 120,
+        "device": 8,
+        "xid": 4194305
+      },
+      {
+        "event": "key",
+        "pressed": true,
+        "keycode": 50,
+        "keysym": 65505,
+        "device": 9,
+        "xid": 4194305,
+        "text_hex": ""
+      },
+      {
+        "event": "button",
+        "pressed": false,
+        "button": 1,
+        "x": 160,
+        "y": 120,
+        "device": 8,
+        "xid": 4194305
+      },
+      {
+        "event": "key",
+        "pressed": false,
+        "keycode": 50,
+        "keysym": 65505,
+        "device": 9,
+        "xid": 4194305,
+        "text_hex": ""
+      },
+      {
+        "event": "focus",
+        "focused": false,
+        "device": 9,
+        "xid": 4194305
+      }
+    ]
+  },
+  "fixture_cleanup": "Temporary keys, certificates, issuer database, and transfer archives removed.",
+  "coordinator": {
+    "transport": "scp -3 relayed the disposable service bundle through the Windows SSH client with normal host verification.",
+    "trigger": "After WORLD_HOLDING_INPUT, the coordinator created the server revoke marker and the client release marker through their existing SSH connections.",
+    "assertions_changed": false
+  },
+  "launcher_source": "from pathlib import Path\nimport json,os,socket,subprocess\np=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff')\nassert socket.gethostname().split('.')[0]=='sb16-2'\nenv=os.environ.copy();env.pop('SPATIAL_TEST_DISPLAY',None)\nenv.update(SPATIAL_TEST_XSERVER=json.loads((p/'local/m01-watch-debug/run.json').read_text())['xserver']['path'],\n           SPATIAL_XPROBE=str(p/'build/spatial-xprobe'))\nresult=subprocess.run(['python3','tools/with_test_display.py','--','python3',str(p.parents[1]/'m01-session-cross-client.py')],cwd=p,env=env)\nraise SystemExit(result.returncode)\n",
+  "launcher_sha256": "f78239c0df9e80f3eced52a55250d8ae67644b9352191575b21f9f6e3f430fff"
+}
