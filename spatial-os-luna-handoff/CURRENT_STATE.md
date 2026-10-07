@@ -1,5 +1,35 @@
 # Implementation status
 
+## 2026-10-07: P09 real SQLite write-failure recovery
+
+Worldd now injects storage.next_write at SQLite's actual xWrite boundary.
+The private VFS returns SQLITE_FULL with ENOSPC once.
+Failed creates, updates, deletes, and checkpoints preserve the previous durable state.
+A later valid write succeeds. Faults remain fixture-only and never persist across restart.
+Normal daemons retain SQLite's default VFS.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 216 core checks, including six new storage checks.
+- All 51 harness checks.
+- 145 acceptance cases, including all 138 preceding P00-P08 cases.
+
+The full P00-P09 gate executed 148 of 151 cases.
+It reports one assertion failure, two errors, zero skipped, and three unrun P10 cases.
+Seven P09 primitives pass. Git-effect faults, durable slots, and stale-handle validation remain incomplete.
+P09, full Spatial-M1, and native hardware qualification remain unfinished.
+
+A native component witness verifies sixteen VFS lifecycles with real SQLite files.
+It checks isolated faults, retry, WAL forwarding, unchanged default registration, and database reopening.
+All 108 source hashes match reviewed local files and both hosts.
+The acceptance lock, schemas, locked assertions, oracles, and native witness remain unchanged.
+Evidence is in evidence/recovery-storage-2026-10-07.
+See docs/STORAGE_FAULTS.md and docs/RECOVERY_BOUNDARIES.md for scope, commands, and recovery.
+No database migration, host configuration, or operator-session change was required.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: recovery.git_side_effect_boundary after real Git worktree creation and before the ready acknowledgment.
+The full project goal remains active.
+
 ## 2026-10-07: P09 committed state survives a lost reply
 
 Worldd now supports a real exit after successful COMMIT and before sending its reply.

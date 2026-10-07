@@ -1,4 +1,5 @@
 #include "world/store.hpp"
+#include "world/storage_vfs.hpp"
 #include "core/geometry.hpp"
 #include <sqlite3.h>
 #include <fcntl.h>
@@ -113,6 +114,7 @@ const char* workspace_context_schema =
 struct WorldStore::Impl {
     File lock;
     CommitFault fault;
+    std::unique_ptr<StorageVfs> storage_vfs;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
     explicit Impl(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults) : fault{fixture_faults} {
         require(!migrate_v1 || !fixture_faults, "Migration cannot enable fixture faults");
@@ -126,8 +128,10 @@ struct WorldStore::Impl {
         for (const auto* name : {"world.db", "world.db-journal", "world.db-wal", "world.db-shm"})
             require(!std::filesystem::is_symlink(directory / name), "Database files must not be symlinks");
         sqlite3* connection = nullptr;
+        if (fixture_faults) storage_vfs = std::make_unique<StorageVfs>();
         const int opened = sqlite3_open_v2((directory / "world.db").c_str(), &connection,
-                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr);
+                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX,
+                                           storage_vfs ? storage_vfs->name() : nullptr);
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
         int version;
         { Statement q(db.get(), "PRAGMA user_version"); q.step(); version = sqlite3_column_int(q.value, 0); }
@@ -240,10 +244,12 @@ wire::FaultArmReply WorldStore::arm_fault(const wire::FaultArmRequest& request) 
                 request.storage_error() == wire::STORAGE_FAULT_ENOSPC, "Invalid storage fault");
     else require(request.action() == wire::FAULT_EXIT && !request.has_storage_error(), "Invalid exit fault");
     if (request.point() != wire::FAULT_WORLD_BEFORE_COMMIT &&
-        request.point() != wire::FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY)
+        request.point() != wire::FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY && request.point() != wire::FAULT_STORAGE_NEXT_WRITE)
         throw WorldError(wire::UNIMPLEMENTED, "Requested fault boundary is not implemented");
-    if (impl_->fault.point != wire::FAULT_POINT_UNSPECIFIED) throw WorldError(wire::BUSY, "A fault is already armed");
-    impl_->fault.point = request.point();
+    if (impl_->fault.point != wire::FAULT_POINT_UNSPECIFIED || impl_->storage_vfs->armed())
+        throw WorldError(wire::BUSY, "A fault is already armed");
+    if (request.point() == wire::FAULT_STORAGE_NEXT_WRITE) impl_->storage_vfs->arm();
+    else impl_->fault.point = request.point();
     wire::FaultArmReply result; result.set_armed(true); return result;
 }
 wire::WorldInfoReply WorldStore::info() { return impl_->info(); }

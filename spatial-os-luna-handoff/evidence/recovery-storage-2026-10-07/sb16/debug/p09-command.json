@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tools/gate.py",
+    "--through",
+    "P09",
+    "--sut",
+    "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host\"]",
+    "--report",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-storage-debug/p09.json"
+  ],
+  "exit_code": 1,
+  "counts": {
+    "passed": 145,
+    "failed": 1,
+    "error": 2,
+    "skipped": 0
+  }
+}

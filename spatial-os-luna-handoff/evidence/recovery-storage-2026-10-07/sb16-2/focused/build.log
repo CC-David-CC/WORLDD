@@ -1,0 +1,12 @@
+[0/2] Re-checking globbed directories...
+[1/11] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[2/11] Building CXX object CMakeFiles/spatial-core.dir/src/world/storage_vfs.cpp.o
+[3/11] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/11] Linking CXX static library libspatial-core.a
+[5/11] Linking CXX executable worldd
+[6/11] Building CXX object CMakeFiles/spatial-storage-vfs-probe.dir/src/testing/storage_vfs_probe.cpp.o
+[7/11] Building CXX object CMakeFiles/spatial-storage-vfs-probe.dir/src/world/storage_vfs.cpp.o
+[8/11] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[9/11] Linking CXX executable spatial-storage-vfs-probe
+[10/11] Linking CXX executable workspaced
+[11/11] Linking CXX executable spatial-test-host

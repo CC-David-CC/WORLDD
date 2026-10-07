@@ -96,6 +96,7 @@ class RecoveryBoundaryTests(unittest.TestCase):
         self.error('BUSY', client, 'fault.arm', point='world.before_commit', action='exit')
         self.error('BUSY', client, 'fault.arm', point='world.after_commit_before_reply', action='exit')
         self.error('UNIMPLEMENTED', client, 'fault.arm', point='git.after_worktree_before_ready', action='exit')
+        self.error('BUSY', client, 'fault.arm', point='storage.next_write', action='error', errno='ENOSPC')
         self.crash(client, 'world.update', id='room', expected_revision=1, patch=dict(label='after'))
         self.assertEqual(self.start().call('world.snapshot'), before)
 
@@ -110,7 +111,6 @@ class RecoveryBoundaryTests(unittest.TestCase):
                        dict(point='storage.next_write', action='error')]:
             self.error('INVALID_ARGUMENT', client, 'fault.arm', **params)
         self.error('UNIMPLEMENTED', client, 'fault.arm', point='git.after_worktree_before_ready', action='exit')
-        self.error('UNIMPLEMENTED', client, 'fault.arm', point='storage.next_write', action='error', errno='ENOSPC')
         for field in ('point', 'action', 'storage_error'):
             request = pb.Request(protocol_version=1)
             request.fault_arm.point = pb.FAULT_WORLD_BEFORE_COMMIT

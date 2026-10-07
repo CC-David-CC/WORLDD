@@ -1,0 +1,7 @@
+test_injected_write_failure_does_not_ack_or_partially_update (tests.acceptance.test_09_recovery.RecoveryTests.test_injected_write_failure_does_not_ack_or_partially_update) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.232s
+
+OK
+DIAGNOSTIC P09: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-storage-focused/storage.json
