@@ -1,0 +1,48 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 11
+    Start 11: workspace-git
+
+11: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-git-job-probe"
+11: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+11: Environment variables: 
+11:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+11: Test timeout computed to be: 90
+11: .......................................
+11: ----------------------------------------------------------------------
+11: Ran 39 tests in 28.192s
+11: 
+11: OK
+1/2 Test #11: workspace-git ....................   Passed   28.34 sec
+test 12
+    Start 12: workspace-context
+
+12: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspaces.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+12: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+12: Environment variables: 
+12:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+12: Test timeout computed to be: 90
+12: .............
+12: ----------------------------------------------------------------------
+12: Ran 13 tests in 8.076s
+12: 
+12: OK
+2/2 Test #12: workspace-context ................   Passed    8.18 sec
+
+The following tests passed:
+	workspace-git
+	workspace-context
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  36.52 sec

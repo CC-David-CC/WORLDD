@@ -162,7 +162,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         const auto access = broker_->access(workspace, actor.entity.id());
         if (std::find(access.rights().begin(), access.rights().end(), wire::PROCESS_LAUNCH) == access.rights().end())
             throw WorldError(wire::FORBIDDEN, "Workspace execution authority required");
-        throw WorldError(wire::UNIMPLEMENTED, "Workspace execution broker is not implemented");
+        const auto process = broker_->launch(workspace, actor.entity.id(), request.process_launch());
+        wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_process() = process; return reply;
     }
     case wire::ActorActionRequest::kWorkspaceSelect: {
         if (!broker_) throw WorldError(wire::UNIMPLEMENTED, "No workspace authority configured");

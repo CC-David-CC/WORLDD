@@ -78,9 +78,12 @@ target_link_libraries(spatialwm PRIVATE spatial-native-input X11::X11 X11::Xcomp
 add_executable(worldd src/world/main.cpp src/world/server.cpp)
 target_link_libraries(worldd PRIVATE spatial-core)
 add_dependencies(worldd spatialwm)
-add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp)
+add_executable(spatial-app-init src/workspace/app_init.cpp)
+target_link_libraries(spatial-app-init PRIVATE spatial-scene)
+add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp)
 target_include_directories(workspaced PRIVATE src)
 target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3)
+add_dependencies(workspaced spatial-app-init)
 add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)
 target_link_libraries(spatial-test-host PRIVATE spatial-core)
 add_dependencies(spatial-test-host worldd workspaced)
@@ -157,6 +160,10 @@ if(BUILD_TESTING)
     add_test(NAME workspace-context COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspaces.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:workspaced> $<TARGET_FILE:worldd>)
     set_tests_properties(workspace-context PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME workspace-processes COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_processes.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:workspaced> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-processes PROPERTIES TIMEOUT 120
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_executable(spatial-git-job-probe src/testing/git_job_probe.cpp src/workspace/git_command.cpp)
     target_link_libraries(spatial-git-job-probe PRIVATE spatial-scene)

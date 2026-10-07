@@ -5,12 +5,20 @@ import "core.proto";
 // Private inherited authority channel. Never accept this envelope from actors.
 message AccessRequest { string workspace = 1; string actor = 2; }
 message AccessReply { repeated spatial.core.v1.WorkspaceRight rights = 1; uint64 revision = 2; }
+message LaunchRequest { string workspace = 1; string actor = 2; spatial.core.v1.ProcessLaunchRequest command = 3; }
+// The broker and its namespace supervisor use this channel. Applications never receive it.
+message AppStart { uint32 protocol_version = 1; repeated string argv = 2; }
+message AppEvent {
+  uint32 protocol_version = 1;
+  oneof outcome { bool started = 2; sint32 exit_code = 3; string error = 4; }
+}
 message Request {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
   oneof operation {
     spatial.core.v1.Request management = 100;
     AccessRequest access = 101;
+    LaunchRequest launch = 102;
   }
 }
 message Reply {
@@ -20,5 +28,6 @@ message Reply {
     spatial.core.v1.Reply management = 100;
     AccessReply access = 101;
     spatial.core.v1.Error error = 102;
+    spatial.core.v1.ProcessLaunchReply launched = 103;
   }
 }

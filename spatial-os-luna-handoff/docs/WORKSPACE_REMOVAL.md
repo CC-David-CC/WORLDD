@@ -7,7 +7,7 @@ This operation does not permanently delete project data.
 
 Workspace creation, membership, and bound-worktree protection are now qualified in [WORKSPACE_CONTEXT.md](WORKSPACE_CONTEXT.md).
 Removing a workspace-bound worktree returns IN_USE before Git or filesystem changes.
-Confined execution and complete P08 qualification remain pending.
+The subsequent [process increment](WORKSPACE_PROCESSES.md) adds confined execution and records current P08 qualification.
 
 ## Preconditions
 
@@ -69,7 +69,7 @@ The original creation result remains historical operation evidence.
 ## Explicit execution schema migration
 
 The removal increment introduced execution schema version 2 and its removals table.
-The subsequent workspace increment advances execution storage to version 3.
+The subsequent workspace and process increments advance execution storage to version 4.
 It preserves existing repositories, worktrees, creation operations, and removal records.
 See [WORKSPACE_CONTEXT.md](WORKSPACE_CONTEXT.md) for current execution and world migration procedures.
 
@@ -87,7 +87,8 @@ sqlite3 -readonly "$state/execution.db" 'PRAGMA user_version; PRAGMA foreign_key
 ```
 
 For an existing version 2 database, use --migrate-v2 instead.
-Both commands migrate to the current execution schema, version 3.
+Both commands migrate to the current execution schema, version 4.
+For an existing version 3 database, use --migrate-v3.
 The migration acquires the execution lock and validates the existing database.
 It adds required tables in one SQLite transaction.
 Repeated migration of the current version succeeds without replaying Git effects.

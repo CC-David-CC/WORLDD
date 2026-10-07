@@ -361,7 +361,7 @@ class WorkspaceGitTests(unittest.TestCase):
     def test_execution_v1_migration_is_explicit_and_preserves_git_state(self):
         self.imported(); work = self.create(); self.client.stop()
         with self.registry() as db:
-            db.execute('DROP TABLE workspace_members'); db.execute('DROP TABLE workspaces')
+            db.execute('DROP TABLE processes'); db.execute('DROP TABLE workspace_members'); db.execute('DROP TABLE workspaces')
             db.execute('DROP TABLE removals'); db.execute('PRAGMA user_version=1')
             before = {name: db.execute('SELECT * FROM ' + name).fetchall() for name in ['repositories', 'worktrees', 'operations']}
         refused = subprocess.run([BROKER, '--state-dir', str(self.state / 'execution')], input=b'', capture_output=True, timeout=5)
@@ -371,7 +371,7 @@ class WorkspaceGitTests(unittest.TestCase):
             migrated = subprocess.run(command, input=b'', capture_output=True, timeout=5)
             self.assertEqual(migrated.returncode, 0, migrated.stderr)
         with self.registry() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 3)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 4)
             for name, rows in before.items(): self.assertEqual(db.execute('SELECT * FROM ' + name).fetchall(), rows)
         self.start(); self.assertEqual(self.create(), work); self.remove()
 

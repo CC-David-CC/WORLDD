@@ -30,6 +30,7 @@ public:
     BrokerClient& operator=(const BrokerClient&) = delete;
     wire::Reply call(wire::Request request);
     broker_wire::AccessReply access(const std::string& workspace, const std::string& actor);
+    wire::ProcessLaunchReply launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command);
     void set_tick(std::function<void()> tick) { tick_ = std::move(tick); }
     void check_alive() const;
     pid_t pid() const { return pid_; }

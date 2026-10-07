@@ -1,6 +1,7 @@
 #include "workspace/store.hpp"
 #include "workspace/git_command.hpp"
 #include "workspace/status.hpp"
+#include "workspace/process.hpp"
 #include "world/store.hpp"
 #include <sqlite3.h>
 #include <fcntl.h>
@@ -14,6 +15,8 @@
 #include <optional>
 #include <set>
 #include <fstream>
+#include <map>
+#include <cmath>
 
 namespace spatial {
 namespace {
@@ -113,6 +116,10 @@ const char* workspace_schema =
     "CREATE TABLE workspace_members(workspace TEXT NOT NULL REFERENCES workspaces(id),actor TEXT NOT NULL,"
     "rights INTEGER NOT NULL CHECK(rights>=0 AND rights<=30),PRIMARY KEY(workspace,actor));"
     "PRAGMA user_version=3";
+const char* process_schema =
+    "CREATE TABLE processes(id TEXT PRIMARY KEY,actor TEXT NOT NULL,operation TEXT NOT NULL,payload BLOB NOT NULL,"
+    "workspace TEXT NOT NULL REFERENCES workspaces(id),rights INTEGER NOT NULL,state TEXT NOT NULL,exit_code INTEGER,"
+    "UNIQUE(actor,operation));PRAGMA user_version=4";
 unsigned rights_mask(const google::protobuf::RepeatedField<int>& rights) {
     unsigned mask = 0;
     for (const auto value : rights) {
@@ -128,6 +135,7 @@ struct ExecutionStore::Impl {
     std::filesystem::path state;
     File lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
+    std::map<std::string, std::unique_ptr<ApplicationProcess>> jobs;
     explicit Impl(const std::filesystem::path& directory, unsigned migrate_from) {
         require(directory.is_absolute() && !std::filesystem::is_symlink(directory), "Execution state requires an absolute nonsymlink directory");
         if (migrate_from) require(std::filesystem::is_regular_file(directory / "execution.db"), "Migration requires an existing execution database");
@@ -136,7 +144,7 @@ struct ExecutionStore::Impl {
         lock.fd = open((state / "execution.lock").c_str(), O_RDWR | O_CREAT | O_CLOEXEC | O_NOFOLLOW, 0600);
         if (lock.fd < 0 || flock(lock.fd, LOCK_EX | LOCK_NB) != 0)
             throw WorldError(wire::IN_USE, "Execution state already has an authority or cannot be locked");
-        for (const auto* name : {"execution.db", "execution.db-journal", "execution.db-wal", "execution.db-shm", "repositories", "worktrees", "effects", "retired"})
+        for (const auto* name : {"execution.db", "execution.db-journal", "execution.db-wal", "execution.db-shm", "repositories", "worktrees", "effects", "retired", "applications"})
             require(!std::filesystem::is_symlink(state / name), "Execution metadata must not be a symlink");
         std::filesystem::create_directories(state / "repositories");
         std::filesystem::create_directories(state / "worktrees");
@@ -150,9 +158,9 @@ struct ExecutionStore::Impl {
           if (q.text(0) != "delete") throw WorldError(wire::STORAGE_ERROR, "Execution journal mode unavailable"); }
         int version;
         { Query q(db.get(), "PRAGMA user_version"); q.step(); version = sqlite3_column_int(q.value, 0); }
-        if ((version == 1 || version == 2) && !migrate_from)
-            throw WorldError(wire::STORAGE_ERROR, "Execution schema requires workspaced --state-dir PATH --migrate-v1 or --migrate-v2 while the broker is stopped");
-        if (version < 0 || version > 3 || (migrate_from && (version == 0 || (version != 3 && version != static_cast<int>(migrate_from)))))
+        if (version >= 1 && version <= 3 && !migrate_from)
+            throw WorldError(wire::STORAGE_ERROR, "Execution schema requires workspaced --state-dir PATH --migrate-v1, --migrate-v2, or --migrate-v3 while the broker is stopped");
+        if (version < 0 || version > 4 || (migrate_from && (version == 0 || (version != 4 && version != static_cast<int>(migrate_from)))))
             throw WorldError(wire::STORAGE_ERROR, "Unknown execution schema; explicit migration required");
         if (version == 0) {
             Query existing(db.get(), "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"); existing.step();
@@ -163,6 +171,7 @@ struct ExecutionStore::Impl {
                 "CREATE TABLE operations(id TEXT PRIMARY KEY,payload BLOB NOT NULL,result BLOB NOT NULL,worktree TEXT NOT NULL REFERENCES worktrees(id),state TEXT NOT NULL);");
             sql(db.get(), removal_schema);
             sql(db.get(), workspace_schema);
+            sql(db.get(), process_schema);
             transaction.commit();
         }
         { Query q(db.get(), "PRAGMA quick_check"); q.step(); if (q.text(0) != "ok") throw WorldError(wire::STORAGE_ERROR, "Execution registry integrity failure"); }
@@ -176,14 +185,21 @@ struct ExecutionStore::Impl {
             Query old_operations(db.get(), "SELECT id,payload,result,worktree,state FROM operations LIMIT 0");
             Query old_worktrees(db.get(), "SELECT id,repo,branch,path,head,state FROM worktrees LIMIT 0");
             Query old_repositories(db.get(), "SELECT id,source,path,state FROM repositories LIMIT 0");
-            sql(db.get(), removal_schema); sql(db.get(), workspace_schema); transaction.commit();
+            sql(db.get(), removal_schema); sql(db.get(), workspace_schema); sql(db.get(), process_schema); transaction.commit();
         } else if (version == 2) {
             Transaction transaction(db.get());
             Query old_removals(db.get(), "SELECT id,payload,record,worktree,retired,state FROM removals LIMIT 0");
-            sql(db.get(), workspace_schema); transaction.commit();
+            sql(db.get(), workspace_schema); sql(db.get(), process_schema); transaction.commit();
+        } else if (version == 3) {
+            Transaction transaction(db.get());
+            Query old_workspaces(db.get(), "SELECT id,worktree,repo,policy,revision FROM workspaces LIMIT 0");
+            Query old_members(db.get(), "SELECT workspace,actor,rights FROM workspace_members LIMIT 0");
+            sql(db.get(), process_schema); transaction.commit();
         }
         std::filesystem::create_directories(state / "retired");
+        std::filesystem::create_directories(state / "applications");
         if (migrate_from) { sync_path(state, true); return; }
+        sql(db.get(), "UPDATE processes SET state='uncertain' WHERE state IN ('pending','running')");
         // A partial clone has no reliable completion witness. Preserve it for explicit repair.
         sql(db.get(), "UPDATE repositories SET state='uncertain' WHERE state='pending'");
         std::vector<std::string> pending;
@@ -550,7 +566,20 @@ wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberR
         q.text(1, request.id()); q.text(2, request.actor()); check(sqlite3_bind_int(q.value, 3, static_cast<int>(rights))); q.step();
         Query revision(impl_->db.get(), "UPDATE workspaces SET revision=revision+1 WHERE id=?"); revision.text(1, request.id()); revision.step();
     }
-    transaction.commit(); wire::WorkspaceAck out; out.set_accepted(true); return out;
+    transaction.commit();
+    // Selection and control are separate from the rights that sustain execution.
+    const unsigned effective = rights & rights_mask(workspace.policy());
+    std::vector<std::string> revoked;
+    { Query q(impl_->db.get(), "SELECT id,rights FROM processes WHERE workspace=? AND actor=? AND state='running'");
+      q.text(1, request.id()); q.text(2, request.actor());
+      while (q.step() == SQLITE_ROW)
+          if ((static_cast<unsigned>(sqlite3_column_int(q.value, 1)) & effective) != static_cast<unsigned>(sqlite3_column_int(q.value, 1)))
+              revoked.push_back(q.text(0)); }
+    for (const auto& id : revoked) {
+        impl_->jobs.erase(id); // pidfd cancellation also tears down its PID namespace.
+        Query q(impl_->db.get(), "UPDATE processes SET state='revoked' WHERE id=?"); q.text(1, id); q.step();
+    }
+    wire::WorkspaceAck out; out.set_accepted(true); return out;
 }
 workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessRequest& request) {
     valid_text(request.workspace()); valid_text(request.actor()); const auto descriptor = workspace_get(request.workspace());
@@ -566,5 +595,87 @@ workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessReq
     for (int right = wire::WORKSPACE_SELECT; right <= wire::PROCESS_LAUNCH; ++right)
         if (rights & (1u << right)) out.add_rights(static_cast<wire::WorkspaceRight>(right));
     return out;
+}
+wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchRequest& request) {
+    valid_text(request.workspace()); valid_text(request.actor());
+    const auto& command = request.command(); valid_text(command.operation_id());
+    require(command.profile() == "development" || command.profile() == "read-only", "Unknown application profile");
+    require(command.argv_size() > 0 && command.argv_size() <= 256 && !command.argv(0).empty(), "Invalid application argv");
+    std::size_t size = 0;
+    for (const auto& arg : command.argv()) {
+        require(arg.find('\0') == std::string::npos, "NUL in application argv"); size += arg.size() + 1;
+    }
+    require(size <= 32768, "Application argv exceeds limit");
+    workspace::v1::AccessRequest query; query.set_workspace(request.workspace()); query.set_actor(request.actor());
+    unsigned effective = rights_mask(access(query).rights());
+    const unsigned required = (1u << wire::WORKSPACE_SELECT) | (1u << wire::FILES_READ) | (1u << wire::PROCESS_LAUNCH);
+    if ((effective & required) != required) throw WorldError(wire::FORBIDDEN, "Application requires project read and execution authority");
+    effective &= ~(1u << wire::WORKSPACE_SELECT);
+    if (command.profile() == "read-only") effective &= ~(1u << wire::FILES_WRITE);
+    const auto payload = request.SerializeAsString();
+    { Query old(impl_->db.get(), "SELECT id,payload,state FROM processes WHERE actor=? AND operation=?");
+      old.text(1, request.actor()); old.text(2, command.operation_id());
+      if (old.step() == SQLITE_ROW) {
+          if (old.text(1) != payload) throw WorldError(wire::OPERATION_CONFLICT, "Launch operation already binds different context or arguments");
+          if (old.text(2) != "running" && old.text(2) != "exited") throw WorldError(wire::UNAVAILABLE, "Launch outcome is unavailable; side effects will not be replayed");
+          wire::ProcessLaunchReply out; out.set_process_id(old.text(0)); out.set_workspace(request.workspace()); return out;
+      } }
+    // Reap acknowledged completions before enforcing the live-job budget.
+    std::vector<std::string> running;
+    for (const auto& [id, job] : impl_->jobs) { (void)job; running.push_back(id); }
+    for (const auto& id : running) {
+        wire::ProcessWaitRequest check; check.set_id(id); check.set_timeout_seconds(0);
+        try { wait(check); } catch (const WorldError& error) {
+            if (error.code != wire::TIMEOUT && error.code != wire::UNAVAILABLE) throw;
+        }
+    }
+    if (impl_->jobs.size() >= 32) throw WorldError(wire::RESOURCE_EXHAUSTED, "Application process budget exhausted");
+    const auto workspace = workspace_get(request.workspace());
+    const auto worktree = impl_->worktree(workspace.worktree());
+    const auto repository = impl_->repository(worktree.repo());
+    const auto state = impl_->allocate("applications"); const auto id = state.filename().string();
+    { Transaction transaction(impl_->db.get());
+      Query q(impl_->db.get(), "INSERT INTO processes VALUES(?,?,?,?,?,?,'pending',NULL)");
+      q.text(1, id); q.text(2, request.actor()); q.text(3, command.operation_id()); q.blob(4, payload); q.text(5, request.workspace());
+      check(sqlite3_bind_int(q.value, 6, static_cast<int>(effective))); q.step(); transaction.commit(); }
+    try {
+        if (!std::filesystem::create_directory(state)) throw std::runtime_error("Application state path already exists");
+        for (const auto* name : {"home", "tmp", "cache", "config", "data"}) std::filesystem::create_directory(state / name);
+        sync_path(state, true); sync_path(state.parent_path(), true);
+        auto process = std::make_unique<ApplicationProcess>(worktree.path(), repository.path(), state, (effective & (1u << wire::FILES_WRITE)) != 0, command);
+        impl_->jobs.emplace(id, std::move(process));
+        Query q(impl_->db.get(), "UPDATE processes SET state='running' WHERE id=?"); q.text(1, id); q.step();
+    } catch (...) {
+        impl_->jobs.erase(id);
+        Query q(impl_->db.get(), "UPDATE processes SET state='uncertain' WHERE id=?"); q.text(1, id); q.step();
+        throw;
+    }
+    wire::ProcessLaunchReply out; out.set_process_id(id); out.set_workspace(request.workspace()); return out;
+}
+wire::ProcessWaitReply ExecutionStore::wait(const wire::ProcessWaitRequest& request) {
+    valid_text(request.id());
+    require(request.has_timeout_seconds() && std::isfinite(request.timeout_seconds()) && request.timeout_seconds() >= 0 && request.timeout_seconds() <= 5,
+            "Process wait requires a timeout from zero to five seconds");
+    { Query q(impl_->db.get(), "SELECT state,exit_code FROM processes WHERE id=?"); q.text(1, request.id());
+      if (q.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Process record does not exist");
+      if (q.text(0) == "exited" && sqlite3_column_type(q.value, 1) == SQLITE_INTEGER) {
+          wire::ProcessWaitReply out; out.set_exit_code(sqlite3_column_int(q.value, 1)); return out;
+      }
+      if (q.text(0) != "running") throw WorldError(wire::UNAVAILABLE, "Process completion is uncertain or execution was revoked"); }
+    const auto found = impl_->jobs.find(request.id());
+    if (found == impl_->jobs.end()) throw WorldError(wire::UNAVAILABLE, "No live supervisor owns this process");
+    std::optional<int> result;
+    try { result = found->second->wait(request.timeout_seconds()); }
+    catch (const std::exception&) {
+        // One damaged application supervisor cannot poison unrelated future launches.
+        impl_->jobs.erase(found);
+        Query q(impl_->db.get(), "UPDATE processes SET state='uncertain' WHERE id=?"); q.text(1, request.id()); q.step();
+        throw WorldError(wire::UNAVAILABLE, "Application supervisor failed; completion remains uncertain");
+    }
+    if (!result) throw WorldError(wire::TIMEOUT, "Application has not completed");
+    Query q(impl_->db.get(), "UPDATE processes SET state='exited',exit_code=? WHERE id=?");
+    check(sqlite3_bind_int(q.value, 1, *result)); q.text(2, request.id()); q.step();
+    impl_->jobs.erase(found);
+    wire::ProcessWaitReply out; out.set_exit_code(*result); return out;
 }
 }

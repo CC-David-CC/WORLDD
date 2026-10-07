@@ -1,0 +1,7 @@
+test_launched_process_runs_in_selected_workspaces_project (tests.acceptance.test_08_git_processes.GitTests.test_launched_process_runs_in_selected_workspaces_project) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.858s
+
+OK
+DIAGNOSTIC P08: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-process-focused/launch.json

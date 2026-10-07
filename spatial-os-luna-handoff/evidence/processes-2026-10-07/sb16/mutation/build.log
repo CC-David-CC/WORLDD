@@ -1,0 +1,53 @@
+[0/2] Re-checking globbed directories...
+[1/52] Generating python/core_pb2.py
+[2/52] Generating python/input_pb2.py
+[3/52] Generating python/broker_pb2.py
+[4/52] Building C object CMakeFiles/spatial-xprobe.dir/native/xprobe.c.o
+[5/52] Linking C executable spatial-xprobe
+[6/52] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[7/52] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[8/52] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[9/52] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[10/52] Building CXX object CMakeFiles/spatial-scene.dir/src/core/geometry.cpp.o
+[11/52] Building CXX object CMakeFiles/spatial-scene.dir/src/core/collision.cpp.o
+[12/52] Building CXX object CMakeFiles/spatial-scene.dir/src/core/navigation.cpp.o
+[13/52] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[14/52] Linking CXX static library libspatial-protobuf.a
+[15/52] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[16/52] Linking CXX static library libspatial-scene.a
+[17/52] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[18/52] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[19/52] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[20/52] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[21/52] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[22/52] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[23/52] Building CXX object CMakeFiles/spatial-core.dir/src/platform/broker.cpp.o
+[24/52] Linking CXX static library libspatial-core.a
+[25/52] Building CXX object CMakeFiles/spatial-git-job-probe.dir/src/testing/git_job_probe.cpp.o
+[26/52] Building CXX object CMakeFiles/spatial-app-init.dir/src/workspace/app_init.cpp.o
+[27/52] Linking CXX executable spatial-app-init
+[28/52] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[29/52] Building CXX object CMakeFiles/spatial-git-job-probe.dir/src/workspace/git_command.cpp.o
+[30/52] Building CXX object CMakeFiles/workspaced.dir/src/workspace/git_command.cpp.o
+[31/52] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[32/52] Building CXX object CMakeFiles/workspaced.dir/src/workspace/status.cpp.o
+[33/52] Linking CXX executable spatial-git-job-probe
+[34/52] Running cpp protocol buffer compiler on proto/spatial/input/v1/input.proto
+[35/52] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[36/52] Building CXX object CMakeFiles/spatial-native-input.dir/src/x11/input.cpp.o
+[37/52] Building CXX object CMakeFiles/spatial-native-input.dir/input.pb.cc.o
+[38/52] Linking CXX static library libspatial-native-input.a
+[39/52] Building CXX object CMakeFiles/spatialwm.dir/src/render/main.cpp.o
+[40/52] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[41/52] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[42/52] Linking CXX executable workspaced
+[43/52] Building CXX object CMakeFiles/spatial-input-bridge.dir/tests/native/input_bridge.cpp.o
+[44/52] Linking CXX executable spatial-input-bridge
+[45/52] Building CXX object CMakeFiles/spatialwm.dir/src/x11/input_router.cpp.o
+[46/52] Linking CXX executable spatialwm
+[47/52] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[48/52] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[49/52] Linking CXX executable worldd
+[50/52] Building CXX object CMakeFiles/spatial-test-host.dir/src/testing/main.cpp.o
+[51/52] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[52/52] Linking CXX executable spatial-test-host

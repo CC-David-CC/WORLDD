@@ -112,7 +112,7 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
             throw std::runtime_error("Invalid broker reply identity");
         validate_message(reply);
         if (!reply.has_error()) {
-            bool valid = request.has_access() && reply.has_access();
+            bool valid = (request.has_access() && reply.has_access()) || (request.has_launch() && reply.has_launched());
             if (request.has_management() && reply.has_management()) {
                 const auto& command = request.management(); const auto& result = reply.management();
                 valid = result.protocol_version() == 1 && result.request_id() == sequence_ &&
@@ -121,7 +121,8 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
                      (command.has_git_operation() && result.has_git_operation()) || (command.has_git_status() && result.has_git_status()) ||
                      (command.has_git_worktree_remove() && result.has_worktree_removed()) ||
                      ((command.has_workspace_create() || command.has_workspace_get()) && result.has_workspace()) ||
-                     (command.has_workspace_member_set() && result.has_workspace_ack()));
+                     (command.has_workspace_member_set() && result.has_workspace_ack()) ||
+                     (command.has_process_wait() && result.has_process_wait()));
             }
             if (!valid) throw std::runtime_error("Broker reply has the wrong outcome");
         }
@@ -138,5 +139,10 @@ wire::Reply BrokerClient::call(wire::Request request) {
 broker_wire::AccessReply BrokerClient::access(const std::string& workspace, const std::string& actor) {
     broker_wire::Request request; request.mutable_access()->set_workspace(workspace); request.mutable_access()->set_actor(actor);
     return exchange(request).access();
+}
+wire::ProcessLaunchReply BrokerClient::launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command) {
+    broker_wire::Request request; auto* launch = request.mutable_launch();
+    launch->set_workspace(workspace); launch->set_actor(actor); *launch->mutable_command() = command;
+    return exchange(request).launched();
 }
 }

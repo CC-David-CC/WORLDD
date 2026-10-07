@@ -4,6 +4,9 @@ Workspaced now owns workspace definitions and membership in its execution databa
 Worldd owns workspace availability and actor selection in its world database.
 Rooms do not own workspaces or select execution context.
 
+The subsequent [process implementation](WORKSPACE_PROCESSES.md) adds confined launch and execution schema version 4.
+The context qualification below records the earlier schema version 3 increment.
+
 ## Creation and ownership
 
 Workspace creation binds one existing managed worktree and its writable bare Git administration.
@@ -68,8 +71,9 @@ Cryptographic enrollment, delegation, external authentication, and shared servic
 
 ## Explicit database migrations
 
-Current database versions are execution version 3 and world version 2.
+Current database versions are execution version 4 and world version 2.
 Execution version 3 adds workspace ownership and membership.
+Execution version 4 adds process records. See WORKSPACE_PROCESSES.md for migration from version 3.
 World version 2 adds availability and actor selection.
 The migrations preserve existing Git records, entities, world identity, and revisions.
 Normal startup refuses older versions instead of migrating them silently.
@@ -135,8 +139,8 @@ The tests use authenticated disposable software displays.
 No host configuration or operator session changed.
 Local-model review remains waived under David's hardware-failure instruction.
 
-Confined process launch, shared-world service attachment, cabinet operations, and cross-world transitions remain incomplete.
+Confined process launch is covered by the subsequent process increment.
+Shared-world service attachment, cabinet operations, and cross-world transitions remain incomplete.
 Application-group revocation and X workspace isolation remain mandatory Spatial-M1 work.
 These context checks do not establish those boundaries or physical hardware qualification.
-Next: process.workspace_cwd through the production confinement broker.
-The workspace.room_independence acceptance case remains pending because it also requires real process execution.
+The subsequent process qualification also covers workspace.room_independence with real process execution.

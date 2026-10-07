@@ -1,0 +1,31 @@
+[
+  {
+    "name": "workspace-regression",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build",
+      "-V",
+      "-R",
+      "^(workspace-processes)$"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "launch",
+    "argv": [
+      "python3",
+      "tools/with_test_display.py",
+      "--",
+      "python3",
+      "tools/gate.py",
+      "--through",
+      "P08",
+      "--sut",
+      "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host\"]",
+      "--report",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-process-counterexamples/launch.json"
+    ],
+    "exit_code": 0
+  }
+]

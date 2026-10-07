@@ -226,6 +226,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
         case wire::Request::kGitWorktreeRemove:
         case wire::Request::kWorkspaceCreate:
         case wire::Request::kWorkspaceGet:
+        case wire::Request::kProcessWait:
             if (!broker) throw WorldError(wire::UNIMPLEMENTED, "No workspace broker configured");
             reply = broker->call(request); reply.set_request_id(request.request_id()); break;
         case wire::Request::kWorkspaceMemberSet: {
@@ -247,8 +248,6 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             world->workspace_available(availability.id(), availability.available());
             reply.mutable_workspace_ack()->set_accepted(true); break;
         }
-        case wire::Request::kProcessWait:
-            throw WorldError(wire::UNIMPLEMENTED, "Workspace execution broker is not implemented");
         }
     } catch (const WorldError& exception) {
         error(reply, exception.code, exception.what());

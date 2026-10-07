@@ -4,8 +4,8 @@ This increment implements real repository import and worktree creation through w
 Live Git status is now qualified in [WORKSPACE_STATUS.md](WORKSPACE_STATUS.md).
 Conservative removal is now qualified in [WORKSPACE_REMOVAL.md](WORKSPACE_REMOVAL.md).
 Workspace membership, selection, and bound-worktree protection are qualified in [WORKSPACE_CONTEXT.md](WORKSPACE_CONTEXT.md).
-Application launch remains incomplete.
-The P08 phase is not complete.
+The subsequent [process increment](WORKSPACE_PROCESSES.md) adds confined application launch.
+See CURRENT_STATE.md for the current phase qualification.
 
 ## Authority and process ownership
 
@@ -89,8 +89,8 @@ Large repositories may exceed these limits and require explicit recovery.
 The world scheduler continues to service motion expiry while waiting for the broker.
 
 This administrative command wrapper is not application confinement.
-Generic workspace processes remain unimplemented.
-Namespaces, profiles, device restrictions, resource limits, X authority, and independent escape tests remain required.
+Generic workspace processes now use the separate confinement path in WORKSPACE_PROCESSES.md.
+Complete M03 confinement, X authority, and native application integration remain mandatory.
 
 ## Creation qualification
 

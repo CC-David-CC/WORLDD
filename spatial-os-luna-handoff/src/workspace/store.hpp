@@ -21,6 +21,8 @@ public:
     wire::WorkspaceReply workspace_get(const std::string& id);
     wire::WorkspaceAck workspace_member(const wire::WorkspaceMemberRequest& request);
     workspace::v1::AccessReply access(const workspace::v1::AccessRequest& request);
+    wire::ProcessLaunchReply launch(const workspace::v1::LaunchRequest& request);
+    wire::ProcessWaitReply wait(const wire::ProcessWaitRequest& request);
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

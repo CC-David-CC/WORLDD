@@ -1,0 +1,10 @@
+{
+  "host": "sb16",
+  "bwrap_sha256": "e318903862396f96de3df57264e0158682b952fd3fb53ac23d876413e7b30f71",
+  "profile_sha256": "fe0796df2ca042f36ba7374945fbc9a60787ffb92f1c54e126f7e74b99cfdc3f",
+  "applied": true,
+  "created": [
+    "/usr/local/libexec/spatial-bwrap",
+    "/etc/apparmor.d/spatial-bwrap"
+  ]
+}

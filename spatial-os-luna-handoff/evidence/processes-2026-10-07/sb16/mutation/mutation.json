@@ -1,0 +1,153 @@
+{
+  "invariant": "Read-only effective authority makes both project and Git mounts read-only.",
+  "mutation": "Force writable project and Git bind mounts in an isolated build.",
+  "before_sha256": "51430155c779e40470ce204eb0abafa97c9f53d1593629b9cb091b30ceeaf68f",
+  "after_sha256": "fb0911d762a416b0bdacdd5e23f6b219071abf78d027394b47ea640d468dca38",
+  "base": "6ac6aae730461aff968b1060c04759d7e0f3f3d8",
+  "source_overlay": {
+    "base": "6ac6aae730461aff968b1060c04759d7e0f3f3d8",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "5b1101bfa200c12cf32d8199db5af9ecdc37407fdf8258a3e6a2ff0b54f82908",
+        "after": "8d92963871e2f35fd238a7cf9c3df16c893db628d529ef8ef140bf107be0815c",
+        "previous": "8d92963871e2f35fd238a7cf9c3df16c893db628d529ef8ef140bf107be0815c"
+      },
+      "spatial-os-luna-handoff/docs/WORKSPACE_CONTEXT.md": {
+        "before": "ff27be564c415ab5d96a938db6d589d731f963abb5cc71c8056e7f8477189509",
+        "after": "fee93cdf450e0adb679b9946379ece2b771087c9a9e41e8995100067a5198bf4",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/docs/WORKSPACE_GIT.md": {
+        "before": "fcaeb2a64ac24b6b1c14d121c6ca10820b0f3253b7de322f1ffd98952f60ebae",
+        "after": "22f8dd4b1ea6227ca6ab589a7e3ac7cd57cf71cf2564fc3b2acd4801eed15756",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/docs/WORKSPACE_PROCESSES.md": {
+        "before": null,
+        "after": "6f0b8a6cb0423d1445f686be0f67e32aca90f9a7ef048fa67e12204cf55544b8",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/docs/WORKSPACE_REMOVAL.md": {
+        "before": "cbf5f8a392457a75516418b36fdac00a4c7665364e795926b2042afe6c3d2e5d",
+        "after": "4b4ec877662da8c77f774d886f4dedb422467c59f7861573ca46897e2b97f236",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto": {
+        "before": "2aa87635da5c3167440a13e1021fddd6c221bfbe98361ce0dacace5e6f52cada",
+        "after": "0654306870dde412aa7293bfaffc31511d79b3e841c22b4105a98b9454966aa6",
+        "previous": "0654306870dde412aa7293bfaffc31511d79b3e841c22b4105a98b9454966aa6"
+      },
+      "spatial-os-luna-handoff/src/core/protocol.cpp": {
+        "before": "31084103b7d106f26f0f3857569f0ae65ecb44408ac57f56467402bd4f6a77e5",
+        "after": "c04d1b5152e255b1a09c2d3f10c6893919705d1a8b332cbbef2e77f427f43d29",
+        "previous": "c04d1b5152e255b1a09c2d3f10c6893919705d1a8b332cbbef2e77f427f43d29"
+      },
+      "spatial-os-luna-handoff/src/platform/broker.cpp": {
+        "before": "e2d8655498bbcef89684f8ae2716150d16b48ec14589784146a101c8043a73c8",
+        "after": "67882ff62acc3fc6353c45c582f74cc810422169a40ac251f0363ba20511bee5",
+        "previous": "67882ff62acc3fc6353c45c582f74cc810422169a40ac251f0363ba20511bee5"
+      },
+      "spatial-os-luna-handoff/src/platform/broker.hpp": {
+        "before": "ef5c6cb66918174290d01d1340a05b06493534f62577a1002c59808862e4b935",
+        "after": "156e5bb7e28efd8a4ac31566617c26d49df6dbdfd18cc623e121f7badd8a63a0",
+        "previous": "156e5bb7e28efd8a4ac31566617c26d49df6dbdfd18cc623e121f7badd8a63a0"
+      },
+      "spatial-os-luna-handoff/src/workspace/app_init.cpp": {
+        "before": null,
+        "after": "00e9911eee2ad55f408290c38d2df2f153aa5baf2e1565751dea83dfb3f21001",
+        "previous": "00e9911eee2ad55f408290c38d2df2f153aa5baf2e1565751dea83dfb3f21001"
+      },
+      "spatial-os-luna-handoff/src/workspace/main.cpp": {
+        "before": "839ca597a865202d2b7ab86de87d71a547a677cc02900706052b75968eff04a8",
+        "after": "5c4bd0cf27fe58a17b4db8f4c803ffc0ec832578a9a2701a903af572540a8fc7",
+        "previous": "5c4bd0cf27fe58a17b4db8f4c803ffc0ec832578a9a2701a903af572540a8fc7"
+      },
+      "spatial-os-luna-handoff/src/workspace/process.cpp": {
+        "before": null,
+        "after": "51430155c779e40470ce204eb0abafa97c9f53d1593629b9cb091b30ceeaf68f",
+        "previous": "51430155c779e40470ce204eb0abafa97c9f53d1593629b9cb091b30ceeaf68f"
+      },
+      "spatial-os-luna-handoff/src/workspace/process.hpp": {
+        "before": null,
+        "after": "997c6435aad5399d827d8c5c215c5e392b38042ac1010239ba9c74699682c6ea",
+        "previous": "997c6435aad5399d827d8c5c215c5e392b38042ac1010239ba9c74699682c6ea"
+      },
+      "spatial-os-luna-handoff/src/workspace/store.cpp": {
+        "before": "b1885e95caca739ae0799955ead0b492d9a09448ff0a9830bbe5a709425dc61e",
+        "after": "095a6c84addca9b74d70b6f99b55f4957958cf0a7e87b3fbcd1419124226ab98",
+        "previous": "0dc7f0c1ac3f130ee702846ab9a5477954689c2174e818e1c08a01c9572a3909"
+      },
+      "spatial-os-luna-handoff/src/workspace/store.hpp": {
+        "before": "c2e90d0bef6c4b479cca9b7b91496bd19b0de452e62c63ee9c09a5001f289419",
+        "after": "f30a83d67369aa163557f511d7650bcb5489086cb42903d7d7c3246967e4cbfb",
+        "previous": "f30a83d67369aa163557f511d7650bcb5489086cb42903d7d7c3246967e4cbfb"
+      },
+      "spatial-os-luna-handoff/src/world/actors.cpp": {
+        "before": "4a03c318545a9da97467312dc03383b49282fdfc6c18b7dc697ceb7c4495377b",
+        "after": "6dd1135759ec52caa4d3b14e668e1d7183dadb389382ac47b5f267f1b3e85732",
+        "previous": "6dd1135759ec52caa4d3b14e668e1d7183dadb389382ac47b5f267f1b3e85732"
+      },
+      "spatial-os-luna-handoff/tests/core/test_processes.py": {
+        "before": null,
+        "after": "682797bfe3ef9fc99c0872f83f454eac0c16ca348a1144e89b2f530968bb6bd4",
+        "previous": "f057dbce4f1b75c0a2aba76b5031884c25d4fd48c4fbef57eb4e68448d42b0ca"
+      },
+      "spatial-os-luna-handoff/tests/core/test_workspace_git.py": {
+        "before": "ed2bdd7fe6d0a039dcbc6221b1f1b0cfd3f4d782466ad5515dfd32555f40b175",
+        "after": "f603120d15a3937151c425f1171fc166c34e5f5821ff5c83b015e761a3b7918c",
+        "previous": "f603120d15a3937151c425f1171fc166c34e5f5821ff5c83b015e761a3b7918c"
+      },
+      "spatial-os-luna-handoff/tests/core/test_workspaces.py": {
+        "before": "1ffa59fc280f4a0ae7859a2b561b13ac5a92d5010b79b5a7acd4185a55eb654c",
+        "after": "653c27c3d976d838245167f8340f60481e2f757259398607699ad94acaf2e42d",
+        "previous": "653c27c3d976d838245167f8340f60481e2f757259398607699ad94acaf2e42d"
+      },
+      "spatial-os-luna-handoff/tools/bootstrap_execution.py": {
+        "before": null,
+        "after": "052a480104108ae50acbdd8ac00232424f08ade3313ea6a7706d4729da2e5e24",
+        "previous": "052a480104108ae50acbdd8ac00232424f08ade3313ea6a7706d4729da2e5e24"
+      }
+    }
+  },
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tools/gate.py",
+    "--through",
+    "P08",
+    "--case",
+    "test_application_profile_and_actor_rights_both_limit_writes",
+    "--sut",
+    "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-process-mutation/source/spatial-os-luna-handoff/build/spatial-test-host\"]",
+    "--report",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-process-mutation/report.json"
+  ],
+  "exit_code": 1,
+  "report": {
+    "kind": "production-acceptance",
+    "through": "P08",
+    "diagnostic_only": true,
+    "status": "failed",
+    "utc": "2026-10-07T16:50:19.508202+00:00",
+    "selected": 1,
+    "executed": 1,
+    "total_baseline": 151,
+    "not_selected": 150,
+    "tests": [
+      {
+        "test": "tests.acceptance.test_08_git_processes.GitTests.test_application_profile_and_actor_rights_both_limit_writes",
+        "phase": "P08",
+        "primitive": "process.authority_intersection",
+        "status": "failed",
+        "seconds": 0.909293
+      }
+    ],
+    "hardware_certified": false,
+    "sut_argv": [
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-process-mutation/source/spatial-os-luna-handoff/build/spatial-test-host"
+    ]
+  },
+  "status": "detected"
+}

@@ -28,6 +28,7 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Ex
         case wire::Request::kWorkspaceCreate: *reply.mutable_workspace() = git.workspace_create(request.workspace_create()); break;
         case wire::Request::kWorkspaceGet: *reply.mutable_workspace() = git.workspace_get(request.workspace_get().id()); break;
         case wire::Request::kWorkspaceMemberSet: *reply.mutable_workspace_ack() = git.workspace_member(request.workspace_member_set()); break;
+        case wire::Request::kProcessWait: *reply.mutable_process_wait() = git.wait(request.process_wait()); break;
         case wire::Request::OPERATION_NOT_SET: throw spatial::WorldError(wire::UNKNOWN_METHOD, "No recognized broker operation");
         default: throw spatial::WorldError(wire::UNIMPLEMENTED, "Broker operation is not implemented");
         }
@@ -54,6 +55,7 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
             if (request.management().request_id() != request.request_id()) throw std::invalid_argument("Broker management identity mismatch");
             *reply.mutable_management() = dispatch(request.management(), store);
         } else if (request.has_access()) *reply.mutable_access() = store.access(request.access());
+        else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
         else throw spatial::WorldError(wire::UNKNOWN_METHOD, "No recognized private broker operation");
     } catch (const spatial::WorldError& error) {
         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
@@ -66,9 +68,9 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
 }
 }
 int main(int argc, char** argv) {
-    const unsigned migration = argc == 4 ? (std::string_view(argv[3]) == "--migrate-v1" ? 1 : std::string_view(argv[3]) == "--migrate-v2" ? 2 : 0) : 0;
+    const unsigned migration = argc == 4 ? (std::string_view(argv[3]) == "--migrate-v1" ? 1 : std::string_view(argv[3]) == "--migrate-v2" ? 2 : std::string_view(argv[3]) == "--migrate-v3" ? 3 : 0) : 0;
     if ((argc != 3 && !migration) || std::string_view(argv[1]) != "--state-dir") {
-        std::cerr << "Usage: workspaced --state-dir ABSOLUTE_EXECUTION_DIRECTORY [--migrate-v1|--migrate-v2]\n"; return 2;
+        std::cerr << "Usage: workspaced --state-dir ABSOLUTE_EXECUTION_DIRECTORY [--migrate-v1|--migrate-v2|--migrate-v3]\n"; return 2;
     }
     try {
         umask(0077); signal(SIGPIPE, SIG_IGN);

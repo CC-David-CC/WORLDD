@@ -1,5 +1,45 @@
 # Implementation status
 
+## 2026-10-07: P08 confined workspace processes complete
+
+Actors now launch real applications through the production workspace broker.
+The broker intersects workspace policy, actor membership, and the requested application profile.
+Applications see their real worktree at /project in separate namespaces.
+Read-only authority applies to both project files and writable Git administration.
+Ordinary confined Git changes the actual worktree and its bare backing repository.
+
+The namespace supervisor confirms launch and actual child exit through Protocol Buffers.
+Launch records bind actor, operation ID, workspace, arguments, and profile.
+Retries cannot duplicate execution or silently change workspace context.
+Lost supervisors and crash-interrupted operations remain uncertain and are never replayed automatically.
+Revocation stops affected application namespaces, including detached descendants.
+Actor disconnect preserves the workspace application. Other actors' applications remain independent.
+
+Both hosts passed final Debug and ASan/UBSan qualification:
+
+- All 138 P00-P08 acceptance tests, including all 25 P08 primitives.
+- All 199 core checks, including twelve process counterexamples.
+- All 43 harness self-tests.
+
+There are zero assertion failures, errors, or skips. Thirteen later acceptance tests remain unrun.
+An isolated writable-mount mutation failed the locked read-only acceptance witness.
+All 102 source hashes match reviewed local files and both hosts.
+Evidence is in evidence/processes-2026-10-07.
+P08 is complete for automated software qualification.
+
+Execution storage advances to schema version 4 through explicit migration.
+Both hosts now have a project-specific Bubblewrap copy and an AppArmor user-namespace profile.
+Their global namespace restrictions, ordinary login sessions, displays, and SSH recovery remain unchanged.
+See docs/WORKSPACE_PROCESSES.md for exact bootstrap, migration, rollback commands, and resource limits.
+Installed files and the bootstrap installer have recorded hashes.
+
+Aggregate quotas, confined GUI access, and full M03/M04 qualification remain incomplete.
+Full Spatial-M1 and native hardware qualification remain mandatory.
+The acceptance lock, all locked files, and public protobuf schemas remain unchanged.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: P09, starting with recovery.before_commit.
+The full project goal remains active.
+
 ## 2026-10-07: P08 workspace authority and actor context
 
 Workspaced now owns workspace definitions and membership in its execution database.

@@ -187,7 +187,7 @@ class WorkspaceTests(unittest.TestCase):
         work = self.call('git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
         before = self.call('world.snapshot'); self.client.stop()
         with self.registry() as db:
-            db.execute('DROP TABLE workspace_members'); db.execute('DROP TABLE workspaces'); db.execute('PRAGMA user_version=2')
+            db.execute('DROP TABLE processes'); db.execute('DROP TABLE workspace_members'); db.execute('DROP TABLE workspaces'); db.execute('PRAGMA user_version=2')
         with self.world_db() as db:
             db.execute('DROP TABLE actor_workspaces'); db.execute('DROP TABLE world_workspaces'); db.execute('PRAGMA user_version=1')
         for binary, state, flag in [(BROKER, self.state / 'execution', '--migrate-v2'), (WORLD, self.state, '--migrate-v1')]:

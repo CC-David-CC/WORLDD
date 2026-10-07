@@ -1,0 +1,17 @@
+test_application_profile_and_actor_rights_both_limit_writes (tests.acceptance.test_08_git_processes.GitTests.test_application_profile_and_actor_rights_both_limit_writes) ... FAIL
+
+======================================================================
+FAIL: test_application_profile_and_actor_rights_both_limit_writes (tests.acceptance.test_08_git_processes.GitTests.test_application_profile_and_actor_rights_both_limit_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-process-mutation/source/spatial-os-luna-handoff/tests/acceptance/test_08_git_processes.py", line 222, in test_application_profile_and_actor_rights_both_limit_writes
+    self.launch(self.a,[sys.executable,"-c",code],"read-only-profile",profile="read-only")
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-process-mutation/source/spatial-os-luna-handoff/tests/acceptance/test_08_git_processes.py", line 89, in launch
+    self.assertEqual(completed["exit_code"],0)
+AssertionError: 12 != 0
+
+----------------------------------------------------------------------
+Ran 1 test in 0.909s
+
+FAILED (failures=1)
+DIAGNOSTIC P08: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-process-mutation/report.json
