@@ -92,8 +92,8 @@ WorldWorker::WorldWorker(const std::filesystem::path& executable, const std::fil
         const char* display = std::getenv("SPATIAL_TEST_DISPLAY");
         if (display && *display) execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(),
             "--workspace-fd", broker_fd.c_str(), "--workspace-pid", broker_pid.c_str(),
-            "--fixture-clock", "--display", display, static_cast<char*>(nullptr));
-        else execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--fixture-clock",
+            "--fixture-clock", "--fixture-faults", "--display", display, static_cast<char*>(nullptr));
+        else execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--fixture-clock", "--fixture-faults",
             "--workspace-fd", broker_fd.c_str(), "--workspace-pid", broker_pid.c_str(), static_cast<char*>(nullptr));
         _exit(127);
     }

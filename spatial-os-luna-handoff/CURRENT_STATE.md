@@ -1,5 +1,34 @@
 # Implementation status
 
+## 2026-10-07: P09 real exit before world commit
+
+Worldd can now exit at its actual SQLite boundary immediately before a write transaction commits.
+The conformance supervisor detects the real worker death and closes transport.
+Restart preserves the previous durable state.
+Fault controls require explicit fixture enablement and remain unavailable through actor actions.
+Reads and rejected writes preserve the pending arm. Restart never restores an armed fault.
+
+Both hosts passed Debug and ASan/UBSan qualification for this primitive:
+
+- All 206 core checks, including seven new recovery checks.
+- All 51 harness checks.
+- 143 acceptance cases, including all 138 preceding P00-P08 cases.
+
+The full P00-P09 gate executed 148 of 151 cases.
+It reports one assertion failure, four errors, zero skipped, and three unrun P10 cases.
+Five P09 primitives pass: before-commit exit, preview rollback, repeated kills, worker identity, and worker death.
+The remaining failures identify unimplemented post-commit, storage-write, Git-effect, surface-attachment, and stale-handle operations.
+P09 remains incomplete. Full Spatial-M1 and native hardware qualification remain mandatory.
+
+All 104 source hashes match reviewed local files and both hosts.
+The acceptance lock, locked tests, schemas, oracles, and native witness remain unchanged.
+Evidence is in evidence/recovery-before-commit-2026-10-07.
+See docs/RECOVERY_BOUNDARIES.md for fixture controls, recovery, and exact qualification commands.
+No schema migration, host configuration, or operator-session change was required.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: recovery.after_commit_before_reply.
+The full project goal remains active.
+
 ## 2026-10-07: P09 recovery transport migration
 
 Migration 0.14.0 adds protobuf requests for the existing recovery contract.

@@ -38,12 +38,25 @@ struct Statement {
     }
 };
 void execute(sqlite3* db, const char* sql) { check(sqlite3_exec(db, sql, nullptr, nullptr, nullptr)); }
+struct CommitFault {
+    const bool enabled;
+    bool armed = false;
+    void before_commit() {
+        // Exit without stack unwinding or SQLite cleanup at the actual commit boundary.
+        if (armed) _exit(86);
+    }
+};
 struct Transaction {
     sqlite3* db;
+    CommitFault* fault;
     bool committed = false;
-    explicit Transaction(sqlite3* db, bool write = false) : db(db) { execute(db, write ? "BEGIN IMMEDIATE" : "BEGIN"); }
+    explicit Transaction(sqlite3* db, bool write = false, CommitFault* fault = nullptr)
+        : db(db), fault(write ? fault : nullptr) { execute(db, write ? "BEGIN IMMEDIATE" : "BEGIN"); }
     ~Transaction() { if (!committed) sqlite3_exec(db, "ROLLBACK", nullptr, nullptr, nullptr); }
-    void commit() { execute(db, "COMMIT"); committed = true; }
+    void commit() {
+        if (fault) fault->before_commit();
+        execute(db, "COMMIT"); committed = true;
+    }
 };
 void valid_id(const std::string& id) {
     require(!id.empty() && id.size() <= 256 && id.find('\0') == std::string::npos, "Invalid entity ID");
@@ -95,8 +108,10 @@ const char* workspace_context_schema =
 }
 struct WorldStore::Impl {
     File lock;
+    CommitFault fault;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
-    explicit Impl(const std::filesystem::path& directory, bool migrate_v1) {
+    explicit Impl(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults) : fault{fixture_faults} {
+        require(!migrate_v1 || !fixture_faults, "Migration cannot enable fixture faults");
         require(directory.is_absolute(), "State directory must be absolute");
         require(!std::filesystem::is_symlink(directory), "State directory must not be a symlink");
         if (migrate_v1) require(std::filesystem::is_regular_file(directory / "world.db"), "Migration requires an existing world database");
@@ -207,8 +222,25 @@ struct WorldStore::Impl {
     }
 };
 
-WorldStore::WorldStore(const std::filesystem::path& directory, bool migrate_v1) : impl_(std::make_unique<Impl>(directory, migrate_v1)) {}
+WorldStore::WorldStore(const std::filesystem::path& directory, bool migrate_v1, bool fixture_faults)
+    : impl_(std::make_unique<Impl>(directory, migrate_v1, fixture_faults)) {}
 WorldStore::~WorldStore() = default;
+bool WorldStore::fixture_faults() const { return impl_->fault.enabled; }
+wire::FaultArmReply WorldStore::arm_fault(const wire::FaultArmRequest& request) {
+    if (!fixture_faults()) throw WorldError(wire::FORBIDDEN, "Fixture faults are disabled");
+    validate_message(request);
+    require(request.point() != wire::FAULT_POINT_UNSPECIFIED && request.action() != wire::FAULT_ACTION_UNSPECIFIED,
+            "Missing fault point or action");
+    if (request.point() == wire::FAULT_STORAGE_NEXT_WRITE)
+        require(request.action() == wire::FAULT_ERROR && request.has_storage_error() &&
+                request.storage_error() == wire::STORAGE_FAULT_ENOSPC, "Invalid storage fault");
+    else require(request.action() == wire::FAULT_EXIT && !request.has_storage_error(), "Invalid exit fault");
+    if (request.point() != wire::FAULT_WORLD_BEFORE_COMMIT)
+        throw WorldError(wire::UNIMPLEMENTED, "Requested fault boundary is not implemented");
+    if (impl_->fault.armed) throw WorldError(wire::BUSY, "A fault is already armed");
+    impl_->fault.armed = true;
+    wire::FaultArmReply result; result.set_armed(true); return result;
+}
 wire::WorldInfoReply WorldStore::info() { return impl_->info(); }
 wire::Entity WorldStore::get(const std::string& id) { return impl_->get(id); }
 wire::Entity WorldStore::create(const wire::Entity& input) {
@@ -222,7 +254,7 @@ wire::Entity WorldStore::create_actor(const wire::Entity& input) {
 wire::Entity WorldStore::insert_entity(const wire::Entity& input) {
     valid_entity(input);
     require(!input.has_revision() && !input.has_world_revision(), "Revisions are assigned by the world");
-    Transaction transaction(impl_->db.get(), true);
+    Transaction transaction(impl_->db.get(), true, &impl_->fault);
     { Statement q(impl_->db.get(), "SELECT 1 FROM entities WHERE id=?"); q.text(1, input.id());
       if (q.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Entity ID already exists"); }
     impl_->references(input);
@@ -235,7 +267,7 @@ wire::Entity WorldStore::update(const wire::WorldUpdateRequest& request) {
     const auto& patch = request.patch();
     require(!patch.has_id() && !patch.has_kind() && !patch.has_revision() && !patch.has_world_revision(), "Identity, kind, and revisions are immutable");
     require(patch.ByteSizeLong() != 0, "Empty patch");
-    Transaction transaction(impl_->db.get(), true);
+    Transaction transaction(impl_->db.get(), true, &impl_->fault);
     auto result = impl_->get(request.id());
     require(result.kind() != wire::ACTOR, "Use actor actions and checkpoints to change actor state");
     if (request.expected_revision() != result.revision()) throw WorldError(wire::REVISION_CONFLICT, "Stale entity revision");
@@ -258,7 +290,7 @@ wire::Entity WorldStore::update(const wire::WorldUpdateRequest& request) {
 }
 wire::WorldDeleteReply WorldStore::erase(const wire::WorldDeleteRequest& request, bool live_reference) {
     require(request.has_expected_revision() && request.expected_revision() > 0, "Missing expected revision");
-    Transaction transaction(impl_->db.get(), true);
+    Transaction transaction(impl_->db.get(), true, &impl_->fault);
     const auto entity = impl_->get(request.id());
     require(entity.kind() != wire::ACTOR, "Actor removal requires identity revocation");
     if (entity.revision() != request.expected_revision()) throw WorldError(wire::REVISION_CONFLICT, "Stale entity revision");
@@ -292,7 +324,7 @@ std::vector<wire::Entity> WorldStore::actors() {
     return result;
 }
 std::vector<wire::Entity> WorldStore::checkpoint_actors(const std::vector<wire::Entity>& entities) {
-    Transaction transaction(impl_->db.get(), true);
+    Transaction transaction(impl_->db.get(), true, &impl_->fault);
     std::vector<wire::Entity> changed;
     for (const auto& entity : entities) {
         const auto previous = impl_->get(entity.id());
@@ -321,7 +353,7 @@ bool WorldStore::workspace_available(const std::string& id) {
     return q.step() == SQLITE_ROW && sqlite3_column_int(q.value, 0) == 1;
 }
 void WorldStore::workspace_available(const std::string& id, bool available) {
-    valid_id(id); Transaction transaction(impl_->db.get(), true);
+    valid_id(id); Transaction transaction(impl_->db.get(), true, &impl_->fault);
     const bool previous = workspace_available(id);
     Statement q(impl_->db.get(), "INSERT INTO world_workspaces VALUES(?,?) ON CONFLICT(id) DO UPDATE SET available=excluded.available");
     q.text(1, id); q.integer(2, available); q.step();
@@ -334,7 +366,7 @@ std::string WorldStore::selected_workspace(const std::string& actor) {
     return q.step() == SQLITE_ROW ? q.text(0) : "";
 }
 void WorldStore::select_workspace(const std::string& actor, const std::string& workspace) {
-    valid_id(actor); valid_id(workspace); Transaction transaction(impl_->db.get(), true);
+    valid_id(actor); valid_id(workspace); Transaction transaction(impl_->db.get(), true, &impl_->fault);
     require(impl_->get(actor).kind() == wire::ACTOR, "Workspace selection requires an actor");
     if (!workspace_available(workspace)) throw WorldError(wire::UNAVAILABLE, "Workspace is unavailable in this world");
     if (selected_workspace(actor) != workspace) {
@@ -344,13 +376,13 @@ void WorldStore::select_workspace(const std::string& actor, const std::string& w
     transaction.commit();
 }
 void WorldStore::clear_workspace(const std::string& actor) {
-    valid_id(actor); Transaction transaction(impl_->db.get(), true);
+    valid_id(actor); Transaction transaction(impl_->db.get(), true, &impl_->fault);
     Statement q(impl_->db.get(), "DELETE FROM actor_workspaces WHERE actor=?"); q.text(1, actor); q.step();
     if (sqlite3_changes(impl_->db.get())) impl_->advance();
     transaction.commit();
 }
 void WorldStore::revoke_workspace_selection(const std::string& workspace, const std::string& actor) {
-    valid_id(workspace); valid_id(actor); Transaction transaction(impl_->db.get(), true);
+    valid_id(workspace); valid_id(actor); Transaction transaction(impl_->db.get(), true, &impl_->fault);
     Statement q(impl_->db.get(), "DELETE FROM actor_workspaces WHERE actor=? AND workspace=?"); q.text(1, actor); q.text(2, workspace); q.step();
     if (sqlite3_changes(impl_->db.get())) impl_->advance();
     transaction.commit();

@@ -61,6 +61,9 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
         }
         switch (request.operation_case()) {
         case wire::Request::kFaultArm:
+            if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
+            *reply.mutable_fault_armed() = world->arm_fault(request.fault_arm());
+            break;
         case wire::Request::kSurfaceAttachSlot:
         case wire::Request::kSurfaceValidate:
             throw WorldError(wire::UNIMPLEMENTED, "Recovery operation is not implemented");
@@ -74,6 +77,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             hello->add_capabilities("geometry.ray-panel");
             hello->add_capabilities("motion.body-twist");
             if (world) hello->add_capabilities("world.durable/v1");
+            if (world && world->fixture_faults()) hello->add_capabilities("fixture.faults/v1");
             if (broker) hello->add_capabilities("workspace.git-create/v1");
             if (renderer) hello->add_capabilities("render.opengl/v1");
             if (actors) {

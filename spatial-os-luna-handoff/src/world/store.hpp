@@ -15,10 +15,12 @@ public:
 // One Store belongs to one worldd. All mutations commit before returning.
 class WorldStore {
 public:
-    explicit WorldStore(const std::filesystem::path& state_dir, bool migrate_v1 = false);
+    explicit WorldStore(const std::filesystem::path& state_dir, bool migrate_v1 = false, bool fixture_faults = false);
     ~WorldStore();
     WorldStore(const WorldStore&) = delete;
     WorldStore& operator=(const WorldStore&) = delete;
+    bool fixture_faults() const;
+    wire::FaultArmReply arm_fault(const wire::FaultArmRequest& request);
     wire::Entity create(const wire::Entity& entity);
     wire::Entity get(const std::string& id);
     wire::Entity update(const wire::WorldUpdateRequest& request);

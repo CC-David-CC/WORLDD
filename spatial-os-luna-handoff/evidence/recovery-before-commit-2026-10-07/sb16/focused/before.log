@@ -1,0 +1,7 @@
+test_crash_before_commit_keeps_old_state (tests.acceptance.test_09_recovery.RecoveryTests.test_crash_before_commit_keeps_old_state) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.255s
+
+OK
+DIAGNOSTIC P09: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-before-focused/before.json

@@ -1,0 +1,60 @@
+[
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DSPATIAL_INPUT_TESTS=ON",
+      "-DSPATIAL_SANITIZERS=OFF"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "counterexamples",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build",
+      "-V",
+      "-R",
+      "^recovery-boundaries$"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "before",
+    "argv": [
+      "python3",
+      "tools/with_test_display.py",
+      "--",
+      "python3",
+      "tools/gate.py",
+      "--through",
+      "P09",
+      "--case",
+      "test_crash_before_commit_keeps_old_state",
+      "--sut",
+      "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host\"]",
+      "--report",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-before-focused/before.json"
+    ],
+    "exit_code": 0
+  }
+]
