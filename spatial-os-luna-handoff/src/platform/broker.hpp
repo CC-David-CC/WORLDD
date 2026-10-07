@@ -1,11 +1,13 @@
 #pragma once
 #include "core/protocol.hpp"
+#include "broker.pb.h"
 #include <chrono>
 #include <filesystem>
 #include <functional>
 #include <sys/types.h>
 
 namespace spatial {
+namespace broker_wire = workspace::v1;
 // Lifecycle belongs to the session supervisor, not a world authority.
 class BrokerProcess {
 public:
@@ -27,10 +29,12 @@ public:
     BrokerClient(const BrokerClient&) = delete;
     BrokerClient& operator=(const BrokerClient&) = delete;
     wire::Reply call(wire::Request request);
+    broker_wire::AccessReply access(const std::string& workspace, const std::string& actor);
     void set_tick(std::function<void()> tick) { tick_ = std::move(tick); }
     void check_alive() const;
     pid_t pid() const { return pid_; }
 private:
+    broker_wire::Reply exchange(broker_wire::Request request);
     void wait(short events);
     void read_all(char* data, std::size_t size);
     int channel_ = -1, pidfd_ = -1;

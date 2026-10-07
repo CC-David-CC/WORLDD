@@ -10,12 +10,13 @@
 int main(int argc, char** argv) {
     std::filesystem::path state, config;
     std::string display;
-    bool fixture_clock = false;
+    bool fixture_clock = false, migration = false;
     int broker_fd = -1, broker_pid = -1;
     try {
         for (int i = 1; i < argc; ++i) {
             const std::string_view argument(argv[i]);
             if (argument == "--fixture-clock" && !fixture_clock) fixture_clock = true;
+            else if (argument == "--migrate-v1" && !migration) migration = true;
             else if (argument == "--state-dir" && state.empty() && i + 1 < argc) state = argv[++i];
             else if (argument == "--config" && config.empty() && i + 1 < argc) config = argv[++i];
             else if (argument == "--display" && display.empty() && i + 1 < argc) display = argv[++i];
@@ -30,6 +31,12 @@ int main(int argc, char** argv) {
             else throw std::invalid_argument("Unknown or incomplete worldd argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("State directory must be absolute");
+        if (migration) {
+            if (fixture_clock || !config.empty() || !display.empty() || broker_fd != -1 || broker_pid != -1)
+                throw std::invalid_argument("World migration only accepts --state-dir and --migrate-v1");
+            umask(0077); spatial::WorldStore world(state, true);
+            std::cerr << "World context schema migration complete\n"; return 0;
+        }
         if ((broker_fd == -1) != (broker_pid == -1)) throw std::invalid_argument("Incomplete broker connection");
         if (config.empty()) config = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "runtime.textproto";
         // Inherited pipes are trusted management channels. No actor listener.

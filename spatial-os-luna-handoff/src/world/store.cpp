@@ -87,12 +87,19 @@ void valid_entity(const wire::Entity& entity) {
 }
 }
 
+namespace {
+const char* workspace_context_schema =
+    "CREATE TABLE world_workspaces(id TEXT PRIMARY KEY,available INTEGER NOT NULL CHECK(available IN (0,1)));"
+    "CREATE TABLE actor_workspaces(actor TEXT PRIMARY KEY REFERENCES entities(id),workspace TEXT NOT NULL REFERENCES world_workspaces(id));"
+    "PRAGMA user_version=2";
+}
 struct WorldStore::Impl {
     File lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
-    explicit Impl(const std::filesystem::path& directory) {
+    explicit Impl(const std::filesystem::path& directory, bool migrate_v1) {
         require(directory.is_absolute(), "State directory must be absolute");
         require(!std::filesystem::is_symlink(directory), "State directory must not be a symlink");
+        if (migrate_v1) require(std::filesystem::is_regular_file(directory / "world.db"), "Migration requires an existing world database");
         std::filesystem::create_directories(directory);
         lock.fd = open((directory / "world.lock").c_str(), O_RDWR | O_CREAT | O_CLOEXEC | O_NOFOLLOW, 0600);
         if (lock.fd < 0 || flock(lock.fd, LOCK_EX | LOCK_NB) != 0)
@@ -105,7 +112,8 @@ struct WorldStore::Impl {
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
         int version;
         { Statement q(db.get(), "PRAGMA user_version"); q.step(); version = sqlite3_column_int(q.value, 0); }
-        if (version != 0 && version != 1) throw WorldError(wire::STORAGE_ERROR, "Unsupported world schema; explicit migration required");
+        if (version == 1 && !migrate_v1) throw WorldError(wire::STORAGE_ERROR, "World schema v1 requires worldd --state-dir PATH --migrate-v1 while the world is stopped");
+        if (version < 0 || version > 2 || (migrate_v1 && version == 0)) throw WorldError(wire::STORAGE_ERROR, "Unsupported world schema; explicit migration required");
         if (version == 0) {
             Statement q(db.get(), "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
             q.step();
@@ -128,7 +136,7 @@ struct WorldStore::Impl {
             entry.set_revision(1); entry.set_world_revision(1); insert(entry);
             Statement q(db.get(), "INSERT INTO metadata VALUES(1,?,?,1)");
             q.text(1, world_id); q.text(2, entry.id()); q.step();
-            execute(db.get(), "PRAGMA user_version=1"); transaction.commit();
+            execute(db.get(), workspace_context_schema); transaction.commit();
         }
         { Statement q(db.get(), "PRAGMA quick_check");
           if (q.step() != SQLITE_ROW || q.text(0) != "ok") throw WorldError(wire::STORAGE_ERROR, "World database integrity check failed"); }
@@ -143,6 +151,12 @@ struct WorldStore::Impl {
             if (entity.world_revision() > state.world_revision())
                 throw WorldError(wire::STORAGE_ERROR, "Entity revision exceeds world revision");
         }
+        if (version == 1) {
+            Transaction transaction(db.get(), true); execute(db.get(), workspace_context_schema); transaction.commit();
+        }
+        Statement context(db.get(), "SELECT actor FROM actor_workspaces JOIN entities ON actor=entities.id JOIN world_workspaces ON workspace=world_workspaces.id WHERE kind<>? OR available<>1");
+        context.integer(1, wire::ACTOR);
+        if (context.step() != SQLITE_DONE) throw WorldError(wire::STORAGE_ERROR, "Invalid durable actor workspace context");
     }
     wire::WorldInfoReply info() {
         Statement q(db.get(), "SELECT world_id,entry_room,world_revision FROM metadata WHERE singleton=1");
@@ -193,7 +207,7 @@ struct WorldStore::Impl {
     }
 };
 
-WorldStore::WorldStore(const std::filesystem::path& directory) : impl_(std::make_unique<Impl>(directory)) {}
+WorldStore::WorldStore(const std::filesystem::path& directory, bool migrate_v1) : impl_(std::make_unique<Impl>(directory, migrate_v1)) {}
 WorldStore::~WorldStore() = default;
 wire::WorldInfoReply WorldStore::info() { return impl_->info(); }
 wire::Entity WorldStore::get(const std::string& id) { return impl_->get(id); }
@@ -301,5 +315,44 @@ std::vector<wire::Entity> WorldStore::checkpoint_actors(const std::vector<wire::
         }
     }
     transaction.commit(); return changed;
+}
+bool WorldStore::workspace_available(const std::string& id) {
+    valid_id(id); Statement q(impl_->db.get(), "SELECT available FROM world_workspaces WHERE id=?"); q.text(1, id);
+    return q.step() == SQLITE_ROW && sqlite3_column_int(q.value, 0) == 1;
+}
+void WorldStore::workspace_available(const std::string& id, bool available) {
+    valid_id(id); Transaction transaction(impl_->db.get(), true);
+    const bool previous = workspace_available(id);
+    Statement q(impl_->db.get(), "INSERT INTO world_workspaces VALUES(?,?) ON CONFLICT(id) DO UPDATE SET available=excluded.available");
+    q.text(1, id); q.integer(2, available); q.step();
+    if (!available) { Statement clear(impl_->db.get(), "DELETE FROM actor_workspaces WHERE workspace=?"); clear.text(1, id); clear.step(); }
+    if (previous != available) impl_->advance();
+    transaction.commit();
+}
+std::string WorldStore::selected_workspace(const std::string& actor) {
+    valid_id(actor); Statement q(impl_->db.get(), "SELECT workspace FROM actor_workspaces WHERE actor=?"); q.text(1, actor);
+    return q.step() == SQLITE_ROW ? q.text(0) : "";
+}
+void WorldStore::select_workspace(const std::string& actor, const std::string& workspace) {
+    valid_id(actor); valid_id(workspace); Transaction transaction(impl_->db.get(), true);
+    require(impl_->get(actor).kind() == wire::ACTOR, "Workspace selection requires an actor");
+    if (!workspace_available(workspace)) throw WorldError(wire::UNAVAILABLE, "Workspace is unavailable in this world");
+    if (selected_workspace(actor) != workspace) {
+        Statement q(impl_->db.get(), "INSERT INTO actor_workspaces VALUES(?,?) ON CONFLICT(actor) DO UPDATE SET workspace=excluded.workspace");
+        q.text(1, actor); q.text(2, workspace); q.step(); impl_->advance();
+    }
+    transaction.commit();
+}
+void WorldStore::clear_workspace(const std::string& actor) {
+    valid_id(actor); Transaction transaction(impl_->db.get(), true);
+    Statement q(impl_->db.get(), "DELETE FROM actor_workspaces WHERE actor=?"); q.text(1, actor); q.step();
+    if (sqlite3_changes(impl_->db.get())) impl_->advance();
+    transaction.commit();
+}
+void WorldStore::revoke_workspace_selection(const std::string& workspace, const std::string& actor) {
+    valid_id(workspace); valid_id(actor); Transaction transaction(impl_->db.get(), true);
+    Statement q(impl_->db.get(), "DELETE FROM actor_workspaces WHERE actor=? AND workspace=?"); q.text(1, actor); q.text(2, workspace); q.step();
+    if (sqlite3_changes(impl_->db.get())) impl_->advance();
+    transaction.commit();
 }
 } // namespace spatial

@@ -15,7 +15,7 @@ public:
 // One Store belongs to one worldd. All mutations commit before returning.
 class WorldStore {
 public:
-    explicit WorldStore(const std::filesystem::path& state_dir);
+    explicit WorldStore(const std::filesystem::path& state_dir, bool migrate_v1 = false);
     ~WorldStore();
     WorldStore(const WorldStore&) = delete;
     WorldStore& operator=(const WorldStore&) = delete;
@@ -28,6 +28,12 @@ public:
     wire::Entity create_actor(const wire::Entity& entity);
     std::vector<wire::Entity> actors();
     std::vector<wire::Entity> checkpoint_actors(const std::vector<wire::Entity>& entities);
+    void workspace_available(const std::string& id, bool available);
+    bool workspace_available(const std::string& id);
+    std::string selected_workspace(const std::string& actor);
+    void select_workspace(const std::string& actor, const std::string& workspace);
+    void clear_workspace(const std::string& actor);
+    void revoke_workspace_selection(const std::string& workspace, const std::string& actor);
 private:
     wire::Entity insert_entity(const wire::Entity& entity);
     struct Impl;

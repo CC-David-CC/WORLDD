@@ -1,0 +1,119 @@
+{
+  "base": "716a7fc3341ca9f4e7c0593fbc198900b996bedb",
+  "sources": {
+    "spatial-os-luna-handoff/CMakeLists.txt": {
+      "before": "36c0f6cb727c2bd7b7f47e4fb1ac5474e09ecd4116e5899bc9d3ac758cc99b44",
+      "after": "5b1101bfa200c12cf32d8199db5af9ecdc37407fdf8258a3e6a2ff0b54f82908"
+    },
+    "spatial-os-luna-handoff/src/core/protocol.cpp": {
+      "before": "8070d34a3f2080d03330559ac093298699e259461c1c7bdfe5460197bf1b0593",
+      "after": "31084103b7d106f26f0f3857569f0ae65ecb44408ac57f56467402bd4f6a77e5"
+    },
+    "spatial-os-luna-handoff/src/platform/broker.cpp": {
+      "before": "e274202d1b0c0a86dccb1ed7c71eb1764027b72a6d6bdf704d0b1e28e4fc7890",
+      "after": "e2d8655498bbcef89684f8ae2716150d16b48ec14589784146a101c8043a73c8"
+    },
+    "spatial-os-luna-handoff/src/platform/broker.hpp": {
+      "before": "1a48c05d418c524c9339d47a5209deb0fb230c3da9e349427145c1cf706acfd7",
+      "after": "ef5c6cb66918174290d01d1340a05b06493534f62577a1002c59808862e4b935"
+    },
+    "spatial-os-luna-handoff/src/workspace/git.cpp": {
+      "before": "300e19680485944dae8b206cde0a5f341ed78392dfb9e0488fb5cf17b496a016",
+      "after": null
+    },
+    "spatial-os-luna-handoff/src/workspace/git.hpp": {
+      "before": "ebbb5f9ef675a5c3a153cf5892489fc8a41941e9ee771d0172230e1aeb929d84",
+      "after": null
+    },
+    "spatial-os-luna-handoff/src/workspace/main.cpp": {
+      "before": "783ab695d8b761a5151832334d23c60c87903eed34ce7571daaa9ba4cb685431",
+      "after": "839ca597a865202d2b7ab86de87d71a547a677cc02900706052b75968eff04a8"
+    },
+    "spatial-os-luna-handoff/src/world/actors.cpp": {
+      "before": "715af1331c53426fc374221fddbd54ede93daf41c0b2f006f00eb203b9fb8d5c",
+      "after": "4a03c318545a9da97467312dc03383b49282fdfc6c18b7dc697ceb7c4495377b"
+    },
+    "spatial-os-luna-handoff/src/world/actors.hpp": {
+      "before": "c98005d19323b177e7b346f244848c122688265791080d037f470387c61afd36",
+      "after": "287b3d42314fe49d8490bd46d18d3afe0f30814d902bc5241d17da47fd5708ed"
+    },
+    "spatial-os-luna-handoff/src/world/main.cpp": {
+      "before": "ad9efae1043601eb08d455adacf342669cf192694d72c5175419418c92fc8e7e",
+      "after": "c197f27dc2450f009f65af8f3a0ba17c3e54d6f90cfe691fd2d4cafdd0ee7387"
+    },
+    "spatial-os-luna-handoff/src/world/store.cpp": {
+      "before": "6cca7d04419ad4440efc0673f6dc898e4322b043889425b11483b059f875b4d9",
+      "after": "b7d15a26936afa21762d2c239d7248fe582ca40736238190376b21441bac7b11"
+    },
+    "spatial-os-luna-handoff/src/world/store.hpp": {
+      "before": "fd7829d8ae55e05d71eb1bf0dd89b0c80fce78eb000b230b2b84d7613dfde4ca",
+      "after": "b1bb179f510b1e0c315a0fcb881b1983d16959a6a0332bb689112e337c45eea3"
+    },
+    "spatial-os-luna-handoff/tests/core/test_workspace_git.py": {
+      "before": "23360000a4423ddad254aea678bed699326a10fb1aba0e48bdb7f5ecc2cee42f",
+      "after": "ed2bdd7fe6d0a039dcbc6221b1f1b0cfd3f4d782466ad5515dfd32555f40b175"
+    },
+    "spatial-os-luna-handoff/tests/core/test_worldd.py": {
+      "before": "50606af00ce791a3955852d7192908c4904794ec825799cebde2c7ae97d3747a",
+      "after": "b716d03a2d7eb04ec95822a3b1b4e48e88cc93d704aba7900b4d0d096b631bc7"
+    },
+    "spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto": {
+      "before": null,
+      "after": "2aa87635da5c3167440a13e1021fddd6c221bfbe98361ce0dacace5e6f52cada"
+    },
+    "spatial-os-luna-handoff/src/workspace/store.cpp": {
+      "before": null,
+      "after": "b1885e95caca739ae0799955ead0b492d9a09448ff0a9830bbe5a709425dc61e"
+    },
+    "spatial-os-luna-handoff/src/workspace/store.hpp": {
+      "before": null,
+      "after": "c2e90d0bef6c4b479cca9b7b91496bd19b0de452e62c63ee9c09a5001f289419"
+    },
+    "spatial-os-luna-handoff/tests/core/test_workspaces.py": {
+      "before": null,
+      "after": "42e1b6b07b455edf486bcc53c93bbd7153c1cf2af904465008fa724b3e6f72a6"
+    }
+  },
+  "commands": [
+    {
+      "name": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF",
+        "-DSPATIAL_INPUT_TESTS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "build",
+        "-R",
+        "workspace-git|workspace-context|worldd-lifecycle|actor-runtime|core-protocol",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

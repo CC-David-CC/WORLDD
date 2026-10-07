@@ -82,11 +82,15 @@ void BrokerClient::read_all(char* data, std::size_t size) {
         used += static_cast<std::size_t>(n);
     }
 }
-wire::Reply BrokerClient::call(wire::Request request) {
+broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
     request.set_protocol_version(1); request.set_request_id(++sequence_);
+    if (request.has_management()) {
+        request.mutable_management()->set_protocol_version(1);
+        request.mutable_management()->set_request_id(sequence_);
+    }
     const auto payload = request.SerializeAsString();
     if (payload.size() > max_frame_bytes) throw std::invalid_argument("Broker frame exceeds limit");
-    wire::Reply reply;
+    broker_wire::Reply reply;
     try {
         const auto size = static_cast<std::uint32_t>(payload.size());
         const std::array<char, 4> header{static_cast<char>(size >> 24), static_cast<char>(size >> 16), static_cast<char>(size >> 8), static_cast<char>(size)};
@@ -108,14 +112,31 @@ wire::Reply BrokerClient::call(wire::Request request) {
             throw std::runtime_error("Invalid broker reply identity");
         validate_message(reply);
         if (!reply.has_error()) {
-            const bool valid = (request.has_runtime_identities() && reply.has_identities()) ||
-                (request.has_git_repo_import() && reply.has_repository()) || (request.has_git_worktree_create() && reply.has_worktree()) ||
-                (request.has_git_operation() && reply.has_git_operation()) || (request.has_git_status() && reply.has_git_status()) ||
-                (request.has_git_worktree_remove() && reply.has_worktree_removed());
+            bool valid = request.has_access() && reply.has_access();
+            if (request.has_management() && reply.has_management()) {
+                const auto& command = request.management(); const auto& result = reply.management();
+                valid = result.protocol_version() == 1 && result.request_id() == sequence_ &&
+                    (result.has_error() || (command.has_runtime_identities() && result.has_identities()) ||
+                     (command.has_git_repo_import() && result.has_repository()) || (command.has_git_worktree_create() && result.has_worktree()) ||
+                     (command.has_git_operation() && result.has_git_operation()) || (command.has_git_status() && result.has_git_status()) ||
+                     (command.has_git_worktree_remove() && result.has_worktree_removed()) ||
+                     ((command.has_workspace_create() || command.has_workspace_get()) && result.has_workspace()) ||
+                     (command.has_workspace_member_set() && result.has_workspace_ack()));
+            }
             if (!valid) throw std::runtime_error("Broker reply has the wrong outcome");
         }
     } catch (...) { close(channel_); channel_ = -1; throw; }
     if (reply.has_error()) throw WorldError(reply.error().code(), reply.error().message().c_str());
     return reply;
+}
+wire::Reply BrokerClient::call(wire::Request request) {
+    broker_wire::Request envelope; *envelope.mutable_management() = std::move(request);
+    const auto reply = exchange(envelope).management();
+    if (reply.has_error()) throw WorldError(reply.error().code(), reply.error().message().c_str());
+    return reply;
+}
+broker_wire::AccessReply BrokerClient::access(const std::string& workspace, const std::string& actor) {
+    broker_wire::Request request; request.mutable_access()->set_workspace(workspace); request.mutable_access()->set_actor(actor);
+    return exchange(request).access();
 }
 }

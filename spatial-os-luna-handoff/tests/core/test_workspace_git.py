@@ -1,5 +1,7 @@
 """Independent Git, process, and storage witnesses for the production broker."""
 import os
+import io
+import broker_pb2 as broker_pb
 from pathlib import Path
 import select
 import signal
@@ -13,7 +15,7 @@ from unittest.mock import patch
 
 from harness.git_fixture import GitRepo
 from harness.rpc import Client, RpcError
-from harness.wire import make_request
+from harness.wire import make_request, frame, read_message, pb
 
 HOST, BROKER, JOB_PROBE = sys.argv[1:4]
 sys.argv[1:4] = []
@@ -359,6 +361,7 @@ class WorkspaceGitTests(unittest.TestCase):
     def test_execution_v1_migration_is_explicit_and_preserves_git_state(self):
         self.imported(); work = self.create(); self.client.stop()
         with self.registry() as db:
+            db.execute('DROP TABLE workspace_members'); db.execute('DROP TABLE workspaces')
             db.execute('DROP TABLE removals'); db.execute('PRAGMA user_version=1')
             before = {name: db.execute('SELECT * FROM ' + name).fetchall() for name in ['repositories', 'worktrees', 'operations']}
         refused = subprocess.run([BROKER, '--state-dir', str(self.state / 'execution')], input=b'', capture_output=True, timeout=5)
@@ -368,7 +371,7 @@ class WorkspaceGitTests(unittest.TestCase):
             migrated = subprocess.run(command, input=b'', capture_output=True, timeout=5)
             self.assertEqual(migrated.returncode, 0, migrated.stderr)
         with self.registry() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 2)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 3)
             for name, rows in before.items(): self.assertEqual(db.execute('SELECT * FROM ' + name).fetchall(), rows)
         self.start(); self.assertEqual(self.create(), work); self.remove()
 
@@ -533,14 +536,25 @@ class WorkspaceGitTests(unittest.TestCase):
                 os.close(fd)
 
     def test_broker_strict_protocol_does_not_expose_world_actions(self):
-        client = Client([BROKER], self.root / 'independent-execution', self.root / 'direct-logs', timeout=5)
-        self.addCleanup(client.stop)
-        identity = client.call('runtime.identities')
-        self.assertEqual(identity['workspaced_pid'], client.proc.pid)
-        for request, code in [(make_request('world.snapshot', {}), 'UNIMPLEMENTED'), (make_request('system.hello', {}), 'UNSUPPORTED_VERSION')]:
-            if code == 'UNSUPPORTED_VERSION': request.protocol_version = 99
-            with self.assertRaises(RpcError) as caught: client.call_message(request)
-            self.assertEqual(caught.exception.code, code)
+        requests = []
+        for index, method in enumerate(['runtime.identities', 'world.snapshot', 'system.hello']):
+            request = broker_pb.Request(protocol_version=1, request_id=index + 1)
+            request.management.CopyFrom(make_request(method, {})); request.management.request_id = request.request_id
+            if method == 'system.hello': request.management.protocol_version = 99
+            requests.append(frame(request))
+        requests.append(frame(broker_pb.Request(protocol_version=99, request_id=4)))
+        requests.append(frame(make_request('system.hello', {})))
+        process = subprocess.Popen([BROKER, '--state-dir', str(self.root / 'independent-execution')],
+                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, errors = process.communicate(b''.join(requests), timeout=5)
+        self.assertEqual(process.returncode, 0, errors)
+        stream = io.BytesIO(output); replies = [read_message(stream, broker_pb.Reply) for _ in requests]
+        self.assertEqual(replies[0].management.identities.workspaced_pid, process.pid)
+        self.assertEqual(replies[1].management.error.code, pb.UNIMPLEMENTED)
+        self.assertEqual(replies[2].management.error.code, pb.UNSUPPORTED_VERSION)
+        self.assertEqual(replies[3].error.code, pb.UNSUPPORTED_VERSION)
+        self.assertEqual(replies[4].error.code, pb.INVALID_ARGUMENT)
+        self.assertEqual(stream.read(), b'')
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-#include "workspace/git.hpp"
+#include "workspace/store.hpp"
 #include "world/store.hpp"
 #include "build_id.hpp"
 #include <csignal>
@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 namespace {
-spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::WorkspaceGit& git) {
+spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::ExecutionStore& git) {
     namespace wire = spatial::wire;
     wire::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     try {
@@ -25,6 +25,9 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Wo
         case wire::Request::kGitOperation: *reply.mutable_git_operation() = git.operation(request.git_operation().operation_id()); break;
         case wire::Request::kGitStatus: *reply.mutable_git_status() = git.status(request.git_status().worktree()); break;
         case wire::Request::kGitWorktreeRemove: *reply.mutable_worktree_removed() = git.remove(request.git_worktree_remove()); break;
+        case wire::Request::kWorkspaceCreate: *reply.mutable_workspace() = git.workspace_create(request.workspace_create()); break;
+        case wire::Request::kWorkspaceGet: *reply.mutable_workspace() = git.workspace_get(request.workspace_get().id()); break;
+        case wire::Request::kWorkspaceMemberSet: *reply.mutable_workspace_ack() = git.workspace_member(request.workspace_member_set()); break;
         case wire::Request::OPERATION_NOT_SET: throw spatial::WorldError(wire::UNKNOWN_METHOD, "No recognized broker operation");
         default: throw spatial::WorldError(wire::UNIMPLEMENTED, "Broker operation is not implemented");
         }
@@ -40,25 +43,46 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Wo
     }
     return reply;
 }
+spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store) {
+    namespace broker = spatial::workspace::v1;
+    namespace wire = spatial::wire;
+    broker::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+    try {
+        spatial::validate_message(request);
+        if (request.protocol_version() != 1) throw spatial::WorldError(wire::UNSUPPORTED_VERSION, "Unsupported private broker protocol version");
+        if (request.has_management()) {
+            if (request.management().request_id() != request.request_id()) throw std::invalid_argument("Broker management identity mismatch");
+            *reply.mutable_management() = dispatch(request.management(), store);
+        } else if (request.has_access()) *reply.mutable_access() = store.access(request.access());
+        else throw spatial::WorldError(wire::UNKNOWN_METHOD, "No recognized private broker operation");
+    } catch (const spatial::WorldError& error) {
+        reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
+    } catch (const std::invalid_argument& error) {
+        reply.mutable_error()->set_code(wire::INVALID_ARGUMENT); reply.mutable_error()->set_message(error.what());
+    } catch (const std::exception&) {
+        reply.mutable_error()->set_code(wire::STORAGE_ERROR); reply.mutable_error()->set_message("Broker authority lookup failed");
+    }
+    return reply;
+}
 }
 int main(int argc, char** argv) {
-    const bool migration = argc == 4 && std::string_view(argv[3]) == "--migrate-v1";
+    const unsigned migration = argc == 4 ? (std::string_view(argv[3]) == "--migrate-v1" ? 1 : std::string_view(argv[3]) == "--migrate-v2" ? 2 : 0) : 0;
     if ((argc != 3 && !migration) || std::string_view(argv[1]) != "--state-dir") {
-        std::cerr << "Usage: workspaced --state-dir ABSOLUTE_EXECUTION_DIRECTORY [--migrate-v1]\n"; return 2;
+        std::cerr << "Usage: workspaced --state-dir ABSOLUTE_EXECUTION_DIRECTORY [--migrate-v1|--migrate-v2]\n"; return 2;
     }
     try {
         umask(0077); signal(SIGPIPE, SIG_IGN);
-        spatial::WorkspaceGit git(argv[2], migration);
+        spatial::ExecutionStore git(argv[2], migration);
         if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }
         // The supervisor supplies a private trusted management channel. No actor listener.
         std::string bytes;
         while (spatial::read_frame(std::cin, bytes)) {
-            spatial::wire::Request request;
-            spatial::wire::Reply reply;
+            spatial::workspace::v1::Request request;
+            spatial::workspace::v1::Reply reply;
             if (!request.ParseFromString(bytes)) {
                 reply.set_protocol_version(1); reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
                 reply.mutable_error()->set_message("Malformed broker protobuf payload");
-            } else reply = dispatch(request, git);
+            } else reply = dispatch_broker(request, git);
             spatial::write_frame(std::cout, reply);
         }
         return 0;

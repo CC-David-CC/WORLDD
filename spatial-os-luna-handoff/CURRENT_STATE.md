@@ -1,5 +1,44 @@
 # Implementation status
 
+## 2026-10-07: P08 workspace authority and actor context
+
+Workspaced now owns workspace definitions and membership in its execution database.
+Worldd owns explicit workspace availability and durable selection per actor.
+Rooms do not own execution context. Room transitions preserve selection.
+Creation, membership, availability, selection, and cabinet placement remain separate operations.
+
+Selection requires the intersection of workspace policy and member authority.
+Actor reconnect revalidates saved context. Revocation and unavailability clear affected selections.
+Broker revocation remains effective if the separate world cleanup transaction fails.
+Actor requests recheck authority before using saved context.
+Workspace-bound worktrees cannot be retired or shared with another independent workspace.
+
+A new private protobuf envelope carries broker management and authorization queries.
+Public core and input schemas remain unchanged.
+Explicit migrations advance execution storage to version 3 and world storage to version 2.
+See docs/WORKSPACE_CONTEXT.md for migration commands, boundaries, and recovery notes.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 113 preceding P00-P07 acceptance tests and seventeen P08 acceptance tests.
+- All 187 core checks, including thirteen new workspace checks.
+- All 43 harness self-tests.
+
+The full 138-case P00-P08 gate ran in each build on both hosts.
+Coverage is 130 passed, zero assertion failures, eight errors, zero skipped, and thirteen unrun later tests.
+All eight errors report unimplemented process execution.
+P08 remains incomplete. Full Spatial-M1 and native hardware qualification remain pending.
+All 98 source hashes match reviewed local files and both hosts.
+Evidence is in evidence/workspace-context-2026-10-07.
+
+The first qualification attempt detected an accidental locked-test edit.
+That edit was restored exactly. A separate unlocked test covers corruption under the current world schema.
+The acceptance lock and all locked files remain unchanged. Evidence preserves the failed integrity run.
+No host configuration or operator session changed.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: confined process execution, starting with process.workspace_cwd.
+The full project goal remains active.
+
 ## 2026-10-07: P08 conservative worktree removal
 
 Workspaced now removes clean Git worktrees while preserving their actual files in private retained storage.

@@ -11,6 +11,7 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <array>
+#include <algorithm>
 #include <cmath>
 #include <istream>
 #include <ostream>
@@ -223,12 +224,29 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
         case wire::Request::kGitOperation:
         case wire::Request::kGitStatus:
         case wire::Request::kGitWorktreeRemove:
-            if (!broker) throw WorldError(wire::UNIMPLEMENTED, "No workspace broker configured");
-            reply = broker->call(request); reply.set_request_id(request.request_id()); break;
         case wire::Request::kWorkspaceCreate:
         case wire::Request::kWorkspaceGet:
-        case wire::Request::kWorkspaceMemberSet:
-        case wire::Request::kWorkspaceAvailable:
+            if (!broker) throw WorldError(wire::UNIMPLEMENTED, "No workspace broker configured");
+            reply = broker->call(request); reply.set_request_id(request.request_id()); break;
+        case wire::Request::kWorkspaceMemberSet: {
+            if (!broker || !world) throw WorldError(wire::UNIMPLEMENTED, "No workspace authority configured");
+            const auto& member = request.workspace_member_set();
+            require(world->get(member.actor()).kind() == wire::ACTOR, "Workspace membership requires a registered actor");
+            reply = broker->call(request); reply.set_request_id(request.request_id());
+            const auto rights = broker->access(member.id(), member.actor()).rights();
+            if (std::find(rights.begin(), rights.end(), wire::WORKSPACE_SELECT) == rights.end())
+                world->revoke_workspace_selection(member.id(), member.actor());
+            break;
+        }
+        case wire::Request::kWorkspaceAvailable: {
+            if (!broker || !world) throw WorldError(wire::UNIMPLEMENTED, "No workspace authority configured");
+            const auto& availability = request.workspace_available(); require(availability.has_available(), "Missing availability");
+            if (availability.available()) {
+                wire::Request lookup; lookup.mutable_workspace_get()->set_id(availability.id()); broker->call(lookup);
+            }
+            world->workspace_available(availability.id(), availability.available());
+            reply.mutable_workspace_ack()->set_accepted(true); break;
+        }
         case wire::Request::kProcessWait:
             throw WorldError(wire::UNIMPLEMENTED, "Workspace execution broker is not implemented");
         }

@@ -1,4 +1,4 @@
-#include "workspace/git.hpp"
+#include "workspace/store.hpp"
 #include "workspace/git_command.hpp"
 #include "workspace/status.hpp"
 #include "world/store.hpp"
@@ -106,15 +106,31 @@ const char* removal_schema =
     "CREATE TABLE removals(id TEXT PRIMARY KEY,payload BLOB NOT NULL,record BLOB NOT NULL,"
     "worktree TEXT NOT NULL REFERENCES worktrees(id),retired TEXT UNIQUE NOT NULL,state TEXT NOT NULL);"
     "PRAGMA user_version=2";
+const char* workspace_schema =
+    "CREATE TABLE workspaces(id TEXT PRIMARY KEY,worktree TEXT UNIQUE NOT NULL REFERENCES worktrees(id),"
+    "repo TEXT UNIQUE NOT NULL REFERENCES repositories(id),policy INTEGER NOT NULL CHECK(policy>=0 AND policy<=30),"
+    "revision INTEGER NOT NULL CHECK(revision>0));"
+    "CREATE TABLE workspace_members(workspace TEXT NOT NULL REFERENCES workspaces(id),actor TEXT NOT NULL,"
+    "rights INTEGER NOT NULL CHECK(rights>=0 AND rights<=30),PRIMARY KEY(workspace,actor));"
+    "PRAGMA user_version=3";
+unsigned rights_mask(const google::protobuf::RepeatedField<int>& rights) {
+    unsigned mask = 0;
+    for (const auto value : rights) {
+        require(value >= wire::WORKSPACE_SELECT && value <= wire::PROCESS_LAUNCH, "Unknown workspace right");
+        const unsigned bit = 1u << value;
+        require(!(mask & bit), "Duplicate workspace right"); mask |= bit;
+    }
+    return mask;
+}
 }
 
-struct WorkspaceGit::Impl {
+struct ExecutionStore::Impl {
     std::filesystem::path state;
     File lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
-    explicit Impl(const std::filesystem::path& directory, bool migrate_v1) {
+    explicit Impl(const std::filesystem::path& directory, unsigned migrate_from) {
         require(directory.is_absolute() && !std::filesystem::is_symlink(directory), "Execution state requires an absolute nonsymlink directory");
-        if (migrate_v1) require(std::filesystem::is_regular_file(directory / "execution.db"), "Migration requires an existing execution database");
+        if (migrate_from) require(std::filesystem::is_regular_file(directory / "execution.db"), "Migration requires an existing execution database");
         std::filesystem::create_directories(directory);
         state = std::filesystem::canonical(directory);
         lock.fd = open((state / "execution.lock").c_str(), O_RDWR | O_CREAT | O_CLOEXEC | O_NOFOLLOW, 0600);
@@ -134,9 +150,9 @@ struct WorkspaceGit::Impl {
           if (q.text(0) != "delete") throw WorldError(wire::STORAGE_ERROR, "Execution journal mode unavailable"); }
         int version;
         { Query q(db.get(), "PRAGMA user_version"); q.step(); version = sqlite3_column_int(q.value, 0); }
-        if (version == 1 && !migrate_v1)
-            throw WorldError(wire::STORAGE_ERROR, "Execution schema v1 requires workspaced --state-dir PATH --migrate-v1 while the broker is stopped");
-        if (version < 0 || version > 2 || (migrate_v1 && version == 0))
+        if ((version == 1 || version == 2) && !migrate_from)
+            throw WorldError(wire::STORAGE_ERROR, "Execution schema requires workspaced --state-dir PATH --migrate-v1 or --migrate-v2 while the broker is stopped");
+        if (version < 0 || version > 3 || (migrate_from && (version == 0 || (version != 3 && version != static_cast<int>(migrate_from)))))
             throw WorldError(wire::STORAGE_ERROR, "Unknown execution schema; explicit migration required");
         if (version == 0) {
             Query existing(db.get(), "SELECT count(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"); existing.step();
@@ -146,6 +162,7 @@ struct WorkspaceGit::Impl {
                 "CREATE TABLE worktrees(id TEXT PRIMARY KEY,repo TEXT NOT NULL REFERENCES repositories(id),branch TEXT NOT NULL,path TEXT UNIQUE NOT NULL,head TEXT NOT NULL,state TEXT NOT NULL);"
                 "CREATE TABLE operations(id TEXT PRIMARY KEY,payload BLOB NOT NULL,result BLOB NOT NULL,worktree TEXT NOT NULL REFERENCES worktrees(id),state TEXT NOT NULL);");
             sql(db.get(), removal_schema);
+            sql(db.get(), workspace_schema);
             transaction.commit();
         }
         { Query q(db.get(), "PRAGMA quick_check"); q.step(); if (q.text(0) != "ok") throw WorldError(wire::STORAGE_ERROR, "Execution registry integrity failure"); }
@@ -159,10 +176,14 @@ struct WorkspaceGit::Impl {
             Query old_operations(db.get(), "SELECT id,payload,result,worktree,state FROM operations LIMIT 0");
             Query old_worktrees(db.get(), "SELECT id,repo,branch,path,head,state FROM worktrees LIMIT 0");
             Query old_repositories(db.get(), "SELECT id,source,path,state FROM repositories LIMIT 0");
-            sql(db.get(), removal_schema); transaction.commit();
+            sql(db.get(), removal_schema); sql(db.get(), workspace_schema); transaction.commit();
+        } else if (version == 2) {
+            Transaction transaction(db.get());
+            Query old_removals(db.get(), "SELECT id,payload,record,worktree,retired,state FROM removals LIMIT 0");
+            sql(db.get(), workspace_schema); transaction.commit();
         }
         std::filesystem::create_directories(state / "retired");
-        if (migrate_v1) { sync_path(state, true); return; }
+        if (migrate_from) { sync_path(state, true); return; }
         // A partial clone has no reliable completion witness. Preserve it for explicit repair.
         sql(db.get(), "UPDATE repositories SET state='uncertain' WHERE state='pending'");
         std::vector<std::string> pending;
@@ -352,9 +373,9 @@ struct WorkspaceGit::Impl {
     }
 };
 
-WorkspaceGit::WorkspaceGit(const std::filesystem::path& state, bool migrate_v1) : impl_(std::make_unique<Impl>(state, migrate_v1)) {}
-WorkspaceGit::~WorkspaceGit() = default;
-wire::RepositoryReply WorkspaceGit::import_repository(const wire::RepositoryImportRequest& request) {
+ExecutionStore::ExecutionStore(const std::filesystem::path& state, unsigned migrate_from) : impl_(std::make_unique<Impl>(state, migrate_from)) {}
+ExecutionStore::~ExecutionStore() = default;
+wire::RepositoryReply ExecutionStore::import_repository(const wire::RepositoryImportRequest& request) {
     valid_text(request.id()); valid_text(request.path(), 16384);
     require(std::filesystem::path(request.path()).is_absolute() && std::filesystem::is_directory(request.path()), "Import requires an existing absolute local repository");
     const auto source = std::filesystem::canonical(request.path());
@@ -383,7 +404,7 @@ wire::RepositoryReply WorkspaceGit::import_repository(const wire::RepositoryImpo
     }
     return impl_->repository(request.id());
 }
-wire::WorktreeReply WorkspaceGit::create(const wire::WorktreeCreateRequest& request) {
+wire::WorktreeReply ExecutionStore::create(const wire::WorktreeCreateRequest& request) {
     valid_text(request.repo()); valid_text(request.id()); valid_text(request.operation_id());
     valid_text(request.branch(), 1024); valid_text(request.start(), 1024);
     const auto payload = request.SerializeAsString();
@@ -398,6 +419,8 @@ wire::WorktreeReply WorkspaceGit::create(const wire::WorktreeCreateRequest& requ
         }
     }
     const auto repo = impl_->repository(request.repo());
+    { Query q(impl_->db.get(), "SELECT id FROM workspaces WHERE repo=?"); q.text(1, request.repo());
+      if (q.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Repository execution authority belongs to a workspace"); }
     require(request.branch().front() != '-' && git_command(repo.path(), {"check-ref-format", "refs/heads/" + request.branch()}).status == 0,
             "Invalid branch name");
     const auto list = tokens(checked(repo.path(), {"worktree", "list", "--porcelain", "-z"}));
@@ -425,16 +448,16 @@ wire::WorktreeReply WorkspaceGit::create(const wire::WorktreeCreateRequest& requ
     impl_->complete_effect(out);
     impl_->finish(request.operation_id(), out); return out;
 }
-wire::GitOperationReply WorkspaceGit::operation(const std::string& id) {
+wire::GitOperationReply ExecutionStore::operation(const std::string& id) {
     valid_text(id); Query q(impl_->db.get(), "SELECT state FROM operations WHERE id=? UNION ALL SELECT state FROM removals WHERE id=?"); q.text(1, id); q.text(2, id);
     if (q.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Git operation not found");
     wire::GitOperationReply out; out.set_state(q.text(0)); return out;
 }
-wire::GitStatusReply WorkspaceGit::status(const std::string& id) {
+wire::GitStatusReply ExecutionStore::status(const std::string& id) {
     const auto worktree = impl_->worktree(id);
     return impl_->current_status(worktree.path());
 }
-wire::WorktreeRemoveReply WorkspaceGit::remove(const wire::WorktreeRemoveRequest& request) {
+wire::WorktreeRemoveReply ExecutionStore::remove(const wire::WorktreeRemoveRequest& request) {
     valid_text(request.id()); valid_text(request.operation_id());
     const auto payload = request.SerializeAsString();
     wire::WorktreeRemoveReply out; out.set_removed(true);
@@ -446,6 +469,8 @@ wire::WorktreeRemoveReply WorkspaceGit::remove(const wire::WorktreeRemoveRequest
           if (q.text(1) != "ready") throw WorldError(wire::STORAGE_ERROR, "Removal is pending or uncertain; inspect retained data");
           return out;
       } }
+    { Query q(impl_->db.get(), "SELECT id FROM workspaces WHERE worktree=?"); q.text(1, request.id());
+      if (q.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Worktree belongs to a workspace"); }
     auto record = impl_->worktree(request.id());
     const auto repo = impl_->repository(record.repo());
     const auto admin = std::filesystem::path(line(checked(record.path(), {"rev-parse", "--absolute-git-dir"})));
@@ -489,5 +514,57 @@ wire::WorktreeRemoveReply WorkspaceGit::remove(const wire::WorktreeRemoveRequest
     if (fsync(receipt.fd) != 0) throw WorldError(wire::STORAGE_ERROR, "Cannot flush removal receipt");
     sync_path(retired, true);
     impl_->removal_state(request.operation_id(), record.id(), true); return out;
+}
+wire::WorkspaceReply ExecutionStore::workspace_get(const std::string& id) {
+    valid_text(id);
+    Query q(impl_->db.get(), "SELECT worktree,policy,revision FROM workspaces WHERE id=?"); q.text(1, id);
+    if (q.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Workspace not registered");
+    const auto policy = sqlite3_column_int64(q.value, 1), revision = sqlite3_column_int64(q.value, 2);
+    if (policy < 0 || (policy & ~30) || revision < 1) throw WorldError(wire::STORAGE_ERROR, "Invalid workspace policy or revision");
+    wire::WorkspaceReply out; out.set_id(id); out.set_worktree(q.text(0)); out.set_revision(revision);
+    for (int right = wire::WORKSPACE_SELECT; right <= wire::PROCESS_LAUNCH; ++right)
+        if (policy & (1u << right)) out.add_policy(static_cast<wire::WorkspaceRight>(right));
+    return out;
+}
+wire::WorkspaceReply ExecutionStore::workspace_create(const wire::WorkspaceCreateRequest& request) {
+    valid_text(request.id()); valid_text(request.worktree()); const auto policy = rights_mask(request.policy());
+    Transaction transaction(impl_->db.get());
+    { Query q(impl_->db.get(), "SELECT id FROM workspaces WHERE id=?"); q.text(1, request.id());
+      if (q.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Workspace identity already exists"); }
+    const auto worktree = impl_->worktree(request.worktree());
+    { Query q(impl_->db.get(), "SELECT id FROM workspaces WHERE worktree=? OR repo=?"); q.text(1, worktree.id()); q.text(2, worktree.repo());
+      if (q.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Workspace execution state or Git administration already has an owner"); }
+    Query q(impl_->db.get(), "INSERT INTO workspaces VALUES(?,?,?,?,1)"); q.text(1, request.id()); q.text(2, worktree.id()); q.text(3, worktree.repo());
+    check(sqlite3_bind_int(q.value, 4, static_cast<int>(policy))); q.step(); transaction.commit();
+    return workspace_get(request.id());
+}
+wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberRequest& request) {
+    valid_text(request.id()); valid_text(request.actor()); const auto rights = rights_mask(request.rights());
+    Transaction transaction(impl_->db.get()); const auto workspace = workspace_get(request.id());
+    unsigned previous = 0;
+    { Query q(impl_->db.get(), "SELECT rights FROM workspace_members WHERE workspace=? AND actor=?"); q.text(1, request.id()); q.text(2, request.actor());
+      if (q.step() == SQLITE_ROW) previous = static_cast<unsigned>(sqlite3_column_int(q.value, 0)); }
+    if (previous != rights) {
+        if (workspace.revision() >= INT64_MAX) throw WorldError(wire::RESOURCE_EXHAUSTED, "Workspace revision exhausted");
+        Query q(impl_->db.get(), "INSERT INTO workspace_members VALUES(?,?,?) ON CONFLICT(workspace,actor) DO UPDATE SET rights=excluded.rights");
+        q.text(1, request.id()); q.text(2, request.actor()); check(sqlite3_bind_int(q.value, 3, static_cast<int>(rights))); q.step();
+        Query revision(impl_->db.get(), "UPDATE workspaces SET revision=revision+1 WHERE id=?"); revision.text(1, request.id()); revision.step();
+    }
+    transaction.commit(); wire::WorkspaceAck out; out.set_accepted(true); return out;
+}
+workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessRequest& request) {
+    valid_text(request.workspace()); valid_text(request.actor()); const auto descriptor = workspace_get(request.workspace());
+    unsigned rights = 0;
+    Query q(impl_->db.get(), "SELECT rights FROM workspace_members WHERE workspace=? AND actor=?"); q.text(1, request.workspace()); q.text(2, request.actor());
+    if (q.step() == SQLITE_ROW) {
+        const auto stored = sqlite3_column_int64(q.value, 0);
+        if (stored < 0 || (stored & ~30)) throw WorldError(wire::STORAGE_ERROR, "Invalid stored workspace membership");
+        rights = static_cast<unsigned>(stored);
+    }
+    rights &= rights_mask(descriptor.policy());
+    workspace::v1::AccessReply out; out.set_revision(descriptor.revision());
+    for (int right = wire::WORKSPACE_SELECT; right <= wire::PROCESS_LAUNCH; ++right)
+        if (rights & (1u << right)) out.add_rights(static_cast<wire::WorkspaceRight>(right));
+    return out;
 }
 }

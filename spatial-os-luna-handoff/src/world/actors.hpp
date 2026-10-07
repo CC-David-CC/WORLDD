@@ -50,6 +50,7 @@ private:
         wire::ErrorCode object_error = wire::NO_TARGET;
     };
     Actor& authenticated(const std::string& token);
+    std::string selected_workspace(const Actor& actor);
     void step(double target);
     void refresh_native();
     void release_input(Actor& actor, bool close = false);

@@ -3,7 +3,8 @@
 This increment implements real repository import and worktree creation through workspaced.
 Live Git status is now qualified in [WORKSPACE_STATUS.md](WORKSPACE_STATUS.md).
 Conservative removal is now qualified in [WORKSPACE_REMOVAL.md](WORKSPACE_REMOVAL.md).
-Workspace membership, selection, application launch, and bound-worktree protection remain incomplete.
+Workspace membership, selection, and bound-worktree protection are qualified in [WORKSPACE_CONTEXT.md](WORKSPACE_CONTEXT.md).
+Application launch remains incomplete.
 The P08 phase is not complete.
 
 ## Authority and process ownership

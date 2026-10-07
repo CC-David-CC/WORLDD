@@ -72,6 +72,21 @@ Actors::Actor& Actors::authenticated(const std::string& token) {
     if (token.empty() || found == sessions_.end()) throw WorldError(wire::UNAUTHORIZED, "Invalid actor session");
     return actors_.at(found->second);
 }
+std::string Actors::selected_workspace(const Actor& actor) {
+    const auto selected = store_.selected_workspace(actor.entity.id());
+    if (selected.empty()) return {};
+    bool allowed = false;
+    if (broker_ && store_.workspace_available(selected)) {
+        try {
+            const auto access = broker_->access(selected, actor.entity.id());
+            allowed = std::find(access.rights().begin(), access.rights().end(), wire::WORKSPACE_SELECT) != access.rights().end();
+        } catch (const WorldError& error) {
+            if (error.code != wire::NOT_FOUND && error.code != wire::FORBIDDEN && error.code != wire::UNAVAILABLE) throw;
+        }
+    }
+    if (!allowed) { store_.clear_workspace(actor.entity.id()); return {}; }
+    return selected;
+}
 wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request) {
     require(request.grants_size() <= 64, "Too many grants");
     const std::set<std::string> allowed{"navigate", "interact", "world.write", "git.write", "process.launch"};
@@ -95,6 +110,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request) {
         found = actors_.emplace(entity.id(), std::move(actor)).first;
     }
     auto& actor = found->second;
+    selected_workspace(actor);
     // An existing actor keeps its last valid pose, including a durable restore.
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
     actor.axes.fill(0); actor.expires = now_;
@@ -106,6 +122,8 @@ wire::ActorStateReply Actors::inspect(const std::string& token) {
     const auto& actor = authenticated(token);
     refresh_native();
     wire::ActorStateReply result; result.set_id(actor.entity.id()); result.set_room(actor.entity.room());
+    const auto workspace = selected_workspace(actor);
+    if (!workspace.empty()) result.set_workspace(workspace);
     *result.mutable_pose() = actor.entity.pose();
     for (const auto axis : actor.axes) result.add_axes(axis);
     *result.mutable_held_keys() = actor.native.held_keys();
@@ -137,12 +155,25 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         const auto result = broker_->call(delegated);
         wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_worktree() = result.worktree(); return reply;
     }
-    case wire::ActorActionRequest::kProcessLaunch:
+    case wire::ActorActionRequest::kProcessLaunch: {
         if (!actor.grants.contains("process.launch")) throw WorldError(wire::FORBIDDEN, "Process launch grant required");
+        const auto workspace = selected_workspace(actor);
+        if (workspace.empty()) throw WorldError(wire::NO_WORKSPACE, "Actor has no selected workspace");
+        const auto access = broker_->access(workspace, actor.entity.id());
+        if (std::find(access.rights().begin(), access.rights().end(), wire::PROCESS_LAUNCH) == access.rights().end())
+            throw WorldError(wire::FORBIDDEN, "Workspace execution authority required");
         throw WorldError(wire::UNIMPLEMENTED, "Workspace execution broker is not implemented");
-    case wire::ActorActionRequest::kWorkspaceSelect:
+    }
+    case wire::ActorActionRequest::kWorkspaceSelect: {
+        if (!broker_) throw WorldError(wire::UNIMPLEMENTED, "No workspace authority configured");
+        const auto& id = request.workspace_select().id();
+        const auto access = broker_->access(id, actor.entity.id());
+        if (std::find(access.rights().begin(), access.rights().end(), wire::WORKSPACE_SELECT) == access.rights().end())
+            throw WorldError(wire::FORBIDDEN, "Workspace selection authority required");
+        store_.select_workspace(actor.entity.id(), id); break;
+    }
     case wire::ActorActionRequest::kWorkspaceClear:
-        throw WorldError(wire::UNIMPLEMENTED, "Workspace actor context is not implemented");
+        store_.clear_workspace(actor.entity.id()); break;
     case wire::ActorActionRequest::kObjectGrab:
     case wire::ActorActionRequest::kObjectMove:
     case wire::ActorActionRequest::kObjectRelease:

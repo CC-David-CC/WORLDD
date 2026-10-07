@@ -1,0 +1,24 @@
+syntax = "proto3";
+package spatial.workspace.v1;
+import "core.proto";
+
+// Private inherited authority channel. Never accept this envelope from actors.
+message AccessRequest { string workspace = 1; string actor = 2; }
+message AccessReply { repeated spatial.core.v1.WorkspaceRight rights = 1; uint64 revision = 2; }
+message Request {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    spatial.core.v1.Request management = 100;
+    AccessRequest access = 101;
+  }
+}
+message Reply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    spatial.core.v1.Reply management = 100;
+    AccessReply access = 101;
+    spatial.core.v1.Error error = 102;
+  }
+}

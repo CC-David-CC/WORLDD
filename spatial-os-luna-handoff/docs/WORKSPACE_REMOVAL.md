@@ -5,9 +5,9 @@ It unregisters the worktree from real Git and preserves the branch.
 It retains the actual project files in private execution storage.
 This operation does not permanently delete project data.
 
-Workspace creation and membership remain incomplete.
-The required IN_USE check for workspace-bound worktrees belongs to that pending integration.
-Do not claim complete P08 workspace authority from this increment.
+Workspace creation, membership, and bound-worktree protection are now qualified in [WORKSPACE_CONTEXT.md](WORKSPACE_CONTEXT.md).
+Removing a workspace-bound worktree returns IN_USE before Git or filesystem changes.
+Confined execution and complete P08 qualification remain pending.
 
 ## Preconditions
 
@@ -68,11 +68,12 @@ The original creation result remains historical operation evidence.
 
 ## Explicit execution schema migration
 
-The execution database advances from version 1 to version 2.
-Version 2 adds the removals table. It preserves existing repositories, worktrees, and creation operations.
-The protobuf schema and locked acceptance contract do not change.
+The removal increment introduced execution schema version 2 and its removals table.
+The subsequent workspace increment advances execution storage to version 3.
+It preserves existing repositories, worktrees, creation operations, and removal records.
+See [WORKSPACE_CONTEXT.md](WORKSPACE_CONTEXT.md) for current execution and world migration procedures.
 
-Normal startup refuses a version 1 database with an explicit migration command.
+Normal startup refuses older databases with an explicit migration command.
 A Git update does not silently migrate a running execution authority.
 Stop the owning supervisor before migration. Keep the SSH or TTY recovery route open.
 Set state to the exact execution directory that you intend to migrate.
@@ -85,11 +86,13 @@ cp --no-clobber -- "$state/execution.db" "$state/execution-v1.backup.db"
 sqlite3 -readonly "$state/execution.db" 'PRAGMA user_version; PRAGMA foreign_key_check;'
 ```
 
+For an existing version 2 database, use --migrate-v2 instead.
+Both commands migrate to the current execution schema, version 3.
 The migration acquires the execution lock and validates the existing database.
-It adds the table in one SQLite transaction.
-Repeated migration of version 2 succeeds without replaying Git effects.
+It adds required tables in one SQLite transaction.
+Repeated migration of the current version succeeds without replaying Git effects.
 Normal startup performs effect reconciliation after migration.
-Keep the backup. Do not restore it over a database that contains new version 2 operations.
+Keep the backup. Do not restore it over a database that contains later operations.
 
 ## Inspecting an uncertain operation
 
@@ -138,7 +141,8 @@ Sanitizers cover the broker, runtime, and compositor. XLibre remains a private D
 The tests use authenticated disposable software displays.
 No host configuration or operator session changed.
 
-Workspace confinement, bound-worktree protection, full Spatial-M1, and hardware qualification remain pending.
+Bound-worktree protection is covered by the subsequent workspace-context qualification.
+Workspace confinement, full Spatial-M1, and hardware qualification remain pending.
 
 Git behavior was checked against the installed Git 2.43 implementation and the real-host experiment.
 Reference: [Git worktree implementation](https://github.com/git/git/blob/v2.43.0/builtin/worktree.c).
