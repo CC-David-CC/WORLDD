@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import shutil
 import subprocess
 import sys
 
@@ -28,8 +29,6 @@ def main():
     evidence.mkdir(parents=True, exist_ok=False)
     lock_path = ROOT / 'server/base.lock.json'
     lock = json.loads(lock_path.read_text())
-    if lock['patches']:
-        parser.error('This baseline builder does not yet apply server patches')
     local = ROOT / 'local'
     prefix = local / 'xlibre-deps'
     record = {'host': host, 'utc': datetime.now(timezone.utc).isoformat(), 'status': 'failed',
@@ -67,14 +66,55 @@ def main():
             command += ['--reconfigure']
         run(label, [*command, build, path, *options], env)
 
+    def patched(base):
+        if not lock['patches'] and not lock.get('overlays'):
+            return base
+        names = [*lock['patches'], *lock.get('overlays', {})]
+        inputs = {name: digest(ROOT / name) for name in names}
+        spec = {'commit': lock['xserver']['commit'], 'files': inputs,
+                'patches': lock['patches'], 'overlays': lock.get('overlays', {})}
+        key = hashlib.sha256(json.dumps(spec, sort_keys=True).encode()).hexdigest()
+        folder = local / 'xlibre-patched' / key
+        source = folder / 'source'
+        manifest = folder / 'source.json'
+        if not folder.exists():
+            folder.mkdir(parents=True)
+            run('server-worktree', ['git', '-C', base, 'worktree', 'add', '--detach', source,
+                                    lock['xserver']['commit']])
+            for index, name in enumerate(lock['patches']):
+                run(f'server-patch-{index}', ['git', '-C', source, 'apply', '--check', ROOT / name])
+                run(f'server-apply-{index}', ['git', '-C', source, 'apply', ROOT / name])
+            for name, destination in spec['overlays'].items():
+                output = (source / destination).resolve()
+                if not output.is_relative_to(source) or output.exists():
+                    raise ValueError('Overlay must create a new file inside the source tree')
+                output.parent.mkdir(parents=True, exist_ok=True)
+                output.write_bytes((ROOT / name).read_bytes())
+            diff = subprocess.check_output(['git', '-C', str(source), 'diff', '--binary', 'HEAD'])
+            manifest.write_text(json.dumps({'spec': spec, 'diff': hashlib.sha256(diff).hexdigest()}, indent=2) + '\n')
+        saved = json.loads(manifest.read_text())
+        head = subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip()
+        diff = subprocess.check_output(['git', '-C', str(source), 'diff', '--binary', 'HEAD'])
+        if saved['spec'] != spec or head != spec['commit'] or saved['diff'] != hashlib.sha256(diff).hexdigest():
+            raise RuntimeError('Patched source changed outside the builder; no automatic reset')
+        for name, destination in spec['overlays'].items():
+            if digest(source / destination) != inputs[name]:
+                raise RuntimeError('Overlay source changed outside the builder')
+        record['extension_sources'] = inputs
+        record['effective_source'] = str(source)
+        return source
+
     try:
         proto = local / 'xorgproto'
         server = local / 'xlibre'
         checkout('xorgproto', proto)
         checkout('xserver', server)
+        server = patched(server)
         configure('protocol-configure', proto, ['--prefix=' + str(prefix)])
         run('protocol-install', ['meson', 'install', '-C', proto / 'build'])
         env = {**os.environ, 'PKG_CONFIG_PATH': str(prefix / 'share/pkgconfig')}
+        if shutil.which('ccache'):
+            env.update(CC='ccache cc', CXX='ccache c++')
         (local / 'xkb-compiled').mkdir(exist_ok=True)
         options = ['--prefix=' + str(server / 'image'), *lock['meson_options'],
                    '-Dxkb_output_dir=' + str(local / 'xkb-compiled')]

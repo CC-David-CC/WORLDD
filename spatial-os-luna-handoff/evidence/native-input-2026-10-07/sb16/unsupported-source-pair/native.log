@@ -1,0 +1,3 @@
+test_cancel_releases_native_keys_and_buttons (__main__.NativeInputTests.test_cancel_releases_native_keys_and_buttons) ... FAIL
+XIO:  fatal IO error 0 (Success) on X server ":90"
+      after 11 requests (11 known processed) with 0 events remaining.

@@ -1,0 +1,20 @@
+test_cancel_releases_native_keys_and_buttons (__main__.NativeInputTests.test_cancel_releases_native_keys_and_buttons) ... FAIL
+
+======================================================================
+FAIL: test_cancel_releases_native_keys_and_buttons (__main__.NativeInputTests.test_cancel_releases_native_keys_and_buttons)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_input_extension.py", line 156, in test_cancel_releases_native_keys_and_buttons
+    seat = self.owner.request("open").seat
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_input_extension.py", line 56, in request
+    raise AssertionError(f"Unexpected native reply: {reply}")
+AssertionError: Unexpected native reply: protocol_version: 1
+request_id: 2
+code: RESOURCE_LIMIT
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.012s
+
+FAILED (failures=1)

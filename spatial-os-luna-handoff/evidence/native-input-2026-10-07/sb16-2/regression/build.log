@@ -1,0 +1,20 @@
+[0/2] Re-checking globbed directories...
+[1/19] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[2/19] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[3/19] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[4/19] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[5/19] Building CXX object CMakeFiles/spatialwm.dir/src/render/main.cpp.o
+[6/19] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[7/19] Linking CXX static library libspatial-core.a
+[8/19] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[9/19] Building C object CMakeFiles/spatial-xprobe.dir/native/xprobe.c.o
+[10/19] Linking C executable spatial-xprobe
+[11/19] Generating python/core_pb2.py
+[12/19] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[13/19] Linking CXX executable spatialwm
+[14/19] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[15/19] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[16/19] Linking CXX executable worldd
+[17/19] Building CXX object CMakeFiles/spatial-test-host.dir/src/testing/main.cpp.o
+[18/19] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[19/19] Linking CXX executable spatial-test-host

@@ -28,6 +28,11 @@ def main():
             '--server-args=-screen 0 1920x1080x24 -nolisten tcp',
             'sh', '-c', 'SPATIAL_TEST_DISPLAY="$DISPLAY" exec "$@"',
             'spatial-test-display', *command]
+    if log := env.get('SPATIAL_TEST_XSERVER_LOG'):
+        path = Path(log)
+        if not path.is_absolute():
+            raise SystemExit('SPATIAL_TEST_XSERVER_LOG must be absolute')
+        argv.insert(1, '--error-file=' + str(path))
     return subprocess.run(argv, env=env).returncode
 
 

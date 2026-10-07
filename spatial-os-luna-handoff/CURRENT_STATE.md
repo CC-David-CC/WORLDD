@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-07: native input server component
+
+XLibre now supplies compositor-owned actor device pairs and surface-local input routing.
+The private interface uses a separate versioned protobuf schema.
+The production C++ bridge validates reply framing and correlation.
+Server generations invalidate stale window targets, including resize-away-and-back sequences.
+Cancellation and controller disconnect release native held input.
+
+Both hosts passed ten component checks with an independent native X client.
+Those checks include overlapping windows, distinct device identities, independent modifiers, ordinary X clients, and off-screen coordinates.
+Forty seat lifecycle cycles returned native device counts to baseline.
+The preceding 80 acceptance tests, 56 core counterexamples, and 39 harness checks also passed on both hosts.
+These results use authenticated disposable Xvfb displays and Debug builds.
+See docs/NATIVE_INPUT.md and evidence/native-input-2026-10-07.
+
+Public worldd actor actions do not call the input bridge yet.
+The P06 pointer diagnostic therefore remains unresolved.
+Legacy coverage remains 80 passed, one diagnostic error, and 60 unrun.
+P06, full workspace security, native hardware qualification, and Spatial-M1 remain incomplete.
+
 ## 2026-10-07: pinned XLibre preparation on both hosts
 
 Both hosts now build XLibre 25.1.9 from the recorded source commit.

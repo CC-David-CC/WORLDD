@@ -14,6 +14,7 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 configure_file(config/conformance.textproto runtime.textproto COPYONLY)
 protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
+protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
@@ -21,6 +22,12 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py"
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1/core.proto
     DEPENDS proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
 add_custom_target(python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/input_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/input/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/input/v1/input.proto
+    DEPENDS proto/spatial/input/v1/input.proto protobuf::protoc VERBATIM)
+add_custom_target(input-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/input_pb2.py")
 
 option(SPATIAL_SANITIZERS "Enable address and undefined-behavior sanitizers" OFF)
 add_compile_options(-Wall -Wextra -Wpedantic -Werror)
@@ -51,6 +58,8 @@ target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}"
 add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/scene.cpp)
 target_include_directories(spatial-scene PUBLIC src)
 target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
+add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources} ${input_proto_headers})
+target_link_libraries(spatial-native-input PUBLIC spatial-scene X11::X11)
 add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/actors.cpp src/world/surfaces.cpp src/platform/render_worker.cpp)
 target_include_directories(spatial-core PUBLIC src)
 target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3)
@@ -66,6 +75,8 @@ add_dependencies(spatial-test-host worldd)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_executable(spatial-input-bridge tests/native/input_bridge.cpp)
+    target_link_libraries(spatial-input-bridge PRIVATE spatial-native-input)
     add_executable(spatial-xprobe native/xprobe.c)
     set_target_properties(spatial-xprobe PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
     target_link_libraries(spatial-xprobe PRIVATE X11::X11)

@@ -1,0 +1,68 @@
+Sync Extension 3.1
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-90.xkm"', fp = 0x5601e83163e0
+Pclose: fp = 0x5601e83163e0
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-90.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(136744).
+client(0): Reserved cmdname(Xvfb) and cmdargs(:90 -screen 0 1920x1080x24 -nolisten tcp -nolisten tcp -auth /tmp/xvfb-run.33SkeR/Xauthority).
+client(200000): Reserved pid(136748).
+client(200000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+AllocNewConnection: client index = 1, socket fd = 8, local = 1
+client(400000): Reserved pid(136747).
+client(400000): Reserved cmdname(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+AllocNewConnection: client index = 2, socket fd = 9, local = 1
+client(600000): Reserved pid(136749).
+client(600000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-ce14bd07cc654f2aa9b81aa46192bf5c --xi2).
+AllocNewConnection: client index = 3, socket fd = 10, local = 1
+
+Backtrace:
+0: Xvfb (0x5601e1269000+0x1c636e) [0x5601e142f36e]
+1: Xvfb (0x5601e1269000+0x1cb3bd) [0x5601e14343bd]
+2: /lib/x86_64-linux-gnu/libc.so.6 (0x703b41000000+0x45330) [0x703b41045330]
+3: Xvfb (0x5601e1269000+0xa6484) [0x5601e130f484]
+4: Xvfb (0x5601e1269000+0x198011) [0x5601e1401011]
+5: Xvfb (0x5601e1269000+0x504b7) [0x5601e12b94b7]
+6: Xvfb (0x5601e1269000+0x1476af) [0x5601e13b06af]
+7: Xvfb (0x5601e1269000+0x147707) [0x5601e13b0707]
+8: Xvfb (0x5601e1269000+0x1487a7) [0x5601e13b17a7]
+9: Xvfb (0x5601e1269000+0x148eaf) [0x5601e13b1eaf]
+10: Xvfb (0x5601e1269000+0x7cb50) [0x5601e12e5b50]
+11: Xvfb (0x5601e1269000+0x8cb01) [0x5601e12f5b01]
+12: Xvfb (0x5601e1269000+0x28745) [0x5601e1291745]
+13: /lib/x86_64-linux-gnu/libc.so.6 (0x703b41000000+0x2a1ca) [0x703b4102a1ca]
+14: /lib/x86_64-linux-gnu/libc.so.6 (__libc_start_main+0x8b) [0x703b4102a28b]
+15: Xvfb (0x5601e1269000+0x24e65) [0x5601e128de65]
+
+Segmentation fault at address 0xd8
+
+Fatal server error:
+Caught signal 11 (Segmentation fault). Server aborting
+
+/usr/bin/xvfb-run: 91: kill: No such process
+

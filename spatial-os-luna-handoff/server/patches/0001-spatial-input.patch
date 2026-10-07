@@ -1,0 +1,64 @@
+--- a/Xext/meson.build
++++ b/Xext/meson.build
+@@ -55,10 +55,12 @@
+     hdrs_xext += ['xvdix.h', 'xvmcext.h']
+ endif
+ 
++subdir('spatial')
++
+ libxserver_xext = static_library('xserver_xext',
+     srcs_xext,
+-    include_directories: inc,
+-    dependencies: common_dep,
++    include_directories: [inc, include_directories('spatial')],
++    dependencies: [common_dep, spatial_input_dep],
+ )
+ 
+ if build_xorg
+--- a/mi/miinitext.c
++++ b/mi/miinitext.c
+@@ -97,6 +97,7 @@
+ #include "globals.h"
+ 
+ #include "miinitext.h"
++#include "spatialinput.h"
+ 
+ /* List of built-in (statically linked) extensions */
+ static const ExtensionModule staticExtensions[] = {
+@@ -112,6 +113,7 @@
+     {BigReqExtensionInit, "BIG-REQUESTS", NULL},
+     {SyncExtensionInit, "SYNC", NULL},
+     {XkbExtensionInit, "XKEYBOARD", NULL},
++    {SpatialInputExtensionInit, "SPATIAL-INPUT", NULL},
+     {XCMiscExtensionInit, "XC-MISC", NULL},
+ #ifdef XCSECURITY
+     {SecurityExtensionInit, "SECURITY", &noSecurityExtension},
+--- a/dix/events.c
++++ b/dix/events.c
+@@ -102,6 +102,7 @@
+  */
+ 
+ #include <dix-config.h>
++#include "spatialinput.h"
+ 
+ #include <X11/X.h>
+ #include <X11/extensions/ge.h>
+@@ -3159,7 +3160,8 @@
+ 
+     prevSpriteWin = pSprite->win;
+ 
+-    if (ev && !syncEvents.playingEvents) {
++    WindowPtr spatial_route = SpatialInputRoute(pDev, ev);
++    if (!spatial_route && ev && !syncEvents.playingEvents) {
+         /* GetPointerEvents() guarantees that pointer events have the correct
+            rootX/Y set already. */
+         switch (ev->type) {
+@@ -3234,7 +3236,7 @@
+         ev->root_y = pSprite->hot.y;
+     }
+ 
+-    newSpriteWin = XYToWindow(pSprite, pSprite->hot.x, pSprite->hot.y);
++    newSpriteWin = spatial_route ? spatial_route : XYToWindow(pSprite, pSprite->hot.x, pSprite->hot.y);
+ 
+     if (newSpriteWin != prevSpriteWin) {
+         int sourceid;

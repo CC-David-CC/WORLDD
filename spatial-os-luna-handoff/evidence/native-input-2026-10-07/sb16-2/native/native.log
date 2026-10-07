@@ -1,0 +1,15 @@
+test_cancel_releases_native_keys_and_buttons (__main__.NativeInputTests.test_cancel_releases_native_keys_and_buttons) ... ok
+test_destroy_clears_focus_and_held_state (__main__.NativeInputTests.test_destroy_clears_focus_and_held_state) ... ok
+test_offscreen_window_preserves_local_coordinates (__main__.NativeInputTests.test_offscreen_window_preserves_local_coordinates) ... ok
+test_ordinary_core_client_receives_input (__main__.NativeInputTests.test_ordinary_core_client_receives_input) ... ok
+test_overlapping_windows_receive_local_pixels_and_separate_devices (__main__.NativeInputTests.test_overlapping_windows_receive_local_pixels_and_separate_devices) ... ok
+test_owner_disconnect_releases_native_state (__main__.NativeInputTests.test_owner_disconnect_releases_native_state) ... ok
+test_replayed_release_does_not_change_native_state (__main__.NativeInputTests.test_replayed_release_does_not_change_native_state) ... ok
+test_resize_back_invalidates_server_generation (__main__.NativeInputTests.test_resize_back_invalidates_server_generation) ... ok
+test_seat_lifecycle_does_not_leak_native_devices (__main__.NativeInputTests.test_seat_lifecycle_does_not_leak_native_devices) ... ok
+test_unprivileged_connection_cannot_open_or_inspect (__main__.NativeInputTests.test_unprivileged_connection_cannot_open_or_inspect) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.167s
+
+OK

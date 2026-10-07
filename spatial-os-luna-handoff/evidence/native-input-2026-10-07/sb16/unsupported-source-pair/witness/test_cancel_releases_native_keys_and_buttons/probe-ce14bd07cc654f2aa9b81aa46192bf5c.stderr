@@ -1,0 +1,2 @@
+XIO:  fatal IO error 104 (Connection reset by peer) on X server ":90"
+      after 52 requests (50 known processed) with 0 events remaining.

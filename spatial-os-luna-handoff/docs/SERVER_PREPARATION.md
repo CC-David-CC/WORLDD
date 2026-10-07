@@ -14,7 +14,9 @@ Ubuntu's existing Present headers were too old for this XLibre build.
 The builder installs the pinned protocol headers under local/xlibre-deps.
 It builds Xorg and Xvfb under local/xlibre/build with two jobs.
 It does not install a system X server or change the normal desktop session.
-The patch list is empty. Native actor input and workspace security remain unfinished.
+The original baseline at fcce9cf had an empty patch list.
+The current input extension and its separate qualification are described in NATIVE_INPUT.md.
+Public actor input integration and workspace security remain unfinished.
 
 Run from this project folder on either authorized host:
 

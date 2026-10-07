@@ -1,0 +1,112 @@
+{
+  "host": "sb16",
+  "utc": "2026-10-07T10:11:08.962693+00:00",
+  "status": "failed",
+  "commands": [
+    {
+      "name": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2",
+        "--target",
+        "spatial-input-bridge",
+        "input-python-protobuf"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "witness-build",
+      "argv": [
+        "/usr/bin/python3",
+        "tools/build_probe.py",
+        "--xi2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "native",
+      "argv": [
+        "/usr/bin/python3",
+        "tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "tests/native/test_input_extension.py",
+        "build/spatial-input-bridge"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "source_sha256": {
+    "CMakeLists.txt": "705132db1a26ed329435727137a8909f233e0e4831db284984309242c4914efe",
+    "harness/probe.py": "c5ff0b50e263d4c53f6823f202adfe9d3c8d3bb9bc824efa8eb8415d8effb019",
+    "native/xprobe.c": "8d26ff68ab6a861742f12ee02385a7915f0f51b1251eb8b385bbd7eaa586f8da",
+    "proto/spatial/core/v1/core.proto": "2399fce07ea497ad0ad341c9176132fd4c57d50d4b09efe86a2494464421172b",
+    "proto/spatial/input/v1/input.proto": "1800cfc0d8141beebfb1851194ff412e898700034847354566f226d2204881bc",
+    "server/base.lock.json": "56acc1348cf4e03a413e2b70cab33bc35b3780ef5e29ad908e2637b80489ff9c",
+    "server/patches/0001-spatial-input.patch": "5742a88f90bdbb5c166024f65244599e1d290ab24b9bbb63456b76d3431cf9d1",
+    "server/xlibre/meson.build": "56daccbb2fb7408bab485e14a9f71a5f1946b9bcdb4aca77bdf5f230c1cd7485",
+    "server/xlibre/spatialinput.c": "9107866c3ce4ff49751b51586f7654793e3fc882490c2c345da074a022eb4b2d",
+    "server/xlibre/spatialinput.h": "f5558a3973360de8e6b7bfd0e6c59c8602f78f3747b07a1f9f8489b8588ce3ba",
+    "src/core/framing.cpp": "2c73ccfa897612d34cf753b8d9f952c4304b96f51a012a416f8c68f8c5f02a77",
+    "src/core/geometry.cpp": "109c1111a03e319581b096a0a61a262f603249867773e0f2d87230f44c10d3a6",
+    "src/core/geometry.hpp": "1a05373eda75c51dc1b0163dd90fb7e3f19dcff8ad155006e2bedd5db96db7d2",
+    "src/core/protocol.cpp": "82643658a22abc7e0c67c7ef76c3ef58bfd5426bc93144ff237554bd2b4b086c",
+    "src/core/protocol.hpp": "0093ad1e44406d0fbf71514a600d7d2e9e9b66bed11af8acbe47db4f81f175bb",
+    "src/core/scene.cpp": "ee7ecaae0f2d71745aa47f6c5098cc4cdf37e210678c6527ac9043aa6a875bcd",
+    "src/core/scene.hpp": "68e5737ce0814761543a4ff32ceac46178d4084a21ef4a5a15ae24145ae315d4",
+    "src/platform/render_worker.cpp": "180232f85659cc492d980a57c74cff2b56c824594c2ae3e697bacfc40cd06827",
+    "src/platform/render_worker.hpp": "8b2e37993f892cc613b43d44912452cf6f85931dbfe847c4fb127ea3dcba0f57",
+    "src/platform/worker.cpp": "cab6b8df4ea0b2338c86b67d30e0d6f577fb3347a01abbed9866c0b43c1425df",
+    "src/platform/worker.hpp": "83dcec78dcf4d0e37621e0181bc34585eb4d50a8aad8df2f88f167d17e061415",
+    "src/render/main.cpp": "5c0e3dc39250badbda6d2279b7a76921c29f0c0c7a541eb86816940b1b83a178",
+    "src/render/renderer.cpp": "2109801741bb697d2158dbe8f86ce6208e966dd7eb9e319cd8f5293f12078de2",
+    "src/render/renderer.hpp": "a13f34d94d442f492104a9a38c364d612a9f771f4ef16a61cf395b5124772757",
+    "src/testing/main.cpp": "b2818a05240ea78e6d745c525bd4e054f1e523a16bd46fed7f20ad2db3b4ada4",
+    "src/world/actors.cpp": "6eed04d06cb9e3310305e97dbb10b6fd262eac1e11983f3bcaeac59e580adf77",
+    "src/world/actors.hpp": "9389e270af0fa8138a19d6e6cb67c0bf92a1ceff967d67b9c8fe036637c74109",
+    "src/world/main.cpp": "169e6821fe450a7ec46843cf47a8de59fb5c68accef75fb3da8202329922b75c",
+    "src/world/server.cpp": "8aa7d27cf7d346db4409370b4ede492e8c862b465211da0a52d3c7bf5ce1d00e",
+    "src/world/server.hpp": "55cb2fcdc5cb03488fc9b9783d6b8d84f9fb0f019c5576f3270b6ae893c2c83e",
+    "src/world/store.cpp": "45bf307be673925448ef7df689cd09826f9fe5ae94a11f8387cda1dcac6161ad",
+    "src/world/store.hpp": "5c4514aab646b5c3c050bbeb1ea4074f682bfe85926d679979c817fb17b0f0e0",
+    "src/world/surfaces.cpp": "0e66a214347b607109d59d15d58020ac9ae7e260b237126fecb3236c0eb946bb",
+    "src/world/surfaces.hpp": "94ae63a38bb568f28e8ca3ed62a6ee70dd0b259f823c9bb81e7bb170bd4ccb8f",
+    "src/x11/input.cpp": "4ea238e6a309f0d3f58ed5af72109f061eddee803d2dc4a88d9589d106a05d3e",
+    "src/x11/input.hpp": "ef8dc86c9fa9f03164d68c3c9906077027a1a14de99498d4370dbe1690cf81c2",
+    "src/x11/surfaces.cpp": "6e66099a8dd7d3895b669a6a3f2739e1fca8efb8d705094da3db69befff15eed",
+    "src/x11/surfaces.hpp": "b3371bd5c505b295b2125bbac340e760df861a4dd393e3c48df9bf76de396f7b",
+    "tests/native/input_bridge.cpp": "a8e53eec7bfd2f46cf3c53fe6b237d1d16638386183d5a77a3f479a7b9d386ac",
+    "tests/native/test_input_extension.py": "0f7995f415093dbf2515824de65cb64fe647416dc012c410b60dd5229b6b5887",
+    "tools/build_probe.py": "fc63de8835d584fb1175fa3b85d36ef429cff496416d8419c74e5e89794f779c",
+    "tools/build_xserver.py": "de99d5617b1d12a9ed181550ac491b25b0b97501f8327b41532c773f61d89485",
+    "tools/qualify_native_input.py": "7c64cb69b1fbb700bfe2cf134d37d521f66f7cd5caf798fe614161389cc0287a",
+    "tools/with_test_display.py": "cb2544ebfab411af7e0239a63ca1530518a3a9cf58c104b9ee8fee2f31109b45"
+  },
+  "server_report": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p06-input-server-6/run.json",
+    "sha256": "1396ef9789dd7da68937ba62db63dcb870f6b56fddae284ead2e5b6800d52fa0"
+  },
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/99641694401b42275a2f095ab78fb24b95e74a6e314253423d4084ee6cedf788/source/build/hw/vfb/Xvfb",
+    "sha256": "3bb0bdb256538a56bf0099ed6db4446ff8121ae61e2f27e90c172ca1fd4002a7"
+  },
+  "error": "native failed"
+}
