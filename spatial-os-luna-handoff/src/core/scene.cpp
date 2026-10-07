@@ -27,6 +27,9 @@ void validate_render_config(const wire::RenderConfig& value) {
                                            value.barrier_color().blue() <= 255, "Invalid barrier color");
     if (value.has_portal_color()) require(value.portal_color().red() <= 255 && value.portal_color().green() <= 255 &&
                                           value.portal_color().blue() <= 255, "Invalid portal color");
+    if (value.has_object_size()) require(value.object_size() > 0 && value.object_size() <= 1000, "Invalid object size");
+    if (value.has_object_color()) require(value.object_color().red() <= 255 && value.object_color().green() <= 255 &&
+                                          value.object_color().blue() <= 255, "Invalid object color");
 }
 void validate_render_extent(std::uint32_t width, std::uint32_t height) {
     require(width > 0 && height > 0 && width <= 4096 && height <= 4096 &&
@@ -42,6 +45,7 @@ wire::RenderScene panel_scene(const wire::WorldSnapshotReply& world, const wire:
         if (entity.kind() == wire::PANEL) *result.add_panels() = entity;
         else if (entity.kind() == wire::BARRIER) *result.add_barriers() = entity;
         else if (entity.kind() == wire::PORTAL) *result.add_portals() = entity;
+        else if (entity.kind() == wire::OBJECT) *result.add_objects() = entity;
     }
     return result;
 }
@@ -173,6 +177,22 @@ std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
             auto& metadata = converted.front().representation; metadata.set_kind(wire::PORTAL);
             *metadata.mutable_pose() = portal.pose(); *metadata.mutable_size() = portal.size();
             result.push_back(std::move(converted.front()));
+        }
+    }
+    for (const auto& object : scene.objects()) {
+        require(object.kind() == wire::OBJECT && object.has_pose(), "Invalid scene object");
+        wire::RenderScene single; *single.mutable_camera() = scene.camera(); *single.mutable_config() = scene.config();
+        auto* box = single.add_barriers(); *box = object; box->set_kind(wire::BARRIER);
+        const double half = (scene.config().has_object_size() ? scene.config().object_size() : .2) / 2;
+        auto* low = box->mutable_bounds()->mutable_min(); low->set_x(-half); low->set_y(-half); low->set_z(-half);
+        auto* high = box->mutable_bounds()->mutable_max(); high->set_x(half); high->set_y(half); high->set_z(half);
+        auto* color = single.mutable_config()->mutable_barrier_color();
+        if (scene.config().has_object_color()) *color = scene.config().object_color();
+        else { color->set_red(224); color->set_green(174); color->set_blue(72); }
+        auto converted = scene_panels(single);
+        for (auto& face : converted) {
+            face.representation.set_kind(wire::OBJECT); face.representation.set_generation(object.revision());
+            result.push_back(std::move(face));
         }
     }
     return result;

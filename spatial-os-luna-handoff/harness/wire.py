@@ -208,6 +208,19 @@ def make_request(method, params):
                 if type(value) is not fields[name]:
                     raise ValueError('Invalid actor input field type')
                 setattr(operation, name, value)
+        elif params.get('op') in ('object.grab', 'object.move', 'object.release'):
+            field = {'object.grab': 'id', 'object.move': 'pose', 'object.release': 'commit'}[params['op']]
+            if not isinstance(args, dict) or set(args) - {field}:
+                raise ValueError('Unknown object action fields')
+            operation = getattr(body, params['op'].replace('.', '_'))
+            operation.SetInParent()
+            if field in args:
+                if field == 'pose':
+                    operation.pose.CopyFrom(pose(args[field]))
+                else:
+                    if type(args[field]) is not (str if field == 'id' else bool):
+                        raise ValueError('Invalid object action field type')
+                    setattr(operation, field, args[field])
         return request
     schemas = {
         'system.hello': ('hello', {}),

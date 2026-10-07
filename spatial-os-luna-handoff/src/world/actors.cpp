@@ -55,6 +55,8 @@ wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path) {
     require(result.has_input_timeout() && result.input_timeout() > 0 && result.input_timeout() <= 60, "Invalid input timeout");
     if (!result.has_actor_radius()) result.set_actor_radius(.2);
     require(result.actor_radius() > 0 && result.actor_radius() <= 1000, "Invalid actor collision radius");
+    if (!result.has_interaction_reach()) result.set_interaction_reach(3);
+    require(result.interaction_reach() > 0 && result.interaction_reach() <= 1e6, "Invalid interaction reach");
     if (result.has_render()) validate_render_config(result.render());
     return result;
 }
@@ -114,6 +116,7 @@ wire::ActorStateReply Actors::inspect(const std::string& token) {
 }
 wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
+    cancel_object(actor);
     release_input(actor, true);
     actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.token.clear();
     actor.aim.Clear();
@@ -126,6 +129,11 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     if (request.seq() <= actor.sequence) throw WorldError(wire::STALE_SEQUENCE, "Actor sequence already consumed");
     actor.sequence = request.seq();
     switch (request.action_case()) {
+    case wire::ActorActionRequest::kObjectGrab:
+    case wire::ActorActionRequest::kObjectMove:
+    case wire::ActorActionRequest::kObjectRelease:
+        if (!actor.grants.contains("world.write")) throw WorldError(wire::FORBIDDEN, "World editing grant required");
+        object_action(actor, request); break;
     case wire::ActorActionRequest::kObserve: {
         wire::ActorActionReply result; result.set_accepted(true);
         *result.mutable_observation() = observe(actor, request.observe());
@@ -145,7 +153,7 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         break;
     }
     case wire::ActorActionRequest::kStop:
-        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); release_input(actor); break;
+        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); cancel_object(actor); release_input(actor); break;
     case wire::ActorActionRequest::kUnfocus:
         release_input(actor); break;
     case wire::ActorActionRequest::kPointer:
@@ -304,7 +312,13 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
 wire::RenderScene Actors::scene(const std::string& token) {
     const auto& actor = authenticated(token);
     require(config_.has_render(), "Render configuration is missing");
-    auto result = panel_scene(store_.snapshot(), actor.entity, config_.render());
+    refresh_objects();
+    auto snapshot = store_.snapshot();
+    for (auto& entity : *snapshot.mutable_entities()) {
+        const auto holder = object_leases_.find(entity.id());
+        if (holder != object_leases_.end()) *entity.mutable_pose() = actors_.at(holder->second).object->preview;
+    }
+    auto result = panel_scene(snapshot, actor.entity, config_.render());
     if (surfaces_) surfaces_->append(result, actor.entity.room());
     return result;
 }
@@ -398,6 +412,7 @@ void Actors::step(double target) {
                                                            collision_rooms_, crossings_left);
                         current = motion.pose; actor.entity.set_room(motion.room);
                         if (motion.crossed) {
+                            cancel_object(actor);
                             actor.aim.Clear(); actor.interaction_reset_pending = true;
                             actor.capture_motion_pending = false;
                         }
@@ -420,6 +435,7 @@ void Actors::step(double target) {
 }
 void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic_seconds); }
 void Actors::flush_input() {
+    refresh_objects();
     // Tick also runs while waiting on compositor I/O. Submit deferred motion only
     // from the outer scheduler, never recursively inside a renderer exchange.
     for (auto& [id, actor] : actors_) {

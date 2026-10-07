@@ -1,5 +1,42 @@
 # Implementation status
 
+## 2026-10-07: P07 object manipulation complete
+
+Actors can acquire visible, reachable objects through typed protobuf actions.
+Each object has one editing lease. Each actor can hold one object.
+Live previews appear consistently in rendering, picking, and observation for other actors.
+Only explicit commit writes the pose through transactional, revision-checked world storage.
+Cancellation, stop, close, and portal crossing discard previews and release object leases.
+Conflicting edits and replacement objects invalidate old leases.
+Storage failures preserve drafts for an explicit retry or cancellation.
+
+Both hosts passed Debug and ASan/UBSan runtime qualification:
+
+- All 113 cumulative P00-P07 acceptance tests.
+- All 135 core checks, including 21 new object checks.
+- All 39 harness self-tests.
+
+Independent evidence covers native occlusion, preview rendering, reach, competing leases, storage failure, and crash recovery.
+A real-time run verifies configurable reach, object size, and material color.
+An isolated mutation incorrectly saved live previews.
+The crash witness detected that changed durable placement.
+All 84 final source hashes match the reviewed source and both hosts.
+
+P07 is complete for automated software qualification.
+Legacy coverage is 113 passed, zero current failures, and 28 unrun.
+Evidence is in evidence/objects-2026-10-07.
+See docs/OBJECTS.md for migration 0.12.0, lease behavior, and qualification limits.
+The schema, codec, and fixture configuration hashes change explicitly.
+Locked acceptance assertions, oracles, and native witness sources remain unchanged.
+
+Next: workspace-owned Git worktrees and process execution.
+The older room-owned P08 contract must first be corrected through an explicit recorded migration.
+Fixture grants and software-display tests do not establish full Spatial-M1 authority, confinement, or physical qualification.
+All remaining Spatial-M1 and hardware milestones remain mandatory.
+No system configuration or operator session changed.
+The full project goal remains active.
+
+
 ## 2026-10-07: P07 portal navigation
 
 Actors now cross portal apertures through the production motion and collision path.

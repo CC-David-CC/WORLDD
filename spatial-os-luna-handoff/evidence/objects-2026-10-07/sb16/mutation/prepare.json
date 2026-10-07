@@ -1,0 +1,6 @@
+{
+  "worktree": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-object-mutation-source",
+  "base": "d3c99e6a9c61bb5538c48e924ea3dc5aec293813",
+  "mutation": "Persist object preview during object.move",
+  "mutant_sha256": "85320cc3f667df04d54288f991a0ebed49d095d2f99af40bdb2219b790638b30"
+}

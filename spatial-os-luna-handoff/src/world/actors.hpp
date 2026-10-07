@@ -27,6 +27,10 @@ public:
     bool room_in_use(const std::string& id) const;
     bool manual_clock() const { return manual_clock_; }
 private:
+    struct ObjectHold {
+        wire::Entity original;
+        wire::Pose preview;
+    };
     struct Actor {
         wire::Entity entity;
         std::string token;
@@ -41,6 +45,8 @@ private:
         std::string lease;
         bool capture_motion_pending = false;
         bool interaction_reset_pending = false;
+        std::optional<ObjectHold> object;
+        wire::ErrorCode object_error = wire::NO_TARGET;
     };
     Actor& authenticated(const std::string& token);
     void step(double target);
@@ -52,12 +58,16 @@ private:
     void move_capture(Actor& actor, const wire::Vec3& direction);
     wire::ActorObservation observe(Actor& actor, const wire::ActorObserveRequest& request);
     void refresh_collisions();
+    void object_action(Actor& actor, const wire::ActorActionRequest& request);
+    void cancel_object(Actor& actor);
+    void refresh_objects();
     std::uint64_t collision_revision_ = 0;
     std::map<std::string, RoomGeometry> collision_rooms_;
     WorldStore& store_;
     Surfaces* surfaces_;
     RenderWorker* renderer_;
     std::map<std::string, std::string> leases_;
+    std::map<std::string, std::string> object_leases_;
     wire::RuntimeConfig config_;
     bool manual_clock_;
     double now_ = 0;

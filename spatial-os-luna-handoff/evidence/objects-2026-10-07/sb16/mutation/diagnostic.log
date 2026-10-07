@@ -1,0 +1,20 @@
+test_crash_does_not_persist_preview_or_lease (__main__.ObjectTests.test_crash_does_not_persist_preview_or_lease) ... FAIL
+
+======================================================================
+FAIL: test_crash_does_not_persist_preview_or_lease (__main__.ObjectTests.test_crash_does_not_persist_preview_or_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-object-mutation-source/spatial-os-luna-handoff/tests/core/test_objects.py", line 110, in test_crash_does_not_persist_preview_or_lease
+    self.assertEqual(self.call('world.get',id='object')['pose'],pose([0,0,-1]))
+AssertionError: {'p': [0.5, 0.0, -1.0], 'q': [0.0, 0.0, 0.0, 1.0]} != {'p': [0, 0, -1], 'q': [0, 0, 0, 1]}
+- {'p': [0.5, 0.0, -1.0], 'q': [0.0, 0.0, 0.0, 1.0]}
+?         --  --     --          ^   --   ----- --
+
++ {'p': [0, 0, -1], 'q': [0, 0, 0, 1]}
+?                          ^^
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.305s
+
+FAILED (failures=1)
