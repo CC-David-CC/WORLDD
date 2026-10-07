@@ -1,0 +1,19 @@
+{
+  "installed": {},
+  "missing": [
+    "libpixman-1-dev",
+    "libxkbfile-dev",
+    "libxfont-dev",
+    "libxcvt-dev",
+    "libdrm-dev",
+    "libgbm-dev",
+    "libudev-dev",
+    "libdbus-1-dev",
+    "libepoxy-dev",
+    "libxshmfence-dev",
+    "libpciaccess-dev",
+    "mesa-common-dev",
+    "libprotobuf-c-dev",
+    "protobuf-c-compiler"
+  ]
+}

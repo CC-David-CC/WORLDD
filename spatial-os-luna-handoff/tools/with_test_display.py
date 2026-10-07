@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run a diagnostic command on a fresh authenticated software X display."""
 import os
+from pathlib import Path
 import socket
 import subprocess
 import sys
@@ -16,6 +17,12 @@ def main():
         raise SystemExit('Usage: with_test_display.py -- COMMAND [ARGUMENT ...]')
     env = os.environ.copy()
     env['LIBGL_ALWAYS_SOFTWARE'] = '1'
+    if server := env.get('SPATIAL_TEST_XSERVER'):
+        binary = Path(server)
+        if not binary.is_absolute() or binary.name != 'Xvfb' or not os.access(binary, os.X_OK):
+            raise SystemExit('SPATIAL_TEST_XSERVER must name an executable absolute Xvfb path')
+        # xvfb-run starts Xvfb through PATH and retains its existing Xauthority handling.
+        env['PATH'] = str(binary.parent) + os.pathsep + env.get('PATH', '')
     # xvfb-run creates its own authority cookie and cleans up only its server.
     argv = ['xvfb-run', '--auto-servernum', '--server-num=90',
             '--server-args=-screen 0 1920x1080x24 -nolisten tcp',

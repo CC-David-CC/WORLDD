@@ -1,0 +1,577 @@
+{
+  "kind": "production-acceptance",
+  "through": "P05",
+  "diagnostic_only": false,
+  "status": "passed",
+  "utc": "2026-10-07T09:36:51.822523+00:00",
+  "selected": 80,
+  "executed": 80,
+  "total_baseline": 141,
+  "not_selected": 61,
+  "tests": [
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_capabilities_are_unique_and_explicit",
+      "phase": "P00",
+      "primitive": "protocol.capabilities",
+      "status": "passed",
+      "seconds": 0.084892
+    },
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_concurrent_calls_keep_their_responses",
+      "phase": "P00",
+      "primitive": "protocol.concurrent_correlation",
+      "status": "passed",
+      "seconds": 0.10175
+    },
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_hello_has_version_and_build",
+      "phase": "P00",
+      "primitive": "protocol.handshake",
+      "status": "passed",
+      "seconds": 0.083927
+    },
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_missing_parameter_rejected",
+      "phase": "P00",
+      "primitive": "protocol.required_parameters",
+      "status": "passed",
+      "seconds": 0.087904
+    },
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_unknown_method_is_typed_error",
+      "phase": "P00",
+      "primitive": "protocol.unknown_method",
+      "status": "passed",
+      "seconds": 0.083635
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r0_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.085471
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r0_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.085508
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r1_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.08336
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r1_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.083962
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r2_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.086572
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r2_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.08468
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t0_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.087923
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t0_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.085603
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t1_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.085319
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t1_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.085691
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t2_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.08371
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t2_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.086293
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_center_ray_returns_top_left_uv_convention",
+      "phase": "P01",
+      "primitive": "geometry.ray_center",
+      "status": "passed",
+      "seconds": 0.085218
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_identity",
+      "phase": "P01",
+      "primitive": "geometry.identity",
+      "status": "passed",
+      "seconds": 0.083874
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_inverse_known_and_seeded_cases",
+      "phase": "P01",
+      "primitive": "geometry.inverse",
+      "status": "passed",
+      "seconds": 0.111895
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_negative_time_rejected",
+      "phase": "P01",
+      "primitive": "motion.invalid_time",
+      "status": "passed",
+      "seconds": 0.088019
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_parallel_behind_backface_and_outside_are_misses",
+      "phase": "P01",
+      "primitive": "geometry.ray_miss",
+      "status": "passed",
+      "seconds": 0.085316
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_q_and_negative_q_equivalent",
+      "phase": "P01",
+      "primitive": "geometry.quaternion_sign",
+      "status": "passed",
+      "seconds": 0.090409
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_rotated_panel_uses_its_local_frame",
+      "phase": "P01",
+      "primitive": "geometry.ray_rotated",
+      "status": "passed",
+      "seconds": 0.085111
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_same_twist_same_result_at_different_tick_rates",
+      "phase": "P01",
+      "primitive": "motion.partition_invariance",
+      "status": "passed",
+      "seconds": 0.156216
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_simultaneous_turn_and_forward_follow_arc",
+      "phase": "P01",
+      "primitive": "motion.se3_constant_twist",
+      "status": "passed",
+      "seconds": 0.089653
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_translation_not_direction",
+      "phase": "P01",
+      "primitive": "geometry.translation",
+      "status": "passed",
+      "seconds": 0.082218
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_uv_is_half_open_and_never_clamped_into_target",
+      "phase": "P01",
+      "primitive": "geometry.half_open_pixels",
+      "status": "passed",
+      "seconds": 0.08567
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_yaw_turns_forward_to_left",
+      "phase": "P01",
+      "primitive": "geometry.quaternion_order",
+      "status": "passed",
+      "seconds": 0.084503
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_zero_and_nonunit_quaternion_rejected",
+      "phase": "P01",
+      "primitive": "geometry.invalid_pose",
+      "status": "passed",
+      "seconds": 0.083488
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_zero_direction_and_invalid_extents",
+      "phase": "P01",
+      "primitive": "geometry.ray_validation",
+      "status": "passed",
+      "seconds": 0.084792
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_zero_time_is_identity",
+      "phase": "P01",
+      "primitive": "motion.zero_time",
+      "status": "passed",
+      "seconds": 0.086472
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_create_get_list",
+      "phase": "P02",
+      "primitive": "world.room_create",
+      "status": "passed",
+      "seconds": 0.098262
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_delete_and_missing_get",
+      "phase": "P02",
+      "primitive": "world.delete",
+      "status": "passed",
+      "seconds": 0.127797
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_duplicate_id_rejected_without_mutation",
+      "phase": "P02",
+      "primitive": "world.unique_identity",
+      "status": "passed",
+      "seconds": 0.134312
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_exactly_one_compare_and_swap_wins",
+      "phase": "P02",
+      "primitive": "world.concurrent_writers",
+      "status": "passed",
+      "seconds": 0.146421
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_identity_and_kind_cannot_be_patched",
+      "phase": "P02",
+      "primitive": "world.immutable_type_identity",
+      "status": "passed",
+      "seconds": 0.158306
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_invalid_pose_does_not_partially_update_label",
+      "phase": "P02",
+      "primitive": "world.validation_is_atomic",
+      "status": "passed",
+      "seconds": 0.130568
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_labels_are_data_including_unicode",
+      "phase": "P02",
+      "primitive": "world.external_labels_not_shell",
+      "status": "passed",
+      "seconds": 0.134919
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_nonempty_room_delete_rejected",
+      "phase": "P02",
+      "primitive": "world.room_delete_referenced",
+      "status": "passed",
+      "seconds": 0.117427
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_object_cannot_point_at_missing_room",
+      "phase": "P02",
+      "primitive": "world.referential_integrity",
+      "status": "passed",
+      "seconds": 0.11064
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_real_process_restart_preserves_objects",
+      "phase": "P02",
+      "primitive": "world.restart_durability",
+      "status": "passed",
+      "seconds": 0.182734
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_room_move_is_one_reference_change",
+      "phase": "P02",
+      "primitive": "world.snapshot_consistency",
+      "status": "passed",
+      "seconds": 0.140918
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_sigkill_preserves_acknowledged_mutation",
+      "phase": "P02",
+      "primitive": "world.crash_durability",
+      "status": "passed",
+      "seconds": 0.213735
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_stale_revision_does_not_overwrite",
+      "phase": "P02",
+      "primitive": "world.optimistic_concurrency",
+      "status": "passed",
+      "seconds": 0.124118
+    },
+    {
+      "test": "tests.acceptance.test_02_world.WorldTests.test_update_advances_revision_once",
+      "phase": "P02",
+      "primitive": "world.pose_update",
+      "status": "passed",
+      "seconds": 0.174703
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_axis_count_and_range_checked",
+      "phase": "P03",
+      "primitive": "actor.input_validation",
+      "status": "passed",
+      "seconds": 0.129548
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_checkpoint_restores_pose_but_not_held_input_or_token",
+      "phase": "P03",
+      "primitive": "actor.checkpoint",
+      "status": "passed",
+      "seconds": 0.245867
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_deadzone_is_rescaled_not_subtracted_every_tick",
+      "phase": "P03",
+      "primitive": "actor.deadzone",
+      "status": "passed",
+      "seconds": 0.114036
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_disconnect_revokes_token_and_stops_motion",
+      "phase": "P03",
+      "primitive": "actor.disconnect",
+      "status": "passed",
+      "seconds": 0.141155
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_forward_uses_camera_orientation",
+      "phase": "P03",
+      "primitive": "actor.local_frame",
+      "status": "passed",
+      "seconds": 0.117536
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_human_and_agent_have_independent_state",
+      "phase": "P03",
+      "primitive": "actor.identity",
+      "status": "passed",
+      "seconds": 0.147158
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_missing_navigation_grant_blocks_motion",
+      "phase": "P03",
+      "primitive": "actor.permissions",
+      "status": "passed",
+      "seconds": 0.152951
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_motion_matches_with_different_clock_partitions",
+      "phase": "P03",
+      "primitive": "actor.frame_partition",
+      "status": "passed",
+      "seconds": 0.152555
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_new_sample_refreshes_deadman_not_unrelated_commands",
+      "phase": "P03",
+      "primitive": "actor.deadman_refresh",
+      "status": "passed",
+      "seconds": 0.133899
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_payload_cannot_impersonate_another_actor",
+      "phase": "P03",
+      "primitive": "actor.token_binding",
+      "status": "passed",
+      "seconds": 0.144537
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_replayed_sequence_not_applied_twice",
+      "phase": "P03",
+      "primitive": "actor.stale_sequence",
+      "status": "passed",
+      "seconds": 0.148753
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_stale_input_stops_at_exact_timeout_boundary",
+      "phase": "P03",
+      "primitive": "actor.deadman",
+      "status": "passed",
+      "seconds": 0.136949
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_stop_is_immediate_and_idempotent",
+      "phase": "P03",
+      "primitive": "actor.stop",
+      "status": "passed",
+      "seconds": 0.145691
+    },
+    {
+      "test": "tests.acceptance.test_03_actors.ActorTests.test_translation_axes_not_normalized_to_a_single_axis",
+      "phase": "P03",
+      "primitive": "actor.simultaneous_axes",
+      "status": "passed",
+      "seconds": 0.118845
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_back_facing_panel_not_visible_or_selectable",
+      "phase": "P04",
+      "primitive": "render.backface",
+      "status": "passed",
+      "seconds": 0.211125
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_deleted_surface_disappears_from_pixels_and_pick",
+      "phase": "P04",
+      "primitive": "render.removal",
+      "status": "passed",
+      "seconds": 0.175355
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_fixed_fov_projects_known_quad_bounds",
+      "phase": "P04",
+      "primitive": "render.projection",
+      "status": "passed",
+      "seconds": 0.176195
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_frame_is_readable_and_has_monotonic_identity",
+      "phase": "P04",
+      "primitive": "render.real_frame",
+      "status": "passed",
+      "seconds": 0.188897
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_independent_cameras_produce_different_frames",
+      "phase": "P04",
+      "primitive": "render.actor_view",
+      "status": "passed",
+      "seconds": 0.195017
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_nearer_surface_occludes_farther_independent_of_creation_order",
+      "phase": "P04",
+      "primitive": "render.depth",
+      "status": "passed",
+      "seconds": 0.189004
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_other_room_is_not_visible_even_at_same_coordinates",
+      "phase": "P04",
+      "primitive": "render.room_visibility",
+      "status": "passed",
+      "seconds": 0.192248
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_output_aspect_does_not_stretch_square",
+      "phase": "P04",
+      "primitive": "render.resize_output",
+      "status": "passed",
+      "seconds": 0.175435
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_pick_returns_visible_nearest_surface",
+      "phase": "P04",
+      "primitive": "render.pick_depth_agreement",
+      "status": "passed",
+      "seconds": 0.142162
+    },
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_scene_edit_appears_in_next_fenced_frame",
+      "phase": "P04",
+      "primitive": "render.damage_of_scene",
+      "status": "passed",
+      "seconds": 0.193084
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_all_four_quadrants_reach_correct_frame_locations",
+      "phase": "P05",
+      "primitive": "x11.texture_orientation",
+      "status": "passed",
+      "seconds": 0.154814
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_child_follows_parent_room_and_transform",
+      "phase": "P05",
+      "primitive": "x11.popup_parent_move",
+      "status": "passed",
+      "seconds": 0.144577
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_destroy_drops_resource_and_pick",
+      "phase": "P05",
+      "primitive": "x11.destroy",
+      "status": "passed",
+      "seconds": 0.164246
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_independent_x_window_becomes_surface",
+      "phase": "P05",
+      "primitive": "x11.real_surface_import",
+      "status": "passed",
+      "seconds": 0.145839
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_native_readback_sees_the_compositor_output",
+      "phase": "P05",
+      "primitive": "x11.output_independent_readback",
+      "status": "passed",
+      "seconds": 0.163664
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_random_client_paint_appears_in_compositor",
+      "phase": "P05",
+      "primitive": "x11.damage_updates",
+      "status": "passed",
+      "seconds": 0.16692
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_resize_changes_pixmap_generation_not_world_identity",
+      "phase": "P05",
+      "primitive": "x11.resize_reacquire",
+      "status": "passed",
+      "seconds": 0.193156
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_resize_storm_has_no_outstanding_retired_resources",
+      "phase": "P05",
+      "primitive": "x11.resource_lifecycle",
+      "status": "passed",
+      "seconds": 0.173354
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_transient_is_attached_not_orphaned",
+      "phase": "P05",
+      "primitive": "x11.popup_relationship",
+      "status": "passed",
+      "seconds": 0.126139
+    },
+    {
+      "test": "tests.acceptance.test_05_xsurfaces.XSurfaceTests.test_unmapped_not_visible_or_interactive_then_returns",
+      "phase": "P05",
+      "primitive": "x11.unmap_remap",
+      "status": "passed",
+      "seconds": 0.154815
+    }
+  ],
+  "hardware_certified": false,
+  "sut_argv": [
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host"
+  ]
+}

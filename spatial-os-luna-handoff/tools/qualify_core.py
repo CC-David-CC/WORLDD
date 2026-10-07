@@ -7,6 +7,7 @@ import io
 import os
 from pathlib import Path
 import socket
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -20,6 +21,7 @@ def main():
     parser.add_argument('--build-dir', default='build')
     parser.add_argument('--evidence-dir', required=True)
     parser.add_argument('--sanitize', action='store_true')
+    parser.add_argument('--xserver', help='Explicit project-built Xvfb binary for graphics tests')
     args = parser.parse_args()
     host = socket.gethostname().split('.')[0]
     if host not in ('sb16', 'sb16-2'):
@@ -30,6 +32,14 @@ def main():
     binary = build / 'spatial-test-host'
     env = os.environ.copy()
     env.pop('SPATIAL_TEST_DISPLAY', None)
+    env.pop('SPATIAL_TEST_XSERVER', None)
+    if args.xserver:
+        server = (ROOT / args.xserver).resolve()
+        if server.name != 'Xvfb' or not os.access(server, os.X_OK):
+            parser.error('--xserver must name an executable Xvfb binary')
+        env['SPATIAL_TEST_XSERVER'] = str(server)
+    else:
+        server = Path(shutil.which('Xvfb') or '/missing-Xvfb')
     env['SPATIAL_RENDER_EVIDENCE'] = str(evidence / 'graphics')
     env['SPATIAL_XPROBE'] = str(build / 'spatial-xprobe')
     env['PYTHONPATH'] = os.pathsep.join([str(build / 'python'), str(ROOT), env.get('PYTHONPATH', '')])
@@ -47,10 +57,13 @@ def main():
         commands[-1] = (label, [sys.executable, 'tools/with_test_display.py', '--', *command])
     record = {'host': host, 'utc': datetime.now(timezone.utc).isoformat(), 'through': args.through,
               'sanitizers': args.sanitize, 'status': 'failed', 'commands': [], 'source_sha256': {}}
+    if args.through >= 'P04':
+        record['xserver'] = {'path': str(server), 'sha256': hashlib.sha256(server.read_bytes()).hexdigest()}
     locked = json.loads((ROOT / 'acceptance.lock.json').read_text())['files']
     inputs = {ROOT / name for name in locked}
     inputs.update([ROOT / 'CMakeLists.txt', *ROOT.glob('src/**/*'), *ROOT.glob('proto/**/*.proto'),
-                   *ROOT.glob('tests/core/*.py'), *ROOT.glob('config/*.textproto'), ROOT / 'tools/qualify_core.py', ROOT / 'acceptance.lock.json'])
+                   *ROOT.glob('tests/core/*.py'), *ROOT.glob('config/*.textproto'), ROOT / 'tools/qualify_core.py',
+                   ROOT / 'tools/with_test_display.py', ROOT / 'acceptance.lock.json'])
     for path in sorted(inputs):
         if path.is_file():
             record['source_sha256'][str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()

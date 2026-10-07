@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-07: pinned XLibre preparation on both hosts
+
+Both hosts now build XLibre 25.1.9 from the recorded source commit.
+The project keeps protocol headers and server binaries in private build directories.
+Both builds passed the upstream unit target and modesetting symbol test.
+The existing 80 acceptance tests, 56 core counterexamples, and 39 harness checks also passed on both hosts.
+Those Debug runs use the pinned XLibre Xvfb binary with authenticated disposable displays.
+All 70 recorded project source hashes match the reviewed files.
+
+See docs/SERVER_PREPARATION.md for source pins, commands, limitations, package changes, and recovery.
+Retained evidence is in evidence/server-2026-10-07.
+The new server does not replace either operator desktop.
+
+P06 native actor input remains unimplemented. The existing pointer diagnostic still has one error.
+Legacy coverage remains 80 passed, one diagnostic error, and 60 unrun.
+Native hardware and the additional mandatory Spatial-M1 gates remain pending.
+
+The local inference endpoints currently refuse connections on port 8080 from both hosts.
+Implementation continues under David's earlier instruction to work without the local agent.
+
 ## 2026-10-07: P06 native input baseline
 
 P05 is complete at commit 36d54bad00219839ebc0de56922e0c8fc754229e.

@@ -1,0 +1,60 @@
+NOTE: This is only a simulation!
+      apt-get needs root privileges for real execution.
+      Keep also in mind that locking is deactivated,
+      so don't depend on the relevance to the real current situation!
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  libbrotli-dev libbz2-dev libegl-dev libfontenc-dev libfreetype-dev
+  libpng-dev
+Suggested packages:
+  freetype2-doc
+Recommended packages:
+  bzip2-doc libpng-tools
+The following NEW packages will be installed:
+  libbrotli-dev libbz2-dev libdbus-1-dev libdrm-dev libegl-dev libepoxy-dev
+  libfontenc-dev libfreetype-dev libgbm-dev libpciaccess-dev libpixman-1-dev
+  libpng-dev libprotobuf-c-dev libudev-dev libxcvt-dev libxfont-dev
+  libxkbfile-dev libxshmfence-dev mesa-common-dev protobuf-c-compiler
+0 upgraded, 20 newly installed, 0 to remove and 35 not upgraded.
+Inst libbrotli-dev (1.1.0-2build2 Ubuntu:24.04/noble [amd64])
+Inst libbz2-dev (1.0.8-5.1ubuntu0.1 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Inst libdbus-1-dev (1.14.10-4ubuntu4.1 Ubuntu:24.04/noble-updates [amd64])
+Inst libpciaccess-dev (0.17-3ubuntu0.24.04.3 Ubuntu:24.04/noble-updates [amd64])
+Inst libdrm-dev (2.4.125-1ubuntu0.1~24.04.2 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Inst libegl-dev (1.7.0-1build1 Ubuntu:24.04/noble [amd64])
+Inst libepoxy-dev (1.5.10-1build1 Ubuntu:24.04/noble [amd64])
+Inst libfontenc-dev (1:1.1.8-1build1 Ubuntu:24.04/noble [amd64])
+Inst libpng-dev (1.6.43-5ubuntu0.6 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Inst libfreetype-dev (2.13.2+dfsg-1ubuntu0.2 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Inst libgbm-dev (25.2.8-0ubuntu0.24.04.4 Ubuntu:24.04/noble-updates [amd64])
+Inst libpixman-1-dev (0.42.2-1build1 Ubuntu:24.04/noble [amd64])
+Inst libprotobuf-c-dev (1.4.1-1ubuntu4 Ubuntu:24.04/noble [amd64])
+Inst libudev-dev (255.4-1ubuntu8.17 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Inst libxcvt-dev (0.1.2-1build1 Ubuntu:24.04/noble [amd64])
+Inst libxfont-dev (1:2.0.6-1+deb13u1build0.24.04.2 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Inst libxkbfile-dev (1:1.1.0-1build4 Ubuntu:24.04/noble [amd64])
+Inst libxshmfence-dev (1.3-1build5 Ubuntu:24.04/noble [amd64])
+Inst mesa-common-dev (25.2.8-0ubuntu0.24.04.4 Ubuntu:24.04/noble-updates [amd64])
+Inst protobuf-c-compiler (1.4.1-1ubuntu4 Ubuntu:24.04/noble [amd64])
+Conf libbrotli-dev (1.1.0-2build2 Ubuntu:24.04/noble [amd64])
+Conf libbz2-dev (1.0.8-5.1ubuntu0.1 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf libdbus-1-dev (1.14.10-4ubuntu4.1 Ubuntu:24.04/noble-updates [amd64])
+Conf libpciaccess-dev (0.17-3ubuntu0.24.04.3 Ubuntu:24.04/noble-updates [amd64])
+Conf libdrm-dev (2.4.125-1ubuntu0.1~24.04.2 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf libegl-dev (1.7.0-1build1 Ubuntu:24.04/noble [amd64])
+Conf libepoxy-dev (1.5.10-1build1 Ubuntu:24.04/noble [amd64])
+Conf libfontenc-dev (1:1.1.8-1build1 Ubuntu:24.04/noble [amd64])
+Conf libpng-dev (1.6.43-5ubuntu0.6 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf libfreetype-dev (2.13.2+dfsg-1ubuntu0.2 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf libgbm-dev (25.2.8-0ubuntu0.24.04.4 Ubuntu:24.04/noble-updates [amd64])
+Conf libpixman-1-dev (0.42.2-1build1 Ubuntu:24.04/noble [amd64])
+Conf libprotobuf-c-dev (1.4.1-1ubuntu4 Ubuntu:24.04/noble [amd64])
+Conf libudev-dev (255.4-1ubuntu8.17 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf libxcvt-dev (0.1.2-1build1 Ubuntu:24.04/noble [amd64])
+Conf libxfont-dev (1:2.0.6-1+deb13u1build0.24.04.2 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf libxkbfile-dev (1:1.1.0-1build4 Ubuntu:24.04/noble [amd64])
+Conf libxshmfence-dev (1.3-1build5 Ubuntu:24.04/noble [amd64])
+Conf mesa-common-dev (25.2.8-0ubuntu0.24.04.4 Ubuntu:24.04/noble-updates [amd64])
+Conf protobuf-c-compiler (1.4.1-1ubuntu4 Ubuntu:24.04/noble [amd64])
