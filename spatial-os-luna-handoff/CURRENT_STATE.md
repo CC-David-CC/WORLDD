@@ -1,5 +1,42 @@
 # Implementation status
 
+## 2026-10-07: M01 persistent issuer control qualified
+
+The production identityd service now owns a persistent issuer identity and enrollment-policy configuration.
+The new issuer.proto schema defines its versioned protobuf interface.
+Explicit local initialization binds the owner's public key and creates a separate issuer key.
+Normal startup preserves identity and rejects missing, mismatched, unsafe, or unknown state.
+One process holds the issuer directory's authority lock.
+
+Policy reads and changes require a fresh signature from the configured owner.
+Challenges bind the issuer, service incarnation, nonce, owner, operation, purpose, and audience.
+Completion consumes the challenge before verification or execution.
+Replay, expiry, another key, altered content, and pre-restart challenges cannot authorize changes.
+SQLite transactions preserve policy and enforce expected revisions.
+The bootstrap profile remains a stored reference. Enrollment must resolve it before any grant issuance.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 existing P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 269 core checks, including 18 new issuer checks.
+- All 51 harness checks.
+
+Independent OpenSSL signatures and direct SQLite reads check the production service.
+Real process tests cover restart, SIGKILL, expiry, authority locks, and revision conflicts.
+An isolated mutation bypassed owner verification. The outsider-key counterexample detected the unauthorized policy read.
+All 118 source hashes match reviewed local files and both hosts.
+The existing acceptance lock, assertions, schemas, oracles, and native witness remain unchanged.
+
+Evidence is in evidence/identity-issuer-2026-10-07. The contract is docs/ISSUER_CONTROL.md.
+The service uses supervisor-owned stdin/stdout. It does not expose a network listener.
+Only identity.key_material and identity.issuer_control are qualified in M01.
+Enrollment, bootstrap grant issuance, revocation, protected network transport, and authenticated world sessions remain unfinished.
+The full M01-M16 and H01-H08 qualification requirements remain mandatory.
+No package, host setting, operator session, or actual David credential changed.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: identity.manual_enrollment with actor records and independently verified issued credentials.
+The full project goal remains active.
+
 ## 2026-10-07: M01 production key material qualified
 
 The spatial-identity library and spatial-key executable provide persistent Ed25519 keys and purpose-bound signatures.

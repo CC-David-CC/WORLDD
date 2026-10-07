@@ -1,0 +1,23 @@
+[
+  {
+    "name": "bindings",
+    "argv": [
+      "protoc",
+      "--python_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-issuer-contract/python",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "missing-issuer",
+    "argv": [
+      "python3",
+      "tests/core/test_identity_issuer.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+      "IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy"
+    ],
+    "exit_code": 1
+  }
+]

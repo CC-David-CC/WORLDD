@@ -1,0 +1,54 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-issuer-mutation/source",
+      "df10a22f65e7c3498e10ea309ca129d2fc6da608"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "identityd",
+      "issuer-python-protobuf",
+      "key-python-protobuf",
+      "python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "witness",
+    "argv": [
+      "python3",
+      "tests/core/test_identity_issuer.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-issuer-mutation/source/spatial-os-luna-handoff/build/identityd",
+      "IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed"
+    ],
+    "exit_code": 1
+  }
+]

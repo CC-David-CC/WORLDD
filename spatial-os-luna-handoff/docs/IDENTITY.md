@@ -3,7 +3,9 @@
 M01 replaces fixture identity assumptions with cryptographic actor enrollment and authentication.
 Humans and model agents use separate keypairs and the same authority rules.
 David controls the initial issuer. Enrollment never implies administrator authority.
-The current increment implements key material only. Enrollment and authenticated world sessions remain required work.
+Key material and persistent issuer control are implemented and qualified as separate components.
+See ISSUER_CONTROL.md for owner-authenticated policy changes and their evidence.
+Enrollment, credential revocation, and authenticated world sessions remain required work.
 
 ## Required integration
 

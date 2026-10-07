@@ -1,0 +1,55 @@
+{
+  "base": "df10a22f65e7c3498e10ea309ca129d2fc6da608",
+  "source_overlay": {
+    "base": "df10a22f65e7c3498e10ea309ca129d2fc6da608",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "7792ef4c69453fe6597530574730d357d392082cf6eadafbcf5334d25a5458f9",
+        "after": "4a727f826dbb0d4098c9493bc1636c86b326e6158673d53d56506ba0cbf94dd1",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/docs/ISSUER_CONTROL.md": {
+        "before": null,
+        "after": "b9a44e57a882b6144d57564357b7b53aab58ee98302259af6a4b8346c095d134",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto": {
+        "before": null,
+        "after": "41463a3615cda695ca3d527b278eb46896ca55af60575397a0239772168e68e5",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.cpp": {
+        "before": null,
+        "after": "b51960315b9ff46eee2b76e5664e1ae1a8419ce7f99742d64571574fca059611",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.hpp": {
+        "before": null,
+        "after": "ef4b2ff8f51f2d952decc4f09c67450fdbc8a94a1eeb6f52428502af4e9b3407",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer_main.cpp": {
+        "before": null,
+        "after": "72159e0a0df57d9a47564393033ac96132914b72247cb72ea112b7e9e9a1f82e",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_identity_issuer.py": {
+        "before": null,
+        "after": "70a6f591b22ac2530b96ef165b9541d3083ccfe42c03ca15617f1b8cb6b5217c",
+        "previous": null
+      }
+    }
+  },
+  "invariant": "Only a fresh proof from the configured owner can read or change issuer policy.",
+  "mutation": "Bypass signature verification while a challenge is fresh.",
+  "before_sha256": "b51960315b9ff46eee2b76e5664e1ae1a8419ce7f99742d64571574fca059611",
+  "after_sha256": "623f4294ba3b57c73da91f4dbdcb597e331e8da8c26e15d721d3c22c3b1c7dd3",
+  "argv": [
+    "python3",
+    "tests/core/test_identity_issuer.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-issuer-mutation/source/spatial-os-luna-handoff/build/identityd",
+    "IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed"
+  ],
+  "exit_code": 1,
+  "status": "detected"
+}

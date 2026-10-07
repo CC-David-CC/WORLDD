@@ -1,0 +1,51 @@
+syntax = "proto3";
+package spatial.identity.v1;
+import "core.proto";
+import "key.proto";
+
+enum EnrollmentMode { ENROLLMENT_MODE_UNSPECIFIED = 0; MANUAL = 1; APPROVE_ALWAYS = 2; }
+message EnrollmentPolicy {
+  EnrollmentMode mode = 1;
+  string bootstrap_profile = 2; // Opaque profile reference. It is not a grant.
+}
+message PolicyState { EnrollmentPolicy policy = 1; uint64 revision = 2; }
+message PolicyRead {}
+message PolicySet { EnrollmentPolicy policy = 1; optional uint64 expected_revision = 2; }
+message IssuerOperation {
+  oneof action { PolicyRead policy_read = 1; PolicySet policy_set = 2; }
+}
+message IssuerInfoRequest {}
+message IssuerInfo { bytes issuer_id = 1; bytes public_key = 2; uint64 policy_revision = 3; }
+message IssuerChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes incarnation = 3;
+  bytes nonce = 4;
+  bytes owner_public_key = 5;
+  IssuerOperation operation = 6;
+  uint32 lifetime_ms = 7;
+  string audience = 8;
+}
+message ChallengeReply { bytes nonce = 1; SignRequest signing_request = 2; }
+message IssuerExecute { bytes nonce = 1; KeyProof proof = 2; }
+message IssuerRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    spatial.core.v1.HelloRequest hello = 10;
+    IssuerInfoRequest info = 11;
+    IssuerOperation challenge = 12;
+    IssuerExecute execute = 13;
+  }
+}
+message IssuerReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    spatial.core.v1.HelloReply hello = 10;
+    IssuerInfo info = 11;
+    ChallengeReply challenge = 12;
+    PolicyState policy = 13;
+    spatial.core.v1.Error error = 14;
+  }
+}

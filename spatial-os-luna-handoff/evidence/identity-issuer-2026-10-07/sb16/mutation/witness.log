@@ -1,0 +1,25 @@
+test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed (__main__.IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed) ... FAIL
+
+======================================================================
+FAIL: test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed (__main__.IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-issuer-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 198, in test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed
+    self.denied(self.execute(client,challenge,self.proof(challenge,key,public)))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-issuer-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 0 != 12 : protocol_version: 1
+request_id: 3
+policy {
+  policy {
+    mode: MANUAL
+    bootstrap_profile: "empty-v1"
+  }
+  revision: 1
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.100s
+
+FAILED (failures=1)
