@@ -74,6 +74,15 @@ def vec2(value):
     return pb.Vec2(x=x, y=y)
 
 
+def bounds(value):
+    if not isinstance(value, dict) or set(value) - {'min', 'max'}:
+        raise ValueError('Unknown bounds fields')
+    result = pb.Bounds()
+    for name, point in value.items():
+        getattr(result, name).CopyFrom(vec3(point))
+    return result
+
+
 def pose(value):
     result = pb.Pose()
     if set(value) - {'p', 'q'}:
@@ -228,6 +237,8 @@ def make_request(method, params):
         'geometry.uv_pixel': ('uv_pixel', {'uv': vec2, 'pixels': None}),
         'geometry.ray_panel': ('ray_panel', {'origin': vec3, 'direction': vec3, 'pose': pose,
                                           'size': vec2, 'pixels': None}),
+        'geometry.sweep_sphere_aabb': ('sweep_sphere_aabb', {'origin': vec3, 'displacement': vec3,
+                                                           'radius': float, 'bounds': bounds}),
         'motion.integrate': ('integrate', {'pose': pose, 'linear': vec3, 'angular': vec3, 'seconds': float}),
     }
     if method not in schemas:
@@ -274,7 +285,8 @@ OUTCOMES = {'hello': 'hello', 'world_get': 'entity', 'world_create': 'entity',
             'surface_find': 'surface', 'surface_get': 'surface_record', 'surface_place': 'surface_record',
             'surface_children': 'surfaces', 'runtime_fence': 'fence', 'runtime_resources': 'resources',
             'transform_point': 'point',
-            'inverse_point': 'point', 'uv_pixel': 'pixel', 'ray_panel': 'ray', 'integrate': 'pose'}
+            'inverse_point': 'point', 'uv_pixel': 'pixel', 'ray_panel': 'ray', 'integrate': 'pose',
+            'sweep_sphere_aabb': 'sweep'}
 
 
 def vector_value(value):
@@ -311,7 +323,8 @@ def result_value(reply):
                     'viewport': [value.viewport.width, value.viewport.height],
                     'visible': [{'id': item.id, 'generation': item.generation,
                                  'kind': pb.EntityKind.Name(item.kind).lower() if item.HasField('kind') else 'surface',
-                                 'pose': pose_value(item.pose), 'size': [item.size.x, item.size.y],
+                                 'pose': pose_value(item.pose), 'size': [item.size.x, item.size.y] if item.HasField('size') else None,
+                                 'bounds': {'min': vector_value(item.bounds.min), 'max': vector_value(item.bounds.max)} if item.HasField('bounds') else None,
                                  'pixels': [item.pixels.width, item.pixels.height] if item.HasField('pixels') else None,
                                  'sample': [item.sample.x, item.sample.y], 'direction': vector_value(item.direction),
                                  'visible_pixels': item.visible_pixels} for item in value.visible]}
@@ -372,6 +385,12 @@ def result_value(reply):
             raise ValueError('Missing result pose')
         q = value.orientation
         return {'pose': {'p': vector_value(value.position), 'q': [q.x, q.y, q.z, q.w]}}
+    if kind == 'sweep':
+        value = reply.sweep
+        if not value.HasField('hit'):
+            return {'hit': None}
+        return {'hit': {'fraction': value.hit.fraction, 'position': vector_value(value.hit.position),
+                        'normal': vector_value(value.hit.normal)}}
     raise ValueError('Unexpected reply outcome')
 
 

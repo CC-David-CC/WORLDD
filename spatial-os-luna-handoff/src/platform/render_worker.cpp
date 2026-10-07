@@ -123,7 +123,7 @@ wire::RenderVisibility RenderWorker::observe(const wire::RenderScene& scene, std
     const auto reply = exchange(command);
     if (!reply.has_visibility() || reply.visibility().world_revision() != scene.world_revision() ||
         reply.visibility().frame_id() <= frame_id_) throw std::runtime_error("Compositor observation identity mismatch");
-    const auto count = static_cast<unsigned>(scene.panels_size() + scene.surfaces_size());
+    const auto count = scene_panels(scene).size();
     unsigned previous = 0;
     std::uint64_t total = 0;
     for (const auto& sample : reply.visibility().visible()) {

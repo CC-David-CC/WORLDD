@@ -53,6 +53,8 @@ wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path) {
     require(result.has_angular_gain() && result.angular_gain() > 0 && result.angular_gain() <= 1000, "Invalid angular gain");
     require(result.has_deadzone() && result.deadzone() >= 0 && result.deadzone() < 1, "Invalid deadzone");
     require(result.has_input_timeout() && result.input_timeout() > 0 && result.input_timeout() <= 60, "Invalid input timeout");
+    if (!result.has_actor_radius()) result.set_actor_radius(.2);
+    require(result.actor_radius() > 0 && result.actor_radius() <= 1000, "Invalid actor collision radius");
     if (result.has_render()) validate_render_config(result.render());
     return result;
 }
@@ -321,38 +323,74 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
     const auto visibility = renderer_->observe(view, width, height);
     result.set_frame_id(visibility.frame_id());
     const double focal = static_cast<float>(1 / std::tan(view.config().vertical_fov() / 2));
+    const auto geometry = scene_panels(view);
+    std::map<std::string, wire::ObservedRepresentation> visible;
     for (const auto& sample : visibility.visible()) {
-        const auto index = static_cast<int>(sample.index() - 1);
-        auto* item = result.add_visible();
-        const wire::Entity* panel;
-        if (index < view.panels_size()) {
-            panel = &view.panels(index); item->set_id(panel->id());
-            item->set_kind(panel->kind()); item->set_generation(1);
-        } else {
-            const auto& surface = view.surfaces(index - view.panels_size()); panel = &surface.panel();
-            item->set_id(surface.handle().id()); item->set_generation(surface.handle().generation());
-            *item->mutable_pixels() = surface.pixels();
-        }
-        *item->mutable_pose() = panel->pose(); *item->mutable_size() = panel->size();
-        *item->mutable_sample() = sample.pixel(); item->set_visible_pixels(sample.pixels());
-        auto* direction = item->mutable_direction();
+        const auto& description = geometry.at(sample.index() - 1).representation;
+        auto& item = visible[description.id()];
+        if (item.visible_pixels()) { item.set_visible_pixels(item.visible_pixels() + sample.pixels()); continue; }
+        item = description;
+        *item.mutable_sample() = sample.pixel(); item.set_visible_pixels(sample.pixels());
+        auto* direction = item.mutable_direction();
         direction->set_x((2.0 * (sample.pixel().x() + .5) - width) / (focal * height));
         direction->set_y((height - 2.0 * (sample.pixel().y() + .5)) / (focal * height));
         direction->set_z(-1);
     }
+    for (const auto& [id, item] : visible) { (void)id; *result.add_visible() = item; }
     if (result.ByteSizeLong() > max_frame_bytes - 128)
         throw WorldError(wire::RESOURCE_EXHAUSTED, "Observation exceeds message limit");
     return result;
 }
+void Actors::refresh_collisions() {
+    const auto revision = store_.info().world_revision();
+    if (revision == collision_revision_) return;
+    std::map<std::string, std::vector<Collider>> rooms;
+    const auto snapshot = store_.snapshot();
+    for (const auto& entity : snapshot.entities()) if (entity.kind() == wire::BARRIER) {
+        const auto& low = entity.bounds().min(); const auto& high = entity.bounds().max();
+        rooms[entity.room()].push_back({scene_pose(entity.pose()), {{low.x(), low.y(), low.z()}, {high.x(), high.y(), high.z()}}});
+    }
+    collision_rooms_ = std::move(rooms); collision_revision_ = revision;
+}
 void Actors::step(double target) {
     require(std::isfinite(target) && target >= now_, "Invalid monotonic time");
+    bool collision_ready = false;
     for (auto& [id, actor] : actors_) {
         (void)id;
         const double end = std::min(target, actor.expires);
         if (end > now_) {
             const Vec3 linear{actor.axes[0] * config_.linear_gain(), actor.axes[1] * config_.linear_gain(), actor.axes[2] * config_.linear_gain()};
             const Vec3 angular{actor.axes[3] * config_.angular_gain(), actor.axes[4] * config_.angular_gain(), actor.axes[5] * config_.angular_gain()};
-            set_pose(actor.entity.mutable_pose(), integrate(as_pose(actor.entity.pose()), linear, angular, end - now_));
+            const double speed = std::hypot(linear[0], linear[1], linear[2]);
+            auto current = as_pose(actor.entity.pose());
+            if (speed > 0 && !collision_ready) { refresh_collisions(); collision_ready = true; }
+            const auto found = collision_rooms_.find(actor.entity.room());
+            if (speed == 0 || found == collision_rooms_.end() || found->second.empty())
+                current = integrate(current, linear, angular, end - now_);
+            else {
+                const double radius = config_.actor_radius();
+                const double rate = std::hypot(angular[0], angular[1], angular[2]);
+                const double duration = end - now_;
+                // A body-twist arc deviates from its chord by at most |v||w|dt^2/8.
+                // Inflate each swept sphere by that bound so curved motion cannot skip a thin wall.
+                const double count = std::max(1.0, std::ceil(std::sqrt(speed * rate * duration * duration / (8 * radius * 1e-4))));
+                if (count > 4096) {
+                    actor.axes.fill(0); actor.expires = now_;
+                    std::cerr << "worldd: cancelled excessive collision subdivision\n";
+                } else {
+                    const auto steps = static_cast<unsigned>(count);
+                    const double interval = duration / steps;
+                    const double margin = speed * rate * interval * interval / 8;
+                    for (unsigned i = 0; i < steps; ++i) {
+                        auto next = integrate(current, linear, angular, interval);
+                        Vec3 displacement{};
+                        for (unsigned axis = 0; axis < 3; ++axis) displacement[axis] = next.p[axis] - current.p[axis];
+                        next.p = slide_sphere(current.p, displacement, radius + margin, found->second);
+                        current = next;
+                    }
+                }
+            }
+            set_pose(actor.entity.mutable_pose(), current);
             if (actor.native.held_buttons_size() && std::any_of(actor.axes.begin(), actor.axes.end(), [](double v) { return v != 0; }))
                 actor.capture_motion_pending = true;
         }

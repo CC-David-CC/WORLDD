@@ -23,6 +23,8 @@ void validate_render_config(const wire::RenderConfig& value) {
             value.far_clip() > value.near_clip() && value.far_clip() <= 1e6, "Invalid clipping planes");
     require(value.has_background() && value.background().red() <= 255 && value.background().green() <= 255 &&
             value.background().blue() <= 255, "Invalid background color");
+    if (value.has_barrier_color()) require(value.barrier_color().red() <= 255 && value.barrier_color().green() <= 255 &&
+                                           value.barrier_color().blue() <= 255, "Invalid barrier color");
 }
 void validate_render_extent(std::uint32_t width, std::uint32_t height) {
     require(width > 0 && height > 0 && width <= 4096 && height <= 4096 &&
@@ -34,8 +36,10 @@ wire::RenderScene panel_scene(const wire::WorldSnapshotReply& world, const wire:
     *result.mutable_camera() = actor.pose(); *result.mutable_config() = config;
     result.set_world_revision(world.world_revision());
     // Snapshot order is stable by ID. Equal-depth ties use the same first panel in both paths.
-    for (const auto& entity : world.entities())
-        if (entity.kind() == wire::PANEL && entity.room() == actor.room()) *result.add_panels() = entity;
+    for (const auto& entity : world.entities()) if (entity.room() == actor.room()) {
+        if (entity.kind() == wire::PANEL) *result.add_panels() = entity;
+        else if (entity.kind() == wire::BARRIER) *result.add_barriers() = entity;
+    }
     return result;
 }
 wire::AimReply pick_scene(const wire::RenderScene& scene, const wire::Vec3& input) {
@@ -50,29 +54,19 @@ wire::AimReply pick_scene(const wire::RenderScene& scene, const wire::Vec3& inpu
     const auto direction = transform_point(rotation, local);
     wire::AimReply result;
     double nearest = std::numeric_limits<double>::infinity();
-    for (const auto& panel : scene.panels()) {
-        const auto hit = ray_panel(camera.p, direction, scene_pose(panel.pose()),
-                                   {panel.size().x(), panel.size().y()}, {1, 1});
+    for (const auto& panel : scene_panels(scene)) {
+        const bool application = !panel.surface.id().empty();
+        const auto& metadata = panel.representation;
+        const Pixels pixels = application ? Pixels{metadata.pixels().width(), metadata.pixels().height()} : Pixels{1, 1};
+        const auto hit = ray_panel(camera.p, direction, panel.pose, panel.size, pixels);
         if (!hit || hit->distance >= nearest) continue;
         const double depth = -local[2] * hit->distance;
         if (depth < scene.config().near_clip() || depth > scene.config().far_clip()) continue;
         nearest = hit->distance;
-        auto* out = result.mutable_hit(); out->set_id(panel.id()); out->set_generation(1);
-        out->set_distance(hit->distance);
-        out->mutable_uv()->set_x(hit->uv[0]); out->mutable_uv()->set_y(hit->uv[1]);
-        // Solid panels have UV but no application pixel extent or input sink.
-    }
-    for (const auto& surface : scene.surfaces()) {
-        const auto& panel = surface.panel();
-        const auto hit = ray_panel(camera.p, direction, scene_pose(panel.pose()),
-            {panel.size().x(), panel.size().y()}, {surface.pixels().width(), surface.pixels().height()});
-        if (!hit || hit->distance >= nearest) continue;
-        const double depth = -local[2] * hit->distance;
-        if (depth < scene.config().near_clip() || depth > scene.config().far_clip()) continue;
-        nearest = hit->distance;
-        auto* out = result.mutable_hit(); out->set_id(surface.handle().id()); out->set_generation(surface.handle().generation());
+        auto* out = result.mutable_hit(); out->set_id(metadata.id()); out->set_generation(metadata.generation());
         out->set_distance(hit->distance); out->mutable_uv()->set_x(hit->uv[0]); out->mutable_uv()->set_y(hit->uv[1]);
-        out->mutable_pixel()->set_x(hit->pixel[0]); out->mutable_pixel()->set_y(hit->pixel[1]);
+        out->clear_pixel();
+        if (application) { out->mutable_pixel()->set_x(hit->pixel[0]); out->mutable_pixel()->set_y(hit->pixel[1]); }
     }
     return result;
 }
@@ -90,6 +84,10 @@ std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
         const auto pose = scene_pose(panel.pose());
         const Pose panel_rotation{{0, 0, 0}, pose.q};
         ScenePanel out;
+        out.pose = pose;
+        out.representation.set_id(panel.id()); out.representation.set_kind(panel.kind());
+        out.representation.set_generation(1);
+        *out.representation.mutable_pose() = panel.pose(); *out.representation.mutable_size() = panel.size();
         out.origin = inverse_point(pose, camera.p);
         out.ray_x = inverse_point(panel_rotation, transform_point(camera_rotation, {1, 0, 0}));
         out.ray_y = inverse_point(panel_rotation, transform_point(camera_rotation, {0, 1, 0}));
@@ -108,7 +106,46 @@ std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
         *single.add_panels() = surface.panel();
         auto converted = scene_panels(single);
         converted.front().surface = surface.handle();
+        converted.front().representation.clear_kind();
+        converted.front().representation.set_id(surface.handle().id());
+        converted.front().representation.set_generation(surface.handle().generation());
+        *converted.front().representation.mutable_pixels() = surface.pixels();
         result.push_back(std::move(converted.front()));
+    }
+    for (const auto& barrier : scene.barriers()) {
+        require(barrier.kind() == wire::BARRIER && barrier.has_bounds() && barrier.bounds().has_min() &&
+                barrier.bounds().has_max(), "Invalid scene barrier");
+        const auto& low = barrier.bounds().min(); const auto& high = barrier.bounds().max();
+        const Bounds3 bounds{{low.x(), low.y(), low.z()}, {high.x(), high.y(), high.z()}};
+        validate_bounds(bounds);
+        const auto placement = scene_pose(barrier.pose());
+        Vec3 center{}, extent{};
+        for (unsigned i = 0; i < 3; ++i) {
+            center[i] = bounds.min[i] / 2 + bounds.max[i] / 2; extent[i] = bounds.max[i] - bounds.min[i];
+        }
+        const double half = std::sqrt(.5);
+        for (unsigned axis = 0; axis < 3; ++axis) for (int sign : {-1, 1}) {
+            auto point = center; point[axis] = sign < 0 ? bounds.min[axis] : bounds.max[axis];
+            Quaternion q{0, 0, 0, 1};
+            if (axis == 0) q = {0, sign * half, 0, half};
+            else if (axis == 1) q = {-sign * half, 0, 0, half};
+            else if (sign < 0) q = {0, 1, 0, 0};
+            const auto face = compose_pose(placement, {point, q});
+            wire::RenderScene single; *single.mutable_camera() = scene.camera(); *single.mutable_config() = scene.config();
+            auto* panel = single.add_panels(); panel->set_id(barrier.id()); panel->set_kind(wire::PANEL);
+            auto* p = panel->mutable_pose()->mutable_position(); p->set_x(face.p[0]); p->set_y(face.p[1]); p->set_z(face.p[2]);
+            auto* rotation = panel->mutable_pose()->mutable_orientation();
+            rotation->set_x(face.q[0]); rotation->set_y(face.q[1]); rotation->set_z(face.q[2]); rotation->set_w(face.q[3]);
+            panel->mutable_size()->set_x(extent[axis == 0 ? 2 : 0]);
+            panel->mutable_size()->set_y(extent[axis == 1 ? 2 : 1]);
+            if (scene.config().has_barrier_color()) *panel->mutable_color() = scene.config().barrier_color();
+            else { panel->mutable_color()->set_red(96); panel->mutable_color()->set_green(104); panel->mutable_color()->set_blue(120); }
+            auto converted = scene_panels(single);
+            auto& metadata = converted.front().representation;
+            metadata.set_kind(wire::BARRIER); metadata.clear_size();
+            *metadata.mutable_pose() = barrier.pose(); *metadata.mutable_bounds() = barrier.bounds();
+            result.push_back(std::move(converted.front()));
+        }
     }
     return result;
 }

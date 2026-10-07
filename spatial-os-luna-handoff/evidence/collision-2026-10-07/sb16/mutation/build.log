@@ -1,0 +1,36 @@
+[0/2] Re-checking globbed directories...
+[1/35] Generating python/core_pb2.py
+[2/35] Generating python/input_pb2.py
+[3/35] Building C object CMakeFiles/spatial-xprobe.dir/native/xprobe.c.o
+[4/35] Linking C executable spatial-xprobe
+[5/35] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[6/35] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[7/35] Building CXX object CMakeFiles/spatial-scene.dir/src/core/geometry.cpp.o
+[8/35] Building CXX object CMakeFiles/spatial-scene.dir/src/core/collision.cpp.o
+[9/35] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[10/35] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[11/35] Linking CXX static library libspatial-protobuf.a
+[12/35] Linking CXX static library libspatial-scene.a
+[13/35] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[14/35] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[15/35] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[16/35] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[17/35] Running cpp protocol buffer compiler on proto/spatial/input/v1/input.proto
+[18/35] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[19/35] Building CXX object CMakeFiles/spatial-native-input.dir/src/x11/input.cpp.o
+[20/35] Linking CXX static library libspatial-core.a
+[21/35] Building CXX object CMakeFiles/spatial-native-input.dir/input.pb.cc.o
+[22/35] Linking CXX static library libspatial-native-input.a
+[23/35] Building CXX object CMakeFiles/spatialwm.dir/src/render/main.cpp.o
+[24/35] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[25/35] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[26/35] Building CXX object CMakeFiles/spatial-input-bridge.dir/tests/native/input_bridge.cpp.o
+[27/35] Linking CXX executable spatial-input-bridge
+[28/35] Building CXX object CMakeFiles/spatialwm.dir/src/x11/input_router.cpp.o
+[29/35] Linking CXX executable spatialwm
+[30/35] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[31/35] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[32/35] Linking CXX executable worldd
+[33/35] Building CXX object CMakeFiles/spatial-test-host.dir/src/testing/main.cpp.o
+[34/35] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[35/35] Linking CXX executable spatial-test-host

@@ -53,6 +53,10 @@ Vec3 inverse_point(const Pose& pose, const Vec3& point) {
     finite(result);
     return result;
 }
+Pose compose_pose(const Pose& parent, const Pose& local) {
+    validate_pose(parent); validate_pose(local);
+    return {transform_point(parent, local.p), unit(multiply(unit(parent.q), unit(local.q)))};
+}
 std::optional<Pixels> uv_pixel(const Vec2& uv, const Pixels& pixels) {
     finite(uv); valid_pixels(pixels);
     if (uv[0] < 0 || uv[0] >= 1 || uv[1] < 0 || uv[1] >= 1) return std::nullopt;

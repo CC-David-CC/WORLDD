@@ -1,5 +1,6 @@
 #pragma once
 #include "world/store.hpp"
+#include "core/geometry.hpp"
 #include <array>
 #include <map>
 #include <set>
@@ -48,6 +49,9 @@ private:
     void route_input(Actor& actor, const wire::ActorActionRequest& request);
     void move_capture(Actor& actor, const wire::Vec3& direction);
     wire::ActorObservation observe(Actor& actor, const wire::ActorObserveRequest& request);
+    void refresh_collisions();
+    std::uint64_t collision_revision_ = 0;
+    std::map<std::string, std::vector<Collider>> collision_rooms_;
     WorldStore& store_;
     Surfaces* surfaces_;
     RenderWorker* renderer_;

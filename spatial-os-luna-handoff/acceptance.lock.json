@@ -1,7 +1,7 @@
 {
   "edition": "spatial-protobuf/1",
-  "handoff_version": "0.9.0",
-  "notice": "P07 adds typed actor observation and private renderer visibility replies. All 141 locked acceptance IDs, assertions, oracles, and native witness sources remain unchanged. See docs/OBSERVATION.md.",
+  "handoff_version": "0.10.0",
+  "notice": "P07 adds typed swept-sphere geometry, actor radius configuration, and barrier observation metadata. All 141 locked acceptance IDs, assertions, oracles, and native witness sources remain unchanged. See docs/COLLISION.md.",
   "files": {
     "docs/CONTRACT.md": "3f2538156a01e3118c8b0a09a5b6ded97012faad403320ad39f18eefe74723b0",
     "harness/__init__.py": "e4a165ed823ff7b3bafb35fa5fc0cd9b8045a0687c64851dbc94fa84cbed0234",
@@ -30,8 +30,8 @@
     "tools/gate.py": "edcf0194c7faa9c51a603efd6e6513aaf214cfe9a195b6fed7e1d6823b4d70e8",
     "tools/guard.py": "40d14c9095f0af829fe0676bbf6d1e7a19a7349a3a9cfb3049c257abf4f16c31",
     "tools/probe_smoke.py": "cb366d78a7822f13cf07db389f2fa98579d0d26c2a2af33fa9c4db93b619ea38",
-    "proto/spatial/core/v1/core.proto": "ec1655aeb3941cec41581b69b2b4a93a567564d97764388f1e46b3b2b8b9ea62",
-    "harness/wire.py": "7f9658b6a0591d4b1da68c5ac09e337224567343b7211b4065f1fc5bea97ed23",
+    "proto/spatial/core/v1/core.proto": "5b33ce6e6000b0b47fac936808e2e798319db5d85123dd5f5303577e32b25302",
+    "harness/wire.py": "22f6b0e68e83f6ba2db404c0e12bf5ba83f4d3e1b71897e7f91d3711b916cb2e",
     "tests/core/test_protocol.py": "df6d7d54035db5968d1ca366e0a7bda8a1bb6c739f18de7708f6825fd06840ee",
     "tests/harness/test_transport.py": "a3277b52b0622d2ed46f10dcd3fed89989217b87c57c2af5321dce015a817523",
     "tests/fixtures/transport_peer.py": "ed22fd0ba0d16d941c6bcdb071c503fab374dade9fa50aeebafc409f62a07d01",
@@ -40,7 +40,7 @@
     "tests/core/test_worldd.py": "50606af00ce791a3955852d7192908c4904794ec825799cebde2c7ae97d3747a",
     "docs/ACTORS.md": "624fd45e457dbe9c7bab0e9b351dfa86cf1ca17aa588d407aba14c2e7a70ecd4",
     "tests/core/test_actors.py": "cfe63115d3208a3b03be2a7deee59d78b20e56541e36e02bea51a7b7d71ed6ac",
-    "config/conformance.textproto": "e96f094553c2cd4299d5056f98b63c2568976af75964aa875c17e629a51efbf2"
+    "config/conformance.textproto": "006e38bb68d2cf8fe617709b677206e11cff2815af0ef4f5370b9a6d4931c238"
   },
   "test_ids": [
     "tests.acceptance.test_00_protocol.ProtocolTests.test_capabilities_are_unique_and_explicit",
@@ -185,5 +185,5 @@
     "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable",
     "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_into_branch_room_use_real_window_launch_work_and_return"
   ],
-  "predecessor_sha256": "b371207d39d09561a61c0cd3d26ad8f891bf3b8c1a97244aefdc49e7f06674d3"
+  "predecessor_sha256": "b6df68d79e4959ee36094977aa990dea1ba63a70da779a5136726b376ae38098"
 }

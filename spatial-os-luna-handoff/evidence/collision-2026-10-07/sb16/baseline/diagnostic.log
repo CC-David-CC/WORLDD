@@ -1,0 +1,24 @@
+test_thin_wall_cannot_be_tunnelled_through_in_one_tick (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_thin_wall_cannot_be_tunnelled_through_in_one_tick) ... ERROR
+
+======================================================================
+ERROR: test_thin_wall_cannot_be_tunnelled_through_in_one_tick (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_thin_wall_cannot_be_tunnelled_through_in_one_tick)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/acceptance/test_07_rooms_objects.py", line 48, in test_thin_wall_cannot_be_tunnelled_through_in_one_tick
+    hit=self.call("geometry.sweep_sphere_aabb",origin=[0,0,0],displacement=[1,0,0],radius=.2,bounds=bounds)["hit"]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/base.py", line 53, in call
+    return self.client.call(method, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 234, in make_request
+    raise NotImplementedError(f'No protobuf schema for {method}; the phase remains unimplemented')
+NotImplementedError: No protobuf schema for geometry.sweep_sphere_aabb; the phase remains unimplemented
+
+----------------------------------------------------------------------
+Ran 1 test in 0.134s
+
+FAILED (errors=1)
+DIAGNOSTIC P07: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-collision-baseline/report.json

@@ -1,5 +1,37 @@
 # Implementation status
 
+## 2026-10-07: P07 swept collision and visible barriers
+
+Actor motion now uses a continuous sphere sweep and preserves sliding motion along barriers.
+The same transformed bounds supply collision, rendering, picking, and observation.
+Observation combines visible barrier faces into one entity record.
+Turning motion uses bounded chord subdivision to prevent missed collisions along an arc.
+
+Both hosts passed Debug and ASan/UBSan runtime qualification:
+
+- All 98 cumulative P00-P06 acceptance tests.
+- The focused P07 sweep, sliding, and observation tests.
+- All 95 core counterexamples, including 16 collision checks.
+- All 39 harness self-tests.
+
+The new checks cover rounded contacts, tangency, overlap, 180 randomized sweeps, fast motion, and curved paths.
+They also cover geometry updates, all six visible faces, and native surface occlusion.
+An isolated mutation removed barriers from actor motion while preserving their visible geometry.
+The fast-motion witness detected the resulting wall crossing.
+All 79 final source hashes matched the reviewed files and both execution hosts.
+
+Legacy coverage is 101 passed, zero current failures, and 40 unrun.
+P07 remains incomplete. Portals and object manipulation are next.
+Evidence is in evidence/collision-2026-10-07.
+See docs/COLLISION.md for migration 0.10.0, numerical limits, contact budgets, and qualification details.
+The explicit migration changes schema, codec, and fixture configuration hashes.
+All locked acceptance assertions, oracles, and native witness sources remain unchanged.
+
+These software-display results do not qualify physical input, native GPU timing, or full workspace security.
+All additional Spatial-M1 milestones remain mandatory.
+No system configuration or operator session changed in this increment.
+The full project goal remains active.
+
 ## 2026-10-07: P07 observation increment
 
 Actors can now request typed protobuf observations from the production worldd action boundary.

@@ -1,0 +1,30 @@
+[0/2] Re-checking globbed directories...
+[1/29] Generating python/core_pb2.py
+[2/29] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[3/29] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[4/29] Building CXX object CMakeFiles/spatial-scene.dir/src/core/geometry.cpp.o
+[5/29] Building CXX object CMakeFiles/spatial-scene.dir/src/core/collision.cpp.o
+[6/29] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[7/29] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[8/29] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[9/29] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[10/29] Linking CXX static library libspatial-protobuf.a
+[11/29] Linking CXX static library libspatial-scene.a
+[12/29] Building CXX object CMakeFiles/spatial-native-input.dir/src/x11/input.cpp.o
+[13/29] Linking CXX static library libspatial-native-input.a
+[14/29] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[15/29] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[16/29] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[17/29] Linking CXX static library libspatial-core.a
+[18/29] Building CXX object CMakeFiles/spatialwm.dir/src/render/main.cpp.o
+[19/29] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[20/29] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[21/29] Building CXX object CMakeFiles/spatial-input-bridge.dir/tests/native/input_bridge.cpp.o
+[22/29] Linking CXX executable spatial-input-bridge
+[23/29] Building CXX object CMakeFiles/spatialwm.dir/src/x11/input_router.cpp.o
+[24/29] Linking CXX executable spatialwm
+[25/29] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[26/29] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[27/29] Linking CXX executable worldd
+[28/29] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[29/29] Linking CXX executable spatial-test-host

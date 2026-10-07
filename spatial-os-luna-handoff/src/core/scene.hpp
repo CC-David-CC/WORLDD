@@ -10,11 +10,13 @@ wire::RenderScene panel_scene(const wire::WorldSnapshotReply& world, const wire:
                               const wire::RenderConfig& config);
 wire::AimReply pick_scene(const wire::RenderScene& scene, const wire::Vec3& direction);
 struct ScenePanel {
+    Pose pose;
     std::array<Vec3, 4> corners;
     Vec3 origin, ray_x, ray_y, ray_z;
     Vec2 size;
     std::array<float, 3> color;
     wire::SurfaceHandle surface;
+    wire::ObservedRepresentation representation;
 };
 std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene);
 // Conservative screen bounds, padded by one pixel; shader applies exact panel coverage.

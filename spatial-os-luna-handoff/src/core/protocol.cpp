@@ -198,6 +198,20 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
                                                                   vector(operation.angular()), operation.seconds()));
             break;
         }
+        case wire::Request::kSweepSphereAabb: {
+            const auto& operation = request.sweep_sphere_aabb();
+            require(operation.has_origin() && operation.has_displacement() && operation.has_radius() &&
+                    operation.has_bounds() && operation.bounds().has_min() && operation.bounds().has_max(),
+                    "Missing swept-sphere parameters");
+            const auto result = sweep_sphere_aabb(vector(operation.origin()), vector(operation.displacement()), operation.radius(),
+                                                 {vector(operation.bounds().min()), vector(operation.bounds().max())});
+            auto* output = reply.mutable_sweep();
+            if (result) {
+                auto* hit = output->mutable_hit(); hit->set_fraction(result->fraction);
+                assign(hit->mutable_position(), result->position); assign(hit->mutable_normal(), result->normal);
+            }
+            break;
+        }
         case wire::Request::OPERATION_NOT_SET:
             error(reply, wire::UNKNOWN_METHOD, "No recognized operation");
             break;

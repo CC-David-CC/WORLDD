@@ -1,0 +1,7 @@
+test_thin_wall_cannot_be_tunnelled_through_in_one_tick (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_thin_wall_cannot_be_tunnelled_through_in_one_tick) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.164s
+
+OK
+DIAGNOSTIC P07: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-collision-focused-debug/sweep.json

@@ -56,12 +56,14 @@ message RuntimeConfig {
   optional double deadzone = 3;
   optional double input_timeout = 4;
   RenderConfig render = 5;
+  optional double actor_radius = 6;
 }
 message RenderConfig {
   optional double vertical_fov = 1;
   optional double near_clip = 2;
   optional double far_clip = 3;
   Color background = 4;
+  Color barrier_color = 5;
 }
 message RenderRequest { string token = 1; uint32 width = 2; uint32 height = 3; }
 message FrameReply { string path = 1; uint64 frame_id = 2; uint64 world_revision = 3; uint64 xid = 4; }
@@ -110,7 +112,7 @@ message RuntimeFenceRequest {}
 message RuntimeResourcesRequest {}
 message FenceReply { bool complete = 1; }
 message RendererSyncRequest {}
-message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; repeated PlacedSurface surfaces = 5; }
+message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; repeated PlacedSurface surfaces = 5; repeated Entity barriers = 6; }
 message RenderCommand {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -168,6 +170,9 @@ message IntegrateRequest {
   Vec3 angular = 3;
   optional double seconds = 4;
 }
+message SweepSphereRequest { Vec3 origin = 1; Vec3 displacement = 2; optional double radius = 3; Bounds bounds = 4; }
+message SweepSphereHit { double fraction = 1; Vec3 position = 2; Vec3 normal = 3; }
+message SweepSphereReply { SweepSphereHit hit = 1; }
 
 message Request {
   uint32 protocol_version = 1;
@@ -180,6 +185,7 @@ message Request {
     UvPixelRequest uv_pixel = 14;
     RayPanelRequest ray_panel = 15;
     IntegrateRequest integrate = 16;
+    SweepSphereRequest sweep_sphere_aabb = 17;
     WorldCreateRequest world_create = 20;
     WorldListRequest world_list = 21;
     WorldSnapshotRequest world_snapshot = 22;
@@ -269,6 +275,7 @@ message ObservedRepresentation {
   Pixel sample = 7; // A visible pixel in the observation viewport, with top-left origin.
   Vec3 direction = 8; // Camera-local ray through that sample.
   uint64 visible_pixels = 9;
+  Bounds bounds = 10; // Solid geometry replaces planar size for a barrier.
 }
 message ActorObservation {
   string actor = 1; string room = 2; Pose pose = 3; uint64 world_revision = 4;
@@ -289,6 +296,7 @@ message Reply {
     PixelReply pixel = 14;
     RayReply ray = 15;
     PoseReply pose = 16;
+    SweepSphereReply sweep = 17;
     EntityReply entity = 20;
     WorldSnapshotReply snapshot = 21;
     WorldDeleteReply deleted = 24;

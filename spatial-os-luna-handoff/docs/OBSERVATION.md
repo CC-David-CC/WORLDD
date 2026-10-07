@@ -43,8 +43,9 @@ A sample direction uses the renderer's focal value and camera-local coordinate c
 Later actions still require fresh authority, generation, and geometry checks.
 An observation does not reserve geometry or promise future visibility.
 
-Current scenes contain solid panels and mapped application surfaces.
-Other object geometry, barriers, portals, and actor representations remain later P07 work.
+The original observation increment covers solid panels and mapped application surfaces.
+The subsequent collision increment adds barriers; see COLLISION.md.
+Other object geometry, portals, and actor representations remain later work.
 Authenticated fixture actors can observe current-room geometry without receiving navigation or interaction grants.
 The fixture has no workspace observation policy yet.
 This increment does not qualify workspace confidentiality, separate workspace observation grants, or Spatial-M1 security.

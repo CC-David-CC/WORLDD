@@ -1,0 +1,16 @@
+test_thin_wall_fast_motion_uses_configured_sphere (__main__.CollisionTests.test_thin_wall_fast_motion_uses_configured_sphere) ... FAIL
+
+======================================================================
+FAIL: test_thin_wall_fast_motion_uses_configured_sphere (__main__.CollisionTests.test_thin_wall_fast_motion_uses_configured_sphere)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-collision-mutation-source/spatial-os-luna-handoff/tests/core/test_collision.py", line 180, in test_thin_wall_fast_motion_uses_configured_sphere
+    self.vec(self.move(actor, [1,0,0,0,0,0], .25), [.25,0,0], 1e-8)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-collision-mutation-source/spatial-os-luna-handoff/tests/core/test_collision.py", line 53, in vec
+    self.assertAlmostEqual(x, y, delta=tolerance)
+AssertionError: 2.5 != 0.25 within 1e-08 delta (2.25 difference)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.140s
+
+FAILED (failures=1)
