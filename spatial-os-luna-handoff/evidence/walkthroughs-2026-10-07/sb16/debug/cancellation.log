@@ -1,0 +1,7 @@
+test_cancelled_agent_leaves_human_usable (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.195s
+
+OK
+DIAGNOSTIC P10: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-baseline/cancellation.json

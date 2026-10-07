@@ -1,0 +1,29 @@
+test_cancelled_agent_leaves_human_usable (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable) ... ERROR
+
+======================================================================
+ERROR: test_cancelled_agent_leaves_human_usable (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source/spatial-os-luna-handoff/tests/acceptance/test_10_walkthrough.py", line 61, in test_cancelled_agent_leaves_human_usable
+    self.fence();self.aim();self.click();mark=len(native.events)
+                            ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source/spatial-os-luna-handoff/harness/xbase.py", line 29, in click
+    a.act("pointer",button=1,pressed=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source/spatial-os-luna-handoff/harness/base.py", line 22, in act
+    return self.test.call("actor.act", token=self.token, seq=self.seq, op=op, args=args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source/spatial-os-luna-handoff/harness/base.py", line 53, in call
+    return self.client.call(method, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: BUSY: Application surface group has another controller
+
+----------------------------------------------------------------------
+Ran 1 test in 0.229s
+
+FAILED (errors=1)
+DIAGNOSTIC P10: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/report.json

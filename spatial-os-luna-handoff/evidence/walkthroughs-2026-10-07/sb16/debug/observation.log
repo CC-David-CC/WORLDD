@@ -1,0 +1,7 @@
+test_agent_observation_and_received_input_agree_on_target (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_agent_observation_and_received_input_agree_on_target) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.226s
+
+OK
+DIAGNOSTIC P10: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-baseline/observation.json

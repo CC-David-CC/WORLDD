@@ -1,0 +1,59 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source",
+      "b94ec312d56e344b47378709da79b26619e1088c"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DSPATIAL_INPUT_TESTS=ON"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "witness",
+    "argv": [
+      "python3",
+      "tools/with_test_display.py",
+      "--",
+      "python3",
+      "tools/gate.py",
+      "--through",
+      "P10",
+      "--case",
+      "test_cancelled_agent_leaves_human_usable",
+      "--sut",
+      "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source/spatial-os-luna-handoff/build/spatial-test-host\"]",
+      "--report",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/report.json"
+    ],
+    "exit_code": 1
+  }
+]

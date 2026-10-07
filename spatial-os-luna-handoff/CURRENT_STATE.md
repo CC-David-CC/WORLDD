@@ -1,5 +1,36 @@
 # Implementation status
 
+## 2026-10-07: P10 automated walkthrough qualification complete
+
+All 151 P00-P10 acceptance cases pass on sb16 and sb16-2 in Debug and ASan/UBSan builds.
+There are zero failures, errors, skipped cases, or unrun cases in this baseline suite.
+Each P10 story also passed its focused Debug check on both hosts.
+The existing production components already satisfy these integration stories. No further runtime change was needed.
+
+The stories verify:
+
+- Actor observation, picking, and independently received native input agree on the target.
+- Closing an actor releases its modifier and control lease so another actor can type normally.
+- An actor crosses rooms, uses a real X client, runs a confined process, and returns.
+- Workspace selection survives room travel. Real file output and Git branch identity remain correct.
+
+An isolated mutation omitted input release during actor closure.
+The locked walkthrough rejected the resulting BUSY response when another actor tried to control the application.
+The mutation never entered production. Acceptance assertions and native witnesses remain unchanged.
+All 108 source hashes match both hosts and the reviewed production files.
+The preceding 235 core and 51 harness checks remain applicable to these unchanged sources in both build profiles.
+The new Debug baselines also reran all 51 harness checks and the full preceding P09 gate.
+
+Evidence and independent native event logs are in evidence/walkthroughs-2026-10-07.
+See docs/WALKTHROUGHS.md for exact commands, source pins, limits, and recovery.
+P00-P10 are complete for the automated baseline profile.
+Mandatory Spatial-M1 requirements M01-M16 and hardware requirements H01-H08 remain unfinished.
+Fixture actor identities, software displays, and scripted stories do not establish those requirements.
+No host configuration, operator-session, schema, or runtime-source change was required for P10.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: define the mandatory M01 qualification contract and implement cryptographic enrollment.
+The full project goal remains active.
+
 ## 2026-10-07: P09 recovery qualification complete
 
 Surface validation now checks the current mapped native identity and resource generation.

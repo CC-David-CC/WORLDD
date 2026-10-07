@@ -1,0 +1,7 @@
+test_walk_to_room_use_real_window_work_in_selected_workspace_and_return (tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_to_room_use_real_window_work_in_selected_workspace_and_return) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.976s
+
+OK
+DIAGNOSTIC P10: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-baseline/walkthrough.json

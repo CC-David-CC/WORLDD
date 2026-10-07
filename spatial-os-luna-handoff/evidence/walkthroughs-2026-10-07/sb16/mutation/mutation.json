@@ -1,0 +1,49 @@
+{
+  "base": "b94ec312d56e344b47378709da79b26619e1088c",
+  "invariant": "Closing an actor releases its held input and control lease so another actor can use the application.",
+  "mutation": "Omit release_input in Actors::close in an isolated production build.",
+  "path": "src/world/actors.cpp",
+  "before_sha256": "6dd1135759ec52caa4d3b14e668e1d7183dadb389382ac47b5f267f1b3e85732",
+  "after_sha256": "58395ab323a586c20e320df8cb2488c4dc9c574be89d12d297a5676b46bc4eb0",
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tools/gate.py",
+    "--through",
+    "P10",
+    "--case",
+    "test_cancelled_agent_leaves_human_usable",
+    "--sut",
+    "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source/spatial-os-luna-handoff/build/spatial-test-host\"]",
+    "--report",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/report.json"
+  ],
+  "exit_code": 1,
+  "report": {
+    "kind": "production-acceptance",
+    "through": "P10",
+    "diagnostic_only": true,
+    "status": "failed",
+    "utc": "2026-10-07T19:13:27.112325+00:00",
+    "selected": 1,
+    "executed": 1,
+    "total_baseline": 151,
+    "not_selected": 150,
+    "tests": [
+      {
+        "test": "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable",
+        "phase": "P10",
+        "primitive": "story.cancel_without_harming_other_actor",
+        "status": "error",
+        "seconds": 0.228913
+      }
+    ],
+    "hardware_certified": false,
+    "sut_argv": [
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p10-mutation/source/spatial-os-luna-handoff/build/spatial-test-host"
+    ]
+  },
+  "status": "detected"
+}

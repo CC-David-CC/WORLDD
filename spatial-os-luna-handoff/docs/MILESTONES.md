@@ -10,6 +10,15 @@ The 151-test acceptance suite is one qualification layer.
 It does not cover every Spatial-M1 requirement.
 Keep native hardware, authority, confinement, shared worlds, cabinets, and provider tests mandatory.
 
+## Current qualification
+
+P00-P10 passed all 151 acceptance cases on both hosts in Debug and ASan/UBSan on 2026-10-07.
+The baseline has zero failures, errors, skipped cases, or unrun cases.
+See WALKTHROUGHS.md and evidence/walkthroughs-2026-10-07 for execution evidence and the cancellation mutation.
+All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qualification items.
+Existing components provide partial implementation only where CURRENT_STATE.md records their evidence.
+Next: define and implement M01 cryptographic identity qualification.
+
 ## Ordered implementation
 
 | Milestone | Required behavior | Required evidence |

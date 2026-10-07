@@ -2,7 +2,10 @@
 
 A **full spatial Linux/X11 operating environment**, not a 3D launcher over an existing desktop. Humans and agents occupy rooms, use live application surfaces, and work in real Git worktrees. The X server may be modified. Existing application compatibility is not a requirement.
 
-**This archive contains the tests, independent witnesses, contracts, and implementation instructions. It does not contain an implemented compositor, world daemon, or modified X server.** A passing harness self-test is not a passing Spatial OS test.
+**The production runtime now passes the 151-case P00-P10 automated baseline on both authorized hosts.** It includes worldd, spatialwm, workspaced, and the maintained XLibre input extension.
+Debug and ASan/UBSan results are recorded in `CURRENT_STATE.md` and `docs/WALKTHROUGHS.md`.
+Mandatory Spatial-M1 requirements and native hardware qualification remain unfinished.
+Use `docs/MILESTONES.md` for the full plan. A passing baseline does not establish full Spatial-M1 or LOCAL_READY.
 
 Start with `START_HERE_LUNA.md`. Codex instructions are in `AGENTS.md`. A ready-to-paste driver prompt is in `PASTE_TO_CODEX.txt`.
 
