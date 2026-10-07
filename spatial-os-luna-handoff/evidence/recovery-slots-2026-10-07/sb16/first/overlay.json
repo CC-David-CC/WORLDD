@@ -1,0 +1,25 @@
+{
+  "base": "ba681ee4f14fe6797b13583e2768aefe5f1b1013",
+  "files": {
+    "spatial-os-luna-handoff/src/core/protocol.cpp": {
+      "before": "476968870d205149d00214a8388dc6c3dfb4080d3c75650560d5f566f5dae2be",
+      "after": "17e887402d9cf18044a5c89676c2e59a5030d61b8f6663c61ab154fa671d816a",
+      "previous": null
+    },
+    "spatial-os-luna-handoff/src/world/surfaces.cpp": {
+      "before": "0e66a214347b607109d59d15d58020ac9ae7e260b237126fecb3236c0eb946bb",
+      "after": "92c59ccee79fdf41c88c61aa8e8429f98fa6c90bf639bffdc8e00ef703245d84",
+      "previous": null
+    },
+    "spatial-os-luna-handoff/src/world/surfaces.hpp": {
+      "before": "94ae63a38bb568f28e8ca3ed62a6ee70dd0b259f823c9bb81e7bb170bd4ccb8f",
+      "after": "736a9eed78dedfa28a587f176d728d30b3e72fa38008c8d64bf5de3ad3f52831",
+      "previous": null
+    },
+    "spatial-os-luna-handoff/tests/core/test_surfaces.py": {
+      "before": "e664c2a6093dc5b1b14da2a28d0fc98e060c56866090c276ea1bc4b48b80bc28",
+      "after": "939925ac863c511e9c701b5c158a2f0f1256952145a37c3b1e6c02ea3af390c4",
+      "previous": null
+    }
+  }
+}

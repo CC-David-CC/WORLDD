@@ -1,0 +1,27 @@
+[0/2] Re-checking globbed directories...
+[1/26] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[2/26] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[3/26] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[4/26] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[5/26] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[6/26] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[7/26] Building CXX object CMakeFiles/spatial-core.dir/src/platform/broker.cpp.o
+[8/26] Linking CXX static library libspatial-core.a
+[9/26] Building CXX object CMakeFiles/spatialwm.dir/src/render/main.cpp.o
+[10/26] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[11/26] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[12/26] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[13/26] Building CXX object CMakeFiles/spatialwm.dir/src/x11/input_router.cpp.o
+[14/26] Linking CXX executable spatialwm
+[15/26] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[16/26] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[17/26] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[18/26] Linking CXX executable worldd
+[19/26] Building CXX object CMakeFiles/workspaced.dir/src/workspace/git_command.cpp.o
+[20/26] Building CXX object CMakeFiles/workspaced.dir/src/workspace/status.cpp.o
+[21/26] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[22/26] Linking CXX executable workspaced
+[23/26] Building CXX object CMakeFiles/spatial-git-job-probe.dir/src/workspace/git_command.cpp.o
+[24/26] Linking CXX executable spatial-git-job-probe
+[25/26] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[26/26] Linking CXX executable spatial-test-host

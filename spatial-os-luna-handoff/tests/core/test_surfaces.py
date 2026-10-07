@@ -109,6 +109,197 @@ class SurfaceRuntimeTests(unittest.TestCase):
         self.assertEqual(resources['retired_pixmaps_pending'], 0)
         self.assertEqual(resources['invalid_texture_bindings'], 0)
 
+    def error(self, code, method, **params):
+        with self.assertRaises(RpcError) as caught:
+            self.call(method, **params)
+        self.assertEqual(caught.exception.code, code)
+
+    def slot(self, ident='slot', position=(0, 0, -4), size=(2, 2)):
+        return self.call('world.create', entity=dict(id=ident, kind='surface_slot', label=ident,
+                         room=self.room, pose=pose(position), size=list(size)))
+
+    def attach(self, surface, slot):
+        return self.call('surface.attach_slot', id=surface['id'], slot=slot['id'])
+
+    def test_slot_attachment_is_exclusive_idempotent_and_survives_resize_and_unmap(self):
+        self.start(); slot = self.slot()
+        first, second = self.native(), self.native()
+        a, b = self.register(first), self.register(second, (4, 0, -4))
+        before = self.call('world.snapshot')
+        attached = self.attach(a, slot)
+        self.assertEqual(attached['slot'], slot['id'])
+        self.assertEqual(attached['pose'], slot['pose'])
+        self.assertEqual(self.attach(a, slot), attached)
+        self.error('BUSY', 'surface.attach_slot', id=b['id'], slot=slot['id'])
+        self.assertEqual(self.call('surface.get', id=b['id']), b)
+        first.command('resize', 413, 317); first.command('unmap')
+        unmapped = self.call('surface.get', id=a['id'])
+        self.assertFalse(unmapped['mapped']); self.assertEqual(unmapped['slot'], slot['id'])
+        self.error('BUSY', 'surface.attach_slot', id=b['id'], slot=slot['id'])
+        first.command('map')
+        remapped = self.call('surface.get', id=a['id'])
+        self.assertTrue(remapped['mapped']); self.assertGreater(remapped['generation'], attached['generation'])
+        self.assertEqual(remapped['pose'], slot['pose']); self.assertEqual(remapped['size'], slot['size'])
+        self.assertEqual(self.call('world.snapshot'), before)
+        first.command('destroy'); self.call('runtime.fence')
+        self.error('NOT_FOUND', 'surface.get', id=a['id'])
+        self.assertEqual(self.attach(b, slot)['slot'], slot['id'])
+        self.assertEqual(self.call('world.snapshot'), before)
+
+    def test_slot_is_the_single_placement_for_surface_and_world_edits(self):
+        self.start(); slot = self.slot()
+        probe = self.native(); surface = self.register(probe, (5, 0, -4))
+        geometry = lambda: {k: v for k, v in probe.geometry().items() if k not in ('seq', 'event')}
+        native_before = geometry()
+        probe.command('paint', 61, 139, 203)
+        self.attach(surface, slot)
+        self.assertEqual(self.capture().pixel(64, 64), (61, 139, 203))
+        self.assertEqual(self.aim()['id'], surface['id'])
+        moved = self.place(surface, pose([4, 2, -5]), (3, 1))
+        stored = self.call('world.get', id=slot['id'])
+        self.assertEqual(stored['revision'], slot['revision']+1)
+        self.assertEqual(stored['world_revision'], slot['world_revision']+1)
+        for field in ('room', 'pose', 'size'):
+            self.assertEqual(stored[field], moved[field])
+        self.assertEqual(self.capture().pixel(64, 64), (10, 12, 16))
+        changed = self.call('world.update', id=slot['id'], expected_revision=stored['revision'],
+                            patch=dict(pose=pose([0, 0, -6]), size=[4, 3]))
+        current = self.call('surface.get', id=surface['id'])
+        for field in ('room', 'pose', 'size'):
+            self.assertEqual(current[field], changed[field])
+        self.assertEqual(self.capture().pixel(64, 64), (61, 139, 203))
+        self.assertEqual(self.aim()['id'], surface['id'])
+        self.assertEqual(geometry(), native_before)
+        self.assertEqual(current['generation'], surface['generation'])
+
+    def test_rapid_native_lifecycle_retains_slot_and_identity_until_destroy(self):
+        self.start(); slot = self.slot()
+        probe = self.native(); surface = self.register(probe)
+        self.attach(surface, slot)
+        generation = surface['generation']
+        for cycle in range(64):
+            # Resize is redirected to the WM. Unmap can overtake its native inspections.
+            probe.command('resize', 301+cycle%29, 211+cycle%23)
+            probe.command('unmap')
+            current = self.call('surface.get', id=surface['id'])
+            self.assertFalse(current['mapped']); self.assertEqual(current['slot'], slot['id'])
+            self.assertGreater(current['generation'], generation)
+            probe.command('map')
+            current = self.call('surface.get', id=surface['id'])
+            self.assertTrue(current['mapped']); self.assertEqual(current['slot'], slot['id'])
+            self.assertEqual(current['pose'], slot['pose'])
+            generation = current['generation']
+        probe.command('paint', 79, 151, 223)
+        self.assertEqual(self.capture().pixel(64, 64), (79, 151, 223))
+        self.assertEqual(self.call('world.get', id=slot['id']), slot)
+
+    def test_slot_rebinding_and_invalid_attachments_do_not_change_durable_state(self):
+        self.start(); a, b = self.slot('a'), self.slot('b', (3, 1, -5))
+        first, second = self.native(), self.native()
+        surface, other = self.register(first), self.register(second)
+        attached = self.attach(surface, a); before = self.call('world.snapshot')
+        for ident, target, code in [(surface['id'], self.room, 'INVALID_ARGUMENT'),
+                                   (surface['id'], 'missing', 'NOT_FOUND'),
+                                   ('missing', a['id'], 'NOT_FOUND'),
+                                   ('', a['id'], 'INVALID_ARGUMENT'),
+                                   (surface['id'], '', 'INVALID_ARGUMENT')]:
+            self.error(code, 'surface.attach_slot', id=ident, slot=target)
+            self.assertEqual(self.call('surface.get', id=surface['id']), attached)
+            self.assertEqual(self.call('world.snapshot'), before)
+        rebound = self.attach(surface, b)
+        self.assertEqual(rebound['pose'], b['pose'])
+        self.assertEqual(self.attach(other, a)['slot'], a['id'])
+        self.assertEqual(self.call('world.snapshot'), before)
+
+    def test_slot_placement_survives_restart_without_reusing_live_attachment(self):
+        self.start(); slot = self.slot()
+        probe = self.native(); surface = self.register(probe)
+        self.attach(surface, slot)
+        self.place(surface, pose([2, 1, -5]), (3, 2))
+        durable = self.call('world.snapshot')
+        stored = self.call('world.get', id=slot['id'])
+        old = self.client
+        old.proc.stdin.close(); self.assertEqual(old.proc.wait(timeout=8), 0); old.stop()
+        self.start()
+        current = self.until(lambda: self.call('surface.find', probe_id=probe.id),
+                             lambda value: value['surface'] is not None)['surface']
+        self.assertEqual(current['xid'], surface['xid'])
+        self.assertNotEqual(current['id'], surface['id'])
+        self.assertIsNone(current['slot']); self.assertEqual(current['room'], '')
+        self.error('NOT_FOUND', 'surface.get', id=surface['id'])
+        self.assertEqual(self.call('world.snapshot'), durable)
+        rebound = self.attach(current, slot)
+        for field in ('room', 'pose', 'size'):
+            self.assertEqual(rebound[field], stored[field])
+        self.assertEqual(self.call('world.snapshot'), durable)
+
+    def test_slot_delete_removes_placement_without_destroying_native_application(self):
+        self.start(); slot = self.slot()
+        probe = self.native(); surface = self.register(probe)
+        probe.command('paint', 91, 173, 207)
+        self.attach(surface, slot)
+        self.error('REVISION_CONFLICT', 'world.delete', id=slot['id'], expected_revision=slot['revision']+1)
+        self.assertEqual(self.call('surface.get', id=surface['id'])['slot'], slot['id'])
+        self.call('world.delete', id=slot['id'], expected_revision=slot['revision'])
+        current = self.call('surface.get', id=surface['id'])
+        self.assertIsNone(current['slot']); self.assertEqual(current['room'], '')
+        self.assertTrue(current['mapped']); self.assertIsNone(probe.proc.poll())
+        self.assertEqual(self.capture().pixel(64, 64), (10, 12, 16))
+        replacement = self.slot()  # Equal spelling cannot restore the removed live association.
+        self.assertIsNone(self.call('surface.get', id=surface['id'])['slot'])
+        self.attach(current, replacement)
+        self.assertEqual(self.capture().pixel(64, 64), (91, 173, 207))
+
+    def test_failed_durable_surface_move_preserves_slot_pixels_and_live_placement(self):
+        self.start(); slot = self.slot()
+        probe = self.native(); surface = self.register(probe)
+        probe.command('paint', 43, 103, 181)
+        attached = self.attach(surface, slot); before = self.call('world.snapshot')
+        self.call('fault.arm', point='storage.next_write', action='error', errno='ENOSPC')
+        self.error('STORAGE_ERROR', 'surface.place', id=surface['id'], room=self.room, pose=pose([4, 0, -5]), size=[3, 2])
+        self.assertEqual(self.call('world.snapshot'), before)
+        self.assertEqual(self.call('surface.get', id=surface['id']), attached)
+        self.assertEqual(self.capture().pixel(64, 64), (43, 103, 181))
+        self.place(surface, pose([4, 0, -5]), (3, 2))
+        self.assertEqual(self.call('world.get', id=slot['id'])['revision'], slot['revision']+1)
+        self.assertEqual(self.capture().pixel(64, 64), (10, 12, 16))
+
+    def test_concurrent_slot_attachment_has_one_winner(self):
+        self.start(); slot = self.slot()
+        first, second = self.native(), self.native()
+        surfaces = [self.register(first), self.register(second)]
+        def attach(surface):
+            try: return self.attach(surface, slot)
+            except RpcError as error: return error.code
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(attach, surfaces))
+        self.assertEqual(sum(result == 'BUSY' for result in results), 1)
+        winner = next(result for result in results if isinstance(result, dict))
+        self.assertEqual(winner['slot'], slot['id'])
+        self.assertEqual(sum(self.call('surface.get', id=s['id'])['slot'] == slot['id'] for s in surfaces), 1)
+
+    def test_transients_follow_slotted_parent_and_cannot_hold_an_independent_slot(self):
+        self.start(); slot, spare = self.slot(), self.slot('spare')
+        parent, second = self.native(), self.native()
+        parent_surface, child = self.register(parent), self.register(second)
+        self.attach(parent_surface, slot); self.attach(child, spare)
+        transient(second.xid, parent.xid)
+        current = self.call('surface.get', id=child['id'])
+        self.assertEqual(current['parent_id'], parent_surface['id']); self.assertIsNone(current['slot'])
+        self.error('INVALID_ARGUMENT', 'surface.attach_slot', id=child['id'], slot=spare['id'])
+        third = self.native(); replacement = self.register(third, (6, 0, -4))
+        self.assertEqual(self.attach(replacement, spare)['slot'], spare['id'])
+        other_room = self.call('world.create', entity=dict(id='other-room', kind='room', label='other'))
+        self.call('world.update', id=slot['id'], expected_revision=slot['revision'],
+                  patch=dict(room=other_room['id'], pose=pose([2, 1, -5]), size=[4, 3]))
+        current = self.call('surface.get', id=child['id'])
+        self.assertEqual(current['room'], other_room['id'])
+        self.assertEqual(current['size'], [4, 3])
+        parent.command('destroy'); self.call('runtime.fence')
+        self.error('INVALID_ARGUMENT', 'surface.attach_slot', id=child['id'], slot=slot['id'])
+        self.error('INVALID_ARGUMENT', 'surface.place', id=child['id'], room=self.room, pose=pose(), size=[2, 2])
+        self.assertFalse(self.call('surface.get', id=child['id'])['mapped'])
+
     def test_world_placement_preserves_overlapping_native_geometry(self):
         self.start()
         near, far = self.native(), self.native()

@@ -1,0 +1,7 @@
+test_replacement_x_window_attaches_to_durable_slot_not_old_xid (tests.acceptance.test_09_recovery.SlotRecoveryTests.test_replacement_x_window_attaches_to_durable_slot_not_old_xid) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.230s
+
+OK
+DIAGNOSTIC P09: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-slot-focused/slot.json

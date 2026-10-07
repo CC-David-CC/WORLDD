@@ -1,5 +1,41 @@
 # Implementation status
 
+## 2026-10-07: P09 durable native surface slots
+
+Live native surfaces now attach explicitly to durable world slots.
+Each slot supplies one authoritative room, pose, and size.
+Surface placement updates the slot through the world transaction. Direct slot edits update the same live placement.
+Failed writes preserve both durable and live placement.
+Concurrent attachment permits one winner. Native transients follow their parent.
+Destroy and restart clear live associations without deleting the slot.
+Slot deletion removes presentation without terminating the application.
+
+The new checks exposed an existing native lifecycle race on both hosts.
+Native input inspection can reject an unmapped window without proving destruction.
+The compositor now preserves identity until actual destruction evidence and invalidates the unavailable resource generation.
+The original failing logs and source manifests are retained. No assertion was weakened.
+
+Both hosts passed Debug and ASan/UBSan qualification after the correction:
+
+- All 231 core checks, including nine new slot and lifecycle checks.
+- All 51 harness checks.
+- 147 acceptance cases, including all 138 preceding P00-P08 cases.
+
+The full P00-P09 gate executed 148 of 151 cases.
+It reports one assertion failure, zero errors, zero skipped, and three unrun P10 cases.
+Nine P09 primitives pass. Stale-handle validation remains incomplete.
+P09, full Spatial-M1, and native hardware qualification remain unfinished.
+
+Independent X clients verify pixels, native geometry, restart identity, deletion, transients, and 64 resize/unmap/remap cycles.
+All 108 source hashes match reviewed local files and both hosts.
+The acceptance lock, schemas, locked assertions, oracles, and native witness remain unchanged.
+Evidence is in evidence/recovery-slots-2026-10-07.
+See docs/DURABLE_SURFACE_SLOTS.md for scope, commands, and recovery.
+No database migration, host configuration, or operator-session change was required.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: surface.stale_handle using current native resource identity and generation.
+The full project goal remains active.
+
 ## 2026-10-07: P09 real Git completion crash recovery
 
 Workspaced now exits after real worktree creation and its flushed completion receipt, before the ready acknowledgment.

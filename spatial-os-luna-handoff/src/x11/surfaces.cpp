@@ -146,7 +146,14 @@ struct XSurfaces::Impl {
         if (mapped && input) {
             native_input::Request request; request.mutable_inspect()->set_xid(xid);
             const auto reply=input->call(request);
-            if (reply.code()==native_input::STALE_TARGET) { remove(xid); return; }
+            if (reply.code()==native_input::STALE_TARGET) {
+                // INSPECT also rejects an unmapped window. It does not prove destruction.
+                // Preserve identity until DestroyNotify or an actual BadWindow lookup.
+                retire(surface);
+                surface.native.mutable_handle()->set_generation(surface.native.handle().generation()+1);
+                surface.native.set_mapped(false); surface.native.set_server_generation(0);
+                surface.dirty=true; return;
+            }
             require(reply.code()==native_input::OK && reply.has_target(),"Cannot inspect native input generation");
             server_generation=reply.target().generation();
             // Dimensions and input generation must come from the same server reply.

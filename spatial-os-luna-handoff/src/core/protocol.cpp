@@ -67,7 +67,6 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
                 broker->call(request);
             });
             break;
-        case wire::Request::kSurfaceAttachSlot:
         case wire::Request::kSurfaceValidate:
             throw WorldError(wire::UNIMPLEMENTED, "Recovery operation is not implemented");
         case wire::Request::kHello: {
@@ -108,6 +107,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
         case wire::Request::kWorldDelete:
             if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
             *reply.mutable_deleted() = world->erase(request.world_delete(), actors && actors->room_in_use(request.world_delete().id()));
+            if (surfaces) surfaces->forget_slot(request.world_delete().id());
             break;
         case wire::Request::kWorldList:
         case wire::Request::kWorldSnapshot:
@@ -142,6 +142,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
         case wire::Request::kSurfaceFind:
         case wire::Request::kSurfaceGet:
         case wire::Request::kSurfacePlace:
+        case wire::Request::kSurfaceAttachSlot:
         case wire::Request::kSurfaceChildren:
         case wire::Request::kRuntimeFence:
         case wire::Request::kRuntimeResources: {
@@ -150,6 +151,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             if (request.has_surface_find()) *reply.mutable_surface() = surfaces->find(request.surface_find().probe_id());
             else if (request.has_surface_get()) *reply.mutable_surface_record() = surfaces->get(request.surface_get().id());
             else if (request.has_surface_place()) *reply.mutable_surface_record() = surfaces->place(request.surface_place());
+            else if (request.has_surface_attach_slot()) *reply.mutable_surface_record() = surfaces->attach_slot(request.surface_attach_slot());
             else if (request.has_surface_children()) *reply.mutable_surfaces() = surfaces->children(request.surface_children().id());
             else if (request.has_runtime_resources()) *reply.mutable_resources() = surfaces->resources();
             else reply.mutable_fence()->set_complete(true);
