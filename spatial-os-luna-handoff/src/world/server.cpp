@@ -24,7 +24,7 @@ std::uint32_t length(const std::string& buffer) {
     return (std::uint32_t(h[0]) << 24) | (std::uint32_t(h[1]) << 16) | (std::uint32_t(h[2]) << 8) | h[3];
 }
 }
-void serve(WorldStore& world, Actors& actors, RenderWorker* renderer) {
+void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* surfaces) {
     nonblocking(STDIN_FILENO); nonblocking(STDOUT_FILENO);
     signal(SIGPIPE, SIG_IGN);
     const auto origin = Clock::now();
@@ -41,7 +41,7 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer) {
             const auto size = length(input);
             if (size > max_frame_bytes) throw std::runtime_error("Frame exceeds size limit");
             if (input.size() >= size + 4) {
-                const auto reply = handle_frame(std::string_view(input).substr(4, size), &world, &actors, renderer);
+                const auto reply = handle_frame(std::string_view(input).substr(4, size), &world, &actors, renderer, surfaces);
                 input.erase(0, size + 4); input_started = now;
                 const auto payload = reply.SerializeAsString();
                 if (payload.size() > max_frame_bytes) throw std::runtime_error("Reply exceeds size limit");

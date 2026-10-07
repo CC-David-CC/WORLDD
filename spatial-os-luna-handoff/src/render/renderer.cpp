@@ -1,9 +1,11 @@
 #include "render/renderer.hpp"
 #include "core/scene.hpp"
+#include "x11/surfaces.hpp"
 #include <GL/glew.h>
 #include <GL/glx.h>
 #include <GL/glxext.h>
 #include <X11/Xlib.h>
+#include <X11/extensions/Xcomposite.h>
 #include <array>
 #include <cerrno>
 #include <cmath>
@@ -50,6 +52,7 @@ void write_all(int fd, const char* data, std::size_t size) {
 struct Renderer::Impl {
     Display* display = nullptr;
     Window window = 0;
+    Window overlay = 0;
     Colormap colormap = 0;
     GLXContext context = nullptr;
     GLuint program = 0, vao = 0, vbo = 0, fbo = 0, color = 0, depth = 0;
@@ -57,7 +60,9 @@ struct Renderer::Impl {
     std::uint64_t frame_id = 0;
     std::filesystem::path captures;
     wire::RendererReady info;
+    std::unique_ptr<XSurfaces> surfaces;
     ~Impl() {
+        surfaces.reset();
         if (context) {
             if (program) glDeleteProgram(program);
             if (vao) glDeleteVertexArrays(1, &vao);
@@ -69,6 +74,7 @@ struct Renderer::Impl {
             glXDestroyContext(display, context);
         }
         if (window) XDestroyWindow(display, window);
+        if (overlay) XCompositeReleaseOverlayWindow(display, DefaultRootWindow(display));
         if (colormap) XFreeColormap(display, colormap);
         if (display) XCloseDisplay(display);
     }
@@ -96,6 +102,11 @@ Renderer::Renderer(const std::string& name, const std::filesystem::path& state) 
     // SubstructureRedirect is exclusive. BadAccess preserves the existing WM.
     XSelectInput(r.display, root, SubstructureRedirectMask | SubstructureNotifyMask);
     check_x(r.display);
+    int major=0,minor=0;
+    if (!XCompositeQueryVersion(r.display,&major,&minor) || (major==0 && minor<3))
+        throw std::runtime_error("Composite 0.3 is required");
+    r.overlay=XCompositeGetOverlayWindow(r.display,root);
+    check_x(r.display);
     const int attributes[]{GLX_X_RENDERABLE, True, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
         GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
         GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8,
@@ -111,7 +122,7 @@ Renderer::Renderer(const std::string& name, const std::filesystem::path& state) 
     XSetWindowAttributes values{};
     values.colormap = r.colormap; values.override_redirect = True;
     values.event_mask = ExposureMask | StructureNotifyMask;
-    r.window = XCreateWindow(r.display, root, 0, 0, 128, 128, 0, visual->depth, InputOutput,
+    r.window = XCreateWindow(r.display, r.overlay, 0, 0, 128, 128, 0, visual->depth, InputOutput,
                               visual->visual, CWColormap | CWOverrideRedirect | CWEventMask, &values);
     XFree(visual); check_x(r.display);
     XStoreName(r.display, r.window, "Spatial runtime");
@@ -142,6 +153,8 @@ uniform dvec3 origin, ray_x, ray_y, ray_z;
 uniform dvec2 extent, viewport, clip_planes;
 uniform double focal;
 uniform vec3 rgb;
+uniform sampler2D application;
+uniform bool textured, inverted;
 out vec4 pixel;
 void main() {
     dvec3 ray = dvec3((double(gl_FragCoord.x)*2.0-viewport.x)/(focal*viewport.y),
@@ -157,7 +170,10 @@ void main() {
     dvec2 uv = dvec2(contact.x/extent.x+0.5, 0.5-contact.y/extent.y);
     if (uv.x < 0.0 || uv.x >= 1.0 || uv.y < 0.0 || uv.y >= 1.0) discard;
     gl_FragDepth = float(clip_planes.x/depth);
-    pixel = vec4(rgb, 1.0);
+    vec2 sample_uv=vec2(uv);
+    // Panel UV starts at the top. GLX Y-inverted pixmaps already use top=0.
+    if (!inverted) sample_uv.y=1.0-sample_uv.y;
+    pixel = textured ? vec4(texture(application,sample_uv).rgb,1.0) : vec4(rgb, 1.0);
 }
 )";
     const auto vs = shader(GL_VERTEX_SHADER, vertex);
@@ -174,6 +190,7 @@ void main() {
     glEnableVertexAttribArray(0);
     glGenFramebuffers(1, &r.fbo); glGenRenderbuffers(1, &r.color); glGenRenderbuffers(1, &r.depth);
     check_gl();
+    r.surfaces=std::make_unique<XSurfaces>(r.display,r.window,r.overlay);
 }
 Renderer::~Renderer() = default;
 wire::RendererReady Renderer::ready() const { return impl_->info; }
@@ -183,18 +200,25 @@ void Renderer::events() {
     while (XPending(r.display)) {
         XEvent event{}; XNextEvent(r.display, &event);
         if (event.type == Expose && event.xexpose.window == r.window && r.width && event.xexpose.count == 0) r.output();
-        if (event.type == MapRequest) XMapWindow(r.display, event.xmaprequest.window);
+        if (r.surfaces) r.surfaces->event(event);
         if (event.type == DestroyNotify && event.xdestroywindow.window == r.window)
             throw std::runtime_error("Compositor output was destroyed");
     }
     check_x(r.display);
+}
+wire::NativeSnapshot Renderer::synchronize() {
+    auto& r=*impl_;
+    // First barrier covers prior client requests; second covers WM map/configure replies.
+    for (int i=0;i<2;++i) { check_x(r.display); events(); }
+    r.surfaces->synchronize(); check_x(r.display);
+    return r.surfaces->snapshot();
 }
 wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
     validate_render_extent(command.width(), command.height());
     if (!command.has_scene()) throw std::invalid_argument("Missing render scene");
     const auto panels = scene_panels(command.scene());
     auto& r = *impl_;
-    if (command.request_id() != r.frame_id + 1) throw std::invalid_argument("Out-of-order render command");
+    synchronize();
     if (r.width != command.width() || r.height != command.height()) {
         r.width = command.width(); r.height = command.height();
         glBindRenderbuffer(GL_RENDERBUFFER, r.color);
@@ -221,11 +245,21 @@ wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
     // The projection retains the precision of the OpenGL float vertex pipeline.
     const double f = static_cast<float>(1 / std::tan(config.vertical_fov() / 2));
     glUseProgram(r.program);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(glGetUniformLocation(r.program,"application"),0);
     glUniform1d(glGetUniformLocation(r.program, "focal"), f);
     glUniform2d(glGetUniformLocation(r.program, "viewport"), r.width, r.height);
     glUniform2d(glGetUniformLocation(r.program, "clip_planes"), config.near_clip(), config.far_clip());
     glBindVertexArray(r.vao); glBindBuffer(GL_ARRAY_BUFFER, r.vbo);
     for (const auto& panel : panels) {
+        const bool textured=!panel.surface.id().empty();
+        if (textured) {
+            const auto texture=r.surfaces->texture(panel.surface);
+            if (!texture) continue; // A later native generation cannot inherit an earlier scene handle.
+            glBindTexture(GL_TEXTURE_2D,texture->name);
+            glUniform1i(glGetUniformLocation(r.program,"inverted"),texture->inverted);
+        }
+        glUniform1i(glGetUniformLocation(r.program,"textured"),textured);
         const auto bounds = panel_bounds(panel, config, r.width, r.height);
         if (!bounds) continue;
         const auto& b = *bounds;

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--through', choices=['P00', 'P01', 'P02', 'P03', 'P04'], required=True)
+    parser.add_argument('--through', choices=['P00', 'P01', 'P02', 'P03', 'P04', 'P05'], required=True)
     parser.add_argument('--build-dir', default='build')
     parser.add_argument('--evidence-dir', required=True)
     parser.add_argument('--sanitize', action='store_true')
@@ -31,6 +31,7 @@ def main():
     env = os.environ.copy()
     env.pop('SPATIAL_TEST_DISPLAY', None)
     env['SPATIAL_RENDER_EVIDENCE'] = str(evidence / 'graphics')
+    env['SPATIAL_XPROBE'] = str(build / 'spatial-xprobe')
     env['PYTHONPATH'] = os.pathsep.join([str(build / 'python'), str(ROOT), env.get('PYTHONPATH', '')])
     commands = [
         ('configure', ['cmake', '-S', '.', '-B', str(build), '-G', 'Ninja',

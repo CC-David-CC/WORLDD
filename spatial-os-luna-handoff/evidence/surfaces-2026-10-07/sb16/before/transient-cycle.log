@@ -1,0 +1,46 @@
+test_concurrent_resize_and_damage_leave_latest_pixels_and_live_runtime (__main__.SurfaceRuntimeTests.test_concurrent_resize_and_damage_leave_latest_pixels_and_live_runtime) ... ok
+test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover (__main__.SurfaceRuntimeTests.test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover) ... ERROR
+test_existing_client_is_imported_on_compositor_start (__main__.SurfaceRuntimeTests.test_existing_client_is_imported_on_compositor_start) ... FAIL
+test_graceful_shutdown_releases_live_imports_without_sanitizer_errors (__main__.SurfaceRuntimeTests.test_graceful_shutdown_releases_live_imports_without_sanitizer_errors) ... ok
+test_invalid_placement_is_atomic (__main__.SurfaceRuntimeTests.test_invalid_placement_is_atomic) ... ok
+test_repeated_client_death_releases_resources_and_never_reuses_identity (__main__.SurfaceRuntimeTests.test_repeated_client_death_releases_resources_and_never_reuses_identity) ... ok
+test_transient_inherits_rotated_parent_scale_and_unmap (__main__.SurfaceRuntimeTests.test_transient_inherits_rotated_parent_scale_and_unmap) ... ok
+test_world_placement_preserves_overlapping_native_geometry (__main__.SurfaceRuntimeTests.test_world_placement_preserves_overlapping_native_geometry) ... ok
+
+======================================================================
+ERROR: test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover (__main__.SurfaceRuntimeTests.test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_surfaces.py", line 201, in test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover
+    self.assertEqual(self.capture().pixel(64, 64), (113, 157, 197))
+                     ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_surfaces.py", line 88, in capture
+    result = self.call('render.capture', token=self.actor['token'], width=128, height=128)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_surfaces.py", line 61, in call
+    return self.client.call(method, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: INVALID_ARGUMENT: Cyclic or excessive transient relationship
+
+======================================================================
+FAIL: test_existing_client_is_imported_on_compositor_start (__main__.SurfaceRuntimeTests.test_existing_client_is_imported_on_compositor_start)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_surfaces.py", line 149, in test_existing_client_is_imported_on_compositor_start
+    self.register(probe)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_surfaces.py", line 79, in register
+    result = self.until(lambda: self.call('surface.find', probe_id=probe.id),
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_surfaces.py", line 75, in until
+    self.fail(f'Native condition did not complete: {value}')
+AssertionError: Native condition did not complete: {'surface': None}
+
+----------------------------------------------------------------------
+Ran 8 tests in 6.785s
+
+FAILED (failures=1, errors=1)

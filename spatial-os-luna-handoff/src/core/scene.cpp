@@ -62,6 +62,18 @@ wire::AimReply pick_scene(const wire::RenderScene& scene, const wire::Vec3& inpu
         out->mutable_uv()->set_x(hit->uv[0]); out->mutable_uv()->set_y(hit->uv[1]);
         // Solid panels have UV but no application pixel extent or input sink.
     }
+    for (const auto& surface : scene.surfaces()) {
+        const auto& panel = surface.panel();
+        const auto hit = ray_panel(camera.p, direction, scene_pose(panel.pose()),
+            {panel.size().x(), panel.size().y()}, {surface.pixels().width(), surface.pixels().height()});
+        if (!hit || hit->distance >= nearest) continue;
+        const double depth = -local[2] * hit->distance;
+        if (depth < scene.config().near_clip() || depth > scene.config().far_clip()) continue;
+        nearest = hit->distance;
+        auto* out = result.mutable_hit(); out->set_id(surface.handle().id()); out->set_generation(surface.handle().generation());
+        out->set_distance(hit->distance); out->mutable_uv()->set_x(hit->uv[0]); out->mutable_uv()->set_y(hit->uv[1]);
+        out->mutable_pixel()->set_x(hit->pixel[0]); out->mutable_pixel()->set_y(hit->pixel[1]);
+    }
     return result;
 }
 std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
@@ -90,6 +102,13 @@ std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
             for (const double value : out.corners[i]) require(std::isfinite(value), "Scene coordinate overflow");
         }
         result.push_back(out);
+    }
+    for (const auto& surface : scene.surfaces()) {
+        wire::RenderScene single; *single.mutable_config() = scene.config(); *single.mutable_camera() = scene.camera();
+        *single.add_panels() = surface.panel();
+        auto converted = scene_panels(single);
+        converted.front().surface = surface.handle();
+        result.push_back(std::move(converted.front()));
     }
     return result;
 }

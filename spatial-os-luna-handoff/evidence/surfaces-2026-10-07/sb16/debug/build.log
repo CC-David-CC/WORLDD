@@ -1,0 +1,7 @@
+[0/2] Re-checking globbed directories...
+[1/6] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[2/6] Linking CXX executable spatialwm
+[3/6] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/6] Linking CXX static library libspatial-core.a
+[5/6] Linking CXX executable worldd
+[6/6] Linking CXX executable spatial-test-host

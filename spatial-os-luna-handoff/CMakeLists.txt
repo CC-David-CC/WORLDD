@@ -51,11 +51,11 @@ target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}"
 add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/scene.cpp)
 target_include_directories(spatial-scene PUBLIC src)
 target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
-add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/actors.cpp src/platform/render_worker.cpp)
+add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/actors.cpp src/world/surfaces.cpp src/platform/render_worker.cpp)
 target_include_directories(spatial-core PUBLIC src)
 target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3)
-add_executable(spatialwm src/render/main.cpp src/render/renderer.cpp)
-target_link_libraries(spatialwm PRIVATE spatial-scene X11::X11 OpenGL::GL GLEW::GLEW)
+add_executable(spatialwm src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp)
+target_link_libraries(spatialwm PRIVATE spatial-scene X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
 add_executable(worldd src/world/main.cpp src/world/server.cpp)
 target_link_libraries(worldd PRIVATE spatial-core)
 add_dependencies(worldd spatialwm)
@@ -74,6 +74,12 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_render.py" $<TARGET_FILE:spatial-test-host>
         $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-xprobe>)
     set_tests_properties(render-runtime PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME surface-runtime COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_surfaces.py" $<TARGET_FILE:spatial-test-host>
+        $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-xprobe>)
+    set_tests_properties(surface-runtime PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME core-protocol COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_protocol.py" $<TARGET_FILE:spatial-test-host>)

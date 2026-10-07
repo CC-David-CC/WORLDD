@@ -1,0 +1,14 @@
+test_resize_away_and_back_replaces_backing_resource_at_the_same_final_size (__main__.SurfaceRuntimeTests.test_resize_away_and_back_replaces_backing_resource_at_the_same_final_size) ... FAIL
+
+======================================================================
+FAIL: test_resize_away_and_back_replaces_backing_resource_at_the_same_final_size (__main__.SurfaceRuntimeTests.test_resize_away_and_back_replaces_backing_resource_at_the_same_final_size)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_surfaces.py", line 234, in test_resize_away_and_back_replaces_backing_resource_at_the_same_final_size
+    self.assertGreater(updated['generation'], surface['generation'])
+AssertionError: 2 not greater than 2
+
+----------------------------------------------------------------------
+Ran 1 test in 0.165s
+
+FAILED (failures=1)

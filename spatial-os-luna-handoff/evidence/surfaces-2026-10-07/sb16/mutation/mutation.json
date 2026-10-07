@@ -1,0 +1,12 @@
+{
+  "host": "sb16",
+  "mutation": "Reverse the GLX texture orientation condition in an isolated source copy",
+  "production_source_report": "../debug/run.json",
+  "changed_files": [
+    "src/render/renderer.cpp"
+  ],
+  "mutated_renderer_sha256": "194ff6ae5026081a5b3988ebc67c2f2af117a775e5cf09527b9ca3f140dfda85",
+  "mutated_build_id_header": "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:1caad30c07494ecda351d70773c519d6fd4ce1fc70ed6116264fe258240a5ca8\"\n",
+  "expected_result": "One quadrant assertion fails: observed blue where red is expected",
+  "production_unchanged": true
+}

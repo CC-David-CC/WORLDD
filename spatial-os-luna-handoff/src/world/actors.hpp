@@ -5,12 +5,13 @@
 #include <set>
 
 namespace spatial {
+class Surfaces;
 wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path);
 
 // One actor engine serves fixture and monotonic clocks through the same tick.
 class Actors {
 public:
-    Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock);
+    Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr);
     wire::ActorOpenReply open(const wire::ActorOpenRequest& request);
     wire::ActorStateReply inspect(const std::string& token);
     wire::ActorCloseReply close(const std::string& token);
@@ -34,6 +35,7 @@ private:
     Actor& authenticated(const std::string& token);
     void step(double target);
     WorldStore& store_;
+    Surfaces* surfaces_;
     wire::RuntimeConfig config_;
     bool manual_clock_;
     double now_ = 0;

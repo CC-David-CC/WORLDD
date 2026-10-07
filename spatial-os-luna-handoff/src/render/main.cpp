@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
         spatial::Renderer renderer(display, state);
         spatial::wire::RenderResult ready; ready.set_protocol_version(1); *ready.mutable_ready() = renderer.ready();
         spatial::write_frame(std::cout, ready);
+        std::uint64_t sequence=0;
         while (true) {
             renderer.events();
             pollfd fds[2]{{STDIN_FILENO, POLLIN, 0}, {renderer.connection(), POLLIN, 0}};
@@ -33,9 +34,13 @@ int main(int argc, char** argv) {
                 spatial::wire::RenderCommand command;
                 if (!command.ParseFromString(bytes) || command.protocol_version() != 1) throw std::invalid_argument("Invalid render command");
                 spatial::validate_message(command);
+                if (command.request_id() <= sequence || command.has_scene()==command.has_sync())
+                    throw std::invalid_argument("Invalid compositor command sequence or operation");
+                sequence=command.request_id();
                 spatial::wire::RenderResult reply;
                 reply.set_protocol_version(1); reply.set_request_id(command.request_id());
-                *reply.mutable_frame() = renderer.draw(command);
+                if (command.has_sync()) *reply.mutable_snapshot() = renderer.synchronize();
+                else *reply.mutable_frame() = renderer.draw(command);
                 spatial::write_frame(std::cout, reply);
             }
         }

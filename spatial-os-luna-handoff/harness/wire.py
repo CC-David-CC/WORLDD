@@ -200,6 +200,12 @@ def make_request(method, params):
         'runtime.identities': ('runtime_identities', {}),
         'render.capture': ('render_capture', {'token': str, 'width': int, 'height': int}),
         'render.present': ('render_present', {'token': str, 'width': int, 'height': int}),
+        'surface.find': ('surface_find', {'probe_id': str}),
+        'surface.get': ('surface_get', {'id': str}),
+        'surface.place': ('surface_place', {'id': str, 'room': str, 'pose': pose, 'size': vec2}),
+        'surface.children': ('surface_children', {'id': str}),
+        'runtime.fence': ('runtime_fence', {}),
+        'runtime.resources': ('runtime_resources', {}),
         'actor.open': ('actor_open', {'id': str, 'room': str, 'pose': pose, 'grants': list}),
         'actor.inspect': ('actor_inspect', {'token': str}),
         'actor.close': ('actor_close', {'token': str}),
@@ -253,6 +259,8 @@ OUTCOMES = {'hello': 'hello', 'world_get': 'entity', 'world_create': 'entity',
             'actor_open': 'actor_opened', 'actor_inspect': 'actor_state', 'actor_close': 'actor_closed',
             'actor_act': 'actor_action', 'world_checkpoint': 'checkpoint', 'clock_advance': 'clock',
             'render_capture': 'frame', 'render_present': 'frame',
+            'surface_find': 'surface', 'surface_get': 'surface_record', 'surface_place': 'surface_record',
+            'surface_children': 'surfaces', 'runtime_fence': 'fence', 'runtime_resources': 'resources',
             'transform_point': 'point',
             'inverse_point': 'point', 'uv_pixel': 'pixel', 'ray_panel': 'ray', 'integrate': 'pose'}
 
@@ -263,6 +271,17 @@ def vector_value(value):
 
 def result_value(reply):
     kind = reply.WhichOneof('outcome')
+    if kind == 'surface':
+        return {'surface': surface_value(reply.surface.surface) if reply.surface.HasField('surface') else None}
+    if kind == 'surface_record':
+        return surface_value(reply.surface_record)
+    if kind == 'surfaces':
+        return {'surfaces': [surface_value(value) for value in reply.surfaces.surfaces]}
+    if kind == 'fence':
+        return {'complete': reply.fence.complete}
+    if kind == 'resources':
+        return {name: getattr(reply.resources, name) for name in
+                ('retired_pixmaps_pending', 'invalid_texture_bindings', 'live_pixmaps')}
     if kind == 'actor_opened':
         return {'id': reply.actor_opened.id, 'token': reply.actor_opened.token}
     if kind == 'actor_state':
@@ -331,3 +350,11 @@ def result_value(reply):
         q = value.orientation
         return {'pose': {'p': vector_value(value.position), 'q': [q.x, q.y, q.z, q.w]}}
     raise ValueError('Unexpected reply outcome')
+
+
+def surface_value(value):
+    return {'id': value.id, 'xid': value.xid, 'generation': value.generation, 'room': value.room,
+            'pose': pose_value(value.pose), 'size': [value.size.x, value.size.y],
+            'pixels': [value.pixels.width, value.pixels.height], 'mapped': value.mapped,
+            'parent_id': value.parent_id if value.HasField('parent_id') else None,
+            'slot': value.slot if value.HasField('slot') else None}

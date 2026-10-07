@@ -1,5 +1,54 @@
 # Implementation status
 
+## 2026-10-07: live application surfaces, P00 through P05
+
+The compositor now imports actual X application backing pixmaps through Composite, Damage, and GLX.
+worldd owns their spatial placement. Placement leaves native window coordinates unchanged.
+Live identities distinguish compositor sessions and reused XIDs.
+Resize, map, unmap, and destruction retire native resources and update generations.
+Transients follow the parent room, rotation, translation, and scale.
+
+Both sb16 and sb16-2 passed the normal build and the AddressSanitizer/UndefinedBehaviorSanitizer build:
+
+- All 80 cumulative P00 through P05 acceptance tests.
+- 39 harness self-tests.
+- All 47 previous protocol, daemon, actor, and rendering counterexamples.
+- Nine additional native surface lifecycle counterexamples.
+
+The new checks exposed two production defects before correction.
+Cyclic transient metadata could fail unrelated rendering.
+Coalesced resize events could preserve an obsolete pixmap when the final dimensions matched.
+Both reproductions now pass, together with the complete cumulative gate.
+An isolated build with reversed texture orientation failed the independent quadrant assertion as expected.
+The reviewed production sources remain unchanged by that mutation.
+An initial pre-existing-client fixture also needed orderly compositor shutdown between test cases.
+
+Retained reports, logs, and independent native pixel readbacks are in evidence/surfaces-2026-10-07.
+All 69 recorded source hashes match the tested files on both hosts.
+All 141 legacy acceptance IDs and assertions remain intact.
+The remaining 61 legacy acceptance tests are unrun.
+See docs/SURFACES.md for the implementation, protocol migration, and limits.
+
+These results use authenticated disposable Xvfb displays and Mesa llvmpipe.
+They do not qualify native GPU scanout, input devices, workspace isolation, or Spatial-M1.
+P06 native actor input is next. The full project goal remains active.
+
+Run these commands on either authorized host with new evidence directories:
+
+~~~sh
+python3 tools/qualify_core.py --through P05 --evidence-dir local/new-surface-run
+python3 tools/qualify_core.py --through P05 --sanitize --build-dir build-sanitize --evidence-dir local/new-surface-sanitize
+~~~
+
+Both hosts reported these build identities:
+
+- Debug: sha256:e575bf3eac831ec390086369cce5417f7fd10d821f45c87dd83cd70f694f4213
+- Sanitizers: sha256:7061a06d9dc5edd20f3e6f67e99f4a43203679ea1a902c9df40da4325ce94857
+
+The separate user-requested GNOME display changes are recorded in the root HOST_SETTINGS.md.
+Both operator desktops have automatic locking, blanking, dimming, idle suspend, and DPMS disabled.
+The normal login and SSH recovery paths remain available.
+
 ## 2026-10-07: compositor rendering, P00 through P04
 
 worldd now starts a separate spatialwm process on an explicitly selected display.
@@ -82,7 +131,6 @@ No login or desktop configuration changed during P04 implementation.
 
 ## Remaining work
 
-P05 must import real X application surfaces and handle their resource lifecycle.
 P06 must supply genuine actor input identities and routing.
 Later phases add rooms, manipulation, workspace Git storage, process context, recovery, and complete actor workflows.
 

@@ -66,7 +66,29 @@ message RenderConfig {
 message RenderRequest { string token = 1; uint32 width = 2; uint32 height = 3; }
 message FrameReply { string path = 1; uint64 frame_id = 2; uint64 world_revision = 3; uint64 xid = 4; }
 // Private worldd-to-spatialwm protocol. No actor credentials cross this boundary.
-message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; }
+message SurfaceHandle { string id = 1; uint64 generation = 2; }
+message SurfaceRecord {
+  string id = 1; uint64 xid = 2; uint64 generation = 3; string room = 4;
+  Pose pose = 5; Vec2 size = 6; PixelExtent pixels = 7; bool mapped = 8;
+  optional string parent_id = 9; optional string slot = 10;
+}
+message NativeSurface {
+  SurfaceHandle handle = 1; uint64 xid = 2; PixelExtent pixels = 3; bool mapped = 4;
+  string probe_id = 5; uint64 parent_xid = 6; sint32 root_x = 7; sint32 root_y = 8;
+}
+message ResourceStats { uint64 retired_pixmaps_pending = 1; uint64 invalid_texture_bindings = 2; uint64 live_pixmaps = 3; }
+message NativeSnapshot { repeated NativeSurface surfaces = 1; ResourceStats resources = 2; }
+message PlacedSurface { SurfaceHandle handle = 1; Entity panel = 2; PixelExtent pixels = 3; }
+message SurfaceFindRequest { string probe_id = 1; }
+message SurfaceIdRequest { string id = 1; }
+message SurfacePlaceRequest { string id = 1; string room = 2; Pose pose = 3; Vec2 size = 4; }
+message SurfaceReply { SurfaceRecord surface = 1; }
+message SurfaceListReply { repeated SurfaceRecord surfaces = 1; }
+message RuntimeFenceRequest {}
+message RuntimeResourcesRequest {}
+message FenceReply { bool complete = 1; }
+message RendererSyncRequest {}
+message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; repeated PlacedSurface surfaces = 5; }
 message RenderCommand {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -74,12 +96,13 @@ message RenderCommand {
   uint32 width = 4;
   uint32 height = 5;
   bool capture = 6;
+  RendererSyncRequest sync = 7;
 }
 message RendererReady { string gl_version = 1; string gl_renderer = 2; }
 message RenderResult {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
-  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; }
+  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; NativeSnapshot snapshot = 6; }
 }
 message ActorAimRequest { Vec3 direction = 1; }
 message AimHit { string id = 1; uint64 generation = 2; Vec2 uv = 3; Pixel pixel = 4; double distance = 5; }
@@ -137,6 +160,12 @@ message Request {
     ClockAdvanceRequest clock_advance = 35;
     RenderRequest render_capture = 40;
     RenderRequest render_present = 41;
+    SurfaceFindRequest surface_find = 50;
+    SurfaceIdRequest surface_get = 51;
+    SurfacePlaceRequest surface_place = 52;
+    SurfaceIdRequest surface_children = 53;
+    RuntimeFenceRequest runtime_fence = 54;
+    RuntimeResourcesRequest runtime_resources = 55;
   }
 }
 
@@ -216,5 +245,10 @@ message Reply {
     WorldCheckpointReply checkpoint = 34;
     ClockReply clock = 35;
     FrameReply frame = 40;
+    SurfaceReply surface = 50;
+    SurfaceRecord surface_record = 51;
+    SurfaceListReply surfaces = 53;
+    FenceReply fence = 54;
+    ResourceStats resources = 55;
   }
 }

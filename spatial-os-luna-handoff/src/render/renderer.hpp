@@ -11,6 +11,7 @@ public:
     wire::FrameReply draw(const wire::RenderCommand& command);
     int connection() const;
     void events();
+    wire::NativeSnapshot synchronize();
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

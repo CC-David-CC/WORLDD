@@ -14,6 +14,7 @@ struct ScenePanel {
     Vec3 origin, ray_x, ray_y, ray_z;
     Vec2 size;
     std::array<float, 3> color;
+    wire::SurfaceHandle surface;
 };
 std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene);
 // Conservative screen bounds, padded by one pixel; shader applies exact panel coverage.

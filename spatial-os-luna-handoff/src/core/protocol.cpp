@@ -2,6 +2,7 @@
 #include "core/geometry.hpp"
 #include "world/store.hpp"
 #include "world/actors.hpp"
+#include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
 #include <unistd.h>
 #include "build_id.hpp"
@@ -47,7 +48,7 @@ void error(wire::Reply& reply, wire::ErrorCode code, const char* message) {
 }
 }
 
-wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* actors, RenderWorker* renderer) {
+wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces) {
     wire::Reply reply;
     reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     try {
@@ -117,9 +118,26 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
             const bool capture = request.has_render_capture();
             const auto& operation = capture ? request.render_capture() : request.render_present();
+            if (renderer && surfaces) surfaces->refresh(renderer->synchronize());
             const auto scene = actors->scene(operation.token());
             if (!renderer) throw WorldError(wire::UNIMPLEMENTED, "No explicit compositor display configured");
             *reply.mutable_frame() = renderer->render(scene, operation.width(), operation.height(), capture);
+            break;
+        }
+        case wire::Request::kSurfaceFind:
+        case wire::Request::kSurfaceGet:
+        case wire::Request::kSurfacePlace:
+        case wire::Request::kSurfaceChildren:
+        case wire::Request::kRuntimeFence:
+        case wire::Request::kRuntimeResources: {
+            if (!renderer || !surfaces) throw WorldError(wire::UNIMPLEMENTED, "Native surface runtime unavailable");
+            surfaces->refresh(renderer->synchronize());
+            if (request.has_surface_find()) *reply.mutable_surface() = surfaces->find(request.surface_find().probe_id());
+            else if (request.has_surface_get()) *reply.mutable_surface_record() = surfaces->get(request.surface_get().id());
+            else if (request.has_surface_place()) *reply.mutable_surface_record() = surfaces->place(request.surface_place());
+            else if (request.has_surface_children()) *reply.mutable_surfaces() = surfaces->children(request.surface_children().id());
+            else if (request.has_runtime_resources()) *reply.mutable_resources() = surfaces->resources();
+            else reply.mutable_fence()->set_complete(true);
             break;
         }
         case wire::Request::kActorOpen:
@@ -133,6 +151,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             *reply.mutable_actor_closed() = actors->close(request.actor_close().token()); break;
         case wire::Request::kActorAct:
             if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
+            if (renderer && surfaces && request.actor_act().has_aim()) surfaces->refresh(renderer->synchronize());
             *reply.mutable_actor_action() = actors->act(request.actor_act()); break;
         case wire::Request::kWorldCheckpoint:
             if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
@@ -194,14 +213,14 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
     return reply;
 }
 
-wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* actors, RenderWorker* renderer) {
+wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces) {
     wire::Request request;
     if (frame.size() <= max_frame_bytes) {
         google::protobuf::io::ArrayInputStream array(frame.data(), static_cast<int>(frame.size()));
         google::protobuf::io::CodedInputStream input(&array);
         input.SetTotalBytesLimit(static_cast<int>(max_frame_bytes));
         input.SetRecursionLimit(64);
-        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world, actors, renderer);
+        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world, actors, renderer, surfaces);
     }
     wire::Reply reply;
     reply.set_protocol_version(1);

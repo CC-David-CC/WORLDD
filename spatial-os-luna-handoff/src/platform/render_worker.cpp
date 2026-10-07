@@ -100,11 +100,25 @@ wire::RenderResult RenderWorker::receive() {
 wire::FrameReply RenderWorker::render(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height, bool capture) {
     validate_render_extent(width, height);
     wire::RenderCommand command;
-    command.set_protocol_version(1); command.set_request_id(++sequence_);
     *command.mutable_scene() = scene;
     command.set_width(width); command.set_height(height); command.set_capture(capture);
+    const auto reply = exchange(command);
+    if (!reply.has_frame() || reply.frame().world_revision() != scene.world_revision() || reply.frame().frame_id() <= frame_id_)
+        throw std::runtime_error("Compositor frame identity mismatch");
+    frame_id_ = reply.frame().frame_id();
+    return reply.frame();
+}
+wire::NativeSnapshot RenderWorker::synchronize() {
+    wire::RenderCommand command; command.mutable_sync();
+    const auto reply = exchange(command);
+    if (!reply.has_snapshot()) throw std::runtime_error("Missing native surface snapshot");
+    return reply.snapshot();
+}
+wire::RenderResult RenderWorker::exchange(wire::RenderCommand command) {
+    command.set_protocol_version(1); command.set_request_id(sequence_ + 1);
     const auto payload = command.SerializeAsString();
     if (payload.size() > max_frame_bytes) throw std::invalid_argument("Scene exceeds renderer channel limit");
+    ++sequence_;
     const auto size = static_cast<std::uint32_t>(payload.size());
     const std::array<char, 4> header{static_cast<char>(size >> 24), static_cast<char>(size >> 16),
                                     static_cast<char>(size >> 8), static_cast<char>(size)};
@@ -119,9 +133,7 @@ wire::FrameReply RenderWorker::render(const wire::RenderScene& scene, std::uint3
         sent += static_cast<std::size_t>(count);
     }
     const auto reply = receive();
-    if (reply.request_id() != sequence_ || !reply.has_frame()) throw std::runtime_error("Compositor render failed");
-    if (reply.frame().world_revision() != scene.world_revision() || reply.frame().frame_id() != sequence_)
-        throw std::runtime_error("Compositor frame identity mismatch");
-    return reply.frame();
+    if (reply.request_id() != sequence_) throw std::runtime_error("Compositor response identity mismatch");
+    return reply;
 }
 }

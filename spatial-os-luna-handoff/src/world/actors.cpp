@@ -1,4 +1,5 @@
 #include "world/actors.hpp"
+#include "world/surfaces.hpp"
 #include "core/geometry.hpp"
 #include "core/scene.hpp"
 #include <google/protobuf/text_format.h>
@@ -52,8 +53,8 @@ wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path) {
     if (result.has_render()) validate_render_config(result.render());
     return result;
 }
-Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock)
-    : store_(store), config_(config), manual_clock_(manual_clock) {
+Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces)
+    : store_(store), surfaces_(surfaces), config_(config), manual_clock_(manual_clock) {
     for (const auto& entity : store_.actors()) {
         Actor actor; actor.entity = entity; actors_.emplace(entity.id(), std::move(actor));
     }
@@ -144,7 +145,9 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
 wire::RenderScene Actors::scene(const std::string& token) {
     const auto& actor = authenticated(token);
     require(config_.has_render(), "Render configuration is missing");
-    return panel_scene(store_.snapshot(), actor.entity, config_.render());
+    auto result = panel_scene(store_.snapshot(), actor.entity, config_.render());
+    if (surfaces_) surfaces_->append(result, actor.entity.room());
+    return result;
 }
 void Actors::step(double target) {
     require(std::isfinite(target) && target >= now_, "Invalid monotonic time");
