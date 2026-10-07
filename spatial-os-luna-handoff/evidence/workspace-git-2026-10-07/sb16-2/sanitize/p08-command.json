@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tools/gate.py",
+    "--through",
+    "P08",
+    "--sut",
+    "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatial-test-host\"]",
+    "--report",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-git-final-sanitize/p08.json"
+  ],
+  "exit_code": 1,
+  "counts": {
+    "passed": 121,
+    "failed": 1,
+    "error": 16,
+    "skipped": 0
+  }
+}

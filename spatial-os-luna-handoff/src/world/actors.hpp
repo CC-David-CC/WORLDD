@@ -8,12 +8,13 @@
 namespace spatial {
 class Surfaces;
 class RenderWorker;
+class BrokerClient;
 wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path);
 
 // One actor engine serves fixture and monotonic clocks through the same tick.
 class Actors {
 public:
-    Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr, RenderWorker* renderer = nullptr);
+    Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr, RenderWorker* renderer = nullptr, BrokerClient* broker = nullptr);
     wire::ActorOpenReply open(const wire::ActorOpenRequest& request);
     wire::ActorStateReply inspect(const std::string& token);
     wire::ActorCloseReply close(const std::string& token);
@@ -66,6 +67,7 @@ private:
     WorldStore& store_;
     Surfaces* surfaces_;
     RenderWorker* renderer_;
+    BrokerClient* broker_;
     std::map<std::string, std::string> leases_;
     std::map<std::string, std::string> object_leases_;
     wire::RuntimeConfig config_;

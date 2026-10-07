@@ -1,5 +1,44 @@
 # Implementation status
 
+## 2026-10-07: P08 real Git creation through workspaced
+
+The production workspaced process now owns a separate durable execution registry.
+The session supervisor starts it independently of worldd and supplies a private protobuf channel.
+Repository import creates real bare backing stores with independent Git objects.
+Worktree creation follows real branch rules and records durable operation identities.
+Matching retries preserve uncommitted files. Changed requests return OPERATION_CONFLICT.
+
+A private completion receipt distinguishes finished checkout from partial Git metadata.
+Recovery reconciles witnessed effects against actual Git state.
+Uncertain imports and worktrees remain preserved for explicit repair.
+Administrative Git uses controlled configuration, a restricted environment, and supervised process groups.
+The wrapper does not implement generic application confinement.
+
+Both hosts passed Debug and ASan/UBSan qualification for this increment:
+
+- All 113 preceding P00-P07 acceptance tests and eight P08 acceptance tests.
+- All 152 core checks, including seventeen broker checks.
+- All 43 harness self-tests.
+
+The full 138-case P00-P08 gate ran in every build on both hosts.
+Coverage is 121 passed, one failed, sixteen errors, zero skipped, and thirteen unrun later tests.
+Dirty removal fails because its handler still returns UNIMPLEMENTED.
+The other errors cover unimplemented Git status, removal, workspace context, and process execution.
+P08 remains incomplete.
+
+An isolated mutation removed independent Git object copying.
+The external inode witness detected the resulting shared object storage.
+All 94 final source hashes match local reviewed files and both hosts.
+Evidence is in evidence/workspace-git-2026-10-07.
+See docs/WORKSPACE_GIT.md for boundaries, recovery behavior, exact commands, and limitations.
+Locked tests, oracles, native witness sources, and the protobuf contract remain unchanged.
+
+No host configuration or operator session changed.
+Local-model review remains waived under David's hardware-failure instruction.
+Full Spatial-M1, shared-world service attachment, and hardware qualification remain pending.
+Next: implement git.actual_status and external-change observation from real Git output.
+The full project goal remains active.
+
 ## 2026-10-07: P08 workspace contract migration
 
 Migration 0.13.0 assigns Git project context and process execution to workspaces.

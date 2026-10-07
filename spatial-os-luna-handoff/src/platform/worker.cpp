@@ -1,4 +1,5 @@
 #include "platform/worker.hpp"
+#include "platform/broker.hpp"
 #include "core/protocol.hpp"
 #include <array>
 #include <cerrno>
@@ -75,6 +76,9 @@ void nonblocking(int fd) {
 }
 }
 WorldWorker::WorldWorker(const std::filesystem::path& executable, const std::filesystem::path& state) {
+    broker_ = std::make_unique<BrokerProcess>(executable.parent_path() / "workspaced", state / "execution");
+    const auto broker_fd = std::to_string(broker_->channel());
+    const auto broker_pid = std::to_string(broker_->pid());
     int input[2], output[2];
     if (pipe2(input, O_CLOEXEC) != 0) throw std::runtime_error("Cannot create world input pipe");
     if (pipe2(output, O_CLOEXEC) != 0) { close(input[0]); close(input[1]); throw std::runtime_error("Cannot create world output pipe"); }
@@ -84,13 +88,17 @@ WorldWorker::WorldWorker(const std::filesystem::path& executable, const std::fil
         if (prctl(PR_SET_PDEATHSIG, SIGKILL) != 0 || getppid() != parent) _exit(126);
         if (dup2(input[0], STDIN_FILENO) < 0 || dup2(output[1], STDOUT_FILENO) < 0) _exit(126);
         close(input[0]); close(input[1]); close(output[0]); close(output[1]);
+        if (fcntl(broker_->channel(), F_SETFD, 0) < 0) _exit(126);
         const char* display = std::getenv("SPATIAL_TEST_DISPLAY");
         if (display && *display) execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(),
-                                      "--fixture-clock", "--display", display, static_cast<char*>(nullptr));
-        else execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--fixture-clock", static_cast<char*>(nullptr));
+            "--workspace-fd", broker_fd.c_str(), "--workspace-pid", broker_pid.c_str(),
+            "--fixture-clock", "--display", display, static_cast<char*>(nullptr));
+        else execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--fixture-clock",
+            "--workspace-fd", broker_fd.c_str(), "--workspace-pid", broker_pid.c_str(), static_cast<char*>(nullptr));
         _exit(127);
     }
     close(input[0]); close(output[1]);
+    broker_->release_channel();
     if (pid_ < 0) { close(input[1]); close(output[0]); throw std::runtime_error("Cannot fork world authority"); }
     input_ = input[1]; output_ = output[0];
     try {

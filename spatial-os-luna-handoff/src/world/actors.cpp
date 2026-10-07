@@ -1,4 +1,5 @@
 #include "world/actors.hpp"
+#include "platform/broker.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
 #include "core/geometry.hpp"
@@ -60,8 +61,8 @@ wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path) {
     if (result.has_render()) validate_render_config(result.render());
     return result;
 }
-Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces, RenderWorker* renderer)
-    : store_(store), surfaces_(surfaces), renderer_(renderer), config_(config), manual_clock_(manual_clock) {
+Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces, RenderWorker* renderer, BrokerClient* broker)
+    : store_(store), surfaces_(surfaces), renderer_(renderer), broker_(broker), config_(config), manual_clock_(manual_clock) {
     for (const auto& entity : store_.actors()) {
         Actor actor; actor.entity = entity; actors_.emplace(entity.id(), std::move(actor));
     }
@@ -129,9 +130,13 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     if (request.seq() <= actor.sequence) throw WorldError(wire::STALE_SEQUENCE, "Actor sequence already consumed");
     actor.sequence = request.seq();
     switch (request.action_case()) {
-    case wire::ActorActionRequest::kGitWorktreeCreate:
+    case wire::ActorActionRequest::kGitWorktreeCreate: {
         if (!actor.grants.contains("git.write")) throw WorldError(wire::FORBIDDEN, "Git administration grant required");
-        throw WorldError(wire::UNIMPLEMENTED, "Workspace Git broker is not implemented");
+        if (!broker_) throw WorldError(wire::UNIMPLEMENTED, "No workspace broker configured");
+        wire::Request delegated; *delegated.mutable_git_worktree_create() = request.git_worktree_create();
+        const auto result = broker_->call(delegated);
+        wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_worktree() = result.worktree(); return reply;
+    }
     case wire::ActorActionRequest::kProcessLaunch:
         if (!actor.grants.contains("process.launch")) throw WorldError(wire::FORBIDDEN, "Process launch grant required");
         throw WorldError(wire::UNIMPLEMENTED, "Workspace execution broker is not implemented");

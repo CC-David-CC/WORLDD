@@ -4,6 +4,7 @@
 #include "world/actors.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
+#include "platform/broker.hpp"
 #include <unistd.h>
 #include "build_id.hpp"
 
@@ -48,7 +49,7 @@ void error(wire::Reply& reply, wire::ErrorCode code, const char* message) {
 }
 }
 
-wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces) {
+wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker) {
     wire::Reply reply;
     reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     try {
@@ -68,6 +69,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             hello->add_capabilities("geometry.ray-panel");
             hello->add_capabilities("motion.body-twist");
             if (world) hello->add_capabilities("world.durable/v1");
+            if (broker) hello->add_capabilities("workspace.git-create/v1");
             if (renderer) hello->add_capabilities("render.opengl/v1");
             if (actors) {
                 hello->add_capabilities("actor.motion/v1");
@@ -108,6 +110,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
             reply.mutable_identities()->set_worldd_pid(getpid());
             reply.mutable_identities()->set_world_id(world->info().world_id());
+            if (broker) reply.mutable_identities()->set_workspaced_pid(broker->pid());
             if (renderer) {
                 reply.mutable_identities()->set_spatialwm_pid(renderer->pid());
                 reply.mutable_identities()->set_display(renderer->display());
@@ -217,9 +220,11 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             break;
         case wire::Request::kGitRepoImport:
         case wire::Request::kGitWorktreeCreate:
+        case wire::Request::kGitOperation:
+            if (!broker) throw WorldError(wire::UNIMPLEMENTED, "No workspace broker configured");
+            reply = broker->call(request); reply.set_request_id(request.request_id()); break;
         case wire::Request::kGitStatus:
         case wire::Request::kGitWorktreeRemove:
-        case wire::Request::kGitOperation:
         case wire::Request::kWorkspaceCreate:
         case wire::Request::kWorkspaceGet:
         case wire::Request::kWorkspaceMemberSet:
@@ -237,14 +242,14 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
     return reply;
 }
 
-wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces) {
+wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker) {
     wire::Request request;
     if (frame.size() <= max_frame_bytes) {
         google::protobuf::io::ArrayInputStream array(frame.data(), static_cast<int>(frame.size()));
         google::protobuf::io::CodedInputStream input(&array);
         input.SetTotalBytesLimit(static_cast<int>(max_frame_bytes));
         input.SetRecursionLimit(64);
-        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world, actors, renderer, surfaces);
+        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world, actors, renderer, surfaces, broker);
     }
     wire::Reply reply;
     reply.set_protocol_version(1);

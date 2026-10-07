@@ -1,7 +1,9 @@
 #pragma once
 #include <filesystem>
+#include <memory>
 
 namespace spatial {
+class BrokerProcess;
 // Owns exactly one subprocess, with inherited process-group membership.
 class WorldWorker {
 public:
@@ -11,6 +13,7 @@ public:
     WorldWorker& operator=(const WorldWorker&) = delete;
     void proxy();
 private:
+    std::unique_ptr<BrokerProcess> broker_;
     int pid_ = -1;
     int pidfd_ = -1;
     int input_ = -1;

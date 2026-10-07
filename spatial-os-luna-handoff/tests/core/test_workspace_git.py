@@ -1,0 +1,263 @@
+"""Independent Git, process, and storage witnesses for the production broker."""
+import os
+from pathlib import Path
+import select
+import signal
+import sqlite3
+import subprocess
+import sys
+import tempfile
+import time
+import unittest
+from unittest.mock import patch
+
+from harness.git_fixture import GitRepo
+from harness.rpc import Client, RpcError
+from harness.wire import make_request
+
+HOST, BROKER, JOB_PROBE = sys.argv[1:4]
+sys.argv[1:4] = []
+
+
+class WorkspaceGitTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.state = self.root / 'runtime'
+        self.repo = GitRepo(self.root)
+        self.client = None
+        self.start()
+
+    def start(self):
+        self.client = Client([HOST], self.state, self.root / 'logs', timeout=5)
+        self.addCleanup(self.client.stop)
+        self.client.call('system.hello')
+
+    def call(self, method, **args):
+        return self.client.call(method, args)
+
+    def error(self, code, method, **args):
+        with self.assertRaises(RpcError) as caught:
+            self.call(method, **args)
+        self.assertEqual(caught.exception.code, code)
+
+    def imported(self, ident='repo'):
+        return self.call('git.repo.import', id=ident, path=str(self.repo.path))
+
+    def create(self, **extra):
+        args = dict(repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        args.update(extra)
+        return self.call('git.worktree.create', **args)
+
+    def registry(self):
+        return sqlite3.connect(self.state / 'execution/execution.db')
+
+    def deny_ready(self):
+        with self.registry() as db:
+            db.execute("CREATE TRIGGER deny_ready BEFORE UPDATE ON operations WHEN NEW.state='ready' BEGIN SELECT RAISE(FAIL,'witness write failure'); END")
+
+    def allow_ready(self):
+        with self.registry() as db:
+            db.execute('DROP TRIGGER deny_ready')
+
+    def test_broker_is_a_separate_supervised_executable_and_database_owner(self):
+        identities = self.call('runtime.identities')
+        broker = identities['workspaced_pid']
+        self.assertNotIn(broker, [identities['worldd_pid'], self.client.proc.pid])
+        self.assertEqual(Path(f'/proc/{broker}/exe').resolve(), Path(BROKER).resolve())
+        self.assertIn(f'PPid:\t{self.client.proc.pid}\n', Path(f'/proc/{broker}/status').read_text())
+        database = (self.state / 'execution/execution.db').resolve()
+        self.assertTrue(any(fd.resolve() == database for fd in Path(f'/proc/{broker}/fd').iterdir()))
+        self.assertFalse(any(fd.resolve() == database for fd in Path(f"/proc/{identities['worldd_pid']}/fd").iterdir()))
+
+    def test_import_is_bare_independent_and_leaves_source_unchanged(self):
+        before = self.repo.run('show-ref')
+        self.repo.write('uncommitted-secret', 'source only')
+        backing = self.imported()
+        self.assertEqual(self.repo.run('rev-parse', '--is-bare-repository', cwd=backing['path']), 'true')
+        commit = self.repo.head()
+        relative = Path('objects') / commit[:2] / commit[2:]
+        original = self.repo.path / '.git' / relative
+        copied = Path(backing['path']) / relative
+        self.assertEqual(original.read_bytes(), copied.read_bytes())
+        self.assertNotEqual((original.stat().st_dev, original.stat().st_ino), (copied.stat().st_dev, copied.stat().st_ino))
+        work = self.create()
+        self.assertFalse(Path(work['path'], 'uncommitted-secret').exists())
+        self.assertEqual(self.repo.run('show-ref'), before)
+        self.assertEqual((self.repo.path / 'uncommitted-secret').read_text(), 'source only')
+        self.assertEqual(self.imported(), backing)
+
+    def test_opaque_ids_never_become_paths(self):
+        ident = '../outside/\nproject'
+        backing = self.imported(ident)
+        work = self.create(repo=ident, id='../workspace/\nname')
+        for value, collection in [(backing, 'repositories'), (work, 'worktrees')]:
+            self.assertEqual(Path(value['path']).parent, self.state / 'execution' / collection)
+        self.assertFalse((self.root / 'outside').exists())
+        self.assertEqual(self.repo.branch(work['path']), 'feature')
+
+    def test_invalid_refs_and_start_do_not_create_effects_or_intents(self):
+        backing = self.imported()
+        before = self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path'])
+        for branch in ['../escape', 'bad..name', 'a.lock', '-option', 'bad\x00value']:
+            self.error('INVALID_ARGUMENT', 'git.worktree.create', repo='repo', id='bad', branch=branch, start='main', operation_id='bad')
+        self.error('INVALID_ARGUMENT', 'git.worktree.create', repo='repo', id='bad', branch='good', start='--help', operation_id='bad')
+        self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']), before)
+        with self.registry() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM operations').fetchone()[0], 0)
+
+    def test_existing_branch_and_active_branch_are_distinct_errors(self):
+        self.imported()
+        self.error('ALREADY_EXISTS', 'git.worktree.create', repo='repo', id='main-work', branch='main', start='main', operation_id='main')
+        work = self.create()
+        self.error('BRANCH_IN_USE', 'git.worktree.create', repo='repo', id='second', branch='feature', start='main', operation_id='second')
+        self.assertEqual(self.repo.branch(work['path']), 'feature')
+
+    def test_retry_survives_restart_without_overwriting_uncommitted_files(self):
+        self.imported(); work = self.create()
+        path = Path(work['path'], 'README.txt'); path.write_text('durable uncommitted edit')
+        self.client.stop(crash=True); self.start()
+        self.assertEqual(self.create(), work)
+        self.assertEqual(path.read_text(), 'durable uncommitted edit')
+        self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'ready')
+        self.error('OPERATION_CONFLICT', 'git.worktree.create', repo='repo', id='other', branch='other', start='main', operation_id='create')
+
+    def test_git_completion_before_failed_registry_ack_is_reconciled(self):
+        backing = self.imported(); self.deny_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        listing = self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path'])
+        self.assertEqual(listing.count('branch refs/heads/feature'), 1)
+        self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'pending')
+        self.allow_ready(); self.client.stop(crash=True); self.start()
+        recovered = self.create()
+        self.assertEqual(self.repo.head(recovered['path']), self.repo.head())
+        self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'ready')
+        self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']).count('branch refs/heads/feature'), 1)
+
+    def test_ambiguous_effect_is_preserved_and_never_replayed(self):
+        backing = self.imported(); self.deny_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        with self.registry() as db:
+            path = Path(db.execute("SELECT path FROM worktrees WHERE id='work'").fetchone()[0])
+        moved = path.with_name(path.name + '-preserved')
+        path.rename(moved)
+        self.allow_ready(); self.client.stop(crash=True); self.start()
+        self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'uncertain')
+        self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        self.assertFalse(path.exists()); self.assertEqual((moved / 'README.txt').read_text(), 'base\n')
+        self.assertEqual(self.repo.run('rev-parse', 'feature', cwd=backing['path']), self.repo.head())
+
+    def test_inherited_git_environment_and_source_hooks_cannot_redirect_execution(self):
+        self.client.stop()
+        trap = self.root / 'trap'; trap.mkdir()
+        hook = self.repo.path / '.git/hooks/post-checkout'
+        hook.write_text('#!/bin/sh\ntouch ' + str(trap / 'executed') + '\n'); hook.chmod(0o700)
+        with patch.dict(os.environ, {'GIT_DIR': str(trap), 'GIT_WORK_TREE': str(trap), 'GIT_CONFIG_COUNT': '1',
+                                    'GIT_CONFIG_KEY_0': 'core.hooksPath', 'GIT_CONFIG_VALUE_0': str(hook.parent)}):
+            self.start()
+        backing = self.imported(); work = self.create()
+        self.assertEqual(self.repo.branch(work['path']), 'feature')
+        self.assertFalse((trap / 'executed').exists())
+        self.assertEqual(list(trap.iterdir()), [])
+        self.assertFalse(Path(backing['path'], 'hooks/post-checkout').exists())
+
+    def test_repository_filters_cannot_execute_as_the_broker(self):
+        backing = self.imported()
+        marker = self.root / 'filter-executed'
+        self.repo.run('config', 'filter.attack.smudge', 'touch ' + str(marker), cwd=backing['path'])
+        self.error('FORBIDDEN', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        self.assertFalse(marker.exists())
+        with self.registry() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM operations').fetchone()[0], 0)
+
+    def test_unwitnessed_checkout_is_not_mistaken_for_a_completed_effect(self):
+        self.imported(); self.deny_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        receipts = list((self.state / 'execution/effects').glob('*.ready'))
+        self.assertEqual(len(receipts), 1)
+        receipts[0].unlink()
+        self.allow_ready(); self.client.stop(crash=True); self.start()
+        self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'uncertain')
+        self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+
+    def test_nonlocal_source_and_alternate_object_authority_are_rejected(self):
+        self.error('INVALID_ARGUMENT', 'git.repo.import', id='url', path='ssh://box-git/unauthorized')
+        alternate = self.repo.path / '.git/objects/info/alternates'
+        alternate.write_text(str(self.root / 'outside') + '\n')
+        self.error('INVALID_ARGUMENT', 'git.repo.import', id='alternate', path=str(self.repo.path))
+        with self.registry() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM repositories').fetchone()[0], 0)
+
+    def test_idle_broker_death_invalidates_runtime_then_recovers_git_state(self):
+        self.imported(); work = self.create()
+        os.kill(self.call('runtime.identities')['workspaced_pid'], signal.SIGKILL)
+        self.assertNotEqual(self.client.proc.wait(timeout=5), 0)
+        self.start(); self.assertEqual(self.create(), work)
+
+    def test_parent_only_death_releases_broker_and_registry_lock(self):
+        self.imported()
+        broker = self.call('runtime.identities')['workspaced_pid']
+        pidfd = os.pidfd_open(broker)
+        try:
+            os.kill(self.client.proc.pid, signal.SIGKILL); self.client.proc.wait(timeout=5)
+            poller = select.poll(); poller.register(pidfd, select.POLLIN)
+            self.assertTrue(poller.poll(4000), 'broker outlived its supervisor')
+        finally:
+            os.close(pidfd)
+        self.start(); self.create()
+
+    def test_duplicate_broker_authority_cannot_open_existing_registry(self):
+        backing = self.imported()
+        other = subprocess.run([BROKER, '--state-dir', str(self.state / 'execution')], input=b'', capture_output=True, timeout=5)
+        self.assertNotEqual(other.returncode, 0)
+        self.assertEqual(other.stdout, b'')
+        self.assertEqual(self.imported(), backing)
+
+    def test_administrative_git_descendants_stop_when_the_owner_dies(self):
+        process = subprocess.Popen([JOB_PROBE, str(self.repo.path)], stdout=subprocess.DEVNULL,
+                                   stderr=subprocess.DEVNULL, start_new_session=True)
+        fds = []
+        try:
+            deadline = time.monotonic() + 5
+            descendants = set()
+            while time.monotonic() < deadline:
+                pending = [process.pid]; descendants = set()
+                while pending:
+                    pid = pending.pop()
+                    try: children = [int(n) for n in Path(f'/proc/{pid}/task/{pid}/children').read_text().split()]
+                    except FileNotFoundError: children = []
+                    for child in children:
+                        if child not in descendants: descendants.add(child); pending.append(child)
+                names = []
+                for pid in descendants:
+                    try: names.append(Path(f'/proc/{pid}/comm').read_text().strip())
+                    except FileNotFoundError: pass
+                if 'sleep' in names: break
+                time.sleep(.01)
+            self.assertGreaterEqual(len(descendants), 4, 'real Git did not create the supervised nested job')
+            fds = [os.pidfd_open(pid) for pid in descendants]
+            os.kill(process.pid, signal.SIGKILL); process.wait(timeout=5)
+            for fd in fds:
+                poller = select.poll(); poller.register(fd, select.POLLIN)
+                self.assertTrue(poller.poll(4000), 'Git descendant outlived its owner')
+        finally:
+            if process.poll() is None: process.kill(); process.wait(timeout=5)
+            for fd in fds:
+                try: signal.pidfd_send_signal(fd, signal.SIGKILL)
+                except ProcessLookupError: pass
+                os.close(fd)
+
+    def test_broker_strict_protocol_does_not_expose_world_actions(self):
+        client = Client([BROKER], self.root / 'independent-execution', self.root / 'direct-logs', timeout=5)
+        self.addCleanup(client.stop)
+        identity = client.call('runtime.identities')
+        self.assertEqual(identity['workspaced_pid'], client.proc.pid)
+        for request, code in [(make_request('world.snapshot', {}), 'UNIMPLEMENTED'), (make_request('system.hello', {}), 'UNSUPPORTED_VERSION')]:
+            if code == 'UNSUPPORTED_VERSION': request.protocol_version = 99
+            with self.assertRaises(RpcError) as caught: client.call_message(request)
+            self.assertEqual(caught.exception.code, code)
+
+
+if __name__ == '__main__':
+    unittest.main()

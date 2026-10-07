@@ -1,6 +1,7 @@
 #include "world/server.hpp"
 #include "core/protocol.hpp"
 #include "platform/render_worker.hpp"
+#include "platform/broker.hpp"
 #include <algorithm>
 #include <array>
 #include <cerrno>
@@ -24,11 +25,14 @@ std::uint32_t length(const std::string& buffer) {
     return (std::uint32_t(h[0]) << 24) | (std::uint32_t(h[1]) << 16) | (std::uint32_t(h[2]) << 8) | h[3];
 }
 }
-void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* surfaces) {
+void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker) {
     nonblocking(STDIN_FILENO); nonblocking(STDOUT_FILENO);
     signal(SIGPIPE, SIG_IGN);
     const auto origin = Clock::now();
     if (renderer) renderer->set_tick([&] { actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); });
+    if (broker) broker->set_tick([&] {
+        actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
+    });
     auto input_started = origin, output_started = origin;
     std::string input, output;
     std::size_t sent = 0;
@@ -37,12 +41,13 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* 
         const auto now = Clock::now();
         actors.tick(std::chrono::duration<double>(now - origin).count());
         if (renderer) renderer->check_alive();
+        if (broker) broker->check_alive();
         actors.flush_input();
         if (output.empty() && input.size() >= 4) {
             const auto size = length(input);
             if (size > max_frame_bytes) throw std::runtime_error("Frame exceeds size limit");
             if (input.size() >= size + 4) {
-                const auto reply = handle_frame(std::string_view(input).substr(4, size), &world, &actors, renderer, surfaces);
+                const auto reply = handle_frame(std::string_view(input).substr(4, size), &world, &actors, renderer, surfaces, broker);
                 input.erase(0, size + 4); input_started = now;
                 const auto payload = reply.SerializeAsString();
                 if (payload.size() > max_frame_bytes) throw std::runtime_error("Reply exceeds size limit");

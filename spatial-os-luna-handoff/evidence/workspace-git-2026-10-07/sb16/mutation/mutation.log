@@ -1,0 +1,13 @@
+F
+======================================================================
+FAIL: test_import_is_bare_independent_and_leaves_source_unchanged (__main__.WorkspaceGitTests.test_import_is_bare_independent_and_leaves_source_unchanged)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-git-mutation-source/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 84, in test_import_is_bare_independent_and_leaves_source_unchanged
+    self.assertNotEqual((original.stat().st_dev, original.stat().st_ino), (copied.stat().st_dev, copied.stat().st_ino))
+AssertionError: (66306, 4325518) == (66306, 4325518)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.253s
+
+FAILED (failures=1)
