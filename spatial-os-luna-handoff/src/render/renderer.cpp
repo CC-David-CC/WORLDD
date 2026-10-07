@@ -1,6 +1,8 @@
 #include "render/renderer.hpp"
 #include "core/scene.hpp"
 #include "x11/surfaces.hpp"
+#include "x11/input_router.hpp"
+#include "world/store.hpp"
 #include <GL/glew.h>
 #include <GL/glx.h>
 #include <GL/glxext.h>
@@ -60,9 +62,11 @@ struct Renderer::Impl {
     std::uint64_t frame_id = 0;
     std::filesystem::path captures;
     wire::RendererReady info;
+    std::unique_ptr<NativeInput> native_input;
     std::unique_ptr<XSurfaces> surfaces;
+    std::unique_ptr<XInputRouter> input;
     ~Impl() {
-        surfaces.reset();
+        input.reset(); surfaces.reset(); native_input.reset();
         if (context) {
             if (program) glDeleteProgram(program);
             if (vao) glDeleteVertexArrays(1, &vao);
@@ -190,7 +194,11 @@ void main() {
     glEnableVertexAttribArray(0);
     glGenFramebuffers(1, &r.fbo); glGenRenderbuffers(1, &r.color); glGenRenderbuffers(1, &r.depth);
     check_gl();
-    r.surfaces=std::make_unique<XSurfaces>(r.display,r.window,r.overlay);
+    int opcode=0, event=0, error=0;
+    if (XQueryExtension(r.display, "SPATIAL-INPUT", &opcode, &event, &error))
+        r.native_input=std::make_unique<NativeInput>(r.display);
+    r.surfaces=std::make_unique<XSurfaces>(r.display,r.window,r.overlay,r.native_input.get());
+    if (r.native_input) r.input=std::make_unique<XInputRouter>(r.display,*r.native_input,*r.surfaces);
 }
 Renderer::~Renderer() = default;
 wire::RendererReady Renderer::ready() const { return impl_->info; }
@@ -211,7 +219,14 @@ wire::NativeSnapshot Renderer::synchronize() {
     // First barrier covers prior client requests; second covers WM map/configure replies.
     for (int i=0;i<2;++i) { check_x(r.display); events(); }
     r.surfaces->synchronize(); check_x(r.display);
-    return r.surfaces->snapshot();
+    auto result = r.surfaces->snapshot();
+    if (r.input) r.input->snapshot(result);
+    return result;
+}
+wire::NativeActorInput Renderer::input(const wire::RendererInputCommand& command) {
+    if (!impl_->input) throw WorldError(wire::UNIMPLEMENTED, "Native actor input requires the project XLibre server");
+    synchronize();
+    return impl_->input->execute(command);
 }
 wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
     validate_render_extent(command.width(), command.height());

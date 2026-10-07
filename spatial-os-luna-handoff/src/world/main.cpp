@@ -25,10 +25,10 @@ int main(int argc, char** argv) {
         umask(0077);
         spatial::WorldStore world(state);
         spatial::Surfaces surfaces(world);
-        spatial::Actors actors(world, settings, fixture_clock, &surfaces);
         std::unique_ptr<spatial::RenderWorker> renderer;
         if (!display.empty()) renderer = std::make_unique<spatial::RenderWorker>(
             std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display);
+        spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get());
         spatial::serve(world, actors, renderer.get(), &surfaces);
         return 0;
     } catch (const std::exception& error) {

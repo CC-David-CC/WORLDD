@@ -99,11 +99,11 @@ Retained failure reports include the corresponding source versions.
 An additional experiment confirmed XKB's dependency on the standard companion virtual devices.
 The final implementation preserves that native device structure.
 
-## Next integration
+## Actor integration status
 
-Add typed pointer, key, scroll, and unfocus actions to the public actor protocol.
-Route them through worldd authorization and the compositor's production bridge.
-Connect server generations to compositor surface handles.
-Maintain application-group control leases and balanced revocation.
-Run the focused P06 assertions, then the complete cumulative gate.
-Run sanitizer and physical-device qualification before the corresponding completion claims.
+worldd now routes typed pointer, key, scroll, and unfocus actions through the production compositor.
+Server generations are connected to compositor surface handles.
+The initial surface-group leases and balanced cancellation pass the P06 baseline gate on both hosts.
+See ACTOR_INPUT.md for the integration, sanitizer evidence, and explicit remaining limits.
+Captured pointer motion remains pending.
+Full broker-owned application-group authority and physical-device qualification remain mandatory.

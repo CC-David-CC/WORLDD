@@ -1,4 +1,5 @@
 #include "render/renderer.hpp"
+#include "world/store.hpp"
 #include <cerrno>
 #include <iostream>
 #include <poll.h>
@@ -34,13 +35,21 @@ int main(int argc, char** argv) {
                 spatial::wire::RenderCommand command;
                 if (!command.ParseFromString(bytes) || command.protocol_version() != 1) throw std::invalid_argument("Invalid render command");
                 spatial::validate_message(command);
-                if (command.request_id() <= sequence || command.has_scene()==command.has_sync())
+                if (command.request_id() <= sequence || (int(command.has_scene()) + int(command.has_sync()) + int(command.has_input())) != 1)
                     throw std::invalid_argument("Invalid compositor command sequence or operation");
                 sequence=command.request_id();
                 spatial::wire::RenderResult reply;
                 reply.set_protocol_version(1); reply.set_request_id(command.request_id());
-                if (command.has_sync()) *reply.mutable_snapshot() = renderer.synchronize();
-                else *reply.mutable_frame() = renderer.draw(command);
+                try {
+                    if (command.has_sync()) *reply.mutable_snapshot() = renderer.synchronize();
+                    else if (command.has_input()) *reply.mutable_input() = renderer.input(command.input());
+                    else *reply.mutable_frame() = renderer.draw(command);
+                } catch (const spatial::WorldError& error) {
+                    reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
+                } catch (const std::invalid_argument& error) {
+                    reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
+                    reply.mutable_error()->set_message(error.what());
+                }
                 spatial::write_frame(std::cout, reply);
             }
         }

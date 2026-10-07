@@ -12,6 +12,7 @@ public:
     int connection() const;
     void events();
     wire::NativeSnapshot synchronize();
+    wire::NativeActorInput input(const wire::RendererInputCommand& command);
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

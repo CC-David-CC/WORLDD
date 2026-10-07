@@ -1,0 +1,7 @@
+test_click_reaches_real_client_at_expected_pixel (tests.acceptance.test_06_input.InputTests.test_click_reaches_real_client_at_expected_pixel) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.148s
+
+OK
+DIAGNOSTIC P06: PASSED (1/1 executed); report=local/p06-actor-first/click.json

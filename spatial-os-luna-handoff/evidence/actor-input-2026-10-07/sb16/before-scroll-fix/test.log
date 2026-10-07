@@ -1,0 +1,24 @@
+test_actor_close_reclaims_native_devices_and_revokes_old_tokens (__main__.ActorInputTests.test_actor_close_reclaims_native_devices_and_revokes_old_tokens) ... ok
+test_changed_placement_or_occluder_invalidates_saved_aim (__main__.ActorInputTests.test_changed_placement_or_occluder_invalidates_saved_aim) ... ok
+test_denied_input_precedes_target_and_consumes_sequence (__main__.ActorInputTests.test_denied_input_precedes_target_and_consumes_sequence) ... ok
+test_focus_transfer_releases_old_modifier_before_new_client_input (__main__.ActorInputTests.test_focus_transfer_releases_old_modifier_before_new_client_input) ... ok
+test_missing_fields_and_unknown_keys_leave_native_state_unchanged (__main__.ActorInputTests.test_missing_fields_and_unknown_keys_leave_native_state_unchanged) ... ok
+test_scroll_cannot_retarget_a_held_drag (__main__.ActorInputTests.test_scroll_cannot_retarget_a_held_drag) ... FAIL
+test_transient_and_parent_share_interim_control_lease (__main__.ActorInputTests.test_transient_and_parent_share_interim_control_lease) ... ok
+test_unfocus_does_not_release_other_actors_modifiers_or_lease (__main__.ActorInputTests.test_unfocus_does_not_release_other_actors_modifiers_or_lease) ... ok
+test_unmap_cancels_native_held_state_and_invalidates_aim (__main__.ActorInputTests.test_unmap_cancels_native_held_state_and_invalidates_aim) ... ok
+
+======================================================================
+FAIL: test_scroll_cannot_retarget_a_held_drag (__main__.ActorInputTests.test_scroll_cannot_retarget_a_held_drag)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_input.py", line 217, in test_scroll_cannot_retarget_a_held_drag
+    self.error('BUSY', self.act, actor, 'scroll', steps_y=1)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_input.py", line 69, in error
+    with self.assertRaises(RpcError) as caught:
+AssertionError: RpcError not raised
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.604s
+
+FAILED (failures=1)

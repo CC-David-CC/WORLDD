@@ -1,9 +1,11 @@
 #include "world/actors.hpp"
 #include "world/surfaces.hpp"
+#include "platform/render_worker.hpp"
 #include "core/geometry.hpp"
 #include "core/scene.hpp"
 #include <google/protobuf/text_format.h>
 #include <sys/random.h>
+#include <algorithm>
 #include <cerrno>
 #include <cmath>
 #include <fstream>
@@ -53,8 +55,8 @@ wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path) {
     if (result.has_render()) validate_render_config(result.render());
     return result;
 }
-Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces)
-    : store_(store), surfaces_(surfaces), config_(config), manual_clock_(manual_clock) {
+Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces, RenderWorker* renderer)
+    : store_(store), surfaces_(surfaces), renderer_(renderer), config_(config), manual_clock_(manual_clock) {
     for (const auto& entity : store_.actors()) {
         Actor actor; actor.entity = entity; actors_.emplace(entity.id(), std::move(actor));
     }
@@ -96,13 +98,20 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request) {
 }
 wire::ActorStateReply Actors::inspect(const std::string& token) {
     const auto& actor = authenticated(token);
+    refresh_native();
     wire::ActorStateReply result; result.set_id(actor.entity.id()); result.set_room(actor.entity.room());
     *result.mutable_pose() = actor.entity.pose();
     for (const auto axis : actor.axes) result.add_axes(axis);
+    *result.mutable_held_keys() = actor.native.held_keys();
+    *result.mutable_held_buttons() = actor.native.held_buttons();
+    if (actor.native.has_focus()) {
+        result.set_focus(actor.native.focus().id()); result.set_focus_generation(actor.native.focus().generation());
+    }
     return result;
 }
 wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
+    release_input(actor, true);
     actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.token.clear();
     actor.aim.Clear();
     sessions_.erase(token);
@@ -128,12 +137,21 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         break;
     }
     case wire::ActorActionRequest::kStop:
-        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); break;
+        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); release_input(actor); break;
+    case wire::ActorActionRequest::kUnfocus:
+        release_input(actor); break;
+    case wire::ActorActionRequest::kPointer:
+    case wire::ActorActionRequest::kKey:
+    case wire::ActorActionRequest::kScroll:
+        if (!actor.grants.contains("interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
+        route_input(actor, request); break;
     case wire::ActorActionRequest::kAim: {
         if (!actor.grants.contains("navigate") && !actor.grants.contains("interact"))
             throw WorldError(wire::FORBIDDEN, "Navigation or interaction grant required");
         require(request.aim().has_direction(), "Missing aim direction");
+        refresh_native();
         actor.aim = pick_scene(scene(request.token()), request.aim().direction());
+        actor.direction = request.aim().direction();
         wire::ActorActionReply result; result.set_accepted(true); *result.mutable_aim() = actor.aim;
         return result;
     }
@@ -141,6 +159,107 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         throw WorldError(wire::UNKNOWN_METHOD, "No recognized actor action");
     }
     wire::ActorActionReply result; result.set_accepted(true); return result;
+}
+void Actors::release_input(Actor& actor, bool close) {
+    if (renderer_ && !actor.native.actor_id().empty()) {
+        wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
+        if (close) command.mutable_close(); else command.mutable_cancel();
+        actor.native = renderer_->input(command);
+        if (close) actor.native.Clear();
+    }
+    if (!actor.lease.empty()) leases_.erase(actor.lease);
+    actor.lease.clear(); actor.capture.Clear();
+}
+std::string Actors::control_group(const wire::SurfaceRecord& surface) const {
+    // Temporary native surface grouping. Broker application identities supersede
+    // WM_TRANSIENT_FOR in the mandatory application-authority milestone.
+    auto current = surface;
+    std::set<std::string> visited;
+    while (current.has_parent_id()) {
+        if (!visited.insert(current.id()).second || visited.size() > 32)
+            throw WorldError(wire::STALE_TARGET, "Invalid native surface group");
+        current = surfaces_->get(current.parent_id());
+    }
+    return current.id();
+}
+void Actors::refresh_native() {
+    if (!renderer_ || !surfaces_) return;
+    const auto snapshot = renderer_->synchronize();
+    surfaces_->refresh(snapshot);
+    for (const auto& state : snapshot.actors()) {
+        const auto found = actors_.find(state.actor_id());
+        if (found == actors_.end()) throw std::runtime_error("Compositor returned an unknown actor");
+        auto& actor = found->second; actor.native = state;
+        bool valid = state.has_focus();
+        if (valid) {
+            try {
+                const auto current = surfaces_->get(state.focus().id());
+                valid = current.generation() == state.focus().generation() && current.mapped() &&
+                    current.room() == actor.entity.room() && control_group(current) == actor.lease;
+            } catch (const WorldError& error) {
+                if (error.code != wire::NOT_FOUND && error.code != wire::STALE_TARGET) throw;
+                valid = false;
+            }
+        }
+        if (!valid && (!actor.lease.empty() || state.has_focus() || state.held_keys_size() || state.held_buttons_size()))
+            release_input(actor);
+        if (!actor.native.held_buttons_size()) actor.capture.Clear();
+    }
+}
+wire::AimHit Actors::input_target(Actor& actor, bool captured) {
+    if (captured && actor.native.held_buttons_size()) return actor.capture;
+    if (!actor.aim.has_hit() || !actor.aim.hit().has_pixel()) throw WorldError(wire::NO_TARGET, "No aimed application surface");
+    const auto& hit = actor.aim.hit();
+    try {
+        const auto surface = surfaces_->get(hit.id());
+        if (surface.generation() != hit.generation() || !surface.mapped() || surface.room() != actor.entity.room())
+            throw WorldError(wire::STALE_TARGET, "Aimed surface changed");
+    } catch (const WorldError& error) {
+        if (error.code == wire::NOT_FOUND) throw WorldError(wire::STALE_TARGET, "Aimed surface was removed");
+        throw;
+    }
+    const auto current = pick_scene(scene(actor.token), actor.direction);
+    if (!current.has_hit() || current.hit().id() != hit.id() || !current.hit().has_pixel() ||
+        current.hit().generation() != hit.generation() || current.hit().pixel().x() != hit.pixel().x() ||
+        current.hit().pixel().y() != hit.pixel().y()) throw WorldError(wire::STALE_TARGET, "Aimed geometry or visibility changed");
+    return hit;
+}
+void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) {
+    if (!renderer_ || !surfaces_) throw WorldError(wire::UNIMPLEMENTED, "Native actor input is unavailable");
+    if (request.has_pointer()) require(request.pointer().has_button() && request.pointer().has_pressed() &&
+        request.pointer().button() >= 1 && request.pointer().button() <= 3, "Expected button 1, 2, or 3 and pressed state");
+    if (request.has_key()) require(request.key().has_keysym() && request.key().has_pressed() &&
+        !request.key().keysym().empty() && request.key().keysym().size() <= 128 &&
+        request.key().keysym().find('\0') == std::string::npos, "Expected keysym and pressed state");
+    if (request.has_scroll()) require(request.scroll().has_steps_y() && request.scroll().steps_y() >= -64 &&
+        request.scroll().steps_y() <= 64, "Expected scroll steps within [-64,64]");
+    refresh_native();
+    wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
+    if (request.has_key()) {
+        if (!actor.native.has_focus()) throw WorldError(wire::NO_FOCUS, "Actor has no focus");
+        *command.mutable_key() = request.key(); actor.native = renderer_->input(command); return;
+    }
+    const auto hit = input_target(actor, !request.has_scroll());
+    if (request.has_scroll() && actor.native.held_buttons_size() && hit.id() != actor.capture.id())
+        throw WorldError(wire::BUSY, "Scroll cannot change the captured pointer target");
+    const auto surface = surfaces_->get(hit.id());
+    const auto group = control_group(surface);
+    const auto holder = leases_.find(group);
+    if (holder != leases_.end() && holder->second != actor.entity.id())
+        throw WorldError(wire::BUSY, "Application surface group has another controller");
+    if (request.has_pointer()) {
+        const bool held = std::find(actor.native.held_buttons().begin(), actor.native.held_buttons().end(),
+            request.pointer().button()) != actor.native.held_buttons().end();
+        require(held != request.pointer().pressed(), "Pointer transition does not match held state");
+        *command.mutable_pointer() = request.pointer();
+    } else *command.mutable_scroll() = request.scroll();
+    if (request.has_scroll() && request.scroll().steps_y() == 0) return;
+    if (actor.native.has_focus() && actor.native.focus().id() != hit.id()) release_input(actor);
+    command.mutable_target()->set_id(hit.id()); command.mutable_target()->set_generation(hit.generation());
+    *command.mutable_pixel() = hit.pixel();
+    actor.native = renderer_->input(command);
+    if (actor.native.has_focus()) { actor.lease = group; leases_[group] = actor.entity.id(); }
+    if (actor.native.held_buttons_size()) actor.capture = hit; else actor.capture.Clear();
 }
 wire::RenderScene Actors::scene(const std::string& token) {
     const auto& actor = authenticated(token);

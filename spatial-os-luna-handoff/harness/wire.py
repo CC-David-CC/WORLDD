@@ -177,16 +177,28 @@ def make_request(method, params):
             body.input.SetInParent()
             if 'axes' in args:
                 body.input.axes.extend(numbers(args['axes'], len(args['axes'])))
-        elif params.get('op') == 'stop':
-            if args:
-                raise ValueError('Unknown stop fields')
-            body.stop.SetInParent()
+        elif params.get('op') in ('stop', 'unfocus'):
+            if not isinstance(args, dict) or args:
+                raise ValueError('Unknown cancellation fields')
+            getattr(body, params['op']).SetInParent()
         elif params.get('op') == 'aim':
             if not isinstance(args, dict) or set(args) - {'direction'}:
                 raise ValueError('Unknown aim fields')
             body.aim.SetInParent()
             if 'direction' in args:
                 body.aim.direction.CopyFrom(vec3(args['direction']))
+        elif params.get('op') in ('pointer', 'key', 'scroll'):
+            fields = {'pointer': {'button': int, 'pressed': bool},
+                      'key': {'keysym': str, 'pressed': bool},
+                      'scroll': {'steps_y': int}}[params['op']]
+            if not isinstance(args, dict) or set(args) - set(fields):
+                raise ValueError('Unknown actor input fields')
+            operation = getattr(body, params['op'])
+            operation.SetInParent()
+            for name, value in args.items():
+                if type(value) is not fields[name]:
+                    raise ValueError('Invalid actor input field type')
+                setattr(operation, name, value)
         return request
     schemas = {
         'system.hello': ('hello', {}),
@@ -288,7 +300,7 @@ def result_value(reply):
         value = reply.actor_state
         return {'id': value.id, 'room': value.room, 'pose': pose_value(value.pose),
                 'axes': list(value.axes), 'held_keys': list(value.held_keys), 'held_buttons': list(value.held_buttons),
-                'focus': value.focus if value.HasField('focus') else None}
+                'focus': {'id': value.focus, 'generation': value.focus_generation} if value.HasField('focus') else None}
     if kind == 'actor_closed':
         return {'closed': reply.actor_closed.closed}
     if kind == 'actor_action':

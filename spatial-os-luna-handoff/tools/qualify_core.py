@@ -17,12 +17,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--through', choices=['P00', 'P01', 'P02', 'P03', 'P04', 'P05'], required=True)
+    parser.add_argument('--through', choices=['P00', 'P01', 'P02', 'P03', 'P04', 'P05', 'P06'], required=True)
     parser.add_argument('--build-dir', default='build')
     parser.add_argument('--evidence-dir', required=True)
     parser.add_argument('--sanitize', action='store_true')
     parser.add_argument('--xserver', help='Explicit project-built Xvfb binary for graphics tests')
     args = parser.parse_args()
+    if args.through >= 'P06' and not args.xserver:
+        parser.error('P06 requires the explicitly selected project XLibre server')
     host = socket.gethostname().split('.')[0]
     if host not in ('sb16', 'sb16-2'):
         parser.error('Linux builds and tests are restricted to sb16 and sb16-2')
@@ -45,7 +47,8 @@ def main():
     env['PYTHONPATH'] = os.pathsep.join([str(build / 'python'), str(ROOT), env.get('PYTHONPATH', '')])
     commands = [
         ('configure', ['cmake', '-S', '.', '-B', str(build), '-G', 'Ninja',
-                       '-DCMAKE_BUILD_TYPE=Debug', f'-DSPATIAL_SANITIZERS={"ON" if args.sanitize else "OFF"}']),
+                       '-DCMAKE_BUILD_TYPE=Debug', f'-DSPATIAL_SANITIZERS={"ON" if args.sanitize else "OFF"}',
+                       f'-DSPATIAL_INPUT_TESTS={"ON" if args.through >= "P06" else "OFF"}']),
         ('build', ['cmake', '--build', str(build), '--parallel', '2']),
         ('harness', [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests/harness', '-t', '.', '-v']),
         ('core', ['ctest', '--test-dir', str(build), '--output-on-failure', '-V']),

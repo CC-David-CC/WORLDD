@@ -151,7 +151,6 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             *reply.mutable_actor_closed() = actors->close(request.actor_close().token()); break;
         case wire::Request::kActorAct:
             if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
-            if (renderer && surfaces && request.actor_act().has_aim()) surfaces->refresh(renderer->synchronize());
             *reply.mutable_actor_action() = actors->act(request.actor_act()); break;
         case wire::Request::kWorldCheckpoint:
             if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");

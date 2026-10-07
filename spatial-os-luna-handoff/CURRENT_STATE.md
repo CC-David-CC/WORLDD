@@ -1,5 +1,42 @@
 # Implementation status
 
+## 2026-10-07: production actor input integration
+
+worldd now routes typed pointer, keyboard, scroll, and cancellation actions through spatialwm to XLibre.
+Actor sessions use distinct native input device pairs.
+worldd checks grants, sequences, saved aim, current geometry, and surface generations.
+Control transfer and cancellation release held native input.
+Parent and transient surfaces share an interim control lease.
+
+Both sb16 and sb16-2 passed the Debug and AddressSanitizer/UndefinedBehaviorSanitizer runs:
+
+- All 98 cumulative P00 through P06 acceptance tests.
+- All 65 core counterexamples, including nine new actor-input checks.
+- All 39 harness self-tests.
+
+Forty actor reconnects reclaimed their native devices and rejected revoked session tokens.
+Independent native clients witnessed modifier release, focus transfer, cancellation, and actor isolation.
+A new scroll-during-drag counterexample initially failed.
+The corrected handler rejects a conflicting scroll without changing either application's input.
+
+Retained evidence is in evidence/actor-input-2026-10-07.
+The reports identify source hashes, commands, server binary hashes, and build identities.
+See docs/ACTOR_INPUT.md for the explicit protobuf migration and limits.
+All locked acceptance assertions and native witness sources remain unchanged.
+
+Legacy coverage is 98 passed, zero current failures, and 43 unrun.
+These tests use authenticated disposable Xvfb displays and software rendering.
+The sanitizer runs cover the runtime and compositor, not the XLibre server binary.
+
+P06 remains incomplete despite the passing baseline gate.
+Captured pointer motion must follow the original surface when aim moves beyond its bounds.
+Current input preserves drag release but does not implement that motion.
+Full application-group authority must later use broker application identities.
+The interim transient relationship is not an authorization boundary.
+Native device trials, GPU qualification, and the remaining Spatial-M1 milestones remain pending.
+The full project goal remains active.
+
+
 ## 2026-10-07: native input server component
 
 XLibre now supplies compositor-owned actor device pairs and surface-local input routing.

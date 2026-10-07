@@ -1,5 +1,6 @@
 #include "platform/render_worker.hpp"
 #include "core/scene.hpp"
+#include "world/store.hpp"
 #include <array>
 #include <cerrno>
 #include <chrono>
@@ -114,6 +115,13 @@ wire::NativeSnapshot RenderWorker::synchronize() {
     if (!reply.has_snapshot()) throw std::runtime_error("Missing native surface snapshot");
     return reply.snapshot();
 }
+wire::NativeActorInput RenderWorker::input(const wire::RendererInputCommand& input) {
+    wire::RenderCommand command; *command.mutable_input() = input;
+    const auto reply = exchange(command);
+    if (!reply.has_input() || reply.input().actor_id() != input.actor_id())
+        throw std::runtime_error("Invalid compositor actor input reply");
+    return reply.input();
+}
 wire::RenderResult RenderWorker::exchange(wire::RenderCommand command) {
     command.set_protocol_version(1); command.set_request_id(sequence_ + 1);
     const auto payload = command.SerializeAsString();
@@ -134,6 +142,7 @@ wire::RenderResult RenderWorker::exchange(wire::RenderCommand command) {
     }
     const auto reply = receive();
     if (reply.request_id() != sequence_) throw std::runtime_error("Compositor response identity mismatch");
+    if (reply.has_error()) throw WorldError(reply.error().code(), reply.error().message().c_str());
     return reply;
 }
 }

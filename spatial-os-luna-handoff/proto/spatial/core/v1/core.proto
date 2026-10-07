@@ -75,9 +75,28 @@ message SurfaceRecord {
 message NativeSurface {
   SurfaceHandle handle = 1; uint64 xid = 2; PixelExtent pixels = 3; bool mapped = 4;
   string probe_id = 5; uint64 parent_xid = 6; sint32 root_x = 7; sint32 root_y = 8;
+  uint64 server_generation = 9;
 }
 message ResourceStats { uint64 retired_pixmaps_pending = 1; uint64 invalid_texture_bindings = 2; uint64 live_pixmaps = 3; }
-message NativeSnapshot { repeated NativeSurface surfaces = 1; ResourceStats resources = 2; }
+message NativeSnapshot { repeated NativeSurface surfaces = 1; ResourceStats resources = 2; repeated NativeActorInput actors = 3; }
+message NativeActorInput {
+  string actor_id = 1;
+  repeated string held_keys = 2;
+  repeated uint32 held_buttons = 3;
+  SurfaceHandle focus = 4;
+}
+message RendererInputCommand {
+  string actor_id = 1;
+  SurfaceHandle target = 2;
+  Pixel pixel = 3;
+  oneof operation {
+    ActorPointerRequest pointer = 10;
+    ActorKeyRequest key = 11;
+    ActorScrollRequest scroll = 12;
+    ActorStopRequest cancel = 13;
+    ActorStopRequest close = 14;
+  }
+}
 message PlacedSurface { SurfaceHandle handle = 1; Entity panel = 2; PixelExtent pixels = 3; }
 message SurfaceFindRequest { string probe_id = 1; }
 message SurfaceIdRequest { string id = 1; }
@@ -97,12 +116,13 @@ message RenderCommand {
   uint32 height = 5;
   bool capture = 6;
   RendererSyncRequest sync = 7;
+  RendererInputCommand input = 8;
 }
 message RendererReady { string gl_version = 1; string gl_renderer = 2; }
 message RenderResult {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
-  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; NativeSnapshot snapshot = 6; }
+  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; NativeSnapshot snapshot = 6; NativeActorInput input = 7; }
 }
 message ActorAimRequest { Vec3 direction = 1; }
 message AimHit { string id = 1; uint64 generation = 2; Vec2 uv = 3; Pixel pixel = 4; double distance = 5; }
@@ -111,10 +131,17 @@ message ActorOpenRequest { string id = 1; optional string room = 2; Pose pose = 
 message ActorTokenRequest { string token = 1; }
 message ActorInputRequest { repeated double axes = 1; }
 message ActorStopRequest {}
+message ActorPointerRequest { optional uint32 button = 1; optional bool pressed = 2; }
+message ActorKeyRequest { optional string keysym = 1; optional bool pressed = 2; }
+message ActorScrollRequest { optional sint32 steps_y = 1; }
 message ActorActionRequest {
   string token = 1;
   optional uint64 seq = 2;
-  oneof action { ActorInputRequest input = 10; ActorStopRequest stop = 11; ActorAimRequest aim = 12; }
+  oneof action {
+    ActorInputRequest input = 10; ActorStopRequest stop = 11; ActorAimRequest aim = 12;
+    ActorPointerRequest pointer = 13; ActorKeyRequest key = 14;
+    ActorScrollRequest scroll = 15; ActorStopRequest unfocus = 16;
+  }
 }
 message WorldCheckpointRequest {}
 message ClockAdvanceRequest { optional double seconds = 1; }
@@ -185,6 +212,10 @@ enum ErrorCode {
   UNAUTHORIZED = 12;
   FORBIDDEN = 13;
   STALE_SEQUENCE = 14;
+  NO_TARGET = 15;
+  STALE_TARGET = 16;
+  NO_FOCUS = 17;
+  BUSY = 18;
 }
 message Error { ErrorCode code = 1; string message = 2; }
 message HelloReply {
@@ -218,6 +249,7 @@ message ActorStateReply {
   repeated string held_keys = 5;
   repeated uint32 held_buttons = 6;
   optional string focus = 7;
+  uint64 focus_generation = 8;
 }
 message ActorActionReply { bool accepted = 1; AimReply aim = 2; }
 message ActorCloseReply { bool closed = 1; }

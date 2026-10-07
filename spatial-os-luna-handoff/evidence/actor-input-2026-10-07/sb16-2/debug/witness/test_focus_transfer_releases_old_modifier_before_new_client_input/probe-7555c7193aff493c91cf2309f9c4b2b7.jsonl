@@ -1,0 +1,9 @@
+{"event":"ready","xid":6291457,"pid":98012,"width":320,"height":240,"xi2":true}
+{"event":"map","xid":6291457}
+{"event":"focus","focused":true,"device":9,"xid":6291457}
+{"event":"button","pressed":true,"button":1,"x":160,"y":120,"device":8,"xid":6291457}
+{"event":"button","pressed":false,"button":1,"x":160,"y":120,"device":8,"xid":6291457}
+{"event":"key","pressed":true,"keycode":37,"keysym":65507,"device":9,"xid":6291457,"text_hex":""}
+{"event":"key","pressed":false,"keycode":37,"keysym":65507,"device":9,"xid":6291457,"text_hex":""}
+{"event":"focus","focused":false,"device":9,"xid":6291457}
+{"event":"ack","seq":1}

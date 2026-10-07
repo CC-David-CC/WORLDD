@@ -1,4 +1,5 @@
 #include "x11/surfaces.hpp"
+#include "x11/input.hpp"
 #include <GL/glx.h>
 #include <GL/glxext.h>
 #include <X11/Xatom.h>
@@ -59,6 +60,7 @@ struct XSurfaces::Impl {
         int depth=0;
     };
     Display* display;
+    NativeInput* input = nullptr;
     Window output, overlay, root;
     int damage_event=0, damage_error=0;
     std::string session=incarnation();
@@ -140,14 +142,25 @@ struct XSurfaces::Impl {
         }
         auto& surface=found->second;
         const bool mapped=attr.map_state==IsViewable;
+        std::uint64_t server_generation=0;
+        if (mapped && input) {
+            native_input::Request request; request.mutable_inspect()->set_xid(xid);
+            const auto reply=input->call(request);
+            if (reply.code()==native_input::STALE_TARGET) { remove(xid); return; }
+            require(reply.code()==native_input::OK && reply.has_target(),"Cannot inspect native input generation");
+            server_generation=reply.target().generation();
+            // Dimensions and input generation must come from the same server reply.
+            attr.width=reply.width(); attr.height=reply.height();
+        }
         const bool changed=replaced || surface.native.mapped()!=mapped || surface.native.pixels().width()!=unsigned(attr.width) ||
-                            surface.native.pixels().height()!=unsigned(attr.height);
+                            surface.native.pixels().height()!=unsigned(attr.height) || surface.native.server_generation()!=server_generation;
         if (changed) {
             retire(surface);
             surface.native.mutable_handle()->set_generation(surface.native.handle().generation()+1);
             surface.native.set_mapped(mapped); surface.dirty=true;
         }
         surface.native.mutable_pixels()->set_width(attr.width); surface.native.mutable_pixels()->set_height(attr.height);
+        surface.native.set_server_generation(server_generation);
         surface.visual=XVisualIDFromVisual(attr.visual); surface.depth=attr.depth;
         {
             Trap trap(display);
@@ -256,8 +269,9 @@ struct XSurfaces::Impl {
         surface.dirty=false;
     }
 };
-XSurfaces::XSurfaces(Display* display,Window output,Window overlay):impl_(std::make_unique<Impl>(display,output,overlay)) {
+XSurfaces::XSurfaces(Display* display,Window output,Window overlay,NativeInput* input):impl_(std::make_unique<Impl>(display,output,overlay)) {
     auto& r=*impl_;
+    r.input=input;
     int event=0,error=0,major=0,minor=0;
     require(XCompositeQueryExtension(display,&event,&error) && XCompositeQueryVersion(display,&major,&minor) &&
             (major>0 || minor>=2),"Composite 0.2 is required");
@@ -339,6 +353,14 @@ std::optional<XSurfaces::Texture> XSurfaces::texture(const wire::SurfaceHandle& 
         (void)xid;
         if (surface.native.handle().id()==handle.id() && surface.native.handle().generation()==handle.generation() &&
             surface.native.mapped() && surface.resource.texture) return Texture{surface.resource.texture,surface.resource.inverted};
+    }
+    return std::nullopt;
+}
+std::optional<wire::NativeSurface> XSurfaces::native(const wire::SurfaceHandle& handle) const {
+    for (const auto& [xid,surface]:impl_->windows) {
+        (void)xid;
+        if (surface.native.handle().id()==handle.id() && surface.native.handle().generation()==handle.generation() &&
+            surface.native.mapped()) return surface.native;
     }
     return std::nullopt;
 }

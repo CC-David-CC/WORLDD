@@ -30,6 +30,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/input_pb2.py"
 add_custom_target(input-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/input_pb2.py")
 
 option(SPATIAL_SANITIZERS "Enable address and undefined-behavior sanitizers" OFF)
+option(SPATIAL_INPUT_TESTS "Require the project XLibre actor-input counterexamples" OFF)
 add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 if(SPATIAL_SANITIZERS)
     add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
@@ -63,8 +64,8 @@ target_link_libraries(spatial-native-input PUBLIC spatial-scene X11::X11)
 add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/actors.cpp src/world/surfaces.cpp src/platform/render_worker.cpp)
 target_include_directories(spatial-core PUBLIC src)
 target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3)
-add_executable(spatialwm src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp)
-target_link_libraries(spatialwm PRIVATE spatial-scene X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
+add_executable(spatialwm src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
+target_link_libraries(spatialwm PRIVATE spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
 add_executable(worldd src/world/main.cpp src/world/server.cpp)
 target_link_libraries(worldd PRIVATE spatial-core)
 add_dependencies(worldd spatialwm)
@@ -79,7 +80,8 @@ if(BUILD_TESTING)
     target_link_libraries(spatial-input-bridge PRIVATE spatial-native-input)
     add_executable(spatial-xprobe native/xprobe.c)
     set_target_properties(spatial-xprobe PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
-    target_link_libraries(spatial-xprobe PRIVATE X11::X11)
+    target_compile_definitions(spatial-xprobe PRIVATE SPATIAL_HAVE_XI2=1)
+    target_link_libraries(spatial-xprobe PRIVATE X11::X11 X11::Xi)
     add_test(NAME render-runtime COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_render.py" $<TARGET_FILE:spatial-test-host>
@@ -92,6 +94,14 @@ if(BUILD_TESTING)
         $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-xprobe>)
     set_tests_properties(surface-runtime PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    if(SPATIAL_INPUT_TESTS)
+        add_test(NAME native-actor-input COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_input.py" $<TARGET_FILE:spatial-test-host>
+            $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-xprobe>)
+        set_tests_properties(native-actor-input PROPERTIES TIMEOUT 90
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    endif()
     add_test(NAME core-protocol COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_protocol.py" $<TARGET_FILE:spatial-test-host>)
     set_tests_properties(core-protocol PROPERTIES TIMEOUT 30

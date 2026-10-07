@@ -8,8 +8,10 @@ class NativeInput {
 public:
     explicit NativeInput(Display* display);
     native_input::Reply exchange(const native_input::Request& request);
+    native_input::Reply call(native_input::Request request);
 private:
     Display* display_;
     int opcode_ = 0;
+    std::uint64_t sequence_ = 0;
 };
 }

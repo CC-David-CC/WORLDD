@@ -16,6 +16,10 @@ NativeInput::NativeInput(Display* display) : display_(display) {
     if (!XQueryExtension(display_, "SPATIAL-INPUT", &opcode_, &event, &error))
         throw std::runtime_error("The X server does not provide SPATIAL-INPUT");
 }
+native_input::Reply NativeInput::call(native_input::Request request) {
+    request.set_protocol_version(1); request.set_request_id(++sequence_);
+    return exchange(request);
+}
 native_input::Reply NativeInput::exchange(const native_input::Request& request) {
     validate_message(request);
     const auto bytes = request.SerializeAsString();

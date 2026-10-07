@@ -6,12 +6,13 @@
 
 namespace spatial {
 class Surfaces;
+class RenderWorker;
 wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path);
 
 // One actor engine serves fixture and monotonic clocks through the same tick.
 class Actors {
 public:
-    Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr);
+    Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr, RenderWorker* renderer = nullptr);
     wire::ActorOpenReply open(const wire::ActorOpenRequest& request);
     wire::ActorStateReply inspect(const std::string& token);
     wire::ActorCloseReply close(const std::string& token);
@@ -31,11 +32,22 @@ private:
         std::uint64_t sequence = 0;
         double expires = 0;
         wire::AimReply aim;
+        wire::Vec3 direction;
+        wire::NativeActorInput native;
+        wire::AimHit capture;
+        std::string lease;
     };
     Actor& authenticated(const std::string& token);
     void step(double target);
+    void refresh_native();
+    void release_input(Actor& actor, bool close = false);
+    wire::AimHit input_target(Actor& actor, bool captured = true);
+    std::string control_group(const wire::SurfaceRecord& surface) const;
+    void route_input(Actor& actor, const wire::ActorActionRequest& request);
     WorldStore& store_;
     Surfaces* surfaces_;
+    RenderWorker* renderer_;
+    std::map<std::string, std::string> leases_;
     wire::RuntimeConfig config_;
     bool manual_clock_;
     double now_ = 0;
