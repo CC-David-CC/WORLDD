@@ -187,10 +187,10 @@ def make_request(method, params):
             body.aim.SetInParent()
             if 'direction' in args:
                 body.aim.direction.CopyFrom(vec3(args['direction']))
-        elif params.get('op') in ('pointer', 'key', 'scroll'):
+        elif params.get('op') in ('pointer', 'key', 'scroll', 'observe'):
             fields = {'pointer': {'button': int, 'pressed': bool},
                       'key': {'keysym': str, 'pressed': bool},
-                      'scroll': {'steps_y': int}}[params['op']]
+                      'scroll': {'steps_y': int}, 'observe': {'width': int, 'height': int}}[params['op']]
             if not isinstance(args, dict) or set(args) - set(fields):
                 raise ValueError('Unknown actor input fields')
             operation = getattr(body, params['op'])
@@ -304,6 +304,17 @@ def result_value(reply):
     if kind == 'actor_closed':
         return {'closed': reply.actor_closed.closed}
     if kind == 'actor_action':
+        if reply.actor_action.HasField('observation'):
+            value = reply.actor_action.observation
+            return {'actor': value.actor, 'room': value.room, 'pose': pose_value(value.pose),
+                    'world_revision': value.world_revision, 'frame_id': value.frame_id,
+                    'viewport': [value.viewport.width, value.viewport.height],
+                    'visible': [{'id': item.id, 'generation': item.generation,
+                                 'kind': pb.EntityKind.Name(item.kind).lower() if item.HasField('kind') else 'surface',
+                                 'pose': pose_value(item.pose), 'size': [item.size.x, item.size.y],
+                                 'pixels': [item.pixels.width, item.pixels.height] if item.HasField('pixels') else None,
+                                 'sample': [item.sample.x, item.sample.y], 'direction': vector_value(item.direction),
+                                 'visible_pixels': item.visible_pixels} for item in value.visible]}
         if reply.actor_action.HasField('aim'):
             if not reply.actor_action.aim.HasField('hit'):
                 return {'hit': None}

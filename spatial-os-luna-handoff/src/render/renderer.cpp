@@ -57,8 +57,17 @@ struct Renderer::Impl {
     Window overlay = 0;
     Colormap colormap = 0;
     GLXContext context = nullptr;
-    GLuint program = 0, vao = 0, vbo = 0, fbo = 0, color = 0, depth = 0;
-    unsigned width = 0, height = 0;
+    GLuint program = 0, vao = 0, vbo = 0;
+    struct Target {
+        GLuint fbo = 0, color = 0, depth = 0, identifiers = 0;
+        unsigned width = 0, height = 0;
+        void release() {
+            if (fbo) glDeleteFramebuffers(1, &fbo);
+            if (color) glDeleteRenderbuffers(1, &color);
+            if (depth) glDeleteRenderbuffers(1, &depth);
+            if (identifiers) glDeleteRenderbuffers(1, &identifiers);
+        }
+    } presented, observed;
     std::uint64_t frame_id = 0;
     std::filesystem::path captures;
     wire::RendererReady info;
@@ -71,9 +80,7 @@ struct Renderer::Impl {
             if (program) glDeleteProgram(program);
             if (vao) glDeleteVertexArrays(1, &vao);
             if (vbo) glDeleteBuffers(1, &vbo);
-            if (fbo) glDeleteFramebuffers(1, &fbo);
-            if (color) glDeleteRenderbuffers(1, &color);
-            if (depth) glDeleteRenderbuffers(1, &depth);
+            presented.release(); observed.release();
             glXMakeCurrent(display, None, nullptr);
             glXDestroyContext(display, context);
         }
@@ -83,10 +90,12 @@ struct Renderer::Impl {
         if (display) XCloseDisplay(display);
     }
     void output() {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+        if (!presented.width) return;
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, presented.fbo);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glDrawBuffer(GL_BACK);
-        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBlitFramebuffer(0, 0, presented.width, presented.height, 0, 0, presented.width, presented.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
         glXSwapBuffers(display, window);
         glFinish(); check_gl(); check_x(display);
     }
@@ -159,7 +168,9 @@ uniform double focal;
 uniform vec3 rgb;
 uniform sampler2D application;
 uniform bool textured, inverted;
-out vec4 pixel;
+uniform uint representation;
+layout(location=0) out vec4 pixel;
+layout(location=1) out uint visible_representation;
 void main() {
     dvec3 ray = dvec3((double(gl_FragCoord.x)*2.0-viewport.x)/(focal*viewport.y),
                      (double(gl_FragCoord.y)*2.0-viewport.y)/(focal*viewport.y), -1.0);
@@ -178,6 +189,7 @@ void main() {
     // Panel UV starts at the top. GLX Y-inverted pixmaps already use top=0.
     if (!inverted) sample_uv.y=1.0-sample_uv.y;
     pixel = textured ? vec4(texture(application,sample_uv).rgb,1.0) : vec4(rgb, 1.0);
+    visible_representation = representation;
 }
 )";
     const auto vs = shader(GL_VERTEX_SHADER, vertex);
@@ -192,7 +204,6 @@ void main() {
     glGenBuffers(1, &r.vbo); glBindBuffer(GL_ARRAY_BUFFER, r.vbo);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
-    glGenFramebuffers(1, &r.fbo); glGenRenderbuffers(1, &r.color); glGenRenderbuffers(1, &r.depth);
     check_gl();
     int opcode=0, event=0, error=0;
     if (XQueryExtension(r.display, "SPATIAL-INPUT", &opcode, &event, &error))
@@ -207,7 +218,7 @@ void Renderer::events() {
     auto& r = *impl_;
     while (XPending(r.display)) {
         XEvent event{}; XNextEvent(r.display, &event);
-        if (event.type == Expose && event.xexpose.window == r.window && r.width && event.xexpose.count == 0) r.output();
+        if (event.type == Expose && event.xexpose.window == r.window && event.xexpose.count == 0) r.output();
         if (r.surfaces) r.surfaces->event(event);
         if (event.type == DestroyNotify && event.xdestroywindow.window == r.window)
             throw std::runtime_error("Compositor output was destroyed");
@@ -229,44 +240,67 @@ wire::NativeActorInput Renderer::input(const wire::RendererInputCommand& command
     return impl_->input->execute(command);
 }
 wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
+    return draw_scene(command, nullptr);
+}
+wire::RenderVisibility Renderer::observe(const wire::RenderCommand& command) {
+    wire::RenderVisibility result;
+    const auto frame = draw_scene(command, &result);
+    result.set_frame_id(frame.frame_id()); result.set_world_revision(frame.world_revision());
+    return result;
+}
+wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::RenderVisibility* visibility) {
     validate_render_extent(command.width(), command.height());
     if (!command.has_scene()) throw std::invalid_argument("Missing render scene");
     const auto panels = scene_panels(command.scene());
     auto& r = *impl_;
     synchronize();
-    if (r.width != command.width() || r.height != command.height()) {
-        r.width = command.width(); r.height = command.height();
-        glBindRenderbuffer(GL_RENDERBUFFER, r.color);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, r.width, r.height);
-        glBindRenderbuffer(GL_RENDERBUFFER, r.depth);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, r.width, r.height);
-        glBindFramebuffer(GL_FRAMEBUFFER, r.fbo);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, r.color);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, r.depth);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) throw std::runtime_error("Incomplete scene framebuffer");
-        XResizeWindow(r.display, r.window, r.width, r.height);
+    auto& target = visibility ? r.observed : r.presented;
+    if (!target.fbo) {
+        glGenFramebuffers(1, &target.fbo); glGenRenderbuffers(1, &target.color);
+        glGenRenderbuffers(1, &target.depth); glGenRenderbuffers(1, &target.identifiers);
     }
-    XMapRaised(r.display, r.window); check_x(r.display);
-    glBindFramebuffer(GL_FRAMEBUFFER, r.fbo);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0); glReadBuffer(GL_COLOR_ATTACHMENT0);
-    glViewport(0, 0, r.width, r.height);
+    if (target.width != command.width() || target.height != command.height()) {
+        target.width = command.width(); target.height = command.height();
+        glBindRenderbuffer(GL_RENDERBUFFER, target.color);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, target.width, target.height);
+        glBindRenderbuffer(GL_RENDERBUFFER, target.depth);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, target.width, target.height);
+        glBindFramebuffer(GL_FRAMEBUFFER, target.fbo);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, target.color);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, target.depth);
+        glBindRenderbuffer(GL_RENDERBUFFER, target.identifiers);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_R32UI, target.width, target.height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, target.identifiers);
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) throw std::runtime_error("Incomplete scene framebuffer");
+        if (!visibility) XResizeWindow(r.display, r.window, target.width, target.height);
+    }
+    if (!visibility) { XMapRaised(r.display, r.window); check_x(r.display); }
+    glBindFramebuffer(GL_FRAMEBUFFER, target.fbo);
+    const GLenum attachments[]{GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, attachments); glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glViewport(0, 0, target.width, target.height);
     glDisable(GL_BLEND); glDisable(GL_DITHER); glDisable(GL_MULTISAMPLE); glDisable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_DEPTH_TEST); glDepthFunc(GL_GREATER); glDepthMask(GL_TRUE);
     glEnable(GL_CULL_FACE); glCullFace(GL_BACK); glFrontFace(GL_CCW);
     const auto& config = command.scene().config();
     const auto& bg = config.background();
-    glClearColor(bg.red() / 255.0f, bg.green() / 255.0f, bg.blue() / 255.0f, 1);
-    glClearDepth(0); glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    const GLfloat background[]{bg.red() / 255.0f, bg.green() / 255.0f, bg.blue() / 255.0f, 1};
+    const GLuint zero[]{0, 0, 0, 0};
+    const GLfloat depth = 0;
+    glClearBufferfv(GL_COLOR, 0, background); glClearBufferuiv(GL_COLOR, 1, zero);
+    glClearBufferfv(GL_DEPTH, 0, &depth);
     // The projection retains the precision of the OpenGL float vertex pipeline.
     const double f = static_cast<float>(1 / std::tan(config.vertical_fov() / 2));
     glUseProgram(r.program);
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(glGetUniformLocation(r.program,"application"),0);
     glUniform1d(glGetUniformLocation(r.program, "focal"), f);
-    glUniform2d(glGetUniformLocation(r.program, "viewport"), r.width, r.height);
+    glUniform2d(glGetUniformLocation(r.program, "viewport"), target.width, target.height);
     glUniform2d(glGetUniformLocation(r.program, "clip_planes"), config.near_clip(), config.far_clip());
     glBindVertexArray(r.vao); glBindBuffer(GL_ARRAY_BUFFER, r.vbo);
+    unsigned representation = 0;
     for (const auto& panel : panels) {
+        glUniform1ui(glGetUniformLocation(r.program, "representation"), ++representation);
         const bool textured=!panel.surface.id().empty();
         if (textured) {
             const auto texture=r.surfaces->texture(panel.surface);
@@ -275,7 +309,7 @@ wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
             glUniform1i(glGetUniformLocation(r.program,"inverted"),texture->inverted);
         }
         glUniform1i(glGetUniformLocation(r.program,"textured"),textured);
-        const auto bounds = panel_bounds(panel, config, r.width, r.height);
+        const auto bounds = panel_bounds(panel, config, target.width, target.height);
         if (!bounds) continue;
         const auto& b = *bounds;
         const std::array<float, 12> vertices{b[0],b[1], b[2],b[1], b[2],b[3], b[0],b[1], b[2],b[3], b[0],b[3]};
@@ -288,23 +322,42 @@ wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STREAM_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
-    r.output();
+    if (!visibility) r.output();
+    else {
+        glFinish(); check_gl();
+        std::vector<GLuint> indices(std::size_t(target.width) * target.height);
+        glReadBuffer(GL_COLOR_ATTACHMENT1);
+        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        glReadPixels(0, 0, target.width, target.height, GL_RED_INTEGER, GL_UNSIGNED_INT, indices.data()); check_gl();
+        std::vector<wire::VisibilitySample> samples(panels.size() + 1);
+        for (unsigned y = 0; y < target.height; ++y) for (unsigned x = 0; x < target.width; ++x) {
+            const auto index = indices[std::size_t(target.height - 1 - y) * target.width + x];
+            if (index == 0) continue;
+            if (index >= samples.size()) throw std::runtime_error("Invalid rendered representation index");
+            auto& sample = samples[index];
+            if (!sample.pixels()) {
+                sample.set_index(index); sample.mutable_pixel()->set_x(x); sample.mutable_pixel()->set_y(y);
+            }
+            sample.set_pixels(sample.pixels() + 1);
+        }
+        for (const auto& sample : samples) if (sample.pixels()) *visibility->add_visible() = sample;
+    }
     wire::FrameReply result;
     result.set_frame_id(++r.frame_id); result.set_world_revision(command.scene().world_revision());
     result.set_xid(r.window);
     if (command.capture()) {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, r.fbo); glReadBuffer(GL_COLOR_ATTACHMENT0);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, target.fbo); glReadBuffer(GL_COLOR_ATTACHMENT0);
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        const std::size_t stride = std::size_t(r.width) * 3;
-        std::vector<char> pixels(stride * r.height);
-        glReadPixels(0, 0, r.width, r.height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data()); check_gl();
+        const std::size_t stride = std::size_t(target.width) * 3;
+        std::vector<char> pixels(stride * target.height);
+        glReadPixels(0, 0, target.width, target.height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data()); check_gl();
         std::string name = (r.captures / "frame-XXXXXX.ppm").string();
         const int fd = mkstemps(name.data(), 4);
         if (fd < 0) throw std::runtime_error("Cannot create frame capture");
         try {
-            const auto header = "P6\n" + std::to_string(r.width) + " " + std::to_string(r.height) + "\n255\n";
+            const auto header = "P6\n" + std::to_string(target.width) + " " + std::to_string(target.height) + "\n255\n";
             write_all(fd, header.data(), header.size());
-            for (unsigned row = r.height; row > 0; --row) write_all(fd, pixels.data() + (row - 1) * stride, stride);
+            for (unsigned row = target.height; row > 0; --row) write_all(fd, pixels.data() + (row - 1) * stride, stride);
         } catch (...) { close(fd); unlink(name.c_str()); throw; }
         if (close(fd) != 0) { unlink(name.c_str()); throw std::runtime_error("Cannot close frame capture"); }
         result.set_path(name);

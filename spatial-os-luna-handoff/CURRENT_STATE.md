@@ -1,5 +1,37 @@
 # Implementation status
 
+## 2026-10-07: P07 observation increment
+
+Actors can now request typed protobuf observations from the production worldd action boundary.
+The compositor identifies visible representations with the same shader and depth testing used for rendering.
+Replies include the sampled camera pose, viewport, world revision, spatial metadata, generations, and visible sample directions.
+Observation uses a separate framebuffer and preserves another actor's presented view.
+
+Both hosts passed Debug and ASan/UBSan runtime qualification:
+
+- All 98 cumulative P00-P06 acceptance tests.
+- The focused P07 observation acceptance test.
+- All 79 core counterexamples, including nine new observation checks.
+- All 39 harness self-tests.
+
+An independent native client received input at the observed target's expected pixel.
+A deliberate depth-test mutation failed the new occlusion test in an isolated worktree.
+All 77 final source hashes matched the reviewed files and both execution hosts.
+Only protobuf schema and codec hashes changed in the explicit 0.9.0 acceptance migration.
+All locked acceptance assertions, oracles, and native witness sources remain unchanged.
+
+Legacy coverage is 99 passed, zero current failures, and 42 unrun.
+P07 remains incomplete. Swept collision, portals, and object manipulation are next.
+Observation currently includes rendered panels and mapped native surfaces.
+Other spatial representation types remain pending.
+The fixture does not yet enforce workspace observation policies.
+Full authority, confinement, hardware qualification, and the additional Spatial-M1 milestones remain mandatory.
+
+Evidence is in evidence/observation-2026-10-07.
+See docs/OBSERVATION.md for the raster visibility contract, transport migration, limitations, and test coverage.
+No operator-session or system configuration changed in this increment.
+The full project goal remains active.
+
 ## 2026-10-07: P06 captured input complete
 
 Captured native motion now follows the actor's aim and camera pose.

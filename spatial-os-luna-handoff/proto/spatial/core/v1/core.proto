@@ -120,12 +120,15 @@ message RenderCommand {
   bool capture = 6;
   RendererSyncRequest sync = 7;
   RendererInputCommand input = 8;
+  bool observe = 9; // Read visibility from an isolated target; never present this view.
 }
+message VisibilitySample { uint32 index = 1; Pixel pixel = 2; uint64 pixels = 3; }
+message RenderVisibility { uint64 frame_id = 1; uint64 world_revision = 2; repeated VisibilitySample visible = 3; }
 message RendererReady { string gl_version = 1; string gl_renderer = 2; }
 message RenderResult {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
-  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; NativeSnapshot snapshot = 6; NativeActorInput input = 7; }
+  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; NativeSnapshot snapshot = 6; NativeActorInput input = 7; RenderVisibility visibility = 8; }
 }
 message ActorAimRequest { Vec3 direction = 1; }
 message AimHit { string id = 1; uint64 generation = 2; Vec2 uv = 3; Pixel pixel = 4; double distance = 5; }
@@ -137,6 +140,7 @@ message ActorStopRequest {}
 message ActorPointerRequest { optional uint32 button = 1; optional bool pressed = 2; }
 message ActorKeyRequest { optional string keysym = 1; optional bool pressed = 2; }
 message ActorScrollRequest { optional sint32 steps_y = 1; }
+message ActorObserveRequest { optional uint32 width = 1; optional uint32 height = 2; }
 message ActorActionRequest {
   string token = 1;
   optional uint64 seq = 2;
@@ -144,6 +148,7 @@ message ActorActionRequest {
     ActorInputRequest input = 10; ActorStopRequest stop = 11; ActorAimRequest aim = 12;
     ActorPointerRequest pointer = 13; ActorKeyRequest key = 14;
     ActorScrollRequest scroll = 15; ActorStopRequest unfocus = 16;
+    ActorObserveRequest observe = 17;
   }
 }
 message WorldCheckpointRequest {}
@@ -254,7 +259,23 @@ message ActorStateReply {
   optional string focus = 7;
   uint64 focus_generation = 8;
 }
-message ActorActionReply { bool accepted = 1; AimReply aim = 2; }
+message ObservedRepresentation {
+  string id = 1;
+  uint64 generation = 2;
+  Pose pose = 3;
+  Vec2 size = 4;
+  optional EntityKind kind = 5; // Absent for a live application surface.
+  PixelExtent pixels = 6; // Present only for an application surface.
+  Pixel sample = 7; // A visible pixel in the observation viewport, with top-left origin.
+  Vec3 direction = 8; // Camera-local ray through that sample.
+  uint64 visible_pixels = 9;
+}
+message ActorObservation {
+  string actor = 1; string room = 2; Pose pose = 3; uint64 world_revision = 4;
+  repeated ObservedRepresentation visible = 5;
+  PixelExtent viewport = 6; uint64 frame_id = 7;
+}
+message ActorActionReply { bool accepted = 1; AimReply aim = 2; ActorObservation observation = 3; }
 message ActorCloseReply { bool closed = 1; }
 message WorldCheckpointReply { uint64 world_revision = 1; }
 message ClockReply { double seconds = 1; }

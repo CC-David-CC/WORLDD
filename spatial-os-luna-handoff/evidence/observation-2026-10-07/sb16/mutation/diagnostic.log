@@ -1,0 +1,15 @@
+test_partial_and_union_occlusion_use_all_visible_pixels (__main__.ObservationTests.test_partial_and_union_occlusion_use_all_visible_pixels) ... FAIL
+
+======================================================================
+FAIL: test_partial_and_union_occlusion_use_all_visible_pixels (__main__.ObservationTests.test_partial_and_union_occlusion_use_all_visible_pixels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-observation-mutation-source/spatial-os-luna-handoff/tests/core/test_observation.py", line 110, in test_partial_and_union_occlusion_use_all_visible_pixels
+    self.assertEqual({v['id'] for v in first['visible']}, {'rear', 'left'})
+AssertionError: Items in the second set but not the first:
+'left'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.193s
+
+FAILED (failures=1)

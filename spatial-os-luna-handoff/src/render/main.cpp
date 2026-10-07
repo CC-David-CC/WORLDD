@@ -37,12 +37,15 @@ int main(int argc, char** argv) {
                 spatial::validate_message(command);
                 if (command.request_id() <= sequence || (int(command.has_scene()) + int(command.has_sync()) + int(command.has_input())) != 1)
                     throw std::invalid_argument("Invalid compositor command sequence or operation");
+                if (command.observe() && (!command.has_scene() || command.capture()))
+                    throw std::invalid_argument("Invalid compositor observation command");
                 sequence=command.request_id();
                 spatial::wire::RenderResult reply;
                 reply.set_protocol_version(1); reply.set_request_id(command.request_id());
                 try {
                     if (command.has_sync()) *reply.mutable_snapshot() = renderer.synchronize();
                     else if (command.has_input()) *reply.mutable_input() = renderer.input(command.input());
+                    else if (command.observe()) *reply.mutable_visibility() = renderer.observe(command);
                     else *reply.mutable_frame() = renderer.draw(command);
                 } catch (const spatial::WorldError& error) {
                     reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());

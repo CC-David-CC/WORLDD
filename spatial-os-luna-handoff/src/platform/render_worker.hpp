@@ -13,6 +13,7 @@ public:
     RenderWorker(const RenderWorker&) = delete;
     RenderWorker& operator=(const RenderWorker&) = delete;
     wire::FrameReply render(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height, bool capture);
+    wire::RenderVisibility observe(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height);
     wire::NativeSnapshot synchronize();
     wire::NativeActorInput input(const wire::RendererInputCommand& command);
     void check_alive() const;

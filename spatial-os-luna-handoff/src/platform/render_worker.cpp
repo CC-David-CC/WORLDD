@@ -115,6 +115,28 @@ wire::NativeSnapshot RenderWorker::synchronize() {
     if (!reply.has_snapshot()) throw std::runtime_error("Missing native surface snapshot");
     return reply.snapshot();
 }
+wire::RenderVisibility RenderWorker::observe(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height) {
+    validate_render_extent(width, height);
+    wire::RenderCommand command;
+    *command.mutable_scene() = scene;
+    command.set_width(width); command.set_height(height); command.set_observe(true);
+    const auto reply = exchange(command);
+    if (!reply.has_visibility() || reply.visibility().world_revision() != scene.world_revision() ||
+        reply.visibility().frame_id() <= frame_id_) throw std::runtime_error("Compositor observation identity mismatch");
+    const auto count = static_cast<unsigned>(scene.panels_size() + scene.surfaces_size());
+    unsigned previous = 0;
+    std::uint64_t total = 0;
+    for (const auto& sample : reply.visibility().visible()) {
+        if (sample.index() == 0 || sample.index() > count || sample.index() <= previous || !sample.has_pixel() ||
+            sample.pixel().x() >= width || sample.pixel().y() >= height || sample.pixels() == 0 ||
+            sample.pixels() > std::uint64_t(width) * height - total)
+            throw std::runtime_error("Invalid compositor visibility sample");
+        total += sample.pixels();
+        previous = sample.index();
+    }
+    frame_id_ = reply.visibility().frame_id();
+    return reply.visibility();
+}
 wire::NativeActorInput RenderWorker::input(const wire::RendererInputCommand& input) {
     wire::RenderCommand command; *command.mutable_input() = input;
     const auto reply = exchange(command);

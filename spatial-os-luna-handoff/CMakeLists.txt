@@ -94,6 +94,12 @@ if(BUILD_TESTING)
         $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-xprobe>)
     set_tests_properties(surface-runtime PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME actor-observation COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_observation.py" $<TARGET_FILE:spatial-test-host>
+        $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-xprobe>)
+    set_tests_properties(actor-observation PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     if(SPATIAL_INPUT_TESTS)
         add_test(NAME native-actor-input COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"

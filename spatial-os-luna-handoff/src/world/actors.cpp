@@ -124,6 +124,11 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     if (request.seq() <= actor.sequence) throw WorldError(wire::STALE_SEQUENCE, "Actor sequence already consumed");
     actor.sequence = request.seq();
     switch (request.action_case()) {
+    case wire::ActorActionRequest::kObserve: {
+        wire::ActorActionReply result; result.set_accepted(true);
+        *result.mutable_observation() = observe(actor, request.observe());
+        return result;
+    }
     case wire::ActorActionRequest::kInput: {
         if (!actor.grants.contains("navigate")) throw WorldError(wire::FORBIDDEN, "Navigation grant required");
         require(request.input().axes_size() == 6, "Expected six motion axes");
@@ -298,6 +303,45 @@ wire::RenderScene Actors::scene(const std::string& token) {
     require(config_.has_render(), "Render configuration is missing");
     auto result = panel_scene(store_.snapshot(), actor.entity, config_.render());
     if (surfaces_) surfaces_->append(result, actor.entity.room());
+    return result;
+}
+wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveRequest& request) {
+    require(request.has_width() == request.has_height(), "Observation requires both viewport dimensions");
+    const unsigned width = request.has_width() ? request.width() : 512;
+    const unsigned height = request.has_height() ? request.height() : 512;
+    validate_render_extent(width, height);
+    if (!renderer_) throw WorldError(wire::UNIMPLEMENTED, "Observation requires the compositor");
+    refresh_native();
+    const auto view = scene(actor.token);
+    wire::ActorObservation result;
+    result.set_actor(actor.entity.id()); result.set_room(actor.entity.room());
+    *result.mutable_pose() = view.camera(); result.set_world_revision(view.world_revision());
+    result.mutable_viewport()->set_width(width); result.mutable_viewport()->set_height(height);
+    // Copy camera context before compositor I/O. The scheduler may move actors while waiting.
+    const auto visibility = renderer_->observe(view, width, height);
+    result.set_frame_id(visibility.frame_id());
+    const double focal = static_cast<float>(1 / std::tan(view.config().vertical_fov() / 2));
+    for (const auto& sample : visibility.visible()) {
+        const auto index = static_cast<int>(sample.index() - 1);
+        auto* item = result.add_visible();
+        const wire::Entity* panel;
+        if (index < view.panels_size()) {
+            panel = &view.panels(index); item->set_id(panel->id());
+            item->set_kind(panel->kind()); item->set_generation(1);
+        } else {
+            const auto& surface = view.surfaces(index - view.panels_size()); panel = &surface.panel();
+            item->set_id(surface.handle().id()); item->set_generation(surface.handle().generation());
+            *item->mutable_pixels() = surface.pixels();
+        }
+        *item->mutable_pose() = panel->pose(); *item->mutable_size() = panel->size();
+        *item->mutable_sample() = sample.pixel(); item->set_visible_pixels(sample.pixels());
+        auto* direction = item->mutable_direction();
+        direction->set_x((2.0 * (sample.pixel().x() + .5) - width) / (focal * height));
+        direction->set_y((height - 2.0 * (sample.pixel().y() + .5)) / (focal * height));
+        direction->set_z(-1);
+    }
+    if (result.ByteSizeLong() > max_frame_bytes - 128)
+        throw WorldError(wire::RESOURCE_EXHAUSTED, "Observation exceeds message limit");
     return result;
 }
 void Actors::step(double target) {

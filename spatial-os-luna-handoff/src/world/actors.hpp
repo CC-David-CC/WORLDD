@@ -47,6 +47,7 @@ private:
     std::string control_group(const wire::SurfaceRecord& surface) const;
     void route_input(Actor& actor, const wire::ActorActionRequest& request);
     void move_capture(Actor& actor, const wire::Vec3& direction);
+    wire::ActorObservation observe(Actor& actor, const wire::ActorObserveRequest& request);
     WorldStore& store_;
     Surfaces* surfaces_;
     RenderWorker* renderer_;

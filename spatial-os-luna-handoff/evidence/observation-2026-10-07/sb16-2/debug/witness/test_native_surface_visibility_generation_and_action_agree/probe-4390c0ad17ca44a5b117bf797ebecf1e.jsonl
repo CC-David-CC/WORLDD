@@ -1,0 +1,10 @@
+{"event":"ready","xid":4194305,"pid":120556,"width":320,"height":240,"xi2":false}
+{"event":"map","xid":4194305}
+{"event":"focus","focused":true,"device":0,"xid":4194305}
+{"event":"button","pressed":true,"button":1,"x":8,"y":6,"device":0,"xid":4194305}
+{"event":"button","pressed":false,"button":1,"x":8,"y":6,"device":0,"xid":4194305}
+{"event":"ack","seq":1}
+{"event":"configure","xid":4194305,"width":211,"height":137}
+{"event":"focus","focused":false,"device":0,"xid":4194305}
+{"event":"unmap","xid":4194305}
+{"event":"ack","seq":2}
