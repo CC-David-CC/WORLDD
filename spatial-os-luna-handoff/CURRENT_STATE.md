@@ -1,5 +1,42 @@
 # Implementation status
 
+## 2026-10-07: P07 portal navigation
+
+Actors now cross portal apertures through the production motion and collision path.
+Crossing preserves remaining displacement and maps orientation without an extra turn.
+Source walls block entry. Destination walls constrain movement and reject obstructed landings.
+Portal chains and zero-distance cycles have bounded processing budgets.
+
+Crossing releases native keys, buttons, focus, capture, and application leases.
+Other actors retain their input state. Applications and runtime processes remain alive.
+Live actor locations prevent room deletion before checkpointing.
+Checkpoints restore destination rooms and poses with fresh session tokens.
+Portal outlines render from both sides with open apertures.
+Rendering, picking, and observation use the same outlines.
+
+Both hosts passed Debug and ASan/UBSan runtime qualification:
+
+- All 98 cumulative P00-P06 acceptance tests.
+- All five focused portal acceptance tests and the three previous P07 cases.
+- All 114 core checks, including 19 portal counterexamples.
+- All 39 harness self-tests.
+
+An isolated mutation discarded remaining movement after crossing.
+The rotated-portal witness detected that error.
+All 82 final source hashes match the reviewed source and both execution hosts.
+Evidence is in evidence/portals-2026-10-07.
+See docs/PORTALS.md for migration 0.11.0, numerical boundaries, and qualification limits.
+Only the documented protobuf schema hash changes in the acceptance lock.
+All locked acceptance assertions, oracles, and native witness sources remain unchanged.
+
+Legacy coverage is 106 passed, zero current failures, and 35 unrun.
+P07 remains incomplete. Object grabbing, preview movement, commit, cancellation, and leases are next.
+These software-display results do not establish physical-device, native GPU, or full workspace-security acceptance.
+All additional Spatial-M1 and hardware milestones remain mandatory.
+No system configuration or operator session changed.
+The full project goal remains active.
+
+
 ## 2026-10-07: P07 swept collision and visible barriers
 
 Actor motion now uses a continuous sphere sweep and preserves sliding motion along barriers.

@@ -22,7 +22,7 @@ public:
     wire::Entity create(const wire::Entity& entity);
     wire::Entity get(const std::string& id);
     wire::Entity update(const wire::WorldUpdateRequest& request);
-    wire::WorldDeleteReply erase(const wire::WorldDeleteRequest& request);
+    wire::WorldDeleteReply erase(const wire::WorldDeleteRequest& request, bool live_reference = false);
     wire::WorldSnapshotReply snapshot();
     wire::WorldInfoReply info();
     wire::Entity create_actor(const wire::Entity& entity);

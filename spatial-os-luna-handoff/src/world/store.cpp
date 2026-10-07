@@ -242,12 +242,13 @@ wire::Entity WorldStore::update(const wire::WorldUpdateRequest& request) {
     if (sqlite3_changes(impl_->db.get()) != 1) throw WorldError(wire::REVISION_CONFLICT, "Concurrent entity edit");
     transaction.commit(); return result;
 }
-wire::WorldDeleteReply WorldStore::erase(const wire::WorldDeleteRequest& request) {
+wire::WorldDeleteReply WorldStore::erase(const wire::WorldDeleteRequest& request, bool live_reference) {
     require(request.has_expected_revision() && request.expected_revision() > 0, "Missing expected revision");
     Transaction transaction(impl_->db.get(), true);
     const auto entity = impl_->get(request.id());
     require(entity.kind() != wire::ACTOR, "Actor removal requires identity revocation");
     if (entity.revision() != request.expected_revision()) throw WorldError(wire::REVISION_CONFLICT, "Stale entity revision");
+    if (live_reference) throw WorldError(wire::IN_USE, "Entity contains a live actor");
     if (request.id() == impl_->info().entry_room()) throw WorldError(wire::IN_USE, "The world entry room cannot be deleted");
     { Statement q(impl_->db.get(), "SELECT 1 FROM entities WHERE room=?1 OR destination=?1 LIMIT 1"); q.text(1, request.id());
       if (q.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Entity is referenced"); }

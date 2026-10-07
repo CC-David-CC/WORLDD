@@ -1,0 +1,18 @@
+test_rotated_entry_maps_remaining_motion_and_body_orientation (__main__.PortalTests.test_rotated_entry_maps_remaining_motion_and_body_orientation) ... FAIL
+
+======================================================================
+FAIL: test_rotated_entry_maps_remaining_motion_and_body_orientation (__main__.PortalTests.test_rotated_entry_maps_remaining_motion_and_body_orientation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-portal-mutation-source/spatial-os-luna-handoff/tests/core/test_portals.py", line 87, in test_rotated_entry_maps_remaining_motion_and_body_orientation
+    self.assertEqual(state['room'], 'room-b'); self.vec(state['pose']['p'], [4, 2.1, 1])
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-portal-mutation-source/spatial-os-luna-handoff/tests/core/test_portals.py", line 72, in vec
+    for a, b in zip(actual, expected): self.assertAlmostEqual(a, b, delta=tolerance)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3.0 != 1 within 1e-08 delta (2.0 difference)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.170s
+
+FAILED (failures=1)

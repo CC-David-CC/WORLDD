@@ -57,6 +57,12 @@ Pose compose_pose(const Pose& parent, const Pose& local) {
     validate_pose(parent); validate_pose(local);
     return {transform_point(parent, local.p), unit(multiply(unit(parent.q), unit(local.q)))};
 }
+Pose inverse_pose(const Pose& pose) {
+    validate_pose(pose);
+    const auto q = unit(pose.q);
+    const Quaternion inverse{-q[0], -q[1], -q[2], q[3]};
+    return {inverse_point(pose, {0, 0, 0}), inverse};
+}
 std::optional<Pixels> uv_pixel(const Vec2& uv, const Pixels& pixels) {
     finite(uv); valid_pixels(pixels);
     if (uv[0] < 0 || uv[0] >= 1 || uv[1] < 0 || uv[1] >= 1) return std::nullopt;

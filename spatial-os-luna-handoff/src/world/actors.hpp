@@ -1,6 +1,6 @@
 #pragma once
 #include "world/store.hpp"
-#include "core/geometry.hpp"
+#include "core/navigation.hpp"
 #include <array>
 #include <map>
 #include <set>
@@ -24,6 +24,7 @@ public:
     void tick(double monotonic_seconds);
     void flush_input();
     const wire::Entity* find(const std::string& id) const;
+    bool room_in_use(const std::string& id) const;
     bool manual_clock() const { return manual_clock_; }
 private:
     struct Actor {
@@ -39,6 +40,7 @@ private:
         wire::AimHit capture;
         std::string lease;
         bool capture_motion_pending = false;
+        bool interaction_reset_pending = false;
     };
     Actor& authenticated(const std::string& token);
     void step(double target);
@@ -51,7 +53,7 @@ private:
     wire::ActorObservation observe(Actor& actor, const wire::ActorObserveRequest& request);
     void refresh_collisions();
     std::uint64_t collision_revision_ = 0;
-    std::map<std::string, std::vector<Collider>> collision_rooms_;
+    std::map<std::string, RoomGeometry> collision_rooms_;
     WorldStore& store_;
     Surfaces* surfaces_;
     RenderWorker* renderer_;

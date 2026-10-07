@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tests/core/test_portals.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+  ],
+  "exit_code": 0,
+  "tests_sha256": "0aa89c4aae1b1e6aee98fcbda321be811b8db9ef3a261cca248db0461f985399"
+}

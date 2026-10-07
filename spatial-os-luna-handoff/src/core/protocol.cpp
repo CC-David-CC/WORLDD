@@ -93,7 +93,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             break;
         case wire::Request::kWorldDelete:
             if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
-            *reply.mutable_deleted() = world->erase(request.world_delete());
+            *reply.mutable_deleted() = world->erase(request.world_delete(), actors && actors->room_in_use(request.world_delete().id()));
             break;
         case wire::Request::kWorldList:
         case wire::Request::kWorldSnapshot:

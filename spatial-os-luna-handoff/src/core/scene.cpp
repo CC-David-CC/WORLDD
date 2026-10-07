@@ -25,6 +25,8 @@ void validate_render_config(const wire::RenderConfig& value) {
             value.background().blue() <= 255, "Invalid background color");
     if (value.has_barrier_color()) require(value.barrier_color().red() <= 255 && value.barrier_color().green() <= 255 &&
                                            value.barrier_color().blue() <= 255, "Invalid barrier color");
+    if (value.has_portal_color()) require(value.portal_color().red() <= 255 && value.portal_color().green() <= 255 &&
+                                          value.portal_color().blue() <= 255, "Invalid portal color");
 }
 void validate_render_extent(std::uint32_t width, std::uint32_t height) {
     require(width > 0 && height > 0 && width <= 4096 && height <= 4096 &&
@@ -39,6 +41,7 @@ wire::RenderScene panel_scene(const wire::WorldSnapshotReply& world, const wire:
     for (const auto& entity : world.entities()) if (entity.room() == actor.room()) {
         if (entity.kind() == wire::PANEL) *result.add_panels() = entity;
         else if (entity.kind() == wire::BARRIER) *result.add_barriers() = entity;
+        else if (entity.kind() == wire::PORTAL) *result.add_portals() = entity;
     }
     return result;
 }
@@ -144,6 +147,31 @@ std::vector<ScenePanel> scene_panels(const wire::RenderScene& scene) {
             auto& metadata = converted.front().representation;
             metadata.set_kind(wire::BARRIER); metadata.clear_size();
             *metadata.mutable_pose() = barrier.pose(); *metadata.mutable_bounds() = barrier.bounds();
+            result.push_back(std::move(converted.front()));
+        }
+    }
+    for (const auto& portal : scene.portals()) {
+        require(portal.kind() == wire::PORTAL && portal.has_size() && portal.size().x() > 0 &&
+                portal.size().y() > 0, "Invalid scene portal");
+        const auto placement = scene_pose(portal.pose());
+        const double width = portal.size().x(), height = portal.size().y();
+        const double border = std::min(.1, .04 * std::min(width, height));
+        // Four non-solid marker strips surround the open aperture. Both sides are visible.
+        for (unsigned axis = 0; axis < 2; ++axis) for (int sign : {-1, 1}) for (bool back : {false, true}) {
+            Vec3 point{}; point[axis] = sign * ((axis == 0 ? width : height) + border) / 2;
+            const auto face = compose_pose(placement, {point, back ? Quaternion{0, 1, 0, 0} : Quaternion{0, 0, 0, 1}});
+            wire::RenderScene single; *single.mutable_camera() = scene.camera(); *single.mutable_config() = scene.config();
+            auto* panel = single.add_panels(); panel->set_id(portal.id()); panel->set_kind(wire::PANEL);
+            auto* p = panel->mutable_pose()->mutable_position(); p->set_x(face.p[0]); p->set_y(face.p[1]); p->set_z(face.p[2]);
+            auto* q = panel->mutable_pose()->mutable_orientation();
+            q->set_x(face.q[0]); q->set_y(face.q[1]); q->set_z(face.q[2]); q->set_w(face.q[3]);
+            panel->mutable_size()->set_x(axis == 0 ? border : width);
+            panel->mutable_size()->set_y(axis == 0 ? height + 2 * border : border);
+            if (scene.config().has_portal_color()) *panel->mutable_color() = scene.config().portal_color();
+            else { panel->mutable_color()->set_red(80); panel->mutable_color()->set_green(180); panel->mutable_color()->set_blue(220); }
+            auto converted = scene_panels(single);
+            auto& metadata = converted.front().representation; metadata.set_kind(wire::PORTAL);
+            *metadata.mutable_pose() = portal.pose(); *metadata.mutable_size() = portal.size();
             result.push_back(std::move(converted.front()));
         }
     }

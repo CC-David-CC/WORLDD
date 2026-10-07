@@ -1,0 +1,22 @@
+test_aperture_edges_are_half_open (__main__.PortalTests.test_aperture_edges_are_half_open) ... ok
+test_checkpoint_restores_destination_without_old_session (__main__.PortalTests.test_checkpoint_restores_destination_without_old_session) ... ok
+test_committed_portal_update_invalidates_cached_mapping (__main__.PortalTests.test_committed_portal_update_invalidates_cached_mapping) ... ok
+test_crossing_releases_native_input_without_disturbing_another_actor (__main__.PortalTests.test_crossing_releases_native_input_without_disturbing_another_actor) ... ok
+test_curved_path_crosses_when_whole_interval_chord_misses (__main__.PortalTests.test_curved_path_crosses_when_whole_interval_chord_misses) ... ok
+test_destination_wall_constrains_remaining_displacement (__main__.PortalTests.test_destination_wall_constrains_remaining_displacement) ... ok
+test_exact_plane_endpoint_preserves_partitioned_crossing (__main__.PortalTests.test_exact_plane_endpoint_preserves_partitioned_crossing) ... ok
+test_frame_is_visible_aperture_is_open_and_other_room_is_hidden (__main__.PortalTests.test_frame_is_visible_aperture_is_open_and_other_room_is_hidden) ... ok
+test_live_actor_prevents_room_deletion_before_checkpoint (__main__.PortalTests.test_live_actor_prevents_room_deletion_before_checkpoint) ... ok
+test_multiple_portals_consume_one_displacement (__main__.PortalTests.test_multiple_portals_consume_one_displacement) ... ok
+test_navigation_grant_is_required_and_crossing_does_not_grant_interaction (__main__.PortalTests.test_navigation_grant_is_required_and_crossing_does_not_grant_interaction) ... ok
+test_nearest_portal_wins_independent_of_id_order (__main__.PortalTests.test_nearest_portal_wins_independent_of_id_order) ... ok
+test_obstructed_landing_stops_before_entry (__main__.PortalTests.test_obstructed_landing_stops_before_entry) ... ok
+test_rotated_entry_maps_remaining_motion_and_body_orientation (__main__.PortalTests.test_rotated_entry_maps_remaining_motion_and_body_orientation) ... ok
+test_sliding_path_can_cross_a_portal (__main__.PortalTests.test_sliding_path_can_cross_a_portal) ... ok
+test_source_wall_prevents_crossing (__main__.PortalTests.test_source_wall_prevents_crossing) ... ok
+test_zero_distance_cycle_is_bounded (__main__.PortalTests.test_zero_distance_cycle_is_bounded) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 3.298s
+
+OK

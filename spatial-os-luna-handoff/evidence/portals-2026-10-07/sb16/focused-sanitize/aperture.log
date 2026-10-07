@@ -1,0 +1,7 @@
+test_movement_outside_portal_rectangle_does_not_switch_rooms (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_movement_outside_portal_rectangle_does_not_switch_rooms) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.319s
+
+OK
+DIAGNOSTIC P07: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-portal-focused-sanitize/aperture.json

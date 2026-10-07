@@ -1,0 +1,21 @@
+test_walking_through_portal_preserves_remaining_displacement (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_walking_through_portal_preserves_remaining_displacement) ... FAIL
+
+======================================================================
+FAIL: test_walking_through_portal_preserves_remaining_displacement (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_walking_through_portal_preserves_remaining_displacement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/acceptance/test_07_rooms_objects.py", line 21, in test_walking_through_portal_preserves_remaining_displacement
+    info=self.a.info();self.assertEqual(info["room"],"room-b");self.assertVec(info["pose"]["p"],[4,0,1.9])
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'room-a' != 'room-b'
+- room-a
+?      ^
++ room-b
+?      ^
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.185s
+
+FAILED (failures=1)
+DIAGNOSTIC P07: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-portal-baseline/report.json

@@ -1,0 +1,6 @@
+{
+  "worktree": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-portal-mutation-source",
+  "base": "619bf1086cd4e247a6192f867a71f11e051f0c63",
+  "mutation": "Discard remaining displacement after crossing",
+  "mutant_sha256": "3acd6f4784d6af67ae6b1bdf5f6a62a2b1ea4f2a03b5f74396391c9d741024aa"
+}

@@ -64,6 +64,7 @@ message RenderConfig {
   optional double far_clip = 3;
   Color background = 4;
   Color barrier_color = 5;
+  Color portal_color = 6;
 }
 message RenderRequest { string token = 1; uint32 width = 2; uint32 height = 3; }
 message FrameReply { string path = 1; uint64 frame_id = 2; uint64 world_revision = 3; uint64 xid = 4; }
@@ -112,7 +113,7 @@ message RuntimeFenceRequest {}
 message RuntimeResourcesRequest {}
 message FenceReply { bool complete = 1; }
 message RendererSyncRequest {}
-message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; repeated PlacedSurface surfaces = 5; repeated Entity barriers = 6; }
+message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; repeated PlacedSurface surfaces = 5; repeated Entity barriers = 6; repeated Entity portals = 7; }
 message RenderCommand {
   uint32 protocol_version = 1;
   uint64 request_id = 2;

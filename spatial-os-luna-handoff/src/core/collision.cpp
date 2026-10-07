@@ -90,23 +90,28 @@ std::optional<SweepHit> sweep_sphere_aabb(const Vec3& origin, const Vec3& displa
     }
     return std::nullopt;
 }
+std::optional<SweepHit> sweep_sphere_world(const Vec3& origin, const Vec3& displacement, double radius, const std::vector<Collider>& colliders) {
+    const double skin = std::max(radius * 1e-9, 1e-12);
+    std::optional<SweepHit> nearest;
+    for (const auto& collider : colliders) {
+        const Pose rotation{{0, 0, 0}, collider.pose.q};
+        const auto local_origin = inverse_point(collider.pose, origin);
+        const auto local_displacement = inverse_point(rotation, displacement);
+        auto hit = sweep_sphere_aabb(local_origin, local_displacement, radius, collider.bounds);
+        if (!hit) continue;
+        hit->normal = transform_point(rotation, hit->normal);
+        // Tangency and separating contact do not prevent motion away from a wall.
+        if (hit->fraction == 0 && hit->penetration <= skin && dot(displacement, hit->normal) >= 0) continue;
+        hit->position = transform_point(collider.pose, hit->position);
+        if (!nearest || hit->fraction < nearest->fraction) nearest = hit;
+    }
+    return nearest;
+}
 Vec3 slide_sphere(const Vec3& origin, const Vec3& displacement, double radius, const std::vector<Collider>& colliders) {
     Vec3 position = origin, remaining = displacement;
     const double skin = std::max(radius * 1e-9, 1e-12);
     for (unsigned iteration = 0; iteration < 32; ++iteration) {
-        std::optional<SweepHit> nearest;
-        for (const auto& collider : colliders) {
-            const Pose rotation{{0, 0, 0}, collider.pose.q};
-            const auto local_origin = inverse_point(collider.pose, position);
-            const auto local_displacement = inverse_point(rotation, remaining);
-            auto hit = sweep_sphere_aabb(local_origin, local_displacement, radius, collider.bounds);
-            if (!hit) continue;
-            hit->normal = transform_point(rotation, hit->normal);
-            // Tangency and separating contact do not prevent motion away from a wall.
-            if (hit->fraction == 0 && hit->penetration <= skin && dot(remaining, hit->normal) >= 0) continue;
-            hit->position = transform_point(collider.pose, hit->position);
-            if (!nearest || hit->fraction < nearest->fraction) nearest = hit;
-        }
+        const auto nearest = sweep_sphere_world(position, remaining, radius, colliders);
         if (!nearest) {
             for (unsigned i = 0; i < 3; ++i) position[i] += remaining[i];
             finite(position); return position;

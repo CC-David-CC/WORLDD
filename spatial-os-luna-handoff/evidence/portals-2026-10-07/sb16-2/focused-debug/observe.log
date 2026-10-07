@@ -1,0 +1,7 @@
+test_observation_contains_own_pose_and_only_visible_room_entities (tests.acceptance.test_07_rooms_objects.RoomsObjectsTests.test_observation_contains_own_pose_and_only_visible_room_entities) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.118s
+
+OK
+DIAGNOSTIC P07: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p07-portal-focused-debug/observe.json

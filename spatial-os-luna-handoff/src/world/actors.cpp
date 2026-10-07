@@ -170,6 +170,7 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     wire::ActorActionReply result; result.set_accepted(true); return result;
 }
 void Actors::release_input(Actor& actor, bool close) {
+    actor.interaction_reset_pending = false;
     if (renderer_ && !actor.native.actor_id().empty()) {
         wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
         if (close) command.mutable_close(); else command.mutable_cancel();
@@ -199,7 +200,7 @@ void Actors::refresh_native() {
         const auto found = actors_.find(state.actor_id());
         if (found == actors_.end()) throw std::runtime_error("Compositor returned an unknown actor");
         auto& actor = found->second; actor.native = state;
-        bool valid = state.has_focus();
+        bool valid = state.has_focus() && !actor.interaction_reset_pending;
         if (valid) {
             try {
                 const auto current = surfaces_->get(state.focus().id());
@@ -344,11 +345,19 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
 void Actors::refresh_collisions() {
     const auto revision = store_.info().world_revision();
     if (revision == collision_revision_) return;
-    std::map<std::string, std::vector<Collider>> rooms;
+    std::map<std::string, RoomGeometry> rooms;
     const auto snapshot = store_.snapshot();
-    for (const auto& entity : snapshot.entities()) if (entity.kind() == wire::BARRIER) {
-        const auto& low = entity.bounds().min(); const auto& high = entity.bounds().max();
-        rooms[entity.room()].push_back({scene_pose(entity.pose()), {{low.x(), low.y(), low.z()}, {high.x(), high.y(), high.z()}}});
+    for (const auto& entity : snapshot.entities()) {
+        if (entity.kind() == wire::ROOM) rooms.try_emplace(entity.id());
+        else if (entity.kind() == wire::BARRIER) {
+            const auto& low = entity.bounds().min(); const auto& high = entity.bounds().max();
+            rooms[entity.room()].colliders.push_back({scene_pose(entity.pose()), {{low.x(), low.y(), low.z()}, {high.x(), high.y(), high.z()}}});
+        } else if (entity.kind() == wire::PORTAL) {
+            const auto entry = scene_pose(entity.pose());
+            const auto mapping = compose_pose(scene_pose(entity.destination().pose()), inverse_pose(entry));
+            rooms[entity.room()].portals.push_back({entity.id(), entity.destination().room(), entry, mapping,
+                                                   {entity.size().x(), entity.size().y()}});
+        }
     }
     collision_rooms_ = std::move(rooms); collision_revision_ = revision;
 }
@@ -365,7 +374,8 @@ void Actors::step(double target) {
             auto current = as_pose(actor.entity.pose());
             if (speed > 0 && !collision_ready) { refresh_collisions(); collision_ready = true; }
             const auto found = collision_rooms_.find(actor.entity.room());
-            if (speed == 0 || found == collision_rooms_.end() || found->second.empty())
+            if (speed == 0 || found == collision_rooms_.end() ||
+                (found->second.colliders.empty() && found->second.portals.empty()))
                 current = integrate(current, linear, angular, end - now_);
             else {
                 const double radius = config_.actor_radius();
@@ -381,17 +391,27 @@ void Actors::step(double target) {
                     const auto steps = static_cast<unsigned>(count);
                     const double interval = duration / steps;
                     const double margin = speed * rate * interval * interval / 8;
+                    unsigned crossings_left = 32;
                     for (unsigned i = 0; i < steps; ++i) {
-                        auto next = integrate(current, linear, angular, interval);
-                        Vec3 displacement{};
-                        for (unsigned axis = 0; axis < 3; ++axis) displacement[axis] = next.p[axis] - current.p[axis];
-                        next.p = slide_sphere(current.p, displacement, radius + margin, found->second);
-                        current = next;
+                        const auto next = integrate(current, linear, angular, interval);
+                        const auto motion = navigate_rooms(current.p, next, actor.entity.room(), radius + margin,
+                                                           collision_rooms_, crossings_left);
+                        current = motion.pose; actor.entity.set_room(motion.room);
+                        if (motion.crossed) {
+                            actor.aim.Clear(); actor.interaction_reset_pending = true;
+                            actor.capture_motion_pending = false;
+                        }
+                        if (motion.stopped) {
+                            actor.axes.fill(0); actor.expires = now_;
+                            std::cerr << "worldd: stopped obstructed or excessive portal navigation\n";
+                            break;
+                        }
                     }
                 }
             }
             set_pose(actor.entity.mutable_pose(), current);
-            if (actor.native.held_buttons_size() && std::any_of(actor.axes.begin(), actor.axes.end(), [](double v) { return v != 0; }))
+            if (!actor.interaction_reset_pending && actor.native.held_buttons_size() &&
+                std::any_of(actor.axes.begin(), actor.axes.end(), [](double v) { return v != 0; }))
                 actor.capture_motion_pending = true;
         }
         if (target >= actor.expires) actor.axes.fill(0);
@@ -402,6 +422,10 @@ void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic
 void Actors::flush_input() {
     // Tick also runs while waiting on compositor I/O. Submit deferred motion only
     // from the outer scheduler, never recursively inside a renderer exchange.
+    for (auto& [id, actor] : actors_) {
+        (void)id;
+        if (actor.interaction_reset_pending) release_input(actor);
+    }
     std::vector<std::string> pending;
     for (const auto& [id, actor] : actors_) if (actor.capture_motion_pending) pending.push_back(id);
     if (pending.empty()) return;
@@ -437,5 +461,8 @@ wire::WorldCheckpointReply Actors::checkpoint() {
 const wire::Entity* Actors::find(const std::string& id) const {
     const auto found = actors_.find(id);
     return found == actors_.end() ? nullptr : &found->second.entity;
+}
+bool Actors::room_in_use(const std::string& id) const {
+    return std::any_of(actors_.begin(), actors_.end(), [&](const auto& item) { return item.second.entity.room() == id; });
 }
 } // namespace spatial
