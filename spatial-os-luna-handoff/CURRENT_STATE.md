@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-07: P06 native input baseline
+
+P05 is complete at commit 36d54bad00219839ebc0de56922e0c8fc754229e.
+Both hosts have that reviewed production implementation.
+The independent native witness also builds with XI2 support on sb16.
+
+The first P06 diagnostic reaches a real application surface and completes actor aim.
+The pointer action returns UNKNOWN_METHOD because native actor input is not implemented.
+This diagnostic has one error. It does not establish a passing P06 gate.
+Current legacy coverage is 80 passed, one diagnostic error, and 60 unrun tests.
+Evidence is in evidence/input-2026-10-07/sb16/baseline.
+
+Next, add typed input actions and genuine actor-specific X server input routing.
+Preserve native root coordinates, independent focus and modifiers, and balanced cancellation.
+Do not substitute XSendEvent, a hidden window atlas, or a shared global input device.
+The complete Spatial-M1 plan and its additional mandatory gates remain active.
+
 ## 2026-10-07: live application surfaces, P00 through P05
 
 The compositor now imports actual X application backing pixmaps through Composite, Damage, and GLX.

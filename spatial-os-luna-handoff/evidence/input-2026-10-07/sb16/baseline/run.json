@@ -1,0 +1,37 @@
+{
+  "commit": "36d54bad00219839ebc0de56922e0c8fc754229e",
+  "host": "sb16",
+  "commands": [
+    {
+      "name": "build-probe",
+      "argv": [
+        "/usr/bin/python3",
+        "tools/build_probe.py",
+        "--xi2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "acceptance",
+      "argv": [
+        "/usr/bin/python3",
+        "tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "tools/gate.py",
+        "--through",
+        "P06",
+        "--case",
+        "test_click_reaches_real_client_at_expected_pixel",
+        "--sut",
+        "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host\"]",
+        "--report",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p06-before/acceptance.json"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "witness_source_sha256": "8d26ff68ab6a861742f12ee02385a7915f0f51b1251eb8b385bbd7eaa586f8da",
+  "purpose": "P06 first native input diagnostic; no production implementation changed",
+  "witness_binary_sha256": "9eb7ff1e44012fea362cb8f87840a4756068c3e89484d1374729dc211288e380"
+}
