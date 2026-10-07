@@ -83,7 +83,7 @@ WorldWorker::WorldWorker(const std::filesystem::path& executable, const std::fil
         if (prctl(PR_SET_PDEATHSIG, SIGKILL) != 0 || getppid() != parent) _exit(126);
         if (dup2(input[0], STDIN_FILENO) < 0 || dup2(output[1], STDOUT_FILENO) < 0) _exit(126);
         close(input[0]); close(input[1]); close(output[0]); close(output[1]);
-        execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), static_cast<char*>(nullptr));
+        execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--fixture-clock", static_cast<char*>(nullptr));
         _exit(127);
     }
     close(input[0]); close(output[1]);

@@ -20,6 +20,7 @@ enum EntityKind {
   BARRIER = 4;
   PORTAL = 5;
   SURFACE_SLOT = 6;
+  ACTOR = 7;
 }
 message Color { uint32 red = 1; uint32 green = 2; uint32 blue = 3; }
 message Bounds { Vec3 min = 1; Vec3 max = 2; }
@@ -49,6 +50,23 @@ message WorldUpdateRequest {
 message WorldDeleteRequest { string id = 1; optional uint64 expected_revision = 2; }
 message WorldInfoRequest {}
 message RuntimeIdentitiesRequest {}
+message RuntimeConfig {
+  optional double linear_gain = 1;
+  optional double angular_gain = 2;
+  optional double deadzone = 3;
+  optional double input_timeout = 4;
+}
+message ActorOpenRequest { string id = 1; optional string room = 2; Pose pose = 3; repeated string grants = 4; }
+message ActorTokenRequest { string token = 1; }
+message ActorInputRequest { repeated double axes = 1; }
+message ActorStopRequest {}
+message ActorActionRequest {
+  string token = 1;
+  optional uint64 seq = 2;
+  oneof action { ActorInputRequest input = 10; ActorStopRequest stop = 11; }
+}
+message WorldCheckpointRequest {}
+message ClockAdvanceRequest { optional double seconds = 1; }
 message PointTransformRequest { Pose pose = 1; Vec3 point = 2; }
 message UvPixelRequest { Vec2 uv = 1; PixelExtent pixels = 2; }
 message RayPanelRequest {
@@ -83,6 +101,12 @@ message Request {
     WorldDeleteRequest world_delete = 24;
     WorldInfoRequest world_info = 25;
     RuntimeIdentitiesRequest runtime_identities = 26;
+    ActorOpenRequest actor_open = 30;
+    ActorTokenRequest actor_inspect = 31;
+    ActorTokenRequest actor_close = 32;
+    ActorActionRequest actor_act = 33;
+    WorldCheckpointRequest world_checkpoint = 34;
+    ClockAdvanceRequest clock_advance = 35;
   }
 }
 
@@ -99,6 +123,9 @@ enum ErrorCode {
   IN_USE = 9;
   STORAGE_ERROR = 10;
   RESOURCE_EXHAUSTED = 11;
+  UNAUTHORIZED = 12;
+  FORBIDDEN = 13;
+  STALE_SEQUENCE = 14;
 }
 message Error { ErrorCode code = 1; string message = 2; }
 message HelloReply {
@@ -123,6 +150,20 @@ message WorldSnapshotReply {
 message WorldDeleteReply { bool deleted = 1; uint64 world_revision = 2; }
 message WorldInfoReply { string world_id = 1; string entry_room = 2; uint64 world_revision = 3; }
 message RuntimeIdentitiesReply { uint64 worldd_pid = 1; string world_id = 2; }
+message ActorOpenReply { string id = 1; string token = 2; }
+message ActorStateReply {
+  string id = 1;
+  string room = 2;
+  Pose pose = 3;
+  repeated double axes = 4;
+  repeated string held_keys = 5;
+  repeated uint32 held_buttons = 6;
+  optional string focus = 7;
+}
+message ActorActionReply { bool accepted = 1; }
+message ActorCloseReply { bool closed = 1; }
+message WorldCheckpointReply { uint64 world_revision = 1; }
+message ClockReply { double seconds = 1; }
 message Reply {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -138,5 +179,11 @@ message Reply {
     WorldDeleteReply deleted = 24;
     WorldInfoReply world_info = 25;
     RuntimeIdentitiesReply identities = 26;
+    ActorOpenReply actor_opened = 30;
+    ActorStateReply actor_state = 31;
+    ActorCloseReply actor_closed = 32;
+    ActorActionReply actor_action = 33;
+    WorldCheckpointReply checkpoint = 34;
+    ClockReply clock = 35;
   }
 }

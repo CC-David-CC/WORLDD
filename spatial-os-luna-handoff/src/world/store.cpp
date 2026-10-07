@@ -198,6 +198,14 @@ WorldStore::~WorldStore() = default;
 wire::WorldInfoReply WorldStore::info() { return impl_->info(); }
 wire::Entity WorldStore::get(const std::string& id) { return impl_->get(id); }
 wire::Entity WorldStore::create(const wire::Entity& input) {
+    require(input.kind() != wire::ACTOR, "Actors require the actor management boundary");
+    return insert_entity(input);
+}
+wire::Entity WorldStore::create_actor(const wire::Entity& input) {
+    require(input.kind() == wire::ACTOR, "Expected actor kind");
+    return insert_entity(input);
+}
+wire::Entity WorldStore::insert_entity(const wire::Entity& input) {
     valid_entity(input);
     require(!input.has_revision() && !input.has_world_revision(), "Revisions are assigned by the world");
     Transaction transaction(impl_->db.get(), true);
@@ -215,6 +223,7 @@ wire::Entity WorldStore::update(const wire::WorldUpdateRequest& request) {
     require(patch.ByteSizeLong() != 0, "Empty patch");
     Transaction transaction(impl_->db.get(), true);
     auto result = impl_->get(request.id());
+    require(result.kind() != wire::ACTOR, "Use actor actions and checkpoints to change actor state");
     if (request.expected_revision() != result.revision()) throw WorldError(wire::REVISION_CONFLICT, "Stale entity revision");
     // Replace complete message-valued fields. Protobuf MergeFrom would retain
     // old components when a caller explicitly supplies zero-valued components.
@@ -237,6 +246,7 @@ wire::WorldDeleteReply WorldStore::erase(const wire::WorldDeleteRequest& request
     require(request.has_expected_revision() && request.expected_revision() > 0, "Missing expected revision");
     Transaction transaction(impl_->db.get(), true);
     const auto entity = impl_->get(request.id());
+    require(entity.kind() != wire::ACTOR, "Actor removal requires identity revocation");
     if (entity.revision() != request.expected_revision()) throw WorldError(wire::REVISION_CONFLICT, "Stale entity revision");
     if (request.id() == impl_->info().entry_room()) throw WorldError(wire::IN_USE, "The world entry room cannot be deleted");
     { Statement q(impl_->db.get(), "SELECT 1 FROM entities WHERE room=?1 OR destination=?1 LIMIT 1"); q.text(1, request.id());
@@ -258,5 +268,37 @@ wire::WorldSnapshotReply WorldStore::snapshot() {
             throw WorldError(wire::RESOURCE_EXHAUSTED, "Snapshot exceeds frame limit; no partial snapshot returned");
     }
     transaction.commit(); return result;
+}
+std::vector<wire::Entity> WorldStore::actors() {
+    std::vector<wire::Entity> result;
+    Statement q(impl_->db.get(), "SELECT id FROM entities WHERE kind=? ORDER BY id");
+    q.integer(1, wire::ACTOR);
+    while (q.step() == SQLITE_ROW) result.push_back(impl_->get(q.text(0)));
+    return result;
+}
+std::vector<wire::Entity> WorldStore::checkpoint_actors(const std::vector<wire::Entity>& entities) {
+    Transaction transaction(impl_->db.get(), true);
+    std::vector<wire::Entity> changed;
+    for (const auto& entity : entities) {
+        const auto previous = impl_->get(entity.id());
+        require(previous.kind() == wire::ACTOR && entity.kind() == wire::ACTOR, "Checkpoint requires actors");
+        require(entity.revision() == previous.revision(), "Actor checkpoint revision mismatch");
+        auto next = previous;
+        next.set_room(entity.room()); *next.mutable_pose() = entity.pose();
+        valid_entity(next); impl_->references(next);
+        if (next.SerializeAsString() == previous.SerializeAsString()) continue;
+        if (next.revision() == INT64_MAX) throw WorldError(wire::RESOURCE_EXHAUSTED, "Actor revision exhausted");
+        next.set_revision(next.revision() + 1); changed.push_back(std::move(next));
+    }
+    if (!changed.empty()) {
+        const auto revision = impl_->advance();
+        for (auto& entity : changed) {
+            entity.set_world_revision(revision);
+            Statement q(impl_->db.get(), "UPDATE entities SET kind=?2,room=?3,destination=?4,revision=?5,data=?6 WHERE id=?1 AND revision=?7");
+            impl_->bind(q, entity); q.integer(7, entity.revision() - 1); q.step();
+            if (sqlite3_changes(impl_->db.get()) != 1) throw WorldError(wire::REVISION_CONFLICT, "Concurrent actor checkpoint");
+        }
+    }
+    transaction.commit(); return changed;
 }
 } // namespace spatial

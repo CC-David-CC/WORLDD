@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Protobuf 3.21 REQUIRED)
 find_package(SQLite3 REQUIRED)
+configure_file(config/conformance.textproto runtime.textproto COPYONLY)
 protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py"
@@ -28,7 +29,7 @@ endif()
 # Include all production inputs and build settings in the reported identity.
 # Reconfigure on edits as well as newly added sources. Never report only HEAD
 # for a binary that may contain uncommitted source changes.
-file(GLOB_RECURSE build_inputs CONFIGURE_DEPENDS src/*.cpp src/*.hpp proto/*.proto)
+file(GLOB_RECURSE build_inputs CONFIGURE_DEPENDS src/*.cpp src/*.hpp proto/*.proto config/*.textproto)
 list(APPEND build_inputs "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
 list(SORT build_inputs)
 set(build_material "${CMAKE_CXX_COMPILER_ID}:${CMAKE_CXX_COMPILER_VERSION}:${CMAKE_BUILD_TYPE}:${CMAKE_CXX_FLAGS}:${CMAKE_CXX_FLAGS_DEBUG}:${CMAKE_CXX_FLAGS_RELEASE}:${CMAKE_CXX_FLAGS_RELWITHDEBINFO}:${SPATIAL_SANITIZERS}:${Protobuf_VERSION}:${SQLite3_VERSION}")
@@ -44,10 +45,10 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPA
 add_library(spatial-protobuf STATIC ${proto_sources} ${proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
 target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
-add_library(spatial-core STATIC src/core/protocol.cpp src/core/geometry.cpp src/world/store.cpp)
+add_library(spatial-core STATIC src/core/protocol.cpp src/core/geometry.cpp src/world/store.cpp src/world/actors.cpp)
 target_include_directories(spatial-core PUBLIC src)
 target_link_libraries(spatial-core PUBLIC spatial-protobuf SQLite::SQLite3)
-add_executable(worldd src/world/main.cpp)
+add_executable(worldd src/world/main.cpp src/world/server.cpp)
 target_link_libraries(worldd PRIVATE spatial-core)
 add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)
 target_link_libraries(spatial-test-host PRIVATE spatial-core)
@@ -63,5 +64,9 @@ if(BUILD_TESTING)
     add_test(NAME worldd-lifecycle COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_worldd.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:worldd>)
     set_tests_properties(worldd-lifecycle PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME actor-runtime COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actors.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:worldd>)
+    set_tests_properties(actor-runtime PROPERTIES TIMEOUT 60
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
 endif()

@@ -1,0 +1,49 @@
+{
+  "mutation": "remove navigation grant enforcement",
+  "original_sha256": "dff2e43537b225093e09382a0998516c2026dbbf21d7f56d7212cdaa97407141",
+  "mutated_sha256": "50741d2513d6ab69998581ab7a1bb928b90731a00d40c3730eff47c21b1c9c4d",
+  "commands": [
+    {
+      "name": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "gate",
+      "argv": [
+        "python3",
+        "tools/gate.py",
+        "--through",
+        "P03",
+        "--case",
+        "test_missing_navigation_grant_blocks_motion",
+        "--sut",
+        "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/mutations/actor-navigation-grant/spatial-os-luna-handoff/build/spatial-test-host\"]",
+        "--report",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/mutations/actor-navigation-grant/gate.json"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "detected": true
+}

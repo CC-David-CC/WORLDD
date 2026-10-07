@@ -2,7 +2,9 @@
   "contract_version": 1,
   "total_acceptance_tests": 141,
   "total_primitive_tickets": 130,
-  "status": "implementation_not_started",
+  "status": "implementation_in_progress",
+  "implementation_status": "CURRENT_STATE.md",
+  "full_project_plan": "docs/MILESTONES.md",
   "read": "START_HERE_LUNA.md",
   "phases": [
     {

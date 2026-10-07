@@ -1,0 +1,19 @@
+test_axis_count_and_range_checked (tests.acceptance.test_03_actors.ActorTests.test_axis_count_and_range_checked) ... ok
+test_checkpoint_restores_pose_but_not_held_input_or_token (tests.acceptance.test_03_actors.ActorTests.test_checkpoint_restores_pose_but_not_held_input_or_token) ... ok
+test_deadzone_is_rescaled_not_subtracted_every_tick (tests.acceptance.test_03_actors.ActorTests.test_deadzone_is_rescaled_not_subtracted_every_tick) ... ok
+test_disconnect_revokes_token_and_stops_motion (tests.acceptance.test_03_actors.ActorTests.test_disconnect_revokes_token_and_stops_motion) ... ok
+test_forward_uses_camera_orientation (tests.acceptance.test_03_actors.ActorTests.test_forward_uses_camera_orientation) ... ok
+test_human_and_agent_have_independent_state (tests.acceptance.test_03_actors.ActorTests.test_human_and_agent_have_independent_state) ... ok
+test_missing_navigation_grant_blocks_motion (tests.acceptance.test_03_actors.ActorTests.test_missing_navigation_grant_blocks_motion) ... ok
+test_motion_matches_with_different_clock_partitions (tests.acceptance.test_03_actors.ActorTests.test_motion_matches_with_different_clock_partitions) ... ok
+test_new_sample_refreshes_deadman_not_unrelated_commands (tests.acceptance.test_03_actors.ActorTests.test_new_sample_refreshes_deadman_not_unrelated_commands) ... ok
+test_payload_cannot_impersonate_another_actor (tests.acceptance.test_03_actors.ActorTests.test_payload_cannot_impersonate_another_actor) ... ok
+test_replayed_sequence_not_applied_twice (tests.acceptance.test_03_actors.ActorTests.test_replayed_sequence_not_applied_twice) ... ok
+test_stale_input_stops_at_exact_timeout_boundary (tests.acceptance.test_03_actors.ActorTests.test_stale_input_stops_at_exact_timeout_boundary) ... ok
+test_stop_is_immediate_and_idempotent (tests.acceptance.test_03_actors.ActorTests.test_stop_is_immediate_and_idempotent) ... ok
+test_translation_axes_not_normalized_to_a_single_axis (tests.acceptance.test_03_actors.ActorTests.test_translation_axes_not_normalized_to_a_single_axis) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 1.190s
+
+OK

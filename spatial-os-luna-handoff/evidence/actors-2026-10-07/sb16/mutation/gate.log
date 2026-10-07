@@ -1,0 +1,17 @@
+test_missing_navigation_grant_blocks_motion (tests.acceptance.test_03_actors.ActorTests.test_missing_navigation_grant_blocks_motion) ... FAIL
+
+======================================================================
+FAIL: test_missing_navigation_grant_blocks_motion (tests.acceptance.test_03_actors.ActorTests.test_missing_navigation_grant_blocks_motion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/mutations/actor-navigation-grant/spatial-os-luna-handoff/tests/acceptance/test_03_actors.py", line 69, in test_missing_navigation_grant_blocks_motion
+    self.actor_error("FORBIDDEN",a,"input",axes=[1,0,0,0,0,0])
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/mutations/actor-navigation-grant/spatial-os-luna-handoff/harness/base.py", line 59, in actor_error
+    with self.assertRaises(RpcError) as ctx:
+AssertionError: RpcError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.084s
+
+FAILED (failures=1)
+DIAGNOSTIC P03: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/mutations/actor-navigation-grant/gate.json

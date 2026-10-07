@@ -1,6 +1,7 @@
 #include "core/protocol.hpp"
 #include "core/geometry.hpp"
 #include "world/store.hpp"
+#include "world/actors.hpp"
 #include <unistd.h>
 #include "build_id.hpp"
 
@@ -70,7 +71,7 @@ void error(wire::Reply& reply, wire::ErrorCode code, const char* message) {
 }
 }
 
-wire::Reply dispatch(const wire::Request& request, WorldStore* world) {
+wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* actors) {
     wire::Reply reply;
     reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     try {
@@ -90,12 +91,18 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world) {
             hello->add_capabilities("geometry.ray-panel");
             hello->add_capabilities("motion.body-twist");
             if (world) hello->add_capabilities("world.durable/v1");
+            if (actors) {
+                hello->add_capabilities("actor.motion/v1");
+                if (actors->manual_clock()) hello->add_capabilities("fixture.manual-clock/v1");
+            }
             break;
         }
         case wire::Request::kWorldGet:
             require(!request.world_get().id().empty(), "Expected a nonempty entity ID");
             if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
-            *reply.mutable_entity()->mutable_entity() = world->get(request.world_get().id());
+            if (const auto* actor = actors ? actors->find(request.world_get().id()) : nullptr)
+                *reply.mutable_entity()->mutable_entity() = *actor;
+            else *reply.mutable_entity()->mutable_entity() = world->get(request.world_get().id());
             break;
         case wire::Request::kWorldCreate:
             require(request.world_create().has_entity(), "Missing entity");
@@ -124,6 +131,24 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world) {
             reply.mutable_identities()->set_worldd_pid(getpid());
             reply.mutable_identities()->set_world_id(world->info().world_id());
             break;
+        case wire::Request::kActorOpen:
+            if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
+            *reply.mutable_actor_opened() = actors->open(request.actor_open()); break;
+        case wire::Request::kActorInspect:
+            if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
+            *reply.mutable_actor_state() = actors->inspect(request.actor_inspect().token()); break;
+        case wire::Request::kActorClose:
+            if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
+            *reply.mutable_actor_closed() = actors->close(request.actor_close().token()); break;
+        case wire::Request::kActorAct:
+            if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
+            *reply.mutable_actor_action() = actors->act(request.actor_act()); break;
+        case wire::Request::kWorldCheckpoint:
+            if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
+            *reply.mutable_checkpoint() = actors->checkpoint(); break;
+        case wire::Request::kClockAdvance:
+            if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
+            *reply.mutable_clock() = actors->advance(request.clock_advance()); break;
         case wire::Request::kTransformPoint:
         case wire::Request::kInversePoint: {
             const bool inverse = request.has_inverse_point();
@@ -178,14 +203,14 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world) {
     return reply;
 }
 
-wire::Reply handle_frame(std::string_view frame, WorldStore* world) {
+wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* actors) {
     wire::Request request;
     if (frame.size() <= max_frame_bytes) {
         google::protobuf::io::ArrayInputStream array(frame.data(), static_cast<int>(frame.size()));
         google::protobuf::io::CodedInputStream input(&array);
         input.SetTotalBytesLimit(static_cast<int>(max_frame_bytes));
         input.SetRecursionLimit(64);
-        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world);
+        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world, actors);
     }
     wire::Reply reply;
     reply.set_protocol_version(1);

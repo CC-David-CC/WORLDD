@@ -1,0 +1,4 @@
+linear_gain: 1
+angular_gain: 1
+deadzone: 0.05
+input_timeout: 0.25

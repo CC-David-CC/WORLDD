@@ -1,0 +1,16 @@
+[0/2] Re-checking globbed directories...
+[1/15] Generating python/core_pb2.py
+[2/15] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[3/15] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/15] Building CXX object CMakeFiles/spatial-core.dir/src/core/geometry.cpp.o
+[5/15] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[6/15] Linking CXX static library libspatial-protobuf.a
+[7/15] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[8/15] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[9/15] Linking CXX static library libspatial-core.a
+[10/15] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[11/15] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[12/15] Linking CXX executable worldd
+[13/15] Building CXX object CMakeFiles/spatial-test-host.dir/src/testing/main.cpp.o
+[14/15] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[15/15] Linking CXX executable spatial-test-host

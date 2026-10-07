@@ -1,6 +1,8 @@
 import math
 from harness.base import Acceptance,case
 from harness.oracles import pose,axis_angle
+from harness.rpc import RpcError
+from harness.wire import make_request
 
 class ActorTests(Acceptance):
     def setUp(self):
@@ -24,8 +26,15 @@ class ActorTests(Acceptance):
     @case("P03","actor.input_validation")
     def test_axis_count_and_range_checked(self):
         a=self.actor()
-        for axes in ([0]*5,[0]*7,[2,0,0,0,0,0],["x",0,0,0,0,0]):
+        for axes in ([0]*5,[0]*7,[2,0,0,0,0,0]):
             self.actor_error("INVALID_ARGUMENT",a,"input",axes=axes)
+        # Protobuf double axes cannot hold a JSON string. Send a wrong wire type.
+        a.seq += 1
+        request=make_request("actor.act",{"token":a.token,"seq":a.seq,"op":"input","args":{"axes":[0]*6}})
+        request.actor_act.input.MergeFromString(b'\x0dxxxx')
+        with self.assertRaises(RpcError) as rejected:
+            self.client.call_message(request)
+        self.assertEqual(rejected.exception.code,"INVALID_ARGUMENT")
     @case("P03","actor.stale_sequence")
     def test_replayed_sequence_not_applied_twice(self):
         a=self.actor(); a.act("input",axes=[1,0,0,0,0,0])
@@ -62,7 +71,14 @@ class ActorTests(Acceptance):
     @case("P03","actor.token_binding")
     def test_payload_cannot_impersonate_another_actor(self):
         a=self.actor("a"); b=self.actor("b")
-        self.actor_error("INVALID_ARGUMENT",a,"input",axes=[1,0,0,0,0,0],actor=b.id)
+        a.seq += 1
+        request=make_request("actor.act",{"token":a.token,"seq":a.seq,"op":"input","args":{"axes":[1,0,0,0,0,0]}})
+        # An unknown actor-selector field must not override the authenticated token.
+        claimed=b.id.encode("utf-8")
+        request.actor_act.input.MergeFromString(b'\xa2\x06'+bytes([len(claimed)])+claimed)
+        with self.assertRaises(RpcError) as rejected:
+            self.client.call_message(request)
+        self.assertEqual(rejected.exception.code,"INVALID_ARGUMENT")
         self.assertVec(b.info()["pose"]["p"],[0,0,0])
     @case("P03","actor.checkpoint")
     def test_checkpoint_restores_pose_but_not_held_input_or_token(self):

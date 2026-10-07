@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--through', choices=['P00', 'P01', 'P02'], required=True)
+    parser.add_argument('--through', choices=['P00', 'P01', 'P02', 'P03'], required=True)
     parser.add_argument('--build-dir', default='build')
     parser.add_argument('--evidence-dir', required=True)
     parser.add_argument('--sanitize', action='store_true')
@@ -44,7 +44,7 @@ def main():
     locked = json.loads((ROOT / 'acceptance.lock.json').read_text())['files']
     inputs = {ROOT / name for name in locked}
     inputs.update([ROOT / 'CMakeLists.txt', *ROOT.glob('src/**/*'), *ROOT.glob('proto/**/*.proto'),
-                   *ROOT.glob('tests/core/*.py'), ROOT / 'tools/qualify_core.py', ROOT / 'acceptance.lock.json'])
+                   *ROOT.glob('tests/core/*.py'), *ROOT.glob('config/*.textproto'), ROOT / 'tools/qualify_core.py', ROOT / 'acceptance.lock.json'])
     for path in sorted(inputs):
         if path.is_file():
             record['source_sha256'][str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 
 namespace spatial {
 class WorldError : public std::runtime_error {
@@ -24,7 +25,11 @@ public:
     wire::WorldDeleteReply erase(const wire::WorldDeleteRequest& request);
     wire::WorldSnapshotReply snapshot();
     wire::WorldInfoReply info();
+    wire::Entity create_actor(const wire::Entity& entity);
+    std::vector<wire::Entity> actors();
+    std::vector<wire::Entity> checkpoint_actors(const std::vector<wire::Entity>& entities);
 private:
+    wire::Entity insert_entity(const wire::Entity& entity);
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

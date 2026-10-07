@@ -1,0 +1,27 @@
+test_human_and_agent_have_independent_state (tests.acceptance.test_03_actors.ActorTests.test_human_and_agent_have_independent_state) ... ERROR
+
+======================================================================
+ERROR: test_human_and_agent_have_independent_state (tests.acceptance.test_03_actors.ActorTests.test_human_and_agent_have_independent_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/acceptance/test_03_actors.py", line 10, in test_human_and_agent_have_independent_state
+    a=self.actor("human"); b=self.actor("agent")
+      ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/base.py", line 68, in actor
+    info = self.call("actor.open", id=ident, room=room, pose=pose_ or pose(),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/base.py", line 53, in call
+    return self.client.call(method, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 180, in make_request
+    raise NotImplementedError(f'No protobuf schema for {method}; the phase remains unimplemented')
+NotImplementedError: No protobuf schema for actor.open; the phase remains unimplemented
+
+----------------------------------------------------------------------
+Ran 1 test in 0.061s
+
+FAILED (errors=1)
+DIAGNOSTIC P03: FAILED (1/1 executed); report=local/actors-baseline/p03-before.json

@@ -159,6 +159,29 @@ def entity_value(value):
 
 def make_request(method, params):
     request = pb.Request(protocol_version=1)
+    if method == 'actor.act':
+        if not isinstance(params, dict) or set(params) - {'token', 'seq', 'op', 'args'}:
+            raise ValueError('Unknown actor action parameters')
+        body = request.actor_act
+        body.SetInParent()
+        if 'token' in params:
+            body.token = params['token']
+        if 'seq' in params:
+            if type(params['seq']) is not int:
+                raise ValueError('Expected integer sequence')
+            body.seq = params['seq']
+        args = params.get('args', {})
+        if params.get('op') == 'input':
+            if not isinstance(args, dict) or set(args) - {'axes'}:
+                raise ValueError('Unknown input fields')
+            body.input.SetInParent()
+            if 'axes' in args:
+                body.input.axes.extend(numbers(args['axes'], len(args['axes'])))
+        elif params.get('op') == 'stop':
+            if args:
+                raise ValueError('Unknown stop fields')
+            body.stop.SetInParent()
+        return request
     schemas = {
         'system.hello': ('hello', {}),
         'world.get': ('world_get', {'id': str}),
@@ -169,6 +192,11 @@ def make_request(method, params):
         'world.snapshot': ('world_snapshot', {}),
         'world.info': ('world_info', {}),
         'runtime.identities': ('runtime_identities', {}),
+        'actor.open': ('actor_open', {'id': str, 'room': str, 'pose': pose, 'grants': list}),
+        'actor.inspect': ('actor_inspect', {'token': str}),
+        'actor.close': ('actor_close', {'token': str}),
+        'world.checkpoint': ('world_checkpoint', {}),
+        'clock.advance': ('clock_advance', {'seconds': float}),
         'geometry.transform_point': ('transform_point', {'pose': pose, 'point': vec3}),
         'geometry.inverse_point': ('inverse_point', {'pose': pose, 'point': vec3}),
         'geometry.uv_pixel': ('uv_pixel', {'uv': vec2, 'pixels': None}),
@@ -202,6 +230,10 @@ def make_request(method, params):
             if type(value) is not int or not 0 <= value < 2**64:
                 raise ValueError('Expected uint64 integer')
             setattr(body, name, value)
+        elif convert is list:
+            if not isinstance(value, (tuple, list)) or any(type(v) is not str for v in value):
+                raise ValueError('Expected string list')
+            getattr(body, name).extend(value)
         else:
             getattr(body, name).CopyFrom(convert(value))
     return request
@@ -210,6 +242,8 @@ def make_request(method, params):
 OUTCOMES = {'hello': 'hello', 'world_get': 'entity', 'world_create': 'entity',
             'world_update': 'entity', 'world_delete': 'deleted', 'world_list': 'snapshot',
             'world_snapshot': 'snapshot', 'world_info': 'world_info', 'runtime_identities': 'identities',
+            'actor_open': 'actor_opened', 'actor_inspect': 'actor_state', 'actor_close': 'actor_closed',
+            'actor_act': 'actor_action', 'world_checkpoint': 'checkpoint', 'clock_advance': 'clock',
             'transform_point': 'point',
             'inverse_point': 'point', 'uv_pixel': 'pixel', 'ray_panel': 'ray', 'integrate': 'pose'}
 
@@ -220,6 +254,21 @@ def vector_value(value):
 
 def result_value(reply):
     kind = reply.WhichOneof('outcome')
+    if kind == 'actor_opened':
+        return {'id': reply.actor_opened.id, 'token': reply.actor_opened.token}
+    if kind == 'actor_state':
+        value = reply.actor_state
+        return {'id': value.id, 'room': value.room, 'pose': pose_value(value.pose),
+                'axes': list(value.axes), 'held_keys': list(value.held_keys), 'held_buttons': list(value.held_buttons),
+                'focus': value.focus if value.HasField('focus') else None}
+    if kind == 'actor_closed':
+        return {'closed': reply.actor_closed.closed}
+    if kind == 'actor_action':
+        return {'accepted': reply.actor_action.accepted}
+    if kind == 'checkpoint':
+        return {'world_revision': reply.checkpoint.world_revision}
+    if kind == 'clock':
+        return {'seconds': reply.clock.seconds}
     if kind == 'entity':
         if not reply.entity.HasField('entity'):
             raise ValueError('Missing result entity')
