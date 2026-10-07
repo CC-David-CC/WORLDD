@@ -1,0 +1,50 @@
+{
+  "base": "edd70d9c93e2033ad1db1bbd246cbee3b31bbae0",
+  "sources": {
+    "spatial-os-luna-handoff/src/workspace/git.cpp": {
+      "before": "153aa366b6c84f5126f1181d6a1a3cf5c2260e775a6acc33025de130925abed8",
+      "after": "2bf14a3facb27acaddd225a769c903842d534d57e564a39fcaeae8a5dafe76c2"
+    }
+  },
+  "commands": [
+    {
+      "name": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF",
+        "-DSPATIAL_INPUT_TESTS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "python3",
+        "tests/core/test_workspace_git.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/workspaced",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-git-job-probe",
+        "-v"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

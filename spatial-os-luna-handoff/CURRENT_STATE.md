@@ -1,5 +1,39 @@
 # Implementation status
 
+## 2026-10-07: P08 live Git status
+
+Workspaced now reads the current commit, branch, and file status from real Git.
+External commits, branch changes, detached HEAD, and unborn branches remain observable.
+NUL-delimited parsing preserves unusual UTF-8 filenames and both sides of renames.
+Tracked changes, merge conflicts, untracked files, and ignored data remain visible.
+The broker rejects changed administrative authority links before reading status.
+Oversized results return a bounded error without changing files or closing the channel.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 113 preceding P00-P07 acceptance tests and eleven P08 acceptance tests.
+- All 162 core checks, including twenty-seven broker checks.
+- All 43 harness self-tests.
+
+The full 138-case P00-P08 gate ran in each build on both hosts.
+Coverage is 124 passed, one failed, thirteen errors, zero skipped, and thirteen unrun later tests.
+The failure and errors cover unimplemented removal, workspace context, and process execution.
+P08 remains incomplete. Spatial-M1 and native hardware qualification remain pending.
+
+The first implementation rejected valid Git common-directory links with a trailing separator.
+The corrected implementation passed all focused checks and full regression qualification.
+Evidence preserves both runs in evidence/workspace-status-2026-10-07.
+All 96 final source hashes match reviewed local files and both hosts.
+See docs/WORKSPACE_STATUS.md for exact commands, evidence, and limitations.
+
+The current status interface rejects filenames containing invalid UTF-8 bytes.
+Git status does not lock external writers or reveal changes hidden by every index flag.
+Safe removal requires separate protection and remains the next primitive.
+Locked tests, oracles, native witness sources, and protobuf schemas remain unchanged.
+No host configuration or operator session changed.
+Local-model review remains waived under David's hardware-failure instruction.
+The full project goal remains active.
+
 ## 2026-10-07: P08 real Git creation through workspaced
 
 The production workspaced process now owns a separate durable execution registry.

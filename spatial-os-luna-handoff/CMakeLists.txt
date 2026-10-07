@@ -69,7 +69,7 @@ target_link_libraries(spatialwm PRIVATE spatial-native-input X11::X11 X11::Xcomp
 add_executable(worldd src/world/main.cpp src/world/server.cpp)
 target_link_libraries(worldd PRIVATE spatial-core)
 add_dependencies(worldd spatialwm)
-add_executable(workspaced src/workspace/main.cpp src/workspace/git.cpp src/workspace/git_command.cpp)
+add_executable(workspaced src/workspace/main.cpp src/workspace/git.cpp src/workspace/git_command.cpp src/workspace/status.cpp)
 target_include_directories(workspaced PRIVATE src)
 target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3)
 add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)

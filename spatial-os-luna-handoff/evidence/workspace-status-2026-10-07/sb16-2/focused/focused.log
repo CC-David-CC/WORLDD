@@ -1,0 +1,250 @@
+test_administrative_git_descendants_stop_when_the_owner_dies (__main__.WorkspaceGitTests.test_administrative_git_descendants_stop_when_the_owner_dies) ... ok
+test_ambiguous_effect_is_preserved_and_never_replayed (__main__.WorkspaceGitTests.test_ambiguous_effect_is_preserved_and_never_replayed) ... ok
+test_broker_is_a_separate_supervised_executable_and_database_owner (__main__.WorkspaceGitTests.test_broker_is_a_separate_supervised_executable_and_database_owner) ... ok
+test_broker_strict_protocol_does_not_expose_world_actions (__main__.WorkspaceGitTests.test_broker_strict_protocol_does_not_expose_world_actions) ... ok
+test_duplicate_broker_authority_cannot_open_existing_registry (__main__.WorkspaceGitTests.test_duplicate_broker_authority_cannot_open_existing_registry) ... ok
+test_existing_branch_and_active_branch_are_distinct_errors (__main__.WorkspaceGitTests.test_existing_branch_and_active_branch_are_distinct_errors) ... ok
+test_git_completion_before_failed_registry_ack_is_reconciled (__main__.WorkspaceGitTests.test_git_completion_before_failed_registry_ack_is_reconciled) ... ok
+test_idle_broker_death_invalidates_runtime_then_recovers_git_state (__main__.WorkspaceGitTests.test_idle_broker_death_invalidates_runtime_then_recovers_git_state) ... ok
+test_import_is_bare_independent_and_leaves_source_unchanged (__main__.WorkspaceGitTests.test_import_is_bare_independent_and_leaves_source_unchanged) ... ok
+test_inherited_git_environment_and_source_hooks_cannot_redirect_execution (__main__.WorkspaceGitTests.test_inherited_git_environment_and_source_hooks_cannot_redirect_execution) ... ok
+test_invalid_refs_and_start_do_not_create_effects_or_intents (__main__.WorkspaceGitTests.test_invalid_refs_and_start_do_not_create_effects_or_intents) ... ok
+test_nonlocal_source_and_alternate_object_authority_are_rejected (__main__.WorkspaceGitTests.test_nonlocal_source_and_alternate_object_authority_are_rejected) ... ok
+test_opaque_ids_never_become_paths (__main__.WorkspaceGitTests.test_opaque_ids_never_become_paths) ... ok
+test_parent_only_death_releases_broker_and_registry_lock (__main__.WorkspaceGitTests.test_parent_only_death_releases_broker_and_registry_lock) ... ok
+test_repository_filters_cannot_execute_as_the_broker (__main__.WorkspaceGitTests.test_repository_filters_cannot_execute_as_the_broker) ... ok
+test_retry_survives_restart_without_overwriting_uncommitted_files (__main__.WorkspaceGitTests.test_retry_survives_restart_without_overwriting_uncommitted_files) ... ok
+test_status_bounds_its_reply_and_keeps_the_channel_usable (__main__.WorkspaceGitTests.test_status_bounds_its_reply_and_keeps_the_channel_usable) ... FAIL
+test_status_consumes_rename_source_as_a_path_not_a_record (__main__.WorkspaceGitTests.test_status_consumes_rename_source_as_a_path_not_a_record) ... ERROR
+test_status_includes_ignored_data_as_untracked (__main__.WorkspaceGitTests.test_status_includes_ignored_data_as_untracked) ... ERROR
+test_status_is_live_and_does_not_refresh_the_index (__main__.WorkspaceGitTests.test_status_is_live_and_does_not_refresh_the_index) ... ERROR
+test_status_observes_external_head_branch_detachment_and_unborn_branch (__main__.WorkspaceGitTests.test_status_observes_external_head_branch_detachment_and_unborn_branch) ... ERROR
+test_status_preserves_unusual_paths_and_distinguishes_staged_changes (__main__.WorkspaceGitTests.test_status_preserves_unusual_paths_and_distinguishes_staged_changes) ... ERROR
+test_status_rejects_non_utf8_paths_without_poisoning_the_channel (__main__.WorkspaceGitTests.test_status_rejects_non_utf8_paths_without_poisoning_the_channel) ... FAIL
+test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) ... 
+  test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='redirect') ... ERROR
+  test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='symlink') ... ERROR
+  test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='common-redirect') ... ERROR
+  test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='common-symlink') ... ERROR
+  test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='reverse-link') ... ERROR
+test_status_reports_real_merge_conflicts (__main__.WorkspaceGitTests.test_status_reports_real_merge_conflicts) ... ERROR
+test_status_requires_a_registered_ready_worktree (__main__.WorkspaceGitTests.test_status_requires_a_registered_ready_worktree) ... ok
+test_unwitnessed_checkout_is_not_mistaken_for_a_completed_effect (__main__.WorkspaceGitTests.test_unwitnessed_checkout_is_not_mistaken_for_a_completed_effect) ... ok
+
+======================================================================
+ERROR: test_status_consumes_rename_source_as_a_path_not_a_record (__main__.WorkspaceGitTests.test_status_consumes_rename_source_as_a_path_not_a_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 161, in test_status_consumes_rename_source_as_a_path_not_a_record
+    status = self.call('git.status', worktree='work')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_includes_ignored_data_as_untracked (__main__.WorkspaceGitTests.test_status_includes_ignored_data_as_untracked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 199, in test_status_includes_ignored_data_as_untracked
+    status = self.call('git.status', worktree='work')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_is_live_and_does_not_refresh_the_index (__main__.WorkspaceGitTests.test_status_is_live_and_does_not_refresh_the_index)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 128, in test_status_is_live_and_does_not_refresh_the_index
+    clean = self.call('git.status', worktree='work')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_observes_external_head_branch_detachment_and_unborn_branch (__main__.WorkspaceGitTests.test_status_observes_external_head_branch_detachment_and_unborn_branch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 184, in test_status_observes_external_head_branch_detachment_and_unborn_branch
+    status = self.call('git.status', worktree='work')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_preserves_unusual_paths_and_distinguishes_staged_changes (__main__.WorkspaceGitTests.test_status_preserves_unusual_paths_and_distinguishes_staged_changes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 150, in test_status_preserves_unusual_paths_and_distinguishes_staged_changes
+    status = self.call('git.status', worktree='work')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='redirect')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 229, in test_status_rejects_replaced_administrative_links
+    self.assertTrue(self.call('git.status', worktree='work')['clean'])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='symlink')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 229, in test_status_rejects_replaced_administrative_links
+    self.assertTrue(self.call('git.status', worktree='work')['clean'])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='common-redirect')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 229, in test_status_rejects_replaced_administrative_links
+    self.assertTrue(self.call('git.status', worktree='work')['clean'])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='common-symlink')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 229, in test_status_rejects_replaced_administrative_links
+    self.assertTrue(self.call('git.status', worktree='work')['clean'])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_rejects_replaced_administrative_links (__main__.WorkspaceGitTests.test_status_rejects_replaced_administrative_links) (mode='reverse-link')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 229, in test_status_rejects_replaced_administrative_links
+    self.assertTrue(self.call('git.status', worktree='work')['clean'])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+ERROR: test_status_reports_real_merge_conflicts (__main__.WorkspaceGitTests.test_status_reports_real_merge_conflicts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 174, in test_status_reports_real_merge_conflicts
+    status = self.call('git.status', worktree='work')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 38, in call
+    return self.client.call(method, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: STORAGE_ERROR: Worktree common directory changed authority
+
+======================================================================
+FAIL: test_status_bounds_its_reply_and_keeps_the_channel_usable (__main__.WorkspaceGitTests.test_status_bounds_its_reply_and_keeps_the_channel_usable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 241, in test_status_bounds_its_reply_and_keeps_the_channel_usable
+    self.error('RESOURCE_EXHAUSTED', 'git.status', worktree='work')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 43, in error
+    self.assertEqual(caught.exception.code, code)
+AssertionError: 'STORAGE_ERROR' != 'RESOURCE_EXHAUSTED'
+- STORAGE_ERROR
++ RESOURCE_EXHAUSTED
+
+
+======================================================================
+FAIL: test_status_rejects_non_utf8_paths_without_poisoning_the_channel (__main__.WorkspaceGitTests.test_status_rejects_non_utf8_paths_without_poisoning_the_channel)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 207, in test_status_rejects_non_utf8_paths_without_poisoning_the_channel
+    self.error('INVALID_ARGUMENT', 'git.status', worktree='work')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py", line 43, in error
+    self.assertEqual(caught.exception.code, code)
+AssertionError: 'STORAGE_ERROR' != 'INVALID_ARGUMENT'
+- STORAGE_ERROR
++ INVALID_ARGUMENT
+
+
+----------------------------------------------------------------------
+Ran 27 tests in 13.880s
+
+FAILED (failures=2, errors=11)

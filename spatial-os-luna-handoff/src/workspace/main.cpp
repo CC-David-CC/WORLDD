@@ -23,6 +23,7 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Wo
         case wire::Request::kGitRepoImport: *reply.mutable_repository() = git.import_repository(request.git_repo_import()); break;
         case wire::Request::kGitWorktreeCreate: *reply.mutable_worktree() = git.create(request.git_worktree_create()); break;
         case wire::Request::kGitOperation: *reply.mutable_git_operation() = git.operation(request.git_operation().operation_id()); break;
+        case wire::Request::kGitStatus: *reply.mutable_git_status() = git.status(request.git_status().worktree()); break;
         case wire::Request::OPERATION_NOT_SET: throw spatial::WorldError(wire::UNKNOWN_METHOD, "No recognized broker operation");
         default: throw spatial::WorldError(wire::UNIMPLEMENTED, "Broker operation is not implemented");
         }

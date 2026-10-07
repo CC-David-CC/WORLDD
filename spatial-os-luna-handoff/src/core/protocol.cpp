@@ -221,9 +221,9 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
         case wire::Request::kGitRepoImport:
         case wire::Request::kGitWorktreeCreate:
         case wire::Request::kGitOperation:
+        case wire::Request::kGitStatus:
             if (!broker) throw WorldError(wire::UNIMPLEMENTED, "No workspace broker configured");
             reply = broker->call(request); reply.set_request_id(request.request_id()); break;
-        case wire::Request::kGitStatus:
         case wire::Request::kGitWorktreeRemove:
         case wire::Request::kWorkspaceCreate:
         case wire::Request::kWorkspaceGet:

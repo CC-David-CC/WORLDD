@@ -1,0 +1,82 @@
+{
+  "base": "edd70d9c93e2033ad1db1bbd246cbee3b31bbae0",
+  "sources": {
+    "spatial-os-luna-handoff/CMakeLists.txt": {
+      "before": "a4d0cd32226822b31fcb00ed80c702f4e6e5d8f000dff72561e55717349e3c39",
+      "after": "36c0f6cb727c2bd7b7f47e4fb1ac5474e09ecd4116e5899bc9d3ac758cc99b44"
+    },
+    "spatial-os-luna-handoff/src/core/protocol.cpp": {
+      "before": "705cf63c4989214d484fdba03257d8c62af533d3fbf4b5e81e7a0af7e58217a1",
+      "after": "27708e3c8d2e1dc387e69ed9fefe5218d89db2bbc2749adf28d8be544b898de0"
+    },
+    "spatial-os-luna-handoff/src/platform/broker.cpp": {
+      "before": "4829aa8bc49cb58f9df3d792ea6bade7e01802266c73dec7838230b3dfa37d72",
+      "after": "fcc71005e15aeb9a95b7aae3a6e08c18f27b2171670385949b5ad4abc45758b9"
+    },
+    "spatial-os-luna-handoff/src/workspace/git.cpp": {
+      "before": "a8400f4330374ecd9327d4374419089ed083db0b5712999299c2330c3a4a84b3",
+      "after": "153aa366b6c84f5126f1181d6a1a3cf5c2260e775a6acc33025de130925abed8"
+    },
+    "spatial-os-luna-handoff/src/workspace/git.hpp": {
+      "before": "56cb9af98f58645d7ab5ebc8d0a661a0829d070531dcec125258cd495fb25565",
+      "after": "ff74fc9a66f3d1e19cdaa557c86c03452c0f50efb0519ebdcbae9df4642b7a85"
+    },
+    "spatial-os-luna-handoff/src/workspace/main.cpp": {
+      "before": "18e7f32fc1cc36a24f412b764abe542df721c9e2510b6e2c5df8ae5b64f1aef7",
+      "after": "49c188a60c5b5c881642dd2ba18f98aaa49bc9520e27c48242e904cd21390e2e"
+    },
+    "spatial-os-luna-handoff/tests/core/test_workspace_git.py": {
+      "before": "06e8493e558b4f9e39e95b10cc5e51016bb92ef14433c8361c8e8c05e33acd0f",
+      "after": "10b4a1a550c314918540eaf20a4e27b8abdd00a725b56c437f47f6ef4ac268f5"
+    },
+    "spatial-os-luna-handoff/src/workspace/status.cpp": {
+      "before": null,
+      "after": "f931cb1fb3b66791af9ad0b397b96b0de514556d4b7293c2a5a9d0d02addca69"
+    },
+    "spatial-os-luna-handoff/src/workspace/status.hpp": {
+      "before": null,
+      "after": "7e9d0c394a30b9bbff16d03d7ebade9580df0db0d12d652c0419ac24eb4295d9"
+    }
+  },
+  "commands": [
+    {
+      "name": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF",
+        "-DSPATIAL_INPUT_TESTS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "python3",
+        "tests/core/test_workspace_git.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/workspaced",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-git-job-probe",
+        "-v"
+      ],
+      "exit_code": 1
+    }
+  ]
+}

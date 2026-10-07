@@ -123,6 +123,125 @@ class WorkspaceGitTests(unittest.TestCase):
         self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'ready')
         self.error('OPERATION_CONFLICT', 'git.worktree.create', repo='repo', id='other', branch='other', start='main', operation_id='create')
 
+    def test_status_is_live_and_does_not_refresh_the_index(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        clean = self.call('git.status', worktree='work')
+        self.assertEqual(clean, dict(head=self.repo.head(path), branch='feature', clean=True, modified=[], untracked=[]))
+        index = Path(self.repo.run('rev-parse', '--path-format=absolute', '--git-path', 'index', cwd=path))
+        before = (index.read_bytes(), index.stat().st_mtime_ns)
+        (path / 'README.txt').write_text('changed outside the broker\n')
+        status = self.call('git.status', worktree='work')
+        self.assertEqual(status['modified'], ['README.txt'])
+        self.assertFalse(status['clean']); self.assertEqual(status['untracked'], [])
+        self.assertEqual((index.read_bytes(), index.stat().st_mtime_ns), before)
+        self.assertEqual((path / 'README.txt').read_text(), 'changed outside the broker\n')
+
+    def test_status_preserves_unusual_paths_and_distinguishes_staged_changes(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        tracked = [' two spaces ', 'tab\tname', 'line\nbreak', 'quote"name', 'back\\slash', 'caf\u00e9', '-leading']
+        for name in tracked: self.repo.write(name, 'base\n', path)
+        self.repo.run('add', '--all', cwd=path); self.repo.run('commit', '-m', 'unusual paths', cwd=path)
+        for name in tracked: self.repo.write(name, 'changed\n', path)
+        self.repo.run('rm', '--', 'README.txt', cwd=path)
+        self.repo.write('staged new', 'added\n', path); self.repo.run('add', '--', 'staged new', cwd=path)
+        untracked = ['? looks like a record\n', 'nested/untracked\tfile']
+        for name in untracked: self.repo.write(name, 'new\n', path)
+        (path / 'outside-link').symlink_to(self.repo.path / 'README.txt')
+        status = self.call('git.status', worktree='work')
+        self.assertEqual(status['modified'], sorted(tracked + ['README.txt', 'staged new']))
+        self.assertEqual(status['untracked'], sorted(untracked + ['outside-link']))
+        self.assertFalse(status['clean'])
+
+    def test_status_consumes_rename_source_as_a_path_not_a_record(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        old, new = '? old\nname', 'destination\tname'
+        self.repo.run('mv', '--', 'README.txt', old, cwd=path)
+        self.repo.run('commit', '-m', 'rename fixture', cwd=path)
+        self.repo.run('mv', '--', old, new, cwd=path)
+        status = self.call('git.status', worktree='work')
+        self.assertEqual(status['modified'], sorted([old, new]))
+        self.assertEqual(status['untracked'], []); self.assertFalse(status['clean'])
+
+    def test_status_reports_real_merge_conflicts(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        self.repo.run('switch', '-c', 'other', cwd=path)
+        self.repo.write('README.txt', 'other\n', path)
+        self.repo.run('commit', '-am', 'other edit', cwd=path)
+        self.repo.run('switch', 'feature', cwd=path)
+        self.repo.write('README.txt', 'feature\n', path)
+        self.repo.run('commit', '-am', 'feature edit', cwd=path)
+        self.assertEqual(self.repo.run('merge', 'other', cwd=path, check=False).returncode, 1)
+        status = self.call('git.status', worktree='work')
+        self.assertEqual(status['modified'], ['README.txt'])
+        self.assertEqual(status['untracked'], []); self.assertFalse(status['clean'])
+        self.assertIn('<<<<<<<', (path / 'README.txt').read_text())
+
+    def test_status_observes_external_head_branch_detachment_and_unborn_branch(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        self.repo.write('README.txt', 'external commit\n', path)
+        self.repo.run('commit', '-am', 'external', cwd=path)
+        self.repo.run('switch', '-c', 'external/branch', cwd=path)
+        status = self.call('git.status', worktree='work')
+        self.assertEqual(status['head'], self.repo.head(path)); self.assertNotEqual(status['head'], work['head'])
+        self.assertEqual(status['branch'], 'external/branch'); self.assertTrue(status['clean'])
+        self.repo.run('switch', '--detach', cwd=path)
+        self.assertEqual(self.call('git.status', worktree='work')['branch'], '')
+        self.repo.run('switch', '--orphan', 'new-history', cwd=path)
+        status = self.call('git.status', worktree='work')
+        self.assertEqual(status['head'], ''); self.assertEqual(status['branch'], 'new-history')
+        self.assertTrue(status['clean'])
+
+    def test_status_includes_ignored_data_as_untracked(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        self.repo.write('.gitignore', 'cache/\n*.secret\n', path)
+        self.repo.run('add', '--', '.gitignore', cwd=path); self.repo.run('commit', '-m', 'ignore fixture', cwd=path)
+        self.repo.write('cache/data', 'valuable cache\n', path); self.repo.write('local.secret', 'private data\n', path)
+        status = self.call('git.status', worktree='work')
+        self.assertEqual(status['modified'], []); self.assertEqual(status['untracked'], ['cache/', 'local.secret'])
+        self.assertFalse(status['clean'])
+
+    def test_status_rejects_non_utf8_paths_without_poisoning_the_channel(self):
+        self.imported(); work = self.create()
+        name = os.fsencode(work['path']) + b'/non-utf8-\xff'
+        with open(name, 'wb') as output: output.write(b'preserve this data')
+        self.error('INVALID_ARGUMENT', 'git.status', worktree='work')
+        with open(name, 'rb') as source: self.assertEqual(source.read(), b'preserve this data')
+        os.unlink(name)
+        self.assertTrue(self.call('git.status', worktree='work')['clean'])
+
+    def test_status_rejects_replaced_administrative_links(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        link = path / '.git'; original = link.read_bytes()
+        admin = Path(original.decode().removeprefix('gitdir: ').rstrip('\n'))
+        canary = self.repo.path / 'README.txt'; before = canary.read_bytes()
+        for mode in ['redirect', 'symlink', 'common-redirect', 'common-symlink', 'reverse-link']:
+            with self.subTest(mode=mode):
+                target = link if mode in ['redirect', 'symlink'] else admin / ('gitdir' if mode == 'reverse-link' else 'commondir')
+                previous = target.read_bytes()
+                target.unlink()
+                if mode == 'symlink': target.symlink_to(self.repo.path / '.git/HEAD')
+                elif mode == 'common-symlink': target.symlink_to(self.repo.path / '.git/HEAD')
+                elif mode == 'redirect': target.write_text('gitdir: ' + str(self.repo.path / '.git') + '\n')
+                else: target.write_text(str(self.repo.path / '.git') + '\n')
+                try: self.error('STORAGE_ERROR', 'git.status', worktree='work')
+                finally: target.unlink(); target.write_bytes(previous)
+                self.assertEqual(canary.read_bytes(), before)
+                self.assertTrue(self.call('git.status', worktree='work')['clean'])
+
+    def test_status_requires_a_registered_ready_worktree(self):
+        self.error('NOT_FOUND', 'git.status', worktree='absent')
+        self.imported(); self.deny_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        self.error('STORAGE_ERROR', 'git.status', worktree='work')
+
+    def test_status_bounds_its_reply_and_keeps_the_channel_usable(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        files = [path / (str(i).zfill(5) + '-' + 'x' * 230) for i in range(4500)]
+        for item in files: item.touch()
+        self.error('RESOURCE_EXHAUSTED', 'git.status', worktree='work')
+        self.assertEqual(len(list(path.iterdir())), len(files) + 2)
+        self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'ready')
+
     def test_git_completion_before_failed_registry_ack_is_reconciled(self):
         backing = self.imported(); self.deny_ready()
         self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')

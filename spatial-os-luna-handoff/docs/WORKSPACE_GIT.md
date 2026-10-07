@@ -1,7 +1,8 @@
 # Workspace Git creation
 
 This increment implements real repository import and worktree creation through workspaced.
-Workspace membership, selection, application launch, Git status, and worktree removal remain incomplete.
+Live Git status is now qualified in [WORKSPACE_STATUS.md](WORKSPACE_STATUS.md).
+Workspace membership, selection, application launch, and worktree removal remain incomplete.
 The P08 phase is not complete.
 
 ## Authority and process ownership
@@ -89,7 +90,7 @@ This administrative command wrapper is not application confinement.
 Generic workspace processes remain unimplemented.
 Namespaces, profiles, device restrictions, resource limits, X authority, and independent escape tests remain required.
 
-## Qualification
+## Creation qualification
 
 Both hosts passed Debug and ASan/UBSan qualification for this increment.
 Each run passed 152 core checks, including seventeen broker counterexamples, and 43 harness checks.
@@ -122,4 +123,6 @@ Sanitizers cover the broker, runtime, and compositor, not the private XLibre ser
 Locked acceptance tests, their oracles, the native witness, and the protobuf contract remain unchanged in this increment.
 No host configuration or operator session changed.
 Full Spatial-M1 and hardware qualification remain pending.
-Next: implement Git status from current independent Git output, including unusual paths and external commits.
+The subsequent status increment observes independent Git changes and unusual paths.
+See WORKSPACE_STATUS.md for its qualification evidence and current counts.
+Next: implement conservative worktree removal with dirty-file protection and effect recovery.

@@ -1,0 +1,24 @@
+{
+  "kind": "production-acceptance",
+  "through": "P08",
+  "diagnostic_only": true,
+  "status": "failed",
+  "utc": "2026-10-07T14:41:39.221730+00:00",
+  "selected": 1,
+  "executed": 1,
+  "total_baseline": 151,
+  "not_selected": 150,
+  "tests": [
+    {
+      "test": "tests.acceptance.test_08_git_processes.GitTests.test_untracked_and_modified_are_distinct",
+      "phase": "P08",
+      "primitive": "git.actual_status",
+      "status": "error",
+      "seconds": 0.481903
+    }
+  ],
+  "hardware_certified": false,
+  "sut_argv": [
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host"
+  ]
+}

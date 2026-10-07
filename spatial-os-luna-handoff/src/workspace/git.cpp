@@ -1,5 +1,6 @@
 #include "workspace/git.hpp"
 #include "workspace/git_command.hpp"
+#include "workspace/status.hpp"
 #include "world/store.hpp"
 #include <sqlite3.h>
 #include <fcntl.h>
@@ -9,6 +10,7 @@
 #include <cerrno>
 #include <optional>
 #include <set>
+#include <fstream>
 
 namespace spatial {
 namespace {
@@ -152,6 +154,39 @@ struct WorkspaceGit::Impl {
         wire::WorktreeReply out;
         if (!out.ParseFromString(q.text(0))) throw WorldError(wire::STORAGE_ERROR, "Invalid stored Git result");
         validate_message(out); managed(out.path(), "worktrees"); return out;
+    }
+    std::string link_text(const std::filesystem::path& path) {
+        if (!std::filesystem::is_regular_file(std::filesystem::symlink_status(path)) || std::filesystem::file_size(path) > 16384)
+            throw WorldError(wire::STORAGE_ERROR, "Unexpected Git administrative link");
+        std::ifstream input(path, std::ios::binary);
+        std::string bytes((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
+        if (!input || bytes.find('\0') != std::string::npos) throw WorldError(wire::STORAGE_ERROR, "Cannot read Git administrative link");
+        return line(bytes);
+    }
+    wire::WorktreeReply worktree(const std::string& id) {
+        valid_text(id);
+        Query q(db.get(), "SELECT repo,branch,path,head,state FROM worktrees WHERE id=?"); q.text(1, id);
+        if (q.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Worktree not registered");
+        if (q.text(4) != "ready") throw WorldError(wire::STORAGE_ERROR, "Worktree effect is pending or uncertain");
+        wire::WorktreeReply out; out.set_id(id); out.set_repo(q.text(0)); out.set_branch(q.text(1)); out.set_path(q.text(2)); out.set_head(q.text(3));
+        const auto directory = managed(out.path(), "worktrees");
+        const auto repo = repository(out.repo());
+        const auto link = link_text(directory / ".git");
+        if (!link.starts_with("gitdir: ")) throw WorldError(wire::STORAGE_ERROR, "Invalid worktree administrative link");
+        std::filesystem::path admin(link.substr(8));
+        if (admin.is_relative()) admin = directory / admin;
+        admin = admin.lexically_normal();
+        const auto expected_parent = std::filesystem::path(repo.path()) / "worktrees";
+        if (admin.parent_path() != expected_parent || std::filesystem::canonical(admin) != admin ||
+            link_text(admin / "gitdir") != (directory / ".git").string())
+            throw WorldError(wire::STORAGE_ERROR, "Worktree administrative link changed authority");
+        auto common = (admin / link_text(admin / "commondir")).lexically_normal();
+        // Git writes ../.. here. Lexical normalization retains a trailing separator.
+        if (common.filename().empty()) common = common.parent_path();
+        if (common != repo.path()) throw WorldError(wire::STORAGE_ERROR, "Worktree common directory changed authority");
+        const auto actual = line(checked(directory, {"rev-parse", "--path-format=absolute", "--git-common-dir"}));
+        if (actual != repo.path()) throw WorldError(wire::STORAGE_ERROR, "Git resolved another execution authority");
+        return out;
     }
     bool matches(const wire::WorktreeReply& record) {
         const auto repo = repository(record.repo());
@@ -297,5 +332,9 @@ wire::GitOperationReply WorkspaceGit::operation(const std::string& id) {
     valid_text(id); Query q(impl_->db.get(), "SELECT state FROM operations WHERE id=?"); q.text(1, id);
     if (q.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Git operation not found");
     wire::GitOperationReply out; out.set_state(q.text(0)); return out;
+}
+wire::GitStatusReply WorkspaceGit::status(const std::string& id) {
+    const auto worktree = impl_->worktree(id);
+    return parse_git_status(checked(worktree.path(), {"status", "--porcelain=v2", "--branch", "-z", "--untracked-files=all", "--ignored=matching"}));
 }
 }

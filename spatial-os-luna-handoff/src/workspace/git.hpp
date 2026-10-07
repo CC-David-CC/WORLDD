@@ -13,6 +13,7 @@ public:
     WorkspaceGit& operator=(const WorkspaceGit&) = delete;
     wire::RepositoryReply import_repository(const wire::RepositoryImportRequest& request);
     wire::WorktreeReply create(const wire::WorktreeCreateRequest& request);
+    wire::GitStatusReply status(const std::string& id);
     wire::GitOperationReply operation(const std::string& id);
 private:
     struct Impl;
