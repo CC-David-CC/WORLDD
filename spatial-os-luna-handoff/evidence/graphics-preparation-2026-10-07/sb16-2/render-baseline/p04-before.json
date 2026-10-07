@@ -1,0 +1,24 @@
+{
+  "kind": "production-acceptance",
+  "through": "P04",
+  "diagnostic_only": true,
+  "status": "failed",
+  "utc": "2026-10-07T07:35:06.491563+00:00",
+  "selected": 1,
+  "executed": 1,
+  "total_baseline": 141,
+  "not_selected": 140,
+  "tests": [
+    {
+      "test": "tests.acceptance.test_04_render.RenderTests.test_frame_is_readable_and_has_monotonic_identity",
+      "phase": "P04",
+      "primitive": "render.real_frame",
+      "status": "error",
+      "seconds": 0.064158
+    }
+  ],
+  "hardware_certified": false,
+  "sut_argv": [
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host"
+  ]
+}

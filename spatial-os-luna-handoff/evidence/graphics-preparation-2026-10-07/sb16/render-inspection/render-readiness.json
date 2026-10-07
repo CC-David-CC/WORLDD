@@ -1,0 +1,68 @@
+{
+  "packages": {
+    "argv": [
+      "dpkg-query",
+      "-W",
+      "libx11-dev",
+      "libxi-dev",
+      "libxcomposite-dev",
+      "libxdamage-dev",
+      "libxfixes-dev",
+      "libxrandr-dev",
+      "libgl-dev",
+      "libglew-dev",
+      "libegl-dev",
+      "xvfb",
+      "xauth",
+      "mesa-utils",
+      "libspnav-dev"
+    ],
+    "code": 1,
+    "stdout": "mesa-utils\t\nxauth\t1:1.1.2-1build1\n",
+    "stderr": "dpkg-query: no packages found matching libx11-dev\ndpkg-query: no packages found matching libxi-dev\ndpkg-query: no packages found matching libxcomposite-dev\ndpkg-query: no packages found matching libxdamage-dev\ndpkg-query: no packages found matching libxfixes-dev\ndpkg-query: no packages found matching libxrandr-dev\ndpkg-query: no packages found matching libgl-dev\ndpkg-query: no packages found matching libglew-dev\ndpkg-query: no packages found matching libegl-dev\ndpkg-query: no packages found matching xvfb\ndpkg-query: no packages found matching libspnav-dev\n"
+  },
+  "gpu": {
+    "argv": [
+      "nvidia-smi",
+      "--query-gpu=name,memory.total,driver_version",
+      "--format=csv,noheader"
+    ],
+    "code": 0,
+    "stdout": "NVIDIA GeForce GTX 1060, 6144 MiB, 580.178.04\n",
+    "stderr": ""
+  },
+  "displays": {
+    "argv": [
+      "ls",
+      "-l",
+      "/tmp/.X11-unix"
+    ],
+    "code": 0,
+    "stdout": "total 0\nsrwxrwxrwx 1 dflanag3 dflanag3 0 Oct  6 19:59 X1\n",
+    "stderr": ""
+  },
+  "sessions": {
+    "argv": [
+      "loginctl",
+      "list-sessions",
+      "--no-legend"
+    ],
+    "code": 0,
+    "stdout": "  2 1000 dflanag3 seat0 tty2 active yes 6h ago\n215 1000 dflanag3 -     -    active no  -\n",
+    "stderr": ""
+  },
+  "graphics_packages": {
+    "argv": [
+      "pkg-config",
+      "--modversion",
+      "x11",
+      "gl",
+      "xcomposite",
+      "xdamage",
+      "xi"
+    ],
+    "code": 1,
+    "stdout": "",
+    "stderr": "Package x11 was not found in the pkg-config search path.\nPerhaps you should add the directory containing `x11.pc'\nto the PKG_CONFIG_PATH environment variable\nPackage 'x11', required by 'virtual:world', not found\nPackage 'gl', required by 'virtual:world', not found\nPackage 'xcomposite', required by 'virtual:world', not found\nPackage 'xdamage', required by 'virtual:world', not found\nPackage 'xi', required by 'virtual:world', not found\n"
+  }
+}

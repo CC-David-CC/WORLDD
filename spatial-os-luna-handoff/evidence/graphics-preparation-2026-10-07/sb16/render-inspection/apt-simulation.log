@@ -1,0 +1,86 @@
+NOTE: This is only a simulation!
+      apt-get needs root privileges for real execution.
+      Keep also in mind that locking is deactivated,
+      so don't depend on the relevance to the real current situation!
+Reading package lists...
+Building dependency tree...
+Reading state information...
+xauth is already the newest version (1:1.1.2-1build1).
+xauth set to manually installed.
+The following additional packages will be installed:
+  libglew2.2 libglu1-mesa-dev libglx-dev libopengl-dev libpciaccess0
+  libpthread-stubs0-dev libxau-dev libxcb1-dev libxdmcp-dev libxext-dev
+  libxrender-dev mesa-utils-bin x11proto-dev xorg-sgml-doctools xserver-common
+  xserver-xephyr xserver-xorg-core xserver-xorg-legacy xtrans-dev
+Suggested packages:
+  glew-utils libx11-doc libxcb-doc libxext-doc xfonts-100dpi | xfonts-75dpi
+The following NEW packages will be installed:
+  libgl-dev libglew-dev libglew2.2 libglu1-mesa-dev libglx-dev libopengl-dev
+  libpthread-stubs0-dev libx11-dev libxau-dev libxcb1-dev libxcomposite-dev
+  libxdamage-dev libxdmcp-dev libxext-dev libxfixes-dev libxi-dev
+  libxrandr-dev libxrender-dev libxtst-dev mesa-utils mesa-utils-bin
+  x11proto-dev xorg-sgml-doctools xtrans-dev xvfb
+The following packages will be upgraded:
+  libpciaccess0 xserver-common xserver-xephyr xserver-xorg-core
+  xserver-xorg-legacy
+5 upgraded, 25 newly installed, 0 to remove and 99 not upgraded.
+Inst xorg-sgml-doctools (1:1.11-1.1 Ubuntu:24.04/noble [all])
+Inst x11proto-dev (2023.2-1 Ubuntu:24.04/noble [all])
+Inst libxau-dev (1:1.0.9-1build6 Ubuntu:24.04/noble [amd64])
+Inst libxdmcp-dev (1:1.1.3-0ubuntu6 Ubuntu:24.04/noble [amd64])
+Inst xtrans-dev (1.4.0-1 Ubuntu:24.04/noble [all])
+Inst libpthread-stubs0-dev (0.4-1build3 Ubuntu:24.04/noble [amd64])
+Inst libxcb1-dev (1.15-1ubuntu2 Ubuntu:24.04/noble [amd64])
+Inst libx11-dev (2:1.8.7-1build1 Ubuntu:24.04/noble [amd64])
+Inst libglx-dev (1.7.0-1build1 Ubuntu:24.04/noble [amd64])
+Inst libgl-dev (1.7.0-1build1 Ubuntu:24.04/noble [amd64])
+Inst libglew2.2 (2.2.0-4build1 Ubuntu:24.04/noble [amd64])
+Inst libopengl-dev (1.7.0-1build1 Ubuntu:24.04/noble [amd64])
+Inst libglu1-mesa-dev (9.0.2-1.1build1 Ubuntu:24.04/noble [amd64])
+Inst libglew-dev (2.2.0-4build1 Ubuntu:24.04/noble [amd64])
+Inst libpciaccess0 [0.17-3ubuntu0.24.04.2] (0.17-3ubuntu0.24.04.3 Ubuntu:24.04/noble-updates [amd64])
+Inst libxfixes-dev (1:6.0.0-2build1 Ubuntu:24.04/noble [amd64])
+Inst libxext-dev (2:1.3.4-1build2 Ubuntu:24.04/noble [amd64])
+Inst libxcomposite-dev (1:0.4.5-1build3 Ubuntu:24.04/noble [amd64])
+Inst libxdamage-dev (1:1.1.6-1build1 Ubuntu:24.04/noble [amd64])
+Inst libxi-dev (2:1.8.1-1build1 Ubuntu:24.04/noble [amd64])
+Inst libxrender-dev (1:0.9.10-1.1build1 Ubuntu:24.04/noble [amd64])
+Inst libxrandr-dev (2:1.5.2-2build1 Ubuntu:24.04/noble [amd64])
+Inst libxtst-dev (2:1.2.3-1.1build1 Ubuntu:24.04/noble [amd64])
+Inst mesa-utils-bin (9.0.0-2 Ubuntu:24.04/noble [amd64])
+Inst xserver-common [2:21.1.12-1ubuntu1.6] (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [all])
+Inst xserver-xephyr [2:21.1.12-1ubuntu1.6] (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [amd64])
+Inst xserver-xorg-legacy [2:21.1.12-1ubuntu1.6] (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [amd64])
+Inst xserver-xorg-core [2:21.1.12-1ubuntu1.6] (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [amd64])
+Inst xvfb (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [amd64])
+Inst mesa-utils (9.0.0-2 Ubuntu:24.04/noble [amd64])
+Conf xorg-sgml-doctools (1:1.11-1.1 Ubuntu:24.04/noble [all])
+Conf x11proto-dev (2023.2-1 Ubuntu:24.04/noble [all])
+Conf libxau-dev (1:1.0.9-1build6 Ubuntu:24.04/noble [amd64])
+Conf libxdmcp-dev (1:1.1.3-0ubuntu6 Ubuntu:24.04/noble [amd64])
+Conf xtrans-dev (1.4.0-1 Ubuntu:24.04/noble [all])
+Conf libpthread-stubs0-dev (0.4-1build3 Ubuntu:24.04/noble [amd64])
+Conf libxcb1-dev (1.15-1ubuntu2 Ubuntu:24.04/noble [amd64])
+Conf libx11-dev (2:1.8.7-1build1 Ubuntu:24.04/noble [amd64])
+Conf libglx-dev (1.7.0-1build1 Ubuntu:24.04/noble [amd64])
+Conf libgl-dev (1.7.0-1build1 Ubuntu:24.04/noble [amd64])
+Conf libglew2.2 (2.2.0-4build1 Ubuntu:24.04/noble [amd64])
+Conf libopengl-dev (1.7.0-1build1 Ubuntu:24.04/noble [amd64])
+Conf libglu1-mesa-dev (9.0.2-1.1build1 Ubuntu:24.04/noble [amd64])
+Conf libglew-dev (2.2.0-4build1 Ubuntu:24.04/noble [amd64])
+Conf libpciaccess0 (0.17-3ubuntu0.24.04.3 Ubuntu:24.04/noble-updates [amd64])
+Conf libxfixes-dev (1:6.0.0-2build1 Ubuntu:24.04/noble [amd64])
+Conf libxext-dev (2:1.3.4-1build2 Ubuntu:24.04/noble [amd64])
+Conf libxcomposite-dev (1:0.4.5-1build3 Ubuntu:24.04/noble [amd64])
+Conf libxdamage-dev (1:1.1.6-1build1 Ubuntu:24.04/noble [amd64])
+Conf libxi-dev (2:1.8.1-1build1 Ubuntu:24.04/noble [amd64])
+Conf libxrender-dev (1:0.9.10-1.1build1 Ubuntu:24.04/noble [amd64])
+Conf libxrandr-dev (2:1.5.2-2build1 Ubuntu:24.04/noble [amd64])
+Conf libxtst-dev (2:1.2.3-1.1build1 Ubuntu:24.04/noble [amd64])
+Conf mesa-utils-bin (9.0.0-2 Ubuntu:24.04/noble [amd64])
+Conf xserver-common (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [all])
+Conf xserver-xephyr (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [amd64])
+Conf xserver-xorg-legacy (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [amd64])
+Conf xserver-xorg-core (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [amd64])
+Conf xvfb (2:21.1.12-1ubuntu1.8 Ubuntu:24.04/noble-updates [amd64])
+Conf mesa-utils (9.0.0-2 Ubuntu:24.04/noble [amd64])

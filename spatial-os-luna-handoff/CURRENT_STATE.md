@@ -82,8 +82,10 @@ The corresponding evidence remains in evidence/worldd-2026-10-07 and evidence/co
 P04 adds the actual compositor and matching render/selection behavior.
 Use an explicitly dedicated display.
 Both hosts have a GTX 1060 with 6 GB VRAM.
-Read-only inspection found the graphics development packages and Xvfb missing.
-Their installation and recovery records belong to the P04 preparation stage.
+Graphics development packages and Xvfb are now installed on both hosts.
+Authenticated disposable displays reported Mesa llvmpipe OpenGL 4.5.
+The first P04 diagnostic failed at the unimplemented render.capture operation.
+See docs/GRAPHICS_PREPARATION.md for package changes, recovery records, and test-display commands.
 
 Workspace Git integration, confinement, cabinets, XLibre security, shared-world networking,
 model-driven actors, application restoration, and native hardware acceptance remain pending.
