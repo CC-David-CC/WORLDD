@@ -1,0 +1,335 @@
+{
+  "model": "qwen3.8-flash-next-iq3_s",
+  "endpoint": "http://10.0.7.63:8080/v1/chat/completions",
+  "execution_host": "sb16",
+  "credential_recorded": false,
+  "automatic_patch_application": false,
+  "requests": [
+    {
+      "file": "CMakeLists.txt",
+      "request_source_sha256": "bfd3b1a9df42da9a408d0e7dfb92d638a05d44f696a4ec560ebff8051527c5e0",
+      "record": "local/peer/round1/CMakeLists.txt.json",
+      "record_sha256": "ed5d29de59f94203626e7da2c12265ff07d072fb424b47a05f22d0b3c7e59799",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "CURRENT_STATE.md",
+      "request_source_sha256": "eaf3603dd6a6007560f27fd8a10ad1cf7937c0f1267585d81ec822398f7dd8bb",
+      "record": "local/peer/round1/CURRENT_STATE.md.json",
+      "record_sha256": "672ccbdc86e0139cbec47575ea254bdc7d591c862fc2bf69bd15352be4ce7318",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "proto/spatial/core/v1/core.proto",
+      "request_source_sha256": "0776b92e3b929f81378f4acfb790e4260f57740c4463a86f10e2f3733110efdc",
+      "record": "local/peer/round1/proto__spatial__core__v1__core.proto.json",
+      "record_sha256": "969d7f235c889f70a59025e331db9de89aae0a3395c9c266b57acc8e50a21951",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "src/core/geometry.cpp",
+      "request_source_sha256": "109c1111a03e319581b096a0a61a262f603249867773e0f2d87230f44c10d3a6",
+      "record": "local/peer/round1/src__core__geometry.cpp.json",
+      "record_sha256": "4fa8f935275a9a3abdb9a46522efabeb222a10f7a6a62dbce13d074c62acbf54",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "src/core/geometry.hpp",
+      "request_source_sha256": "1a05373eda75c51dc1b0163dd90fb7e3f19dcff8ad155006e2bedd5db96db7d2",
+      "record": "local/peer/round1/src__core__geometry.hpp.json",
+      "record_sha256": "efa899f21a4d14297efdfb64d1c91d0f9f5aaac66b233076c4bf50e0eabc2400",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "src/core/protocol.cpp",
+      "request_source_sha256": "721dd7001bcc2299bf7011e5204bd6b9e1e2c68a55b304cde8377dfdef0fe394",
+      "record": "local/peer/round1/src__core__protocol.cpp.json",
+      "record_sha256": "5e9a42fa6592d24f3963f55945c7c080eb3ad97e8e6ca991dd13d3b4fed1d233",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "src/core/protocol.hpp",
+      "request_source_sha256": "0463315a5c2f84ae7cf70e29a3a450bcb13024f936d4a601ef1ae1a0a470f4c5",
+      "record": "local/peer/round1/src__core__protocol.hpp.json",
+      "record_sha256": "0c50fd2941e2c8c8760c11bd1dcb4c640a8c8a1dabda8728f5564dba26117c5a",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "src/testing/main.cpp",
+      "request_source_sha256": "c9c597082e5becbeee3845555b617200736c1d87d2cd600f269ceb68f8804486",
+      "record": "local/peer/round1/src__testing__main.cpp.json",
+      "record_sha256": "3663ddb0dd918b4af66af3fabd49acd32c63551ce159c9a647ad9118db3bc717",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "tests/core/test_protocol.py",
+      "request_source_sha256": "1ef97d2dcd11d030ae2476ca7403f0b185dfcefa73401375cd8c1843640b7648",
+      "record": "local/peer/round1/tests__core__test_protocol.py.json",
+      "record_sha256": "eca7fcc162b9fd945975332d6199ad70d6c729e061268c3e2e059abdbdc37d43",
+      "finish_reason": "length",
+      "response_received": true
+    },
+    {
+      "file": "tools/bootstrap_core.sh",
+      "request_source_sha256": "7c77e175d5f5c7c0faa48c150950f453c0265bb08d5b5c2d2a7292875fbdd8b5",
+      "record": "local/peer/round1/tools__bootstrap_core.sh.json",
+      "record_sha256": "0acf43080acd9981687016c19518e2b0fb6bd239226b710963f618bab1e2928f",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "tools/qualify_core.py",
+      "request_source_sha256": "c31c6d9e45183098fa522a8184587e38d2bca8b36d4707afb77f9e80a21da283",
+      "record": "local/peer/round1/tools__qualify_core.py.json",
+      "record_sha256": "e5e2c2ba1c3af1a264405a1925c85c0c4d1a7955bd4cdf12f02614d8d03cae2f",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "AGENTS.md",
+      "request_source_sha256": "3273e58ed088e3468167a013d6a5003ea8609616f0bddd53eb5486e9dcee5e3a",
+      "record": "local/peer/round2/AGENTS.md.json",
+      "record_sha256": "47d27820ba466fcfaad2aae09137a077e7da601f0dab4d2c27ab1f1b31d1ed27",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "CMakeLists.txt",
+      "request_source_sha256": "8f12f5d5f7e8ca9caab5ec9b76ef26338831d763ccc42a37d8db8eae1b66d6e7",
+      "record": "local/peer/round2/spatial-os-luna-handoff__CMakeLists.txt.json",
+      "record_sha256": "86c3d5b547f90111754bf1435f76b6521f8aaf4f5a27a8fd404c450f9315ac25",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "CURRENT_STATE.md",
+      "request_source_sha256": "7a858df5b0b91e63967d073c02a68223ea4909b877a9d8a2ca5a35e532c158bf",
+      "record": "local/peer/round2/spatial-os-luna-handoff__CURRENT_STATE.md.json",
+      "record_sha256": "2748213e7b4b60bb29a7a6ef7e68adf2365f522bcdab271ee8435c991212936f",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "acceptance.lock.json",
+      "request_source_sha256": "7da198960d9a731644bfeb6b7112461b9e3fd74d90d80e3c3709404372a3b8b3",
+      "record": "local/peer/round2/spatial-os-luna-handoff__acceptance.lock.json.json",
+      "record_sha256": "93ffd1140dfb4067761e14a1638c0d35d8c8cbfeb72fb470e46f228869507d39",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "docs/CONTRACT.md",
+      "request_source_sha256": "807891691549bb63eb6ca9af6afa43a33f2bacf9317f62aa73b2764bd7c88f4b",
+      "record": "local/peer/round2/spatial-os-luna-handoff__docs__CONTRACT.md.json",
+      "record_sha256": "31f42b101e1f5bdaaa185a8daa3a4302f98bbc7ad3234b0027a3bac1f81e64db",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "docs/PROTOBUF_MIGRATION.md",
+      "request_source_sha256": "efb1f76978e8ca323ca69128568efabb743f27ee894b276b59483bb5b6e4e28d",
+      "record": "local/peer/round2/spatial-os-luna-handoff__docs__PROTOBUF_MIGRATION.md.json",
+      "record_sha256": "4b33e594cf4b848f384e7d161d0b4483ed4196fbca63a3e6ca056d7e4219474d",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "harness/base.py",
+      "request_source_sha256": "2d0ecb0407268a4192747f82493bbc0e3d5f941005bf6e5e92a3ce06a8574dd0",
+      "record": "local/peer/round2/spatial-os-luna-handoff__harness__base.py.json",
+      "record_sha256": "1e61dffb27199f3564fc596e8f7e5bb7f09a2147aeb489560ca95150ac8a45c7",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "harness/rpc.py",
+      "request_source_sha256": "c2efc13502c4ad71fdc90c79fbb2d3107c2fab6647e143b8eec45efcce1c74ee",
+      "record": "local/peer/round2/spatial-os-luna-handoff__harness__rpc.py.json",
+      "record_sha256": "5e4a5c138941d2bc43a1f591b3e2dc59c4f6ef285cf8b7a63b8acf98f758bcd6",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "harness/wire.py",
+      "request_source_sha256": "75be9141a299ef117768cf9c0424210f33f57443c3d3bc225ba4e1585d606160",
+      "record": "local/peer/round2/spatial-os-luna-handoff__harness__wire.py.json",
+      "record_sha256": "2c24cca7e06f5bbcb33b89c892f4902172e0c381340126231cad53735ef617b7",
+      "finish_reason": "length",
+      "response_received": true
+    },
+    {
+      "file": "src/core/protocol.cpp",
+      "request_source_sha256": "ca65bdf2bb8a01d07301f282257386d5cebff5bf041a9431e0852f0a70afd815",
+      "record": "local/peer/round2/spatial-os-luna-handoff__src__core__protocol.cpp.json",
+      "record_sha256": "d03407d999fb3ca29fd5c8eac01aabe0e7d4ff89661aa07f0c1f1dd949d7407b",
+      "finish_reason": "length",
+      "response_received": true
+    },
+    {
+      "file": "src/testing/main.cpp",
+      "request_source_sha256": "62e55facfeb327d736b749bc7c3b12dde50f6a1f7576bb996de9adbc7441aba1",
+      "record": "local/peer/round2/spatial-os-luna-handoff__src__testing__main.cpp.json",
+      "record_sha256": "4d0d8079273d63fc589a35f7d1f18c5c624f97428a72ed53ad04da7910e5cab1",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "tests/acceptance/test_00_protocol.py",
+      "request_source_sha256": "34432b51bc8dde404af31884321f27705a5e227e4ecc424698030caa43b43dd3",
+      "record": "local/peer/round2/spatial-os-luna-handoff__tests__acceptance__test_00_protocol.py.json",
+      "record_sha256": "d42383bcdd87818ba6f52cd8248cc4325fbeabf37f5ff5ba8934566f3f432eaa",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "tests/core/test_protocol.py",
+      "request_source_sha256": "162b611d4c48847bb93ea0f58ddb1a5ad927f09552e3a0f61b28379924ef14ae",
+      "record": "local/peer/round2/spatial-os-luna-handoff__tests__core__test_protocol.py.json",
+      "record_sha256": "0ca41b78bef1d15cd7ed7070bca880d108ee8de77c56136efe15a100c1def295",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "tests/fixtures/transport_peer.py",
+      "request_source_sha256": "ed22fd0ba0d16d941c6bcdb071c503fab374dade9fa50aeebafc409f62a07d01",
+      "record": "local/peer/round2/spatial-os-luna-handoff__tests__fixtures__transport_peer.py.json",
+      "record_sha256": "ced550baaec17188784693d71c43b4cd8ae769ff36954dc5cc18a6f79c129713",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "tests/harness/test_transport.py",
+      "request_source_sha256": "a3277b52b0622d2ed46f10dcd3fed89989217b87c57c2af5321dce015a817523",
+      "record": "local/peer/round2/spatial-os-luna-handoff__tests__harness__test_transport.py.json",
+      "record_sha256": "80e7b9c246cb39291324ea14bb13218b21d773e2eacbf8fa8c1844d7c9dea695",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "tools/qualify_core.py",
+      "request_source_sha256": "120582666d313c354a61d50a242ee97abbc387a7f8f7202891ba86edffdec349",
+      "record": "local/peer/round2/spatial-os-luna-handoff__tools__qualify_core.py.json",
+      "record_sha256": "2719f69400ce29cc454cdfc873cdfcaf68b120d42522b1d7edef7c7291f5c0fa",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "harness/base.py",
+      "request_source_sha256": "2d0ecb0407268a4192747f82493bbc0e3d5f941005bf6e5e92a3ce06a8574dd0",
+      "record": "local/peer/round3/harness__base.py.json",
+      "record_sha256": "ed185ed1ab7103044e0611e750b479878c28cf913dfb5d19f09ec80997f2c2ee",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "harness/wire.py",
+      "request_source_sha256": "75be9141a299ef117768cf9c0424210f33f57443c3d3bc225ba4e1585d606160",
+      "record": "local/peer/round3/harness__wire.py.json",
+      "record_sha256": "d2f96161792fd0bb7de7a1493fc2ec1ac84544c075ea379e97355a5ff96a9876",
+      "finish_reason": "stop",
+      "response_received": true
+    },
+    {
+      "file": "src/core/protocol.cpp",
+      "request_source_sha256": "ca65bdf2bb8a01d07301f282257386d5cebff5bf041a9431e0852f0a70afd815",
+      "record": "local/peer/round3/src__core__protocol.cpp.json",
+      "record_sha256": "04ca97ca8a03069e9f6922bd6686e9981f6df6eb4beaa2402a4d4c00082b7ad6",
+      "finish_reason": "stop",
+      "response_received": true
+    }
+  ],
+  "files": [
+    {
+      "file": "AGENTS.md",
+      "comparison": "Kept protobuf and per-file collaborator instructions. Detailed wire rules and measured status remain in their dedicated files."
+    },
+    {
+      "file": "CMakeLists.txt",
+      "comparison": "Compared generated binding proposals. Rejected guessed schema paths. Current proposal reports no change."
+    },
+    {
+      "file": "CURRENT_STATE.md",
+      "comparison": "Accepted concise framing clarification. Kept measured counts and explicit pending runtime work."
+    },
+    {
+      "file": "acceptance.lock.json",
+      "comparison": "Rejected duplicate entries: the cited files were already present. Recomputed hashes from local bytes and preserved the original predecessor hash."
+    },
+    {
+      "file": "docs/CONTRACT.md",
+      "comparison": "Accepted complete-prefix clarification. Clarified id0 for undecodable payloads rather than the impossible proposal to recover a trusted ID from every malformed payload."
+    },
+    {
+      "file": "docs/PROTOBUF_MIGRATION.md",
+      "comparison": "Kept separate P00 and cumulative counts and the explicit user-authorized transport migration. No additional behavioral change needed."
+    },
+    {
+      "file": "harness/base.py",
+      "comparison": "Rejected speculative sequence reuse on denied calls. Supplied the exact sequence contract; local model then returned NO CHANGE."
+    },
+    {
+      "file": "harness/rpc.py",
+      "comparison": "Rejected claimed orphaned-waiter race: validation precedes pending removal, and later errors wake the popped slot. Primary review fixed final-frame serialization before waiter registration and partial writes."
+    },
+    {
+      "file": "harness/wire.py",
+      "comparison": "Requested a bounded follow-up after truncation. Local model returned NO CHANGE. Schema conversion stays separate from runtime behavior."
+    },
+    {
+      "file": "proto/spatial/core/v1/core.proto",
+      "comparison": "Kept typed operations and explicit seconds presence. Required-presence and finite checks remain in production validation."
+    },
+    {
+      "file": "src/core/geometry.cpp",
+      "comparison": "No functional defect demonstrated. Rejected an unused include and unrelated transport changes."
+    },
+    {
+      "file": "src/core/geometry.hpp",
+      "comparison": "Local proposal found no required interface correction. Pure geometry remains independent of transport."
+    },
+    {
+      "file": "src/core/protocol.cpp",
+      "comparison": "Rejected incomplete alternatives and speculative correlation changes. After the malformed-payload contract was supplied, the local model returned NO CHANGE."
+    },
+    {
+      "file": "src/core/protocol.hpp",
+      "comparison": "Used the actual generated core.pb.h and the shared production request/reply interface, rather than guessed generated paths."
+    },
+    {
+      "file": "src/testing/main.cpp",
+      "comparison": "Current proposal reports no change. Kept framing in the production core and the adapter thin."
+    },
+    {
+      "file": "tests/acceptance/test_00_protocol.py",
+      "comparison": "Local proposal reports no change. Protocol assertions now exercise typed protobuf operations."
+    },
+    {
+      "file": "tests/core/test_protocol.py",
+      "comparison": "Rejected truncated proposal that skipped parse failures or relaxed response counts. Current complete review reports no change."
+    },
+    {
+      "file": "tests/fixtures/transport_peer.py",
+      "comparison": "Kept the deliberately fixed eight-message reversal batch. Rejected routing non-finite fixture data through the finite-checking writer, which would defeat the negative test."
+    },
+    {
+      "file": "tests/harness/test_transport.py",
+      "comparison": "Local proposal reports no change. Retained independent reversed-order response, EOF, timeout, corruption, and death checks."
+    },
+    {
+      "file": "tools/bootstrap_core.sh",
+      "comparison": "Used actual protobuf compiler, C++ runtime, and Python binding packages. Rejected stale JSON dependency and invented flags."
+    },
+    {
+      "file": "tools/qualify_core.py",
+      "comparison": "Rejected overwriting an existing evidence directory and removing the hello verification. New run directories and the generated protobuf hello check remain required."
+    }
+  ]
+}

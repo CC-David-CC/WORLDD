@@ -1,0 +1,77 @@
+syntax = "proto3";
+package spatial.core.v1;
+
+// Units: meters, seconds, radians. Right-handed; forward is -Z.
+// Unspecified vector components are zero. Message presence is checked separately.
+message Vec2 { double x = 1; double y = 2; }
+message Vec3 { double x = 1; double y = 2; double z = 3; }
+message Quaternion { double x = 1; double y = 2; double z = 3; double w = 4; }
+message Pose { Vec3 position = 1; Quaternion orientation = 2; }
+message PixelExtent { uint32 width = 1; uint32 height = 2; }
+message Pixel { uint32 x = 1; uint32 y = 2; }
+
+message HelloRequest {}
+message WorldGetRequest { string id = 1; }
+message PointTransformRequest { Pose pose = 1; Vec3 point = 2; }
+message UvPixelRequest { Vec2 uv = 1; PixelExtent pixels = 2; }
+message RayPanelRequest {
+  Vec3 origin = 1;
+  Vec3 direction = 2;
+  Pose pose = 3;
+  Vec2 size = 4;
+  PixelExtent pixels = 5;
+}
+message IntegrateRequest {
+  Pose pose = 1;
+  Vec3 linear = 2;
+  Vec3 angular = 3;
+  optional double seconds = 4;
+}
+
+message Request {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    HelloRequest hello = 10;
+    WorldGetRequest world_get = 11;
+    PointTransformRequest transform_point = 12;
+    PointTransformRequest inverse_point = 13;
+    UvPixelRequest uv_pixel = 14;
+    RayPanelRequest ray_panel = 15;
+    IntegrateRequest integrate = 16;
+  }
+}
+
+enum ErrorCode {
+  ERROR_CODE_UNSPECIFIED = 0;
+  INVALID_ARGUMENT = 1;
+  UNKNOWN_METHOD = 2;
+  UNIMPLEMENTED = 3;
+  INTERNAL_ERROR = 4;
+  UNSUPPORTED_VERSION = 5;
+}
+message Error { ErrorCode code = 1; string message = 2; }
+message HelloReply {
+  string protocol = 1;
+  string build_id = 2;
+  repeated string capabilities = 3;
+  string implementation = 4;
+}
+message PointReply { Vec3 point = 1; }
+// Absent pixel/hit represents a miss. Never clamp a miss to a valid target.
+message PixelReply { Pixel pixel = 1; }
+message RayHit { Vec2 uv = 1; Pixel pixel = 2; double distance = 3; }
+message RayReply { RayHit hit = 1; }
+message PoseReply { Pose pose = 1; }
+message Reply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    Error error = 3;
+    HelloReply hello = 10;
+    PointReply point = 12;
+    PixelReply pixel = 14;
+    RayReply ray = 15;
+    PoseReply pose = 16;
+  }
+}

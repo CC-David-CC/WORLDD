@@ -1,4 +1,4 @@
-"""Strict, concurrent JSON-lines transport to the real system-under-test adapter."""
+"""Concurrent, bounded protobuf transport to the production core."""
 from __future__ import annotations
 import json
 import os
@@ -9,6 +9,7 @@ import subprocess
 import threading
 import time
 from typing import Any
+from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
 
 class RpcError(RuntimeError):
     def __init__(self, code: str, message: str = "", details: Any = None):
@@ -39,7 +40,7 @@ class Client:
         self._write_lock = threading.Lock()
         self._state_lock = threading.Lock()
         self._trace_lock = threading.Lock()
-        self._pending: dict[int, queue.Queue] = {}
+        self._pending: dict[int, tuple[queue.Queue, str | None]] = {}
         self._counter, self._dead = 0, None
         self._reader = threading.Thread(target=self._read, daemon=True)
         self._reader.start()
@@ -52,54 +53,73 @@ class Client:
     def _fail(self, error: Exception) -> None:
         with self._state_lock:
             self._dead = error
-            for slot in self._pending.values():
+            for slot, _ in self._pending.values():
                 slot.put(error)
             self._pending.clear()
 
     def _read(self) -> None:
         try:
             while True:
-                raw = self.proc.stdout.readline(8 * 1024 * 1024 + 1)
-                if not raw:
-                    raise TransportError("SUT closed stdout; inspect retained stderr")
-                if not raw.endswith(b"\n") or len(raw) > 8 * 1024 * 1024:
-                    raise TransportError("Oversized or unterminated JSON response")
-                msg = json.loads(raw, parse_constant=lambda s: (_ for _ in ()).throw(ValueError(s)))
-                if not isinstance(msg, dict) or type(msg.get("id")) is not int:
-                    raise TransportError("Response must have an integer id")
-                if ("result" in msg) == ("error" in msg):
-                    raise TransportError("Response needs exactly one of result/error")
-                self._record("response", msg)
+                reply = read_message(self.proc.stdout, pb.Reply)
+                validate_reply(reply)
                 with self._state_lock:
-                    slot = self._pending.pop(msg["id"], None)
-                if slot is None:
-                    raise TransportError(f"Unsolicited, duplicate, or late response id {msg['id']}")
-                slot.put(msg)
+                    pending = self._pending.pop(reply.request_id, None)
+                if pending is None:
+                    raise TransportError(f"Unsolicited, duplicate, or late response id {reply.request_id}")
+                slot, expected = pending
+                try:
+                    outcome = reply.WhichOneof('outcome')
+                    if outcome != 'error' and outcome != expected:
+                        raise TransportError('Wrong response type for request')
+                    if outcome == 'error':
+                        if reply.error.code == pb.ERROR_CODE_UNSPECIFIED:
+                            raise TransportError('Unspecified error code')
+                        code = pb.ErrorCode.Name(reply.error.code)
+                        msg = {'id': reply.request_id, 'error': {'code': code, 'message': reply.error.message}}
+                    else:
+                        msg = {'id': reply.request_id, 'result': result_value(reply)}
+                    self._record("response", msg)
+                    slot.put(msg)
+                except Exception as exc:
+                    # The slot is already removed; wake its waiter before failing the connection.
+                    slot.put(TransportError(str(exc)))
+                    raise
         except Exception as exc:
             self._fail(exc if isinstance(exc, TransportError) else TransportError(str(exc)))
 
     def call(self, method: str, params: dict | None = None, *, timeout: float | None = None) -> Any:
+        return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+
+    def call_message(self, request: pb.Request, *, timeout: float | None = None) -> Any:
+        message = pb.Request()
+        message.CopyFrom(request)
         with self._state_lock:
             if self._dead:
                 raise self._dead
             self._counter += 1
             ident = self._counter
+            message.request_id = ident
+            # Correlation can increase the encoded size. Serialize the final
+            # message before allocating a waiter, so validation cannot leak it.
+            encoded = frame(message)
             slot: queue.Queue = queue.Queue()
-            self._pending[ident] = slot
-        msg = {"id": ident, "method": method, "params": params or {}}
-        try:
-            encoded = json.dumps(msg, allow_nan=False, separators=(",", ":")).encode() + b"\n"
-        except Exception:
-            with self._state_lock:
-                self._pending.pop(ident, None)
-            raise
+            self._pending[ident] = (slot, OUTCOMES.get(message.WhichOneof('operation')))
+        method = message.WhichOneof('operation') or 'unknown'
+        msg = {'id': ident, 'operation': method}
         try:
             with self._write_lock:
                 self._record("request", msg)
-                self.proc.stdin.write(encoded)
+                remaining = memoryview(encoded)
+                while remaining:
+                    count = self.proc.stdin.write(remaining)
+                    if not count:
+                        raise BrokenPipeError('Protobuf pipe accepted no bytes')
+                    remaining = remaining[count:]
                 self.proc.stdin.flush()
         except (BrokenPipeError, OSError) as exc:
-            raise TransportError(str(exc)) from exc
+            error = TransportError(str(exc))
+            self._fail(error)
+            raise error from exc
         try:
             reply = slot.get(timeout=self.timeout if timeout is None else timeout)
         except queue.Empty as exc:

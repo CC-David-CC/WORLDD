@@ -7,7 +7,15 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-find_package(nlohmann_json 3.11 REQUIRED)
+find_package(Protobuf 3.21 REQUIRED)
+protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1/core.proto
+    DEPENDS proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
+add_custom_target(python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py")
 
 option(SPATIAL_SANITIZERS "Enable address and undefined-behavior sanitizers" OFF)
 add_compile_options(-Wall -Wextra -Wpedantic -Werror)
@@ -19,10 +27,10 @@ endif()
 # Include all production inputs and build settings in the reported identity.
 # Reconfigure on edits as well as newly added sources. Never report only HEAD
 # for a binary that may contain uncommitted source changes.
-file(GLOB_RECURSE build_inputs CONFIGURE_DEPENDS src/*.cpp src/*.hpp)
+file(GLOB_RECURSE build_inputs CONFIGURE_DEPENDS src/*.cpp src/*.hpp proto/*.proto)
 list(APPEND build_inputs "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
 list(SORT build_inputs)
-set(build_material "${CMAKE_CXX_COMPILER_ID}:${CMAKE_CXX_COMPILER_VERSION}:${CMAKE_BUILD_TYPE}:${CMAKE_CXX_FLAGS}:${CMAKE_CXX_FLAGS_DEBUG}:${CMAKE_CXX_FLAGS_RELEASE}:${CMAKE_CXX_FLAGS_RELWITHDEBINFO}:${SPATIAL_SANITIZERS}:${nlohmann_json_VERSION}")
+set(build_material "${CMAKE_CXX_COMPILER_ID}:${CMAKE_CXX_COMPILER_VERSION}:${CMAKE_BUILD_TYPE}:${CMAKE_CXX_FLAGS}:${CMAKE_CXX_FLAGS_DEBUG}:${CMAKE_CXX_FLAGS_RELEASE}:${CMAKE_CXX_FLAGS_RELWITHDEBINFO}:${SPATIAL_SANITIZERS}:${Protobuf_VERSION}")
 foreach(input IN LISTS build_inputs)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${input}")
     file(SHA256 "${input}" input_hash)
@@ -32,9 +40,12 @@ endforeach()
 string(SHA256 build_hash "${build_material}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
 
-add_library(spatial-core STATIC src/core/protocol.cpp)
-target_include_directories(spatial-core PUBLIC src PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-target_link_libraries(spatial-core PUBLIC nlohmann_json::nlohmann_json)
+add_library(spatial-protobuf STATIC ${proto_sources} ${proto_headers})
+target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
+target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+add_library(spatial-core STATIC src/core/protocol.cpp src/core/geometry.cpp)
+target_include_directories(spatial-core PUBLIC src)
+target_link_libraries(spatial-core PUBLIC spatial-protobuf)
 add_executable(spatial-test-host src/testing/main.cpp)
 target_link_libraries(spatial-test-host PRIVATE spatial-core)
 
@@ -43,5 +54,6 @@ if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
     add_test(NAME core-protocol COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_protocol.py" $<TARGET_FILE:spatial-test-host>)
-    set_tests_properties(core-protocol PROPERTIES TIMEOUT 30)
+    set_tests_properties(core-protocol PROPERTIES TIMEOUT 30
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
 endif()

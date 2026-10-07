@@ -51,6 +51,11 @@ A GNOME development run does not replace native spatial-session acceptance.
 
 ## Core concepts
 
+Use Protocol Buffers for production messages and component interfaces.
+Keep versioned .proto schemas in Git. Generate bindings during the build.
+Use Protocol Buffers for acceptance transport too.
+Protocol Buffers do not replace authorization, validation, or transport authentication.
+
 A world owns persistent spatial reality and its admission policy.
 A room is a spatial subdivision of a world.
 A workspace owns execution authority, project context, applications, and workspace-local persistent state.
@@ -275,6 +280,10 @@ Keep bearer tokens outside AGENTS.md and Git.
 Read credentials from local configuration or environment variables.
 Use the Authorization: Bearer header with the configured credential.
 Defer further model testing until the implementation needs a model.
+For each file created or changed, request a bounded implementation proposal from the configured local model.
+Include the relevant source and requirements. Compare its proposal with the primary implementation.
+Review proposed changes and run the applicable tests before integration.
+The local model is a coding collaborator. Its response is not execution evidence.
 The current server does not enable image input.
 Verify image support later, before visual-agent acceptance.
 Health success does not prove image support or task success.

@@ -38,7 +38,7 @@ class Acceptance(unittest.TestCase):
         self.client = Client(self.argv, self.state_dir, self.run_dir,
                              timeout=float(os.environ.get("SPATIAL_RPC_TIMEOUT", "10")))
         hello = self.call("system.hello")
-        self.assertEqual(hello["protocol"], "spatial-conformance/1")
+        self.assertEqual(hello["protocol"], "spatial-protobuf/1")
         self.assertEqual(hello["implementation"], "production")
         self.assertTrue(hello["build_id"])
     def cleanup(self):

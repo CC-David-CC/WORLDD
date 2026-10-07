@@ -1,17 +1,42 @@
-# Spatial conformance contract, version 1
+# Spatial conformance contract, version 2
 
 This document and the acceptance suite specify observable behavior. Units, coordinate conventions, lifecycle semantics and independent evidence are normative. Suggested production file layout and server patch location are not.
 
 ## 1. Test-host transport
 
-The executable is launched as `spatial-test-host --state-dir ABSOLUTE_DIRECTORY`. stdin/stdout carry UTF-8 JSON lines. stderr carries diagnostics. The harness creates a unique state directory per test and retains it as evidence. The host must confine managed world databases, worktrees and captures to that directory. Reference source repositories and explicitly requested test-process output files are separate paths inside the same test run directory.
+The executable is launched as `spatial-test-host --state-dir ABSOLUTE_DIRECTORY`.
+stdin/stdout carry binary Protocol Buffers. stderr carries diagnostics.
+The harness creates a unique state directory per test and retains it as evidence.
+The host must confine managed world databases, worktrees and captures to that directory.
+Reference repositories and requested test-process outputs stay inside the same test run directory.
 
-Request: `{"id":1,"method":"world.get","params":{"id":"room-a"}}`.
-Success: `{"id":1,"result":{...}}`. Failure: `{"id":1,"error":{"code":"NOT_FOUND","message":"...","details":null}}`.
+Each frame has a four-byte unsigned big-endian length, followed by exactly that many protobuf bytes.
+The maximum payload is 1 MiB. Reject excessive lengths before allocation.
+Read the complete four-byte prefix before reading the payload.
+Truncated or excessive frames close the transport with a nonzero exit.
+Malformed protobuf payloads return INVALID_ARGUMENT; the next complete frame remains usable.
+An undecodable payload uses request_id 0 because its identity is not trusted.
+Errors for decoded requests preserve their request_id.
+Never attempt to resynchronize after an invalid frame length.
 
-Exactly one result/error per request. Responses may arrive out of order but must keep the request ID. A request has a deadline; never stall indefinitely. Reject non-finite JSON numbers, invalid shapes, invalid types, unknown fields on action payloads, and missing required fields. Diagnostic output on stdout is a transport error. IDs are integers, not booleans.
+The schema is `proto/spatial/core/v1/core.proto`.
+Requests carry protocol_version 1, a uint64 request_id, and one typed operation.
+Replies carry protocol_version 1, the same request_id, and exactly one outcome.
+Zero is a valid request ID. Responses may arrive out of order.
+Unknown fields, wrong wire types, non-finite numbers, and missing operation parameters are invalid.
+A request without a recognized operation returns UNKNOWN_METHOD.
+An unsupported version returns UNSUPPORTED_VERSION.
+A well-formed but unimplemented operation returns UNIMPLEMENTED and fails its required gate.
+Transport authentication and actor authority remain separate requirements.
 
-`system.hello {}` returns `protocol:"spatial-conformance/1"`, `implementation:"production"`, `build_id` identifying the actual build/commit, and a unique string-array `capabilities`. Do not label a test double production. An unknown method returns `UNKNOWN_METHOD`; a known method with malformed arguments returns `INVALID_ARGUMENT`. During development a well-formed but unimplemented method may return `UNIMPLEMENTED`; that fails its required gate.
+`system.hello` maps to HelloRequest.
+HelloReply returns protocol `spatial-protobuf/1`, implementation `production`, a source-derived build_id, and unique capabilities.
+Test fixtures must identify themselves as fixtures.
+Method names and dictionary examples below describe the semantic test API.
+The Python harness converts P00/P01 values to typed protobuf messages.
+It does not implement geometry or world behavior.
+Schemas and production handlers for later phases remain pending.
+Generated C++ and Python bindings use the same tracked schema; generated files remain outside Git.
 
 By P02 the host forwards authoritative world operations to the actual world daemon. By P04 it forwards rendering to the actual compositor process. Pure geometry requests call the exact library functions used in production. All production child workers remain in the host's test-owned process group. P04+ uses the explicitly selected `SPATIAL_TEST_DISPLAY`; do not adopt an arbitrary operator display or silently replace its WM. Native tests may run on a dedicated software display, but hardware certification requires a native GPU session separately.
 

@@ -1,0 +1,241 @@
+{
+  "kind": "production-acceptance",
+  "through": "P01",
+  "diagnostic_only": false,
+  "status": "passed",
+  "utc": "2026-10-07T06:06:48.778486+00:00",
+  "selected": 32,
+  "executed": 32,
+  "total_baseline": 141,
+  "not_selected": 109,
+  "tests": [
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_capabilities_are_unique_and_explicit",
+      "phase": "P00",
+      "primitive": "protocol.capabilities",
+      "status": "passed",
+      "seconds": 0.012385
+    },
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_concurrent_calls_keep_their_responses",
+      "phase": "P00",
+      "primitive": "protocol.concurrent_correlation",
+      "status": "passed",
+      "seconds": 0.025591
+    },
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_hello_has_version_and_build",
+      "phase": "P00",
+      "primitive": "protocol.handshake",
+      "status": "passed",
+      "seconds": 0.01483
+    },
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_missing_parameter_rejected",
+      "phase": "P00",
+      "primitive": "protocol.required_parameters",
+      "status": "passed",
+      "seconds": 0.014957
+    },
+    {
+      "test": "tests.acceptance.test_00_protocol.ProtocolTests.test_unknown_method_is_typed_error",
+      "phase": "P00",
+      "primitive": "protocol.unknown_method",
+      "status": "passed",
+      "seconds": 0.015026
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r0_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014966
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r0_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014998
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r1_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014969
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r1_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014957
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r2_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014999
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_r2_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014993
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t0_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014995
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t0_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014957
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t1_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014977
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t1_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014995
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t2_neg",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014618
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_axis_t2_pos",
+      "phase": "P01",
+      "primitive": "motion.six_signed_axes",
+      "status": "passed",
+      "seconds": 0.014648
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_center_ray_returns_top_left_uv_convention",
+      "phase": "P01",
+      "primitive": "geometry.ray_center",
+      "status": "passed",
+      "seconds": 0.014801
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_identity",
+      "phase": "P01",
+      "primitive": "geometry.identity",
+      "status": "passed",
+      "seconds": 0.014855
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_inverse_known_and_seeded_cases",
+      "phase": "P01",
+      "primitive": "geometry.inverse",
+      "status": "passed",
+      "seconds": 0.046978
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_negative_time_rejected",
+      "phase": "P01",
+      "primitive": "motion.invalid_time",
+      "status": "passed",
+      "seconds": 0.015014
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_parallel_behind_backface_and_outside_are_misses",
+      "phase": "P01",
+      "primitive": "geometry.ray_miss",
+      "status": "passed",
+      "seconds": 0.016313
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_q_and_negative_q_equivalent",
+      "phase": "P01",
+      "primitive": "geometry.quaternion_sign",
+      "status": "passed",
+      "seconds": 0.015289
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_rotated_panel_uses_its_local_frame",
+      "phase": "P01",
+      "primitive": "geometry.ray_rotated",
+      "status": "passed",
+      "seconds": 0.015007
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_same_twist_same_result_at_different_tick_rates",
+      "phase": "P01",
+      "primitive": "motion.partition_invariance",
+      "status": "passed",
+      "seconds": 0.099401
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_simultaneous_turn_and_forward_follow_arc",
+      "phase": "P01",
+      "primitive": "motion.se3_constant_twist",
+      "status": "passed",
+      "seconds": 0.014865
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_translation_not_direction",
+      "phase": "P01",
+      "primitive": "geometry.translation",
+      "status": "passed",
+      "seconds": 0.015005
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_uv_is_half_open_and_never_clamped_into_target",
+      "phase": "P01",
+      "primitive": "geometry.half_open_pixels",
+      "status": "passed",
+      "seconds": 0.016445
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_yaw_turns_forward_to_left",
+      "phase": "P01",
+      "primitive": "geometry.quaternion_order",
+      "status": "passed",
+      "seconds": 0.014527
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_zero_and_nonunit_quaternion_rejected",
+      "phase": "P01",
+      "primitive": "geometry.invalid_pose",
+      "status": "passed",
+      "seconds": 0.015297
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_zero_direction_and_invalid_extents",
+      "phase": "P01",
+      "primitive": "geometry.ray_validation",
+      "status": "passed",
+      "seconds": 0.015732
+    },
+    {
+      "test": "tests.acceptance.test_01_geometry.GeometryTests.test_zero_time_is_identity",
+      "phase": "P01",
+      "primitive": "motion.zero_time",
+      "status": "passed",
+      "seconds": 0.014843
+    }
+  ],
+  "hardware_certified": false,
+  "sut_argv": [
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/sanitize/spatial-test-host"
+  ]
+}
