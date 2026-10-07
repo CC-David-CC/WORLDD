@@ -17,10 +17,10 @@
     "Missing-client-certificate mutation detected"
   ],
   "limitations": [
-    "The production issuer client and authenticated world sessions remain required.",
+    "Authenticated world sessions remain required. The production client is qualified separately.",
     "Service certificates do not grant actor or owner authority.",
     "Trust changes require restart; online service-certificate revocation is not implemented.",
     "Immediate live world revocation and nonempty bootstrap profiles remain required."
   ],
-  "next_component": "identity.issuer_client"
+  "next_component": "identity.world_session"
 }

@@ -6,7 +6,7 @@ One process owns the issuer state. All connections share its policy, challenges,
 TLS service certificates authorize transport access. Owner and actor proofs still authorize their respective operations.
 Transport access does not grant world admission, workspace authority, or issuer administration.
 
-This increment supplies the server endpoint. The production issuer client remains required.
+This component supplies the server endpoint. The checked production client is specified in ISSUER_CLIENT.md.
 The endpoint does not expose the trusted world fixture API.
 Authenticated world entry and immediate cancellation of live world control remain separate integration work.
 M01 and Spatial-M1 remain incomplete.
@@ -105,4 +105,4 @@ Run all existing issuer suites and the complete P00-P10 baseline on both hosts.
 Run Debug and ASan/UBSan builds. Preserve the acceptance lock and existing assertions.
 
 Production clients must verify the server certificate, expected server name, and pinned issuer identity before sending actor data.
-Their checked reply envelopes, failure behavior, and world integration require additional qualification.
+The client contract records reply-envelope and failure qualification. Authenticated world integration remains required.

@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "python3",
+    "/home/dflanag3/src/m01-client-cross-server.py"
+  ],
+  "exit_code": 0,
+  "helper_sha256": "9019966d1417920241ddbebbcc28ef79cc99615ae7d35178ef52241ed5d9b832",
+  "helper_source": "from pathlib import Path\nimport hashlib,json,os,socket,sys,tarfile,time\np=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff');assert socket.gethostname().split('.')[0]=='sb16'\nos.umask(0o077);sys.path[:0]=[str(p/'tests/core'),str(p/'build/python'),str(p)]\nsys.argv=[sys.argv[0],str(p/'build/identityd')]\nfrom test_identity_tls import TlsFixture\nimport issuer_pb2 as pb\nfixture=TlsFixture();fixture.setUp()\nfolder=p/'local/m01-client-crosshost';folder.mkdir()\ntry:\n fixture.config.idle_timeout_ms=10000\n proc=fixture.launch('0.0.0.0')\n peer=fixture.connect()\n change=fixture.execute(peer,fixture.challenge(peer,fixture.operation(pb.APPROVE_ALWAYS,profile='empty-v1')))\n assert change.policy.policy.mode==pb.APPROVE_ALWAYS;peer.close()\n metadata={'host':'sb16','port':fixture.port,'issuer_id':fixture.info.issuer_id.hex(),'issuer_public_key':fixture.info.public_key.hex()}\n meta=fixture.root/'connection.json';meta.write_text(json.dumps(metadata))\n bundle=folder/'fixture.tar'\n with tarfile.open(bundle,'w') as archive:\n  for file in [meta,fixture.server_cert,fixture.service_cert,fixture.service_key]:archive.add(file,arcname=file.name,recursive=False)\n print('READY '+str(fixture.port),flush=True)\n deadline=time.monotonic()+180\n while not (folder/'stop').exists():\n  assert proc.poll() is None\n  if time.monotonic()>deadline:raise TimeoutError('Cross-host fixture expired')\n  time.sleep(.1)\n record={'server_host':'sb16','client_host':'sb16-2','protocol':'TLSv1.3','fixture_only':True,\n         'identityd_sha256':hashlib.sha256((p/'build/identityd').read_bytes()).hexdigest(),\n         'test_sha256':hashlib.sha256((p/'tests/core/test_issuer_client.py').read_bytes()).hexdigest()}\n (folder/'server.json').write_text(json.dumps(record,indent=2)+'\\n')\nfinally:\n fixture.doCleanups()\n if (folder/'fixture.tar').exists():(folder/'fixture.tar').unlink()\n",
+  "result": {
+    "server_host": "sb16",
+    "client_host": "sb16-2",
+    "protocol": "TLSv1.3",
+    "fixture_only": true,
+    "identityd_sha256": "124fb6fd8b5cae6fc44981f0ef39ab62e2f6090a1601b91c636218685db7a2be",
+    "test_sha256": "913418c0aa49a33340fdda744d69693a08e1415bad8c17a5f8af4f0f69c96039"
+  },
+  "fixture_cleanup": "Temporary keys, certificates, issuer database, and transfer archives removed."
+}

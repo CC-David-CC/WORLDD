@@ -1,0 +1,24 @@
+[
+  {
+    "name": "bindings",
+    "argv": [
+      "protoc",
+      "--python_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-client-contract/python",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "missing-client",
+    "argv": [
+      "python3",
+      "tests/core/test_issuer_client.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client",
+      "ClientTests.test_client_reaches_real_issuer_and_preserves_caller_request_ids"
+    ],
+    "exit_code": 1
+  }
+]

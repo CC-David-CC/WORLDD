@@ -1,0 +1,17 @@
+test_client_verifies_server_name (__main__.ClientTests.test_client_verifies_server_name) ... FAIL
+
+======================================================================
+FAIL: test_client_verifies_server_name (__main__.ClientTests.test_client_verifies_server_name)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-client-mutation/source/spatial-os-luna-handoff/tests/core/test_issuer_client.py", line 171, in test_client_verifies_server_name
+    self.ready(); self.rejected(server_name='wrong.test')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-client-mutation/source/spatial-os-luna-handoff/tests/core/test_issuer_client.py", line 124, in rejected
+    self.assertEqual(client.proc.returncode, 2)
+AssertionError: 0 != 2
+
+----------------------------------------------------------------------
+Ran 1 test in 0.250s
+
+FAILED (failures=1)

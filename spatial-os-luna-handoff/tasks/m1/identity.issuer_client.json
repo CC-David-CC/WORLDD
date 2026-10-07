@@ -1,0 +1,26 @@
+{
+  "id": "identity.issuer_client",
+  "phase": "M01",
+  "scope": "Production checked issuer service client",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/ISSUER_CLIENT.md",
+  "invariant": "The client verifies its configured issuer connection, correlates replies, and never replays an uncertain exchange.",
+  "production_roots": ["src/identity/", "proto/spatial/identity/v1/"],
+  "counterexample_suite": "tests/core/test_issuer_client.py",
+  "focused_command": "ctest --test-dir build -V -R '^(identity-(issuer|enrollment|revocation|tls)|issuer-client)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts in Debug and ASan/UBSan",
+    "Complete P00-P10 baseline and unchanged acceptance lock",
+    "Production issuer enrollment, authentication, and revocation",
+    "Independent TLS fault peers",
+    "Direct cross-host connection through the production client",
+    "Hostname-verification mutation detected"
+  ],
+  "limitations": [
+    "Envelope validation does not replace semantic identity and authorization checks.",
+    "Authenticated world entry, current authority checks, and immediate live revocation remain required.",
+    "Nonempty bootstrap profiles and scoped grants remain required."
+  ],
+  "next_component": "identity.world_session"
+}

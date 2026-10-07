@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "client_host": "sb16-2",
+  "server_host": "sb16",
+  "client_program": "spatial-issuer-client",
+  "checks": [
+    "production client server trust and name verification",
+    "mutual TLS",
+    "pinned issuer identity",
+    "real automatic enrollment",
+    "independent issuer credential signature",
+    "context-bound fresh actor authentication"
+  ],
+  "client_binary_sha256": "aa901041b4c91f6262907db424a1f470a931299642ff2cf887e73463e54f5b9d",
+  "test_sha256": "913418c0aa49a33340fdda744d69693a08e1415bad8c17a5f8af4f0f69c96039"
+}

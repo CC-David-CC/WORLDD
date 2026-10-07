@@ -1,5 +1,53 @@
 # Implementation status
 
+## 2026-10-07: M01 checked issuer client qualified
+
+The production IssuerClient library and spatial-issuer-client adapter now connect through mutually authenticated TLS 1.3.
+They verify explicit server trust, DNS subject alternative name, required protocol capabilities, and configured issuer identity and key.
+Caller requests are sent only after those checks succeed.
+Numeric IPv4 and IPv6 endpoints are supported. Network address and TLS identity remain separate.
+Client and server share the checked TLS file loader and context setup.
+
+The client assigns internal request IDs and restores caller IDs only after reply validation.
+It checks framing, versions, unknown fields, enum values, and expected reply outcomes.
+Valid issuer errors preserve the connection. Invalid replies, transport failure, and timeout disable it.
+The client does not reconnect or replay after a lost reply.
+Fixed deadlines include partial writes and reads. Tick callbacks run during waits and can cancel the exchange.
+A thin C++ probe verifies that cancellation disables the production client without further I/O.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 365 core checks, including 24 new issuer-client checks.
+- All 51 harness checks.
+
+Production identityd verifies enrollment, actor authentication, and credential revocation through this client.
+Independent TLS fault peers exercise malformed envelopes, truncation, oversized replies, slow progress, and lost responses.
+An initial new fixture omitted the required proof while expecting an authorization error.
+It correctly received INVALID_ARGUMENT. The corrected fixture signs a fresh challenge with an unauthorized key.
+The assertion and issuer behavior were not weakened. Both initial and corrected focused logs are retained.
+
+A production C++ client on sb16-2 connected directly to identityd on sb16.
+It completed enrollment and fresh actor authentication with independently verified issuer credential signatures.
+An isolated mutation disabled server hostname verification. The negative test detected the unauthorized connection.
+The mutation never entered production. Disposable cross-host keys, certificates, databases, and transfer archives were removed.
+
+All 132 source hashes match reviewed local files and both hosts.
+The acceptance lock, locked assertions, core transport, oracles, and native witness remain unchanged.
+The existing TLS fixture now accepts IPv6 listener addresses. Its assertions remain unchanged.
+issuer.proto adds a client configuration message. Existing wire fields and database schema 3 remain unchanged.
+Evidence is in evidence/identity-client-2026-10-07. The contract is docs/ISSUER_CLIENT.md.
+No host configuration, permanent service, operator session, or actual David credential changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+The checked transport does not create world sessions or grant actor authority.
+Consumers must still match authentication subjects and context before admission or execution.
+Authenticated world entry, current action checks, and immediate live input and observation revocation remain incomplete.
+Nonempty bootstrap profiles and scoped grants remain required.
+All remaining M01-M16 and H01-H08 requirements stay mandatory. Full Spatial-M1 remains incomplete.
+Next: identity.world_session integration through the production issuer client.
+The full project goal remains active.
+
 ## 2026-10-07: M01 issuer TLS service listener qualified
 
 The production issuer now accepts framed Protocol Buffers over mutually authenticated TLS 1.3.

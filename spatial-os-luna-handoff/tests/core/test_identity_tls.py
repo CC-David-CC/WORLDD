@@ -72,7 +72,8 @@ class TlsFixture(EnrollmentFixture):
     def launch(self, address='127.0.0.1'):
         self.config_path.write_text(text_format.MessageToString(self.config))
         self.config_path.chmod(0o600)
-        listener = socket.socket(); listener.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
+        listener = socket.socket(socket.AF_INET6 if ':' in address else socket.AF_INET)
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
         listener.bind((address, 0)); listener.listen(32)
         self.port = listener.getsockname()[1]
         log = (self.root/f'tls-{len(self.daemons)}.log').open('wb')

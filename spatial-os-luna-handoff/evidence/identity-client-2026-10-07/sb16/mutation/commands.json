@@ -1,0 +1,56 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-client-mutation/source",
+      "c458fe81e20a0145d5b8239918ffecffef687095"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "spatial-issuer-client",
+      "identityd",
+      "issuer-python-protobuf",
+      "key-python-protobuf",
+      "python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "witness",
+    "argv": [
+      "python3",
+      "tests/core/test_issuer_client.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-client-mutation/source/spatial-os-luna-handoff/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-client-mutation/source/spatial-os-luna-handoff/build/spatial-issuer-client",
+      "ClientTests.test_client_verifies_server_name"
+    ],
+    "exit_code": 1
+  }
+]
