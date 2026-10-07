@@ -1,0 +1,63 @@
+{
+  "invariant": "A successful commit survives a process exit before its reply.",
+  "mutation": "Trigger the post-commit exit before SQLite COMMIT in an isolated build.",
+  "before_sha256": "8855ebd01427eabab8e156edcf59e387e940d4779265223918a6ecb058415655",
+  "after_sha256": "898af4e9505c54f1bfe67f54c07a8bbb5d3d07023cd1a5050cf3153d839ba039",
+  "base": "271c30a2951dcbe29b0fc42666305250c9e45c75",
+  "source_overlay": {
+    "base": "271c30a2951dcbe29b0fc42666305250c9e45c75",
+    "files": {
+      "spatial-os-luna-handoff/src/world/store.cpp": {
+        "before": "937e6dcee3267d63c0f0db7061d4579cd280da88484c3db2c6887a4a231c38cf",
+        "after": "8855ebd01427eabab8e156edcf59e387e940d4779265223918a6ecb058415655",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_recovery.py": {
+        "before": "55de47cb3601a319c379e39573d981e6bcf8c5cccda46c512aeb8b6e8c7a499a",
+        "after": "6bfecbf722d16674748668061086fc7624875f8f672bc5d13465a09f7d52be6c",
+        "previous": null
+      }
+    }
+  },
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tools/gate.py",
+    "--through",
+    "P09",
+    "--case",
+    "test_commit_survives_lost_reply",
+    "--sut",
+    "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-after-mutation/source/spatial-os-luna-handoff/build/spatial-test-host\"]",
+    "--report",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-after-mutation/report.json"
+  ],
+  "exit_code": 1,
+  "report": {
+    "kind": "production-acceptance",
+    "through": "P09",
+    "diagnostic_only": true,
+    "status": "failed",
+    "utc": "2026-10-07T17:55:21.097787+00:00",
+    "selected": 1,
+    "executed": 1,
+    "total_baseline": 151,
+    "not_selected": 150,
+    "tests": [
+      {
+        "test": "tests.acceptance.test_09_recovery.RecoveryTests.test_commit_survives_lost_reply",
+        "phase": "P09",
+        "primitive": "recovery.after_commit_before_reply",
+        "status": "failed",
+        "seconds": 0.255029
+      }
+    ],
+    "hardware_certified": false,
+    "sut_argv": [
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-after-mutation/source/spatial-os-luna-handoff/build/spatial-test-host"
+    ]
+  },
+  "status": "detected"
+}

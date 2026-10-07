@@ -40,10 +40,13 @@ struct Statement {
 void execute(sqlite3* db, const char* sql) { check(sqlite3_exec(db, sql, nullptr, nullptr, nullptr)); }
 struct CommitFault {
     const bool enabled;
-    bool armed = false;
+    wire::FaultPoint point = wire::FAULT_POINT_UNSPECIFIED;
     void before_commit() {
         // Exit without stack unwinding or SQLite cleanup at the actual commit boundary.
-        if (armed) _exit(86);
+        if (point == wire::FAULT_WORLD_BEFORE_COMMIT) _exit(86);
+    }
+    void after_commit() {
+        if (point == wire::FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY) _exit(87);
     }
 };
 struct Transaction {
@@ -56,6 +59,7 @@ struct Transaction {
     void commit() {
         if (fault) fault->before_commit();
         execute(db, "COMMIT"); committed = true;
+        if (fault) fault->after_commit();
     }
 };
 void valid_id(const std::string& id) {
@@ -235,10 +239,11 @@ wire::FaultArmReply WorldStore::arm_fault(const wire::FaultArmRequest& request) 
         require(request.action() == wire::FAULT_ERROR && request.has_storage_error() &&
                 request.storage_error() == wire::STORAGE_FAULT_ENOSPC, "Invalid storage fault");
     else require(request.action() == wire::FAULT_EXIT && !request.has_storage_error(), "Invalid exit fault");
-    if (request.point() != wire::FAULT_WORLD_BEFORE_COMMIT)
+    if (request.point() != wire::FAULT_WORLD_BEFORE_COMMIT &&
+        request.point() != wire::FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY)
         throw WorldError(wire::UNIMPLEMENTED, "Requested fault boundary is not implemented");
-    if (impl_->fault.armed) throw WorldError(wire::BUSY, "A fault is already armed");
-    impl_->fault.armed = true;
+    if (impl_->fault.point != wire::FAULT_POINT_UNSPECIFIED) throw WorldError(wire::BUSY, "A fault is already armed");
+    impl_->fault.point = request.point();
     wire::FaultArmReply result; result.set_armed(true); return result;
 }
 wire::WorldInfoReply WorldStore::info() { return impl_->info(); }

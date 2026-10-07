@@ -1,0 +1,7 @@
+test_commit_survives_lost_reply (tests.acceptance.test_09_recovery.RecoveryTests.test_commit_survives_lost_reply) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.293s
+
+OK
+DIAGNOSTIC P09: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-after-focused/after.json

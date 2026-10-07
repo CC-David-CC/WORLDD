@@ -1,5 +1,35 @@
 # Implementation status
 
+## 2026-10-07: P09 committed state survives a lost reply
+
+Worldd now supports a real exit after successful COMMIT and before sending its reply.
+The committed data and revisions survive exactly once.
+A stale retry cannot apply the edit again.
+A failed COMMIT returns STORAGE_ERROR and preserves the armed post-commit fault.
+Both commit hooks remain restricted to explicit fixture mode.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 210 core checks, including eleven recovery checks.
+- All 51 harness checks.
+- 144 acceptance cases, including all 138 preceding P00-P08 cases.
+
+The full P00-P09 gate executed 148 of 151 cases.
+It reports one assertion failure, three errors, zero skipped, and three unrun P10 cases.
+Six P09 primitives pass. Storage-write faults, Git-effect faults, durable slots, and stale-handle validation remain incomplete.
+P09, full Spatial-M1, and native hardware qualification remain unfinished.
+
+An isolated mutation moved the post-commit exit before COMMIT.
+The locked acceptance witness rejected the unchanged durable label.
+All 104 source hashes match reviewed local files and both hosts.
+The acceptance lock, schemas, locked assertions, oracles, and native witness remain unchanged.
+Evidence is in evidence/recovery-after-commit-2026-10-07.
+See docs/RECOVERY_BOUNDARIES.md for exact commands, fixture controls, and recovery steps.
+No database migration, host configuration, or operator-session change was required.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: recovery.storage_failure at the actual SQLite write boundary.
+The full project goal remains active.
+
 ## 2026-10-07: P09 real exit before world commit
 
 Worldd can now exit at its actual SQLite boundary immediately before a write transaction commits.

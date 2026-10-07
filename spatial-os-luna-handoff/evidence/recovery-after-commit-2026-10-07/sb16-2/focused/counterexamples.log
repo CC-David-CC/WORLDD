@@ -1,0 +1,44 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 11
+    Start 11: recovery-boundaries
+
+11: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_recovery.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+11: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+11: Environment variables: 
+11:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+11: Test timeout computed to be: 60
+11: test_actor_action_cannot_arm_management_fault (__main__.RecoveryBoundaryTests.test_actor_action_cannot_arm_management_fault) ... ok
+11: test_before_commit_preserves_real_rows_for_create_update_and_delete (__main__.RecoveryBoundaryTests.test_before_commit_preserves_real_rows_for_create_update_and_delete) ... ok
+11: test_checkpoint_crash_preserves_saved_actor_pose (__main__.RecoveryBoundaryTests.test_checkpoint_crash_preserves_saved_actor_pose) ... ok
+11: test_default_and_clock_only_daemons_cannot_arm_faults (__main__.RecoveryBoundaryTests.test_default_and_clock_only_daemons_cannot_arm_faults) ... ok
+11: test_failed_real_commit_does_not_exit_or_consume_post_commit_fault (__main__.RecoveryBoundaryTests.test_failed_real_commit_does_not_exit_or_consume_post_commit_fault) ... ok
+11: test_fault_is_local_to_one_process_and_never_restored (__main__.RecoveryBoundaryTests.test_fault_is_local_to_one_process_and_never_restored) ... ok
+11: test_invalid_or_unsupported_arms_do_not_enable_a_fault (__main__.RecoveryBoundaryTests.test_invalid_or_unsupported_arms_do_not_enable_a_fault) ... ok
+11: test_post_commit_checkpoint_restores_pose_without_session_input (__main__.RecoveryBoundaryTests.test_post_commit_checkpoint_restores_pose_without_session_input) ... ok
+11: test_post_commit_exit_keeps_real_create_update_delete_exactly_once (__main__.RecoveryBoundaryTests.test_post_commit_exit_keeps_real_create_update_delete_exactly_once) ... ok
+11: test_reads_and_rejected_edits_do_not_consume_pending_fault (__main__.RecoveryBoundaryTests.test_reads_and_rejected_edits_do_not_consume_pending_fault) ... ok
+11: test_reads_rejections_and_rearming_cannot_consume_or_replace_post_commit_exit (__main__.RecoveryBoundaryTests.test_reads_rejections_and_rearming_cannot_consume_or_replace_post_commit_exit) ... ok
+11: 
+11: ----------------------------------------------------------------------
+11: Ran 11 tests in 3.825s
+11: 
+11: OK
+1/1 Test #11: recovery-boundaries ..............   Passed    3.93 sec
+
+The following tests passed:
+	recovery-boundaries
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   3.93 sec

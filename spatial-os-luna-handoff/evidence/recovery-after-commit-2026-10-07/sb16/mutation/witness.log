@@ -1,0 +1,19 @@
+test_commit_survives_lost_reply (tests.acceptance.test_09_recovery.RecoveryTests.test_commit_survives_lost_reply) ... FAIL
+
+======================================================================
+FAIL: test_commit_survives_lost_reply (tests.acceptance.test_09_recovery.RecoveryTests.test_commit_survives_lost_reply)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-after-mutation/source/spatial-os-luna-handoff/tests/acceptance/test_09_recovery.py", line 29, in test_commit_survives_lost_reply
+    after=self.get("object-a");self.assertEqual(after["label"],"after");self.assertEqual(after["revision"],before["revision"]+1)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'before' != 'after'
+- before
++ after
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.255s
+
+FAILED (failures=1)
+DIAGNOSTIC P09: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-after-mutation/report.json

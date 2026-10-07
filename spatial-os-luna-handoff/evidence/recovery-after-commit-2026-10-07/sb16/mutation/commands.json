@@ -1,0 +1,59 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-after-mutation/source",
+      "271c30a2951dcbe29b0fc42666305250c9e45c75"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DSPATIAL_INPUT_TESTS=ON"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "witness",
+    "argv": [
+      "python3",
+      "tools/with_test_display.py",
+      "--",
+      "python3",
+      "tools/gate.py",
+      "--through",
+      "P09",
+      "--case",
+      "test_commit_survives_lost_reply",
+      "--sut",
+      "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-after-mutation/source/spatial-os-luna-handoff/build/spatial-test-host\"]",
+      "--report",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-after-mutation/report.json"
+    ],
+    "exit_code": 1
+  }
+]
