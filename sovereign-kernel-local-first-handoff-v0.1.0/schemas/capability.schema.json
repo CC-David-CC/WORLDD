@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sovereign-kernel:capability:1",
+  "allOf": [
+    {
+      "$ref": "urn:sovereign-kernel:object:1"
+    }
+  ],
+  "properties": {
+    "type": {
+      "const": "capability"
+    },
+    "proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "public_key",
+        "signature"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "ed25519"
+        },
+        "public_key": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      }
+    },
+    "refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource"
+      ],
+      "properties": {
+        "resource": {
+          "type": "string",
+          "pattern": "^sk1:sha256:[0-9a-f]{64}$"
+        },
+        "parent": {
+          "type": "string",
+          "pattern": "^sk1:sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actions",
+        "depth",
+        "destinations",
+        "expires",
+        "max_calls",
+        "max_units",
+        "not_before",
+        "scope",
+        "subject",
+        "unit"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "pattern": "^skp1:ed25519:[0-9a-f]{64}$"
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_:-]{1,128}$"
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_:-]{1,128}$"
+          },
+          "uniqueItems": true
+        },
+        "destinations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_:-]{1,128}$"
+          },
+          "uniqueItems": true
+        },
+        "unit": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_:-]{1,128}$"
+        },
+        "not_before": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "expires": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "depth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "max_calls": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "max_units": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    }
+  },
+  "$comment": "Sorted sets, half-open valid time interval, parent issuer equality, signature, pinned roots, attenuation and shared consumption are semantic checks, not provided by JSON Schema."
+}

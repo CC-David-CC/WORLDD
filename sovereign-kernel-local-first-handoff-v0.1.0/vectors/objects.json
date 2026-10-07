@@ -1,0 +1,16 @@
+[
+  {
+    "id": "object-literal-1",
+    "object": {
+      "body": {
+        "answer": 42
+      },
+      "proof": null,
+      "refs": {},
+      "type": "fixture",
+      "v": 1
+    },
+    "utf8_hex": "7b22626f6479223a7b22616e73776572223a34327d2c2270726f6f66223a6e756c6c2c2272656673223a7b7d2c2274797065223a2266697874757265222c2276223a317d",
+    "cid": "sk1:sha256:c2b299273a82547dd26936427ba7f2472f08fd1915937cf9a5cc784d045181ff"
+  }
+]

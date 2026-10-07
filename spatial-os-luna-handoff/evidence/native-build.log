@@ -1,0 +1,2 @@
+cc -std=c11 -O2 -g -Wall -Wextra -Werror /mnt/data/spatial-os-luna-handoff/native/xprobe.c -o /mnt/data/spatial-os-luna-handoff/build/xprobe -lX11
+/mnt/data/spatial-os-luna-handoff/build/xprobe

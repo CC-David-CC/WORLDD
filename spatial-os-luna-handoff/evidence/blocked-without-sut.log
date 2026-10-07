@@ -1,0 +1,1 @@
+BLOCKED: no production SUT. Supply --sut '["/absolute/path/spatial-test-host"]'. Harness self-tests do not satisfy this gate.

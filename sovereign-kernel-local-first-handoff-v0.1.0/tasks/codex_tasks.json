@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "default_phase": "P00",
+  "default_stop_after_phase": true,
+  "tasks": [
+    {
+      "id": "P00",
+      "title": "Reproduce delivered baseline",
+      "requires": [],
+      "work": [
+        "Verify SHA256SUMS",
+        "Inspect threat model and known gaps",
+        "Run reference under supported native guard",
+        "Verify local evidence closure",
+        "Confirm no LOCAL_READY and no network module"
+      ],
+      "artifacts": [
+        "evidence baseline",
+        "observed defect/blocker list"
+      ],
+      "stop": "Stop after baseline; no implementation expansion",
+      "peer_networking_authorized": false
+    },
+    {
+      "id": "P01",
+      "title": "Freeze bytes, independent vectors and offline dependencies",
+      "requires": [
+        "P00"
+      ],
+      "work": [
+        "Independent canonicalizer or reviewed second codec",
+        "Malformed-byte differential vectors",
+        "Reviewed target-specific wheel hashes",
+        "Pin schema/suite/version IDs",
+        "Freeze required test inventory"
+      ],
+      "artifacts": [
+        "vector pack",
+        "dependency lock closure",
+        "cross-implementation evidence"
+      ],
+      "stop": "Any unexplained byte/parser differential blocks P02",
+      "peer_networking_authorized": false
+    },
+    {
+      "id": "P02",
+      "title": "Authority and policy hardening",
+      "requires": [
+        "P01"
+      ],
+      "work": [
+        "Closed schemas for every effect/authority type",
+        "Structural resource/revision model",
+        "Shrinkable chain/sibling-tree property tests",
+        "Mutation tests for every authority check",
+        "Shared ancestor budget model"
+      ],
+      "artifacts": [
+        "authority model evidence",
+        "new regression fixtures"
+      ],
+      "stop": "No authority expansion or budget conservation counterexample",
+      "peer_networking_authorized": false
+    },
+    {
+      "id": "P03",
+      "title": "Complete local transactional broker",
+      "requires": [
+        "P02"
+      ],
+      "work": [
+        "Persist complete authorization-evidence graph",
+        "One reducer/log/effect transaction model",
+        "Authenticated revocation operation",
+        "Idempotency/reservation/cancellation",
+        "Fault-injected crash matrix and GC safety"
+      ],
+      "artifacts": [
+        "replayable state root",
+        "crash evidence",
+        "typed fake tool contracts"
+      ],
+      "stop": "No real external tools, network effects or unreceipted local effects",
+      "peer_networking_authorized": false
+    },
+    {
+      "id": "P04",
+      "title": "Custodian and adversarial agent confinement",
+      "requires": [
+        "P03"
+      ],
+      "work": [
+        "OS-separated key custodian and broker",
+        "Untrusted dummy-agent process",
+        "Isolated mounts/devices/UID/IPC profile",
+        "Native network-zero before imports",
+        "Resource exhaustion and escape tests"
+      ],
+      "artifacts": [
+        "target-host sandbox evidence",
+        "key/FD access denial corpus"
+      ],
+      "stop": "Unsupported target isolation is a blocker, not a fallback",
+      "peer_networking_authorized": false
+    },
+    {
+      "id": "P05",
+      "title": "Recovery and rollback anchor",
+      "requires": [
+        "P04"
+      ],
+      "work": [
+        "Authorized local key/epoch rotation",
+        "Preserve resource IDs and budget history",
+        "Independent checkpoint anchor lifecycle",
+        "Restore/rollback/anchor crash tests",
+        "Explicit unavailable-anchor behavior"
+      ],
+      "artifacts": [
+        "recovery evidence",
+        "rollback freshness evidence"
+      ],
+      "stop": "No claim of rollback detection without surviving independent evidence",
+      "peer_networking_authorized": false
+    },
+    {
+      "id": "P06",
+      "title": "Readiness supervisor and immutable launch binding",
+      "requires": [
+        "P05"
+      ],
+      "work": [
+        "Trusted requirements/verifier enrollment",
+        "Resolve all evidence roots locally",
+        "Separate qualification from live-state validation",
+        "Bind fresh challenge to immutable loaded artifacts",
+        "OS authority to start only scoped transport helper"
+      ],
+      "artifacts": [
+        "genuine LOCAL_READY only after all gates",
+        "supervisor bypass/stale-state tests"
+      ],
+      "stop": "Missing/failed/unsupported/skipped mandatory acceptance blocks readiness",
+      "peer_networking_authorized": false
+    },
+    {
+      "id": "P07",
+      "title": "Later two-node immutable canary",
+      "requires": [
+        "P06"
+      ],
+      "work": [
+        "Separate explicit user authorization",
+        "Two pinned endpoints and short transport lease",
+        "Synthetic immutable objects only",
+        "Profile/hash/signature rejection transcript",
+        "No mutable replication, agents, payments or provider adapters"
+      ],
+      "artifacts": [
+        "compatibility transcript",
+        "no-local-state-change evidence"
+      ],
+      "stop": "Not authorized by this handoff; stop after canary, no feature expansion",
+      "peer_networking_authorized": false
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sovereign-kernel:object:1",
+  "title": "SK-JSON-1 object envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "v",
+    "type",
+    "body",
+    "refs",
+    "proof"
+  ],
+  "properties": {
+    "v": {
+      "type": "integer",
+      "const": 1
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "body": {
+      "type": "object"
+    },
+    "refs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^sk1:sha256:[0-9a-f]{64}$"
+      }
+    },
+    "proof": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "algorithm",
+            "public_key",
+            "signature"
+          ],
+          "properties": {
+            "algorithm": {
+              "const": "ed25519"
+            },
+            "public_key": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "signature": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{128}$"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$comment": "SK-JSON-1 parsing, scalar limits, ASCII map keys and canonical bytes are mandatory outside JSON Schema. Known types must supply closed body schemas."
+}

@@ -1,0 +1,64 @@
+test_axis_zero_rejected (tests.harness.test_oracles.OracleTests.test_axis_zero_rejected) ... ok
+test_floor_not_round (tests.harness.test_oracles.OracleTests.test_floor_not_round) ... ok
+test_half_open_edge (tests.harness.test_oracles.OracleTests.test_half_open_edge) ... ok
+test_known_pitch (tests.harness.test_oracles.OracleTests.test_known_pitch) ... ok
+test_known_roll (tests.harness.test_oracles.OracleTests.test_known_roll) ... ok
+test_known_yaw (tests.harness.test_oracles.OracleTests.test_known_yaw) ... ok
+test_mutation_uv_flip_is_detectable (tests.harness.test_oracles.OracleTests.test_mutation_uv_flip_is_detectable) ... ok
+test_mutation_wrong_axis_is_detectable (tests.harness.test_oracles.OracleTests.test_mutation_wrong_axis_is_detectable) ... ok
+test_negative_q_same_rotation (tests.harness.test_oracles.OracleTests.test_negative_q_same_rotation) ... ok
+test_negative_uv_not_clamped (tests.harness.test_oracles.OracleTests.test_negative_uv_not_clamped) ... ok
+test_nonfinite_not_close (tests.harness.test_oracles.OracleTests.test_nonfinite_not_close) ... ok
+test_p6_binary_whitespace_pixel_is_not_eaten (tests.harness.test_oracles.OracleTests.test_p6_binary_whitespace_pixel_is_not_eaten) ... ok
+test_p6_comments (tests.harness.test_oracles.OracleTests.test_p6_comments) ... ok
+test_p6_truncation_rejected (tests.harness.test_oracles.OracleTests.test_p6_truncation_rejected) ... ok
+test_p6_wrong_format_rejected (tests.harness.test_oracles.OracleTests.test_p6_wrong_format_rejected) ... ok
+test_transform_known (tests.harness.test_oracles.OracleTests.test_transform_known) ... ok
+test_baseline_intact (tests.harness.test_tools.ToolTests.test_baseline_intact) ... ok
+test_changed_file_detected (tests.harness.test_tools.ToolTests.test_changed_file_detected) ... ok
+test_fixture_cannot_certify_product (tests.harness.test_tools.ToolTests.test_fixture_cannot_certify_product) ... ok
+test_helper_context_is_explicit (tests.harness.test_tools.ToolTests.test_helper_context_is_explicit) ... ok
+test_helper_context_path_escape_rejected (tests.harness.test_tools.ToolTests.test_helper_context_path_escape_rejected) ... ok
+test_helper_does_not_guess_protocol (tests.harness.test_tools.ToolTests.test_helper_does_not_guess_protocol) ... ok
+test_helper_no_protocol_override (tests.harness.test_tools.ToolTests.test_helper_no_protocol_override) ... ok
+test_helper_requires_real_configuration (tests.harness.test_tools.ToolTests.test_helper_requires_real_configuration) ... ok
+test_missing_collected_test_detected (tests.harness.test_tools.ToolTests.test_missing_collected_test_detected) ... ok
+test_no_sut_is_blocked_not_passed (tests.harness.test_tools.ToolTests.test_no_sut_is_blocked_not_passed) ... ok
+test_suite_has_unique_ids_and_metadata (tests.harness.test_tools.ToolTests.test_suite_has_unique_ids_and_metadata) ... ok
+test_concurrent_response_correlation (tests.harness.test_transport.TransportTests.test_concurrent_response_correlation) ... ok
+test_eof_is_failure (tests.harness.test_transport.TransportTests.test_eof_is_failure) ... ok
+test_invalid_command_rejected (tests.harness.test_transport.TransportTests.test_invalid_command_rejected) ... ok
+test_killed_process_is_failure (tests.harness.test_transport.TransportTests.test_killed_process_is_failure) ... ok
+test_malformed_json_is_failure (tests.harness.test_transport.TransportTests.test_malformed_json_is_failure) ... ok
+test_nonfinite_reply_is_failure (tests.harness.test_transport.TransportTests.test_nonfinite_reply_is_failure) ... ok
+test_nonfinite_request_never_sent (tests.harness.test_transport.TransportTests.test_nonfinite_request_never_sent) ... ok
+test_result_and_error_is_failure (tests.harness.test_transport.TransportTests.test_result_and_error_is_failure) ... ok
+test_roundtrip (tests.harness.test_transport.TransportTests.test_roundtrip) ... ERROR
+test_timeout_is_failure (tests.harness.test_transport.TransportTests.test_timeout_is_failure) ... ok
+test_typed_error (tests.harness.test_transport.TransportTests.test_typed_error) ... ok
+test_wrong_id_is_failure (tests.harness.test_transport.TransportTests.test_wrong_id_is_failure) ... ok
+
+======================================================================
+ERROR: test_roundtrip (tests.harness.test_transport.TransportTests.test_roundtrip)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/spatial-os-luna-handoff/harness/rpc.py", line 104, in call
+    reply = slot.get(timeout=self.timeout if timeout is None else timeout)
+  File "/usr/lib/python3.13/queue.py", line 212, in get
+    raise Empty
+_queue.Empty
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/mnt/data/spatial-os-luna-handoff/tests/harness/test_transport.py", line 13, in test_roundtrip
+    def test_roundtrip(self):self.assertEqual(self.peer().call("echo",{"a":[1,2,"学校"]}),{"a":[1,2,"学校"]})
+                                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/spatial-os-luna-handoff/harness/rpc.py", line 108, in call
+    raise error from exc
+harness.rpc.TransportError: Deadline exceeded: echo (id=1); no automatic retry
+
+----------------------------------------------------------------------
+Ran 39 tests in 5.973s
+
+FAILED (errors=1)

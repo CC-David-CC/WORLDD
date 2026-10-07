@@ -1,0 +1,31 @@
+{
+  "kind": "handoff-authoring-validation",
+  "utc": "2026-10-06T22:02:10.340650+00:00",
+  "python": "3.13.5",
+  "os": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "harness_tests": {
+    "passed": 39,
+    "failed": 0,
+    "final_successful_repeats": 2
+  },
+  "native_witness_tests": {
+    "passed": 8,
+    "failed": 0,
+    "core_x11": true,
+    "xi2": false,
+    "display": "owned disposable Xvfb"
+  },
+  "acceptance_tests": {
+    "collected": 141,
+    "production_passed": 0,
+    "production_executed": 0,
+    "unrun": 141
+  },
+  "primitive_tickets": 130,
+  "baseline_integrity": "passed",
+  "missing_sut_gate_exit_code": 2,
+  "physical_hardware_tested": false,
+  "helper_called": false,
+  "server_modified": false,
+  "xi2_build_status": "not_run_missing_development_header"
+}

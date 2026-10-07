@@ -1,0 +1,13 @@
+test_destroy_is_observed (tests.native.test_probe_smoke.ProbeSmokeTests.test_destroy_is_observed) ... ok
+test_odd_resize_redraw (tests.native.test_probe_smoke.ProbeSmokeTests.test_odd_resize_redraw) ... ok
+test_popup_records_parent (tests.native.test_probe_smoke.ProbeSmokeTests.test_popup_records_parent) ... ok
+test_quadrants_are_correct (tests.native.test_probe_smoke.ProbeSmokeTests.test_quadrants_are_correct) ... ok
+test_random_paint_roundtrip (tests.native.test_probe_smoke.ProbeSmokeTests.test_random_paint_roundtrip) ... ok
+test_ready_and_geometry (tests.native.test_probe_smoke.ProbeSmokeTests.test_ready_and_geometry) ... ok
+test_real_server_injected_input_is_observed (tests.native.test_probe_smoke.ProbeSmokeTests.test_real_server_injected_input_is_observed) ... ok
+test_unmap_remap (tests.native.test_probe_smoke.ProbeSmokeTests.test_unmap_remap) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.168s
+
+OK

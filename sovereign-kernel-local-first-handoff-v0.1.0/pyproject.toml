@@ -1,0 +1,9 @@
+[project]
+name = "sovereign-kernel-local-conformance-reference"
+version = "0.1.0"
+description = "Local-only conformance reference and Codex implementation handoff"
+requires-python = ">=3.11"
+dependencies = ["cryptography==46.0.4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

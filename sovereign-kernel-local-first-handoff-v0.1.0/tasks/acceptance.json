@@ -1,0 +1,1779 @@
+{
+  "schema_version": 1,
+  "semantics": "Implementation inventory, not a PASS ledger; actual results are generated evidence.",
+  "reference_tests": [
+    {
+      "id": "CAP-001",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_001_valid",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-002",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_002_action_expansion",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-003",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_003_scope_escape",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-004",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_004_sibling_scope",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-005",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_005_not_before",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-006",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_006_expiry_expansion",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-007",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_007_depth_expansion",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-008",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_008_call_expansion",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-009",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_009_unit_expansion",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-010",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_010_currency_change",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-011",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_011_destination_expansion",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-012",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_012_parent_substitution",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-013",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_013_resource_substitution",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-014",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_014_wrong_issuer",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-015",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_015_unpinned_root",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-016",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_016_duplicate_chain",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-017",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_017_missing_parent",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-018",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_018_empty_actions",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-019",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_019_not_before_inclusive",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-020",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_020_expiry_exclusive",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-021",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_021_revoke_ancestor",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-022",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_022_revoke_leaf",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-023",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_023_revoked_sibling_not_leaf",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-024",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_024_no_delegation_at_zero",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-025",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_025_boolean_quota",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-026",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_026_path_components",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-027",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_027_set_canonicality",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-028",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_028_unknown_constraint",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-029",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_029_seeded_attenuation",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-030",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_030_no_rights_union",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-031",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_031_economic_claim_not_authority",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAP-032",
+      "method": "tests.test_authority.AuthorityTests.test_CAP_032_issuer_key_replacement",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-001",
+      "method": "tests.test_authority.PolicyTests.test_POL_001_allow",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-002",
+      "method": "tests.test_authority.PolicyTests.test_POL_002_unknown_action",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-003",
+      "method": "tests.test_authority.PolicyTests.test_POL_003_other_subject",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-004",
+      "method": "tests.test_authority.PolicyTests.test_POL_004_scope",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-005",
+      "method": "tests.test_authority.PolicyTests.test_POL_005_destination",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-006",
+      "method": "tests.test_authority.PolicyTests.test_POL_006_negative_cost",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-007",
+      "method": "tests.test_authority.PolicyTests.test_POL_007_ancestor_budget",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-008",
+      "method": "tests.test_authority.PolicyTests.test_POL_008_leaf_budget",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-009",
+      "method": "tests.test_authority.PolicyTests.test_POL_009_deterministic",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-010",
+      "method": "tests.test_authority.PolicyTests.test_POL_010_version_in_decision_id",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-011",
+      "method": "tests.test_authority.PolicyTests.test_POL_011_unknown_engine",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-012",
+      "method": "tests.test_authority.PolicyTests.test_POL_012_wrong_currency",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-013",
+      "method": "tests.test_authority.PolicyTests.test_POL_013_bool_cost",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "POL-014",
+      "method": "tests.test_authority.PolicyTests.test_POL_014_unknown_intent_field",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-001",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_001_gate_names_match",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-002",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_002_gate_graph_acyclic",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-003",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_003_no_core_network_imports",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-004",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_004_capability_schema_fields",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-005",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_005_readiness_schema_gates",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-006",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_006_examples_verify",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-007",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_007_inventory_covers_reference_methods",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-008",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_008_future_cases_not_marked_pass",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-009",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_009_no_phase_autostart",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CONTRACT-010",
+      "method": "tests.test_contracts.ContractTests.test_CONTRACT_010_all_doc_target_ids_in_inventory",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-001",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_001_golden_bytes",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-002",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_002_recursive_sort",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-003",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_003_unicode_preserved",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-004",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_004_duplicate_keys",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-005",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_005_reject_floats",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-006",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_006_reject_float_tokens",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-007",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_007_integer_bounds",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-008",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_008_ascii_keys_only",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-009",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_009_surrogates",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-010",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_010_null_not_absent",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-011",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_011_array_order_semantic",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-012",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_012_bool_not_integer",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-013",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_013_noncanonical_wire",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-014",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_014_invalid_utf8",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-015",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_015_size_limit",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-016",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_016_depth_limit",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-017",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_017_cycles",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-018",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_018_cross_process",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-019",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_019_seeded_roundtrips",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "CAN-020",
+      "method": "tests.test_primitives.CanonicalTests.test_CAN_020_unsupported_containers",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-001",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_001_sha256_known_vector",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-002",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_002_fixed_object_vectors",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-003",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_003_roundtrip",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-004",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_004_each_bit_rejected",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-005",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_005_merkle_parent_changes",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-006",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_006_type_domain_separation",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-007",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_007_unknown_version",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-008",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_008_provider_independent",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-009",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_009_unknown_algorithm",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-010",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_010_bad_reference",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-011",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_011_no_boolean_version",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "HASH-012",
+      "method": "tests.test_primitives.ObjectTests.test_HASH_012_copy_is_not_alias",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-001",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_001_rfc8032_vector",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-002",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_002_sign_verify",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-003",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_003_payload_tamper",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-004",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_004_wrong_key",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-005",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_005_wrong_domain",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-006",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_006_proof_in_content_id",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-007",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_007_signature_determinism",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-008",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_008_no_double_sign",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-009",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_009_unsigned_rejected",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-010",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_010_malformed_encoding",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-011",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_011_unknown_suite",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-012",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_012_aead_roundtrip",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-013",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_013_aead_tamper",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "KEY-014",
+      "method": "tests.test_primitives.CryptoTests.test_KEY_014_aead_wrong_aad",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-001",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_001_synthetic_statement",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-002",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_002_wrong_signer",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-003",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_003_wrong_build",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-004",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_004_wrong_state",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-005",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_005_stale_challenge",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-006",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_006_pending_gate",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-007",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_007_missing_gate",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-008",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_008_unknown_gate",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-009",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_009_boolean_not_pass",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-010",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_010_reference_report_not_readiness",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-011",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_011_requirements_pin",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-012",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_012_evidence_pin",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-013",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_013_unsigned",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "READY-014",
+      "method": "tests.test_readiness.ReadinessTests.test_READY_014_fail_or_skip_denied",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-001",
+      "method": "tests.test_state.StoreTests.test_STORE_001_put_get",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-002",
+      "method": "tests.test_state.StoreTests.test_STORE_002_dedup",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-003",
+      "method": "tests.test_state.StoreTests.test_STORE_003_wrong_key",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-004",
+      "method": "tests.test_state.StoreTests.test_STORE_004_ciphertext_tamper",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-005",
+      "method": "tests.test_state.StoreTests.test_STORE_005_aad_substitution",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-006",
+      "method": "tests.test_state.StoreTests.test_STORE_006_no_plaintext_body",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-007",
+      "method": "tests.test_state.StoreTests.test_STORE_007_inventory_deterministic",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-008",
+      "method": "tests.test_state.StoreTests.test_STORE_008_inventory_changes",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-009",
+      "method": "tests.test_state.StoreTests.test_STORE_009_fixture_export_import",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-010",
+      "method": "tests.test_state.StoreTests.test_STORE_010_reachability",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-011",
+      "method": "tests.test_state.StoreTests.test_STORE_011_dangling_reference",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-012",
+      "method": "tests.test_state.StoreTests.test_STORE_012_rollback_transaction",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-013",
+      "method": "tests.test_state.StoreTests.test_STORE_013_no_silent_repair",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-014",
+      "method": "tests.test_state.StoreTests.test_STORE_014_crash_before_commit",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-015",
+      "method": "tests.test_state.StoreTests.test_STORE_015_crash_after_commit",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-017",
+      "method": "tests.test_state.StoreTests.test_STORE_017_boolean_export_version",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "STORE-016",
+      "method": "tests.test_state.StoreTests.test_STORE_016_missing_object",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-001",
+      "method": "tests.test_state.LogTests.test_LOG_001_replay",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-002",
+      "method": "tests.test_state.LogTests.test_LOG_002_deleted_middle",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-003",
+      "method": "tests.test_state.LogTests.test_LOG_003_truncated_with_anchor",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-004",
+      "method": "tests.test_state.LogTests.test_LOG_004_unanchored_prefix_is_valid",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-005",
+      "method": "tests.test_state.LogTests.test_LOG_005_wrong_signer",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-006",
+      "method": "tests.test_state.LogTests.test_LOG_006_parent_fork",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-007",
+      "method": "tests.test_state.LogTests.test_LOG_007_atomic_receipt",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-008",
+      "method": "tests.test_state.LogTests.test_LOG_008_transaction_required",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-009",
+      "method": "tests.test_state.LogTests.test_LOG_009_swapped_event_ids",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-011",
+      "method": "tests.test_state.LogTests.test_LOG_011_boolean_sequence",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "LOG-010",
+      "method": "tests.test_state.LogTests.test_LOG_010_unique_receipt_index",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-001",
+      "method": "tests.test_state.AccountingTests.test_BUD_001_charge_every_ancestor",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-002",
+      "method": "tests.test_state.AccountingTests.test_BUD_002_sibling_double_spend",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-003",
+      "method": "tests.test_state.AccountingTests.test_BUD_003_idempotent_retry",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-004",
+      "method": "tests.test_state.AccountingTests.test_BUD_004_request_conflict",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-005",
+      "method": "tests.test_state.AccountingTests.test_BUD_005_revocation_local",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-006",
+      "method": "tests.test_state.AccountingTests.test_BUD_006_reconstruct_budget",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-007",
+      "method": "tests.test_state.AccountingTests.test_BUD_007_concurrent_siblings",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-008",
+      "method": "tests.test_state.AccountingTests.test_BUD_008_call_quota",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-009",
+      "method": "tests.test_state.AccountingTests.test_BUD_009_unknown_effect_closed",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    },
+    {
+      "id": "BUD-010",
+      "method": "tests.test_state.AccountingTests.test_BUD_010_expired_retry_no_execution",
+      "status": "REFERENCE_IMPLEMENTED",
+      "mandatory_for_reference_run": true,
+      "satisfies_full_acceptance_by_itself": false
+    }
+  ],
+  "target_acceptance": [
+    {
+      "id": "AGENT-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "AGENT-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "AGENT-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "AGENT-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "AGENT-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "AGENT-106",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "ANCHOR-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "ANCHOR-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "ANCHOR-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "BUD-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "BUD-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "BUD-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "BUD-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "BUD-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "BUILD-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "BUILD-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "BUILD-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "BUILD-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "CAN-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "CAN-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "CAN-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "CAN-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "CAP-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "CAP-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "CAP-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "CAP-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "CAP-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "EXEC-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "EXEC-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "EXEC-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "EXEC-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "EXEC-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "EXEC-106",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "FUZZ-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "FUZZ-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "FUZZ-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "FUZZ-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "FUZZ-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "GATE-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "GATE-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "GATE-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "GATE-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "GATE-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "HASH-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "HASH-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "HASH-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "HASH-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "KEY-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "KEY-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "KEY-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "KEY-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "KEY-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "LOG-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "LOG-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "LOG-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "LOG-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "LOG-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "NET0-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "NET0-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "NET0-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "NET0-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "NET0-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "NET0-106",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "NET0-107",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "NET1-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": false,
+      "requires_separate_network_authorization": true,
+      "contract": "docs/NETWORK_BOUNDARY.md"
+    },
+    {
+      "id": "NET1-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": false,
+      "requires_separate_network_authorization": true,
+      "contract": "docs/NETWORK_BOUNDARY.md"
+    },
+    {
+      "id": "NET1-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": false,
+      "requires_separate_network_authorization": true,
+      "contract": "docs/NETWORK_BOUNDARY.md"
+    },
+    {
+      "id": "NET1-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": false,
+      "requires_separate_network_authorization": true,
+      "contract": "docs/NETWORK_BOUNDARY.md"
+    },
+    {
+      "id": "NET1-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": false,
+      "requires_separate_network_authorization": true,
+      "contract": "docs/NETWORK_BOUNDARY.md"
+    },
+    {
+      "id": "NET1-106",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": false,
+      "requires_separate_network_authorization": true,
+      "contract": "docs/NETWORK_BOUNDARY.md"
+    },
+    {
+      "id": "NET1-107",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": false,
+      "requires_separate_network_authorization": true,
+      "contract": "docs/NETWORK_BOUNDARY.md"
+    },
+    {
+      "id": "POL-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "POL-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "POL-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "POL-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "POL-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "READY-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "READY-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "READY-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "READY-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "READY-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "READY-106",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REC-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REC-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REC-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REC-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REC-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REV-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REV-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REV-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REV-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "REV-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "SHA-256",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "STORE-101",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "STORE-102",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "STORE-103",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "STORE-104",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "STORE-105",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    },
+    {
+      "id": "STORE-106",
+      "status": "SPECIFIED_NOT_IMPLEMENTED",
+      "mandatory_for_local_ready": true,
+      "requires_separate_network_authorization": false,
+      "contract": "docs/TESTING_SPEC.md"
+    }
+  ]
+}

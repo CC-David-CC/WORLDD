@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+build/
+local/
+evidence/target-runs/
+evidence/delegations/
+evidence/last-target-run.json
+*.core

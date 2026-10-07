@@ -1,0 +1,10 @@
+{
+  "kind": "native-test-witness-only",
+  "xi2": false,
+  "status": "passed",
+  "tests": 8,
+  "failures": 0,
+  "errors": 0,
+  "spatial_os_tested": false,
+  "physical_gpu_tested": false
+}

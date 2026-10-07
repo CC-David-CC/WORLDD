@@ -1,0 +1,29 @@
+Login/session arrangement
+Initially I'd retain Ubuntu's graphical login manager.
+You would eventually have something conceptually like:
+Login
+
+○ Ubuntu
+○ Ubuntu on Xorg / fallback
+● Spatial OS
+
+The Spatial entry starts:
+start spatial X server
+        ↓
+worldd
+        ↓
+spatialwm
+
+Ubuntu supports custom X sessions; fundamentally a session is just a program/session script whose lifetime defines the graphical session. Ubuntu Help
+Later, once the environment is mature, we can remove the traditional greeter entirely:
+boot
+ ↓
+systemd
+ ↓
+spatial-login.service
+ ↓
+XLibre
+ ↓
+spatialwm
+
+But don't do that during development. A working rescue GNOME login is too valuable.

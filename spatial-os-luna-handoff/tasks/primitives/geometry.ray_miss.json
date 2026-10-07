@@ -1,0 +1,43 @@
+{
+  "id": "geometry.ray_miss",
+  "phase": "P01",
+  "title": "geometry / ray miss",
+  "invariant": "One right-handed convention and one body-twist integrator explain all isolated and combined motions.",
+  "contract_sections": [
+    "2",
+    "3"
+  ],
+  "objective": "Implement the production behavior exercised by the exact listed assertions; preserve the phase invariant.",
+  "acceptance_tests": [
+    "tests.acceptance.test_01_geometry.GeometryTests.test_parallel_behind_backface_and_outside_are_misses"
+  ],
+  "suggested_production_roots": [
+    "src/core/"
+  ],
+  "read_first": [
+    "AGENTS.md",
+    "docs/CONTRACT.md",
+    "tests/acceptance/test_01_geometry.py"
+  ],
+  "prior_gate": "P00",
+  "diagnostic_commands": [
+    "python3 tools/gate.py --through P01 --case tests.acceptance.test_01_geometry.GeometryTests.test_parallel_behind_backface_and_outside_are_misses"
+  ],
+  "completion_command": "python3 tools/gate.py --through P01",
+  "command_note": "Set SPATIAL_SUT to the real JSON argv before these commands, or pass --sut with that same JSON argv. P04+ also requires the explicit dedicated test display.",
+  "steps": [
+    "Read the named assertions and relevant normative contract sections.",
+    "Run the focused case and retain the failing evidence.",
+    "Implement the smallest production change; do not put product logic in the harness.",
+    "Run the focused cases and inspect independent evidence.",
+    "Run the unfiltered cumulative gate and inspect regressions.",
+    "Record commit, evidence and a representative mutation result before closing the phase."
+  ],
+  "helper_rule": "After two failures on the same invariant, delegate a bounded diagnosis with exact evidence; Luna reviews and runs all tests.",
+  "forbidden_changes": [
+    "locked acceptance/oracle/gate changes merely to pass",
+    "fake native events or screenshots",
+    "a parallel test-only world/renderer",
+    "silent weakening or skipping of earlier gates"
+  ]
+}

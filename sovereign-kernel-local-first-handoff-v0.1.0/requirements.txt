@@ -1,0 +1,4 @@
+# Tested environment: cryptography 46.0.4, Python 3.13.5, Linux x86_64.
+# This is a REFERENCE dependency pin, not a current security-audited lockfile.
+# P01 must inspect advisories and generate target-specific wheel hashes before production use.
+cryptography==46.0.4
