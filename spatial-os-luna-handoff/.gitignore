@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 build/
+build-sanitize/
 local/
 evidence/target-runs/
 evidence/delegations/

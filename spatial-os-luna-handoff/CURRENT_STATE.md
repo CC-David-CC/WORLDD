@@ -54,6 +54,8 @@ Credentials are absent from those records.
 The model's initial storage and schema proposals had defects.
 The primary agent sent concrete critiques and received corrected reviews.
 Only executed checks establish test results.
+Final review requests failed after the local agent developed a hardware problem.
+David authorized continuation without the local agent.
 
 The daemon uses a trusted inherited-pipe management interface.
 Network transport and actor authentication remain pending.
