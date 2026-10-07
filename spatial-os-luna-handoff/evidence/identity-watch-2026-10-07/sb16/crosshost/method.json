@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "python3",
+    "/home/dflanag3/src/m01-watch-cross-server.py"
+  ],
+  "exit_code": 0,
+  "helper_sha256": "f1de6aac5eae57fdb55b6a0b41f1eef37f53882d648c7efdc9f48fbedb26f281",
+  "helper_source": "from pathlib import Path\nimport hashlib,json,os,socket,sys,tarfile,time\np=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff');assert socket.gethostname().split('.')[0]=='sb16'\nos.umask(0o077);sys.path[:0]=[str(p/'tests/core'),str(p/'build/python'),str(p)]\nsys.argv=[sys.argv[0],str(p/'build/identityd')]\nfrom test_identity_tls import TlsFixture\nimport issuer_pb2 as pb\nfixture=TlsFixture();fixture.setUp()\nfolder=p/'local/m01-watch-crosshost';folder.mkdir()\ntry:\n fixture.config.idle_timeout_ms=10000\n proc=fixture.launch('0.0.0.0')\n peer=fixture.connect()\n change=fixture.execute(peer,fixture.challenge(peer,fixture.operation(pb.APPROVE_ALWAYS,profile='empty-v1')))\n assert change.policy.policy.mode==pb.APPROVE_ALWAYS\n enrolled=fixture.enroll(peer);claims=fixture.claims(enrolled,fixture.info);peer.close()\n metadata={'host':'sb16','port':fixture.port,'issuer_id':fixture.info.issuer_id.hex(),'issuer_public_key':fixture.info.public_key.hex(),'credential_id':claims.credential_id.hex()}\n meta=fixture.root/'connection.json';meta.write_text(json.dumps(metadata))\n bundle=folder/'fixture.tar'\n with tarfile.open(bundle,'w') as archive:\n  for file in [meta,fixture.server_cert,fixture.service_cert,fixture.service_key]:archive.add(file,arcname=file.name,recursive=False)\n print('READY '+str(fixture.port),flush=True)\n deadline=time.monotonic()+180;revoked=False\n while not (folder/'stop').exists():\n  assert proc.poll() is None\n  if not revoked and (folder/'revoke').exists():\n   peer=fixture.connect()\n   operation=pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(target=pb.IdentityReference(kind=pb.CREDENTIAL_TARGET,id=claims.credential_id),expected_security_revision=0,reason='cross-host fixture'))\n   result=fixture.execute(peer,fixture.challenge(peer,operation))\n   assert result.identity_status.credential_revoked and result.identity_status.security_revision==1\n   revoked=True\n  if time.monotonic()>deadline:raise TimeoutError('Cross-host fixture expired')\n  time.sleep(.1)\n assert revoked\n peer.close()\n record={'server_host':'sb16','client_host':'sb16-2','protocol':'TLSv1.3','fixture_only':True,\n         'identityd_sha256':hashlib.sha256((p/'build/identityd').read_bytes()).hexdigest(),\n         'test_sha256':hashlib.sha256((p/'tests/core/test_identity_watch.py').read_bytes()).hexdigest()}\n (folder/'server.json').write_text(json.dumps(record,indent=2)+'\\n')\nfinally:\n fixture.doCleanups()\n if (folder/'fixture.tar').exists():(folder/'fixture.tar').unlink()\n",
+  "result": {
+    "server_host": "sb16",
+    "client_host": "sb16-2",
+    "protocol": "TLSv1.3",
+    "fixture_only": true,
+    "identityd_sha256": "c567012a86f1c87003c0fc389449ed5116b55744bb8f670e338c94c7819ff971",
+    "test_sha256": "e178571985684dc61573acee466d39c33e9def6c7f963b9b72901b0b352d0299"
+  },
+  "fixture_cleanup": "Temporary keys, certificates, issuer database, and transfer archives removed.",
+  "coordinator": {
+    "transport": "scp -3 relayed the disposable service bundle through the Windows SSH client with normal host verification.",
+    "trigger": "After WATCH_READY, the coordinator created the server revoke marker and the client release marker through their existing SSH connections.",
+    "setup_attempts": [
+      "The first fixture was stopped before testing to reconnect its management peer only when revocation was requested.",
+      "The second setup transfer failed because sb16-2 did not trust the sb16 SSH host key. It was stopped before notification testing. The coordinator then used its existing verified SSH connections."
+    ],
+    "assertions_changed": false
+  }
+}

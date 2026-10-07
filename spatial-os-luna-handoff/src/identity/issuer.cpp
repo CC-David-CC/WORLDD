@@ -3,6 +3,7 @@
 #include "world/store.hpp"
 #include <openssl/rand.h>
 #include <sqlite3.h>
+#include <algorithm>
 #include <cerrno>
 #include <fcntl.h>
 #include <limits>
@@ -427,6 +428,35 @@ struct Issuer::Impl {
 Issuer::Issuer(const std::filesystem::path& state, const std::optional<std::string>& owner, std::chrono::milliseconds ttl, bool migrate)
     : impl_(std::make_unique<Impl>(state, owner, ttl, migrate)) {}
 Issuer::~Issuer() = default;
+std::uint64_t Issuer::security_revision() { return impl_->security_revision(); }
+v1::RevocationBatch Issuer::revocations(const v1::RevocationRead& request) {
+    validate_message(request);
+    require(request.wait_ms() <= 1000 && request.after_revision() <= INT64_MAX,
+            "Revocation cursor or wait is out of range");
+    Transaction transaction(impl_->db.get());
+    const auto head = impl_->security_revision();
+    v1::RevocationBatch result;
+    result.set_issuer_id(impl_->identity.issuer_id()); result.set_head_revision(head);
+    const auto from = request.has_after_revision() ? request.after_revision() : head;
+    require(from <= head, "Revocation cursor is ahead of issuer history");
+    result.set_initial(!request.has_after_revision()); result.set_from_revision(from);
+    auto through = from;
+    if (request.has_after_revision()) {
+        Query rows(impl_->db.get(), "SELECT kind,target_id,revision FROM revocation WHERE revision>? ORDER BY revision LIMIT 128");
+        rows.integer(1, from);
+        while (rows.step() == SQLITE_ROW) {
+            const auto kind = rows.integer(0); const auto id = rows.blob(1); const auto revision = rows.integer(2);
+            storage((kind == v1::ACTOR_TARGET || kind == v1::CREDENTIAL_TARGET) && id.size() == 32 &&
+                    revision > 0 && static_cast<std::uint64_t>(revision) == through+1 &&
+                    static_cast<std::uint64_t>(revision) <= head, "Invalid durable revocation history");
+            auto* event = result.add_events(); event->set_revision(++through);
+            event->mutable_target()->set_kind(static_cast<v1::IdentityTargetKind>(kind));
+            event->mutable_target()->set_id(id);
+        }
+        storage(through == from+std::min<std::uint64_t>(head-from, 128), "Missing durable revocation history");
+    }
+    result.set_through_revision(through); transaction.commit(); return result;
+}
 v1::IssuerInfo Issuer::info() {
     auto result = impl_->identity; result.set_policy_revision(impl_->policy().revision()); return result;
 }

@@ -1,0 +1,22 @@
+test_missing_durable_history_is_a_storage_failure (__main__.WatchTests.test_missing_durable_history_is_a_storage_failure) ... FAIL
+
+======================================================================
+FAIL: test_missing_durable_history_is_a_storage_failure (__main__.WatchTests.test_missing_durable_history_is_a_storage_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-watch-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_watch.py", line 149, in test_missing_durable_history_is_a_storage_failure
+    self.denied(peer.call(revocations=pb.RevocationRead(after_revision=0)), core.STORAGE_ERROR)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-watch-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 0 != 10 : protocol_version: 1
+request_id: 8
+revocations {
+  issuer_id: "\024\004M\306\242\244\325s\0015\370\272\266Y\271\027\021\022\001\004\242Z\007\177\262\373\325#\303\201\364\213"
+  head_revision: 1
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.355s
+
+FAILED (failures=1)

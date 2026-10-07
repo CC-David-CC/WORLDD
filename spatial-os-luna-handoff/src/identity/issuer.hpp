@@ -23,6 +23,8 @@ public:
     v1::IdentityStatus credential_check(const v1::SignedCredential& credential);
     v1::ChallengeReply authentication_begin(const v1::AuthenticationBegin& request);
     v1::AuthenticationResult authentication_complete(const v1::AuthenticationComplete& request);
+    v1::RevocationBatch revocations(const v1::RevocationRead& request);
+    std::uint64_t security_revision();
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

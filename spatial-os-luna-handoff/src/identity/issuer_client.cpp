@@ -40,7 +40,27 @@ bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& re
         (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status())) ||
         (request.has_enrollment_complete() && reply.has_enrollment()) ||
         (request.has_authentication_complete() && reply.has_authentication()) ||
-        (request.has_credential_check() && reply.has_identity_status());
+        (request.has_credential_check() && reply.has_identity_status()) ||
+        (request.has_revocations() && reply.has_revocations());
+}
+void check_revocations(const v1::RevocationRead& request, const v1::RevocationBatch& batch,
+                       const std::string& issuer_id) {
+    const auto from = batch.from_revision(), through = batch.through_revision(), head = batch.head_revision();
+    require(batch.issuer_id() == issuer_id && head <= INT64_MAX && from <= through && through <= head &&
+            batch.events_size() <= 128, "Invalid revocation batch identity or range");
+    if (!request.has_after_revision()) {
+        require(batch.initial() && from == head && through == head && batch.events_size() == 0,
+                "Invalid revocation baseline"); return;
+    }
+    require(!batch.initial() && from == request.after_revision() &&
+            through-from == static_cast<std::uint64_t>(batch.events_size()) &&
+            (batch.events_size() == 128 || through == head), "Incomplete revocation batch");
+    auto revision = from;
+    for (const auto& event : batch.events()) {
+        require(event.revision() == ++revision && event.target().id().size() == 32 &&
+                (event.target().kind() == v1::ACTOR_TARGET || event.target().kind() == v1::CREDENTIAL_TARGET),
+                "Invalid revocation event");
+    }
 }
 void check_hello(const wire::HelloReply& hello) {
     require(hello.protocol() == "spatial-identity-protobuf/1" && hello.implementation() == "production" &&
@@ -168,6 +188,7 @@ struct IssuerClient::Impl {
             if (reply.has_info()) require(reply.info().issuer_id() == config.issuer_id() &&
                     reply.info().public_key() == config.issuer_public_key() && reply.info().policy_revision() > 0,
                     "Issuer identity does not match configured pins");
+            if (reply.has_revocations()) check_revocations(request.revocations(), reply.revocations(), config.issuer_id());
         }
         return reply;
     }
@@ -192,4 +213,5 @@ IssuerClient::~IssuerClient() = default;
 v1::IssuerReply IssuerClient::call(v1::IssuerRequest request) { return impl_->call(std::move(request)); }
 void IssuerClient::set_tick(std::function<void()> tick) { impl_->tick = std::move(tick); }
 bool IssuerClient::failed() const noexcept { return impl_->broken; }
+std::chrono::milliseconds IssuerClient::timeout() const noexcept { return impl_->timeout; }
 }

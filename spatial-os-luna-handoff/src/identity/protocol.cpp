@@ -15,6 +15,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             result->add_capabilities("identity.enrollment/v1");
             result->add_capabilities("identity.revocation/v1");
             result->add_capabilities("identity.authentication/v1");
+            result->add_capabilities("identity.revocation-feed/v1");
         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
         else if (request.has_execute()) {
@@ -27,6 +28,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
         else if (request.has_credential_check()) *reply.mutable_identity_status() = issuer.credential_check(request.credential_check());
         else if (request.has_authentication_begin()) *reply.mutable_challenge() = issuer.authentication_begin(request.authentication_begin());
         else if (request.has_authentication_complete()) *reply.mutable_authentication() = issuer.authentication_complete(request.authentication_complete());
+        else if (request.has_revocations()) *reply.mutable_revocations() = issuer.revocations(request.revocations());
         else throw spatial::WorldError(spatial::wire::UNKNOWN_METHOD, "No recognized issuer operation");
     } catch (const spatial::WorldError& error) {
         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());

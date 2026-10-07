@@ -1,0 +1,8 @@
+{
+  "server_host": "sb16",
+  "client_host": "sb16-2",
+  "protocol": "TLSv1.3",
+  "fixture_only": true,
+  "identityd_sha256": "c567012a86f1c87003c0fc389449ed5116b55744bb8f670e338c94c7819ff971",
+  "test_sha256": "e178571985684dc61573acee466d39c33e9def6c7f963b9b72901b0b352d0299"
+}

@@ -1,0 +1,35 @@
+{
+  "argv": [
+    "python3",
+    "/home/dflanag3/src/m01-watch-cross-client.py"
+  ],
+  "exit_code": 0,
+  "helper_sha256": "b9bf2053d73d6979f2f9f70f4f3ed8bd39e0246733b917994cd25c2204890460",
+  "helper_source": "from pathlib import Path\nimport hashlib,json,os,socket,sys,tarfile,subprocess,time\nfrom google.protobuf import text_format\np=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff');assert socket.gethostname().split('.')[0]=='sb16-2'\nos.umask(0o077);sys.path[:0]=[str(p/'tests/core'),str(p/'build/python'),str(p)]\nsys.argv=[sys.argv[0],str(p/'build/identityd'),str(p/'build/spatial-issuer-client'),str(p/'build/spatial-issuer-watch')]\nfrom test_identity_watch import WatchProcess\nfrom test_identity_enrollment import EnrollmentFixture\nimport issuer_pb2 as pb\nfixture=EnrollmentFixture();fixture.setUp()\nbundle=p/'local/m01-watch-crosshost-fixture.tar';folder=p/'local/m01-watch-crosshost';folder.mkdir()\ntry:\n with tarfile.open(bundle) as archive:\n  members=archive.getmembers()\n  assert {m.name for m in members}=={'connection.json','server.crt','service.crt','service.pem'}\n  for m in members:\n   assert m.isfile() and m.size<65536\n   (fixture.root/m.name).write_bytes(archive.extractfile(m).read())\n metadata=json.loads((fixture.root/'connection.json').read_text());assert metadata['host']=='sb16'\n config=pb.IssuerTlsClientConfig(protocol_version=1,address=socket.gethostbyname('sb16'),port=metadata['port'],\n  server_name='issuer.test',server_ca_path=str(fixture.root/'server.crt'),certificate_path=str(fixture.root/'service.crt'),\n  private_key_path=str(fixture.root/'service.pem'),issuer_id=bytes.fromhex(metadata['issuer_id']),\n  issuer_public_key=bytes.fromhex(metadata['issuer_public_key']),io_timeout_ms=3000)\n path=fixture.root/'client.textproto';path.write_text(text_format.MessageToString(config))\n watcher=WatchProcess(path,fixture.root/'watch.log');fixture.addCleanup(watcher.close)\n initial=watcher.receive();assert initial.protocol_version==1 and initial.batch.initial and initial.batch.head_revision==0\n print('WATCH_READY',flush=True)\n deadline=time.monotonic()+60\n while not (folder/'release').exists():\n  assert watcher.proc.poll() is None\n  if time.monotonic()>deadline:raise TimeoutError('Cross-host coordinator expired')\n  time.sleep(.05)\n update=watcher.receive()\n assert update.protocol_version==1 and update.batch.issuer_id==config.issuer_id and update.batch.through_revision==1\n assert len(update.batch.events)==1 and update.batch.events[0].target.kind==pb.CREDENTIAL_TARGET\n assert update.batch.events[0].target.id.hex()==metadata['credential_id']\n watcher.close();assert watcher.proc.returncode==0\n record={'status':'passed','client_host':'sb16-2','server_host':'sb16','client_program':'spatial-issuer-watch',\n  'checks':['production client server trust and name verification','mutual TLS','pinned issuer identity',\n            'checked initial baseline','ordered committed remote revocation','clean supervisor shutdown'],\n  'client_binary_sha256':hashlib.sha256((p/'build/spatial-issuer-watch').read_bytes()).hexdigest(),\n  'test_sha256':hashlib.sha256((p/'tests/core/test_identity_watch.py').read_bytes()).hexdigest()}\n (folder/'client.json').write_text(json.dumps(record,indent=2)+'\\n');print(json.dumps(record),flush=True)\nfinally:\n fixture.doCleanups();bundle.unlink(missing_ok=True)\n",
+  "result": {
+    "status": "passed",
+    "client_host": "sb16-2",
+    "server_host": "sb16",
+    "client_program": "spatial-issuer-watch",
+    "checks": [
+      "production client server trust and name verification",
+      "mutual TLS",
+      "pinned issuer identity",
+      "checked initial baseline",
+      "ordered committed remote revocation",
+      "clean supervisor shutdown"
+    ],
+    "client_binary_sha256": "f557a385c8066e4177061b5e5a9fa370d128188fed18dfe4133b8fca61b467c5",
+    "test_sha256": "e178571985684dc61573acee466d39c33e9def6c7f963b9b72901b0b352d0299"
+  },
+  "fixture_cleanup": "Temporary keys, certificates, issuer database, and transfer archives removed.",
+  "coordinator": {
+    "transport": "scp -3 relayed the disposable service bundle through the Windows SSH client with normal host verification.",
+    "trigger": "After WATCH_READY, the coordinator created the server revoke marker and the client release marker through their existing SSH connections.",
+    "setup_attempts": [
+      "The first fixture was stopped before testing to reconnect its management peer only when revocation was requested.",
+      "The second setup transfer failed because sb16-2 did not trust the sb16 SSH host key. It was stopped before notification testing. The coordinator then used its existing verified SSH connections."
+    ],
+    "assertions_changed": false
+  }
+}

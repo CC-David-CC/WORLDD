@@ -1,0 +1,23 @@
+test_current_baseline_and_committed_history_are_distinct (__main__.WatchTests.test_current_baseline_and_committed_history_are_distinct) ... FAIL
+
+======================================================================
+FAIL: test_current_baseline_and_committed_history_are_distinct (__main__.WatchTests.test_current_baseline_and_committed_history_are_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_watch.py", line 81, in test_current_baseline_and_committed_history_are_distinct
+    current = self.batch(peer); self.assertTrue(current.initial)
+              ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_watch.py", line 71, in batch
+    self.assertTrue(reply.HasField('revocations'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 8
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.402s
+
+FAILED (failures=1)

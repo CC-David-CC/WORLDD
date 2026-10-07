@@ -1,0 +1,57 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-watch-mutation/source",
+      "e88b7edc2812da22525e62970a509c5752524bae"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "spatial-issuer-client",
+      "identityd",
+      "issuer-python-protobuf",
+      "key-python-protobuf",
+      "python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "witness",
+    "argv": [
+      "python3",
+      "tests/core/test_identity_watch.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-watch-mutation/source/spatial-os-luna-handoff/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-watch-mutation/source/spatial-os-luna-handoff/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-watch-mutation/source/spatial-os-luna-handoff/build/spatial-issuer-watch",
+      "WatchTests.test_missing_durable_history_is_a_storage_failure"
+    ],
+    "exit_code": 1
+  }
+]

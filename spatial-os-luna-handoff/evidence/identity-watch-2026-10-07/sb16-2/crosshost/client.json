@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "client_host": "sb16-2",
+  "server_host": "sb16",
+  "client_program": "spatial-issuer-watch",
+  "checks": [
+    "production client server trust and name verification",
+    "mutual TLS",
+    "pinned issuer identity",
+    "checked initial baseline",
+    "ordered committed remote revocation",
+    "clean supervisor shutdown"
+  ],
+  "client_binary_sha256": "f557a385c8066e4177061b5e5a9fa370d128188fed18dfe4133b8fca61b467c5",
+  "test_sha256": "e178571985684dc61573acee466d39c33e9def6c7f963b9b72901b0b352d0299"
+}

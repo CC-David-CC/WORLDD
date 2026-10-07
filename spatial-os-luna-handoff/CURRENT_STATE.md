@@ -1,5 +1,51 @@
 # Implementation status
 
+## 2026-10-07: M01 issuer revocation feed qualified
+
+The issuer now returns committed actor and credential revocations through versioned Protocol Buffers.
+An omitted cursor requests a current baseline. An explicit cursor requests contiguous durable history.
+Each batch contains at most 128 events. Missing history produces a storage error.
+Duplicate revocations and rolled-back writes do not create events.
+The TLS listener supports bounded waiting and wakes after a revocation commit.
+Other issuer connections remain usable during that wait.
+
+The checked client validates the pinned issuer, requested cursor, batch range, event order, and target identities.
+The production IssuerWatcher owns a dedicated client thread and a bounded consumer queue.
+Its world-facing poll method does not wait for network I/O.
+Queue overflow, invalid responses, issuer errors, and connection failure disable the watcher.
+Failure discards queued batches and reports a permanent error. The watcher does not reconnect automatically.
+The spatial-issuer-watch adapter provides framed updates, nonblocking output, and supervisor-controlled shutdown.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 382 core checks, including 17 new revocation-feed checks.
+- All 51 harness checks.
+
+Independent checks cover real SQLite rollback, restart, pagination, concurrent TLS peers, invalid replies, and queue overflow.
+The production watcher on sb16-2 received a revocation committed by identityd on sb16.
+An isolated mutation removed the missing-history check. The negative test detected it.
+The mutation never entered production.
+Two cross-host fixture setup attempts ended before notification testing. Their causes and corrected coordination are recorded.
+The final transfer used the coordinator's existing verified SSH connections.
+Disposable fixture keys, certificates, databases, and transfer archives were removed.
+
+All 137 source hashes match reviewed local files and both hosts.
+The acceptance lock, locked assertions, core transport, oracles, and native witness remain unchanged.
+The issuer.proto extension preserves existing fields and database schema 3.
+Evidence is in evidence/identity-watch-2026-10-07. The contract is docs/ISSUER_WATCH.md.
+No host configuration, permanent service, operator session, or actual David credential changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+The feed is a dependency for authenticated world sessions. World integration remains incomplete.
+A successful issuer revoke response confirms its commit, not cancellation in every world.
+Current action checks and immediate live input, observation, and control revocation remain required.
+World admission, nonempty bootstrap profiles, and scoped grants remain required.
+All remaining M01-M16 and H01-H08 requirements stay mandatory. Full Spatial-M1 remains incomplete.
+Physical controls, performance, and native-session acceptance remain pending.
+Next: identity.world_session through the checked issuer client and revocation watcher.
+The full project goal remains active. No external blocker is recorded.
+
 ## 2026-10-07: M01 checked issuer client qualified
 
 The production IssuerClient library and spatial-issuer-client adapter now connect through mutually authenticated TLS 1.3.

@@ -1,0 +1,56 @@
+test_axis_zero_rejected (tests.harness.test_oracles.OracleTests.test_axis_zero_rejected) ... ok
+test_floor_not_round (tests.harness.test_oracles.OracleTests.test_floor_not_round) ... ok
+test_half_open_edge (tests.harness.test_oracles.OracleTests.test_half_open_edge) ... ok
+test_known_pitch (tests.harness.test_oracles.OracleTests.test_known_pitch) ... ok
+test_known_roll (tests.harness.test_oracles.OracleTests.test_known_roll) ... ok
+test_known_yaw (tests.harness.test_oracles.OracleTests.test_known_yaw) ... ok
+test_mutation_uv_flip_is_detectable (tests.harness.test_oracles.OracleTests.test_mutation_uv_flip_is_detectable) ... ok
+test_mutation_wrong_axis_is_detectable (tests.harness.test_oracles.OracleTests.test_mutation_wrong_axis_is_detectable) ... ok
+test_negative_q_same_rotation (tests.harness.test_oracles.OracleTests.test_negative_q_same_rotation) ... ok
+test_negative_uv_not_clamped (tests.harness.test_oracles.OracleTests.test_negative_uv_not_clamped) ... ok
+test_nonfinite_not_close (tests.harness.test_oracles.OracleTests.test_nonfinite_not_close) ... ok
+test_p6_binary_whitespace_pixel_is_not_eaten (tests.harness.test_oracles.OracleTests.test_p6_binary_whitespace_pixel_is_not_eaten) ... ok
+test_p6_comments (tests.harness.test_oracles.OracleTests.test_p6_comments) ... ok
+test_p6_truncation_rejected (tests.harness.test_oracles.OracleTests.test_p6_truncation_rejected) ... ok
+test_p6_wrong_format_rejected (tests.harness.test_oracles.OracleTests.test_p6_wrong_format_rejected) ... ok
+test_transform_known (tests.harness.test_oracles.OracleTests.test_transform_known) ... ok
+test_absent_fault_parameters_remain_unspecified (tests.harness.test_recovery_wire.RecoveryWireTests.test_absent_fault_parameters_remain_unspecified) ... ok
+test_all_fault_boundaries_round_trip_as_typed_enums (tests.harness.test_recovery_wire.RecoveryWireTests.test_all_fault_boundaries_round_trip_as_typed_enums) ... ok
+test_fault_fields_reject_unknown_values_and_parameters (tests.harness.test_recovery_wire.RecoveryWireTests.test_fault_fields_reject_unknown_values_and_parameters) ... ok
+test_fixture_fault_is_not_an_actor_action (tests.harness.test_recovery_wire.RecoveryWireTests.test_fixture_fault_is_not_an_actor_action) ... ok
+test_recovery_replies_require_explicit_status (tests.harness.test_recovery_wire.RecoveryWireTests.test_recovery_replies_require_explicit_status) ... ok
+test_surface_handle_preserves_uint64_and_message_presence (tests.harness.test_recovery_wire.RecoveryWireTests.test_surface_handle_preserves_uint64_and_message_presence) ... ok
+test_surface_handle_rejects_invalid_shapes_and_types (tests.harness.test_recovery_wire.RecoveryWireTests.test_surface_handle_rejects_invalid_shapes_and_types) ... ok
+test_surface_slot_preserves_identity_and_rejects_extra_fields (tests.harness.test_recovery_wire.RecoveryWireTests.test_surface_slot_preserves_identity_and_rejects_extra_fields) ... ok
+test_baseline_intact (tests.harness.test_tools.ToolTests.test_baseline_intact) ... ok
+test_changed_file_detected (tests.harness.test_tools.ToolTests.test_changed_file_detected) ... ok
+test_fixture_cannot_certify_product (tests.harness.test_tools.ToolTests.test_fixture_cannot_certify_product) ... ok
+test_helper_context_is_explicit (tests.harness.test_tools.ToolTests.test_helper_context_is_explicit) ... ok
+test_helper_context_path_escape_rejected (tests.harness.test_tools.ToolTests.test_helper_context_path_escape_rejected) ... ok
+test_helper_does_not_guess_protocol (tests.harness.test_tools.ToolTests.test_helper_does_not_guess_protocol) ... ok
+test_helper_no_protocol_override (tests.harness.test_tools.ToolTests.test_helper_no_protocol_override) ... ok
+test_helper_requires_real_configuration (tests.harness.test_tools.ToolTests.test_helper_requires_real_configuration) ... ok
+test_missing_collected_test_detected (tests.harness.test_tools.ToolTests.test_missing_collected_test_detected) ... ok
+test_no_sut_is_blocked_not_passed (tests.harness.test_tools.ToolTests.test_no_sut_is_blocked_not_passed) ... ok
+test_suite_has_unique_ids_and_metadata (tests.harness.test_tools.ToolTests.test_suite_has_unique_ids_and_metadata) ... ok
+test_concurrent_response_correlation (tests.harness.test_transport.TransportTests.test_concurrent_response_correlation) ... ok
+test_eof_is_failure (tests.harness.test_transport.TransportTests.test_eof_is_failure) ... ok
+test_invalid_command_rejected (tests.harness.test_transport.TransportTests.test_invalid_command_rejected) ... ok
+test_killed_process_is_failure (tests.harness.test_transport.TransportTests.test_killed_process_is_failure) ... ok
+test_malformed_protobuf_is_failure (tests.harness.test_transport.TransportTests.test_malformed_protobuf_is_failure) ... ok
+test_missing_outcome_is_failure (tests.harness.test_transport.TransportTests.test_missing_outcome_is_failure) ... ok
+test_nonfinite_reply_is_failure (tests.harness.test_transport.TransportTests.test_nonfinite_reply_is_failure) ... ok
+test_nonfinite_request_never_sent (tests.harness.test_transport.TransportTests.test_nonfinite_request_never_sent) ... ok
+test_roundtrip (tests.harness.test_transport.TransportTests.test_roundtrip) ... ok
+test_timeout_is_failure (tests.harness.test_transport.TransportTests.test_timeout_is_failure) ... ok
+test_typed_error (tests.harness.test_transport.TransportTests.test_typed_error) ... ok
+test_wrong_id_is_failure (tests.harness.test_transport.TransportTests.test_wrong_id_is_failure) ... ok
+test_false_availability_is_present_and_integers_are_not_booleans (tests.harness.test_workspace_wire.WorkspaceWireTests.test_false_availability_is_present_and_integers_are_not_booleans) ... ok
+test_launch_arguments_preserve_boundaries_and_reject_extra_fields (tests.harness.test_workspace_wire.WorkspaceWireTests.test_launch_arguments_preserve_boundaries_and_reject_extra_fields) ... ok
+test_missing_exit_status_cannot_be_decoded_as_success (tests.harness.test_workspace_wire.WorkspaceWireTests.test_missing_exit_status_cannot_be_decoded_as_success) ... ok
+test_unknown_or_nonstructural_rights_are_rejected (tests.harness.test_workspace_wire.WorkspaceWireTests.test_unknown_or_nonstructural_rights_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 51 tests in 0.673s
+
+OK

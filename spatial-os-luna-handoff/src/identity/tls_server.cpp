@@ -28,7 +28,7 @@ using tls_detail::Fd;
 using tls_detail::nonblocking;
 
 struct Peer {
-    enum class Phase { handshake, header, payload, reply };
+    enum class Phase { handshake, header, payload, waiting, reply };
     Fd socket;
     std::unique_ptr<SSL, decltype(&SSL_free)> tls;
     Phase phase = Phase::handshake;
@@ -36,6 +36,7 @@ struct Peer {
     Clock::time_point deadline;
     std::array<unsigned char, 4> header{};
     std::string payload, output;
+    std::optional<v1::IssuerRequest> waiting;
     std::size_t offset = 0;
     Peer(int fd, SSL_CTX* ctx, Milliseconds timeout)
         : socket(fd), tls(SSL_new(ctx), SSL_free), deadline(Clock::now()+timeout) {
@@ -50,13 +51,30 @@ struct Peer {
         // SSL_free then close; do not call SSL_shutdown after fatal TLS errors.
         return false;
     }
-    void respond(Issuer& issuer, Milliseconds timeout) {
+    void send(const v1::IssuerReply& reply, Milliseconds timeout) {
         std::ostringstream stream;
-        write_frame(stream, handle_issuer_frame(payload, issuer));
+        write_frame(stream, reply);
         output = stream.str(); payload.clear(); offset = 0;
         phase = Phase::reply; wanted = POLLOUT; deadline = Clock::now()+timeout;
     }
+    void respond(Issuer& issuer, Milliseconds timeout) {
+        const auto reply = handle_issuer_frame(payload, issuer);
+        v1::IssuerRequest request;
+        if (reply.has_revocations() && request.ParseFromString(payload) && request.revocations().has_after_revision() &&
+                request.revocations().wait_ms() && reply.revocations().events_size() == 0) {
+            waiting = std::move(request); payload.clear(); offset = 0; phase = Phase::waiting; wanted = 0;
+            deadline = Clock::now()+Milliseconds(waiting->revocations().wait_ms());
+        } else send(reply, timeout);
+    }
     bool step(Issuer& issuer, Milliseconds timeout, Milliseconds idle) {
+        if (phase == Phase::waiting) {
+            try {
+                if (Clock::now() < deadline && issuer.security_revision() == waiting->revocations().after_revision()) return true;
+            } catch (const std::exception&) {
+                // The shared dispatcher turns storage failure into a typed response.
+            }
+            send(dispatch_issuer(*waiting, issuer), timeout); waiting.reset(); return true;
+        }
         if (phase == Phase::handshake) {
             ERR_clear_error(); const int result = SSL_accept(tls.get());
             if (result != 1) return retry(result);
@@ -136,9 +154,11 @@ struct IssuerTlsServer::Impl {
             // One bounded step per peer, then admit at most one new connection.
             for (std::size_t i = peers.size(); i > 0; --i) {
                 auto& peer = *peers[i-1]; const auto events = fds[i+1].revents;
-                bool keep = Clock::now() < peer.deadline && !(events & POLLNVAL);
+                const bool waiting = peer.phase == Peer::Phase::waiting;
+                bool keep = (waiting || Clock::now() < peer.deadline) && !(events & POLLNVAL) &&
+                    !(waiting && (events & (POLLHUP | POLLERR)));
                 const bool reading = peer.phase == Peer::Phase::header || peer.phase == Peer::Phase::payload;
-                if (keep && (events || (reading && peer.wanted == POLLIN && SSL_pending(peer.tls.get()) > 0)))
+                if (keep && (waiting || events || (reading && peer.wanted == POLLIN && SSL_pending(peer.tls.get()) > 0)))
                     keep = peer.step(issuer, timeout, idle);
                 if (!keep) peers.erase(peers.begin()+static_cast<std::ptrdiff_t>(i-1));
             }

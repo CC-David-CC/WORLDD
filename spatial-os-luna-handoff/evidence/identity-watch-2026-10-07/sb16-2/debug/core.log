@@ -1,0 +1,648 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+      Start  1: identity-keys
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_keys.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-key"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+1: Test timeout computed to be: 60
+1: test_concurrent_creation_has_one_winner_and_a_complete_key (__main__.IdentityKeyTests.test_concurrent_creation_has_one_winner_and_a_complete_key) ... ok
+1: test_corrupt_oversized_and_trailing_key_data_are_rejected (__main__.IdentityKeyTests.test_corrupt_oversized_and_trailing_key_data_are_rejected) ... ok
+1: test_distinct_keys_persist_with_private_permissions_and_external_public_keys (__main__.IdentityKeyTests.test_distinct_keys_persist_with_private_permissions_and_external_public_keys) ... ok
+1: test_empty_and_maximum_payload_are_explicit_and_bounded (__main__.IdentityKeyTests.test_empty_and_maximum_payload_are_explicit_and_bounded) ... ok
+1: test_exposed_key_permissions_are_rejected_and_read_only_private_key_works (__main__.IdentityKeyTests.test_exposed_key_permissions_are_rejected_and_read_only_private_key_works) ... ok
+1: test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected (__main__.IdentityKeyTests.test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected) ... ok
+1: test_generation_never_overwrites_an_existing_identity (__main__.IdentityKeyTests.test_generation_never_overwrites_an_existing_identity) ... ok
+1: test_independent_signatures_verify_but_payload_key_and_signature_changes_fail (__main__.IdentityKeyTests.test_independent_signatures_verify_but_payload_key_and_signature_changes_fail) ... ok
+1: test_key_symlink_hardlink_fifo_and_directory_are_rejected_without_hanging (__main__.IdentityKeyTests.test_key_symlink_hardlink_fifo_and_directory_are_rejected_without_hanging) ... ok
+1: test_missing_and_relative_paths_do_not_create_implicit_keys (__main__.IdentityKeyTests.test_missing_and_relative_paths_do_not_create_implicit_keys) ... ok
+1: test_production_signatures_match_independent_openssl_for_every_purpose (__main__.IdentityKeyTests.test_production_signatures_match_independent_openssl_for_every_purpose) ... ok
+1: test_shared_or_symlinked_key_directory_is_rejected (__main__.IdentityKeyTests.test_shared_or_symlinked_key_directory_is_rejected) ... ok
+1: test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed (__main__.IdentityKeyTests.test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed) ... ok
+1: test_signing_input_requires_exactly_one_complete_protobuf_frame (__main__.IdentityKeyTests.test_signing_input_requires_exactly_one_complete_protobuf_frame) ... ok
+1: test_unknown_fields_unknown_purposes_and_missing_proof_fields_fail_closed (__main__.IdentityKeyTests.test_unknown_fields_unknown_purposes_and_missing_proof_fields_fail_closed) ... ok
+1: test_wrong_key_and_signature_lengths_are_rejected (__main__.IdentityKeyTests.test_wrong_key_and_signature_lengths_are_rejected) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 16 tests in 0.818s
+1: 
+1: OK
+ 1/22 Test  #1: identity-keys ....................   Passed    0.93 sec
+test 2
+      Start  2: identity-issuer
+
+2: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd"
+2: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+2: Environment variables: 
+2:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+2: Test timeout computed to be: 60
+2: test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed (__main__.IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed) ... ok
+2: test_challenge_binds_issuer_incarnation_owner_operation_and_audience (__main__.IssuerTests.test_challenge_binds_issuer_incarnation_owner_operation_and_audience) ... ok
+2: test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation (__main__.IssuerTests.test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation) ... ok
+2: test_competing_revision_updates_have_one_winner (__main__.IssuerTests.test_competing_revision_updates_have_one_winner) ... ok
+2: test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy (__main__.IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy) ... ok
+2: test_initialization_and_startup_never_replace_missing_or_existing_identity (__main__.IssuerTests.test_initialization_and_startup_never_replace_missing_or_existing_identity) ... ok
+2: test_invalid_policy_and_unknown_fields_do_not_change_state (__main__.IssuerTests.test_invalid_policy_and_unknown_fields_do_not_change_state) ... ok
+2: test_issuer_instances_do_not_accept_each_others_challenges (__main__.IssuerTests.test_issuer_instances_do_not_accept_each_others_challenges) ... ok
+2: test_only_one_process_can_own_one_issuer_directory (__main__.IssuerTests.test_only_one_process_can_own_one_issuer_directory) ... ok
+2: test_owner_policy_change_is_durable_and_observed_through_real_sqlite (__main__.IssuerTests.test_owner_policy_change_is_durable_and_observed_through_real_sqlite) ... ok
+2: test_pending_challenges_are_bounded_and_restart_clears_them (__main__.IssuerTests.test_pending_challenges_are_bounded_and_restart_clears_them) ... ok
+2: test_proof_for_one_challenge_does_not_complete_another (__main__.IssuerTests.test_proof_for_one_challenge_does_not_complete_another) ... ok
+2: test_protocol_errors_preserve_request_identity_and_connection_usability (__main__.IssuerTests.test_protocol_errors_preserve_request_identity_and_connection_usability) ... ok
+2: test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works (__main__.IssuerTests.test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works) ... ok
+2: test_restart_invalidates_pending_challenges_without_changing_policy (__main__.IssuerTests.test_restart_invalidates_pending_challenges_without_changing_policy) ... ok
+2: test_successful_proof_cannot_be_replayed (__main__.IssuerTests.test_successful_proof_cannot_be_replayed) ... ok
+2: test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly (__main__.IssuerTests.test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly) ... ok
+2: test_unsafe_state_files_and_directory_are_rejected (__main__.IssuerTests.test_unsafe_state_files_and_directory_are_rejected) ... ok
+2: 
+2: ----------------------------------------------------------------------
+2: Ran 18 tests in 2.276s
+2: 
+2: OK
+ 2/22 Test  #2: identity-issuer ..................   Passed    2.36 sec
+test 3
+      Start  3: identity-enrollment
+
+3: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_enrollment.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd"
+3: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+3: Environment variables: 
+3:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+3: Test timeout computed to be: 60
+3: test_a_key_cannot_create_a_second_request_by_changing_its_intent (__main__.EnrollmentTests.test_a_key_cannot_create_a_second_request_by_changing_its_intent) ... ok
+3: test_another_key_cannot_enroll_and_failed_completion_consumes_nonce (__main__.EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce) ... ok
+3: test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants (__main__.EnrollmentTests.test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants) ... ok
+3: test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance (__main__.EnrollmentTests.test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance) ... ok
+3: test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment (__main__.EnrollmentTests.test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment) ... ok
+3: test_changed_enrollment_intent_or_purpose_is_rejected (__main__.EnrollmentTests.test_changed_enrollment_intent_or_purpose_is_rejected) ... ok
+3: test_duplicate_decisions_do_not_create_another_credential (__main__.EnrollmentTests.test_duplicate_decisions_do_not_create_another_credential) ... ok
+3: test_enrollment_and_owner_challenges_share_one_bounded_pool (__main__.EnrollmentTests.test_enrollment_and_owner_challenges_share_one_bounded_pool) ... ok
+3: test_enrollment_challenge_binds_the_exact_intent_and_service (__main__.EnrollmentTests.test_enrollment_challenge_binds_the_exact_intent_and_service) ... ok
+3: test_enrollment_proof_expires_on_the_real_clock (__main__.EnrollmentTests.test_enrollment_proof_expires_on_the_real_clock) ... ok
+3: test_explicit_schema_migration_preserves_issuer_key_owner_and_policy (__main__.EnrollmentTests.test_explicit_schema_migration_preserves_issuer_key_owner_and_policy) ... ok
+3: test_humans_and_agents_get_distinct_actor_and_credential_identities (__main__.EnrollmentTests.test_humans_and_agents_get_distinct_actor_and_credential_identities) ... ok
+3: test_invalid_intents_and_reserved_keys_cannot_allocate_enrollments (__main__.EnrollmentTests.test_invalid_intents_and_reserved_keys_cannot_allocate_enrollments) ... ok
+3: test_owner_and_actor_challenges_cannot_be_used_in_the_other_protocol (__main__.EnrollmentTests.test_owner_and_actor_challenges_cannot_be_used_in_the_other_protocol) ... ok
+3: test_owner_approval_issues_an_independently_verifiable_durable_credential (__main__.EnrollmentTests.test_owner_approval_issues_an_independently_verifiable_durable_credential) ... ok
+3: test_owner_can_explicitly_attach_a_second_proven_key_to_one_actor (__main__.EnrollmentTests.test_owner_can_explicitly_attach_a_second_proven_key_to_one_actor) ... ok
+3: test_policy_revision_change_prevents_stale_approval (__main__.EnrollmentTests.test_policy_revision_change_prevents_stale_approval) ... ok
+3: test_policy_switch_does_not_approve_old_pending_requests_implicitly (__main__.EnrollmentTests.test_policy_switch_does_not_approve_old_pending_requests_implicitly) ... ok
+3: test_proven_key_waits_for_owner_approval (__main__.EnrollmentTests.test_proven_key_waits_for_owner_approval) ... ok
+3: test_real_database_abort_rolls_back_actor_and_credential_creation (__main__.EnrollmentTests.test_real_database_abort_rolls_back_actor_and_credential_creation) ... ok
+3: test_rejection_is_durable_and_cannot_be_reapproved_or_reenrolled (__main__.EnrollmentTests.test_rejection_is_durable_and_cannot_be_reapproved_or_reenrolled) ... ok
+3: test_replay_is_denied_but_fresh_proof_recovers_the_same_pending_request (__main__.EnrollmentTests.test_replay_is_denied_but_fresh_proof_recovers_the_same_pending_request) ... ok
+3: test_requester_cannot_approve_itself_or_read_another_request_as_owner (__main__.EnrollmentTests.test_requester_cannot_approve_itself_or_read_another_request_as_owner) ... ok
+3: test_restart_preserves_pending_requests_and_invalidates_old_challenges (__main__.EnrollmentTests.test_restart_preserves_pending_requests_and_invalidates_old_challenges) ... ok
+3: test_unknown_profile_blocks_issuance_and_preserves_pending_request (__main__.EnrollmentTests.test_unknown_profile_blocks_issuance_and_preserves_pending_request) ... ok
+3: 
+3: ----------------------------------------------------------------------
+3: Ran 25 tests in 4.517s
+3: 
+3: OK
+ 3/22 Test  #3: identity-enrollment ..............   Passed    4.60 sec
+test 4
+      Start  4: identity-revocation
+
+4: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_revocation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+4: Environment variables: 
+4:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+4: Test timeout computed to be: 60
+4: test_actor_revocation_disables_all_its_credentials_but_not_another_actor (__main__.RevocationTests.test_actor_revocation_disables_all_its_credentials_but_not_another_actor) ... ok
+4: test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge (__main__.RevocationTests.test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge) ... ok
+4: test_authentication_expiry_and_restart_reject_old_proofs (__main__.RevocationTests.test_authentication_expiry_and_restart_reject_old_proofs) ... ok
+4: test_authentication_uses_the_same_bounded_challenge_pool (__main__.RevocationTests.test_authentication_uses_the_same_bounded_challenge_pool) ... ok
+4: test_changed_audience_binding_or_signature_purpose_is_rejected (__main__.RevocationTests.test_changed_audience_binding_or_signature_purpose_is_rejected) ... ok
+4: test_credential_revocation_preserves_other_credential_and_pending_proof (__main__.RevocationTests.test_credential_revocation_preserves_other_credential_and_pending_proof) ... ok
+4: test_credentials_and_proofs_do_not_cross_issuer_instances (__main__.RevocationTests.test_credentials_and_proofs_do_not_cross_issuer_instances) ... ok
+4: test_explicit_v2_migration_preserves_all_existing_credential_bytes (__main__.RevocationTests.test_explicit_v2_migration_preserves_all_existing_credential_bytes) ... ok
+4: test_fresh_actor_proof_derives_identity_from_registered_credential (__main__.RevocationTests.test_fresh_actor_proof_derives_identity_from_registered_credential) ... ok
+4: test_fresh_duplicate_revocation_preserves_first_reason_and_revision (__main__.RevocationTests.test_fresh_duplicate_revocation_preserves_first_reason_and_revision) ... ok
+4: test_fresh_enrollment_recovery_does_not_reactivate_a_revoked_credential (__main__.RevocationTests.test_fresh_enrollment_recovery_does_not_reactivate_a_revoked_credential) ... ok
+4: test_invalid_authentication_context_and_unknown_fields_are_rejected (__main__.RevocationTests.test_invalid_authentication_context_and_unknown_fields_are_rejected) ... ok
+4: test_invalid_revocation_requests_do_not_allocate_owner_challenges (__main__.RevocationTests.test_invalid_revocation_requests_do_not_allocate_owner_challenges) ... ok
+4: test_missing_targets_do_not_change_security_revision (__main__.RevocationTests.test_missing_targets_do_not_change_security_revision) ... ok
+4: test_only_owner_can_read_identity_status_or_revoke (__main__.RevocationTests.test_only_owner_can_read_identity_status_or_revoke) ... ok
+4: test_owner_and_authentication_challenges_cannot_cross_protocols (__main__.RevocationTests.test_owner_and_authentication_challenges_cannot_cross_protocols) ... ok
+4: test_revocation_and_security_revision_survive_process_death (__main__.RevocationTests.test_revocation_and_security_revision_survive_process_death) ... ok
+4: test_revocation_between_challenge_and_completion_denies_authentication (__main__.RevocationTests.test_revocation_between_challenge_and_completion_denies_authentication) ... ok
+4: test_revoked_actor_cannot_receive_an_additional_credential (__main__.RevocationTests.test_revoked_actor_cannot_receive_an_additional_credential) ... ok
+4: test_sqlite_abort_rolls_back_revocation_and_global_revision (__main__.RevocationTests.test_sqlite_abort_rolls_back_revocation_and_global_revision) ... ok
+4: test_stale_security_revision_does_not_revoke_another_identity (__main__.RevocationTests.test_stale_security_revision_does_not_revoke_another_identity) ... ok
+4: test_successful_actor_proof_cannot_be_replayed (__main__.RevocationTests.test_successful_actor_proof_cannot_be_replayed) ... ok
+4: test_tampered_or_self_signed_credential_cannot_start_authentication (__main__.RevocationTests.test_tampered_or_self_signed_credential_cannot_start_authentication) ... ok
+4: test_valid_issuer_signature_does_not_register_an_unissued_credential (__main__.RevocationTests.test_valid_issuer_signature_does_not_register_an_unissued_credential) ... ok
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 24 tests in 5.502s
+4: 
+4: OK
+ 4/22 Test  #4: identity-revocation ..............   Passed    5.59 sec
+test 5
+      Start  5: identity-tls
+
+5: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd"
+5: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+5: Environment variables: 
+5:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+5: Test timeout computed to be: 90
+5: test_connection_limit_rejects_excess_peer_then_recovers (__main__.TlsTests.test_connection_limit_rejects_excess_peer_then_recovers) ... ok
+5: test_connections_share_enrollment_authentication_and_revocation (__main__.TlsTests.test_connections_share_enrollment_authentication_and_revocation) ... ok
+5: test_disconnect_mid_payload_does_not_kill_issuer (__main__.TlsTests.test_disconnect_mid_payload_does_not_kill_issuer) ... ok
+5: test_encrypted_private_key_fails_without_prompting (__main__.TlsTests.test_encrypted_private_key_fails_without_prompting) ... ok
+5: test_excessive_frame_closes_only_offending_peer (__main__.TlsTests.test_excessive_frame_closes_only_offending_peer) ... ok
+5: test_expired_service_certificate_rejected (__main__.TlsTests.test_expired_service_certificate_rejected) ... ok
+5: test_idle_timeout_reclaims_peer (__main__.TlsTests.test_idle_timeout_reclaims_peer) ... ok
+5: test_independent_client_rejects_wrong_server_name_and_trust (__main__.TlsTests.test_independent_client_rejects_wrong_server_name_and_trust) ... ok
+5: test_invalid_configuration_and_key_mismatch_fail_before_accept (__main__.TlsTests.test_invalid_configuration_and_key_mismatch_fail_before_accept) ... ok
+5: test_listener_requires_tcp_listening_socket (__main__.TlsTests.test_listener_requires_tcp_listening_socket) ... ok
+5: test_malformed_unknown_and_wrong_version_preserve_channel (__main__.TlsTests.test_malformed_unknown_and_wrong_version_preserve_channel) ... ok
+5: test_maximum_frame_crosses_tls_record_boundaries (__main__.TlsTests.test_maximum_frame_crosses_tls_record_boundaries) ... ok
+5: test_missing_service_certificate_rejected (__main__.TlsTests.test_missing_service_certificate_rejected) ... ok
+5: test_mutual_tls_reaches_production_issuer (__main__.TlsTests.test_mutual_tls_reaches_production_issuer) ... ok
+5: test_partial_and_pipelined_frames_keep_request_identity (__main__.TlsTests.test_partial_and_pipelined_frames_keep_request_identity) ... ok
+5: test_partial_frame_deadline_is_not_refreshed_by_progress (__main__.TlsTests.test_partial_frame_deadline_is_not_refreshed_by_progress) ... ok
+5: test_private_key_permissions_and_links_fail_closed (__main__.TlsTests.test_private_key_permissions_and_links_fail_closed) ... ok
+5: test_service_certificate_does_not_replace_owner_proof (__main__.TlsTests.test_service_certificate_does_not_replace_owner_proof) ... ok
+5: test_stalled_handshake_does_not_block_other_peers (__main__.TlsTests.test_stalled_handshake_does_not_block_other_peers) ... ok
+5: test_stalled_reader_hits_write_deadline_without_blocking_other_peer (__main__.TlsTests.test_stalled_reader_hits_write_deadline_without_blocking_other_peer) ... ok
+5: test_supervisor_eof_stops_listener_and_all_peers (__main__.TlsTests.test_supervisor_eof_stops_listener_and_all_peers) ... ok
+5: test_tls12_and_plaintext_rejected (__main__.TlsTests.test_tls12_and_plaintext_rejected) ... ok
+5: test_untrusted_service_certificate_rejected (__main__.TlsTests.test_untrusted_service_certificate_rejected) ... ok
+5: 
+5: ----------------------------------------------------------------------
+5: Ran 23 tests in 11.211s
+5: 
+5: OK
+ 5/22 Test  #5: identity-tls .....................   Passed   11.33 sec
+test 6
+      Start  6: issuer-client
+
+6: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_issuer_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client"
+6: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+6: Environment variables: 
+6:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+6: Test timeout computed to be: 90
+6: test_bad_reply_envelopes_poison_client (__main__.ClientTests.test_bad_reply_envelopes_poison_client) ... ok
+6: test_client_certificate_must_be_trusted_by_issuer (__main__.ClientTests.test_client_certificate_must_be_trusted_by_issuer) ... ok
+6: test_client_reaches_real_issuer_and_preserves_caller_request_ids (__main__.ClientTests.test_client_reaches_real_issuer_and_preserves_caller_request_ids) ... ok
+6: test_client_rejects_expired_server_certificate (__main__.ClientTests.test_client_rejects_expired_server_certificate) ... ok
+6: test_client_uses_sni_and_unique_internal_request_ids (__main__.ClientTests.test_client_uses_sni_and_unique_internal_request_ids) ... ok
+6: test_client_verifies_explicit_server_trust (__main__.ClientTests.test_client_verifies_explicit_server_trust) ... ok
+6: test_client_verifies_server_name (__main__.ClientTests.test_client_verifies_server_name) ... ok
+6: test_common_name_without_dns_san_is_rejected (__main__.ClientTests.test_common_name_without_dns_san_is_rejected) ... ok
+6: test_fragmented_reply_is_received_without_losing_frame_identity (__main__.ClientTests.test_fragmented_reply_is_received_without_losing_frame_identity) ... ok
+6: test_invalid_config_does_not_connect (__main__.ClientTests.test_invalid_config_does_not_connect) ... ok
+6: test_invalid_local_payload_does_not_poison_connection (__main__.ClientTests.test_invalid_local_payload_does_not_poison_connection) ... ok
+6: test_issuer_pins_are_checked_before_actor_data (__main__.ClientTests.test_issuer_pins_are_checked_before_actor_data) ... ok
+6: test_lost_reply_does_not_reconnect_or_replay (__main__.ClientTests.test_lost_reply_does_not_reconnect_or_replay) ... ok
+6: test_missing_production_capability_rejected_before_actor_data (__main__.ClientTests.test_missing_production_capability_rejected_before_actor_data) ... ok
+6: test_numeric_ipv6_endpoint_reaches_real_issuer (__main__.ClientTests.test_numeric_ipv6_endpoint_reaches_real_issuer) ... ok
+6: test_real_enrollment_authentication_and_revocation_use_checked_client (__main__.ClientTests.test_real_enrollment_authentication_and_revocation_use_checked_client) ... ok
+6: test_reply_deadline_is_not_refreshed_by_partial_progress (__main__.ClientTests.test_reply_deadline_is_not_refreshed_by_partial_progress) ... ok
+6: test_startup_reply_identity_is_checked (__main__.ClientTests.test_startup_reply_identity_is_checked) ... ok
+6: test_tcp_handshake_timeout_is_bounded (__main__.ClientTests.test_tcp_handshake_timeout_is_bounded) ... ok
+6: test_tick_callback_cancels_and_poisons_library_connection (__main__.ClientTests.test_tick_callback_cancels_and_poisons_library_connection) ... ok
+6: test_tls12_has_no_fallback (__main__.ClientTests.test_tls12_has_no_fallback) ... ok
+6: test_truncated_and_excessive_replies_fail_closed (__main__.ClientTests.test_truncated_and_excessive_replies_fail_closed) ... ok
+6: test_unsafe_client_key_fails_before_connect (__main__.ClientTests.test_unsafe_client_key_fails_before_connect) ... ok
+6: test_valid_issuer_error_keeps_connection_usable (__main__.ClientTests.test_valid_issuer_error_keeps_connection_usable) ... ok
+6: 
+6: ----------------------------------------------------------------------
+6: Ran 24 tests in 8.592s
+6: 
+6: OK
+ 6/22 Test  #6: issuer-client ....................   Passed    8.70 sec
+test 7
+      Start  7: identity-watch
+
+7: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_watch.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-watch"
+7: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+7: Environment variables: 
+7:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+7: Test timeout computed to be: 120
+7: test_actor_and_credential_events_keep_global_order (__main__.WatchTests.test_actor_and_credential_events_keep_global_order) ... ok
+7: test_bounded_queue_failure_is_visible_to_world_consumer (__main__.WatchTests.test_bounded_queue_failure_is_visible_to_world_consumer) ... ok
+7: test_committed_revocation_wakes_wait_without_waiting_for_heartbeat (__main__.WatchTests.test_committed_revocation_wakes_wait_without_waiting_for_heartbeat) ... ok
+7: test_current_baseline_and_committed_history_are_distinct (__main__.WatchTests.test_current_baseline_and_committed_history_are_distinct) ... ok
+7: test_duplicate_revocation_does_not_create_another_event (__main__.WatchTests.test_duplicate_revocation_does_not_create_another_event) ... ok
+7: test_future_cursor_and_excessive_wait_are_rejected (__main__.WatchTests.test_future_cursor_and_excessive_wait_are_rejected) ... ok
+7: test_history_is_bounded_to_128_contiguous_events (__main__.WatchTests.test_history_is_bounded_to_128_contiguous_events) ... ok
+7: test_history_survives_issuer_restart (__main__.WatchTests.test_history_survives_issuer_restart) ... ok
+7: test_invalid_feed_batches_disable_checked_client (__main__.WatchTests.test_invalid_feed_batches_disable_checked_client) ... ok
+7: test_issuer_failure_disables_watcher_without_reconnect (__main__.WatchTests.test_issuer_failure_disables_watcher_without_reconnect) ... ok
+7: test_missing_durable_history_is_a_storage_failure (__main__.WatchTests.test_missing_durable_history_is_a_storage_failure) ... ok
+7: test_production_watcher_delivers_baseline_then_real_revocation (__main__.WatchTests.test_production_watcher_delivers_baseline_then_real_revocation) ... ok
+7: test_reconnect_recovers_events_after_explicit_cursor (__main__.WatchTests.test_reconnect_recovers_events_after_explicit_cursor) ... ok
+7: test_rolled_back_revocation_has_no_event (__main__.WatchTests.test_rolled_back_revocation_has_no_event) ... ok
+7: test_tls_wait_has_heartbeat_and_does_not_block_another_peer (__main__.WatchTests.test_tls_wait_has_heartbeat_and_does_not_block_another_peer) ... ok
+7: test_watcher_explicit_cursor_delivers_durable_backlog (__main__.WatchTests.test_watcher_explicit_cursor_delivers_durable_backlog) ... ok
+7: test_watcher_stops_promptly_on_supervisor_eof (__main__.WatchTests.test_watcher_stops_promptly_on_supervisor_eof) ... ok
+7: 
+7: ----------------------------------------------------------------------
+7: Ran 17 tests in 15.598s
+7: 
+7: OK
+ 7/22 Test  #7: identity-watch ...................   Passed   15.71 sec
+test 8
+      Start  8: render-runtime
+
+8: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_render.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+8: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+8: Environment variables: 
+8:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+8: Test timeout computed to be: 90
+8: test_compositor_is_owned_separate_process_and_death_closes_session (__main__.RenderRuntimeTests.test_compositor_is_owned_separate_process_and_death_closes_session) ... ok
+8: test_configuration_controls_fov_background_and_clipping (__main__.RenderRuntimeTests.test_configuration_controls_fov_background_and_clipping) ... ok
+8: test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick) ... ok
+8: test_existing_wm_is_not_replaced (__main__.RenderRuntimeTests.test_existing_wm_is_not_replaced) ... ok
+8: test_graceful_shutdown_releases_graphics_without_sanitizer_errors (__main__.RenderRuntimeTests.test_graceful_shutdown_releases_graphics_without_sanitizer_errors) ... ok
+8: test_half_open_panel_edges_match_pixel_center_rays (__main__.RenderRuntimeTests.test_half_open_panel_edges_match_pixel_center_rays) ... ok
+8: test_inclusive_clip_planes_and_quad_crossing_camera_plane (__main__.RenderRuntimeTests.test_inclusive_clip_planes_and_quad_crossing_camera_plane) ... ok
+8: test_invalid_dimensions_tokens_and_aim_do_not_mutate_world (__main__.RenderRuntimeTests.test_invalid_dimensions_tokens_and_aim_do_not_mutate_world) ... ok
+8: test_no_explicit_display_does_not_adopt_environment_display (__main__.RenderRuntimeTests.test_no_explicit_display_does_not_adopt_environment_display) ... ok
+8: test_parent_death_reaps_graphics_and_releases_display (__main__.RenderRuntimeTests.test_parent_death_reaps_graphics_and_releases_display) ... ok
+8: test_real_clock_expires_while_renderer_is_stopped (__main__.RenderRuntimeTests.test_real_clock_expires_while_renderer_is_stopped) ... ok
+8: test_rotated_translated_camera_matches_aim (__main__.RenderRuntimeTests.test_rotated_translated_camera_matches_aim) ... ok
+8: test_visible_drawable_matches_randomized_capture_and_resize (__main__.RenderRuntimeTests.test_visible_drawable_matches_randomized_capture_and_resize) ... ok
+8: 
+8: ----------------------------------------------------------------------
+8: Ran 13 tests in 2.180s
+8: 
+8: OK
+ 8/22 Test  #8: render-runtime ...................   Passed    2.41 sec
+test 9
+      Start  9: surface-runtime
+
+9: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_surfaces.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+9: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+9: Environment variables: 
+9:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+9: Test timeout computed to be: 90
+9: test_concurrent_resize_and_damage_leave_latest_pixels_and_live_runtime (__main__.SurfaceRuntimeTests.test_concurrent_resize_and_damage_leave_latest_pixels_and_live_runtime) ... ok
+9: test_concurrent_slot_attachment_has_one_winner (__main__.SurfaceRuntimeTests.test_concurrent_slot_attachment_has_one_winner) ... ok
+9: test_current_handle_validation_is_read_only_and_does_not_grant_control (__main__.SurfaceRuntimeTests.test_current_handle_validation_is_read_only_and_does_not_grant_control) ... ok
+9: test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover (__main__.SurfaceRuntimeTests.test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover) ... ok
+9: test_existing_client_is_imported_on_compositor_start (__main__.SurfaceRuntimeTests.test_existing_client_is_imported_on_compositor_start) ... ok
+9: test_failed_durable_surface_move_preserves_slot_pixels_and_live_placement (__main__.SurfaceRuntimeTests.test_failed_durable_surface_move_preserves_slot_pixels_and_live_placement) ... ok
+9: test_graceful_shutdown_releases_live_imports_without_sanitizer_errors (__main__.SurfaceRuntimeTests.test_graceful_shutdown_releases_live_imports_without_sanitizer_errors) ... ok
+9: test_invalid_placement_is_atomic (__main__.SurfaceRuntimeTests.test_invalid_placement_is_atomic) ... ok
+9: test_rapid_native_lifecycle_retains_slot_and_identity_until_destroy (__main__.SurfaceRuntimeTests.test_rapid_native_lifecycle_retains_slot_and_identity_until_destroy) ... ok
+9: test_repeated_client_death_releases_resources_and_never_reuses_identity (__main__.SurfaceRuntimeTests.test_repeated_client_death_releases_resources_and_never_reuses_identity) ... ok
+9: test_resize_away_and_back_replaces_backing_resource_at_the_same_final_size (__main__.SurfaceRuntimeTests.test_resize_away_and_back_replaces_backing_resource_at_the_same_final_size) ... ok
+9: test_resource_changes_invalidate_resize_unmap_remap_and_destroy_handles (__main__.SurfaceRuntimeTests.test_resource_changes_invalidate_resize_unmap_remap_and_destroy_handles) ... ok
+9: test_same_xid_after_restart_requires_a_new_runtime_handle (__main__.SurfaceRuntimeTests.test_same_xid_after_restart_requires_a_new_runtime_handle) ... ok
+9: test_slot_attachment_is_exclusive_idempotent_and_survives_resize_and_unmap (__main__.SurfaceRuntimeTests.test_slot_attachment_is_exclusive_idempotent_and_survives_resize_and_unmap) ... ok
+9: test_slot_delete_removes_placement_without_destroying_native_application (__main__.SurfaceRuntimeTests.test_slot_delete_removes_placement_without_destroying_native_application) ... ok
+9: test_slot_is_the_single_placement_for_surface_and_world_edits (__main__.SurfaceRuntimeTests.test_slot_is_the_single_placement_for_surface_and_world_edits) ... ok
+9: test_slot_placement_survives_restart_without_reusing_live_attachment (__main__.SurfaceRuntimeTests.test_slot_placement_survives_restart_without_reusing_live_attachment) ... ok
+9: test_slot_rebinding_and_invalid_attachments_do_not_change_durable_state (__main__.SurfaceRuntimeTests.test_slot_rebinding_and_invalid_attachments_do_not_change_durable_state) ... ok
+9: test_surface_validation_rejects_missing_malformed_and_unknown_handles (__main__.SurfaceRuntimeTests.test_surface_validation_rejects_missing_malformed_and_unknown_handles) ... ok
+9: test_transient_inherits_rotated_parent_scale_and_unmap (__main__.SurfaceRuntimeTests.test_transient_inherits_rotated_parent_scale_and_unmap) ... ok
+9: test_transients_follow_slotted_parent_and_cannot_hold_an_independent_slot (__main__.SurfaceRuntimeTests.test_transients_follow_slotted_parent_and_cannot_hold_an_independent_slot) ... ok
+9: test_world_placement_preserves_overlapping_native_geometry (__main__.SurfaceRuntimeTests.test_world_placement_preserves_overlapping_native_geometry) ... ok
+9: 
+9: ----------------------------------------------------------------------
+9: Ran 22 tests in 6.389s
+9: 
+9: OK
+ 9/22 Test  #9: surface-runtime ..................   Passed    6.61 sec
+test 10
+      Start 10: actor-observation
+
+10: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_observation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+10: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+10: Environment variables: 
+10:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+10: Test timeout computed to be: 90
+10: test_coplanar_tie_uses_render_order (__main__.ObservationTests.test_coplanar_tie_uses_render_order) ... ok
+10: test_native_surface_is_hidden_by_world_geometry (__main__.ObservationTests.test_native_surface_is_hidden_by_world_geometry) ... ok
+10: test_native_surface_visibility_generation_and_action_agree (__main__.ObservationTests.test_native_surface_visibility_generation_and_action_agree) ... ok
+10: test_observation_does_not_grant_control_or_refresh_motion (__main__.ObservationTests.test_observation_does_not_grant_control_or_refresh_motion) ... ok
+10: test_observation_keeps_other_actor_presentation_even_after_expose (__main__.ObservationTests.test_observation_keeps_other_actor_presentation_even_after_expose) ... ok
+10: test_partial_and_union_occlusion_use_all_visible_pixels (__main__.ObservationTests.test_partial_and_union_occlusion_use_all_visible_pixels) ... ok
+10: test_room_frustum_facing_and_clip_filter_match_pixels (__main__.ObservationTests.test_room_frustum_facing_and_clip_filter_match_pixels) ... ok
+10: test_rotated_camera_non_square_views_and_thin_sliver (__main__.ObservationTests.test_rotated_camera_non_square_views_and_thin_sliver) ... ok
+10: test_session_sequence_and_viewport_validation_preserve_state (__main__.ObservationTests.test_session_sequence_and_viewport_validation_preserve_state) ... ok
+10: 
+10: ----------------------------------------------------------------------
+10: Ran 9 tests in 2.057s
+10: 
+10: OK
+10/22 Test #10: actor-observation ................   Passed    2.26 sec
+test 11
+      Start 11: actor-collision
+
+11: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_collision.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+11: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+11: Environment variables: 
+11:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+11: Test timeout computed to be: 90
+11: test_all_six_barrier_faces_render_and_pick (__main__.CollisionTests.test_all_six_barrier_faces_render_and_pick) ... ok
+11: test_barrier_occludes_native_surface_and_clears_application_pixel (__main__.CollisionTests.test_barrier_occludes_native_surface_and_clears_application_pixel) ... ok
+11: test_body_twist_arc_cannot_skip_wall_when_endpoints_miss (__main__.CollisionTests.test_body_twist_arc_cannot_skip_wall_when_endpoints_miss) ... ok
+11: test_each_face_and_endpoint_contact (__main__.CollisionTests.test_each_face_and_endpoint_contact) ... ok
+11: test_false_box_contacts_and_grazing (__main__.CollisionTests.test_false_box_contacts_and_grazing) ... ok
+11: test_initial_overlap_normal_is_deterministic (__main__.CollisionTests.test_initial_overlap_normal_is_deterministic) ... ok
+11: test_initial_overlap_separates_without_teleporting_along_input (__main__.CollisionTests.test_initial_overlap_separates_without_teleporting_along_input) ... ok
+11: test_multiple_visible_faces_report_one_solid (__main__.CollisionTests.test_multiple_visible_faces_report_one_solid) ... ok
+11: test_random_sweeps_match_independent_convex_distance_search (__main__.CollisionTests.test_random_sweeps_match_independent_convex_distance_search) ... ok
+11: test_room_filter_and_committed_geometry_updates (__main__.CollisionTests.test_room_filter_and_committed_geometry_updates) ... ok
+11: test_rotated_barrier_render_pick_observation_and_collision_agree (__main__.CollisionTests.test_rotated_barrier_render_pick_observation_and_collision_agree) ... ok
+11: test_rounded_edge_and_corner_contacts (__main__.CollisionTests.test_rounded_edge_and_corner_contacts) ... ok
+11: test_scale_range_and_reversed_segment (__main__.CollisionTests.test_scale_range_and_reversed_segment) ... ok
+11: test_sliding_separating_motion_and_multiple_contacts (__main__.CollisionTests.test_sliding_separating_motion_and_multiple_contacts) ... ok
+11: test_thin_wall_fast_motion_uses_configured_sphere (__main__.CollisionTests.test_thin_wall_fast_motion_uses_configured_sphere) ... ok
+11: test_wire_presence_and_invalid_geometry (__main__.CollisionTests.test_wire_presence_and_invalid_geometry) ... ok
+11: 
+11: ----------------------------------------------------------------------
+11: Ran 16 tests in 2.394s
+11: 
+11: OK
+11/22 Test #11: actor-collision ..................   Passed    2.59 sec
+test 12
+      Start 12: actor-objects
+
+12: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_objects.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+12: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+12: Environment variables: 
+12:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+12: Test timeout computed to be: 90
+12: test_barrier_occlusion_denies_grab (__main__.ObjectTests.test_barrier_occlusion_denies_grab) ... ok
+12: test_cancel_and_repeated_cancel_discard_preview_without_writes (__main__.ObjectTests.test_cancel_and_repeated_cancel_discard_preview_without_writes) ... ok
+12: test_close_discards_preview_and_releases_lease (__main__.ObjectTests.test_close_discards_preview_and_releases_lease) ... ok
+12: test_crash_does_not_persist_preview_or_lease (__main__.ObjectTests.test_crash_does_not_persist_preview_or_lease) ... ok
+12: test_delete_and_recreate_cannot_reuse_an_old_lease (__main__.ObjectTests.test_delete_and_recreate_cannot_reuse_an_old_lease) ... ok
+12: test_edit_conflict_discards_draft_and_never_overwrites_new_data (__main__.ObjectTests.test_edit_conflict_discards_draft_and_never_overwrites_new_data) ... ok
+12: test_held_preview_can_move_beyond_reach (__main__.ObjectTests.test_held_preview_can_move_beyond_reach) ... ok
+12: test_missing_fields_and_invalid_pose_do_not_change_held_draft (__main__.ObjectTests.test_missing_fields_and_invalid_pose_do_not_change_held_draft) ... ok
+12: test_native_surface_occludes_object_and_object_never_injects_input (__main__.ObjectTests.test_native_surface_occludes_object_and_object_never_injects_input) ... ok
+12: test_one_actor_cannot_acquire_a_second_object_implicitly (__main__.ObjectTests.test_one_actor_cannot_acquire_a_second_object_implicitly) ... ok
+12: test_other_room_and_outside_view_are_not_visible (__main__.ObjectTests.test_other_room_and_outside_view_are_not_visible) ... ok
+12: test_panel_occlusion_denies_grab_without_side_effects (__main__.ObjectTests.test_panel_occlusion_denies_grab_without_side_effects) ... ok
+12: test_permission_checks_precede_target_and_consume_sequence (__main__.ObjectTests.test_permission_checks_precede_target_and_consume_sequence) ... ok
+12: test_portal_crossing_cancels_preview_in_source_room (__main__.ObjectTests.test_portal_crossing_cancels_preview_in_source_room) ... ok
+12: test_preview_is_shared_and_visible_but_only_explicit_commit_is_durable (__main__.ObjectTests.test_preview_is_shared_and_visible_but_only_explicit_commit_is_durable) ... ok
+12: test_reach_uses_center_and_includes_exact_boundary (__main__.ObjectTests.test_reach_uses_center_and_includes_exact_boundary) ... ok
+12: test_real_clock_uses_configured_reach_proxy_size_and_color (__main__.ObjectTests.test_real_clock_uses_configured_reach_proxy_size_and_color) ... ok
+12: test_stop_discards_preview_and_preserves_another_object_lease (__main__.ObjectTests.test_stop_discards_preview_and_preserves_another_object_lease) ... ok
+12: test_storage_failure_retains_draft_for_explicit_retry (__main__.ObjectTests.test_storage_failure_retains_draft_for_explicit_retry) ... ok
+12: test_unknown_object_wire_fields_are_rejected (__main__.ObjectTests.test_unknown_object_wire_fields_are_rejected) ... ok
+12: test_visible_fragment_permits_grab_when_center_ray_is_occluded (__main__.ObjectTests.test_visible_fragment_permits_grab_when_center_ray_is_occluded) ... ok
+12: 
+12: ----------------------------------------------------------------------
+12: Ran 21 tests in 4.627s
+12: 
+12: OK
+12/22 Test #12: actor-objects ....................   Passed    4.83 sec
+test 13
+      Start 13: actor-portals
+
+13: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_portals.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+13: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+13: Environment variables: 
+13:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+13: Test timeout computed to be: 90
+13: test_aperture_edges_are_half_open (__main__.PortalTests.test_aperture_edges_are_half_open) ... ok
+13: test_checkpoint_restores_destination_without_old_session (__main__.PortalTests.test_checkpoint_restores_destination_without_old_session) ... ok
+13: test_committed_portal_update_invalidates_cached_mapping (__main__.PortalTests.test_committed_portal_update_invalidates_cached_mapping) ... ok
+13: test_crossing_releases_native_input_without_disturbing_another_actor (__main__.PortalTests.test_crossing_releases_native_input_without_disturbing_another_actor) ... ok
+13: test_curved_path_crosses_when_whole_interval_chord_misses (__main__.PortalTests.test_curved_path_crosses_when_whole_interval_chord_misses) ... ok
+13: test_destination_wall_constrains_remaining_displacement (__main__.PortalTests.test_destination_wall_constrains_remaining_displacement) ... ok
+13: test_exact_plane_endpoint_preserves_partitioned_crossing (__main__.PortalTests.test_exact_plane_endpoint_preserves_partitioned_crossing) ... ok
+13: test_frame_is_visible_aperture_is_open_and_other_room_is_hidden (__main__.PortalTests.test_frame_is_visible_aperture_is_open_and_other_room_is_hidden) ... ok
+13: test_live_actor_prevents_room_deletion_before_checkpoint (__main__.PortalTests.test_live_actor_prevents_room_deletion_before_checkpoint) ... ok
+13: test_multiple_portals_consume_one_displacement (__main__.PortalTests.test_multiple_portals_consume_one_displacement) ... ok
+13: test_navigation_grant_is_required_and_crossing_does_not_grant_interaction (__main__.PortalTests.test_navigation_grant_is_required_and_crossing_does_not_grant_interaction) ... ok
+13: test_nearest_portal_wins_independent_of_id_order (__main__.PortalTests.test_nearest_portal_wins_independent_of_id_order) ... ok
+13: test_obstructed_landing_stops_before_entry (__main__.PortalTests.test_obstructed_landing_stops_before_entry) ... ok
+13: test_portal_marker_is_visible_from_back_without_reverse_activation (__main__.PortalTests.test_portal_marker_is_visible_from_back_without_reverse_activation) ... ok
+13: test_rotated_entry_maps_remaining_motion_and_body_orientation (__main__.PortalTests.test_rotated_entry_maps_remaining_motion_and_body_orientation) ... ok
+13: test_same_room_portal_still_cancels_previous_interaction (__main__.PortalTests.test_same_room_portal_still_cancels_previous_interaction) ... ok
+13: test_sliding_path_can_cross_a_portal (__main__.PortalTests.test_sliding_path_can_cross_a_portal) ... ok
+13: test_source_wall_prevents_crossing (__main__.PortalTests.test_source_wall_prevents_crossing) ... ok
+13: test_zero_distance_cycle_is_bounded (__main__.PortalTests.test_zero_distance_cycle_is_bounded) ... ok
+13: 
+13: ----------------------------------------------------------------------
+13: Ran 19 tests in 3.715s
+13: 
+13: OK
+13/22 Test #13: actor-portals ....................   Passed    3.92 sec
+test 14
+      Start 14: native-actor-input
+
+14: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_input.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+14: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+14: Environment variables: 
+14:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+14: Test timeout computed to be: 90
+14: test_actor_close_reclaims_native_devices_and_revokes_old_tokens (__main__.ActorInputTests.test_actor_close_reclaims_native_devices_and_revokes_old_tokens) ... ok
+14: test_additional_buttons_and_unprojectable_aim_preserve_capture_position (__main__.ActorInputTests.test_additional_buttons_and_unprojectable_aim_preserve_capture_position) ... ok
+14: test_body_motion_updates_the_captured_ray_before_clock_reply (__main__.ActorInputTests.test_body_motion_updates_the_captured_ray_before_clock_reply) ... ok
+14: test_capture_projection_uses_camera_and_surface_rotations (__main__.ActorInputTests.test_capture_projection_uses_camera_and_surface_rotations) ... ok
+14: test_changed_placement_or_occluder_invalidates_saved_aim (__main__.ActorInputTests.test_changed_placement_or_occluder_invalidates_saved_aim) ... ok
+14: test_denied_input_precedes_target_and_consumes_sequence (__main__.ActorInputTests.test_denied_input_precedes_target_and_consumes_sequence) ... ok
+14: test_drag_motion_keeps_signed_pixels_on_original_surface (__main__.ActorInputTests.test_drag_motion_keeps_signed_pixels_on_original_surface) ... ok
+14: test_focus_transfer_releases_old_modifier_before_new_client_input (__main__.ActorInputTests.test_focus_transfer_releases_old_modifier_before_new_client_input) ... ok
+14: test_missing_fields_and_unknown_keys_leave_native_state_unchanged (__main__.ActorInputTests.test_missing_fields_and_unknown_keys_leave_native_state_unchanged) ... ok
+14: test_realtime_capture_moves_without_queries_and_stops_at_deadline (__main__.ActorInputTests.test_realtime_capture_moves_without_queries_and_stops_at_deadline) ... ok
+14: test_scroll_cannot_retarget_a_held_drag (__main__.ActorInputTests.test_scroll_cannot_retarget_a_held_drag) ... ok
+14: test_transient_and_parent_share_interim_control_lease (__main__.ActorInputTests.test_transient_and_parent_share_interim_control_lease) ... ok
+14: test_unfocus_does_not_release_other_actors_modifiers_or_lease (__main__.ActorInputTests.test_unfocus_does_not_release_other_actors_modifiers_or_lease) ... ok
+14: test_unmap_cancels_native_held_state_and_invalidates_aim (__main__.ActorInputTests.test_unmap_cancels_native_held_state_and_invalidates_aim) ... ok
+14: 
+14: ----------------------------------------------------------------------
+14: Ran 14 tests in 3.479s
+14: 
+14: OK
+14/22 Test #14: native-actor-input ...............   Passed    3.69 sec
+test 15
+      Start 15: core-protocol
+
+15: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_protocol.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host"
+15: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+15: Environment variables: 
+15:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+15: Test timeout computed to be: 30
+15: test_integer_ids_preserve_precision (__main__.ProtocolBoundaryTests.test_integer_ids_preserve_precision) ... ok
+15: test_malformed_payload_recovers_at_next_frame (__main__.ProtocolBoundaryTests.test_malformed_payload_recovers_at_next_frame) ... ok
+15: test_missing_motion_fields_rejected (__main__.ProtocolBoundaryTests.test_missing_motion_fields_rejected) ... ok
+15: test_motion_overflow_is_not_success (__main__.ProtocolBoundaryTests.test_motion_overflow_is_not_success) ... ok
+15: test_nonfinite_numbers_rejected_on_wire (__main__.ProtocolBoundaryTests.test_nonfinite_numbers_rejected_on_wire) ... ok
+15: test_oversized_frame_closes_before_body_allocation (__main__.ProtocolBoundaryTests.test_oversized_frame_closes_before_body_allocation) ... ok
+15: test_small_angular_rate_preserves_linear_motion (__main__.ProtocolBoundaryTests.test_small_angular_rate_preserves_linear_motion) ... ok
+15: test_state_directory_must_be_absolute (__main__.ProtocolBoundaryTests.test_state_directory_must_be_absolute) ... ok
+15: test_truncated_frames_are_fatal (__main__.ProtocolBoundaryTests.test_truncated_frames_are_fatal) ... ok
+15: test_unknown_fields_rejected_at_both_levels (__main__.ProtocolBoundaryTests.test_unknown_fields_rejected_at_both_levels) ... ok
+15: test_version_and_unknown_operation (__main__.ProtocolBoundaryTests.test_version_and_unknown_operation) ... ok
+15: test_world_get_has_no_fake_success (__main__.ProtocolBoundaryTests.test_world_get_has_no_fake_success) ... ok
+15: test_wrong_wire_type_is_rejected (__main__.ProtocolBoundaryTests.test_wrong_wire_type_is_rejected) ... ok
+15: 
+15: ----------------------------------------------------------------------
+15: Ran 13 tests in 0.575s
+15: 
+15: OK
+15/22 Test #15: core-protocol ....................   Passed    0.65 sec
+test 16
+      Start 16: worldd-lifecycle
+
+16: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_worldd.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+16: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+16: Environment variables: 
+16:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+16: Test timeout computed to be: 90
+16: test_database_symlink_is_refused (__main__.WorldDaemonTests.test_database_symlink_is_refused) ... ok
+16: test_duplicate_authority_refused_without_mutation (__main__.WorldDaemonTests.test_duplicate_authority_refused_without_mutation) ... ok
+16: test_idle_proxy_closes_when_worker_dies_and_recovers_state (__main__.WorldDaemonTests.test_idle_proxy_closes_when_worker_dies_and_recovers_state) ... ok
+16: test_parent_only_kill_terminates_worker_and_releases_lock (__main__.WorldDaemonTests.test_parent_only_kill_terminates_worker_and_releases_lock) ... ok
+16: test_portal_references_and_invalid_enum_rejected_atomically (__main__.WorldDaemonTests.test_portal_references_and_invalid_enum_rejected_atomically) ... ok
+16: test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate (__main__.WorldDaemonTests.test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate) ... ok
+16: test_sqlite_write_failure_rolls_back_entity_and_world_revision (__main__.WorldDaemonTests.test_sqlite_write_failure_rolls_back_entity_and_world_revision) ... ok
+16: test_standalone_worldd_restart_delete_and_independent_worlds (__main__.WorldDaemonTests.test_standalone_worldd_restart_delete_and_independent_worlds) ... ok
+16: test_unknown_schema_and_corrupt_protobuf_fail_closed (__main__.WorldDaemonTests.test_unknown_schema_and_corrupt_protobuf_fail_closed) ... ok
+16: test_worker_is_real_separate_executable_and_owns_database (__main__.WorldDaemonTests.test_worker_is_real_separate_executable_and_owns_database) ... ok
+16: test_zero_field_replacement_and_immutable_zero_presence (__main__.WorldDaemonTests.test_zero_field_replacement_and_immutable_zero_presence) ... ok
+16: 
+16: ----------------------------------------------------------------------
+16: Ran 11 tests in 0.684s
+16: 
+16: OK
+16/22 Test #16: worldd-lifecycle .................   Passed    0.79 sec
+test 17
+      Start 17: actor-runtime
+
+17: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actors.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+17: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+17: Environment variables: 
+17:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+17: Test timeout computed to be: 60
+17: test_bad_configuration_fails_before_creating_world (__main__.ActorRuntimeTests.test_bad_configuration_fails_before_creating_world) ... ok
+17: test_checkpoint_rollback_covers_all_actors_and_revisions (__main__.ActorRuntimeTests.test_checkpoint_rollback_covers_all_actors_and_revisions) ... ok
+17: test_close_and_reopen_preserves_live_pose_with_new_grants (__main__.ActorRuntimeTests.test_close_and_reopen_preserves_live_pose_with_new_grants) ... ok
+17: test_default_entry_spawn_and_actor_management_boundary (__main__.ActorRuntimeTests.test_default_entry_spawn_and_actor_management_boundary) ... ok
+17: test_denied_and_invalid_actions_consume_sequence_without_refresh (__main__.ActorRuntimeTests.test_denied_and_invalid_actions_consume_sequence_without_refresh) ... ok
+17: test_partial_request_does_not_extend_motion_lifetime (__main__.ActorRuntimeTests.test_partial_request_does_not_extend_motion_lifetime) ... ok
+17: test_real_clock_expires_motion_and_disallows_clock_override (__main__.ActorRuntimeTests.test_real_clock_expires_motion_and_disallows_clock_override) ... ok
+17: test_runtime_configuration_changes_motion (__main__.ActorRuntimeTests.test_runtime_configuration_changes_motion) ... ok
+17: test_sequence_zero_missing_and_foreign_tokens (__main__.ActorRuntimeTests.test_sequence_zero_missing_and_foreign_tokens) ... ok
+17: test_uncheckpointed_motion_and_old_token_do_not_survive (__main__.ActorRuntimeTests.test_uncheckpointed_motion_and_old_token_do_not_survive) ... ok
+17: 
+17: ----------------------------------------------------------------------
+17: Ran 10 tests in 1.052s
+17: 
+17: OK
+17/22 Test #17: actor-runtime ....................   Passed    1.16 sec
+test 18
+      Start 18: recovery-boundaries
+
+18: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_recovery.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+18: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+18: Environment variables: 
+18:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+18: Test timeout computed to be: 60
+18: test_actor_action_cannot_arm_management_fault (__main__.RecoveryBoundaryTests.test_actor_action_cannot_arm_management_fault) ... ok
+18: test_before_commit_preserves_real_rows_for_create_update_and_delete (__main__.RecoveryBoundaryTests.test_before_commit_preserves_real_rows_for_create_update_and_delete) ... ok
+18: test_checkpoint_crash_preserves_saved_actor_pose (__main__.RecoveryBoundaryTests.test_checkpoint_crash_preserves_saved_actor_pose) ... ok
+18: test_default_and_clock_only_daemons_cannot_arm_faults (__main__.RecoveryBoundaryTests.test_default_and_clock_only_daemons_cannot_arm_faults) ... ok
+18: test_failed_real_commit_does_not_exit_or_consume_post_commit_fault (__main__.RecoveryBoundaryTests.test_failed_real_commit_does_not_exit_or_consume_post_commit_fault) ... ok
+18: test_fault_is_local_to_one_process_and_never_restored (__main__.RecoveryBoundaryTests.test_fault_is_local_to_one_process_and_never_restored) ... ok
+18: test_invalid_or_unsupported_arms_do_not_enable_a_fault (__main__.RecoveryBoundaryTests.test_invalid_or_unsupported_arms_do_not_enable_a_fault) ... ok
+18: test_post_commit_checkpoint_restores_pose_without_session_input (__main__.RecoveryBoundaryTests.test_post_commit_checkpoint_restores_pose_without_session_input) ... ok
+18: test_post_commit_exit_keeps_real_create_update_delete_exactly_once (__main__.RecoveryBoundaryTests.test_post_commit_exit_keeps_real_create_update_delete_exactly_once) ... ok
+18: test_reads_and_rejected_edits_do_not_consume_pending_fault (__main__.RecoveryBoundaryTests.test_reads_and_rejected_edits_do_not_consume_pending_fault) ... ok
+18: test_reads_rejections_and_rearming_cannot_consume_or_replace_post_commit_exit (__main__.RecoveryBoundaryTests.test_reads_rejections_and_rearming_cannot_consume_or_replace_post_commit_exit) ... ok
+18: 
+18: ----------------------------------------------------------------------
+18: Ran 11 tests in 3.521s
+18: 
+18: OK
+18/22 Test #18: recovery-boundaries ..............   Passed    3.63 sec
+test 19
+      Start 19: workspace-git
+
+19: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_git.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-git-job-probe"
+19: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+19: Environment variables: 
+19:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+19: Test timeout computed to be: 90
+19: .............................................
+19: ----------------------------------------------------------------------
+19: Ran 45 tests in 32.563s
+19: 
+19: OK
+19/22 Test #19: workspace-git ....................   Passed   32.71 sec
+test 20
+      Start 20: workspace-context
+
+20: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspaces.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+20: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+20: Environment variables: 
+20:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+20: Test timeout computed to be: 90
+20: .............
+20: ----------------------------------------------------------------------
+20: Ran 13 tests in 7.969s
+20: 
+20: OK
+20/22 Test #20: workspace-context ................   Passed    8.08 sec
+test 21
+      Start 21: workspace-processes
+
+21: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_processes.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+21: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+21: Environment variables: 
+21:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+21: Test timeout computed to be: 120
+21: test_native_namespaces_capabilities_resource_limits_and_descriptor_closure (__main__.ProcessTests.test_native_namespaces_capabilities_resource_limits_and_descriptor_closure) ... ok
+21: test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible (__main__.ProcessTests.test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible) ... ok
+21: test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access (__main__.ProcessTests.test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access) ... ok
+21: test_nonzero_signal_exits_and_wait_timeout_preserve_the_actual_child_result (__main__.ProcessTests.test_nonzero_signal_exits_and_wait_timeout_preserve_the_actual_child_result) ... ok
+21: test_invalid_requests_create_no_process_record_and_missing_exec_is_not_success (__main__.ProcessTests.test_invalid_requests_create_no_process_record_and_missing_exec_is_not_success) ... ok
+21: test_operation_identity_is_actor_scoped_and_binds_arguments_and_profile (__main__.ProcessTests.test_operation_identity_is_actor_scoped_and_binds_arguments_and_profile) ... ok
+21: test_damaged_application_supervisor_does_not_poison_future_launches (__main__.ProcessTests.test_damaged_application_supervisor_does_not_poison_future_launches) ... ok
+21: test_read_only_project_and_git_aliases_stay_read_only_but_private_state_is_writable (__main__.ProcessTests.test_read_only_project_and_git_aliases_stay_read_only_but_private_state_is_writable) ... ok
+21: test_actor_disconnect_does_not_terminate_workspace_application (__main__.ProcessTests.test_actor_disconnect_does_not_terminate_workspace_application) ... ok
+21: test_revocation_terminates_detached_descendants_and_preserves_other_actor_execution (__main__.ProcessTests.test_revocation_terminates_detached_descendants_and_preserves_other_actor_execution) ... ok
+21: test_manager_loss_kills_children_and_never_replays_uncertain_operations (__main__.ProcessTests.test_manager_loss_kills_children_and_never_replays_uncertain_operations) ... ok
+21: test_completed_record_survives_restart_and_v3_migration_preserves_workspaces (__main__.ProcessTests.test_completed_record_survives_restart_and_v3_migration_preserves_workspaces) ... ok
+21: 
+21: ----------------------------------------------------------------------
+21: Ran 12 tests in 9.330s
+21: 
+21: OK
+21/22 Test #21: workspace-processes ..............   Passed    9.42 sec
+test 22
+      Start 22: storage-faults
+
+22: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_storage.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-storage-vfs-probe"
+22: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+22: Environment variables: 
+22:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+22: Test timeout computed to be: 60
+22: test_checkpoint_write_failure_keeps_live_pose_and_old_durable_pose (__main__.StorageFaultTests.test_checkpoint_write_failure_keeps_live_pose_and_old_durable_pose) ... ok
+22: test_create_update_delete_errors_preserve_rows_and_allow_real_retry (__main__.StorageFaultTests.test_create_update_delete_errors_preserve_rows_and_allow_real_retry) ... ok
+22: test_fault_does_not_cross_worlds_or_survive_restart (__main__.StorageFaultTests.test_fault_does_not_cross_worlds_or_survive_restart) ... ok
+22: test_normal_daemon_rejects_storage_faults_and_retains_writes (__main__.StorageFaultTests.test_normal_daemon_rejects_storage_faults_and_retains_writes) ... ok
+22: test_reads_rejections_and_rearming_preserve_next_write_failure (__main__.StorageFaultTests.test_reads_rejections_and_rearming_preserve_next_write_failure) ... ok
+22: test_real_vfs_lifecycles_delegate_io_and_isolate_pending_faults (__main__.StorageFaultTests.test_real_vfs_lifecycles_delegate_io_and_isolate_pending_faults) ... ok
+22: 
+22: ----------------------------------------------------------------------
+22: Ran 6 tests in 1.304s
+22: 
+22: OK
+22/22 Test #22: storage-faults ...................   Passed    1.39 sec
+
+100% tests passed, 0 tests failed out of 22
+
+Total Test time (real) = 133.38 sec

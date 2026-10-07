@@ -1,0 +1,26 @@
+{
+  "id": "identity.issuer_watch",
+  "phase": "M01",
+  "scope": "Committed issuer history and bounded production revocation watcher",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/ISSUER_WATCH.md",
+  "invariant": "Return committed revocations in order, or report failure without silently skipping history.",
+  "production_roots": ["src/identity/", "proto/spatial/identity/v1/"],
+  "counterexample_suite": "tests/core/test_identity_watch.py",
+  "focused_command": "ctest --test-dir build -V -R '^(identity-(issuer|enrollment|revocation|tls|watch)|issuer-client)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts in Debug and ASan/UBSan",
+    "Complete P00-P10 baseline and unchanged acceptance lock",
+    "Committed order, bounded pagination, rollback, and restart",
+    "Independent malformed TLS replies and production queue overflow",
+    "Direct cross-host notification through the production watcher",
+    "Missing-history mutation detected"
+  ],
+  "limitations": [
+    "A successful issuer revoke response does not acknowledge world cancellation.",
+    "Authenticated world entry, current action checks, and immediate live revocation remain required.",
+    "Nonempty bootstrap profiles and scoped grants remain required."
+  ],
+  "next_component": "identity.world_session"
+}

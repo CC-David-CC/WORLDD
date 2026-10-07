@@ -138,6 +138,22 @@ message IssuerChallenge {
 }
 message ChallengeReply { bytes nonce = 1; SignRequest signing_request = 2; }
 message IssuerExecute { bytes nonce = 1; KeyProof proof = 2; }
+// No cursor requests a current baseline, without historical events.
+// A present cursor requests contiguous committed events after that revision.
+message RevocationRead { optional uint64 after_revision = 1; uint32 wait_ms = 2; }
+message RevocationEvent { uint64 revision = 1; IdentityReference target = 2; }
+message RevocationBatch {
+  bytes issuer_id = 1;
+  uint64 from_revision = 2;
+  uint64 through_revision = 3;
+  uint64 head_revision = 4;
+  bool initial = 5;
+  repeated RevocationEvent events = 6;
+}
+message RevocationUpdate {
+  uint32 protocol_version = 1;
+  oneof outcome { RevocationBatch batch = 2; spatial.core.v1.Error error = 3; }
+}
 message IssuerRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -151,6 +167,7 @@ message IssuerRequest {
     AuthenticationBegin authentication_begin = 16;
     AuthenticationComplete authentication_complete = 17;
     SignedCredential credential_check = 18;
+    RevocationRead revocations = 19;
   }
 }
 message IssuerReply {
@@ -165,5 +182,6 @@ message IssuerReply {
     EnrollmentRecord enrollment = 15;
     IdentityStatus identity_status = 16;
     AuthenticationResult authentication = 17;
+    RevocationBatch revocations = 18;
   }
 }

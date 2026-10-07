@@ -1,0 +1,87 @@
+{
+  "base": "e88b7edc2812da22525e62970a509c5752524bae",
+  "source_overlay": {
+    "base": "e88b7edc2812da22525e62970a509c5752524bae",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "d0543d6d0098e238d0dc881d2c77403919b58ff210224965f78b3ed5c4f5562b",
+        "after": "b6fb334de2061317fd4c9c7cd0de24ad7fd30ddb75941c16605707ee8a0cdbab",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto": {
+        "before": "e67cde06ee53b0ae299349d897fd66f90620fc34bd645b3fd7d256be0e9e770d",
+        "after": "e881f0f2b82451988a06df61b00b39c27d3ef008a83f7cc4f785673d87b30a0c",
+        "previous": "e881f0f2b82451988a06df61b00b39c27d3ef008a83f7cc4f785673d87b30a0c"
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.cpp": {
+        "before": "e59311a1486afa8c2fcac7030ece7d620ef71e0c0b3784e2a01b2117690e93b6",
+        "after": "550a964534d8dfb48617c6176c6c9bde11bf2f1e1278032f27f6b180775ab349",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.hpp": {
+        "before": "9d55ce4d2d6fbedee572d8c217ead67bc1868207e3e27223749fab77de44431a",
+        "after": "6207194c8105a7305df3724624cbcba861bc13d568c1964266a225b1cb31baae",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer_client.cpp": {
+        "before": "c384b4cc94ace96b20b00354690d21fb9a2a6d28809c1ec4d5b58a392b8c83c9",
+        "after": "8278f738efc828b6a85b197b93391d17022845e143ffc96bdf66c125521603c0",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer_client.hpp": {
+        "before": "e1410933b6a35b75001bd549330c6a0342029ce3adca28885b2097565bee8559",
+        "after": "32939e9cd5b075548057dcf07e13f8910cbb2080e6639831d0caa5a774cff77f",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer_watch.cpp": {
+        "before": null,
+        "after": "90220f98815b766a75429af0827763d79d5d6799931bfbbe4381da340fd9333d",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer_watch.hpp": {
+        "before": null,
+        "after": "2293c4916720e71cba56d94aad85dec911b648ad0134a6203300db67fdd9c11e",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/protocol.cpp": {
+        "before": "44f62602992f061cf97d080eec45895a502cad89da3ebe8ec691068609841b06",
+        "after": "025bf4afedd6d884c554edc957ec44ead8030cc8053ab46c47f6b1da7d4f12a3",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/tls_server.cpp": {
+        "before": "839dcba77419fec379995ece79a4ea2a202c9778cf281afddaa21d0e339a3d4d",
+        "after": "5b4ed65bf58c0159dd845317d254d2ef12999367744fcf02da0ecc6dbb04bc07",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/watch_main.cpp": {
+        "before": null,
+        "after": "8400d85efe4cb9196d86d0ce2b768879f2f22a9624611602e7691543d1feeecc",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/testing/issuer_watch_probe.cpp": {
+        "before": null,
+        "after": "4fb3092ebeec31abe654f10173821ef8526bff4d042c347210d8f26d742070d9",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_identity_watch.py": {
+        "before": null,
+        "after": "e178571985684dc61573acee466d39c33e9def6c7f963b9b72901b0b352d0299",
+        "previous": "e178571985684dc61573acee466d39c33e9def6c7f963b9b72901b0b352d0299"
+      }
+    }
+  },
+  "invariant": "Committed revocations form a complete ordered history.",
+  "mutation": "Ignore a missing durable revocation entry.",
+  "before_sha256": "550a964534d8dfb48617c6176c6c9bde11bf2f1e1278032f27f6b180775ab349",
+  "after_sha256": "9be87b3e6f8e4009ea2ab6778cf73d06bde84ddad86c7fa3584deb5c1343062e",
+  "argv": [
+    "python3",
+    "tests/core/test_identity_watch.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-watch-mutation/source/spatial-os-luna-handoff/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-watch-mutation/source/spatial-os-luna-handoff/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-watch-mutation/source/spatial-os-luna-handoff/build/spatial-issuer-watch",
+    "WatchTests.test_missing_durable_history_is_a_storage_failure"
+  ],
+  "exit_code": 1,
+  "status": "detected"
+}
