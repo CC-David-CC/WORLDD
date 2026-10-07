@@ -1,0 +1,74 @@
+{
+  "invariant": "Only a current mapped native surface identity and generation validate.",
+  "mutation": "Accept stale surface handles in an isolated production build.",
+  "preparation_failure": "The first mutation left an unused variable. Werror rejected that build. The corrected mutation keeps the lookup used.",
+  "before_sha256": "29dab521c28adbf52aef284504f2bc92200a066694c0bd2172e428e5ca5c80c7",
+  "after_sha256": "2447f1d7005cde277db7f13fe0c12bc927355ab9c9bee76a13b53c5f8c03315d",
+  "base": "c1c1d95ec5f59b18a9cb6e42e6743b4cee4f421c",
+  "source_overlay": {
+    "base": "c1c1d95ec5f59b18a9cb6e42e6743b4cee4f421c",
+    "files": {
+      "spatial-os-luna-handoff/src/core/protocol.cpp": {
+        "before": "17e887402d9cf18044a5c89676c2e59a5030d61b8f6663c61ab154fa671d816a",
+        "after": "62f4bb5f1e5c0e61a1b42085b8d53c3f49ec786b6a8e1ebab4a684a916d5771b",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/world/surfaces.cpp": {
+        "before": "92c59ccee79fdf41c88c61aa8e8429f98fa6c90bf639bffdc8e00ef703245d84",
+        "after": "29dab521c28adbf52aef284504f2bc92200a066694c0bd2172e428e5ca5c80c7",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/world/surfaces.hpp": {
+        "before": "736a9eed78dedfa28a587f176d728d30b3e72fa38008c8d64bf5de3ad3f52831",
+        "after": "306d056536bb2d41c8b3e78024c7d202e008f8d0d34c8712b0c749c1b3850d98",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_surfaces.py": {
+        "before": "254b0229482a141032551696fbb6a839ee77c077fc858cf8540d1f18a85abb27",
+        "after": "6d6dce6e86cfc7f4ab43121697b252ab9a5aaa761e4f92647dfcecbd4ad91280",
+        "previous": null
+      }
+    }
+  },
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tools/gate.py",
+    "--through",
+    "P09",
+    "--case",
+    "test_old_surface_handle_cannot_control_new_window",
+    "--sut",
+    "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-stale-mutation/source/spatial-os-luna-handoff/build/spatial-test-host\"]",
+    "--report",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-stale-mutation/report.json"
+  ],
+  "exit_code": 1,
+  "report": {
+    "kind": "production-acceptance",
+    "through": "P09",
+    "diagnostic_only": true,
+    "status": "failed",
+    "utc": "2026-10-07T19:07:24.740921+00:00",
+    "selected": 1,
+    "executed": 1,
+    "total_baseline": 151,
+    "not_selected": 150,
+    "tests": [
+      {
+        "test": "tests.acceptance.test_09_recovery.SlotRecoveryTests.test_old_surface_handle_cannot_control_new_window",
+        "phase": "P09",
+        "primitive": "surface.stale_handle",
+        "status": "failed",
+        "seconds": 0.184145
+      }
+    ],
+    "hardware_certified": false,
+    "sut_argv": [
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-stale-mutation/source/spatial-os-luna-handoff/build/spatial-test-host"
+    ]
+  },
+  "status": "detected"
+}

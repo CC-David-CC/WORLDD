@@ -67,8 +67,6 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
                 broker->call(request);
             });
             break;
-        case wire::Request::kSurfaceValidate:
-            throw WorldError(wire::UNIMPLEMENTED, "Recovery operation is not implemented");
         case wire::Request::kHello: {
             auto* hello = reply.mutable_hello();
             hello->set_protocol("spatial-protobuf/1");
@@ -143,6 +141,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
         case wire::Request::kSurfaceGet:
         case wire::Request::kSurfacePlace:
         case wire::Request::kSurfaceAttachSlot:
+        case wire::Request::kSurfaceValidate:
         case wire::Request::kSurfaceChildren:
         case wire::Request::kRuntimeFence:
         case wire::Request::kRuntimeResources: {
@@ -152,6 +151,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             else if (request.has_surface_get()) *reply.mutable_surface_record() = surfaces->get(request.surface_get().id());
             else if (request.has_surface_place()) *reply.mutable_surface_record() = surfaces->place(request.surface_place());
             else if (request.has_surface_attach_slot()) *reply.mutable_surface_record() = surfaces->attach_slot(request.surface_attach_slot());
+            else if (request.has_surface_validate()) *reply.mutable_surface_validation() = surfaces->validate_handle(request.surface_validate());
             else if (request.has_surface_children()) *reply.mutable_surfaces() = surfaces->children(request.surface_children().id());
             else if (request.has_runtime_resources()) *reply.mutable_resources() = surfaces->resources();
             else reply.mutable_fence()->set_complete(true);

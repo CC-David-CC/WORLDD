@@ -12,6 +12,7 @@ public:
     wire::SurfaceRecord get(const std::string& id) const;
     wire::SurfaceRecord place(const wire::SurfacePlaceRequest& request);
     wire::SurfaceRecord attach_slot(const wire::SurfaceAttachSlotRequest& request);
+    wire::SurfaceValidationReply validate_handle(const wire::SurfaceValidateRequest& request) const;
     void forget_slot(const std::string& id);
     wire::SurfaceListReply children(const std::string& id) const;
     void append(wire::RenderScene& scene, const std::string& room) const;

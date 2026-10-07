@@ -1,0 +1,55 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 2
+    Start 2: surface-runtime
+
+2: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_surfaces.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+2: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+2: Environment variables: 
+2:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+2: Test timeout computed to be: 90
+2: test_concurrent_resize_and_damage_leave_latest_pixels_and_live_runtime (__main__.SurfaceRuntimeTests.test_concurrent_resize_and_damage_leave_latest_pixels_and_live_runtime) ... ok
+2: test_concurrent_slot_attachment_has_one_winner (__main__.SurfaceRuntimeTests.test_concurrent_slot_attachment_has_one_winner) ... ok
+2: test_current_handle_validation_is_read_only_and_does_not_grant_control (__main__.SurfaceRuntimeTests.test_current_handle_validation_is_read_only_and_does_not_grant_control) ... ok
+2: test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover (__main__.SurfaceRuntimeTests.test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover) ... ok
+2: test_existing_client_is_imported_on_compositor_start (__main__.SurfaceRuntimeTests.test_existing_client_is_imported_on_compositor_start) ... ok
+2: test_failed_durable_surface_move_preserves_slot_pixels_and_live_placement (__main__.SurfaceRuntimeTests.test_failed_durable_surface_move_preserves_slot_pixels_and_live_placement) ... ok
+2: test_graceful_shutdown_releases_live_imports_without_sanitizer_errors (__main__.SurfaceRuntimeTests.test_graceful_shutdown_releases_live_imports_without_sanitizer_errors) ... ok
+2: test_invalid_placement_is_atomic (__main__.SurfaceRuntimeTests.test_invalid_placement_is_atomic) ... ok
+2: test_rapid_native_lifecycle_retains_slot_and_identity_until_destroy (__main__.SurfaceRuntimeTests.test_rapid_native_lifecycle_retains_slot_and_identity_until_destroy) ... ok
+2: test_repeated_client_death_releases_resources_and_never_reuses_identity (__main__.SurfaceRuntimeTests.test_repeated_client_death_releases_resources_and_never_reuses_identity) ... ok
+2: test_resize_away_and_back_replaces_backing_resource_at_the_same_final_size (__main__.SurfaceRuntimeTests.test_resize_away_and_back_replaces_backing_resource_at_the_same_final_size) ... ok
+2: test_resource_changes_invalidate_resize_unmap_remap_and_destroy_handles (__main__.SurfaceRuntimeTests.test_resource_changes_invalidate_resize_unmap_remap_and_destroy_handles) ... ok
+2: test_same_xid_after_restart_requires_a_new_runtime_handle (__main__.SurfaceRuntimeTests.test_same_xid_after_restart_requires_a_new_runtime_handle) ... ok
+2: test_slot_attachment_is_exclusive_idempotent_and_survives_resize_and_unmap (__main__.SurfaceRuntimeTests.test_slot_attachment_is_exclusive_idempotent_and_survives_resize_and_unmap) ... ok
+2: test_slot_delete_removes_placement_without_destroying_native_application (__main__.SurfaceRuntimeTests.test_slot_delete_removes_placement_without_destroying_native_application) ... ok
+2: test_slot_is_the_single_placement_for_surface_and_world_edits (__main__.SurfaceRuntimeTests.test_slot_is_the_single_placement_for_surface_and_world_edits) ... ok
+2: test_slot_placement_survives_restart_without_reusing_live_attachment (__main__.SurfaceRuntimeTests.test_slot_placement_survives_restart_without_reusing_live_attachment) ... ok
+2: test_slot_rebinding_and_invalid_attachments_do_not_change_durable_state (__main__.SurfaceRuntimeTests.test_slot_rebinding_and_invalid_attachments_do_not_change_durable_state) ... ok
+2: test_surface_validation_rejects_missing_malformed_and_unknown_handles (__main__.SurfaceRuntimeTests.test_surface_validation_rejects_missing_malformed_and_unknown_handles) ... ok
+2: test_transient_inherits_rotated_parent_scale_and_unmap (__main__.SurfaceRuntimeTests.test_transient_inherits_rotated_parent_scale_and_unmap) ... ok
+2: test_transients_follow_slotted_parent_and_cannot_hold_an_independent_slot (__main__.SurfaceRuntimeTests.test_transients_follow_slotted_parent_and_cannot_hold_an_independent_slot) ... ok
+2: test_world_placement_preserves_overlapping_native_geometry (__main__.SurfaceRuntimeTests.test_world_placement_preserves_overlapping_native_geometry) ... ok
+2: 
+2: ----------------------------------------------------------------------
+2: Ran 22 tests in 5.715s
+2: 
+2: OK
+1/1 Test #2: surface-runtime ..................   Passed    5.90 sec
+
+The following tests passed:
+	surface-runtime
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   5.90 sec

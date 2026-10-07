@@ -114,6 +114,15 @@ void Surfaces::forget_slot(const std::string& id) {
         if (surface.slot == id) surface.slot.clear();
     }
 }
+wire::SurfaceValidationReply Surfaces::validate_handle(const wire::SurfaceValidateRequest& request) const {
+    if (!request.has_handle()) throw std::invalid_argument("Missing surface handle");
+    const auto& handle = request.handle();
+    const auto found = surfaces_.find(handle.id());
+    if (found == surfaces_.end() || !found->second.native.mapped() ||
+        found->second.native.handle().generation() != handle.generation())
+        throw WorldError(wire::STALE_TARGET, "Surface handle has no current mapped resource");
+    wire::SurfaceValidationReply result; result.set_valid(true); return result;
+}
 wire::SurfaceListReply Surfaces::children(const std::string& id) const {
     const auto parent = get(id);
     wire::SurfaceListReply result;

@@ -1,0 +1,7 @@
+test_old_surface_handle_cannot_control_new_window (tests.acceptance.test_09_recovery.SlotRecoveryTests.test_old_surface_handle_cannot_control_new_window) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.188s
+
+OK
+DIAGNOSTIC P09: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-stale-focused/stale.json

@@ -1,0 +1,34 @@
+[0/2] Re-checking globbed directories...
+[1/56] Building C object CMakeFiles/spatial-xprobe.dir/native/xprobe.c.o
+[2/56] Linking C executable spatial-xprobe
+[3/56] Building CXX object CMakeFiles/spatial-storage-vfs-probe.dir/src/testing/storage_vfs_probe.cpp.o
+[4/56] Building CXX object CMakeFiles/spatial-storage-vfs-probe.dir/src/world/storage_vfs.cpp.o
+[5/56] Linking CXX executable spatial-storage-vfs-probe
+[6/56] Generating python/core_pb2.py
+[7/56] Generating python/input_pb2.py
+[8/56] Generating python/broker_pb2.py
+[9/56] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[10/56] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[11/56] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[12/56] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[13/56] Linking CXX static library libspatial-protobuf.a
+[14/56] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[15/56] Building CXX object CMakeFiles/spatial-scene.dir/src/core/geometry.cpp.o
+[16/56] Building CXX object CMakeFiles/spatial-scene.dir/src/core/collision.cpp.o
+[17/56] Building CXX object CMakeFiles/spatial-scene.dir/src/core/navigation.cpp.o
+[18/56] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[19/56] Linking CXX static library libspatial-scene.a
+[20/56] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[21/56] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[22/56] Building CXX object CMakeFiles/spatial-core.dir/src/world/storage_vfs.cpp.o
+[23/56] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[24/56] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[25/56] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+FAILED: CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o 
+/usr/bin/c++  -I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-stale-mutation/source/spatial-os-luna-handoff/src -I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-stale-mutation/source/spatial-os-luna-handoff/build -g -std=c++20 -Wall -Wextra -Wpedantic -Werror -MD -MT CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o -MF CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o.d -o CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o -c /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-stale-mutation/source/spatial-os-luna-handoff/src/world/surfaces.cpp
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-stale-mutation/source/spatial-os-luna-handoff/src/world/surfaces.cpp: In member function ‘spatial::core::v1::SurfaceValidationReply spatial::Surfaces::validate_handle(const spatial::core::v1::SurfaceValidateRequest&) const’:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-stale-mutation/source/spatial-os-luna-handoff/src/world/surfaces.cpp:120:16: error: variable ‘found’ set but not used [-Werror=unused-but-set-variable]
+  120 |     const auto found = surfaces_.find(handle.id());
+      |                ^~~~~
+cc1plus: all warnings being treated as errors
+ninja: build stopped: subcommand failed.

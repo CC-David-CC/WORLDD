@@ -1,5 +1,36 @@
 # Implementation status
 
+## 2026-10-07: P09 recovery qualification complete
+
+Surface validation now checks the current mapped native identity and resource generation.
+Resize, unmap, destruction, replacement, and compositor restart invalidate old handles.
+Validation does not grant actor authority, transfer control, or inject input.
+World placement remains independent of native resource identity.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 148 P00-P09 acceptance cases, including all ten P09 primitives.
+- All 235 core checks, including four new native handle checks.
+- All 51 harness checks.
+- Zero failures, errors, or skipped cases. Three P10 cases remain unrun.
+
+Independent X clients verify real resource changes, received input, and restart with the same surviving XID.
+An isolated mutation accepted stale handles. The locked native witness rejected that behavior.
+Its initial unused-variable build failure and corrected mutation evidence are retained.
+No production assertion was weakened.
+All 108 source hashes match reviewed local files and both hosts.
+The acceptance lock, schemas, locked assertions, oracles, and native witness remain unchanged.
+
+Evidence is in evidence/recovery-complete-2026-10-07.
+See docs/SURFACE_HANDLES.md and docs/RECOVERY_BOUNDARIES.md for scope, commands, and recovery.
+P09 is complete for its automated qualification profile.
+P10, mandatory Spatial-M1 requirements M01-M16, and hardware requirements H01-H08 remain unfinished.
+These software-display results do not establish full Spatial-M1 or LOCAL_READY.
+No database migration, host configuration, or operator-session change was required.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: story.observe_act_verify and the P10 walkthrough baseline.
+The full project goal remains active.
+
 ## 2026-10-07: P09 durable native surface slots
 
 Live native surfaces now attach explicitly to durable world slots.

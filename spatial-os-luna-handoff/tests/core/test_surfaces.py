@@ -12,6 +12,7 @@ import unittest
 from harness.oracles import PPM, pose, axis_angle, transform
 from harness.probe import Probe
 from harness.rpc import Client, RpcError
+from harness.wire import pb
 
 HOST, DAEMON, PROBE = sys.argv[1:4]
 sys.argv[1:4] = []
@@ -69,8 +70,8 @@ class SurfaceRuntimeTests(unittest.TestCase):
     def call(self, method, **params):
         return self.client.call(method, params)
 
-    def native(self):
-        probe = Probe(self.root, display=DISPLAY)
+    def native(self, xi2=False):
+        probe = Probe(self.root, xi2=xi2, display=DISPLAY)
         self.addCleanup(probe.close)
         return probe
 
@@ -120,6 +121,83 @@ class SurfaceRuntimeTests(unittest.TestCase):
 
     def attach(self, surface, slot):
         return self.call('surface.attach_slot', id=surface['id'], slot=slot['id'])
+
+    def handle(self, surface):
+        return dict(id=surface['id'], generation=surface['generation'])
+
+    def test_current_handle_validation_is_read_only_and_does_not_grant_control(self):
+        self.start(); probe = self.native(xi2=True); surface = self.register(probe)
+        probe.command('paint', 101, 163, 211)
+        events = probe.input_events()
+        snapshot = self.call('world.snapshot')
+        self.assertEqual(self.call('surface.validate', handle=self.handle(surface)), dict(valid=True))
+        self.assertEqual(self.call('surface.get', id=surface['id']), surface)
+        self.assertEqual(self.call('world.snapshot'), snapshot)
+        self.assertEqual(self.capture().pixel(64, 64), (101, 163, 211))
+        self.aim()
+        for op, args in [('pointer', dict(button=1, pressed=True)), ('key', dict(keysym='a', pressed=True))]:
+            self.sequence += 1
+            self.error('FORBIDDEN', 'actor.act', token=self.actor['token'], seq=self.sequence, op=op, args=args)
+        self.assertEqual(probe.input_events(), events)
+        self.place(surface, pose([4, 0, -4]))
+        self.assertEqual(self.call('surface.validate', handle=self.handle(surface)), dict(valid=True))
+
+    def test_surface_validation_rejects_missing_malformed_and_unknown_handles(self):
+        self.start(); probe = self.native(xi2=True); surface = self.register(probe)
+        events = probe.input_events()
+        self.error('INVALID_ARGUMENT', 'surface.validate')
+        for handle in [dict(id='', generation=0), dict(id='unknown', generation=surface['generation']),
+                       dict(id=surface['id'], generation=0), dict(id=surface['id'], generation=2**64-1)]:
+            self.error('STALE_TARGET', 'surface.validate', handle=handle)
+        request = pb.Request(protocol_version=1)
+        request.surface_validate.handle.id = surface['id']
+        request.surface_validate.handle.generation = surface['generation']
+        malformed = request.surface_validate.handle.SerializeToString()+b'\xa0\x06\x01'
+        request.surface_validate.handle.ParseFromString(malformed)
+        with self.assertRaises(RpcError) as caught:
+            self.client.call_message(request)
+        self.assertEqual(caught.exception.code, 'INVALID_ARGUMENT')
+        self.assertEqual(self.call('surface.validate', handle=self.handle(surface)), dict(valid=True))
+        self.assertEqual(probe.input_events(), events)
+
+    def test_resource_changes_invalidate_resize_unmap_remap_and_destroy_handles(self):
+        self.start(); probe = self.native(xi2=True); surface = self.register(probe)
+        original = self.handle(surface)
+        probe.command('resize', 411, 313)
+        resized = self.call('surface.get', id=surface['id'])
+        self.assertGreater(resized['generation'], surface['generation'])
+        self.error('STALE_TARGET', 'surface.validate', handle=original)
+        self.assertEqual(self.call('surface.validate', handle=self.handle(resized)), dict(valid=True))
+        probe.command('unmap')
+        unmapped = self.call('surface.get', id=surface['id'])
+        self.assertFalse(unmapped['mapped'])
+        self.error('STALE_TARGET', 'surface.validate', handle=self.handle(resized))
+        self.error('STALE_TARGET', 'surface.validate', handle=self.handle(unmapped))
+        probe.command('map')
+        remapped = self.call('surface.get', id=surface['id'])
+        self.assertGreater(remapped['generation'], unmapped['generation'])
+        self.error('STALE_TARGET', 'surface.validate', handle=self.handle(unmapped))
+        self.assertEqual(self.call('surface.validate', handle=self.handle(remapped)), dict(valid=True))
+        probe.command('destroy'); self.call('runtime.fence')
+        replacement = self.native(xi2=True); current = self.register(replacement)
+        self.assertNotEqual(current['id'], surface['id'])
+        for handle in (original, self.handle(resized), self.handle(remapped)):
+            self.error('STALE_TARGET', 'surface.validate', handle=handle)
+        self.assertEqual(self.call('surface.validate', handle=self.handle(current)), dict(valid=True))
+        self.assertEqual([event for event in replacement.input_events() if event['event'] in ('key', 'button')], [])
+
+    def test_same_xid_after_restart_requires_a_new_runtime_handle(self):
+        self.start(); probe = self.native(xi2=True); surface = self.register(probe)
+        old = self.handle(surface)
+        self.client.proc.stdin.close(); self.assertEqual(self.client.proc.wait(timeout=8), 0); self.client.stop()
+        self.start()
+        current = self.until(lambda: self.call('surface.find', probe_id=probe.id),
+                             lambda value: value['surface'] is not None)['surface']
+        self.assertEqual(current['xid'], surface['xid'])
+        self.assertNotEqual(current['id'], surface['id'])
+        self.error('STALE_TARGET', 'surface.validate', handle=old)
+        self.assertEqual(self.call('surface.validate', handle=self.handle(current)), dict(valid=True))
+        self.assertEqual([event for event in probe.input_events() if event['event'] in ('key', 'button')], [])
 
     def test_slot_attachment_is_exclusive_idempotent_and_survives_resize_and_unmap(self):
         self.start(); slot = self.slot()

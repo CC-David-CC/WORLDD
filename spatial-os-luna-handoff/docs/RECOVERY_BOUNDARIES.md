@@ -63,7 +63,7 @@ Do not delete journals or copy only the database while its writer runs.
 
 This hook does not qualify power-loss durability or physical disk exhaustion.
 Durable surface attachment is qualified in DURABLE_SURFACE_SLOTS.md.
-Stale-handle validation remains unimplemented.
+Current native handle validation is qualified in SURFACE_HANDLES.md.
 No host configuration or operator-session change is required.
 
 ## Qualification
@@ -76,28 +76,33 @@ Both hosts passed Debug and ASan/UBSan qualification.
 Six additional storage checks cover real write failures, retry, isolation, and checkpoint recovery.
 Six additional Git checks cover real broker exit, pending receipts, retry, authority, isolation, and uncertain effects.
 Nine additional surface checks cover durable slots and native lifecycle recovery.
-Each run passed all 231 core checks and all 51 harness checks.
+Four additional handle checks cover validation, actor authority, resource generations, and restart identity.
+Each run passed all 235 core checks and all 51 harness checks.
 The full P00-P09 gate executed 148 of 151 acceptance tests.
-Its results are 147 passed, one assertion failure, zero errors, zero skipped, and three unrun.
+Its results are 148 passed, zero failures, zero errors, zero skipped, and three unrun.
 All 138 preceding P00-P08 cases still pass.
 
-Nine P09 primitives pass, including durable surface slots and all eight previously qualified recovery primitives.
-The remaining assertion requires STALE_TARGET instead of the current UNIMPLEMENTED response.
-P09 remains incomplete. The three P10 cases remain unrun.
+All ten P09 primitives pass, including durable slots and stale native handles.
+P09 is complete for its automated qualification profile. The three P10 cases remain unrun.
+Mandatory Spatial-M1 and hardware qualification remain unfinished.
 
 An isolated sb16 mutation moved the post-commit exit before SQLite COMMIT.
 The locked acceptance case detected the wrong durable label: before instead of after.
 The mutation remained in a separate worktree and never entered the production source.
+Another isolated mutation accepted stale handles in the current production implementation.
+The locked native witness rejected that behavior with RpcError not raised.
+Its initial build failed because of an unused variable. The corrected mutation reached the failing assertion.
 
 All 108 source hashes match reviewed local files and both hosts.
 The acceptance lock, locked assertions, protobuf schemas, independent oracles, and native witness remain unchanged.
-Current evidence is in evidence/recovery-slots-2026-10-07.
+Current evidence is in evidence/recovery-complete-2026-10-07.
+The durable-slot evidence remains in evidence/recovery-slots-2026-10-07.
 The Git-effect evidence remains in evidence/recovery-git-2026-10-07.
 The storage-write evidence remains in evidence/recovery-storage-2026-10-07.
 The post-commit and mutation evidence remains in evidence/recovery-after-commit-2026-10-07.
 The earlier before-commit evidence remains in evidence/recovery-before-commit-2026-10-07.
-Current evidence includes the missing-slot baseline and the initial native lifecycle race.
-The corrected compositor preserves native identity through unmap without accepting unavailable input resources.
+Current evidence includes the unimplemented-handle baseline and the isolated stale-handle mutation.
+The earlier slot evidence retains the initial native lifecycle race and its correction.
 Each host directory records source hashes, build identities, exact commands, logs, and reports.
 
 Run the focused counterexamples with ctest --test-dir build -V -R '^surface-runtime$'.
@@ -109,4 +114,4 @@ The focused commands.json and each p09-command.json preserve complete argument l
 Tests use authenticated disposable software displays. They do not qualify native GPU or physical device behavior.
 No host configuration or operator session changed.
 Local-model review remains waived under David's hardware-failure instruction.
-Next: implement surface.stale_handle using current native resource identity and generation.
+Next: qualify the P10 whole-world walkthroughs.
