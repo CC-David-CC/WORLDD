@@ -1,0 +1,60 @@
+{
+  "base": "57906ff743b2cc88a1c47593936020c29e14ab77",
+  "source_overlay": {
+    "base": "57906ff743b2cc88a1c47593936020c29e14ab77",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "20d233486315a2d1872efa6cf70db19cda9f0960582520712cdc3c9be20e5190",
+        "after": "7792ef4c69453fe6597530574730d357d392082cf6eadafbcf5334d25a5458f9",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/docs/IDENTITY.md": {
+        "before": null,
+        "after": "460958c5f7a0a258df457703c2efb7182a4dc39831404da7fbdad0788c1f090b",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/key.proto": {
+        "before": null,
+        "after": "58e853b7995961d9751c3bad9ee5c6ce5087b6ffb9aff2a5219e09e7eb9054f7",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/key_main.cpp": {
+        "before": null,
+        "after": "0c61eedf4158322840331e2882fe9fb67d66500502b4c3f14a9c75a28034929f",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/keys.cpp": {
+        "before": null,
+        "after": "a3ac7c1ccb92eea045a1661b4ac906988e74e6c37c4946b42dd5290fa6b81549",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/keys.hpp": {
+        "before": null,
+        "after": "4a7c909f93b54a750ae7d0409c77784e1073a6c5c84d58da15f37acc26a6e469",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tasks/spatial-m1.json": {
+        "before": null,
+        "after": "b9771bc978e3fc125460de7ae02459c272b62c2d0d6d5dc54b3b4f821862dc8d",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_identity_keys.py": {
+        "before": null,
+        "after": "2fa166fc3456d0c0d7ef56517dcaa178d2fa7b31ea63640e2b0dbe6cf0235a2a",
+        "previous": null
+      }
+    }
+  },
+  "invariant": "A signature cannot be reused for a different purpose.",
+  "mutation": "Replace the signed purpose with one fixed value.",
+  "before_sha256": "a3ac7c1ccb92eea045a1661b4ac906988e74e6c37c4946b42dd5290fa6b81549",
+  "after_sha256": "bfb3b3629d09e9341a4c4bb392f4050eec32fcc8272617f7e93f8ade819696f4",
+  "argv": [
+    "python3",
+    "tests/core/test_identity_keys.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-keys-mutation/source/spatial-os-luna-handoff/build/spatial-key",
+    "IdentityKeyTests.test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed"
+  ],
+  "exit_code": 1,
+  "status": "detected"
+}

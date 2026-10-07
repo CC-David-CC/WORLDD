@@ -14,6 +14,13 @@ All of the following packages were verified installed with `dpkg-query` on both 
 
 `meson`, `sqlite3`, and `libsqlite3-dev` were initially missing and installed with `sudo -n apt-get install -y meson sqlite3 libsqlite3-dev`. This also installed `python3-setuptools` on both hosts and upgraded `libsqlite3-0` on `sb16`. This baseline does not certify the X11/GL/SpaceMouse dependencies required by later gates; inspect those separately.
 
+## Identity build dependency, checked 2026-10-07
+
+The identity key component requires OpenSSL 3.0 or later and its libcrypto development files.
+Its independent witnesses require the openssl command.
+Both hosts already had libssl-dev and openssl version 3.0.13-0ubuntu3.16.
+No package installation or system change was needed for this component.
+
 ## Upstream snapshot, checked 2026-10-06
 
 The official XLibre release page displayed `xlibre-xserver-25.1.9` as **Latest**, and `xlibre-xserver-25.2.2` as **Pre-release**. A larger numeric version is not automatically the selected stable release. This is a discovery snapshot, not a dependency lock or a promise that these remain latest. [S1]

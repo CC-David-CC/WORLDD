@@ -1,0 +1,41 @@
+[
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DSPATIAL_INPUT_TESTS=ON",
+      "-DSPATIAL_SANITIZERS=OFF"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "counterexamples",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build",
+      "-V",
+      "-R",
+      "^identity-keys$"
+    ],
+    "exit_code": 0
+  }
+]

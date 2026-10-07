@@ -1,0 +1,14 @@
+test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed (__main__.IdentityKeyTests.test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed) ... FAIL
+
+======================================================================
+FAIL: test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed (__main__.IdentityKeyTests.test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-keys-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_keys.py", line 188, in test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed
+    self.assertFalse(self.verify(content, proof, public))
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 1 test in 0.047s
+
+FAILED (failures=1)

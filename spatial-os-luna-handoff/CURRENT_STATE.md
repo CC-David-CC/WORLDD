@@ -1,5 +1,38 @@
 # Implementation status
 
+## 2026-10-07: M01 production key material qualified
+
+The spatial-identity library and spatial-key executable provide persistent Ed25519 keys and purpose-bound signatures.
+Their production interfaces use the new versioned key.proto schema.
+Generation publishes a complete private key without replacing an existing identity.
+Loading rejects unsafe file permissions, links, invalid key content, and unsupported key algorithms.
+Signature verification requires an independently selected public key and the exact signed purpose and payload.
+The key utility does not authenticate an actor or grant authority by itself.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 existing P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 251 core checks, including 16 new key checks.
+- All 51 harness checks.
+
+Independent OpenSSL commands verify signature interoperability and public key extraction.
+Real filesystem checks cover private permissions, persistence, malformed keys, and concurrent creation with one winner.
+An isolated mutation removed signed purpose binding. The counterexample detected a signature accepted for another purpose.
+All 113 source hashes match reviewed local files and both hosts.
+The existing acceptance lock, assertions, schemas, oracles, and native witness remain unchanged.
+The new identity schema extends the build without changing the locked core transport.
+
+Evidence is in evidence/identity-keys-2026-10-07.
+The contract is docs/IDENTITY.md. The mandatory full profile is tasks/spatial-m1.json.
+The profile retains all M01-M16 and H01-H08 requirements. It is not an executed completion report.
+Only identity.key_material is qualified in M01.
+Issuer control, enrollment, bootstrap policy, challenge freshness, revocation, and authenticated world sessions remain unfinished.
+The prior fixture actor entry point remains a trusted management interface.
+No package, host setting, operator session, or actual David credential changed.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: identity.issuer_control and persistent issuer enrollment state through the production identity service.
+The full project goal remains active.
+
 ## 2026-10-07: P10 automated walkthrough qualification complete
 
 All 151 P00-P10 acceptance cases pass on sb16 and sb16-2 in Debug and ASan/UBSan builds.

@@ -17,7 +17,8 @@ The baseline has zero failures, errors, skipped cases, or unrun cases.
 See WALKTHROUGHS.md and evidence/walkthroughs-2026-10-07 for execution evidence and the cancellation mutation.
 All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qualification items.
 Existing components provide partial implementation only where CURRENT_STATE.md records their evidence.
-Next: define and implement M01 cryptographic identity qualification.
+The mandatory profile is tasks/spatial-m1.json. M01's contract is IDENTITY.md.
+Its first component is production key material. Issuer enrollment and authenticated world sessions remain required.
 
 ## Ordered implementation
 

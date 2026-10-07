@@ -1,0 +1,23 @@
+[
+  {
+    "name": "bindings",
+    "argv": [
+      "protoc",
+      "--python_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-key-contract/python",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/key.proto"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "missing-key-tool",
+    "argv": [
+      "python3",
+      "tests/core/test_identity_keys.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-key",
+      "IdentityKeyTests.test_distinct_keys_persist_with_private_permissions_and_external_public_keys"
+    ],
+    "exit_code": 1
+  }
+]
