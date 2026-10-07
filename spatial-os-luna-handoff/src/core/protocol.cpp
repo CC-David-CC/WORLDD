@@ -2,6 +2,7 @@
 #include "core/geometry.hpp"
 #include "world/store.hpp"
 #include "world/actors.hpp"
+#include "platform/render_worker.hpp"
 #include <unistd.h>
 #include "build_id.hpp"
 
@@ -19,31 +20,6 @@ namespace {
 void require(bool valid, const char* message) {
     if (!valid) throw std::invalid_argument(message);
 }
-}
-void validate_message(const google::protobuf::Message& message, int depth) {
-    require(depth <= 64, "Message nesting exceeds limit");
-    const auto* reflection = message.GetReflection();
-    require(reflection->GetUnknownFields(message).empty(), "Unknown protobuf fields");
-    std::vector<const google::protobuf::FieldDescriptor*> fields;
-    reflection->ListFields(message, &fields);
-    for (const auto* field : fields) {
-        const int count = field->is_repeated() ? reflection->FieldSize(message, field) : 1;
-        for (int i = 0; i < count; ++i) {
-            if (field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
-                const auto& child = field->is_repeated()
-                    ? reflection->GetRepeatedMessage(message, field, i) : reflection->GetMessage(message, field);
-                validate_message(child, depth + 1);
-            } else if (field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE) {
-                const double value = field->is_repeated()
-                    ? reflection->GetRepeatedDouble(message, field, i) : reflection->GetDouble(message, field);
-                require(std::isfinite(value), "Non-finite protobuf number");
-            } else if (field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
-                const int value = field->is_repeated() ? reflection->GetRepeatedEnumValue(message, field, i)
-                                                       : reflection->GetEnumValue(message, field);
-                require(field->enum_type()->FindValueByNumber(value) != nullptr, "Unknown protobuf enum value");
-            }
-        }
-    }
 }
 namespace {
 Vec3 vector(const wire::Vec3& value) { return {value.x(), value.y(), value.z()}; }
@@ -71,7 +47,7 @@ void error(wire::Reply& reply, wire::ErrorCode code, const char* message) {
 }
 }
 
-wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* actors) {
+wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* actors, RenderWorker* renderer) {
     wire::Reply reply;
     reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     try {
@@ -91,6 +67,7 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             hello->add_capabilities("geometry.ray-panel");
             hello->add_capabilities("motion.body-twist");
             if (world) hello->add_capabilities("world.durable/v1");
+            if (renderer) hello->add_capabilities("render.opengl/v1");
             if (actors) {
                 hello->add_capabilities("actor.motion/v1");
                 if (actors->manual_clock()) hello->add_capabilities("fixture.manual-clock/v1");
@@ -130,7 +107,21 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
             reply.mutable_identities()->set_worldd_pid(getpid());
             reply.mutable_identities()->set_world_id(world->info().world_id());
+            if (renderer) {
+                reply.mutable_identities()->set_spatialwm_pid(renderer->pid());
+                reply.mutable_identities()->set_display(renderer->display());
+            }
             break;
+        case wire::Request::kRenderCapture:
+        case wire::Request::kRenderPresent: {
+            if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
+            const bool capture = request.has_render_capture();
+            const auto& operation = capture ? request.render_capture() : request.render_present();
+            const auto scene = actors->scene(operation.token());
+            if (!renderer) throw WorldError(wire::UNIMPLEMENTED, "No explicit compositor display configured");
+            *reply.mutable_frame() = renderer->render(scene, operation.width(), operation.height(), capture);
+            break;
+        }
         case wire::Request::kActorOpen:
             if (!actors) throw WorldError(wire::UNIMPLEMENTED, "Actor runtime unavailable");
             *reply.mutable_actor_opened() = actors->open(request.actor_open()); break;
@@ -203,14 +194,14 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
     return reply;
 }
 
-wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* actors) {
+wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* actors, RenderWorker* renderer) {
     wire::Request request;
     if (frame.size() <= max_frame_bytes) {
         google::protobuf::io::ArrayInputStream array(frame.data(), static_cast<int>(frame.size()));
         google::protobuf::io::CodedInputStream input(&array);
         input.SetTotalBytesLimit(static_cast<int>(max_frame_bytes));
         input.SetRecursionLimit(64);
-        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world, actors);
+        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world, actors, renderer);
     }
     wire::Reply reply;
     reply.set_protocol_version(1);
@@ -218,30 +209,4 @@ wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* acto
     return reply;
 }
 
-bool read_frame(std::istream& input, std::string& frame) {
-    std::array<unsigned char, 4> header{};
-    input.read(reinterpret_cast<char*>(header.data()), header.size());
-    if (input.gcount() == 0 && input.eof()) return false;
-    require(input.gcount() == 4, "Truncated frame header");
-    const auto length = (std::uint32_t(header[0]) << 24) | (std::uint32_t(header[1]) << 16) |
-                        (std::uint32_t(header[2]) << 8) | std::uint32_t(header[3]);
-    require(length <= max_frame_bytes, "Frame exceeds size limit");
-    frame.resize(length);
-    input.read(frame.data(), length);
-    require(input.gcount() == length, "Truncated frame payload");
-    return true;
-}
-
-void write_frame(std::ostream& output, const wire::Reply& reply) {
-    const auto payload = reply.SerializeAsString();
-    require(payload.size() <= max_frame_bytes, "Reply exceeds size limit");
-    const auto length = static_cast<std::uint32_t>(payload.size());
-    const std::array<unsigned char, 4> header{static_cast<unsigned char>(length >> 24),
-        static_cast<unsigned char>(length >> 16), static_cast<unsigned char>(length >> 8),
-        static_cast<unsigned char>(length)};
-    output.write(reinterpret_cast<const char*>(header.data()), header.size());
-    output.write(payload.data(), payload.size());
-    output.flush();
-    if (!output) throw std::runtime_error("Cannot write protobuf reply");
-}
 } // namespace spatial

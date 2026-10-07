@@ -1,94 +1,92 @@
 # Implementation status
 
-## 2026-10-07: actors and input lifetimes, P00 through P03
+## 2026-10-07: compositor rendering, P00 through P04
 
-The persistent worldd now owns independent actor sessions and live motion.
-Typed protobuf operations open, inspect, close, and control actors.
-Session tokens bind actions to one actor in one running world.
-Navigation grants and monotonic sequences reject unauthorized or replayed actions.
-Invalid input does not change accepted axes or refresh their expiry.
-
-The production scheduler uses real monotonic time.
-The test host selects a controlled clock at the same scheduler boundary.
-A protobuf configuration file controls gains, deadzone, and input timeout.
-The management I/O loop continues ticking during incomplete requests and output backpressure.
-
-Actor identity and explicit pose checkpoints persist in SQLite.
-A checkpoint commits all changed actors atomically.
-Restart restores acknowledged poses and invalidates old tokens and input.
-Only the actor runtime can change actor entities.
-
-This completes the P03 management-session milestone.
-Public-key enrollment, delegation, network admission, and hostile-process confinement remain pending.
-The full project goal remains active.
-See docs/MILESTONES.md for all required stages and additional Spatial-M1 qualification.
-
-## Verified results
+worldd now starts a separate spatialwm process on an explicitly selected display.
+The production compositor renders actual OpenGL frames from protobuf scene data.
+Capture and visible presentation use the same framebuffer.
+Actor aim uses the same room, panel poses, sizes, and clipping configuration.
+No operator display is adopted automatically.
+An existing window manager prevents compositor startup.
 
 Both sb16 and sb16-2 passed:
 
+- All 70 cumulative P00 through P04 acceptance tests.
 - 39 harness self-tests.
-- 13 binary protocol and numerical boundary tests.
-- 11 daemon lifecycle and storage tests.
-- 10 additional actor runtime counterexamples.
-- All 60 cumulative P00/P01/P02/P03 acceptance tests.
+- 13 protocol, 11 daemon, and 10 actor counterexamples.
+- 13 additional rendering, configuration, process, and authorization checks.
 
 The same checks passed with AddressSanitizer and UndefinedBehaviorSanitizer on both hosts.
-Of 141 legacy acceptance tests, 60 pass, one P04 diagnostic errors, and 80 remain unrun.
-The P04 diagnostic stops at the missing render.capture protobuf operation.
-Thus, 81 tests still lack passing evidence.
-Additional Spatial-M1, native-session, and physical-device requirements remain pending.
+An independent native X client read pixels identical to the compositor captures.
+It checked three output sizes and varied panel colors.
+The tests also cover clip boundaries, camera-plane crossings, and half-open panel edges.
+A deliberately broken depth comparison failed the coplanar ordering counterexample.
+The production depth comparison remains enabled.
 
-The initial P03 diagnostic failed at actor.open before implementation.
-An isolated mutation removed navigation-grant enforcement.
-The required permission test detected that mutation.
-The production source retains the permission check.
+Retained evidence is in evidence/render-2026-10-07.
+Source hashes match the tested production files.
+See docs/RENDERING.md for the implementation and protobuf migration.
+All 141 legacy acceptance IDs and assertions remain intact.
+The remaining 71 legacy acceptance tests are unrun.
 
-Two P03 malformed-input encodings now use protobuf.
-Both still require rejection by the production daemon.
-See docs/ACTORS.md for the exact migration and counterexamples.
-The lock retains all 141 legacy test IDs.
-David authorized continuation without the local agent after its hardware failure.
+These results use authenticated disposable Xvfb displays and Mesa llvmpipe.
+They do not certify native GPU scanout, physical devices, or Spatial-M1.
+P05 live application surfaces is the next milestone.
+The full project goal remains active.
+See docs/MILESTONES.md for the complete plan.
 
-## Commands and evidence
+## Commands and build identity
 
 Run on sb16 or sb16-2 from this folder:
 
-```sh
-python3 tools/qualify_core.py --through P03 --evidence-dir local/new-actor-run
-python3 tools/qualify_core.py --through P03 --sanitize --build-dir build-sanitize --evidence-dir local/new-actor-sanitize
-```
+~~~sh
+python3 tools/qualify_core.py --through P04 --evidence-dir local/new-render-run
+python3 tools/qualify_core.py --through P04 --sanitize --build-dir build-sanitize --evidence-dir local/new-render-sanitize
+~~~
 
 Use a new evidence directory.
 Builds use two jobs and never acquire dependencies.
-Retained results are in evidence/actors-2026-10-07.
+The qualifier creates authenticated disposable displays for graphics checks.
 Reports record production, schema, configuration, test hashes, and binary build identity.
-The mutation record identifies the changed source and the failing permission test.
+
+Both hosts reported these build identities:
+
+- Debug: sha256:b9d3eeb9ea2bd3a2f5d47f7289d1ab8c0a2320b0a51ecd6a05486da5e07ea362
+- Sanitizers: sha256:640f6bcf3e9d1c6e2b1ade298a5d385f019715c4a812a4f79ae355b71efe919d
 
 The management channel uses trusted inherited pipes.
 No public actor listener exists yet.
 Use a private state directory.
 Stop its authority before copying the complete directory for backup.
 Restart from the same directory to resume durable world state.
-No login, desktop, or service configuration changed for P03.
+Do not restore session tokens or held input.
 
 ## Previous checkpoints
+
+Commit fd7c781 delivered actor sessions, grants, motion expiry, and atomic pose checkpoints.
+Its 60 cumulative acceptance tests passed on both hosts, including sanitizer builds.
+See docs/ACTORS.md and evidence/actors-2026-10-07.
 
 Commit f0e1ef3 delivered the persistent world daemon and passing P00-P02 gates.
 Commit d31fc59 delivered the protobuf P00/P01 core.
 Commit 7283fd9 contains the earlier JSON P00 implementation.
-The corresponding evidence remains in evidence/worldd-2026-10-07 and evidence/core-2026-10-07.
+Earlier evidence remains under evidence/worldd-2026-10-07 and evidence/core-2026-10-07.
 
-## Next milestone
+P04 preparation installed graphics development packages and Xvfb on both hosts.
+Its initial diagnostic failed at the missing render.capture operation.
+See docs/GRAPHICS_PREPARATION.md for package changes and recovery records.
+The later P04 counterexample exposed and corrected a top-edge rasterization mismatch.
 
-P04 adds the actual compositor and matching render/selection behavior.
-Use an explicitly dedicated display.
-Both hosts have a GTX 1060 with 6 GB VRAM.
-Graphics development packages and Xvfb are now installed on both hosts.
-Authenticated disposable displays reported Mesa llvmpipe OpenGL 4.5.
-The first P04 diagnostic failed at the unimplemented render.capture operation.
-See docs/GRAPHICS_PREPARATION.md for package changes, recovery records, and test-display commands.
+David authorized continuation without the local agent after its hardware failure.
+No login or desktop configuration changed during P04 implementation.
 
-Workspace Git integration, confinement, cabinets, XLibre security, shared-world networking,
-model-driven actors, application restoration, and native hardware acceptance remain pending.
+## Remaining work
+
+P05 must import real X application surfaces and handle their resource lifecycle.
+P06 must supply genuine actor input identities and routing.
+Later phases add rooms, manipulation, workspace Git storage, process context, recovery, and complete actor workflows.
+
+The additional mandatory milestones include identity, delegation, confinement, cabinets, XLibre security,
+shared worlds, model actors, application restoration, native devices, performance, and lifecycle soak.
+None is implied by the current rendering result.
 No Spatial-M1 or LOCAL_READY qualification is claimed.

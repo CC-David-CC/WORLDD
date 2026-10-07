@@ -181,6 +181,12 @@ def make_request(method, params):
             if args:
                 raise ValueError('Unknown stop fields')
             body.stop.SetInParent()
+        elif params.get('op') == 'aim':
+            if not isinstance(args, dict) or set(args) - {'direction'}:
+                raise ValueError('Unknown aim fields')
+            body.aim.SetInParent()
+            if 'direction' in args:
+                body.aim.direction.CopyFrom(vec3(args['direction']))
         return request
     schemas = {
         'system.hello': ('hello', {}),
@@ -192,6 +198,8 @@ def make_request(method, params):
         'world.snapshot': ('world_snapshot', {}),
         'world.info': ('world_info', {}),
         'runtime.identities': ('runtime_identities', {}),
+        'render.capture': ('render_capture', {'token': str, 'width': int, 'height': int}),
+        'render.present': ('render_present', {'token': str, 'width': int, 'height': int}),
         'actor.open': ('actor_open', {'id': str, 'room': str, 'pose': pose, 'grants': list}),
         'actor.inspect': ('actor_inspect', {'token': str}),
         'actor.close': ('actor_close', {'token': str}),
@@ -244,6 +252,7 @@ OUTCOMES = {'hello': 'hello', 'world_get': 'entity', 'world_create': 'entity',
             'world_snapshot': 'snapshot', 'world_info': 'world_info', 'runtime_identities': 'identities',
             'actor_open': 'actor_opened', 'actor_inspect': 'actor_state', 'actor_close': 'actor_closed',
             'actor_act': 'actor_action', 'world_checkpoint': 'checkpoint', 'clock_advance': 'clock',
+            'render_capture': 'frame', 'render_present': 'frame',
             'transform_point': 'point',
             'inverse_point': 'point', 'uv_pixel': 'pixel', 'ray_panel': 'ray', 'integrate': 'pose'}
 
@@ -264,7 +273,17 @@ def result_value(reply):
     if kind == 'actor_closed':
         return {'closed': reply.actor_closed.closed}
     if kind == 'actor_action':
+        if reply.actor_action.HasField('aim'):
+            if not reply.actor_action.aim.HasField('hit'):
+                return {'hit': None}
+            hit = reply.actor_action.aim.hit
+            return {'hit': {'id': hit.id, 'generation': hit.generation, 'uv': [hit.uv.x, hit.uv.y],
+                            'pixel': [hit.pixel.x, hit.pixel.y] if hit.HasField('pixel') else None,
+                            'distance': hit.distance}}
         return {'accepted': reply.actor_action.accepted}
+    if kind == 'frame':
+        value = reply.frame
+        return {'path': value.path, 'frame_id': value.frame_id, 'world_revision': value.world_revision, 'xid': value.xid}
     if kind == 'checkpoint':
         return {'world_revision': reply.checkpoint.world_revision}
     if kind == 'clock':
@@ -283,7 +302,11 @@ def result_value(reply):
         value = reply.world_info
         return {'world_id': value.world_id, 'entry_room': value.entry_room, 'world_revision': value.world_revision}
     if kind == 'identities':
-        return {'worldd_pid': reply.identities.worldd_pid, 'world_id': reply.identities.world_id}
+        value = reply.identities
+        result = {'worldd_pid': value.worldd_pid, 'world_id': value.world_id}
+        if value.spatialwm_pid:
+            result.update(spatialwm_pid=value.spatialwm_pid, display=value.display)
+        return result
     if kind == 'hello':
         value = reply.hello
         return {'protocol': value.protocol, 'implementation': value.implementation,

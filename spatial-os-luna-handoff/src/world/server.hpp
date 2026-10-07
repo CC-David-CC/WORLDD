@@ -3,5 +3,5 @@
 
 namespace spatial {
 // Bounded management I/O does not suspend the production monotonic scheduler.
-void serve(WorldStore& world, Actors& actors);
+void serve(WorldStore& world, Actors& actors, RenderWorker* renderer = nullptr);
 }

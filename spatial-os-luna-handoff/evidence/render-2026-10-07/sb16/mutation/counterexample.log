@@ -1,0 +1,21 @@
+test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick) ... FAIL
+
+======================================================================
+FAIL: test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_render.py", line 108, in test_coplanar_tie_order_agrees_with_pick
+    self.assertEqual(image.pixel(64, 64), (4, 5, 6))
+AssertionError: Tuples differ: (1, 2, 3) != (4, 5, 6)
+
+First differing element 0:
+1
+4
+
+- (1, 2, 3)
++ (4, 5, 6)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.198s
+
+FAILED (failures=1)

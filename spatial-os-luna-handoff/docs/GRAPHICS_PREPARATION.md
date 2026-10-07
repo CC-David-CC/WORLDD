@@ -40,16 +40,16 @@ It does not qualify the GTX 1060, visible scanout, timing, or physical devices.
 The first P04 diagnostic reached the existing runtime on both hosts.
 It failed because render.capture has no protobuf operation yet.
 The failing logs are retained.
-P04 remains in progress.
+This was the pre-implementation P04 diagnostic.
+The completed P04 software-display qualification is recorded in CURRENT_STATE.md and docs/RENDERING.md.
 
-## Next implementation
+## Implemented P04 scope
 
-Add a real spatialwm process with an OpenGL renderer.
-Send typed protobuf scene and frame messages between production components.
-Keep authoritative world and actor state in worldd.
-Use one renderer for capture and visible output.
-Use the same world geometry for rendering and selection.
-Verify camera transforms, projection, depth, backfaces, room filtering, and scene revisions.
+spatialwm now provides the actual OpenGL renderer.
+Typed protobuf messages carry scene data and frame results.
+Authoritative world and actor state remain in worldd.
+Capture and visible output use one renderer.
+The tests verify camera transforms, projection, depth, backfaces, room filtering, and scene revisions.
 
 Later native qualification must use the selected XLibre build and real GPU/display.
 Do not substitute the disposable software display for that gate.

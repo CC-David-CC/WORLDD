@@ -1,0 +1,11 @@
+[0/2] Re-checking globbed directories...
+[1/10] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[2/10] Linking CXX static library libspatial-scene.a
+[3/10] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/10] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[5/10] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[6/10] Linking CXX static library libspatial-core.a
+[7/10] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[8/10] Linking CXX executable spatialwm
+[9/10] Linking CXX executable worldd
+[10/10] Linking CXX executable spatial-test-host

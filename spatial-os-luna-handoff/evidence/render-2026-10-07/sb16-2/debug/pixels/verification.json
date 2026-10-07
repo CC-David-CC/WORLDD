@@ -1,0 +1,17 @@
+[
+  {
+    "size": "81-137",
+    "sha256": "21caec1930595de72b199e5ee4c46034752e17eed182dd2ded7b931173516ede",
+    "capture_equals_witness": true
+  },
+  {
+    "size": "127-95",
+    "sha256": "916e1997164ac24b355301d4b2489669d84ecd379d1203f0b45c5792e6b2730d",
+    "capture_equals_witness": true
+  },
+  {
+    "size": "256-128",
+    "sha256": "00ab7df7c4f6d0e783e808707b0cf08f90b33684c02ff4750d1e9c22b8c26e7f",
+    "capture_equals_witness": true
+  }
+]

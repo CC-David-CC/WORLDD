@@ -1,0 +1,265 @@
+#include "render/renderer.hpp"
+#include "core/scene.hpp"
+#include <GL/glew.h>
+#include <GL/glx.h>
+#include <GL/glxext.h>
+#include <X11/Xlib.h>
+#include <array>
+#include <cerrno>
+#include <cmath>
+#include <cstring>
+#include <fcntl.h>
+#include <iostream>
+#include <stdexcept>
+#include <unistd.h>
+#include <vector>
+namespace spatial {
+namespace {
+int x_error = 0;
+int record_x_error(Display*, XErrorEvent* event) { x_error = event->error_code; return 0; }
+void check_x(Display* display) {
+    XSync(display, False);
+    if (x_error) {
+        const auto code = x_error; x_error = 0;
+        throw std::runtime_error("X request failed: " + std::to_string(code));
+    }
+}
+void check_gl() {
+    if (glGetError() != GL_NO_ERROR) throw std::runtime_error("OpenGL command failed");
+}
+GLuint shader(GLenum type, const char* source) {
+    const GLuint result = glCreateShader(type);
+    glShaderSource(result, 1, &source, nullptr); glCompileShader(result);
+    GLint status = 0; glGetShaderiv(result, GL_COMPILE_STATUS, &status);
+    if (!status) {
+        std::array<char, 4096> log{}; glGetShaderInfoLog(result, log.size(), nullptr, log.data());
+        glDeleteShader(result); throw std::runtime_error(std::string("Shader compilation: ") + log.data());
+    }
+    return result;
+}
+void write_all(int fd, const char* data, std::size_t size) {
+    std::size_t used = 0;
+    while (used < size) {
+        const auto count = write(fd, data + used, size - used);
+        if (count < 0 && errno == EINTR) continue;
+        if (count <= 0) throw std::runtime_error("Cannot write frame capture");
+        used += static_cast<std::size_t>(count);
+    }
+}
+}
+struct Renderer::Impl {
+    Display* display = nullptr;
+    Window window = 0;
+    Colormap colormap = 0;
+    GLXContext context = nullptr;
+    GLuint program = 0, vao = 0, vbo = 0, fbo = 0, color = 0, depth = 0;
+    unsigned width = 0, height = 0;
+    std::uint64_t frame_id = 0;
+    std::filesystem::path captures;
+    wire::RendererReady info;
+    ~Impl() {
+        if (context) {
+            if (program) glDeleteProgram(program);
+            if (vao) glDeleteVertexArrays(1, &vao);
+            if (vbo) glDeleteBuffers(1, &vbo);
+            if (fbo) glDeleteFramebuffers(1, &fbo);
+            if (color) glDeleteRenderbuffers(1, &color);
+            if (depth) glDeleteRenderbuffers(1, &depth);
+            glXMakeCurrent(display, None, nullptr);
+            glXDestroyContext(display, context);
+        }
+        if (window) XDestroyWindow(display, window);
+        if (colormap) XFreeColormap(display, colormap);
+        if (display) XCloseDisplay(display);
+    }
+    void output() {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glDrawBuffer(GL_BACK);
+        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glXSwapBuffers(display, window);
+        glFinish(); check_gl(); check_x(display);
+    }
+};
+Renderer::Renderer(const std::string& name, const std::filesystem::path& state) : impl_(std::make_unique<Impl>()) {
+    auto& r = *impl_;
+    if (name.empty()) throw std::invalid_argument("An explicit X display is required");
+    r.captures = state / "captures";
+    const auto status = std::filesystem::symlink_status(r.captures);
+    if (std::filesystem::is_symlink(status) || (std::filesystem::exists(status) && !std::filesystem::is_directory(status)))
+        throw std::invalid_argument("Unsafe capture directory");
+    std::filesystem::create_directory(r.captures);
+    r.display = XOpenDisplay(name.c_str());
+    if (!r.display) throw std::runtime_error("Cannot open explicit X display");
+    XSetErrorHandler(record_x_error);
+    const auto root = DefaultRootWindow(r.display);
+    // SubstructureRedirect is exclusive. BadAccess preserves the existing WM.
+    XSelectInput(r.display, root, SubstructureRedirectMask | SubstructureNotifyMask);
+    check_x(r.display);
+    const int attributes[]{GLX_X_RENDERABLE, True, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+        GLX_RENDER_TYPE, GLX_RGBA_BIT, GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+        GLX_RED_SIZE, 8, GLX_GREEN_SIZE, 8, GLX_BLUE_SIZE, 8,
+        GLX_DOUBLEBUFFER, True, None};
+    int count = 0;
+    GLXFBConfig* configs = glXChooseFBConfig(r.display, DefaultScreen(r.display), attributes, &count);
+    if (!configs || count == 0) { if (configs) XFree(configs); throw std::runtime_error("No GLX window configuration"); }
+    const auto config = configs[0];
+    XVisualInfo* visual = glXGetVisualFromFBConfig(r.display, config);
+    XFree(configs);
+    if (!visual) throw std::runtime_error("No GLX visual");
+    r.colormap = XCreateColormap(r.display, root, visual->visual, AllocNone);
+    XSetWindowAttributes values{};
+    values.colormap = r.colormap; values.override_redirect = True;
+    values.event_mask = ExposureMask | StructureNotifyMask;
+    r.window = XCreateWindow(r.display, root, 0, 0, 128, 128, 0, visual->depth, InputOutput,
+                              visual->visual, CWColormap | CWOverrideRedirect | CWEventMask, &values);
+    XFree(visual); check_x(r.display);
+    XStoreName(r.display, r.window, "Spatial runtime");
+    const auto create = reinterpret_cast<PFNGLXCREATECONTEXTATTRIBSARBPROC>(
+        glXGetProcAddressARB(reinterpret_cast<const GLubyte*>("glXCreateContextAttribsARB")));
+    if (!create) throw std::runtime_error("GLX context creation unavailable");
+    const int context_attributes[]{GLX_CONTEXT_MAJOR_VERSION_ARB, 3, GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+                                  GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB, None};
+    r.context = create(r.display, config, nullptr, True, context_attributes);
+    check_x(r.display);
+    if (!r.context || !glXMakeCurrent(r.display, r.window, r.context)) throw std::runtime_error("Cannot activate GLX context");
+    glewExperimental = GL_TRUE;
+    const auto glew_status = glewInit();
+    // GLEW 2.2 probes legacy extension strings in a core context.
+    while (glGetError() != GL_NO_ERROR) {}
+    if (glew_status != GLEW_OK || !GLEW_VERSION_3_3 || !GLEW_ARB_gpu_shader_fp64)
+        throw std::runtime_error("OpenGL 3.3 with ARB_gpu_shader_fp64 is required");
+    r.info.set_gl_version(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    r.info.set_gl_renderer(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    std::cerr << "spatialwm: " << r.info.gl_version() << "; " << r.info.gl_renderer() << '\n';
+    const char* vertex = R"(#version 330 core
+layout(location=0) in vec2 position;
+void main() { gl_Position = vec4(position, 0.0, 1.0); }
+)";
+    const char* fragment = R"(#version 330 core
+#extension GL_ARB_gpu_shader_fp64 : require
+uniform dvec3 origin, ray_x, ray_y, ray_z;
+uniform dvec2 extent, viewport, clip_planes;
+uniform double focal;
+uniform vec3 rgb;
+out vec4 pixel;
+void main() {
+    dvec3 ray = dvec3((double(gl_FragCoord.x)*2.0-viewport.x)/(focal*viewport.y),
+                     (double(gl_FragCoord.y)*2.0-viewport.y)/(focal*viewport.y), -1.0);
+    // Parameterize by camera depth. Normalization is unnecessary for intersection
+    // and introduces another rounding step at half-open panel boundaries.
+    dvec3 local_ray = ray_x*ray.x + ray_y*ray.y + ray_z*ray.z;
+    if (local_ray.z >= 0.0 || origin.z < 0.0) discard;
+    double distance = -origin.z/local_ray.z;
+    double depth = -ray.z*distance;
+    if (depth < clip_planes.x || depth > clip_planes.y) discard;
+    dvec3 contact = origin + local_ray*distance;
+    dvec2 uv = dvec2(contact.x/extent.x+0.5, 0.5-contact.y/extent.y);
+    if (uv.x < 0.0 || uv.x >= 1.0 || uv.y < 0.0 || uv.y >= 1.0) discard;
+    gl_FragDepth = float(clip_planes.x/depth);
+    pixel = vec4(rgb, 1.0);
+}
+)";
+    const auto vs = shader(GL_VERTEX_SHADER, vertex);
+    GLuint fs = 0;
+    try { fs = shader(GL_FRAGMENT_SHADER, fragment); } catch (...) { glDeleteShader(vs); throw; }
+    r.program = glCreateProgram();
+    glAttachShader(r.program, vs); glAttachShader(r.program, fs); glLinkProgram(r.program);
+    glDeleteShader(vs); glDeleteShader(fs);
+    GLint linked = 0; glGetProgramiv(r.program, GL_LINK_STATUS, &linked);
+    if (!linked) throw std::runtime_error("Cannot link scene shader");
+    glGenVertexArrays(1, &r.vao); glBindVertexArray(r.vao);
+    glGenBuffers(1, &r.vbo); glBindBuffer(GL_ARRAY_BUFFER, r.vbo);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+    glGenFramebuffers(1, &r.fbo); glGenRenderbuffers(1, &r.color); glGenRenderbuffers(1, &r.depth);
+    check_gl();
+}
+Renderer::~Renderer() = default;
+wire::RendererReady Renderer::ready() const { return impl_->info; }
+int Renderer::connection() const { return ConnectionNumber(impl_->display); }
+void Renderer::events() {
+    auto& r = *impl_;
+    while (XPending(r.display)) {
+        XEvent event{}; XNextEvent(r.display, &event);
+        if (event.type == Expose && event.xexpose.window == r.window && r.width && event.xexpose.count == 0) r.output();
+        if (event.type == MapRequest) XMapWindow(r.display, event.xmaprequest.window);
+        if (event.type == DestroyNotify && event.xdestroywindow.window == r.window)
+            throw std::runtime_error("Compositor output was destroyed");
+    }
+    check_x(r.display);
+}
+wire::FrameReply Renderer::draw(const wire::RenderCommand& command) {
+    validate_render_extent(command.width(), command.height());
+    if (!command.has_scene()) throw std::invalid_argument("Missing render scene");
+    const auto panels = scene_panels(command.scene());
+    auto& r = *impl_;
+    if (command.request_id() != r.frame_id + 1) throw std::invalid_argument("Out-of-order render command");
+    if (r.width != command.width() || r.height != command.height()) {
+        r.width = command.width(); r.height = command.height();
+        glBindRenderbuffer(GL_RENDERBUFFER, r.color);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, r.width, r.height);
+        glBindRenderbuffer(GL_RENDERBUFFER, r.depth);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, r.width, r.height);
+        glBindFramebuffer(GL_FRAMEBUFFER, r.fbo);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, r.color);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, r.depth);
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) throw std::runtime_error("Incomplete scene framebuffer");
+        XResizeWindow(r.display, r.window, r.width, r.height);
+    }
+    XMapRaised(r.display, r.window); check_x(r.display);
+    glBindFramebuffer(GL_FRAMEBUFFER, r.fbo);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0); glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glViewport(0, 0, r.width, r.height);
+    glDisable(GL_BLEND); glDisable(GL_DITHER); glDisable(GL_MULTISAMPLE); glDisable(GL_FRAMEBUFFER_SRGB);
+    glEnable(GL_DEPTH_TEST); glDepthFunc(GL_GREATER); glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE); glCullFace(GL_BACK); glFrontFace(GL_CCW);
+    const auto& config = command.scene().config();
+    const auto& bg = config.background();
+    glClearColor(bg.red() / 255.0f, bg.green() / 255.0f, bg.blue() / 255.0f, 1);
+    glClearDepth(0); glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // The projection retains the precision of the OpenGL float vertex pipeline.
+    const double f = static_cast<float>(1 / std::tan(config.vertical_fov() / 2));
+    glUseProgram(r.program);
+    glUniform1d(glGetUniformLocation(r.program, "focal"), f);
+    glUniform2d(glGetUniformLocation(r.program, "viewport"), r.width, r.height);
+    glUniform2d(glGetUniformLocation(r.program, "clip_planes"), config.near_clip(), config.far_clip());
+    glBindVertexArray(r.vao); glBindBuffer(GL_ARRAY_BUFFER, r.vbo);
+    for (const auto& panel : panels) {
+        const auto bounds = panel_bounds(panel, config, r.width, r.height);
+        if (!bounds) continue;
+        const auto& b = *bounds;
+        const std::array<float, 12> vertices{b[0],b[1], b[2],b[1], b[2],b[3], b[0],b[1], b[2],b[3], b[0],b[3]};
+        glUniform3dv(glGetUniformLocation(r.program, "origin"), 1, panel.origin.data());
+        glUniform3dv(glGetUniformLocation(r.program, "ray_x"), 1, panel.ray_x.data());
+        glUniform3dv(glGetUniformLocation(r.program, "ray_y"), 1, panel.ray_y.data());
+        glUniform3dv(glGetUniformLocation(r.program, "ray_z"), 1, panel.ray_z.data());
+        glUniform2dv(glGetUniformLocation(r.program, "extent"), 1, panel.size.data());
+        glUniform3fv(glGetUniformLocation(r.program, "rgb"), 1, panel.color.data());
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STREAM_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+    r.output();
+    wire::FrameReply result;
+    result.set_frame_id(++r.frame_id); result.set_world_revision(command.scene().world_revision());
+    result.set_xid(r.window);
+    if (command.capture()) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, r.fbo); glReadBuffer(GL_COLOR_ATTACHMENT0);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        const std::size_t stride = std::size_t(r.width) * 3;
+        std::vector<char> pixels(stride * r.height);
+        glReadPixels(0, 0, r.width, r.height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data()); check_gl();
+        std::string name = (r.captures / "frame-XXXXXX.ppm").string();
+        const int fd = mkstemps(name.data(), 4);
+        if (fd < 0) throw std::runtime_error("Cannot create frame capture");
+        try {
+            const auto header = "P6\n" + std::to_string(r.width) + " " + std::to_string(r.height) + "\n255\n";
+            write_all(fd, header.data(), header.size());
+            for (unsigned row = r.height; row > 0; --row) write_all(fd, pixels.data() + (row - 1) * stride, stride);
+        } catch (...) { close(fd); unlink(name.c_str()); throw; }
+        if (close(fd) != 0) { unlink(name.c_str()); throw std::runtime_error("Cannot close frame capture"); }
+        result.set_path(name);
+    }
+    return result;
+}
+}

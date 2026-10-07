@@ -1,0 +1,21 @@
+{
+  "case": "test_half_open_panel_edges_match_pixel_center_rays",
+  "build_id": "sha256:0afe59eefca5c9997b4a6933258c2b52c30861a12a7ff34d6b3b5dffab0603ec",
+  "pixel": [
+    64,
+    48
+  ],
+  "expected_rgb": [
+    123,
+    49,
+    211
+  ],
+  "observed_rgb": [
+    10,
+    12,
+    16
+  ],
+  "status": "failed",
+  "capture_sha256": "320794db52292d5e0de6beab499e809019a3f848bc68034d760f6ef27d9bdf79",
+  "note": "Original OpenGL triangle coverage excluded the top edge. The current counterexample passes."
+}

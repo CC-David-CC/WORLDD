@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--through', choices=['P00', 'P01', 'P02', 'P03'], required=True)
+    parser.add_argument('--through', choices=['P00', 'P01', 'P02', 'P03', 'P04'], required=True)
     parser.add_argument('--build-dir', default='build')
     parser.add_argument('--evidence-dir', required=True)
     parser.add_argument('--sanitize', action='store_true')
@@ -29,6 +29,8 @@ def main():
     evidence.mkdir(parents=True, exist_ok=False)
     binary = build / 'spatial-test-host'
     env = os.environ.copy()
+    env.pop('SPATIAL_TEST_DISPLAY', None)
+    env['SPATIAL_RENDER_EVIDENCE'] = str(evidence / 'graphics')
     env['PYTHONPATH'] = os.pathsep.join([str(build / 'python'), str(ROOT), env.get('PYTHONPATH', '')])
     commands = [
         ('configure', ['cmake', '-S', '.', '-B', str(build), '-G', 'Ninja',
@@ -39,6 +41,9 @@ def main():
         ('acceptance', [sys.executable, 'tools/gate.py', '--through', args.through,
                         '--sut', json.dumps([str(binary)]), '--report', str(evidence / 'acceptance.json')]),
     ]
+    if args.through >= 'P04':
+        label, command = commands[-1]
+        commands[-1] = (label, [sys.executable, 'tools/with_test_display.py', '--', *command])
     record = {'host': host, 'utc': datetime.now(timezone.utc).isoformat(), 'through': args.through,
               'sanitizers': args.sanitize, 'status': 'failed', 'commands': [], 'source_sha256': {}}
     locked = json.loads((ROOT / 'acceptance.lock.json').read_text())['files']

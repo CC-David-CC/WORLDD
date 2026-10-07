@@ -55,7 +55,35 @@ message RuntimeConfig {
   optional double angular_gain = 2;
   optional double deadzone = 3;
   optional double input_timeout = 4;
+  RenderConfig render = 5;
 }
+message RenderConfig {
+  optional double vertical_fov = 1;
+  optional double near_clip = 2;
+  optional double far_clip = 3;
+  Color background = 4;
+}
+message RenderRequest { string token = 1; uint32 width = 2; uint32 height = 3; }
+message FrameReply { string path = 1; uint64 frame_id = 2; uint64 world_revision = 3; uint64 xid = 4; }
+// Private worldd-to-spatialwm protocol. No actor credentials cross this boundary.
+message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; }
+message RenderCommand {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  RenderScene scene = 3;
+  uint32 width = 4;
+  uint32 height = 5;
+  bool capture = 6;
+}
+message RendererReady { string gl_version = 1; string gl_renderer = 2; }
+message RenderResult {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; }
+}
+message ActorAimRequest { Vec3 direction = 1; }
+message AimHit { string id = 1; uint64 generation = 2; Vec2 uv = 3; Pixel pixel = 4; double distance = 5; }
+message AimReply { AimHit hit = 1; }
 message ActorOpenRequest { string id = 1; optional string room = 2; Pose pose = 3; repeated string grants = 4; }
 message ActorTokenRequest { string token = 1; }
 message ActorInputRequest { repeated double axes = 1; }
@@ -63,7 +91,7 @@ message ActorStopRequest {}
 message ActorActionRequest {
   string token = 1;
   optional uint64 seq = 2;
-  oneof action { ActorInputRequest input = 10; ActorStopRequest stop = 11; }
+  oneof action { ActorInputRequest input = 10; ActorStopRequest stop = 11; ActorAimRequest aim = 12; }
 }
 message WorldCheckpointRequest {}
 message ClockAdvanceRequest { optional double seconds = 1; }
@@ -107,6 +135,8 @@ message Request {
     ActorActionRequest actor_act = 33;
     WorldCheckpointRequest world_checkpoint = 34;
     ClockAdvanceRequest clock_advance = 35;
+    RenderRequest render_capture = 40;
+    RenderRequest render_present = 41;
   }
 }
 
@@ -149,7 +179,7 @@ message WorldSnapshotReply {
 }
 message WorldDeleteReply { bool deleted = 1; uint64 world_revision = 2; }
 message WorldInfoReply { string world_id = 1; string entry_room = 2; uint64 world_revision = 3; }
-message RuntimeIdentitiesReply { uint64 worldd_pid = 1; string world_id = 2; }
+message RuntimeIdentitiesReply { uint64 worldd_pid = 1; string world_id = 2; uint64 spatialwm_pid = 3; string display = 4; }
 message ActorOpenReply { string id = 1; string token = 2; }
 message ActorStateReply {
   string id = 1;
@@ -160,7 +190,7 @@ message ActorStateReply {
   repeated uint32 held_buttons = 6;
   optional string focus = 7;
 }
-message ActorActionReply { bool accepted = 1; }
+message ActorActionReply { bool accepted = 1; AimReply aim = 2; }
 message ActorCloseReply { bool closed = 1; }
 message WorldCheckpointReply { uint64 world_revision = 1; }
 message ClockReply { double seconds = 1; }
@@ -185,5 +215,6 @@ message Reply {
     ActorActionReply actor_action = 33;
     WorldCheckpointReply checkpoint = 34;
     ClockReply clock = 35;
+    FrameReply frame = 40;
   }
 }

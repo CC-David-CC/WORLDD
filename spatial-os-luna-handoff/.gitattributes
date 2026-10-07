@@ -1,0 +1,2 @@
+# P6 RGB payloads can contain newline bytes but are not text.
+*.ppm binary

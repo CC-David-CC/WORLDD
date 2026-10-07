@@ -15,6 +15,7 @@ public:
     wire::ActorStateReply inspect(const std::string& token);
     wire::ActorCloseReply close(const std::string& token);
     wire::ActorActionReply act(const wire::ActorActionRequest& request);
+    wire::RenderScene scene(const std::string& token);
     wire::WorldCheckpointReply checkpoint();
     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
     void tick(double monotonic_seconds);
@@ -28,6 +29,7 @@ private:
         std::array<double, 6> axes{};
         std::uint64_t sequence = 0;
         double expires = 0;
+        wire::AimReply aim;
     };
     Actor& authenticated(const std::string& token);
     void step(double target);

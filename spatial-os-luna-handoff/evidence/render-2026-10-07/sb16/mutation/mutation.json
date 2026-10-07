@@ -1,0 +1,49 @@
+{
+  "mutation": "GL_GREATER -> GL_ALWAYS disables depth rejection",
+  "source_sha256": "d9ee527e02978ac315bdcd6d4e791dcf743939b8a189693773e61c09a2dedae4",
+  "mutated_sha256": "e1a02afdcca658ad8fdc4cf69ea79f96f6b1e9a6bdb590496a715644c6248f3e",
+  "commands": [
+    {
+      "label": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/render-mutation/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/render-mutation/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=OFF"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/render-mutation/build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "counterexample",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_render.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/render-mutation/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/render-mutation/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe",
+        "RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "detected": true
+}

@@ -1,5 +1,6 @@
 #include "world/actors.hpp"
 #include "core/geometry.hpp"
+#include "core/scene.hpp"
 #include <google/protobuf/text_format.h>
 #include <sys/random.h>
 #include <cerrno>
@@ -48,6 +49,7 @@ wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path) {
     require(result.has_angular_gain() && result.angular_gain() > 0 && result.angular_gain() <= 1000, "Invalid angular gain");
     require(result.has_deadzone() && result.deadzone() >= 0 && result.deadzone() < 1, "Invalid deadzone");
     require(result.has_input_timeout() && result.input_timeout() > 0 && result.input_timeout() <= 60, "Invalid input timeout");
+    if (result.has_render()) validate_render_config(result.render());
     return result;
 }
 Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock)
@@ -87,6 +89,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request) {
     // An existing actor keeps its last valid pose, including a durable restore.
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
     actor.axes.fill(0); actor.expires = now_;
+    actor.aim.Clear();
     sessions_.emplace(token, actor.entity.id());
     wire::ActorOpenReply result; result.set_id(actor.entity.id()); result.set_token(token); return result;
 }
@@ -100,6 +103,7 @@ wire::ActorStateReply Actors::inspect(const std::string& token) {
 wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
     actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.token.clear();
+    actor.aim.Clear();
     sessions_.erase(token);
     wire::ActorCloseReply result; result.set_closed(true); return result;
 }
@@ -123,11 +127,24 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         break;
     }
     case wire::ActorActionRequest::kStop:
-        actor.axes.fill(0); actor.expires = now_; break;
+        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); break;
+    case wire::ActorActionRequest::kAim: {
+        if (!actor.grants.contains("navigate") && !actor.grants.contains("interact"))
+            throw WorldError(wire::FORBIDDEN, "Navigation or interaction grant required");
+        require(request.aim().has_direction(), "Missing aim direction");
+        actor.aim = pick_scene(scene(request.token()), request.aim().direction());
+        wire::ActorActionReply result; result.set_accepted(true); *result.mutable_aim() = actor.aim;
+        return result;
+    }
     case wire::ActorActionRequest::ACTION_NOT_SET:
         throw WorldError(wire::UNKNOWN_METHOD, "No recognized actor action");
     }
     wire::ActorActionReply result; result.set_accepted(true); return result;
+}
+wire::RenderScene Actors::scene(const std::string& token) {
+    const auto& actor = authenticated(token);
+    require(config_.has_render(), "Render configuration is missing");
+    return panel_scene(store_.snapshot(), actor.entity, config_.render());
 }
 void Actors::step(double target) {
     require(std::isfinite(target) && target >= now_, "Invalid monotonic time");
