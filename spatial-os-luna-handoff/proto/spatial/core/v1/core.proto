@@ -12,6 +12,43 @@ message Pixel { uint32 x = 1; uint32 y = 2; }
 
 message HelloRequest {}
 message WorldGetRequest { string id = 1; }
+enum EntityKind {
+  ENTITY_KIND_UNSPECIFIED = 0;
+  ROOM = 1;
+  OBJECT = 2;
+  PANEL = 3;
+  BARRIER = 4;
+  PORTAL = 5;
+  SURFACE_SLOT = 6;
+}
+message Color { uint32 red = 1; uint32 green = 2; uint32 blue = 3; }
+message Bounds { Vec3 min = 1; Vec3 max = 2; }
+message Destination { string room = 1; Pose pose = 2; }
+// Presence is retained for patch validation, including immutable fields.
+message Entity {
+  optional string id = 1;
+  optional EntityKind kind = 2;
+  optional string room = 3;
+  optional string label = 4;
+  Pose pose = 5;
+  Vec2 size = 6;
+  Color color = 7;
+  Bounds bounds = 8;
+  Destination destination = 9;
+  optional uint64 revision = 10;
+  optional uint64 world_revision = 11;
+}
+message WorldCreateRequest { Entity entity = 1; }
+message WorldListRequest {}
+message WorldSnapshotRequest {}
+message WorldUpdateRequest {
+  string id = 1;
+  optional uint64 expected_revision = 2;
+  Entity patch = 3;
+}
+message WorldDeleteRequest { string id = 1; optional uint64 expected_revision = 2; }
+message WorldInfoRequest {}
+message RuntimeIdentitiesRequest {}
 message PointTransformRequest { Pose pose = 1; Vec3 point = 2; }
 message UvPixelRequest { Vec2 uv = 1; PixelExtent pixels = 2; }
 message RayPanelRequest {
@@ -39,6 +76,13 @@ message Request {
     UvPixelRequest uv_pixel = 14;
     RayPanelRequest ray_panel = 15;
     IntegrateRequest integrate = 16;
+    WorldCreateRequest world_create = 20;
+    WorldListRequest world_list = 21;
+    WorldSnapshotRequest world_snapshot = 22;
+    WorldUpdateRequest world_update = 23;
+    WorldDeleteRequest world_delete = 24;
+    WorldInfoRequest world_info = 25;
+    RuntimeIdentitiesRequest runtime_identities = 26;
   }
 }
 
@@ -49,6 +93,12 @@ enum ErrorCode {
   UNIMPLEMENTED = 3;
   INTERNAL_ERROR = 4;
   UNSUPPORTED_VERSION = 5;
+  NOT_FOUND = 6;
+  ALREADY_EXISTS = 7;
+  REVISION_CONFLICT = 8;
+  IN_USE = 9;
+  STORAGE_ERROR = 10;
+  RESOURCE_EXHAUSTED = 11;
 }
 message Error { ErrorCode code = 1; string message = 2; }
 message HelloReply {
@@ -63,6 +113,16 @@ message PixelReply { Pixel pixel = 1; }
 message RayHit { Vec2 uv = 1; Pixel pixel = 2; double distance = 3; }
 message RayReply { RayHit hit = 1; }
 message PoseReply { Pose pose = 1; }
+message EntityReply { Entity entity = 1; }
+message WorldSnapshotReply {
+  string world_id = 1;
+  uint64 world_revision = 2;
+  repeated Entity entities = 3;
+  string entry_room = 4;
+}
+message WorldDeleteReply { bool deleted = 1; uint64 world_revision = 2; }
+message WorldInfoReply { string world_id = 1; string entry_room = 2; uint64 world_revision = 3; }
+message RuntimeIdentitiesReply { uint64 worldd_pid = 1; string world_id = 2; }
 message Reply {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -73,5 +133,10 @@ message Reply {
     PixelReply pixel = 14;
     RayReply ray = 15;
     PoseReply pose = 16;
+    EntityReply entity = 20;
+    WorldSnapshotReply snapshot = 21;
+    WorldDeleteReply deleted = 24;
+    WorldInfoReply world_info = 25;
+    RuntimeIdentitiesReply identities = 26;
   }
 }

@@ -1,0 +1,43 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: core-protocol
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_protocol.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+1: Test timeout computed to be: 30
+1: test_integer_ids_preserve_precision (__main__.ProtocolBoundaryTests.test_integer_ids_preserve_precision) ... ok
+1: test_malformed_payload_recovers_at_next_frame (__main__.ProtocolBoundaryTests.test_malformed_payload_recovers_at_next_frame) ... ok
+1: test_missing_motion_fields_rejected (__main__.ProtocolBoundaryTests.test_missing_motion_fields_rejected) ... ok
+1: test_motion_overflow_is_not_success (__main__.ProtocolBoundaryTests.test_motion_overflow_is_not_success) ... ok
+1: test_nonfinite_numbers_rejected_on_wire (__main__.ProtocolBoundaryTests.test_nonfinite_numbers_rejected_on_wire) ... ok
+1: test_oversized_frame_closes_before_body_allocation (__main__.ProtocolBoundaryTests.test_oversized_frame_closes_before_body_allocation) ... ok
+1: test_small_angular_rate_preserves_linear_motion (__main__.ProtocolBoundaryTests.test_small_angular_rate_preserves_linear_motion) ... ok
+1: test_state_directory_must_be_absolute (__main__.ProtocolBoundaryTests.test_state_directory_must_be_absolute) ... ok
+1: test_truncated_frames_are_fatal (__main__.ProtocolBoundaryTests.test_truncated_frames_are_fatal) ... ok
+1: test_unknown_fields_rejected_at_both_levels (__main__.ProtocolBoundaryTests.test_unknown_fields_rejected_at_both_levels) ... ok
+1: test_version_and_unknown_operation (__main__.ProtocolBoundaryTests.test_version_and_unknown_operation) ... ok
+1: test_world_get_has_no_fake_success (__main__.ProtocolBoundaryTests.test_world_get_has_no_fake_success) ... ok
+1: test_wrong_wire_type_is_rejected (__main__.ProtocolBoundaryTests.test_wrong_wire_type_is_rejected) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 13 tests in 0.052s
+1: 
+1: OK
+1/1 Test #1: core-protocol ....................   Passed    0.11 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.11 sec

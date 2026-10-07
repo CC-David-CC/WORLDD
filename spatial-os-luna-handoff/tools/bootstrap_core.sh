@@ -7,7 +7,7 @@ case "$(hostname -s)" in
 esac
 cd "$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 mkdir -p local
-for package in protobuf-compiler libprotobuf-dev python3-protobuf; do
+for package in protobuf-compiler libprotobuf-dev python3-protobuf libsqlite3-dev; do
 if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -qx 'install ok installed'; then
     if [ "${1:-}" != '--install-deps' ]; then
         printf 'Missing %s. Re-run with --install-deps for host preparation.\n' "$package" >&2
@@ -24,5 +24,5 @@ if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -qx 'install ok 
     sudo -n apt-get install -y --no-install-recommends "$package" >> local/core-apt.log 2>&1
 fi
 done
-dpkg-query -W build-essential cmake ninja-build protobuf-compiler libprotobuf-dev python3-protobuf python3 > local/core-packages.txt
+dpkg-query -W build-essential cmake ninja-build protobuf-compiler libprotobuf-dev python3-protobuf libsqlite3-dev python3 > local/core-packages.txt
 printf '%s\n' 'Core dependencies are ready. Build with cmake --build build --parallel 2.'

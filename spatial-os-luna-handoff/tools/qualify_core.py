@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--through', choices=['P00', 'P01'], required=True)
+    parser.add_argument('--through', choices=['P00', 'P01', 'P02'], required=True)
     parser.add_argument('--build-dir', default='build')
     parser.add_argument('--evidence-dir', required=True)
     parser.add_argument('--sanitize', action='store_true')

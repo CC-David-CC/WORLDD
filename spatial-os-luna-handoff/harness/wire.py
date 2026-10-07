@@ -86,11 +86,89 @@ def pose(value):
     return result
 
 
+def entity(value):
+    result = pb.Entity()
+    allowed = {'id', 'kind', 'room', 'label', 'pose', 'size', 'color', 'bounds',
+               'destination', 'revision', 'world_revision'}
+    if not isinstance(value, dict) or set(value) - allowed:
+        raise ValueError('Unknown entity fields')
+    for name, item in value.items():
+        if name in ('id', 'room', 'label'):
+            if type(item) is not str:
+                raise ValueError('Expected entity string')
+            setattr(result, name, item)
+        elif name == 'kind':
+            result.kind = pb.EntityKind.Value(item.upper())
+        elif name in ('revision', 'world_revision'):
+            if type(item) is not int or not 0 <= item < 2**64:
+                raise ValueError('Expected uint64 revision')
+            setattr(result, name, item)
+        elif name == 'pose':
+            result.pose.CopyFrom(pose(item))
+        elif name == 'size':
+            result.size.CopyFrom(vec2(item))
+        elif name == 'color':
+            red, green, blue = numbers(item, 3)
+            if any(type(v) is not int for v in item):
+                raise ValueError('Expected integer color')
+            result.color.CopyFrom(pb.Color(red=red, green=green, blue=blue))
+        elif name == 'bounds':
+            if set(item) - {'min', 'max'}:
+                raise ValueError('Unknown bounds fields')
+            result.bounds.SetInParent()
+            for field, point in item.items():
+                getattr(result.bounds, field).CopyFrom(vec3(point))
+        elif name == 'destination':
+            if set(item) - {'room', 'pose'}:
+                raise ValueError('Unknown destination fields')
+            result.destination.SetInParent()
+            if 'room' in item:
+                result.destination.room = item['room']
+            if 'pose' in item:
+                result.destination.pose.CopyFrom(pose(item['pose']))
+    return result
+
+
+def pose_value(value):
+    if not value.HasField('position') or not value.HasField('orientation'):
+        raise ValueError('Missing pose fields')
+    q = value.orientation
+    return {'p': vector_value(value.position), 'q': [q.x, q.y, q.z, q.w]}
+
+
+def entity_value(value):
+    result = {}
+    for field, item in value.ListFields():
+        name = field.name
+        if name == 'kind':
+            result[name] = pb.EntityKind.Name(item).lower()
+        elif name == 'pose':
+            result[name] = pose_value(item)
+        elif name == 'size':
+            result[name] = [item.x, item.y]
+        elif name == 'color':
+            result[name] = [item.red, item.green, item.blue]
+        elif name == 'bounds':
+            result[name] = {'min': vector_value(item.min), 'max': vector_value(item.max)}
+        elif name == 'destination':
+            result[name] = {'room': item.room, 'pose': pose_value(item.pose)}
+        else:
+            result[name] = item
+    return result
+
+
 def make_request(method, params):
     request = pb.Request(protocol_version=1)
     schemas = {
         'system.hello': ('hello', {}),
         'world.get': ('world_get', {'id': str}),
+        'world.create': ('world_create', {'entity': entity}),
+        'world.update': ('world_update', {'id': str, 'expected_revision': int, 'patch': entity}),
+        'world.delete': ('world_delete', {'id': str, 'expected_revision': int}),
+        'world.list': ('world_list', {}),
+        'world.snapshot': ('world_snapshot', {}),
+        'world.info': ('world_info', {}),
+        'runtime.identities': ('runtime_identities', {}),
         'geometry.transform_point': ('transform_point', {'pose': pose, 'point': vec3}),
         'geometry.inverse_point': ('inverse_point', {'pose': pose, 'point': vec3}),
         'geometry.uv_pixel': ('uv_pixel', {'uv': vec2, 'pixels': None}),
@@ -120,12 +198,19 @@ def make_request(method, params):
             if type(value) not in (int, float) or not math.isfinite(value):
                 raise ValueError('Expected finite number')
             setattr(body, name, value)
+        elif convert is int:
+            if type(value) is not int or not 0 <= value < 2**64:
+                raise ValueError('Expected uint64 integer')
+            setattr(body, name, value)
         else:
             getattr(body, name).CopyFrom(convert(value))
     return request
 
 
-OUTCOMES = {'hello': 'hello', 'world_get': None, 'transform_point': 'point',
+OUTCOMES = {'hello': 'hello', 'world_get': 'entity', 'world_create': 'entity',
+            'world_update': 'entity', 'world_delete': 'deleted', 'world_list': 'snapshot',
+            'world_snapshot': 'snapshot', 'world_info': 'world_info', 'runtime_identities': 'identities',
+            'transform_point': 'point',
             'inverse_point': 'point', 'uv_pixel': 'pixel', 'ray_panel': 'ray', 'integrate': 'pose'}
 
 
@@ -135,6 +220,21 @@ def vector_value(value):
 
 def result_value(reply):
     kind = reply.WhichOneof('outcome')
+    if kind == 'entity':
+        if not reply.entity.HasField('entity'):
+            raise ValueError('Missing result entity')
+        return entity_value(reply.entity.entity)
+    if kind == 'snapshot':
+        value = reply.snapshot
+        return {'world_id': value.world_id, 'world_revision': value.world_revision,
+                'entry_room': value.entry_room, 'entities': [entity_value(e) for e in value.entities]}
+    if kind == 'deleted':
+        return {'deleted': reply.deleted.deleted, 'world_revision': reply.deleted.world_revision}
+    if kind == 'world_info':
+        value = reply.world_info
+        return {'world_id': value.world_id, 'entry_room': value.entry_room, 'world_revision': value.world_revision}
+    if kind == 'identities':
+        return {'worldd_pid': reply.identities.worldd_pid, 'world_id': reply.identities.world_id}
     if kind == 'hello':
         value = reply.hello
         return {'protocol': value.protocol, 'implementation': value.implementation,

@@ -1,0 +1,27 @@
+test_create_get_list (tests.acceptance.test_02_world.WorldTests.test_create_get_list) ... ERROR
+
+======================================================================
+ERROR: test_create_get_list (tests.acceptance.test_02_world.WorldTests.test_create_get_list)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/acceptance/test_02_world.py", line 9, in test_create_get_list
+    r=self.room(); self.assertEqual(r["id"],"room-a"); self.assertEqual(r["revision"],1)
+      ^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/base.py", line 63, in room
+    return self.call("world.create", entity={"id":ident, "kind":"room", "label":ident, **extra})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/base.py", line 53, in call
+    return self.client.call(method, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 102, in make_request
+    raise NotImplementedError(f'No protobuf schema for {method}; the phase remains unimplemented')
+NotImplementedError: No protobuf schema for world.create; the phase remains unimplemented
+
+----------------------------------------------------------------------
+Ran 1 test in 0.005s
+
+FAILED (errors=1)
+DIAGNOSTIC P02: FAILED (1/1 executed); report=local/worldd-baseline/p02-before.json

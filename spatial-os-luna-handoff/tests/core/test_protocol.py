@@ -113,7 +113,7 @@ class ProtocolBoundaryTests(unittest.TestCase):
         reply, = self.exchange(pack(request))
         self.assertEqual(reply.error.code, pb.INVALID_ARGUMENT)
     def test_world_get_has_no_fake_success(self):
-        for ident, code in [('', pb.INVALID_ARGUMENT), ('room-a', pb.UNIMPLEMENTED)]:
+        for ident, code in [('', pb.INVALID_ARGUMENT), ('room-a', pb.NOT_FOUND)]:
             request = pb.Request(protocol_version=1, request_id=1)
             request.world_get.id = ident
             reply, = self.exchange(pack(request))

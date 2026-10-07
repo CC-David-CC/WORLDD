@@ -1,0 +1,38 @@
+test_capabilities_are_unique_and_explicit (tests.acceptance.test_00_protocol.ProtocolTests.test_capabilities_are_unique_and_explicit) ... ok
+test_concurrent_calls_keep_their_responses (tests.acceptance.test_00_protocol.ProtocolTests.test_concurrent_calls_keep_their_responses) ... ok
+test_hello_has_version_and_build (tests.acceptance.test_00_protocol.ProtocolTests.test_hello_has_version_and_build) ... ok
+test_missing_parameter_rejected (tests.acceptance.test_00_protocol.ProtocolTests.test_missing_parameter_rejected) ... ok
+test_unknown_method_is_typed_error (tests.acceptance.test_00_protocol.ProtocolTests.test_unknown_method_is_typed_error) ... ok
+test_axis_r0_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r0_neg) ... ok
+test_axis_r0_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r0_pos) ... ok
+test_axis_r1_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r1_neg) ... ok
+test_axis_r1_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r1_pos) ... ok
+test_axis_r2_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r2_neg) ... ok
+test_axis_r2_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_r2_pos) ... ok
+test_axis_t0_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t0_neg) ... ok
+test_axis_t0_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t0_pos) ... ok
+test_axis_t1_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t1_neg) ... ok
+test_axis_t1_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t1_pos) ... ok
+test_axis_t2_neg (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t2_neg) ... ok
+test_axis_t2_pos (tests.acceptance.test_01_geometry.GeometryTests.test_axis_t2_pos) ... ok
+test_center_ray_returns_top_left_uv_convention (tests.acceptance.test_01_geometry.GeometryTests.test_center_ray_returns_top_left_uv_convention) ... ok
+test_identity (tests.acceptance.test_01_geometry.GeometryTests.test_identity) ... ok
+test_inverse_known_and_seeded_cases (tests.acceptance.test_01_geometry.GeometryTests.test_inverse_known_and_seeded_cases) ... ok
+test_negative_time_rejected (tests.acceptance.test_01_geometry.GeometryTests.test_negative_time_rejected) ... ok
+test_parallel_behind_backface_and_outside_are_misses (tests.acceptance.test_01_geometry.GeometryTests.test_parallel_behind_backface_and_outside_are_misses) ... ok
+test_q_and_negative_q_equivalent (tests.acceptance.test_01_geometry.GeometryTests.test_q_and_negative_q_equivalent) ... ok
+test_rotated_panel_uses_its_local_frame (tests.acceptance.test_01_geometry.GeometryTests.test_rotated_panel_uses_its_local_frame) ... ok
+test_same_twist_same_result_at_different_tick_rates (tests.acceptance.test_01_geometry.GeometryTests.test_same_twist_same_result_at_different_tick_rates) ... ok
+test_simultaneous_turn_and_forward_follow_arc (tests.acceptance.test_01_geometry.GeometryTests.test_simultaneous_turn_and_forward_follow_arc) ... ok
+test_translation_not_direction (tests.acceptance.test_01_geometry.GeometryTests.test_translation_not_direction) ... ok
+test_uv_is_half_open_and_never_clamped_into_target (tests.acceptance.test_01_geometry.GeometryTests.test_uv_is_half_open_and_never_clamped_into_target) ... ok
+test_yaw_turns_forward_to_left (tests.acceptance.test_01_geometry.GeometryTests.test_yaw_turns_forward_to_left) ... ok
+test_zero_and_nonunit_quaternion_rejected (tests.acceptance.test_01_geometry.GeometryTests.test_zero_and_nonunit_quaternion_rejected) ... ok
+test_zero_direction_and_invalid_extents (tests.acceptance.test_01_geometry.GeometryTests.test_zero_direction_and_invalid_extents) ... ok
+test_zero_time_is_identity (tests.acceptance.test_01_geometry.GeometryTests.test_zero_time_is_identity) ... ok
+
+----------------------------------------------------------------------
+Ran 32 tests in 0.236s
+
+OK
+GATE P01: PASSED (32/32 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/worldd-baseline/acceptance.json

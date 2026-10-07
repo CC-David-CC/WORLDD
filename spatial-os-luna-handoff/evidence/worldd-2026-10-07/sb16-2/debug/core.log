@@ -1,0 +1,68 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: core-protocol
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_protocol.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+1: Test timeout computed to be: 30
+1: test_integer_ids_preserve_precision (__main__.ProtocolBoundaryTests.test_integer_ids_preserve_precision) ... ok
+1: test_malformed_payload_recovers_at_next_frame (__main__.ProtocolBoundaryTests.test_malformed_payload_recovers_at_next_frame) ... ok
+1: test_missing_motion_fields_rejected (__main__.ProtocolBoundaryTests.test_missing_motion_fields_rejected) ... ok
+1: test_motion_overflow_is_not_success (__main__.ProtocolBoundaryTests.test_motion_overflow_is_not_success) ... ok
+1: test_nonfinite_numbers_rejected_on_wire (__main__.ProtocolBoundaryTests.test_nonfinite_numbers_rejected_on_wire) ... ok
+1: test_oversized_frame_closes_before_body_allocation (__main__.ProtocolBoundaryTests.test_oversized_frame_closes_before_body_allocation) ... ok
+1: test_small_angular_rate_preserves_linear_motion (__main__.ProtocolBoundaryTests.test_small_angular_rate_preserves_linear_motion) ... ok
+1: test_state_directory_must_be_absolute (__main__.ProtocolBoundaryTests.test_state_directory_must_be_absolute) ... ok
+1: test_truncated_frames_are_fatal (__main__.ProtocolBoundaryTests.test_truncated_frames_are_fatal) ... ok
+1: test_unknown_fields_rejected_at_both_levels (__main__.ProtocolBoundaryTests.test_unknown_fields_rejected_at_both_levels) ... ok
+1: test_version_and_unknown_operation (__main__.ProtocolBoundaryTests.test_version_and_unknown_operation) ... ok
+1: test_world_get_has_no_fake_success (__main__.ProtocolBoundaryTests.test_world_get_has_no_fake_success) ... ok
+1: test_wrong_wire_type_is_rejected (__main__.ProtocolBoundaryTests.test_wrong_wire_type_is_rejected) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 13 tests in 0.855s
+1: 
+1: OK
+1/2 Test #1: core-protocol ....................   Passed    0.95 sec
+test 2
+    Start 2: worldd-lifecycle
+
+2: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_worldd.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+2: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+2: Environment variables: 
+2:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+2: Test timeout computed to be: 90
+2: test_database_symlink_is_refused (__main__.WorldDaemonTests.test_database_symlink_is_refused) ... ok
+2: test_duplicate_authority_refused_without_mutation (__main__.WorldDaemonTests.test_duplicate_authority_refused_without_mutation) ... ok
+2: test_idle_proxy_closes_when_worker_dies_and_recovers_state (__main__.WorldDaemonTests.test_idle_proxy_closes_when_worker_dies_and_recovers_state) ... ok
+2: test_parent_only_kill_terminates_worker_and_releases_lock (__main__.WorldDaemonTests.test_parent_only_kill_terminates_worker_and_releases_lock) ... ok
+2: test_portal_references_and_invalid_enum_rejected_atomically (__main__.WorldDaemonTests.test_portal_references_and_invalid_enum_rejected_atomically) ... ok
+2: test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate (__main__.WorldDaemonTests.test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate) ... ok
+2: test_sqlite_write_failure_rolls_back_entity_and_world_revision (__main__.WorldDaemonTests.test_sqlite_write_failure_rolls_back_entity_and_world_revision) ... ok
+2: test_standalone_worldd_restart_delete_and_independent_worlds (__main__.WorldDaemonTests.test_standalone_worldd_restart_delete_and_independent_worlds) ... ok
+2: test_unknown_schema_and_corrupt_protobuf_fail_closed (__main__.WorldDaemonTests.test_unknown_schema_and_corrupt_protobuf_fail_closed) ... ok
+2: test_worker_is_real_separate_executable_and_owns_database (__main__.WorldDaemonTests.test_worker_is_real_separate_executable_and_owns_database) ... ok
+2: test_zero_field_replacement_and_immutable_zero_presence (__main__.WorldDaemonTests.test_zero_field_replacement_and_immutable_zero_presence) ... ok
+2: 
+2: ----------------------------------------------------------------------
+2: Ran 11 tests in 1.103s
+2: 
+2: OK
+2/2 Test #2: worldd-lifecycle .................   Passed    1.22 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   2.17 sec

@@ -1,0 +1,129 @@
+{
+  "host": "sb16-2",
+  "utc": "2026-10-07T06:23:18.501700+00:00",
+  "through": "P01",
+  "sanitizers": false,
+  "status": "passed",
+  "commands": [
+    {
+      "name": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "harness",
+      "argv": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/harness",
+        "-t",
+        ".",
+        "-v"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "core",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build",
+        "--output-on-failure",
+        "-V"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "acceptance",
+      "argv": [
+        "/usr/bin/python3",
+        "tools/gate.py",
+        "--through",
+        "P01",
+        "--sut",
+        "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host\"]",
+        "--report",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/worldd-baseline/acceptance.json"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "source_sha256": {
+    "CMakeLists.txt": "8f12f5d5f7e8ca9caab5ec9b76ef26338831d763ccc42a37d8db8eae1b66d6e7",
+    "acceptance.lock.json": "d1da171833a4539d7700b67ee7150539b3c1c19aeab715b163f7c0f51ca59b58",
+    "docs/CONTRACT.md": "3f2538156a01e3118c8b0a09a5b6ded97012faad403320ad39f18eefe74723b0",
+    "docs/PROTOBUF_MIGRATION.md": "efb1f76978e8ca323ca69128568efabb743f27ee894b276b59483bb5b6e4e28d",
+    "harness/__init__.py": "e4a165ed823ff7b3bafb35fa5fc0cd9b8045a0687c64851dbc94fa84cbed0234",
+    "harness/base.py": "2d0ecb0407268a4192747f82493bbc0e3d5f941005bf6e5e92a3ce06a8574dd0",
+    "harness/git_fixture.py": "3468ccf443e4a1502cb774cf60d7073f86989e2ab0cc0759b53cb33d90dde8a8",
+    "harness/oracles.py": "0f07c887dc9937ed44af6f74dff0482debcb25c72d5fd6da13c496c41099bf26",
+    "harness/probe.py": "c5ff0b50e263d4c53f6823f202adfe9d3c8d3bb9bc824efa8eb8415d8effb019",
+    "harness/rpc.py": "a93eeba7b5abd9a29f4fb9fc356456fee52e05970f7588b6cb20412acd6306a2",
+    "harness/wire.py": "75be9141a299ef117768cf9c0424210f33f57443c3d3bc225ba4e1585d606160",
+    "harness/xbase.py": "2bad248befb6ab1c1d1462f069f8f36c1acc798844f0fdf65175d8e45d43d531",
+    "native/xprobe.c": "8d26ff68ab6a861742f12ee02385a7915f0f51b1251eb8b385bbd7eaa586f8da",
+    "proto/spatial/core/v1/core.proto": "758c4ecd2a6dceb9e915efb33a374b4fbe2756a67a2ce24a53dec58954f3aac3",
+    "src/core/geometry.cpp": "109c1111a03e319581b096a0a61a262f603249867773e0f2d87230f44c10d3a6",
+    "src/core/geometry.hpp": "1a05373eda75c51dc1b0163dd90fb7e3f19dcff8ad155006e2bedd5db96db7d2",
+    "src/core/protocol.cpp": "ca65bdf2bb8a01d07301f282257386d5cebff5bf041a9431e0852f0a70afd815",
+    "src/core/protocol.hpp": "e65128a435e8d7165a399bd996fcab6fd6a766a29ad42b0a73000a65e16bb74d",
+    "src/testing/main.cpp": "62e55facfeb327d736b749bc7c3b12dde50f6a1f7576bb996de9adbc7441aba1",
+    "tests/acceptance/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/acceptance/test_00_protocol.py": "34432b51bc8dde404af31884321f27705a5e227e4ecc424698030caa43b43dd3",
+    "tests/acceptance/test_01_geometry.py": "e17b24fd4e70e08afe81ade1f64b42db74fac878b3dca1c748c67ac5017f8303",
+    "tests/acceptance/test_02_world.py": "4d3bda5d1a76ee0d15bf18ce5892664dc33ed653c7b1bfde14154db6c68e30d6",
+    "tests/acceptance/test_03_actors.py": "6fd99628cfab11186cc8f918d6cb11c5694e2b0865d32b4666630493a1fe8c15",
+    "tests/acceptance/test_04_render.py": "e238da9b9a5d6586376a21dd2c34f7c70131ff9fa320ff06cb717a29deabc093",
+    "tests/acceptance/test_05_xsurfaces.py": "05043eab8d62420923ed0b923105908de98d706366371fa7471a77ac61837643",
+    "tests/acceptance/test_06_input.py": "3cc27ca1ccbcec16001a18c41551e57aac871514b0e9832e27e8d9898c42f726",
+    "tests/acceptance/test_07_rooms_objects.py": "d8d6d579d53b1edeb6e7aab7f2eec11bf2deb6cc8d18aa2ffb815349ad6cbf26",
+    "tests/acceptance/test_08_git_processes.py": "b1389f611baff58b5f04d55af25dec06ce9ebcd057c298aed9cef8845386834d",
+    "tests/acceptance/test_09_recovery.py": "0ee4dfc4c1f8f090495985decad89c6d4f25ec92a2355606a70bbb2d7d07b86a",
+    "tests/acceptance/test_10_walkthrough.py": "8eee8bfd0d378741779c068eb007626ce91df2114bce5b19d4b8c63ffbe6d628",
+    "tests/core/test_protocol.py": "285b91cb0c865a5fc714d5223f2d0a9b1e31574d7ca9b2c9860d31540675a8ce",
+    "tests/fixtures/transport_peer.py": "ed22fd0ba0d16d941c6bcdb071c503fab374dade9fa50aeebafc409f62a07d01",
+    "tests/harness/test_transport.py": "a3277b52b0622d2ed46f10dcd3fed89989217b87c57c2af5321dce015a817523",
+    "tests/native/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/native/test_probe_smoke.py": "90844827e64208f1226d5a4368ed6f03472197e615ad51678d6cc3df144032b8",
+    "tools/build_probe.py": "fc63de8835d584fb1175fa3b85d36ef429cff496416d8419c74e5e89794f779c",
+    "tools/gate.py": "edcf0194c7faa9c51a603efd6e6513aaf214cfe9a195b6fed7e1d6823b4d70e8",
+    "tools/guard.py": "40d14c9095f0af829fe0676bbf6d1e7a19a7349a3a9cfb3049c257abf4f16c31",
+    "tools/probe_smoke.py": "cb366d78a7822f13cf07db389f2fa98579d0d26c2a2af33fa9c4db93b619ea38",
+    "tools/qualify_core.py": "120582666d313c354a61d50a242ee97abbc387a7f8f7202891ba86edffdec349"
+  },
+  "hello": {
+    "protocol": "spatial-protobuf/1",
+    "implementation": "production",
+    "build_id": "sha256:30384f292adca5cf2294fc6486a30420c6617f29aecbf69e0112794244dce43f",
+    "capabilities": [
+      "protocol.protobuf/v1",
+      "geometry.rigid-pose",
+      "geometry.ray-panel",
+      "motion.body-twist"
+    ]
+  }
+}

@@ -1,5 +1,7 @@
 #include "core/protocol.hpp"
 #include "core/geometry.hpp"
+#include "world/store.hpp"
+#include <unistd.h>
 #include "build_id.hpp"
 
 #include <google/protobuf/io/coded_stream.h>
@@ -16,7 +18,8 @@ namespace {
 void require(bool valid, const char* message) {
     if (!valid) throw std::invalid_argument(message);
 }
-void validate_message(const google::protobuf::Message& message, int depth = 0) {
+}
+void validate_message(const google::protobuf::Message& message, int depth) {
     require(depth <= 64, "Message nesting exceeds limit");
     const auto* reflection = message.GetReflection();
     require(reflection->GetUnknownFields(message).empty(), "Unknown protobuf fields");
@@ -33,10 +36,15 @@ void validate_message(const google::protobuf::Message& message, int depth = 0) {
                 const double value = field->is_repeated()
                     ? reflection->GetRepeatedDouble(message, field, i) : reflection->GetDouble(message, field);
                 require(std::isfinite(value), "Non-finite protobuf number");
+            } else if (field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
+                const int value = field->is_repeated() ? reflection->GetRepeatedEnumValue(message, field, i)
+                                                       : reflection->GetEnumValue(message, field);
+                require(field->enum_type()->FindValueByNumber(value) != nullptr, "Unknown protobuf enum value");
             }
         }
     }
 }
+namespace {
 Vec3 vector(const wire::Vec3& value) { return {value.x(), value.y(), value.z()}; }
 Vec2 vector(const wire::Vec2& value) { return {value.x(), value.y()}; }
 Pixels pixels(const wire::PixelExtent& value) { return {value.width(), value.height()}; }
@@ -62,7 +70,7 @@ void error(wire::Reply& reply, wire::ErrorCode code, const char* message) {
 }
 }
 
-wire::Reply dispatch(const wire::Request& request) {
+wire::Reply dispatch(const wire::Request& request, WorldStore* world) {
     wire::Reply reply;
     reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     try {
@@ -81,11 +89,40 @@ wire::Reply dispatch(const wire::Request& request) {
             hello->add_capabilities("geometry.rigid-pose");
             hello->add_capabilities("geometry.ray-panel");
             hello->add_capabilities("motion.body-twist");
+            if (world) hello->add_capabilities("world.durable/v1");
             break;
         }
         case wire::Request::kWorldGet:
             require(!request.world_get().id().empty(), "Expected a nonempty entity ID");
-            error(reply, wire::UNIMPLEMENTED, "The world daemon is not implemented yet");
+            if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
+            *reply.mutable_entity()->mutable_entity() = world->get(request.world_get().id());
+            break;
+        case wire::Request::kWorldCreate:
+            require(request.world_create().has_entity(), "Missing entity");
+            if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
+            *reply.mutable_entity()->mutable_entity() = world->create(request.world_create().entity());
+            break;
+        case wire::Request::kWorldUpdate:
+            if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
+            *reply.mutable_entity()->mutable_entity() = world->update(request.world_update());
+            break;
+        case wire::Request::kWorldDelete:
+            if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
+            *reply.mutable_deleted() = world->erase(request.world_delete());
+            break;
+        case wire::Request::kWorldList:
+        case wire::Request::kWorldSnapshot:
+            if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
+            *reply.mutable_snapshot() = world->snapshot();
+            break;
+        case wire::Request::kWorldInfo:
+            if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
+            *reply.mutable_world_info() = world->info();
+            break;
+        case wire::Request::kRuntimeIdentities:
+            if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
+            reply.mutable_identities()->set_worldd_pid(getpid());
+            reply.mutable_identities()->set_world_id(world->info().world_id());
             break;
         case wire::Request::kTransformPoint:
         case wire::Request::kInversePoint: {
@@ -131,6 +168,8 @@ wire::Reply dispatch(const wire::Request& request) {
             error(reply, wire::UNKNOWN_METHOD, "No recognized operation");
             break;
         }
+    } catch (const WorldError& exception) {
+        error(reply, exception.code, exception.what());
     } catch (const std::invalid_argument& exception) {
         error(reply, wire::INVALID_ARGUMENT, exception.what());
     } catch (const std::exception&) {
@@ -139,14 +178,14 @@ wire::Reply dispatch(const wire::Request& request) {
     return reply;
 }
 
-wire::Reply handle_frame(std::string_view frame) {
+wire::Reply handle_frame(std::string_view frame, WorldStore* world) {
     wire::Request request;
     if (frame.size() <= max_frame_bytes) {
         google::protobuf::io::ArrayInputStream array(frame.data(), static_cast<int>(frame.size()));
         google::protobuf::io::CodedInputStream input(&array);
         input.SetTotalBytesLimit(static_cast<int>(max_frame_bytes));
         input.SetRecursionLimit(64);
-        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request);
+        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world);
     }
     wire::Reply reply;
     reply.set_protocol_version(1);

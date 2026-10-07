@@ -114,6 +114,8 @@ Presentation in another room or world does not create a copy or new authority.
 A second independently mutable execution state is a different workspace.
 The same repository, branch, commit, directory contents, or machine name does not imply identical workspace identity.
 Use real Git rules. Do not force a branch into a second linked writable worktree.
+Separate mount namespaces may expose different worktrees at the same visible path, such as /project.
+The underlying writable directories remain separate. A shared directory has one checked-out file state.
 
 An explicit copy receives a new workspace identity.
 Copy authorized project data, application definitions, workspace state, and reproducible environment configuration.
@@ -283,6 +285,8 @@ Defer further model testing until the implementation needs a model.
 For each file created or changed, request a bounded implementation proposal from the configured local model.
 Include the relevant source and requirements. Compare its proposal with the primary implementation.
 Review proposed changes and run the applicable tests before integration.
+Send concrete defects back to the local model and request corrected proposals.
+Repeat review until the identified defects are resolved. Do not accept unsupported claims.
 The local model is a coding collaborator. Its response is not execution evidence.
 The current server does not enable image input.
 Verify image support later, before visual-agent acceptance.
@@ -297,6 +301,9 @@ Provider failure must not change world state or trigger an unauthorized provider
 
 Use Git for source, tests, XLibre patches, world definitions, policies, assets, and migrations.
 Use transactional runtime storage for live persistent world and workspace state.
+Back workspace project directories with real Git worktrees on their execution host.
+Use local bare repositories as worktree backing stores and box-git as the shared Git remote.
+Uncommitted files persist on the host filesystem. Commits provide versioned checkpoints.
 Do not use Git as the realtime world database.
 Do not commit credentials, runtime databases, environments, or build outputs.
 
