@@ -62,7 +62,10 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
         switch (request.operation_case()) {
         case wire::Request::kFaultArm:
             if (!world) throw WorldError(wire::UNIMPLEMENTED, "World authority unavailable");
-            *reply.mutable_fault_armed() = world->arm_fault(request.fault_arm());
+            *reply.mutable_fault_armed() = world->arm_fault(request.fault_arm(), [&] {
+                if (!broker) throw WorldError(wire::UNIMPLEMENTED, "Workspace fault authority unavailable");
+                broker->call(request);
+            });
             break;
         case wire::Request::kSurfaceAttachSlot:
         case wire::Request::kSurfaceValidate:

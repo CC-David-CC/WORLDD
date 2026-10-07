@@ -133,10 +133,13 @@ unsigned rights_mask(const google::protobuf::RepeatedField<int>& rights) {
 
 struct ExecutionStore::Impl {
     std::filesystem::path state;
+    const bool fixture_faults;
+    bool exit_after_worktree = false;
     File lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
     std::map<std::string, std::unique_ptr<ApplicationProcess>> jobs;
-    explicit Impl(const std::filesystem::path& directory, unsigned migrate_from) {
+    explicit Impl(const std::filesystem::path& directory, unsigned migrate_from, bool enable_faults) : fixture_faults(enable_faults) {
+        require(!migrate_from || !fixture_faults, "Migration cannot enable fixture faults");
         require(directory.is_absolute() && !std::filesystem::is_symlink(directory), "Execution state requires an absolute nonsymlink directory");
         if (migrate_from) require(std::filesystem::is_regular_file(directory / "execution.db"), "Migration requires an existing execution database");
         std::filesystem::create_directories(directory);
@@ -389,8 +392,21 @@ struct ExecutionStore::Impl {
     }
 };
 
-ExecutionStore::ExecutionStore(const std::filesystem::path& state, unsigned migrate_from) : impl_(std::make_unique<Impl>(state, migrate_from)) {}
+ExecutionStore::ExecutionStore(const std::filesystem::path& state, unsigned migrate_from, bool fixture_faults)
+    : impl_(std::make_unique<Impl>(state, migrate_from, fixture_faults)) {}
 ExecutionStore::~ExecutionStore() = default;
+bool ExecutionStore::fixture_faults() const { return impl_->fixture_faults; }
+wire::FaultArmReply ExecutionStore::arm_fault(const wire::FaultArmRequest& request) {
+    if (!fixture_faults()) throw WorldError(wire::FORBIDDEN, "Fixture faults are disabled");
+    validate_message(request);
+    require(request.point() != wire::FAULT_POINT_UNSPECIFIED && request.action() == wire::FAULT_EXIT &&
+            !request.has_storage_error(), "Invalid Git exit fault");
+    if (request.point() != wire::FAULT_GIT_AFTER_WORKTREE_BEFORE_READY)
+        throw WorldError(wire::UNIMPLEMENTED, "Requested broker fault boundary is not implemented");
+    if (impl_->exit_after_worktree) throw WorldError(wire::BUSY, "A Git fault is already armed");
+    impl_->exit_after_worktree = true;
+    wire::FaultArmReply result; result.set_armed(true); return result;
+}
 wire::RepositoryReply ExecutionStore::import_repository(const wire::RepositoryImportRequest& request) {
     valid_text(request.id()); valid_text(request.path(), 16384);
     require(std::filesystem::path(request.path()).is_absolute() && std::filesystem::is_directory(request.path()), "Import requires an existing absolute local repository");
@@ -462,6 +478,8 @@ wire::WorktreeReply ExecutionStore::create(const wire::WorktreeCreateRequest& re
     checked(repo.path(), {"worktree", "add", "-b", request.branch(), "--", out.path(), out.head()});
     if (!impl_->matches(out)) throw WorldError(wire::STORAGE_ERROR, "Git worktree effect does not match its intent");
     impl_->complete_effect(out);
+    // The external effect and its receipt are durable. The registry is still pending.
+    if (impl_->exit_after_worktree) _exit(88);
     impl_->finish(request.operation_id(), out); return out;
 }
 wire::GitOperationReply ExecutionStore::operation(const std::string& id) {

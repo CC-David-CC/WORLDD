@@ -76,7 +76,7 @@ void nonblocking(int fd) {
 }
 }
 WorldWorker::WorldWorker(const std::filesystem::path& executable, const std::filesystem::path& state) {
-    broker_ = std::make_unique<BrokerProcess>(executable.parent_path() / "workspaced", state / "execution");
+    broker_ = std::make_unique<BrokerProcess>(executable.parent_path() / "workspaced", state / "execution", true);
     const auto broker_fd = std::to_string(broker_->channel());
     const auto broker_pid = std::to_string(broker_->pid());
     int input[2], output[2];

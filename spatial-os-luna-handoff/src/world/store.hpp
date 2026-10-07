@@ -1,6 +1,7 @@
 #pragma once
 #include "core/protocol.hpp"
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -20,7 +21,7 @@ public:
     WorldStore(const WorldStore&) = delete;
     WorldStore& operator=(const WorldStore&) = delete;
     bool fixture_faults() const;
-    wire::FaultArmReply arm_fault(const wire::FaultArmRequest& request);
+    wire::FaultArmReply arm_fault(const wire::FaultArmRequest& request, const std::function<void()>& arm_git = {});
     wire::Entity create(const wire::Entity& entity);
     wire::Entity get(const std::string& id);
     wire::Entity update(const wire::WorldUpdateRequest& request);

@@ -5,6 +5,7 @@ Live Git status is now qualified in [WORKSPACE_STATUS.md](WORKSPACE_STATUS.md).
 Conservative removal is now qualified in [WORKSPACE_REMOVAL.md](WORKSPACE_REMOVAL.md).
 Workspace membership, selection, and bound-worktree protection are qualified in [WORKSPACE_CONTEXT.md](WORKSPACE_CONTEXT.md).
 The subsequent [process increment](WORKSPACE_PROCESSES.md) adds confined application launch.
+The [Git crash boundary](GIT_CRASH_RECOVERY.md) adds a real broker exit before the ready acknowledgment.
 See CURRENT_STATE.md for the current phase qualification.
 
 ## Authority and process ownership

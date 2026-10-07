@@ -1,5 +1,36 @@
 # Implementation status
 
+## 2026-10-07: P09 real Git completion crash recovery
+
+Workspaced now exits after real worktree creation and its flushed completion receipt, before the ready acknowledgment.
+The world authority detects broker death before sending an operation reply.
+Recovery reconciles matching pending effects once and preserves uncommitted files.
+Missing or corrupt receipts and changed Git effects remain uncertain. Recovery never replays those creations.
+Fault controls require independent fixture enablement in worldd and workspaced.
+Normal daemons reject them. Armed state never persists across restart.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 222 core checks, including six new Git recovery checks.
+- All 51 harness checks.
+- 146 acceptance cases, including all 138 preceding P00-P08 cases.
+
+The full P00-P09 gate executed 148 of 151 cases.
+It reports one assertion failure, one error, zero skipped, and three unrun P10 cases.
+Eight P09 primitives pass. Durable slots and stale-handle validation remain incomplete.
+P09, full Spatial-M1, and native hardware qualification remain unfinished.
+
+Independent witnesses verify status 88, pending registry rows, completion receipts, and the real Git branch before restart.
+They verify retry, fixture authority, isolation, lost pending arms, and conservative recovery after external changes.
+All 108 source hashes match reviewed local files and both hosts.
+The acceptance lock, schemas, locked assertions, oracles, and native witness remain unchanged.
+Evidence is in evidence/recovery-git-2026-10-07.
+See docs/GIT_CRASH_RECOVERY.md and docs/RECOVERY_BOUNDARIES.md for scope, commands, and recovery.
+No database migration, host configuration, or operator-session change was required.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: surface.durable_slot using durable world placement and current live native surfaces.
+The full project goal remains active.
+
 ## 2026-10-07: P09 real SQLite write-failure recovery
 
 Worldd now injects storage.next_write at SQLite's actual xWrite boundary.

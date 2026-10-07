@@ -8,10 +8,12 @@ namespace spatial {
 // A host execution registry. It has no room, world, or actor-session identity.
 class ExecutionStore {
 public:
-    explicit ExecutionStore(const std::filesystem::path& state, unsigned migrate_from = 0);
+    explicit ExecutionStore(const std::filesystem::path& state, unsigned migrate_from = 0, bool fixture_faults = false);
     ~ExecutionStore();
     ExecutionStore(const ExecutionStore&) = delete;
     ExecutionStore& operator=(const ExecutionStore&) = delete;
+    bool fixture_faults() const;
+    wire::FaultArmReply arm_fault(const wire::FaultArmRequest& request);
     wire::RepositoryReply import_repository(const wire::RepositoryImportRequest& request);
     wire::WorktreeReply create(const wire::WorktreeCreateRequest& request);
     wire::GitStatusReply status(const std::string& id);

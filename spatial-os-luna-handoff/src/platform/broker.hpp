@@ -11,7 +11,7 @@ namespace broker_wire = workspace::v1;
 // Lifecycle belongs to the session supervisor, not a world authority.
 class BrokerProcess {
 public:
-    BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state);
+    BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state, bool fixture_faults = false);
     ~BrokerProcess();
     BrokerProcess(const BrokerProcess&) = delete;
     BrokerProcess& operator=(const BrokerProcess&) = delete;

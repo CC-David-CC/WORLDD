@@ -14,7 +14,7 @@ import unittest
 from unittest.mock import patch
 
 from harness.git_fixture import GitRepo
-from harness.rpc import Client, RpcError
+from harness.rpc import Client, RpcError, TransportError
 from harness.wire import make_request, frame, read_message, pb
 
 HOST, BROKER, JOB_PROBE = sys.argv[1:4]
@@ -421,6 +421,150 @@ class WorkspaceGitTests(unittest.TestCase):
         self.assertEqual(self.repo.head(recovered['path']), self.repo.head())
         self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'ready')
         self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']).count('branch refs/heads/feature'), 1)
+
+    def arm_git(self):
+        self.assertEqual(self.call('fault.arm', point='git.after_worktree_before_ready', action='exit'), dict(armed=True))
+
+    def crash_git(self, **extra):
+        with self.assertRaises(TransportError):
+            self.create(**extra)
+        self.assertNotEqual(self.client.proc.wait(timeout=5), 0)
+
+    def pending_work(self, operation='create'):
+        with self.registry() as db:
+            self.assertEqual(db.execute('PRAGMA quick_check').fetchone(), ('ok',))
+            row = db.execute('SELECT result,state FROM operations WHERE id=?', (operation,)).fetchone()
+            self.assertEqual(row[1], 'pending')
+            record = pb.WorktreeReply.FromString(row[0])
+            self.assertEqual(db.execute('SELECT state FROM worktrees WHERE id=?', (record.id,)).fetchone(), ('pending',))
+        receipt = self.state/'execution/effects'/(Path(record.path).name+'.ready')
+        self.assertEqual(receipt.read_bytes(), row[0])
+        return record, receipt
+
+    def test_real_git_exit_precedes_ready_ack_and_reconciles_without_replay(self):
+        backing = self.imported()
+        before = self.call('world.snapshot')
+        self.arm_git(); self.crash_git()
+        record, receipt = self.pending_work()
+        self.assertEqual(self.repo.branch(record.path), 'feature')
+        self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']).count('branch refs/heads/feature'), 1)
+        uncommitted = Path(record.path)/'README.txt'
+        uncommitted.write_text('preserve work after lost reply\n')
+        receipt_bytes = receipt.read_bytes()
+        for _ in range(2):
+            self.start()
+            recovered = self.create()
+            self.assertEqual(recovered['path'], record.path)
+            self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'ready')
+            self.assertEqual(self.call('world.snapshot'), before)
+            self.assertEqual(uncommitted.read_text(), 'preserve work after lost reply\n')
+            self.assertEqual(receipt.read_bytes(), receipt_bytes)
+            self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']).count('branch refs/heads/feature'), 1)
+            self.error('OPERATION_CONFLICT', 'git.worktree.create', repo='repo', id='other', branch='other', start='main', operation_id='create')
+            self.client.stop(crash=True)
+
+    def test_git_arm_survives_reads_rejections_retries_and_unrelated_world_writes(self):
+        self.imported(); existing = self.create()
+        self.arm_git()
+        self.assertEqual(self.create(), existing)
+        self.call('git.status', worktree='work')
+        self.call('world.create', entity=dict(id='room', kind='room', label='unrelated'))
+        self.error('INVALID_ARGUMENT', 'git.worktree.create', repo='repo', id='new', branch='bad..ref', start='main', operation_id='new')
+        for point in ('world.before_commit', 'world.after_commit_before_reply', 'git.after_worktree_before_ready'):
+            self.error('BUSY', 'fault.arm', point=point, action='exit')
+        self.error('BUSY', 'fault.arm', point='storage.next_write', action='error', errno='ENOSPC')
+        self.error('INVALID_ARGUMENT', 'fault.arm', point='git.after_worktree_before_ready', action='error')
+        self.crash_git(id='new', branch='new', operation_id='new')
+        self.pending_work('new')
+        self.start()
+        self.assertEqual(self.call('world.get', id='room')['label'], 'unrelated')
+        self.assertEqual(self.create(), existing)
+
+    def test_pending_git_arm_is_process_local_and_does_not_survive_restart(self):
+        self.imported(); self.arm_git()
+        other = Client([HOST], self.root/'other-runtime', self.root/'other-logs', timeout=5)
+        self.addCleanup(other.stop)
+        other.call('git.repo.import', dict(id='repo', path=str(self.repo.path)))
+        args = dict(repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        result = other.call('git.worktree.create', args)
+        self.assertEqual(self.repo.branch(result['path']), 'feature')
+        self.client.stop(crash=True); self.start()
+        self.assertEqual(self.repo.branch(self.create()['path']), 'feature')
+        self.assertEqual(other.call('git.worktree.create', args), result)
+
+    def test_missing_or_corrupt_receipt_after_real_crash_stays_uncertain(self):
+        backing = self.imported()
+        for mode in ('missing', 'corrupt'):
+            with self.subTest(mode=mode):
+                args = dict(id=mode, branch=mode, operation_id=mode)
+                self.arm_git(); self.crash_git(**args)
+                record, receipt = self.pending_work(mode)
+                if mode == 'missing': receipt.unlink()
+                else: receipt.write_bytes(b'incomplete receipt')
+                listing = self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path'])
+                for _ in range(2):
+                    self.start()
+                    self.assertEqual(self.call('git.operation', operation_id=mode)['state'], 'uncertain')
+                    self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', start='main', **args)
+                    self.assertEqual((Path(record.path)/'README.txt').read_text(), 'base\n')
+                    self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']), listing)
+                    self.client.stop(crash=True)
+                self.start()
+
+    def test_changed_git_effect_after_real_crash_is_retained_as_uncertain(self):
+        backing = self.imported(); self.arm_git(); self.crash_git()
+        record, receipt = self.pending_work()
+        receipt_bytes = receipt.read_bytes()
+        self.repo.write('README.txt', 'independent change\n', record.path)
+        self.repo.run('add', '--all', cwd=record.path)
+        self.repo.run('commit', '-m', 'independent change', cwd=record.path)
+        changed = self.repo.head(record.path)
+        self.assertNotEqual(changed, record.head)
+        self.start()
+        self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'uncertain')
+        self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
+        self.assertEqual(self.repo.head(record.path), changed)
+        self.assertEqual(receipt.read_bytes(), receipt_bytes)
+        self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']).count('branch refs/heads/feature'), 1)
+
+    def test_broker_faults_require_explicit_flag_and_exit_with_real_status(self):
+        commands = [('system.hello', {}),
+                    ('fault.arm', dict(point='git.after_worktree_before_ready', action='error')),
+                    ('fault.arm', dict(point='git.after_worktree_before_ready', action='exit', errno='ENOSPC')),
+                    ('fault.arm', dict(point='git.after_worktree_before_ready', action='exit')),
+                    ('fault.arm', dict(point='git.after_worktree_before_ready', action='exit')),
+                    ('git.repo.import', dict(id='repo', path=str(self.repo.path))),
+                    ('git.worktree.create', dict(repo='repo', id='work', branch='direct', start='main', operation_id='create'))]
+        frames = []
+        for index, (method, params) in enumerate(commands, 1):
+            request = broker_pb.Request(protocol_version=1, request_id=index)
+            request.management.CopyFrom(make_request(method, params)); request.management.request_id = index
+            frames.append(frame(request))
+        for enabled in (False, True):
+            with self.subTest(enabled=enabled):
+                state = self.root/('direct-'+str(enabled))
+                argv = [BROKER, '--state-dir', str(state)] + (['--fixture-faults'] if enabled else [])
+                process = subprocess.run(argv, input=b''.join(frames), capture_output=True, timeout=10)
+                self.assertEqual(process.returncode, 88 if enabled else 0, process.stderr)
+                stream = io.BytesIO(process.stdout)
+                replies = [read_message(stream, broker_pb.Reply).management for _ in range(6 if enabled else 7)]
+                self.assertEqual(stream.read(), b'')
+                self.assertEqual('fixture.faults/v1' in replies[0].hello.capabilities, enabled)
+                if enabled:
+                    self.assertEqual([r.error.code for r in replies[1:3]], [pb.INVALID_ARGUMENT]*2)
+                    self.assertTrue(replies[3].fault_armed.armed)
+                    self.assertEqual(replies[4].error.code, pb.BUSY)
+                else:
+                    self.assertEqual([r.error.code for r in replies[1:5]], [pb.FORBIDDEN]*4)
+                    self.assertEqual(replies[6].worktree.branch, 'direct')
+                with sqlite3.connect(state/'execution.db') as database:
+                    self.assertEqual(database.execute('SELECT state FROM operations').fetchone(), ('pending' if enabled else 'ready',))
+                self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=replies[5].repository.path).count('branch refs/heads/direct'), 1)
+        for flag in ('--migrate-v1', '--migrate-v2', '--migrate-v3', '--fixture-clock'):
+            rejected = self.root/('rejected'+flag)
+            process = subprocess.run([BROKER, '--state-dir', str(rejected), flag, '--fixture-faults'], capture_output=True, timeout=5)
+            self.assertEqual(process.returncode, 2)
+            self.assertFalse(rejected.exists())
 
     def test_ambiguous_effect_is_preserved_and_never_replayed(self):
         backing = self.imported(); self.deny_ready()

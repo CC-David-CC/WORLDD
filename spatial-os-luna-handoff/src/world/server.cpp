@@ -48,6 +48,8 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* 
             if (size > max_frame_bytes) throw std::runtime_error("Frame exceeds size limit");
             if (input.size() >= size + 4) {
                 const auto reply = handle_frame(std::string_view(input).substr(4, size), &world, &actors, renderer, surfaces, broker);
+                // A dead broker cannot produce a valid operation reply through this authority.
+                if (broker) broker->check_alive();
                 input.erase(0, size + 4); input_started = now;
                 const auto payload = reply.SerializeAsString();
                 if (payload.size() > max_frame_bytes) throw std::runtime_error("Reply exceeds size limit");

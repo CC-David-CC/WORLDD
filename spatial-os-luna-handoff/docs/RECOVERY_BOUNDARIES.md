@@ -22,6 +22,15 @@ The implementation follows SQLite's [rollback-journal commit boundary](https://w
 The failed-commit check holds an independent reader, using SQLite's [file-locking behavior](https://www.sqlite.org/lockingv3.html).
 It does not replace COMMIT with a simulated error.
 
+## Git exit after completed worktree creation
+
+Workspaced implements git.after_worktree_before_ready after the real Git effect and its flushed completion receipt.
+It exits with status 88 before recording ready in execution.db.
+Worldd checks the broker's liveness before sending the operation reply.
+Startup reconciles matching pending effects without replaying checkout or overwriting uncommitted files.
+Missing receipts and changed effects remain uncertain and retained.
+See GIT_CRASH_RECOVERY.md for fixture controls, evidence boundaries, and recovery commands.
+
 ## Fixture authority
 
 Start an isolated test daemon with --fixture-faults to enable fault controls.
@@ -37,6 +46,8 @@ Both require action exit and no storage error.
 Storage fault requests name storage.next_write with action error and storage_error STORAGE_FAULT_ENOSPC.
 The storage hook returns SQLITE_FULL from the next positive-length SQLite xWrite call.
 See STORAGE_FAULTS.md for its private VFS, lifetime rules, and retry behavior.
+Git fault requests require action exit and explicit fixture enablement in both worldd and workspaced.
+The world reserves its arm after the broker validates and acknowledges the forwarded protobuf request.
 The acknowledgment confirms armed=true. A second supported arm returns BUSY.
 Invalid or unsupported requests do not replace an armed fault.
 The next qualifying boundary consumes the arm. Restart clears any pending arm.
@@ -51,8 +62,7 @@ Omit fixture flags during normal operation.
 Do not delete journals or copy only the database while its writer runs.
 
 This hook does not qualify power-loss durability or physical disk exhaustion.
-The Git-effect boundary remains unimplemented.
-Durable surface attachment and stale-handle validation also remain unimplemented.
+Durable surface attachment and stale-handle validation remain unimplemented.
 No host configuration or operator-session change is required.
 
 ## Qualification
@@ -63,13 +73,14 @@ Four new checks cover post-commit persistence, failed commits, rejected requests
 They extend the existing fixture-authority, malformed-request, and process-local fault checks.
 Both hosts passed Debug and ASan/UBSan qualification.
 Six additional storage checks cover real write failures, retry, isolation, and checkpoint recovery.
-Each run passed all 216 core checks and all 51 harness checks.
+Six additional Git checks cover real broker exit, pending receipts, retry, authority, isolation, and uncertain effects.
+Each run passed all 222 core checks and all 51 harness checks.
 The full P00-P09 gate executed 148 of 151 acceptance tests.
-Its results are 145 passed, one assertion failure, two errors, zero skipped, and three unrun.
+Its results are 146 passed, one assertion failure, one error, zero skipped, and three unrun.
 All 138 preceding P00-P08 cases still pass.
 
-Seven P09 primitives pass: both commit exits, storage failure, preview rollback, repeated kills, worker identity, and worker death.
-The two errors identify unimplemented Git-effect and surface-attachment operations.
+Eight P09 primitives pass: both commit exits, storage failure, Git-effect recovery, preview rollback, repeated kills, worker identity, and worker death.
+The remaining error identifies unimplemented surface attachment.
 The remaining assertion requires STALE_TARGET instead of the current UNIMPLEMENTED response.
 P09 remains incomplete. The three P10 cases remain unrun.
 
@@ -79,13 +90,14 @@ The mutation remained in a separate worktree and never entered the production so
 
 All 108 source hashes match reviewed local files and both hosts.
 The acceptance lock, locked assertions, protobuf schemas, independent oracles, and native witness remain unchanged.
-Current evidence is in evidence/recovery-storage-2026-10-07.
+Current evidence is in evidence/recovery-git-2026-10-07.
+The storage-write evidence remains in evidence/recovery-storage-2026-10-07.
 The post-commit and mutation evidence remains in evidence/recovery-after-commit-2026-10-07.
 The earlier before-commit evidence remains in evidence/recovery-before-commit-2026-10-07.
-Current evidence includes the predecessor failure at the storage-write fault boundary.
+Current evidence includes the predecessor failure at the Git-effect fault boundary.
 Each host directory records source hashes, build identities, exact commands, logs, and reports.
 
-Run the focused counterexamples with ctest --test-dir build -V -R '^(recovery-boundaries|storage-faults)$'.
+Run the focused counterexamples with ctest --test-dir build -V -R '^(recovery-boundaries|workspace-git)$'.
 The cumulative command uses tools/qualify_core.py --through P07 with the recorded private XLibre server.
 Sanitizer runs add --sanitize --build-dir build-sanitize.
 Then run tools/gate.py --through P09 through tools/with_test_display.py.
@@ -94,4 +106,4 @@ The focused commands.json and each p09-command.json preserve complete argument l
 Tests use authenticated disposable software displays. They do not qualify native GPU or physical device behavior.
 No host configuration or operator session changed.
 Local-model review remains waived under David's hardware-failure instruction.
-Next: implement recovery.git_side_effect_boundary after the real Git effect and before the ready acknowledgment.
+Next: implement surface.durable_slot using world-owned durable placement and current live native surfaces.

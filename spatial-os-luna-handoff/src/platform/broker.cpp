@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 namespace spatial {
-BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state) {
+BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state, bool fixture_faults) {
     int pair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0) throw std::runtime_error("Cannot create broker channel");
     const auto parent = getpid(); pid_ = fork();
@@ -20,6 +20,9 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
         if (prctl(PR_SET_PDEATHSIG, SIGKILL) != 0 || getppid() != parent) _exit(126);
         if (dup2(pair[1], STDIN_FILENO) < 0 || dup2(pair[1], STDOUT_FILENO) < 0) _exit(126);
         close(pair[0]); close(pair[1]);
+        if (fixture_faults) execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(),
+                                "--fixture-faults", static_cast<char*>(nullptr));
+        if (fixture_faults) _exit(127);
         execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), static_cast<char*>(nullptr)); _exit(127);
     }
     close(pair[1]); channel_ = pair[0];
@@ -117,6 +120,7 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
                 const auto& command = request.management(); const auto& result = reply.management();
                 valid = result.protocol_version() == 1 && result.request_id() == sequence_ &&
                     (result.has_error() || (command.has_runtime_identities() && result.has_identities()) ||
+                     (command.has_fault_arm() && result.has_fault_armed() && result.fault_armed().has_armed() && result.fault_armed().armed()) ||
                      (command.has_git_repo_import() && result.has_repository()) || (command.has_git_worktree_create() && result.has_worktree()) ||
                      (command.has_git_operation() && result.has_git_operation()) || (command.has_git_status() && result.has_git_status()) ||
                      (command.has_git_worktree_remove() && result.has_worktree_removed()) ||

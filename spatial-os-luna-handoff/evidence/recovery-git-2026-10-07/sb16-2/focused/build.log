@@ -1,0 +1,30 @@
+[0/2] Re-checking globbed directories...
+[1/29] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[2/29] Building CXX object CMakeFiles/spatial-core.dir/src/world/storage_vfs.cpp.o
+[3/29] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/29] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[5/29] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[6/29] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[7/29] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[8/29] Building CXX object CMakeFiles/spatial-core.dir/src/platform/broker.cpp.o
+[9/29] Linking CXX static library libspatial-core.a
+[10/29] Building CXX object CMakeFiles/spatialwm.dir/src/render/main.cpp.o
+[11/29] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[12/29] Building CXX object CMakeFiles/spatialwm.dir/src/x11/input_router.cpp.o
+[13/29] Linking CXX executable spatialwm
+[14/29] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[15/29] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[16/29] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[17/29] Linking CXX executable worldd
+[18/29] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[19/29] Building CXX object CMakeFiles/workspaced.dir/src/workspace/git_command.cpp.o
+[20/29] Building CXX object CMakeFiles/workspaced.dir/src/workspace/status.cpp.o
+[21/29] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[22/29] Linking CXX executable workspaced
+[23/29] Building CXX object CMakeFiles/spatial-git-job-probe.dir/src/workspace/git_command.cpp.o
+[24/29] Linking CXX executable spatial-git-job-probe
+[25/29] Building CXX object CMakeFiles/spatial-storage-vfs-probe.dir/src/testing/storage_vfs_probe.cpp.o
+[26/29] Building CXX object CMakeFiles/spatial-storage-vfs-probe.dir/src/world/storage_vfs.cpp.o
+[27/29] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[28/29] Linking CXX executable spatial-storage-vfs-probe
+[29/29] Linking CXX executable spatial-test-host

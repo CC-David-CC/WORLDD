@@ -234,7 +234,7 @@ WorldStore::WorldStore(const std::filesystem::path& directory, bool migrate_v1, 
     : impl_(std::make_unique<Impl>(directory, migrate_v1, fixture_faults)) {}
 WorldStore::~WorldStore() = default;
 bool WorldStore::fixture_faults() const { return impl_->fault.enabled; }
-wire::FaultArmReply WorldStore::arm_fault(const wire::FaultArmRequest& request) {
+wire::FaultArmReply WorldStore::arm_fault(const wire::FaultArmRequest& request, const std::function<void()>& arm_git) {
     if (!fixture_faults()) throw WorldError(wire::FORBIDDEN, "Fixture faults are disabled");
     validate_message(request);
     require(request.point() != wire::FAULT_POINT_UNSPECIFIED && request.action() != wire::FAULT_ACTION_UNSPECIFIED,
@@ -244,10 +244,16 @@ wire::FaultArmReply WorldStore::arm_fault(const wire::FaultArmRequest& request) 
                 request.storage_error() == wire::STORAGE_FAULT_ENOSPC, "Invalid storage fault");
     else require(request.action() == wire::FAULT_EXIT && !request.has_storage_error(), "Invalid exit fault");
     if (request.point() != wire::FAULT_WORLD_BEFORE_COMMIT &&
-        request.point() != wire::FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY && request.point() != wire::FAULT_STORAGE_NEXT_WRITE)
+        request.point() != wire::FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY && request.point() != wire::FAULT_STORAGE_NEXT_WRITE &&
+        request.point() != wire::FAULT_GIT_AFTER_WORKTREE_BEFORE_READY)
         throw WorldError(wire::UNIMPLEMENTED, "Requested fault boundary is not implemented");
     if (impl_->fault.point != wire::FAULT_POINT_UNSPECIFIED || impl_->storage_vfs->armed())
         throw WorldError(wire::BUSY, "A fault is already armed");
+    if (request.point() == wire::FAULT_GIT_AFTER_WORKTREE_BEFORE_READY) {
+        if (!arm_git) throw WorldError(wire::UNIMPLEMENTED, "Workspace fault authority unavailable");
+        // Reserve locally only after the broker acknowledges its private arm request.
+        arm_git();
+    }
     if (request.point() == wire::FAULT_STORAGE_NEXT_WRITE) impl_->storage_vfs->arm();
     else impl_->fault.point = request.point();
     wire::FaultArmReply result; result.set_armed(true); return result;

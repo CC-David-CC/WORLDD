@@ -55,7 +55,7 @@ class RecoveryBoundaryTests(unittest.TestCase):
             with self.subTest(clock=clock):
                 client = self.start(self.root/str(clock), fixture=False, clock=clock)
                 self.assertNotIn('fixture.faults/v1', client.call('system.hello')['capabilities'])
-                for point in ('world.before_commit', 'world.after_commit_before_reply'):
+                for point in ('world.before_commit', 'world.after_commit_before_reply', 'git.after_worktree_before_ready'):
                     self.error('FORBIDDEN', client, 'fault.arm', point=point, action='exit')
                 self.room(client)
         fixture = self.start()
@@ -95,7 +95,7 @@ class RecoveryBoundaryTests(unittest.TestCase):
         self.error('ALREADY_EXISTS', client, 'world.create', entity=dict(id='room', kind='room', label='bad'))
         self.error('BUSY', client, 'fault.arm', point='world.before_commit', action='exit')
         self.error('BUSY', client, 'fault.arm', point='world.after_commit_before_reply', action='exit')
-        self.error('UNIMPLEMENTED', client, 'fault.arm', point='git.after_worktree_before_ready', action='exit')
+        self.error('BUSY', client, 'fault.arm', point='git.after_worktree_before_ready', action='exit')
         self.error('BUSY', client, 'fault.arm', point='storage.next_write', action='error', errno='ENOSPC')
         self.crash(client, 'world.update', id='room', expected_revision=1, patch=dict(label='after'))
         self.assertEqual(self.start().call('world.snapshot'), before)

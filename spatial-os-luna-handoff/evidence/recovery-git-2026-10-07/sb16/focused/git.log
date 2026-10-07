@@ -1,0 +1,7 @@
+test_git_effect_completed_before_db_ack_is_reconciled_once (tests.acceptance.test_09_recovery.RecoveryTests.test_git_effect_completed_before_db_ack_is_reconciled_once) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.753s
+
+OK
+DIAGNOSTIC P09: PASSED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-git-focused/git.json
