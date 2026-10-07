@@ -2,7 +2,7 @@
 
 identityd owns one persistent issuer identity and its enrollment-policy configuration.
 Its state is independent of worlds, workspaces, host names, and actor session tokens.
-This component implements issuer control. It does not yet issue actor credentials.
+This document defines issuer control. ENROLLMENT.md defines the added credential-issuance component.
 
 ## Initialization and storage
 
@@ -34,7 +34,8 @@ identityd --state-dir /absolute/issuer-state
 Normal startup cannot generate a missing key or initialize a missing database.
 It verifies the issuer key against the durable public key.
 It rejects unknown database schemas and unsafe file ownership, permissions, links, or file types.
-The database uses schema version 1 and application identifier 0x53504944.
+The initial issuer-control database used schema version 1 and application identifier 0x53504944.
+Enrollment adds schema version 2 through the explicit migration described in ENROLLMENT.md.
 One process holds an exclusive nonblocking [flock](https://man7.org/linux/man-pages/man2/flock.2.html) on identity.lock.
 This establishes one local authority for that state directory. It does not implement distributed consensus.
 
@@ -98,7 +99,8 @@ PolicySet includes the complete EnrollmentPolicy and a positive expected_revisio
 The mode must be MANUAL or APPROVE_ALWAYS.
 The bootstrap_profile value is a nonempty opaque identifier, at most 128 bytes, with no zero byte.
 It is a reference, not a grant, path, credential, or administrator capability.
-Issuer control stores this reference. It does not resolve profiles or issue grants yet.
+Issuer control stores this reference. Enrollment resolves it before issuance.
+The current resolver supports only empty-v1, which grants no authority. Nonempty profiles remain required work.
 The enrollment component must resolve a configured profile before issuance and reject an unavailable profile.
 Automatic enrollment must never infer grants from a profile's name.
 
@@ -156,5 +158,6 @@ Restart with identityd --state-dir /absolute/issuer-state to recover the same co
 Request a new signed challenge after any restart or uncertain reply.
 Do not initialize that directory again or replace its credentials.
 Local-model review remains waived under David's hardware-failure instruction.
-Enrollment, bootstrap grant issuance, revocation, and authenticated world sessions remain unimplemented.
+Enrollment, bootstrap grant issuance, revocation, and authenticated world sessions remained unimplemented at that qualification.
+See ENROLLMENT.md for the subsequent enrollment interface and evidence.
 M01 and full Spatial-M1 remain incomplete.

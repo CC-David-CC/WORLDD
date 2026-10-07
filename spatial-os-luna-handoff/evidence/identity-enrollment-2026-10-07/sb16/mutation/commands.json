@@ -1,0 +1,54 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-enrollment-mutation/source",
+      "a3ea4db3614aabbf2603f3819334f85048c69433"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "identityd",
+      "issuer-python-protobuf",
+      "key-python-protobuf",
+      "python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "witness",
+    "argv": [
+      "python3",
+      "tests/core/test_identity_enrollment.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-enrollment-mutation/source/spatial-os-luna-handoff/build/identityd",
+      "EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce"
+    ],
+    "exit_code": 1
+  }
+]

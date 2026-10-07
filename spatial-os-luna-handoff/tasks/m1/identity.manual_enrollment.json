@@ -1,0 +1,66 @@
+{
+  "id": "identity.manual_enrollment",
+  "phase": "M01",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/ENROLLMENT.md",
+  "invariant": "Only a proven key and an authorized enrollment decision can create one durable, issuer-signed actor credential.",
+  "production_roots": [
+    "src/identity/",
+    "proto/spatial/identity/v1/"
+  ],
+  "counterexample_suite": "tests/core/test_identity_enrollment.py",
+  "focused_command": "ctest --test-dir build -V -R '^identity-(issuer|enrollment)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts",
+    "Debug and ASan/UBSan",
+    "Complete existing P00-P10 acceptance",
+    "Independent OpenSSL credential verification",
+    "Direct SQLite reads and aborted real writes",
+    "Real process restart",
+    "Explicit schema migration",
+    "Challenge-key substitution mutation detected"
+  ],
+  "covered_operations": [
+    "Proof-bound manual enrollment",
+    "Owner read, approval, and rejection",
+    "Explicit additional credential attachment",
+    "Idempotent recovery through fresh proofs",
+    "Automatic issuance through the same implementation",
+    "Unavailable-profile rollback"
+  ],
+  "limitations": [
+    "Only the immutable zero-grant empty-v1 profile resolves today.",
+    "Nonempty bootstrap profiles and grant records remain required work.",
+    "Issued signatures do not prove current credential or actor status.",
+    "Revocation, protected network transport, and authenticated world sessions remain required M01 work."
+  ],
+  "next_component": "identity.credential_revocation",
+  "test_ids": [
+    "EnrollmentTests.test_proven_key_waits_for_owner_approval",
+    "EnrollmentTests.test_owner_approval_issues_an_independently_verifiable_durable_credential",
+    "EnrollmentTests.test_humans_and_agents_get_distinct_actor_and_credential_identities",
+    "EnrollmentTests.test_enrollment_challenge_binds_the_exact_intent_and_service",
+    "EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce",
+    "EnrollmentTests.test_changed_enrollment_intent_or_purpose_is_rejected",
+    "EnrollmentTests.test_replay_is_denied_but_fresh_proof_recovers_the_same_pending_request",
+    "EnrollmentTests.test_restart_preserves_pending_requests_and_invalidates_old_challenges",
+    "EnrollmentTests.test_enrollment_proof_expires_on_the_real_clock",
+    "EnrollmentTests.test_owner_and_actor_challenges_cannot_be_used_in_the_other_protocol",
+    "EnrollmentTests.test_requester_cannot_approve_itself_or_read_another_request_as_owner",
+    "EnrollmentTests.test_rejection_is_durable_and_cannot_be_reapproved_or_reenrolled",
+    "EnrollmentTests.test_duplicate_decisions_do_not_create_another_credential",
+    "EnrollmentTests.test_a_key_cannot_create_a_second_request_by_changing_its_intent",
+    "EnrollmentTests.test_owner_can_explicitly_attach_a_second_proven_key_to_one_actor",
+    "EnrollmentTests.test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance",
+    "EnrollmentTests.test_policy_revision_change_prevents_stale_approval",
+    "EnrollmentTests.test_unknown_profile_blocks_issuance_and_preserves_pending_request",
+    "EnrollmentTests.test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants",
+    "EnrollmentTests.test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment",
+    "EnrollmentTests.test_policy_switch_does_not_approve_old_pending_requests_implicitly",
+    "EnrollmentTests.test_invalid_intents_and_reserved_keys_cannot_allocate_enrollments",
+    "EnrollmentTests.test_enrollment_and_owner_challenges_share_one_bounded_pool",
+    "EnrollmentTests.test_real_database_abort_rolls_back_actor_and_credential_creation",
+    "EnrollmentTests.test_explicit_schema_migration_preserves_issuer_key_owner_and_policy"
+  ]
+}

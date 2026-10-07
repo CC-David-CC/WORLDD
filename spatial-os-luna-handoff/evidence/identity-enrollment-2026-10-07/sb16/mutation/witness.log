@@ -1,0 +1,27 @@
+test_another_key_cannot_enroll_and_failed_completion_consumes_nonce (__main__.EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce) ... FAIL
+
+======================================================================
+FAIL: test_another_key_cannot_enroll_and_failed_completion_consumes_nonce (__main__.EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-enrollment-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_enrollment.py", line 106, in test_another_key_cannot_enroll_and_failed_completion_consumes_nonce
+    self.denied(self.finish(client,challenge,self.owner,self.owner_public))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-enrollment-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 0 != 12 : protocol_version: 1
+request_id: 3
+enrollment {
+  enrollment_id: "h\202\325\375\230C}\304\004\311\313F\021k\027\236~D\tn\237\240j\035\277\264\276D%*Ym"
+  intent {
+    public_key: "\374\200\275U\261\357\230.\\y\232:\265\362Y\366\\\235\312\332\007|\263pEY\221P\351/y\263"
+    kind: HUMAN
+    label: "David test actor"
+  }
+  status: PENDING
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.148s
+
+FAILED (failures=1)

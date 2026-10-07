@@ -1,0 +1,23 @@
+[
+  {
+    "name": "bindings",
+    "argv": [
+      "protoc",
+      "--python_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-enrollment-contract/python",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1",
+      "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "missing-enrollment",
+    "argv": [
+      "python3",
+      "tests/core/test_identity_enrollment.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+      "EnrollmentTests.test_proven_key_waits_for_owner_approval"
+    ],
+    "exit_code": 1
+  }
+]

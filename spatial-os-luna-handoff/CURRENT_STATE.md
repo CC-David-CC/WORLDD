@@ -1,5 +1,47 @@
 # Implementation status
 
+## 2026-10-07: M01 actor enrollment and signed credentials qualified
+
+The production issuer now persists proven enrollment requests, actor identities, and signed credentials.
+Manual approval creates an actor and credential in one SQLite transaction.
+The owner can reject a request or explicitly attach a proven key to an existing actor.
+Human and agent identities use the same rules. Actor and credential identities remain separate.
+Fresh proofs recover the same durable result after restart without duplicate issuance.
+
+Owner approval and approve_always use one credential-issuance implementation.
+The current resolver supports only the immutable empty-v1 profile, which grants no authority.
+Unknown profiles fail before issuance commits. Nonempty profiles and bootstrap grant records remain required work.
+Changing policy does not approve old pending requests or change existing credentials.
+Signatures alone do not establish current actor status, admission, or workspace authority.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 existing P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 294 core checks, including 25 new enrollment checks and the existing 18 issuer checks.
+- All 51 harness checks.
+
+Independent OpenSSL commands verify issued credentials.
+Real SQLite aborts roll back partial issuance. Direct database reads and process restarts verify persistence.
+An isolated mutation trusted the proof-supplied key instead of the stored challenge key.
+The unrelated-key counterexample detected the unauthorized enrollment. The mutation never entered production.
+All 119 source hashes match reviewed local files and both hosts.
+The acceptance lock, locked assertions, core transport, oracles, and native witness remain unchanged.
+Existing issuer tests only share their fixture helpers. Their assertions remain unchanged.
+
+Evidence is in evidence/identity-enrollment-2026-10-07. The contract is docs/ENROLLMENT.md.
+The issuer.proto interface adds enrollment messages without changing existing field numbers or meanings.
+Schema version 2 adds actor, enrollment, and credential tables.
+Version 1 requires explicit identityd --migrate. Migration preserves the issuer key, owner, identity, and policy.
+No actual David credentials or live issuer database were created or migrated.
+No package, host setting, or operator session changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+Manual enrollment is qualified with the empty profile. Automatic issuance has the same bounded profile limitation.
+M01 still requires nonempty bootstrap grants, credential and actor revocation, protected transport, and authenticated world sessions.
+All remaining M01-M16 and H01-H08 requirements stay mandatory. Full Spatial-M1 remains incomplete.
+Next: identity.credential_revocation and identity.actor_revocation in the production issuer.
+The full project goal remains active.
+
 ## 2026-10-07: M01 persistent issuer control qualified
 
 The production identityd service now owns a persistent issuer identity and enrollment-policy configuration.

@@ -18,9 +18,15 @@ identity::IssuerReply dispatch(const identity::IssuerRequest& request, spatial::
             auto* result = reply.mutable_hello(); result->set_protocol("spatial-identity-protobuf/1");
             result->set_implementation("production"); result->set_build_id(SPATIAL_BUILD_ID);
             result->add_capabilities("identity.issuer-control/v1");
+            result->add_capabilities("identity.enrollment/v1");
         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
-        else if (request.has_execute()) *reply.mutable_policy() = issuer.execute(request.execute());
+        else if (request.has_execute()) {
+            const auto result = issuer.execute(request.execute());
+            if (result.has_policy()) *reply.mutable_policy() = result.policy();
+            else *reply.mutable_enrollment() = result.enrollment();
+        } else if (request.has_enrollment_begin()) *reply.mutable_challenge() = issuer.enrollment_begin(request.enrollment_begin());
+        else if (request.has_enrollment_complete()) *reply.mutable_enrollment() = issuer.enrollment_complete(request.enrollment_complete());
         else throw spatial::WorldError(spatial::wire::UNKNOWN_METHOD, "No recognized issuer operation");
     } catch (const spatial::WorldError& error) {
         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
@@ -49,11 +55,12 @@ int main(int argc, char** argv) {
     try {
         umask(0077); signal(SIGPIPE, SIG_IGN);
         std::filesystem::path state, owner_path;
-        bool initialize = false, lifetime_set = false;
+        bool initialize = false, lifetime_set = false, migrate = false;
         unsigned lifetime = 30000;
         for (int i = 1; i < argc; ++i) {
             const std::string_view option(argv[i]);
             if (option == "--init" && !initialize) initialize = true;
+            else if (option == "--migrate" && !migrate) migrate = true;
             else if (option == "--state-dir" && state.empty() && i+1 < argc) state = argv[++i];
             else if (option == "--owner-public" && owner_path.empty() && i+1 < argc) owner_path = argv[++i];
             else if (option == "--challenge-ttl-ms" && !lifetime_set && i+1 < argc) {
@@ -63,12 +70,12 @@ int main(int argc, char** argv) {
                     throw std::invalid_argument("Invalid issuer challenge lifetime");
             } else throw std::invalid_argument("Unknown or duplicate identityd argument");
         }
-        if (initialize != !owner_path.empty() || (initialize && lifetime_set))
+        if (initialize != !owner_path.empty() || (initialize && lifetime_set) || (migrate && (initialize || lifetime_set)))
             throw std::invalid_argument("Only explicit initialization accepts --owner-public; initialization cannot change challenge lifetime");
         std::optional<std::string> owner;
         if (initialize) owner = read_owner(owner_path);
-        spatial::identity::Issuer issuer(state, owner, std::chrono::milliseconds(lifetime));
-        if (initialize) {
+        spatial::identity::Issuer issuer(state, owner, std::chrono::milliseconds(lifetime), migrate);
+        if (initialize || migrate) {
             identity::IssuerReply reply; reply.set_protocol_version(1); *reply.mutable_info() = issuer.info();
             spatial::write_frame(std::cout, reply); return 0;
         }

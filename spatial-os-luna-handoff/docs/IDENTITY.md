@@ -3,9 +3,10 @@
 M01 replaces fixture identity assumptions with cryptographic actor enrollment and authentication.
 Humans and model agents use separate keypairs and the same authority rules.
 David controls the initial issuer. Enrollment never implies administrator authority.
-Key material and persistent issuer control are implemented and qualified as separate components.
-See ISSUER_CONTROL.md for owner-authenticated policy changes and their evidence.
-Enrollment, credential revocation, and authenticated world sessions remain required work.
+Key material, issuer control, and manual enrollment are implemented and qualified as separate components.
+See ISSUER_CONTROL.md and ENROLLMENT.md for their interfaces, evidence, and explicit migration.
+Manual and automatic issuance currently resolve only the empty-v1 profile, which grants no authority.
+Nonempty bootstrap grants, credential revocation, and authenticated world sessions remain required work.
 
 ## Required integration
 
@@ -131,4 +132,5 @@ Sanitizer qualification adds --sanitize --build-dir build-sanitize.
 The source audit records both installed OpenSSL package versions.
 No host or operator-session change was required.
 Local-model review remains waived under David's hardware-failure instruction.
-Enrollment and authenticated world sessions remain unimplemented. M01 and full Spatial-M1 remain incomplete.
+Enrollment and authenticated world sessions remained unimplemented at that key-component qualification.
+See ENROLLMENT.md for the subsequent enrollment evidence. M01 and full Spatial-M1 remain incomplete.

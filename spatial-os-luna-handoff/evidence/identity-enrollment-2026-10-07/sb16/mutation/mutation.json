@@ -1,0 +1,65 @@
+{
+  "base": "a3ea4db3614aabbf2603f3819334f85048c69433",
+  "source_overlay": {
+    "base": "a3ea4db3614aabbf2603f3819334f85048c69433",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "4a727f826dbb0d4098c9493bc1636c86b326e6158673d53d56506ba0cbf94dd1",
+        "after": "bf1ec28899772d346f2b66b53153f7997daa043cf7d959e8db7d8d26934556fb",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/docs/ENROLLMENT.md": {
+        "before": null,
+        "after": "bfe5eb3a612af25dc45b0d81543cd6da910d01cf7afb1a2a5e761352253a63f4",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/docs/ISSUER_CONTROL.md": {
+        "before": "dd430563788ce2eeda043d3602bd668da1d51a2a1528a71d317682fd324f2eef",
+        "after": "5ea5d320f25167f84004fe687e42aa04e45672f664134e310d00d119f84e39f4",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto": {
+        "before": "41463a3615cda695ca3d527b278eb46896ca55af60575397a0239772168e68e5",
+        "after": "b1cc6b2c508efe11e725ee9342b02b018f4bc381c539b745577fd352192dec1c",
+        "previous": "b1cc6b2c508efe11e725ee9342b02b018f4bc381c539b745577fd352192dec1c"
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.cpp": {
+        "before": "b51960315b9ff46eee2b76e5664e1ae1a8419ce7f99742d64571574fca059611",
+        "after": "2764277ff89d9f2c75c46219fdb7a883f7c7458b9681d4375aff85c9cb48b42e",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.hpp": {
+        "before": "ef4b2ff8f51f2d952decc4f09c67450fdbc8a94a1eeb6f52428502af4e9b3407",
+        "after": "88d294d2c6b1e7c4285955a87ace0140b9533447d699e866af5f6a81907a9fb4",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer_main.cpp": {
+        "before": "72159e0a0df57d9a47564393033ac96132914b72247cb72ea112b7e9e9a1f82e",
+        "after": "a85dcfaa63dee79bbcd33ab9c8d190ba9889235c28507d4af7d285becf855021",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_identity_enrollment.py": {
+        "before": null,
+        "after": "038d77196bd221f0e0204059c0c59c15ba00aee487bc51754d1e0316a2d6425e",
+        "previous": "58ad092f7d8e76daa6ad18a57ee003da0186d81ad0c55a12aed670ba7e197919"
+      },
+      "spatial-os-luna-handoff/tests/core/test_identity_issuer.py": {
+        "before": "70a6f591b22ac2530b96ef165b9541d3083ccfe42c03ca15617f1b8cb6b5217c",
+        "after": "7d3d8e26dea2579f7bad9ddcdff6ec8a6fb0d9bfe477bbbd366e59f70224dbf0",
+        "previous": "7d3d8e26dea2579f7bad9ddcdff6ec8a6fb0d9bfe477bbbd366e59f70224dbf0"
+      }
+    }
+  },
+  "invariant": "Enrollment requires possession of the key stored in the enrollment challenge.",
+  "mutation": "Trust the proof-supplied public key instead of the independently stored challenge key.",
+  "before_sha256": "2764277ff89d9f2c75c46219fdb7a883f7c7458b9681d4375aff85c9cb48b42e",
+  "after_sha256": "678e73fa84971fe765984e83b12aec320adf4f66807cef078f3b272e697fdbd2",
+  "argv": [
+    "python3",
+    "tests/core/test_identity_enrollment.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-enrollment-mutation/source/spatial-os-luna-handoff/build/identityd",
+    "EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce"
+  ],
+  "exit_code": 1,
+  "status": "detected"
+}

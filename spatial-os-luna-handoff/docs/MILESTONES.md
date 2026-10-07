@@ -18,8 +18,9 @@ See WALKTHROUGHS.md and evidence/walkthroughs-2026-10-07 for execution evidence 
 All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qualification items.
 Existing components provide partial implementation only where CURRENT_STATE.md records their evidence.
 The mandatory profile is tasks/spatial-m1.json. M01's contract is IDENTITY.md.
-Production key material and issuer control are qualified components of M01.
-Issuer enrollment, bootstrap grants, revocation, and authenticated world sessions remain required.
+Production key material, issuer control, and manual enrollment are qualified components of M01.
+Manual and automatic issuance currently support only the empty-v1 profile. See ENROLLMENT.md for this limitation.
+Nonempty bootstrap grants, revocation, protected transport, and authenticated world sessions remain required.
 
 ## Ordered implementation
 

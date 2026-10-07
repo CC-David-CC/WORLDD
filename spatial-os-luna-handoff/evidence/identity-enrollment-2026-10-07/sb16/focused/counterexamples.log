@@ -1,0 +1,91 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 2
+    Start 2: identity-issuer
+
+2: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd"
+2: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+2: Environment variables: 
+2:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+2: Test timeout computed to be: 60
+2: test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed (__main__.IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed) ... ok
+2: test_challenge_binds_issuer_incarnation_owner_operation_and_audience (__main__.IssuerTests.test_challenge_binds_issuer_incarnation_owner_operation_and_audience) ... ok
+2: test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation (__main__.IssuerTests.test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation) ... ok
+2: test_competing_revision_updates_have_one_winner (__main__.IssuerTests.test_competing_revision_updates_have_one_winner) ... ok
+2: test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy (__main__.IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy) ... ok
+2: test_initialization_and_startup_never_replace_missing_or_existing_identity (__main__.IssuerTests.test_initialization_and_startup_never_replace_missing_or_existing_identity) ... ok
+2: test_invalid_policy_and_unknown_fields_do_not_change_state (__main__.IssuerTests.test_invalid_policy_and_unknown_fields_do_not_change_state) ... ok
+2: test_issuer_instances_do_not_accept_each_others_challenges (__main__.IssuerTests.test_issuer_instances_do_not_accept_each_others_challenges) ... ok
+2: test_only_one_process_can_own_one_issuer_directory (__main__.IssuerTests.test_only_one_process_can_own_one_issuer_directory) ... ok
+2: test_owner_policy_change_is_durable_and_observed_through_real_sqlite (__main__.IssuerTests.test_owner_policy_change_is_durable_and_observed_through_real_sqlite) ... ok
+2: test_pending_challenges_are_bounded_and_restart_clears_them (__main__.IssuerTests.test_pending_challenges_are_bounded_and_restart_clears_them) ... ok
+2: test_proof_for_one_challenge_does_not_complete_another (__main__.IssuerTests.test_proof_for_one_challenge_does_not_complete_another) ... ok
+2: test_protocol_errors_preserve_request_identity_and_connection_usability (__main__.IssuerTests.test_protocol_errors_preserve_request_identity_and_connection_usability) ... ok
+2: test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works (__main__.IssuerTests.test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works) ... ok
+2: test_restart_invalidates_pending_challenges_without_changing_policy (__main__.IssuerTests.test_restart_invalidates_pending_challenges_without_changing_policy) ... ok
+2: test_successful_proof_cannot_be_replayed (__main__.IssuerTests.test_successful_proof_cannot_be_replayed) ... ok
+2: test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly (__main__.IssuerTests.test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly) ... ok
+2: test_unsafe_state_files_and_directory_are_rejected (__main__.IssuerTests.test_unsafe_state_files_and_directory_are_rejected) ... ok
+2: 
+2: ----------------------------------------------------------------------
+2: Ran 18 tests in 1.844s
+2: 
+2: OK
+1/2 Test #2: identity-issuer ..................   Passed    1.91 sec
+test 3
+    Start 3: identity-enrollment
+
+3: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_enrollment.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd"
+3: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+3: Environment variables: 
+3:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+3: Test timeout computed to be: 60
+3: test_a_key_cannot_create_a_second_request_by_changing_its_intent (__main__.EnrollmentTests.test_a_key_cannot_create_a_second_request_by_changing_its_intent) ... ok
+3: test_another_key_cannot_enroll_and_failed_completion_consumes_nonce (__main__.EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce) ... ok
+3: test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants (__main__.EnrollmentTests.test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants) ... ok
+3: test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance (__main__.EnrollmentTests.test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance) ... ok
+3: test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment (__main__.EnrollmentTests.test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment) ... ok
+3: test_changed_enrollment_intent_or_purpose_is_rejected (__main__.EnrollmentTests.test_changed_enrollment_intent_or_purpose_is_rejected) ... ok
+3: test_duplicate_decisions_do_not_create_another_credential (__main__.EnrollmentTests.test_duplicate_decisions_do_not_create_another_credential) ... ok
+3: test_enrollment_and_owner_challenges_share_one_bounded_pool (__main__.EnrollmentTests.test_enrollment_and_owner_challenges_share_one_bounded_pool) ... ok
+3: test_enrollment_challenge_binds_the_exact_intent_and_service (__main__.EnrollmentTests.test_enrollment_challenge_binds_the_exact_intent_and_service) ... ok
+3: test_enrollment_proof_expires_on_the_real_clock (__main__.EnrollmentTests.test_enrollment_proof_expires_on_the_real_clock) ... ok
+3: test_explicit_schema_migration_preserves_issuer_key_owner_and_policy (__main__.EnrollmentTests.test_explicit_schema_migration_preserves_issuer_key_owner_and_policy) ... ok
+3: test_humans_and_agents_get_distinct_actor_and_credential_identities (__main__.EnrollmentTests.test_humans_and_agents_get_distinct_actor_and_credential_identities) ... ok
+3: test_invalid_intents_and_reserved_keys_cannot_allocate_enrollments (__main__.EnrollmentTests.test_invalid_intents_and_reserved_keys_cannot_allocate_enrollments) ... ok
+3: test_owner_and_actor_challenges_cannot_be_used_in_the_other_protocol (__main__.EnrollmentTests.test_owner_and_actor_challenges_cannot_be_used_in_the_other_protocol) ... ok
+3: test_owner_approval_issues_an_independently_verifiable_durable_credential (__main__.EnrollmentTests.test_owner_approval_issues_an_independently_verifiable_durable_credential) ... ok
+3: test_owner_can_explicitly_attach_a_second_proven_key_to_one_actor (__main__.EnrollmentTests.test_owner_can_explicitly_attach_a_second_proven_key_to_one_actor) ... ok
+3: test_policy_revision_change_prevents_stale_approval (__main__.EnrollmentTests.test_policy_revision_change_prevents_stale_approval) ... ok
+3: test_policy_switch_does_not_approve_old_pending_requests_implicitly (__main__.EnrollmentTests.test_policy_switch_does_not_approve_old_pending_requests_implicitly) ... ok
+3: test_proven_key_waits_for_owner_approval (__main__.EnrollmentTests.test_proven_key_waits_for_owner_approval) ... ok
+3: test_real_database_abort_rolls_back_actor_and_credential_creation (__main__.EnrollmentTests.test_real_database_abort_rolls_back_actor_and_credential_creation) ... ok
+3: test_rejection_is_durable_and_cannot_be_reapproved_or_reenrolled (__main__.EnrollmentTests.test_rejection_is_durable_and_cannot_be_reapproved_or_reenrolled) ... ok
+3: test_replay_is_denied_but_fresh_proof_recovers_the_same_pending_request (__main__.EnrollmentTests.test_replay_is_denied_but_fresh_proof_recovers_the_same_pending_request) ... ok
+3: test_requester_cannot_approve_itself_or_read_another_request_as_owner (__main__.EnrollmentTests.test_requester_cannot_approve_itself_or_read_another_request_as_owner) ... ok
+3: test_restart_preserves_pending_requests_and_invalidates_old_challenges (__main__.EnrollmentTests.test_restart_preserves_pending_requests_and_invalidates_old_challenges) ... ok
+3: test_unknown_profile_blocks_issuance_and_preserves_pending_request (__main__.EnrollmentTests.test_unknown_profile_blocks_issuance_and_preserves_pending_request) ... ok
+3: 
+3: ----------------------------------------------------------------------
+3: Ran 25 tests in 3.426s
+3: 
+3: OK
+2/2 Test #3: identity-enrollment ..............   Passed    3.50 sec
+
+The following tests passed:
+	identity-issuer
+	identity-enrollment
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   5.41 sec

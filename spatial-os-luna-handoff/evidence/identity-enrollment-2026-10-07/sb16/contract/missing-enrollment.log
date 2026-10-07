@@ -1,0 +1,26 @@
+test_proven_key_waits_for_owner_approval (__main__.EnrollmentTests.test_proven_key_waits_for_owner_approval) ... FAIL
+
+======================================================================
+FAIL: test_proven_key_waits_for_owner_approval (__main__.EnrollmentTests.test_proven_key_waits_for_owner_approval)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_enrollment.py", line 71, in test_proven_key_waits_for_owner_approval
+    self.init(); client=self.start(); record=self.enroll(client)
+                                             ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_enrollment.py", line 32, in enroll
+    reply = self.finish(client, self.begin(client, intent), key, public)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_enrollment.py", line 24, in begin
+    self.assertTrue(reply.HasField('challenge'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 2
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.085s
+
+FAILED (failures=1)

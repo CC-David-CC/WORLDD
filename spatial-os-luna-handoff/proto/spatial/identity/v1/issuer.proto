@@ -12,7 +12,56 @@ message PolicyState { EnrollmentPolicy policy = 1; uint64 revision = 2; }
 message PolicyRead {}
 message PolicySet { EnrollmentPolicy policy = 1; optional uint64 expected_revision = 2; }
 message IssuerOperation {
-  oneof action { PolicyRead policy_read = 1; PolicySet policy_set = 2; }
+  oneof action {
+    PolicyRead policy_read = 1;
+    PolicySet policy_set = 2;
+    EnrollmentRead enrollment_read = 3;
+    EnrollmentDecision enrollment_decision = 4;
+  }
+}
+enum ActorKind { ACTOR_KIND_UNSPECIFIED = 0; HUMAN = 1; AGENT = 2; }
+message EnrollmentIntent { bytes public_key = 1; ActorKind kind = 2; string label = 3; }
+enum EnrollmentStatus { ENROLLMENT_STATUS_UNSPECIFIED = 0; PENDING = 1; APPROVED = 2; REJECTED = 3; }
+enum EnrollmentChoice { ENROLLMENT_CHOICE_UNSPECIFIED = 0; APPROVE_NEW = 1; APPROVE_EXISTING = 2; REJECT = 3; }
+message EnrollmentRead { bytes enrollment_id = 1; }
+message EnrollmentDecision {
+  bytes enrollment_id = 1;
+  EnrollmentChoice choice = 2;
+  bytes target_actor_id = 3;
+  optional uint64 expected_policy_revision = 4;
+}
+message ActorCredential {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes actor_id = 3;
+  bytes credential_id = 4;
+  bytes public_key = 5;
+  ActorKind kind = 6;
+  bytes enrollment_id = 7;
+  string bootstrap_profile = 8;
+  uint64 bootstrap_profile_revision = 9;
+  uint64 policy_revision = 10;
+  string audience = 11;
+}
+message SignedCredential { SignRequest content = 1; KeyProof proof = 2; }
+message EnrollmentRecord {
+  bytes enrollment_id = 1;
+  EnrollmentIntent intent = 2;
+  EnrollmentStatus status = 3;
+  SignedCredential credential = 4;
+}
+message EnrollmentChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes incarnation = 3;
+  bytes nonce = 4;
+  EnrollmentIntent intent = 5;
+  uint32 lifetime_ms = 6;
+  string audience = 7;
+}
+message EnrollmentComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AdminResult {
+  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; }
 }
 message IssuerInfoRequest {}
 message IssuerInfo { bytes issuer_id = 1; bytes public_key = 2; uint64 policy_revision = 3; }
@@ -36,6 +85,8 @@ message IssuerRequest {
     IssuerInfoRequest info = 11;
     IssuerOperation challenge = 12;
     IssuerExecute execute = 13;
+    EnrollmentIntent enrollment_begin = 14;
+    EnrollmentComplete enrollment_complete = 15;
   }
 }
 message IssuerReply {
@@ -47,5 +98,6 @@ message IssuerReply {
     ChallengeReply challenge = 12;
     PolicyState policy = 13;
     spatial.core.v1.Error error = 14;
+    EnrollmentRecord enrollment = 15;
   }
 }

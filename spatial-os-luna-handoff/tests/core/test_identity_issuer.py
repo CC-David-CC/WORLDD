@@ -61,7 +61,7 @@ class Connection:
         return self.request(pb.IssuerRequest(protocol_version=1, **operation))
 
 
-class IssuerTests(unittest.TestCase):
+class IssuerFixture(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='spatial-issuer-')
         self.addCleanup(self.temp.cleanup); self.root = Path(self.temp.name)
@@ -141,6 +141,7 @@ class IssuerTests(unittest.TestCase):
         with sqlite3.connect(f'file:{self.state}/identity.db?mode=ro', uri=True) as db:
             return db.execute('SELECT issuer_id,public_key,owner_public_key,revision,policy FROM issuer').fetchall()
 
+class IssuerTests(IssuerFixture):
     def test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy(self):
         info = self.init(); client = self.start()
         self.assertEqual(client.call(info=pb.IssuerInfoRequest()).info, info)
