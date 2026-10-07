@@ -6,7 +6,8 @@ David controls the initial issuer. Enrollment never implies administrator author
 Key material, issuer control, and manual enrollment are implemented and qualified as separate components.
 See ISSUER_CONTROL.md and ENROLLMENT.md for their interfaces, evidence, and explicit migration.
 Manual and automatic issuance currently resolve only the empty-v1 profile, which grants no authority.
-Nonempty bootstrap grants, credential revocation, and authenticated world sessions remain required work.
+Issuer-side credential and actor revocation and fresh authentication are qualified. See IDENTITY_REVOCATION.md for their limits.
+Nonempty bootstrap grants, protected transport, and authenticated world sessions with immediate revocation remain required work.
 
 ## Required integration
 

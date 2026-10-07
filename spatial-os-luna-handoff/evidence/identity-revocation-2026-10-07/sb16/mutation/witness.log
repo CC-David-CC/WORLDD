@@ -1,0 +1,25 @@
+test_revocation_and_security_revision_survive_process_death (__main__.RevocationTests.test_revocation_and_security_revision_survive_process_death) ... FAIL
+
+======================================================================
+FAIL: test_revocation_and_security_revision_survive_process_death (__main__.RevocationTests.test_revocation_and_security_revision_survive_process_death)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-revocation-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_revocation.py", line 170, in test_revocation_and_security_revision_survive_process_death
+    self.denied(self.auth_begin())
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-revocation-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 0 != 12 : protocol_version: 1
+request_id: 4
+challenge {
+  nonce: "\356z\253IGr\343\376\001C\271/\316#\330~\215\260\260\277\251bB\260;j\205h\342\226\202\013"
+  signing_request {
+    purpose: ACTOR_AUTHENTICATION
+    payload: "\010\001\022 \267\004\371\275Zp\327\325n\325\350Yd\224QO\322X[\337\302H3%%FM;\332s\377\022\032 \332\222(\200\347\3627\321\375\t\026\302L\375Z\027B\3667y\365\276=\345\302T_\\\254t\312\252\" \356z\253IGr\343\376\001C\271/\316#\330~\215\260\260\277\251bB\260;j\205h\342\226\202\013*\372\002\n\311\002\n\336\001\010\004\022\331\001\010\001\022 \267\004\371\275Zp\327\325n\325\350Yd\224QO\322X[\337\302H3%%FM;\332s\377\022\032 (9x\007\204\035\247\0008\232\000\216\303\3459\006\314[Z\351\215\206\203)\333\251\3317\313c\351/\" \330l6n\037\266\033a \364\274Z\336^\205\265\000\342\036\243\277\243W\240\014NC\014\331\304az* \n\332\321\336E\352\260\333\270\354\265\217JP\250\305w\007\200\277\256\254=\036\217\265\275\254\022\032\245\2450\001: {a\250cI\242\234[\276!\316\304w\245\004\256,\335\223\236\025\022#\334\326\010\272M\354h\3241B\010empty-v1H\001P\001Z\033spatial/actor-credential/v1\022f\010\004\022 \267gc\332Z\322c\243;\244r\023Fd?\241\326\321\020\253\363\321o\210\337\252\354\331]\364\317\013\032@\205=KHv\300\211\317l\350G\010z\302\342W\t\206^\243\250\034\360\017\320\310f45\025\222\0132/\362)\330;\245\"\373\306>\227>\005p3\350+8\200\025O\322\260\215\030\337H\332b\211\013\022\nworld/test\032 wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww0\260\352\001"
+  }
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.226s
+
+FAILED (failures=1)

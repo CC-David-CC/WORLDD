@@ -54,7 +54,7 @@ A stale policy revision also returns REVISION_CONFLICT.
 An unknown actor or profile, an invalid decision, or a failed transaction leaves the request pending.
 Rejected keys cannot bypass that decision by resubmitting or changing their labels.
 Rejection is distinct from revocation of an issued credential or actor.
-Credential and actor revocation remain required components.
+IDENTITY_REVOCATION.md defines issuer-side credential and actor revocation. Active world integration remains required.
 
 ## Policy and bootstrap boundary
 
@@ -82,7 +82,8 @@ Store these bytes once. Fresh recovery requests return the same bytes after rest
 Independent clients can verify signatures using the issuer's separately trusted public key.
 The proof's own public-key field cannot establish issuer trust.
 A valid signature alone does not establish current credential status, actor status, admission, or workspace authority.
-Revocation checks, authenticated world sessions, and protected network transport remain required.
+Use the issuer's current credential check from IDENTITY_REVOCATION.md before authentication.
+Authenticated world sessions, live revocation integration, and protected network transport remain required.
 The service still uses its supervisor-owned inherited channel.
 
 ## Transactions and explicit migration
@@ -92,11 +93,11 @@ Failed issuance rolls back all three effects.
 After an uncertain reply, prove the same key and original intent through a new challenge.
 Read the durable result instead of replaying the old completion or owner decision.
 
-New initialization creates schema version 2.
-Version 1 stores issuer control only. Normal startup rejects it without migration.
+Enrollment introduced schema version 2. IDENTITY_REVOCATION.md defines the current version 3.
+Version 1 stores issuer control only. Normal startup requires explicit migration to the current schema.
 Stop the supervised service before migration. Preserve its state and private keys.
 Run identityd --migrate --state-dir /absolute/issuer-state.
-This explicit operation checks the existing issuer identity and migrates version 1 in a transaction.
+This explicit operation checks the existing issuer identity and migrates older supported schemas in a transaction.
 It adds actor, enrollment, and credential tables without changing the issuer key, owner, identity, or policy.
 It cannot initialize missing state or repair an unknown schema.
 Restart with identityd --state-dir /absolute/issuer-state.
@@ -134,4 +135,5 @@ Source audits record installed OpenSSL package versions.
 Only disposable test issuers were initialized or migrated. No actual David credential changed.
 No host configuration or operator session changed.
 Local-model review remains waived under David's hardware-failure instruction.
-Next: persistent credential and actor revocation, then authenticated actor sessions and bootstrap-grant integration.
+The subsequent issuer revocation and authentication evidence is in IDENTITY_REVOCATION.md.
+Authenticated world sessions and bootstrap-grant integration remain required.

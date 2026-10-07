@@ -17,6 +17,8 @@ message IssuerOperation {
     PolicySet policy_set = 2;
     EnrollmentRead enrollment_read = 3;
     EnrollmentDecision enrollment_decision = 4;
+    IdentityReference identity_read = 5;
+    IdentityRevoke identity_revoke = 6;
   }
 }
 enum ActorKind { ACTOR_KIND_UNSPECIFIED = 0; HUMAN = 1; AGENT = 2; }
@@ -60,8 +62,44 @@ message EnrollmentChallenge {
   string audience = 7;
 }
 message EnrollmentComplete { bytes nonce = 1; KeyProof proof = 2; }
+enum IdentityTargetKind { IDENTITY_TARGET_UNSPECIFIED = 0; CREDENTIAL_TARGET = 1; ACTOR_TARGET = 2; }
+message IdentityReference { IdentityTargetKind kind = 1; bytes id = 2; }
+message IdentityRevoke {
+  IdentityReference target = 1;
+  optional uint64 expected_security_revision = 2;
+  string reason = 3;
+}
+message IdentityStatus {
+  bytes issuer_id = 1;
+  bytes actor_id = 2;
+  bytes credential_id = 3;
+  ActorKind kind = 4;
+  bool actor_revoked = 5;
+  bool credential_revoked = 6;
+  bool active = 7;
+  uint64 security_revision = 8;
+}
+message AuthenticationBegin {
+  SignedCredential credential = 1;
+  string audience = 2;
+  bytes channel_binding = 3;
+}
+message AuthenticationChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes incarnation = 3;
+  bytes nonce = 4;
+  AuthenticationBegin request = 5;
+  uint32 lifetime_ms = 6;
+}
+message AuthenticationComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthenticationResult {
+  IdentityStatus identity = 1;
+  string audience = 2;
+  bytes channel_binding = 3;
+}
 message AdminResult {
-  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; }
+  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; }
 }
 message IssuerInfoRequest {}
 message IssuerInfo { bytes issuer_id = 1; bytes public_key = 2; uint64 policy_revision = 3; }
@@ -87,6 +125,9 @@ message IssuerRequest {
     IssuerExecute execute = 13;
     EnrollmentIntent enrollment_begin = 14;
     EnrollmentComplete enrollment_complete = 15;
+    AuthenticationBegin authentication_begin = 16;
+    AuthenticationComplete authentication_complete = 17;
+    SignedCredential credential_check = 18;
   }
 }
 message IssuerReply {
@@ -99,5 +140,7 @@ message IssuerReply {
     PolicyState policy = 13;
     spatial.core.v1.Error error = 14;
     EnrollmentRecord enrollment = 15;
+    IdentityStatus identity_status = 16;
+    AuthenticationResult authentication = 17;
   }
 }

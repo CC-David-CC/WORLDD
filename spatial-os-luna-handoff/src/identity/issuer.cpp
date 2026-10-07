@@ -68,9 +68,23 @@ void validate_policy(const v1::EnrollmentPolicy& policy) {
     require(!policy.bootstrap_profile().empty() && policy.bootstrap_profile().size() <= 128 &&
             policy.bootstrap_profile().find('\0') == std::string::npos, "Invalid bootstrap profile reference");
 }
+void validate_reference(const v1::IdentityReference& target) {
+    validate_message(target);
+    require((target.kind() == v1::CREDENTIAL_TARGET || target.kind() == v1::ACTOR_TARGET) && target.id().size() == 32,
+            "A typed credential or actor identity is required");
+}
 void validate_operation(const v1::IssuerOperation& operation) {
     validate_message(operation);
     if (operation.has_policy_read()) return;
+    if (operation.has_identity_read()) { validate_reference(operation.identity_read()); return; }
+    if (operation.has_identity_revoke()) {
+        const auto& request = operation.identity_revoke();
+        require(request.has_target() && request.has_expected_security_revision() && request.expected_security_revision() <= INT64_MAX,
+                "Revocation target and expected security revision are required");
+        validate_reference(request.target());
+        require(!request.reason().empty() && request.reason().size() <= 256 && request.reason().find('\0') == std::string::npos,
+                "Revocation reason must contain between 1 and 256 bytes without zero bytes"); return;
+    }
     if (operation.has_enrollment_read()) {
         require(operation.enrollment_read().enrollment_id().size() == 32, "Enrollment identity is required"); return;
     }
@@ -106,6 +120,13 @@ void create_enrollment_schema(sqlite3* db) {
             "public_key BLOB NOT NULL UNIQUE CHECK(length(public_key)=32),enrollment_id BLOB NOT NULL UNIQUE REFERENCES enrollment(id),"
             "signed_credential BLOB NOT NULL); PRAGMA user_version=2");
 }
+void create_security_schema(sqlite3* db) {
+    sql(db, "CREATE TABLE security_state(singleton INTEGER PRIMARY KEY CHECK(singleton=1),revision INTEGER NOT NULL CHECK(revision>=0));"
+            "INSERT INTO security_state VALUES(1,0);"
+            "CREATE TABLE revocation(kind INTEGER NOT NULL CHECK(kind IN(1,2)),target_id BLOB NOT NULL CHECK(length(target_id)=32),"
+            "revision INTEGER NOT NULL UNIQUE CHECK(revision>0),reason BLOB NOT NULL,PRIMARY KEY(kind,target_id));"
+            "PRAGMA user_version=3");
+}
 } // namespace
 
 struct Issuer::Impl {
@@ -115,6 +136,8 @@ struct Issuer::Impl {
         v1::SignRequest content;
         std::string expected_key;
         Clock::time_point expires;
+        v1::AuthenticationBegin authentication;
+        v1::IdentityStatus authenticated_identity;
     };
     File directory, lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
@@ -154,12 +177,12 @@ struct Issuer::Impl {
         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
-        sqlite3_int64 schema = 2;
+        sqlite3_int64 schema = 3;
         if (!owner) {
             Query version(db.get(), "PRAGMA user_version"); version.step();
             Query application(db.get(), "PRAGMA application_id"); application.step();
             schema = version.integer(0);
-            storage((schema == 2 || (schema == 1 && migrate)) && application.integer(0) == application_id,
+            storage((schema == 3 || ((schema == 1 || schema == 2) && migrate)) && application.integer(0) == application_id,
                     "Unknown issuer schema; explicit migration is required");
         }
         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
@@ -175,7 +198,8 @@ struct Issuer::Impl {
             v1::EnrollmentPolicy policy; policy.set_mode(v1::MANUAL); policy.set_bootstrap_profile("empty-v1");
             Query insert(db.get(), "INSERT INTO issuer VALUES(1,?,?,?,1,?)");
             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
-            insert.blob(4, policy.SerializeAsString()); insert.step(); create_enrollment_schema(db.get()); tx.commit();
+            insert.blob(4, policy.SerializeAsString()); insert.step();
+            create_enrollment_schema(db.get()); create_security_schema(db.get()); tx.commit();
             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
         }
         { Query integrity(db.get(), "PRAGMA quick_check");
@@ -186,8 +210,10 @@ struct Issuer::Impl {
         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
                 "Issuer key does not match its durable identity");
         policy();
-        if (schema == 1) {
-            Transaction migration(db.get()); create_enrollment_schema(db.get()); migration.commit();
+        if (schema < 3) {
+            Transaction migration(db.get());
+            if (schema == 1) create_enrollment_schema(db.get());
+            create_security_schema(db.get()); migration.commit();
         }
     }
 
@@ -237,6 +263,81 @@ struct Issuer::Impl {
             throw WorldError(wire::UNAUTHORIZED, "Issuer proof is invalid or expired");
         return value;
     }
+    bool revoked(v1::IdentityTargetKind kind, const std::string& id) {
+        Query query(db.get(), "SELECT 1 FROM revocation WHERE kind=? AND target_id=?");
+        query.integer(1, kind); query.blob(2, id); return query.step() == SQLITE_ROW;
+    }
+    std::uint64_t security_revision() {
+        Query query(db.get(), "SELECT revision FROM security_state WHERE singleton=1");
+        storage(query.step() == SQLITE_ROW && query.integer(0) >= 0, "Invalid security revision");
+        return static_cast<std::uint64_t>(query.integer(0));
+    }
+    v1::IdentityStatus identity_status(const v1::IdentityReference& target) {
+        v1::IdentityStatus result; result.set_issuer_id(identity.issuer_id());
+        if (target.kind() == v1::ACTOR_TARGET) {
+            Query query(db.get(), "SELECT kind FROM actor WHERE id=?"); query.blob(1, target.id());
+            if (query.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Actor identity does not exist");
+            result.set_actor_id(target.id()); result.set_kind(static_cast<v1::ActorKind>(query.integer(0)));
+        } else {
+            Query query(db.get(), "SELECT c.actor_id,a.kind FROM credential c JOIN actor a ON a.id=c.actor_id WHERE c.id=?");
+            query.blob(1, target.id());
+            if (query.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Credential identity does not exist");
+            result.set_credential_id(target.id()); result.set_actor_id(query.blob(0));
+            result.set_kind(static_cast<v1::ActorKind>(query.integer(1)));
+            result.set_credential_revoked(revoked(v1::CREDENTIAL_TARGET, target.id()));
+        }
+        storage(result.actor_id().size() == 32 && (result.kind() == v1::HUMAN || result.kind() == v1::AGENT), "Invalid durable actor identity");
+        result.set_actor_revoked(revoked(v1::ACTOR_TARGET, result.actor_id()));
+        result.set_active(!result.actor_revoked() && !result.credential_revoked());
+        result.set_security_revision(security_revision()); return result;
+    }
+    v1::IdentityStatus check_credential(const v1::SignedCredential& credential) {
+        validate_message(credential);
+        require(credential.has_content() && credential.has_proof(), "Credential content and proof are required");
+        if (credential.content().purpose() != v1::ISSUER_CREDENTIAL)
+            throw WorldError(wire::UNAUTHORIZED, "Wrong credential signature purpose");
+        v1::VerifyRequest verification; *verification.mutable_content() = credential.content();
+        *verification.mutable_proof() = credential.proof(); verification.set_expected_public_key(identity.public_key());
+        if (!verify(verification)) throw WorldError(wire::UNAUTHORIZED, "Issuer credential signature is invalid");
+        v1::ActorCredential claims;
+        require(claims.ParseFromString(credential.content().payload()), "Malformed credential claims");
+        validate_message(claims);
+        if (claims.protocol_version() != 1 || claims.issuer_id() != identity.issuer_id() ||
+            claims.audience() != "spatial/actor-credential/v1" || claims.actor_id().size() != 32 ||
+            claims.credential_id().size() != 32 || claims.public_key().size() != 32 || claims.enrollment_id().size() != 32)
+            throw WorldError(wire::UNAUTHORIZED, "Invalid issuer credential claims");
+        Query query(db.get(), "SELECT c.actor_id,c.public_key,c.enrollment_id,c.signed_credential,a.kind "
+                              "FROM credential c JOIN actor a ON a.id=c.actor_id WHERE c.id=?");
+        query.blob(1, claims.credential_id());
+        if (query.step() != SQLITE_ROW || query.blob(0) != claims.actor_id() || query.blob(1) != claims.public_key() ||
+            query.blob(2) != claims.enrollment_id() || query.blob(3) != credential.SerializeAsString() || query.integer(4) != claims.kind())
+            throw WorldError(wire::UNAUTHORIZED, "Credential is not registered with this issuer");
+        v1::IdentityReference target; target.set_kind(v1::CREDENTIAL_TARGET); target.set_id(claims.credential_id());
+        return identity_status(target);
+    }
+    v1::IdentityStatus revoke(const v1::IdentityRevoke& request) {
+        Transaction transaction(db.get());
+        const auto before = identity_status(request.target());
+        if (before.security_revision() != request.expected_security_revision())
+            throw WorldError(wire::REVISION_CONFLICT, "Issuer security revision changed");
+        if (!revoked(request.target().kind(), request.target().id())) {
+            storage(before.security_revision() < INT64_MAX, "Issuer security revision limit reached");
+            Query revision(db.get(), "UPDATE security_state SET revision=revision+1 WHERE singleton=1 AND revision=?");
+            revision.integer(1, before.security_revision()); revision.step();
+            storage(sqlite3_changes(db.get()) == 1, "Revocation lost its security revision");
+            Query insert(db.get(), "INSERT INTO revocation(kind,target_id,revision,reason) VALUES(?,?,?,?)");
+            insert.integer(1, request.target().kind()); insert.blob(2, request.target().id());
+            insert.integer(3, before.security_revision()+1); insert.blob(4, request.reason()); insert.step();
+        }
+        const auto result = identity_status(request.target()); transaction.commit();
+        // Only committed revocation invalidates pending authentication. Independent credentials survive.
+        std::erase_if(pending, [&](const auto& item) {
+            const auto& subject = item.second.authenticated_identity;
+            return request.target().kind() == v1::ACTOR_TARGET ? subject.actor_id() == request.target().id() :
+                   subject.credential_id() == request.target().id();
+        });
+        return result;
+    }
     v1::EnrollmentRecord enrollment(const std::string& id) {
         Query query(db.get(), "SELECT e.id,e.intent,e.status,c.signed_credential FROM enrollment e "
                               "LEFT JOIN credential c ON c.enrollment_id=e.id WHERE e.id=?");
@@ -266,6 +367,7 @@ struct Issuer::Impl {
         } else {
             Query query(db.get(), "SELECT kind FROM actor WHERE id=?"); query.blob(1, actor);
             if (query.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Target actor does not exist");
+            if (revoked(v1::ACTOR_TARGET, actor)) throw WorldError(wire::UNAUTHORIZED, "Target actor is revoked");
             require(query.integer(0) == record.intent().kind(), "Credential actor kind cannot change the target identity");
         }
         v1::ActorCredential claims; claims.set_protocol_version(1); claims.set_issuer_id(identity.issuer_id());
@@ -337,7 +439,7 @@ v1::ChallengeReply Issuer::challenge(const v1::IssuerOperation& operation) {
     payload.set_audience("identityd/admin/v1");
     v1::ChallengeReply result; result.set_nonce(nonce); result.mutable_signing_request()->set_purpose(v1::ISSUER_ADMINISTRATION);
     result.mutable_signing_request()->set_payload(payload.SerializeAsString());
-    impl_->pending.emplace(nonce, Impl::Pending{operation, {}, result.signing_request(), impl_->owner_public, Clock::now() + impl_->lifetime});
+    impl_->pending.emplace(nonce, Impl::Pending{operation, {}, result.signing_request(), impl_->owner_public, Clock::now() + impl_->lifetime, {}, {}});
     return result;
 }
 v1::AdminResult Issuer::execute(const v1::IssuerExecute& request) {
@@ -350,7 +452,9 @@ v1::AdminResult Issuer::execute(const v1::IssuerExecute& request) {
     else if (pending.operation.has_policy_set()) *result.mutable_policy() = impl_->set_policy(pending.operation.policy_set());
     else if (pending.operation.has_enrollment_read())
         *result.mutable_enrollment() = impl_->enrollment(pending.operation.enrollment_read().enrollment_id());
-    else *result.mutable_enrollment() = impl_->decide(pending.operation.enrollment_decision());
+    else if (pending.operation.has_enrollment_decision()) *result.mutable_enrollment() = impl_->decide(pending.operation.enrollment_decision());
+    else if (pending.operation.has_identity_read()) *result.mutable_identity_status() = impl_->identity_status(pending.operation.identity_read());
+    else *result.mutable_identity_status() = impl_->revoke(pending.operation.identity_revoke());
     return result;
 }
 v1::ChallengeReply Issuer::enrollment_begin(const v1::EnrollmentIntent& intent) {
@@ -363,7 +467,7 @@ v1::ChallengeReply Issuer::enrollment_begin(const v1::EnrollmentIntent& intent) 
     payload.set_lifetime_ms(static_cast<std::uint32_t>(impl_->lifetime.count())); payload.set_audience("identityd/enroll/v1");
     v1::ChallengeReply result; result.set_nonce(nonce); result.mutable_signing_request()->set_purpose(v1::ENROLLMENT_PROOF);
     result.mutable_signing_request()->set_payload(payload.SerializeAsString());
-    impl_->pending.emplace(nonce, Impl::Pending{{}, intent, result.signing_request(), intent.public_key(), Clock::now() + impl_->lifetime});
+    impl_->pending.emplace(nonce, Impl::Pending{{}, intent, result.signing_request(), intent.public_key(), Clock::now() + impl_->lifetime, {}, {}});
     return result;
 }
 v1::EnrollmentRecord Issuer::enrollment_complete(const v1::EnrollmentComplete& request) {
@@ -371,5 +475,35 @@ v1::EnrollmentRecord Issuer::enrollment_complete(const v1::EnrollmentComplete& r
     require(request.nonce().size() == 32 && request.has_proof(), "Enrollment nonce and proof are required");
     const auto pending = impl_->consume(request.nonce(), request.proof(), v1::ENROLLMENT_PROOF);
     return impl_->submit(pending.enrollment);
+}
+v1::IdentityStatus Issuer::credential_check(const v1::SignedCredential& credential) {
+    return impl_->check_credential(credential);
+}
+v1::ChallengeReply Issuer::authentication_begin(const v1::AuthenticationBegin& request) {
+    validate_message(request);
+    require(request.has_credential() && !request.audience().empty() && request.audience().size() <= 128 &&
+            request.audience().find('\0') == std::string::npos && request.channel_binding().size() == 32,
+            "Authentication requires a credential, intended audience, and 32-byte channel binding");
+    const auto identity = impl_->check_credential(request.credential());
+    if (!identity.active()) throw WorldError(wire::UNAUTHORIZED, "Actor or credential is revoked");
+    v1::ActorCredential claims; storage(claims.ParseFromString(request.credential().content().payload()), "Invalid checked credential");
+    const auto nonce = impl_->nonce();
+    v1::AuthenticationChallenge payload; payload.set_protocol_version(1); payload.set_issuer_id(impl_->identity.issuer_id());
+    payload.set_incarnation(impl_->incarnation); payload.set_nonce(nonce); *payload.mutable_request() = request;
+    payload.set_lifetime_ms(static_cast<std::uint32_t>(impl_->lifetime.count()));
+    v1::ChallengeReply result; result.set_nonce(nonce); result.mutable_signing_request()->set_purpose(v1::ACTOR_AUTHENTICATION);
+    result.mutable_signing_request()->set_payload(payload.SerializeAsString());
+    impl_->pending.emplace(nonce, Impl::Pending{{}, {}, result.signing_request(), claims.public_key(), Clock::now() + impl_->lifetime, request, identity});
+    return result;
+}
+v1::AuthenticationResult Issuer::authentication_complete(const v1::AuthenticationComplete& request) {
+    validate_message(request);
+    require(request.nonce().size() == 32 && request.has_proof(), "Authentication nonce and proof are required");
+    const auto pending = impl_->consume(request.nonce(), request.proof(), v1::ACTOR_AUTHENTICATION);
+    const auto current = impl_->check_credential(pending.authentication.credential());
+    if (!current.active()) throw WorldError(wire::UNAUTHORIZED, "Actor or credential was revoked before authentication");
+    v1::AuthenticationResult result; *result.mutable_identity() = current;
+    result.set_audience(pending.authentication.audience()); result.set_channel_binding(pending.authentication.channel_binding());
+    return result;
 }
 } // namespace spatial::identity

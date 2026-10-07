@@ -36,6 +36,7 @@ It verifies the issuer key against the durable public key.
 It rejects unknown database schemas and unsafe file ownership, permissions, links, or file types.
 The initial issuer-control database used schema version 1 and application identifier 0x53504944.
 Enrollment adds schema version 2 through the explicit migration described in ENROLLMENT.md.
+IDENTITY_REVOCATION.md defines the current version 3 and its explicit migration.
 One process holds an exclusive nonblocking [flock](https://man7.org/linux/man-pages/man2/flock.2.html) on identity.lock.
 This establishes one local authority for that state directory. It does not implement distributed consensus.
 

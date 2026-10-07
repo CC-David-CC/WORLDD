@@ -1,0 +1,25 @@
+[0/2] Re-checking globbed directories...
+[1/24] Generating python/key_pb2.py
+[2/24] Generating python/core_pb2.py
+[3/24] Generating python/issuer_pb2.py
+[4/24] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[5/24] Running cpp protocol buffer compiler on proto/spatial/identity/v1/key.proto
+[6/24] Running cpp protocol buffer compiler on proto/spatial/identity/v1/issuer.proto
+[7/24] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[8/24] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[9/24] Building CXX object CMakeFiles/spatial-protobuf.dir/key.pb.cc.o
+[10/24] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[11/24] Building CXX object CMakeFiles/spatial-protobuf.dir/issuer.pb.cc.o
+[12/24] Linking CXX static library libspatial-protobuf.a
+[13/24] Building CXX object CMakeFiles/spatial-scene.dir/src/core/geometry.cpp.o
+[14/24] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[15/24] Building CXX object CMakeFiles/spatial-scene.dir/src/core/collision.cpp.o
+[16/24] Building CXX object CMakeFiles/spatial-scene.dir/src/core/navigation.cpp.o
+[17/24] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[18/24] Linking CXX static library libspatial-scene.a
+[19/24] Building CXX object CMakeFiles/spatial-identity.dir/src/identity/keys.cpp.o
+[20/24] Linking CXX static library libspatial-identity.a
+[21/24] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/issuer.cpp.o
+[22/24] Linking CXX static library libspatial-issuer.a
+[23/24] Building CXX object CMakeFiles/identityd.dir/src/identity/issuer_main.cpp.o
+[24/24] Linking CXX executable identityd

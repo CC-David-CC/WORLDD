@@ -1,0 +1,20 @@
+{
+  "base": "67a205e1445d9cf7f94a8ad03b22deaac0fb1870",
+  "files": {
+    "spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto": {
+      "before": "b1cc6b2c508efe11e725ee9342b02b018f4bc381c539b745577fd352192dec1c",
+      "after": "1df689325c097e7c4395b4499fff592ea8ad13cb32e25dbb170d7749fa2dcddd",
+      "previous": null
+    },
+    "spatial-os-luna-handoff/tests/core/test_identity_enrollment.py": {
+      "before": "038d77196bd221f0e0204059c0c59c15ba00aee487bc51754d1e0316a2d6425e",
+      "after": "3ab707eba4f833835ff97c5a9da4d3596d01b3ae0070ae22be13d68d17a9a9fe",
+      "previous": null
+    },
+    "spatial-os-luna-handoff/tests/core/test_identity_revocation.py": {
+      "before": null,
+      "after": "ab329d96afa46de4e45ed8cadac8d09c262d7fb1ecfebf2b7a4fddd177f2ec32",
+      "previous": null
+    }
+  }
+}

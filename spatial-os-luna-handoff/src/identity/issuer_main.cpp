@@ -19,14 +19,20 @@ identity::IssuerReply dispatch(const identity::IssuerRequest& request, spatial::
             result->set_implementation("production"); result->set_build_id(SPATIAL_BUILD_ID);
             result->add_capabilities("identity.issuer-control/v1");
             result->add_capabilities("identity.enrollment/v1");
+            result->add_capabilities("identity.revocation/v1");
+            result->add_capabilities("identity.authentication/v1");
         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
         else if (request.has_execute()) {
             const auto result = issuer.execute(request.execute());
             if (result.has_policy()) *reply.mutable_policy() = result.policy();
-            else *reply.mutable_enrollment() = result.enrollment();
+            else if (result.has_enrollment()) *reply.mutable_enrollment() = result.enrollment();
+            else *reply.mutable_identity_status() = result.identity_status();
         } else if (request.has_enrollment_begin()) *reply.mutable_challenge() = issuer.enrollment_begin(request.enrollment_begin());
         else if (request.has_enrollment_complete()) *reply.mutable_enrollment() = issuer.enrollment_complete(request.enrollment_complete());
+        else if (request.has_credential_check()) *reply.mutable_identity_status() = issuer.credential_check(request.credential_check());
+        else if (request.has_authentication_begin()) *reply.mutable_challenge() = issuer.authentication_begin(request.authentication_begin());
+        else if (request.has_authentication_complete()) *reply.mutable_authentication() = issuer.authentication_complete(request.authentication_complete());
         else throw spatial::WorldError(spatial::wire::UNKNOWN_METHOD, "No recognized issuer operation");
     } catch (const spatial::WorldError& error) {
         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());

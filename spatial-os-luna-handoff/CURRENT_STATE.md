@@ -1,5 +1,47 @@
 # Implementation status
 
+## 2026-10-07: M01 issuer revocation and authentication backend qualified
+
+The production issuer now persists credential and actor revocation with an independent security revision.
+Owner-signed decisions use revision checks and real SQLite transactions.
+Credential revocation preserves other credentials. Actor revocation disables all credentials for that identity and prevents new attachment.
+Committed revocation removes affected pending authentication challenges. Failed writes preserve still-valid proofs.
+
+Authentication verifies the issuer signature, exact registered credential, and current actor and credential status.
+A fresh actor proof binds the issuer, incarnation, nonce, credential, intended service, and connection context.
+Completion consumes the challenge and rechecks current status.
+Results derive identity from issuer records. They do not grant world admission or workspace authority.
+Protected service consumers must match the returned context to their own pending authentication.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 existing P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 318 core checks, including 24 new revocation and authentication checks.
+- All 51 harness checks.
+
+Independent OpenSSL proofs, direct SQLite reads, real write aborts, and process death verify the backend.
+An isolated mutation ignored credential revocation when calculating active status.
+The restart counterexample detected fresh authentication with that revoked credential. The mutation never entered production.
+All 120 source hashes match reviewed local files and both hosts.
+The acceptance lock, locked assertions, core transport, oracles, and native witness remain unchanged.
+Enrollment assertions remain unchanged. Their shared helpers moved to a fixture class.
+The version-1 migration fixture now removes later security tables when preparing its original schema.
+
+Evidence is in evidence/identity-revocation-2026-10-07. The contract is docs/IDENTITY_REVOCATION.md.
+The issuer.proto extension preserves existing fields and adds current status, revocation, and authentication messages.
+Schema version 3 adds security_state and revocation tables.
+Explicit migration from versions 1 and 2 preserves issuer identity, keys, policy, and existing credential bytes.
+Only disposable test issuers were initialized or migrated. No actual David credential changed.
+No host configuration or operator session changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+This qualification covers the issuer backend. It does not establish revocation across active world sessions.
+Authenticated world entry, protected transport, current action checks, and immediate input and observation cancellation remain required.
+Nonempty bootstrap profiles, scoped grants, and dependent-grant revocation remain M01 and M02 integration work.
+All remaining M01-M16 and H01-H08 requirements stay mandatory. Full Spatial-M1 remains incomplete.
+Next: identity.world_session and production integration of current issuer status.
+The full project goal remains active.
+
 ## 2026-10-07: M01 actor enrollment and signed credentials qualified
 
 The production issuer now persists proven enrollment requests, actor identities, and signed credentials.

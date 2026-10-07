@@ -1,0 +1,60 @@
+{
+  "base": "67a205e1445d9cf7f94a8ad03b22deaac0fb1870",
+  "source_overlay": {
+    "base": "67a205e1445d9cf7f94a8ad03b22deaac0fb1870",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "bf1ec28899772d346f2b66b53153f7997daa043cf7d959e8db7d8d26934556fb",
+        "after": "e91d1cf197890fede59ab8e5743cd379bb9b49361c83f9ae1b85b8a0739b7843",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/docs/IDENTITY_REVOCATION.md": {
+        "before": null,
+        "after": "20c20ea742eebfbcae4d4334cdf2dca8cfbe90795952fb5972d047556f2a3e20",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto": {
+        "before": "b1cc6b2c508efe11e725ee9342b02b018f4bc381c539b745577fd352192dec1c",
+        "after": "1df689325c097e7c4395b4499fff592ea8ad13cb32e25dbb170d7749fa2dcddd",
+        "previous": "1df689325c097e7c4395b4499fff592ea8ad13cb32e25dbb170d7749fa2dcddd"
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.cpp": {
+        "before": "2764277ff89d9f2c75c46219fdb7a883f7c7458b9681d4375aff85c9cb48b42e",
+        "after": "e59311a1486afa8c2fcac7030ece7d620ef71e0c0b3784e2a01b2117690e93b6",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.hpp": {
+        "before": "88d294d2c6b1e7c4285955a87ace0140b9533447d699e866af5f6a81907a9fb4",
+        "after": "9d55ce4d2d6fbedee572d8c217ead67bc1868207e3e27223749fab77de44431a",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/src/identity/issuer_main.cpp": {
+        "before": "a85dcfaa63dee79bbcd33ab9c8d190ba9889235c28507d4af7d285becf855021",
+        "after": "215314e0e8faaa71a0ddcda7460d8fb96296a2b9072c5276156f34bd37168cb5",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_identity_enrollment.py": {
+        "before": "038d77196bd221f0e0204059c0c59c15ba00aee487bc51754d1e0316a2d6425e",
+        "after": "3ab707eba4f833835ff97c5a9da4d3596d01b3ae0070ae22be13d68d17a9a9fe",
+        "previous": "3ab707eba4f833835ff97c5a9da4d3596d01b3ae0070ae22be13d68d17a9a9fe"
+      },
+      "spatial-os-luna-handoff/tests/core/test_identity_revocation.py": {
+        "before": null,
+        "after": "ab329d96afa46de4e45ed8cadac8d09c262d7fb1ecfebf2b7a4fddd177f2ec32",
+        "previous": "ab329d96afa46de4e45ed8cadac8d09c262d7fb1ecfebf2b7a4fddd177f2ec32"
+      }
+    }
+  },
+  "invariant": "A revoked credential cannot start fresh authentication, including after issuer restart.",
+  "mutation": "Ignore credential revocation when computing effective active status.",
+  "before_sha256": "e59311a1486afa8c2fcac7030ece7d620ef71e0c0b3784e2a01b2117690e93b6",
+  "after_sha256": "cbdabbd711d0dcb8d9a36e32b6ddd3cb8387349dc6735f45183e268c5155310e",
+  "argv": [
+    "python3",
+    "tests/core/test_identity_revocation.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-revocation-mutation/source/spatial-os-luna-handoff/build/identityd",
+    "RevocationTests.test_revocation_and_security_revision_survive_process_death"
+  ],
+  "exit_code": 1,
+  "status": "detected"
+}

@@ -20,7 +20,8 @@ Existing components provide partial implementation only where CURRENT_STATE.md r
 The mandatory profile is tasks/spatial-m1.json. M01's contract is IDENTITY.md.
 Production key material, issuer control, and manual enrollment are qualified components of M01.
 Manual and automatic issuance currently support only the empty-v1 profile. See ENROLLMENT.md for this limitation.
-Nonempty bootstrap grants, revocation, protected transport, and authenticated world sessions remain required.
+Issuer-side revocation and fresh authentication are qualified. See IDENTITY_REVOCATION.md for their scope.
+Nonempty bootstrap grants, live world revocation, protected transport, and authenticated world sessions remain required.
 
 ## Ordered implementation
 

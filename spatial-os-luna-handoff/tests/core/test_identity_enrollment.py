@@ -11,7 +11,7 @@ import key_pb2 as keys
 from test_identity_issuer import IssuerFixture, BINARY, DOMAIN
 
 
-class EnrollmentTests(IssuerFixture):
+class EnrollmentFixture(IssuerFixture):
     def setUp(self):
         super().setUp()
         self.actor_key, self.actor_public = self.key('actor')
@@ -67,6 +67,7 @@ class EnrollmentTests(IssuerFixture):
         with sqlite3.connect(f'file:{self.state}/identity.db?mode=ro',uri=True) as db:
             return tuple(db.execute('SELECT count(*) FROM '+table).fetchone()[0] for table in ('enrollment','actor','credential'))
 
+class EnrollmentTests(EnrollmentFixture):
     def test_proven_key_waits_for_owner_approval(self):
         self.init(); client=self.start(); record=self.enroll(client)
         self.assertEqual(record.status,pb.PENDING); self.assertEqual(len(record.enrollment_id),32)
@@ -245,7 +246,8 @@ class EnrollmentTests(IssuerFixture):
     def test_explicit_schema_migration_preserves_issuer_key_owner_and_policy(self):
         info=self.init();before=self.snapshot();secret=(self.state/'issuer.pem').read_bytes()
         with sqlite3.connect(self.state/'identity.db') as db:
-            db.executescript('DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
+            db.executescript('DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
+                             'DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
         command=[str(BINARY),'--state-dir',str(self.state)]
         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
