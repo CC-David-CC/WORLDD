@@ -102,6 +102,17 @@ message AdminResult {
   oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; }
 }
 message IssuerInfoRequest {}
+// Trusted supervisor configuration. Paths are absolute and remain outside Git.
+// TLS service certificates do not grant actor or issuer-owner authority.
+message IssuerTlsServerConfig {
+  uint32 protocol_version = 1;
+  string certificate_path = 2;
+  string private_key_path = 3;
+  string client_ca_path = 4;
+  optional uint32 io_timeout_ms = 5; // 50..60000; default 5000.
+  optional uint32 idle_timeout_ms = 6; // 50..300000; default 60000.
+  optional uint32 connection_limit = 7; // 1..128; default 32.
+}
 message IssuerInfo { bytes issuer_id = 1; bytes public_key = 2; uint64 policy_revision = 3; }
 message IssuerChallenge {
   uint32 protocol_version = 1;

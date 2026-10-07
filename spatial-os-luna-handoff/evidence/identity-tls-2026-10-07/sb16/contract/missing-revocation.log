@@ -1,0 +1,17 @@
+test_mutual_tls_reaches_production_issuer (__main__.TlsTests.test_mutual_tls_reaches_production_issuer) ... FAIL
+
+======================================================================
+FAIL: test_mutual_tls_reaches_production_issuer (__main__.TlsTests.test_mutual_tls_reaches_production_issuer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 132, in test_mutual_tls_reaches_production_issuer
+    peer = self.ready()
+           ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    self.assertIsNone(proc.poll(), 'TLS issuer exited before accepting a connection')
+AssertionError: 2 is not None : TLS issuer exited before accepting a connection
+
+----------------------------------------------------------------------
+Ran 1 test in 0.116s
+
+FAILED (failures=1)

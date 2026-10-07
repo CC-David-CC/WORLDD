@@ -1,0 +1,22 @@
+[0/2] Re-checking globbed directories...
+[1/21] Generating python/issuer_pb2.py
+[2/21] Running cpp protocol buffer compiler on proto/spatial/identity/v1/issuer.proto
+[3/21] Building CXX object CMakeFiles/spatial-protobuf.dir/issuer.pb.cc.o
+[4/21] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/issuer.cpp.o
+[5/21] Linking CXX static library libspatial-protobuf.a
+[6/21] Linking CXX executable spatial-key
+[7/21] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[8/21] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/tls_server.cpp.o
+[9/21] Linking CXX static library libspatial-issuer.a
+[10/21] Building CXX object CMakeFiles/identityd.dir/src/identity/issuer_main.cpp.o
+[11/21] Linking CXX executable identityd
+[12/21] Linking CXX executable spatialwm
+[13/21] Linking CXX executable spatial-app-init
+[14/21] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[15/21] Linking CXX static library libspatial-core.a
+[16/21] Linking CXX executable worldd
+[17/21] Linking CXX executable spatial-input-bridge
+[18/21] Linking CXX executable spatial-git-job-probe
+[19/21] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[20/21] Linking CXX executable workspaced
+[21/21] Linking CXX executable spatial-test-host

@@ -1,0 +1,17 @@
+test_missing_service_certificate_rejected (__main__.TlsTests.test_missing_service_certificate_rejected) ... FAIL
+
+======================================================================
+FAIL: test_missing_service_certificate_rejected (__main__.TlsTests.test_missing_service_certificate_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-tls-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 165, in test_missing_service_certificate_rejected
+    try: self.closed(self.connect(self.context(identity=False)))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-tls-mutation/source/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 127, in closed
+    self.assertEqual(result, b'', 'Rejected peer received an application response')
+AssertionError: b'\x00\x00\x00J' != b'' : Rejected peer received an application response
+
+----------------------------------------------------------------------
+Ran 1 test in 0.212s
+
+FAILED (failures=1)

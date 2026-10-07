@@ -1,5 +1,49 @@
 # Implementation status
 
+## 2026-10-07: M01 issuer TLS service listener qualified
+
+The production issuer now accepts framed Protocol Buffers over mutually authenticated TLS 1.3.
+Trusted service connections use the same issuer handlers and persistent authority as the management pipe.
+Service certificates permit transport access. Owner and actor signatures still control their respective operations.
+The supervisor supplies a listening TCP socket and an explicit private configuration.
+EOF on its lifetime channel closes the listener and all peers.
+
+Connections have fixed handshake, request, and reply deadlines, plus an idle timeout.
+Each connection has a one-MiB frame limit. A configured connection cap bounds concurrent peers.
+Malformed protobuf produces typed errors. Invalid TLS, truncation, excessive frames, and expiry close the affected peer.
+The nonblocking loop preserves progress for other peers.
+TLS 1.2, plaintext, missing certificates, untrusted certificates, and expired certificates are rejected.
+Keys and trust files are opened through checked descriptors. Encrypted or unsafe private keys fail without prompting.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 341 core checks, including 23 new TLS transport checks.
+- All 51 harness checks.
+
+An independent Python TLS client on sb16-2 connected directly to identityd on sb16.
+It verified server trust and name, the expected issuer identity, enrollment, and the issuer credential signature.
+It then completed fresh, context-bound actor authentication through the production handlers.
+Only disposable fixture identities and certificates were used. Their transfer archives and temporary state were removed.
+
+An isolated mutation allowed peers without a service certificate.
+The independent negative test detected the unauthorized application response.
+The mutation never entered production.
+All 125 source hashes match the reviewed local files and both hosts.
+The acceptance lock, existing assertions, core transport, oracles, and native witness remain unchanged.
+issuer.proto adds a supervisor TLS configuration message. Existing wire field meanings and database schema 3 remain unchanged.
+
+Evidence is in evidence/identity-tls-2026-10-07. The contract is docs/ISSUER_TLS.md.
+No system service, package, firewall, login setting, or permanent certificate installation changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+This increment qualifies the issuer listener. The production checked client remains required.
+Authenticated world entry and immediate revocation of live input, observation, and control remain incomplete.
+Nonempty bootstrap profiles and scoped grants remain required.
+All remaining M01-M16 and H01-H08 requirements stay mandatory. Full Spatial-M1 remains incomplete.
+Next: identity.issuer_client, then identity.world_session integration.
+The full project goal remains active.
+
 ## 2026-10-07: M01 issuer revocation and authentication backend qualified
 
 The production issuer now persists credential and actor revocation with an independent security revision.

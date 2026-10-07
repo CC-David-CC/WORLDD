@@ -1,0 +1,70 @@
+{
+  "base": "2f0c4cd13db115fed9c7b7dd061eea11ee6ffb6c",
+  "source_overlay": {
+    "base": "2f0c4cd13db115fed9c7b7dd061eea11ee6ffb6c",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "e91d1cf197890fede59ab8e5743cd379bb9b49361c83f9ae1b85b8a0739b7843",
+        "after": "165dce6046f04e78792a66e078962725255a9815b0e27254086e3f36723f2871",
+        "previous": "f9b08ac2e6230ea99039990fe9f9c0d48fb6b8203aa26b2d03b0bf2ee536b74f"
+      },
+      "spatial-os-luna-handoff/docs/ISSUER_TLS.md": {
+        "before": null,
+        "after": "dcdc7ff8028b6faccb2cb38440ce0d14ca07545eb84cc5cc2338ae274d73e528",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto": {
+        "before": "1df689325c097e7c4395b4499fff592ea8ad13cb32e25dbb170d7749fa2dcddd",
+        "after": "720a0911e7677a125c1c7b0e2e159c332a6e3fad21893cc4bfc2e7f064b79e1b",
+        "previous": "720a0911e7677a125c1c7b0e2e159c332a6e3fad21893cc4bfc2e7f064b79e1b"
+      },
+      "spatial-os-luna-handoff/src/identity/issuer_main.cpp": {
+        "before": "215314e0e8faaa71a0ddcda7460d8fb96296a2b9072c5276156f34bd37168cb5",
+        "after": "40f3e03ddcdab2ade0bdd59bd1d35200b0f6c0c56a8dcdb3036bb9c03f4ddf0c",
+        "previous": "ef52b67eedd5ae04b7f4fa8fedb3166ec4cb6696ae50072a8184800b84ba5bac"
+      },
+      "spatial-os-luna-handoff/src/identity/protocol.cpp": {
+        "before": null,
+        "after": "44f62602992f061cf97d080eec45895a502cad89da3ebe8ec691068609841b06",
+        "previous": "99203a47c42dcbbb352f6bb66195649d2d001e1483fd4b17cbca4016050c360a"
+      },
+      "spatial-os-luna-handoff/src/identity/protocol.hpp": {
+        "before": null,
+        "after": "9d520c2e7641d99c42ada729d168cff694bdf6f6683be5f8ca6ebd815b7ed124",
+        "previous": "9d520c2e7641d99c42ada729d168cff694bdf6f6683be5f8ca6ebd815b7ed124"
+      },
+      "spatial-os-luna-handoff/src/identity/tls_server.cpp": {
+        "before": null,
+        "after": "caef547e3985bb9d5e350e1c49d9ea6f5cb3f9d234213cc076269eaf736155a9",
+        "previous": "caef547e3985bb9d5e350e1c49d9ea6f5cb3f9d234213cc076269eaf736155a9"
+      },
+      "spatial-os-luna-handoff/src/identity/tls_server.hpp": {
+        "before": null,
+        "after": "79f8b293b5e27035f2de910a5102c8081f9472720064dbe9109ff0b39d82b6b5",
+        "previous": "79f8b293b5e27035f2de910a5102c8081f9472720064dbe9109ff0b39d82b6b5"
+      },
+      "spatial-os-luna-handoff/tasks/m1/identity.issuer_tls.json": {
+        "before": null,
+        "after": "204ab2796beda3e316b9f11bc0099df2a844ea2ce3ec7d5dde2e5185f75bf303",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_identity_tls.py": {
+        "before": null,
+        "after": "2030d51107950b24bd7e53334de25afe389025b13eef0c017e100364b75c62a9",
+        "previous": "dd209e4efd9fc78a1c3bf2e4a9bb6e3ef24740a5869eab17941f487dbe277550"
+      }
+    }
+  },
+  "invariant": "An issuer TLS connection requires a trusted service certificate.",
+  "mutation": "Permit a TLS peer that sends no service certificate.",
+  "before_sha256": "caef547e3985bb9d5e350e1c49d9ea6f5cb3f9d234213cc076269eaf736155a9",
+  "after_sha256": "09e7ded904ef519832a56d380db6046fa4ced38061d91adf5ac6461def008a3f",
+  "argv": [
+    "python3",
+    "tests/core/test_identity_tls.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-tls-mutation/source/spatial-os-luna-handoff/build/identityd",
+    "TlsTests.test_missing_service_certificate_rejected"
+  ],
+  "exit_code": 1,
+  "status": "detected"
+}

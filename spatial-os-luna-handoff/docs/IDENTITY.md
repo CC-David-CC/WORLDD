@@ -7,7 +7,9 @@ Key material, issuer control, and manual enrollment are implemented and qualifie
 See ISSUER_CONTROL.md and ENROLLMENT.md for their interfaces, evidence, and explicit migration.
 Manual and automatic issuance currently resolve only the empty-v1 profile, which grants no authority.
 Issuer-side credential and actor revocation and fresh authentication are qualified. See IDENTITY_REVOCATION.md for their limits.
-Nonempty bootstrap grants, protected transport, and authenticated world sessions with immediate revocation remain required work.
+The issuer TLS service listener is qualified. See ISSUER_TLS.md for its interface and limits.
+The production checked issuer client remains required.
+Nonempty bootstrap grants and authenticated world sessions with immediate revocation remain required work.
 
 ## Required integration
 

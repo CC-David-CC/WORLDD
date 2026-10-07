@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "client_host": "sb16-2",
+  "server_host": "sb16",
+  "protocol": "TLSv1.3",
+  "checks": [
+    "server chain and name",
+    "client certificate",
+    "pinned issuer identity",
+    "real automatic enrollment",
+    "independent issuer credential signature",
+    "context-bound fresh actor authentication"
+  ],
+  "test_sha256": "2030d51107950b24bd7e53334de25afe389025b13eef0c017e100364b75c62a9"
+}

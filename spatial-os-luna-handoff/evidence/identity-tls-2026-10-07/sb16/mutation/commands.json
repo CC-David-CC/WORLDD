@@ -1,0 +1,54 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-tls-mutation/source",
+      "2f0c4cd13db115fed9c7b7dd061eea11ee6ffb6c"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "identityd",
+      "issuer-python-protobuf",
+      "key-python-protobuf",
+      "python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "witness",
+    "argv": [
+      "python3",
+      "tests/core/test_identity_tls.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-tls-mutation/source/spatial-os-luna-handoff/build/identityd",
+      "TlsTests.test_missing_service_certificate_rejected"
+    ],
+    "exit_code": 1
+  }
+]

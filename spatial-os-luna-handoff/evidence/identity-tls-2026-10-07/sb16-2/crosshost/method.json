@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "python3",
+    "/home/dflanag3/src/m01-tls-cross-client.py"
+  ],
+  "exit_code": 0,
+  "helper_sha256": "641c8d0df44112b47c5b5c536726f96ad980958b7d3ea665dd4da3eec5ea4afc",
+  "helper_source": "from pathlib import Path\nimport hashlib,json,os,socket,ssl,sys,tarfile,tempfile\np=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff');assert socket.gethostname().split('.')[0]=='sb16-2'\nos.umask(0o077);sys.path[:0]=[str(p/'tests/core'),str(p/'build/python'),str(p)]\nsys.argv=[sys.argv[0],str(p/'build/identityd')]\nfrom test_identity_tls import Peer\nfrom test_identity_enrollment import EnrollmentFixture\nimport issuer_pb2 as pb\nfixture=EnrollmentFixture();fixture.setUp()\nbundle=p/'local/m01-tls-crosshost-fixture.tar';folder=p/'local/m01-tls-crosshost';folder.mkdir()\ntry:\n with tarfile.open(bundle) as archive:\n  members=archive.getmembers()\n  assert {m.name for m in members}=={'connection.json','server.crt','service.crt','service.pem'}\n  for m in members:\n   assert m.isfile() and m.size<65536\n   (fixture.root/m.name).write_bytes(archive.extractfile(m).read())\n metadata=json.loads((fixture.root/'connection.json').read_text());assert metadata['host']=='sb16'\n ctx=ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT);ctx.minimum_version=ctx.maximum_version=ssl.TLSVersion.TLSv1_3\n ctx.load_verify_locations(str(fixture.root/'server.crt'));ctx.load_cert_chain(str(fixture.root/'service.crt'),str(fixture.root/'service.pem'))\n raw=socket.create_connection(('sb16',metadata['port']),timeout=5)\n peer=Peer(ctx.wrap_socket(raw,server_hostname='issuer.test'));fixture.addCleanup(peer.close)\n info=peer.call(info=pb.IssuerInfoRequest()).info\n assert info.issuer_id.hex()==metadata['issuer_id'] and info.public_key.hex()==metadata['issuer_public_key']\n enrolled=fixture.enroll(peer);claims=fixture.claims(enrolled,info)\n challenge=peer.call(authentication_begin=pb.AuthenticationBegin(credential=enrolled.credential,\n  audience='cross-host-fixture',channel_binding=b'z'*32)).challenge\n result=peer.call(authentication_complete=pb.AuthenticationComplete(nonce=challenge.nonce,\n  proof=fixture.proof(challenge,fixture.actor_key,fixture.actor_public))).authentication\n assert result.identity.actor_id==claims.actor_id and result.identity.active and result.channel_binding==b'z'*32\n record={'status':'passed','client_host':'sb16-2','server_host':'sb16','protocol':peer.stream.version(),\n         'checks':['server chain and name','client certificate','pinned issuer identity','real automatic enrollment',\n                   'independent issuer credential signature','context-bound fresh actor authentication'],\n         'test_sha256':hashlib.sha256((p/'tests/core/test_identity_tls.py').read_bytes()).hexdigest()}\n (folder/'client.json').write_text(json.dumps(record,indent=2)+'\\n');print(json.dumps(record),flush=True)\nfinally:\n fixture.doCleanups();bundle.unlink()\n",
+  "result": {
+    "status": "passed",
+    "client_host": "sb16-2",
+    "server_host": "sb16",
+    "protocol": "TLSv1.3",
+    "checks": [
+      "server chain and name",
+      "client certificate",
+      "pinned issuer identity",
+      "real automatic enrollment",
+      "independent issuer credential signature",
+      "context-bound fresh actor authentication"
+    ],
+    "test_sha256": "2030d51107950b24bd7e53334de25afe389025b13eef0c017e100364b75c62a9"
+  },
+  "fixture_cleanup": "Temporary keys, certificates, issuer database, and transfer archives removed."
+}
