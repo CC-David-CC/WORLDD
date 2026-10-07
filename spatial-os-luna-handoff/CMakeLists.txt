@@ -22,6 +22,8 @@ protobuf_generate_cpp(broker_proto_sources broker_proto_headers proto/spatial/wo
 protobuf_generate_cpp(key_proto_sources key_proto_headers proto/spatial/identity/v1/key.proto)
 protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/identity/v1/issuer.proto)
 protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
+list(APPEND Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1")
+protobuf_generate_cpp(grants_proto_sources grants_proto_headers proto/spatial/authority/v1/grants.proto)
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
@@ -64,6 +66,12 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/world_session_pb2.
     DEPENDS proto/spatial/identity/v1/world_session.proto proto/spatial/identity/v1/issuer.proto
         proto/spatial/identity/v1/key.proto proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
 add_custom_target(world-session-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/world_session_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/grants_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1/grants.proto
+    DEPENDS proto/spatial/authority/v1/grants.proto protobuf::protoc VERBATIM)
+add_custom_target(grants-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/grants_pb2.py")
 
 option(SPATIAL_SANITIZERS "Enable address and undefined-behavior sanitizers" OFF)
 option(SPATIAL_INPUT_TESTS "Require the project XLibre actor-input counterexamples" OFF)
@@ -110,6 +118,8 @@ target_link_libraries(spatial-issuer-watch-lib PUBLIC spatial-issuer-client-lib 
 add_executable(spatial-issuer-watch src/identity/watch_main.cpp)
 target_link_libraries(spatial-issuer-watch PRIVATE spatial-issuer-watch-lib)
 add_library(spatial-issuer STATIC src/identity/issuer.cpp src/identity/protocol.cpp src/identity/tls_server.cpp)
+add_library(spatial-authority STATIC src/authority/store.cpp ${grants_proto_sources} ${grants_proto_headers})
+target_link_libraries(spatial-authority PUBLIC spatial-scene SQLite::SQLite3 OpenSSL::Crypto)
 target_link_libraries(spatial-issuer PUBLIC spatial-identity-tls SQLite::SQLite3)
 add_executable(identityd src/identity/issuer_main.cpp)
 target_link_libraries(identityd PRIVATE spatial-issuer)
@@ -136,6 +146,21 @@ add_dependencies(spatial-test-host worldd workspaced)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    protobuf_generate_cpp(grants_probe_sources grants_probe_headers proto/spatial/authority/v1/grants_probe.proto)
+    add_executable(spatial-authority-probe src/testing/authority_probe.cpp ${grants_probe_sources} ${grants_probe_headers})
+    target_link_libraries(spatial-authority-probe PRIVATE spatial-authority)
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/grants_probe_pb2.py"
+        COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+            ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1/grants_probe.proto
+        DEPENDS proto/spatial/authority/v1/grants_probe.proto proto/spatial/authority/v1/grants.proto
+            proto/spatial/core/v1/core.proto protobuf::protoc VERBATIM)
+    add_custom_target(grants-probe-python ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/grants_probe_pb2.py")
+    add_test(NAME authority-store COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority.py" $<TARGET_FILE:spatial-authority-probe>)
+    set_tests_properties(authority-store PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME identity-keys COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_keys.py" $<TARGET_FILE:spatial-key>)
     set_tests_properties(identity-keys PROPERTIES TIMEOUT 60

@@ -1,0 +1,20 @@
+[0/2] Re-checking globbed directories...
+[1/19] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[2/19] Linking CXX static library libspatial-issuer.a
+[3/19] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/19] Linking CXX executable identityd
+[5/19] Linking CXX static library libspatial-core.a
+[6/19] Linking CXX executable worldd
+[7/19] Generating python/grants_pb2.py
+[8/19] Running cpp protocol buffer compiler on proto/spatial/authority/v1/grants.proto
+[9/19] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[10/19] Building CXX object CMakeFiles/spatial-authority.dir/src/authority/store.cpp.o
+[11/19] Linking CXX executable workspaced
+[12/19] Linking CXX executable spatial-test-host
+[13/19] Generating python/grants_probe_pb2.py
+[14/19] Building CXX object CMakeFiles/spatial-authority.dir/grants.pb.cc.o
+[15/19] Linking CXX static library libspatial-authority.a
+[16/19] Running cpp protocol buffer compiler on proto/spatial/authority/v1/grants_probe.proto
+[17/19] Building CXX object CMakeFiles/spatial-authority-probe.dir/src/testing/authority_probe.cpp.o
+[18/19] Building CXX object CMakeFiles/spatial-authority-probe.dir/grants_probe.pb.cc.o
+[19/19] Linking CXX executable spatial-authority-probe

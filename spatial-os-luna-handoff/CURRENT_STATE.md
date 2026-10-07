@@ -1,5 +1,49 @@
 # Implementation status
 
+## 2026-10-07: Persistent grant-store component qualified
+
+The production authority library now stores scoped world or workspace grants in SQLite.
+Each domain retains its own identity. World and workspace scopes remain independent.
+Delegation records a durable parent and requires an active chain with narrower scope, rights, and depth.
+Held rights and delegable rights are separate. Administration does not imply delegation of administration.
+Parent revocation disables descendants on the next store decision. Independent grants remain valid.
+The store checks ancestor identities through a required caller-supplied identity-status checker.
+Creation and revocation commit with their authority revisions in one database transaction.
+Unknown schemas, malformed records, missing parents, cycles, and unsafe storage fail closed.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 445 core checks, including 43 new authority-store checks.
+- All 51 harness checks.
+
+The tests exercised real persistence, restart, process death, and transactional storage failure.
+Independent SQLite reads verified stored parent links and records.
+Generated chains and adversarial cases checked structural scope and transitive narrowing.
+A final-source mutation ignored stored revocation. The parent-revocation counterexample detected it.
+The mutation never entered production.
+Initial startup failed because SQLite NOFOLLOW rejected an intentional descriptor-path symlink.
+The corrected implementation retains NOFOLLOW and uses the checked directory's kernel-resolved path.
+Initial failure logs and the final qualification logs are retained.
+
+All 147 source hashes match reviewed local files and both hosts.
+The acceptance lock and locked assertions remain unchanged.
+The new grants.proto defines stored authority records. Existing wire and database schemas remain unchanged.
+Evidence is in evidence/authority-store-2026-10-07. The contract is docs/AUTHORITY_STORE.md.
+No system service, host configuration, operator session, or actual David identity changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+This qualifies the production library through a thin fixture driver.
+The driver is not an authenticated actor endpoint.
+Worldd and workspaced do not yet use the store for live authorization.
+Static world grants and workspace memberships remain unchanged at this increment.
+The store does not yet publish revocation notifications or cancel live input.
+Nonempty enrollment profiles, authenticated runtime adapters, and distributed cancellation remain required.
+M01, M02, full Spatial-M1, and all other mandatory M01-M16/H01-H08 items remain incomplete.
+Next: connect domain grants to authenticated runtime identities and live world and workspace checks.
+Then apply bounded enrollment profiles through explicit domain-authorized grants.
+The full project goal remains active. No external blocker is recorded.
+
 ## 2026-10-07: Authenticated local world sessions qualified
 
 worldd now accepts actor-only Protocol Buffer channels separately from trusted management.

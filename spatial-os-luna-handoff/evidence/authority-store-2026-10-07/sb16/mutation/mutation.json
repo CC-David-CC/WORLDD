@@ -1,0 +1,55 @@
+{
+  "base": "5888b4cc9b531614189644d489f87d6480055dab",
+  "source_overlay": {
+    "base": "5888b4cc9b531614189644d489f87d6480055dab",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "3f7b344162cdf680135dfe96468ff788e702ffaa8dce1686d8c1c68167b057be",
+        "after": "5518edadd8e0d3c485c363de9ec8d0b44b7ee97367de09f79c5c828751a4fb6e",
+        "previous": "5518edadd8e0d3c485c363de9ec8d0b44b7ee97367de09f79c5c828751a4fb6e"
+      },
+      "spatial-os-luna-handoff/proto/spatial/authority/v1/grants.proto": {
+        "before": null,
+        "after": "7af12af0fe1e984e2459a01e291de8b362b240e1450c74501168415861a2464a",
+        "previous": "7af12af0fe1e984e2459a01e291de8b362b240e1450c74501168415861a2464a"
+      },
+      "spatial-os-luna-handoff/proto/spatial/authority/v1/grants_probe.proto": {
+        "before": null,
+        "after": "95f93f7573e658cc620ff9009d6d4eea005468dfb56e7d06f1dbdf4a18d705ba",
+        "previous": "95f93f7573e658cc620ff9009d6d4eea005468dfb56e7d06f1dbdf4a18d705ba"
+      },
+      "spatial-os-luna-handoff/src/authority/store.cpp": {
+        "before": null,
+        "after": "d2c09f879bf582a64907520c6cc58806cacd7baaf6326661946a32c8e20e9de0",
+        "previous": "ea7617eb6dd48ca57e428c0b404d30bc4402b915f90bccbba647674482dfc603"
+      },
+      "spatial-os-luna-handoff/src/authority/store.hpp": {
+        "before": null,
+        "after": "f5bc8068896c58979420747c76c432c1132320fb22473046d2e383099d581603",
+        "previous": "f5bc8068896c58979420747c76c432c1132320fb22473046d2e383099d581603"
+      },
+      "spatial-os-luna-handoff/src/testing/authority_probe.cpp": {
+        "before": null,
+        "after": "e876bd1f01310a4e9e14a4429ca36b5068577e0398b32ad0b3f44a02fc780c7a",
+        "previous": "e876bd1f01310a4e9e14a4429ca36b5068577e0398b32ad0b3f44a02fc780c7a"
+      },
+      "spatial-os-luna-handoff/tests/core/test_authority.py": {
+        "before": null,
+        "after": "7ae10cd5eab0697823a05e4bcd71494867efb9e188aad32580688a2fd853c4f9",
+        "previous": "30255e425415bca5dbd6380181eb623d28e4270b1a7421085e12160c97fa3522"
+      }
+    }
+  },
+  "invariant": "Revoking a parent disables its descendants.",
+  "mutation": "Ignore stored grant revocation revisions when evaluating chains.",
+  "before_sha256": "d2c09f879bf582a64907520c6cc58806cacd7baaf6326661946a32c8e20e9de0",
+  "after_sha256": "2ba23db7d52de6f5f1b053a079f714c906f6154bc26ec138f9ae5e4f3f83c8f0",
+  "argv": [
+    "python3",
+    "tests/core/test_authority.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-grants-mutation/source/spatial-os-luna-handoff/build/spatial-authority-probe",
+    "AuthorityTests.test_parent_revocation_invalidates_all_descendants"
+  ],
+  "exit_code": 1,
+  "status": "detected"
+}

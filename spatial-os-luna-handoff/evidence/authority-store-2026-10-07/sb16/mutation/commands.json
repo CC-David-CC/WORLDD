@@ -1,0 +1,54 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-grants-mutation/source",
+      "5888b4cc9b531614189644d489f87d6480055dab"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "spatial-authority-probe",
+      "grants-probe-python",
+      "grants-python-protobuf",
+      "python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "witness",
+    "argv": [
+      "python3",
+      "tests/core/test_authority.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-grants-mutation/source/spatial-os-luna-handoff/build/spatial-authority-probe",
+      "AuthorityTests.test_parent_revocation_invalidates_all_descendants"
+    ],
+    "exit_code": 1
+  }
+]

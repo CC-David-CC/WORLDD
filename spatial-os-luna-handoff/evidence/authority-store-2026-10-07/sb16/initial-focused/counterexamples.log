@@ -1,0 +1,751 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: authority-store
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-authority-probe"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+1: Test timeout computed to be: 60
+1: test_administration_delegation_requires_explicit_permission (__main__.AuthorityTests.test_administration_delegation_requires_explicit_permission) ... ERROR
+1: test_administration_does_not_imply_other_rights_or_delegation (__main__.AuthorityTests.test_administration_does_not_imply_other_rights_or_delegation) ... ERROR
+1: test_bounded_scopes (__main__.AuthorityTests.test_bounded_scopes) ... ERROR
+1: test_child_cannot_retain_parent_depth (__main__.AuthorityTests.test_child_cannot_retain_parent_depth) ... ERROR
+1: test_corrupt_parent_chain_fails_closed (__main__.AuthorityTests.test_corrupt_parent_chain_fails_closed) ... ERROR
+1: test_database_has_real_durable_parent_and_scope_records (__main__.AuthorityTests.test_database_has_real_durable_parent_and_scope_records) ... ERROR
+1: test_delegable_right_requires_held_right (__main__.AuthorityTests.test_delegable_right_requires_held_right) ... ERROR
+1: test_delegable_subset_is_explicit (__main__.AuthorityTests.test_delegable_subset_is_explicit) ... ERROR
+1: test_domain_kind_and_identity_do_not_alias (__main__.AuthorityTests.test_domain_kind_and_identity_do_not_alias) ... ERROR
+1: test_empty_store_denies_and_root_is_explicit (__main__.AuthorityTests.test_empty_store_denies_and_root_is_explicit) ... ERROR
+1: test_failed_database_commit_rolls_back_revision_and_grant (__main__.AuthorityTests.test_failed_database_commit_rolls_back_revision_and_grant) ... ERROR
+1: test_grandchild_cannot_recover_removed_right (__main__.AuthorityTests.test_grandchild_cannot_recover_removed_right) ... ERROR
+1: test_held_right_is_not_implicitly_delegable (__main__.AuthorityTests.test_held_right_is_not_implicitly_delegable) ... ERROR
+1: test_inactive_ancestor_blocks_descendants (__main__.AuthorityTests.test_inactive_ancestor_blocks_descendants) ... ERROR
+1: test_inactive_subject_cannot_act_or_receive_delegation (__main__.AuthorityTests.test_inactive_subject_cannot_act_or_receive_delegation) ... ERROR
+1: test_independent_grants_survive_parent_revocation (__main__.AuthorityTests.test_independent_grants_survive_parent_revocation) ... ERROR
+1: test_issuer_can_revoke_child_and_subject_can_relinquish (__main__.AuthorityTests.test_issuer_can_revoke_child_and_subject_can_relinquish) ... ERROR
+1: test_missing_parent_is_not_an_implicit_root (__main__.AuthorityTests.test_missing_parent_is_not_an_implicit_root) ... ERROR
+1: test_parent_and_issuer_are_derived (__main__.AuthorityTests.test_parent_and_issuer_are_derived) ... ERROR
+1: test_parent_revocation_invalidates_all_descendants (__main__.AuthorityTests.test_parent_revocation_invalidates_all_descendants) ... ERROR
+1: test_records_and_decisions_survive_restart (__main__.AuthorityTests.test_records_and_decisions_survive_restart) ... ERROR
+1: test_revision_conflict_preserves_records (__main__.AuthorityTests.test_revision_conflict_preserves_records) ... ERROR
+1: test_rights_widening_fails (__main__.AuthorityTests.test_rights_widening_fails) ... ERROR
+1: test_same_actor_bytes_from_another_issuer_are_not_identity (__main__.AuthorityTests.test_same_actor_bytes_from_another_issuer_are_not_identity) ... ERROR
+1: test_scope_is_component_wise (__main__.AuthorityTests.test_scope_is_component_wise) ... ERROR
+1: test_scope_widening_and_sibling_delegation_fail (__main__.AuthorityTests.test_scope_widening_and_sibling_delegation_fail) ... ERROR
+1: test_scoped_administrator_cannot_revoke_outside_scope (__main__.AuthorityTests.test_scoped_administrator_cannot_revoke_outside_scope) ... ERROR
+1: test_sibling_rights_cannot_be_combined_for_delegation (__main__.AuthorityTests.test_sibling_rights_cannot_be_combined_for_delegation) ... ERROR
+1: test_unknown_duplicate_and_unspecified_rights_fail (__main__.AuthorityTests.test_unknown_duplicate_and_unspecified_rights_fail) ... ERROR
+1: test_unknown_fields_and_invalid_actor_are_rejected (__main__.AuthorityTests.test_unknown_fields_and_invalid_actor_are_rejected) ... ERROR
+1: test_unrelated_actor_cannot_revoke (__main__.AuthorityTests.test_unrelated_actor_cannot_revoke) ... ERROR
+1: test_world_cannot_grant_workspace_execution (__main__.AuthorityTests.test_world_cannot_grant_workspace_execution) ... ERROR
+1: test_wrong_domain_and_second_authority_cannot_open_store (__main__.AuthorityTests.test_wrong_domain_and_second_authority_cannot_open_store) ... ERROR
+1: test_wrong_subject_cannot_delegate (__main__.AuthorityTests.test_wrong_subject_cannot_delegate) ... ERROR
+1: test_zero_depth_and_excess_depth_are_invalid (__main__.AuthorityTests.test_zero_depth_and_excess_depth_are_invalid) ... ERROR
+1: 
+1: ======================================================================
+1: ERROR: test_administration_delegation_requires_explicit_permission (__main__.AuthorityTests.test_administration_delegation_requires_explicit_permission)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 189, in test_administration_delegation_requires_explicit_permission
+1:     root = self.root(self.terms(rights=(pb.POLICY_ADMINISTER,)))
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_administration_does_not_imply_other_rights_or_delegation (__main__.AuthorityTests.test_administration_does_not_imply_other_rights_or_delegation)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 183, in test_administration_does_not_imply_other_rights_or_delegation
+1:     root = self.root(self.terms(rights=(pb.POLICY_ADMINISTER,), depth=0))
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_bounded_scopes (__main__.AuthorityTests.test_bounded_scopes)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 280, in test_bounded_scopes
+1:     self.denied(self.call('install', probe.Install(terms=self.terms(scope=self.scope(*components)), expected_revision=0)), core.INVALID_ARGUMENT)
+1:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_child_cannot_retain_parent_depth (__main__.AuthorityTests.test_child_cannot_retain_parent_depth)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 166, in test_child_cannot_retain_parent_depth
+1:     self.denied(self.delegate(self.root(), self.terms(B, depth=3)))
+1:                               ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_corrupt_parent_chain_fails_closed (__main__.AuthorityTests.test_corrupt_parent_chain_fails_closed)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 297, in test_corrupt_parent_chain_fails_closed
+1:     root = self.root(); child = self.child(root)
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_database_has_real_durable_parent_and_scope_records (__main__.AuthorityTests.test_database_has_real_durable_parent_and_scope_records)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 266, in test_database_has_real_durable_parent_and_scope_records
+1:     root = self.root(); child = self.child(root)
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_delegable_right_requires_held_right (__main__.AuthorityTests.test_delegable_right_requires_held_right)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 177, in test_delegable_right_requires_held_right
+1:     self.denied(self.call('install', probe.Install(terms=self.terms(delegable=(pb.WORLD_OBSERVE,)), expected_revision=0)), core.INVALID_ARGUMENT)
+1:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_delegable_subset_is_explicit (__main__.AuthorityTests.test_delegable_subset_is_explicit)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 161, in test_delegable_subset_is_explicit
+1:     root = self.root(self.terms(rights=(pb.WORLD_NAVIGATE, pb.WORLD_OBSERVE), delegable=(pb.WORLD_NAVIGATE,)))
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_domain_kind_and_identity_do_not_alias (__main__.AuthorityTests.test_domain_kind_and_identity_do_not_alias)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 142, in test_domain_kind_and_identity_do_not_alias
+1:     root = self.root()
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_empty_store_denies_and_root_is_explicit (__main__.AuthorityTests.test_empty_store_denies_and_root_is_explicit)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 106, in test_empty_store_denies_and_root_is_explicit
+1:     self.assertFalse(self.allowed(A))
+1:                      ^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 90, in allowed
+1:     reply = self.call('check', probe.Check(caller=subject, scope=scope or self.scope(), right=right), inactive)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_failed_database_commit_rolls_back_revision_and_grant (__main__.AuthorityTests.test_failed_database_commit_rolls_back_revision_and_grant)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 255, in test_failed_database_commit_rolls_back_revision_and_grant
+1:     root = self.root()
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_grandchild_cannot_recover_removed_right (__main__.AuthorityTests.test_grandchild_cannot_recover_removed_right)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 195, in test_grandchild_cannot_recover_removed_right
+1:     root = self.root(self.terms(rights=(pb.WORLD_NAVIGATE, pb.WORLD_OBSERVE)))
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_held_right_is_not_implicitly_delegable (__main__.AuthorityTests.test_held_right_is_not_implicitly_delegable)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 156, in test_held_right_is_not_implicitly_delegable
+1:     root = self.root(self.terms(delegable=(), depth=0))
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_inactive_ancestor_blocks_descendants (__main__.AuthorityTests.test_inactive_ancestor_blocks_descendants)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 220, in test_inactive_ancestor_blocks_descendants
+1:     root = self.root(); self.child(root)
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_inactive_subject_cannot_act_or_receive_delegation (__main__.AuthorityTests.test_inactive_subject_cannot_act_or_receive_delegation)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 226, in test_inactive_subject_cannot_act_or_receive_delegation
+1:     root = self.root()
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_independent_grants_survive_parent_revocation (__main__.AuthorityTests.test_independent_grants_survive_parent_revocation)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 207, in test_independent_grants_survive_parent_revocation
+1:     root = self.root(); self.child(root)
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_issuer_can_revoke_child_and_subject_can_relinquish (__main__.AuthorityTests.test_issuer_can_revoke_child_and_subject_can_relinquish)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 236, in test_issuer_can_revoke_child_and_subject_can_relinquish
+1:     root = self.root(); child = self.child(root)
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_missing_parent_is_not_an_implicit_root (__main__.AuthorityTests.test_missing_parent_is_not_an_implicit_root)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 284, in test_missing_parent_is_not_an_implicit_root
+1:     self.denied(self.delegate(fake), core.NOT_FOUND)
+1:                 ^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 80, in delegate
+1:     return self.call('delegate', probe.Delegate(caller=caller, parent_id=parent.id,
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_parent_and_issuer_are_derived (__main__.AuthorityTests.test_parent_and_issuer_are_derived)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 121, in test_parent_and_issuer_are_derived
+1:     root = self.root(); child = self.child(root)
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_parent_revocation_invalidates_all_descendants (__main__.AuthorityTests.test_parent_revocation_invalidates_all_descendants)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 200, in test_parent_revocation_invalidates_all_descendants
+1:     root = self.root(); child = self.child(root); grandchild = self.child(child, self.terms(C, depth=1), B)
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_records_and_decisions_survive_restart (__main__.AuthorityTests.test_records_and_decisions_survive_restart)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 115, in test_records_and_decisions_survive_restart
+1:     root = self.root(); child = self.child(root)
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_revision_conflict_preserves_records (__main__.AuthorityTests.test_revision_conflict_preserves_records)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 250, in test_revision_conflict_preserves_records
+1:     root = self.root()
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_rights_widening_fails (__main__.AuthorityTests.test_rights_widening_fails)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 153, in test_rights_widening_fails
+1:     self.denied(self.delegate(self.root(), self.terms(B, rights=(pb.WORLD_OBSERVE,), depth=2)))
+1:                               ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_same_actor_bytes_from_another_issuer_are_not_identity (__main__.AuthorityTests.test_same_actor_bytes_from_another_issuer_are_not_identity)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 130, in test_same_actor_bytes_from_another_issuer_are_not_identity
+1:     root = self.root()
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_scope_is_component_wise (__main__.AuthorityTests.test_scope_is_component_wise)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 135, in test_scope_is_component_wise
+1:     self.root(self.terms(scope=self.scope(b'room', b'cabinet')))
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_scope_widening_and_sibling_delegation_fail (__main__.AuthorityTests.test_scope_widening_and_sibling_delegation_fail)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 148, in test_scope_widening_and_sibling_delegation_fail
+1:     root = self.root(self.terms(scope=self.scope(b'room')))
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_scoped_administrator_cannot_revoke_outside_scope (__main__.AuthorityTests.test_scoped_administrator_cannot_revoke_outside_scope)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 243, in test_scoped_administrator_cannot_revoke_outside_scope
+1:     self.root(self.terms(C, scope=self.scope(b'room'), rights=(pb.POLICY_ADMINISTER,), depth=0))
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_sibling_rights_cannot_be_combined_for_delegation (__main__.AuthorityTests.test_sibling_rights_cannot_be_combined_for_delegation)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 215, in test_sibling_rights_cannot_be_combined_for_delegation
+1:     one = self.root(self.terms(rights=(pb.WORLD_NAVIGATE,)))
+1:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_unknown_duplicate_and_unspecified_rights_fail (__main__.AuthorityTests.test_unknown_duplicate_and_unspecified_rights_fail)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 174, in test_unknown_duplicate_and_unspecified_rights_fail
+1:     self.denied(self.call('install', probe.Install(terms=self.terms(rights=rights), expected_revision=0)), core.INVALID_ARGUMENT)
+1:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_unknown_fields_and_invalid_actor_are_rejected (__main__.AuthorityTests.test_unknown_fields_and_invalid_actor_are_rejected)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 274, in test_unknown_fields_and_invalid_actor_are_rejected
+1:     self.denied(self.call('install', probe.Install(terms=terms, expected_revision=0)), core.INVALID_ARGUMENT)
+1:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_unrelated_actor_cannot_revoke (__main__.AuthorityTests.test_unrelated_actor_cannot_revoke)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 231, in test_unrelated_actor_cannot_revoke
+1:     root = self.root()
+1:            ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_world_cannot_grant_workspace_execution (__main__.AuthorityTests.test_world_cannot_grant_workspace_execution)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 180, in test_world_cannot_grant_workspace_execution
+1:     self.denied(self.call('install', probe.Install(terms=self.terms(rights=(pb.PROCESS_EXECUTE,)), expected_revision=0)), core.INVALID_ARGUMENT)
+1:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_wrong_domain_and_second_authority_cannot_open_store (__main__.AuthorityTests.test_wrong_domain_and_second_authority_cannot_open_store)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 294, in test_wrong_domain_and_second_authority_cannot_open_store
+1:     self.start(); self.assertFalse(self.allowed(A))
+1:                                    ^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 90, in allowed
+1:     reply = self.call('check', probe.Check(caller=subject, scope=scope or self.scope(), right=right), inactive)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_wrong_subject_cannot_delegate (__main__.AuthorityTests.test_wrong_subject_cannot_delegate)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 127, in test_wrong_subject_cannot_delegate
+1:     self.denied(self.delegate(self.root(), caller=C))
+1:                               ^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 74, in root
+1:     reply = self.call('install', probe.Install(terms=terms or self.terms(), expected_revision=self.revision))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ======================================================================
+1: ERROR: test_zero_depth_and_excess_depth_are_invalid (__main__.AuthorityTests.test_zero_depth_and_excess_depth_are_invalid)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 170, in test_zero_depth_and_excess_depth_are_invalid
+1:     self.denied(self.call('install', probe.Install(terms=terms, expected_revision=0)), core.INVALID_ARGUMENT)
+1:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py", line 60, in call
+1:     reply = read_message(self.process.stdout, probe.ProbeReply)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+1:     length, = struct.unpack('!I', read_exact(stream, 4))
+1:                                   ^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+1:     raise EOFError('SUT closed stdout during protobuf frame')
+1: EOFError: SUT closed stdout during protobuf frame
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 35 tests in 0.140s
+1: 
+1: FAILED (errors=35)
+1/1 Test #1: authority-store ..................***Failed    0.21 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.21 sec
+
+The following tests FAILED:
+	  1 - authority-store (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

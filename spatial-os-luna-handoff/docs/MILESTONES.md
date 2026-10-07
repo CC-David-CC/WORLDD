@@ -25,6 +25,9 @@ Protected issuer transport, its checked client, and its ordered revocation watch
 Authenticated local world channels now use real actor actions and cancel held native input. See WORLD_IDENTITY.md.
 Nonempty bootstrap profiles, persistent scoped authority, remote actor transport, and distributed revocation acknowledgement remain required.
 Static baseline action grants do not establish workspace or application isolation. M01 remains incomplete.
+The persistent authority-store library now qualifies structural delegation and stored revocation. See AUTHORITY_STORE.md.
+Its 43 checks run in the 445-check core suite. Runtime adapters and nonempty profiles remain required.
+Worldd and workspaced do not yet consume these records. M02 remains incomplete.
 
 ## Ordered implementation
 

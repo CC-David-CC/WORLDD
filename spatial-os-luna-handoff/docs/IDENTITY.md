@@ -28,6 +28,8 @@ Changing the profile does not rewrite previous grants silently.
 Credential revocation disables that credential. Actor revocation disables all its credentials and dependent active sessions.
 An independently valid credential or grant survives unrelated revocation.
 M02 supplies grant delegation and scoped authorization. Cryptographic proof alone grants no workspace or world authority.
+The persistent grant-store library is qualified separately. See AUTHORITY_STORE.md.
+Its authenticated runtime integration and use by bootstrap profiles remain pending.
 
 Enrollment and authentication require fresh, bounded, single-use challenges.
 Bind each challenge to the issuer, service incarnation, intended operation, request contents, key, and audience.

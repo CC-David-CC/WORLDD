@@ -1,0 +1,15 @@
+test_parent_revocation_invalidates_all_descendants (__main__.AuthorityTests.test_parent_revocation_invalidates_all_descendants) ... FAIL
+
+======================================================================
+FAIL: test_parent_revocation_invalidates_all_descendants (__main__.AuthorityTests.test_parent_revocation_invalidates_all_descendants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-grants-mutation/source/spatial-os-luna-handoff/tests/core/test_authority.py", line 209, in test_parent_revocation_invalidates_all_descendants
+    self.assertFalse(self.allowed(B)); self.assertFalse(self.allowed(C))
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 1 test in 0.187s
+
+FAILED (failures=1)
