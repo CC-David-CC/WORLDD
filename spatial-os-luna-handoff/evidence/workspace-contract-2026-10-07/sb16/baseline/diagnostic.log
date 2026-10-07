@@ -1,0 +1,23 @@
+test_launched_process_runs_in_rooms_actual_worktree (tests.acceptance.test_08_git_processes.GitTests.test_launched_process_runs_in_rooms_actual_worktree) ... ERROR
+
+======================================================================
+ERROR: test_launched_process_runs_in_rooms_actual_worktree (tests.acceptance.test_08_git_processes.GitTests.test_launched_process_runs_in_rooms_actual_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/acceptance/test_08_git_processes.py", line 10, in setUp
+    self.call("git.repo.import",id="repo",path=str(self.repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/base.py", line 53, in call
+    return self.client.call(method, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 258, in make_request
+    raise NotImplementedError(f'No protobuf schema for {method}; the phase remains unimplemented')
+NotImplementedError: No protobuf schema for git.repo.import; the phase remains unimplemented
+
+----------------------------------------------------------------------
+Ran 1 test in 0.151s
+
+FAILED (errors=1)
+DIAGNOSTIC P08: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-workspace-contract-baseline/diagnostic.json

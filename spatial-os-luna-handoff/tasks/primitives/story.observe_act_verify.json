@@ -2,7 +2,7 @@
   "id": "story.observe_act_verify",
   "phase": "P10",
   "title": "story / observe act verify",
-  "invariant": "A real actor walks into a branch room, interacts with a real X client, works in the real worktree and returns.",
+  "invariant": "A real actor changes rooms, uses a real X client, works in its explicitly selected workspace, and returns.",
   "contract_sections": [
     "5",
     "6",

@@ -2,7 +2,7 @@
   "id": "git.clean_removal",
   "phase": "P08",
   "title": "git / clean removal",
-  "invariant": "Git owns refs and worktree state; the room determines cwd and argv is never implicit shell syntax.",
+  "invariant": "Git owns real refs and files. Explicit workspace authority determines confined execution. Rooms do not select workspaces.",
   "contract_sections": [
     "8"
   ],

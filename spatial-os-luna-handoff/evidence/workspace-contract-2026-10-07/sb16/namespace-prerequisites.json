@@ -1,0 +1,53 @@
+{
+  "host": "sb16",
+  "bwrap": "/usr/bin/bwrap",
+  "commands": [
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "true"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "unshare",
+        "--user",
+        "--map-root-user",
+        "--mount",
+        "--pid",
+        "--fork",
+        "true"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "unshare: write failed /proc/self/uid_map: Operation not permitted\n"
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "unshare",
+        "--mount",
+        "--pid",
+        "--fork",
+        "true"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/usr/bin/bwrap",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "bubblewrap 0.9.0\n",
+      "stderr": ""
+    }
+  ]
+}

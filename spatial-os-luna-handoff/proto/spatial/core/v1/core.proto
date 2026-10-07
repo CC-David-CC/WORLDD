@@ -150,6 +150,24 @@ message ActorObserveRequest { optional uint32 width = 1; optional uint32 height 
 message ObjectGrabRequest { string id = 1; }
 message ObjectMoveRequest { Pose pose = 1; }
 message ObjectReleaseRequest { optional bool commit = 1; }
+enum WorkspaceRight {
+  WORKSPACE_RIGHT_UNSPECIFIED = 0;
+  WORKSPACE_SELECT = 1;
+  FILES_READ = 2;
+  FILES_WRITE = 3;
+  PROCESS_LAUNCH = 4;
+}
+message RepositoryImportRequest { string id = 1; string path = 2; }
+message WorktreeCreateRequest { string repo = 1; string id = 2; string branch = 3; string start = 4; string operation_id = 5; }
+message WorktreeStatusRequest { string worktree = 1; }
+message WorktreeRemoveRequest { string id = 1; string operation_id = 2; }
+message GitOperationRequest { string operation_id = 1; }
+message WorkspaceCreateRequest { string id = 1; string worktree = 2; repeated WorkspaceRight policy = 3; }
+message WorkspaceIdRequest { string id = 1; }
+message WorkspaceMemberRequest { string id = 1; string actor = 2; repeated WorkspaceRight rights = 3; }
+message WorkspaceAvailableRequest { string id = 1; optional bool available = 2; }
+message ProcessLaunchRequest { repeated string argv = 1; string operation_id = 2; string profile = 3; }
+message ProcessWaitRequest { string id = 1; optional double timeout_seconds = 2; }
 message ActorActionRequest {
   string token = 1;
   optional uint64 seq = 2;
@@ -160,6 +178,10 @@ message ActorActionRequest {
     ActorObserveRequest observe = 17;
     ObjectGrabRequest object_grab = 18; ObjectMoveRequest object_move = 19;
     ObjectReleaseRequest object_release = 20;
+    WorktreeCreateRequest git_worktree_create = 21;
+    WorkspaceIdRequest workspace_select = 22;
+    ActorStopRequest workspace_clear = 23;
+    ProcessLaunchRequest process_launch = 24;
   }
 }
 message WorldCheckpointRequest {}
@@ -216,6 +238,16 @@ message Request {
     SurfaceIdRequest surface_children = 53;
     RuntimeFenceRequest runtime_fence = 54;
     RuntimeResourcesRequest runtime_resources = 55;
+    RepositoryImportRequest git_repo_import = 60;
+    WorktreeCreateRequest git_worktree_create = 61;
+    WorktreeStatusRequest git_status = 62;
+    WorktreeRemoveRequest git_worktree_remove = 63;
+    GitOperationRequest git_operation = 64;
+    WorkspaceCreateRequest workspace_create = 70;
+    WorkspaceIdRequest workspace_get = 71;
+    WorkspaceMemberRequest workspace_member_set = 72;
+    WorkspaceAvailableRequest workspace_available = 73;
+    ProcessWaitRequest process_wait = 80;
   }
 }
 
@@ -241,6 +273,12 @@ enum ErrorCode {
   BUSY = 18;
   NOT_VISIBLE = 19;
   OUT_OF_REACH = 20;
+  BRANCH_IN_USE = 21;
+  DIRTY_WORKTREE = 22;
+  OPERATION_CONFLICT = 23;
+  TIMEOUT = 24;
+  NO_WORKSPACE = 25;
+  UNAVAILABLE = 26;
 }
 message Error { ErrorCode code = 1; string message = 2; }
 message HelloReply {
@@ -264,7 +302,7 @@ message WorldSnapshotReply {
 }
 message WorldDeleteReply { bool deleted = 1; uint64 world_revision = 2; }
 message WorldInfoReply { string world_id = 1; string entry_room = 2; uint64 world_revision = 3; }
-message RuntimeIdentitiesReply { uint64 worldd_pid = 1; string world_id = 2; uint64 spatialwm_pid = 3; string display = 4; }
+message RuntimeIdentitiesReply { uint64 worldd_pid = 1; string world_id = 2; uint64 spatialwm_pid = 3; string display = 4; uint64 workspaced_pid = 5; }
 message ActorOpenReply { string id = 1; string token = 2; }
 message ActorStateReply {
   string id = 1;
@@ -275,6 +313,7 @@ message ActorStateReply {
   repeated uint32 held_buttons = 6;
   optional string focus = 7;
   uint64 focus_generation = 8;
+  optional string workspace = 9;
 }
 message ObservedRepresentation {
   string id = 1;
@@ -293,7 +332,16 @@ message ActorObservation {
   repeated ObservedRepresentation visible = 5;
   PixelExtent viewport = 6; uint64 frame_id = 7;
 }
-message ActorActionReply { bool accepted = 1; AimReply aim = 2; ActorObservation observation = 3; }
+message RepositoryReply { string id = 1; string path = 2; string source = 3; }
+message WorktreeReply { string id = 1; string repo = 2; string branch = 3; string path = 4; string head = 5; }
+message GitStatusReply { string head = 1; string branch = 2; bool clean = 3; repeated string modified = 4; repeated string untracked = 5; }
+message WorktreeRemoveReply { bool removed = 1; }
+message GitOperationReply { string state = 1; }
+message WorkspaceReply { string id = 1; string worktree = 2; repeated WorkspaceRight policy = 3; uint64 revision = 4; }
+message WorkspaceAck { bool accepted = 1; }
+message ProcessLaunchReply { string process_id = 1; string workspace = 2; }
+message ProcessWaitReply { optional sint32 exit_code = 1; }
+message ActorActionReply { bool accepted = 1; AimReply aim = 2; ActorObservation observation = 3; WorktreeReply worktree = 4; ProcessLaunchReply process = 5; }
 message ActorCloseReply { bool closed = 1; }
 message WorldCheckpointReply { uint64 world_revision = 1; }
 message ClockReply { double seconds = 1; }
@@ -325,5 +373,13 @@ message Reply {
     SurfaceListReply surfaces = 53;
     FenceReply fence = 54;
     ResourceStats resources = 55;
+    RepositoryReply repository = 60;
+    WorktreeReply worktree = 61;
+    GitStatusReply git_status = 62;
+    WorktreeRemoveReply worktree_removed = 63;
+    GitOperationReply git_operation = 64;
+    WorkspaceReply workspace = 70;
+    WorkspaceAck workspace_ack = 72;
+    ProcessWaitReply process_wait = 80;
   }
 }

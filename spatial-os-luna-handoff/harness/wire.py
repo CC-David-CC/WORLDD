@@ -4,6 +4,8 @@ import struct
 import core_pb2 as pb
 
 MAX_FRAME = 1024 * 1024
+WORKSPACE_RIGHTS = {'workspace.select': pb.WORKSPACE_SELECT, 'files.read': pb.FILES_READ,
+                    'files.write': pb.FILES_WRITE, 'process.launch': pb.PROCESS_LAUNCH}
 
 
 def finite(message):
@@ -186,10 +188,10 @@ def make_request(method, params):
             body.input.SetInParent()
             if 'axes' in args:
                 body.input.axes.extend(numbers(args['axes'], len(args['axes'])))
-        elif params.get('op') in ('stop', 'unfocus'):
+        elif params.get('op') in ('stop', 'unfocus', 'workspace.clear'):
             if not isinstance(args, dict) or args:
                 raise ValueError('Unknown cancellation fields')
-            getattr(body, params['op']).SetInParent()
+            getattr(body, params['op'].replace('.', '_')).SetInParent()
         elif params.get('op') == 'aim':
             if not isinstance(args, dict) or set(args) - {'direction'}:
                 raise ValueError('Unknown aim fields')
@@ -221,8 +223,34 @@ def make_request(method, params):
                     if type(args[field]) is not (str if field == 'id' else bool):
                         raise ValueError('Invalid object action field type')
                     setattr(operation, field, args[field])
+        elif params.get('op') in ('git.worktree.create', 'workspace.select', 'process.launch'):
+            schemas = {'git.worktree.create': {'repo': str, 'id': str, 'branch': str, 'start': str, 'operation_id': str},
+                       'workspace.select': {'id': str},
+                       'process.launch': {'argv': list, 'operation_id': str, 'profile': str}}
+            fields = schemas[params['op']]
+            if not isinstance(args, dict) or set(args) - set(fields):
+                raise ValueError('Unknown workspace action fields')
+            operation = getattr(body, params['op'].replace('.', '_')); operation.SetInParent()
+            for name, value in args.items():
+                if fields[name] is list:
+                    if not isinstance(value, (list, tuple)) or any(type(item) is not str for item in value):
+                        raise ValueError('Expected argument strings')
+                    getattr(operation, name).extend(value)
+                else:
+                    if type(value) is not str: raise ValueError('Expected action string')
+                    setattr(operation, name, value)
         return request
     schemas = {
+        'git.repo.import': ('git_repo_import', {'id': str, 'path': str}),
+        'git.worktree.create': ('git_worktree_create', {'repo': str, 'id': str, 'branch': str, 'start': str, 'operation_id': str}),
+        'git.status': ('git_status', {'worktree': str}),
+        'git.worktree.remove': ('git_worktree_remove', {'id': str, 'operation_id': str}),
+        'git.operation': ('git_operation', {'operation_id': str}),
+        'workspace.create': ('workspace_create', {'id': str, 'worktree': str, 'policy': 'rights'}),
+        'workspace.get': ('workspace_get', {'id': str}),
+        'workspace.member.set': ('workspace_member_set', {'id': str, 'actor': str, 'rights': 'rights'}),
+        'workspace.available': ('workspace_available', {'id': str, 'available': bool}),
+        'process.wait': ('process_wait', {'id': str, 'timeout_seconds': float}),
         'system.hello': ('hello', {}),
         'world.get': ('world_get', {'id': str}),
         'world.create': ('world_create', {'entity': entity}),
@@ -280,6 +308,13 @@ def make_request(method, params):
             if type(value) is not int or not 0 <= value < 2**64:
                 raise ValueError('Expected uint64 integer')
             setattr(body, name, value)
+        elif convert is bool:
+            if type(value) is not bool: raise ValueError('Expected boolean')
+            setattr(body, name, value)
+        elif convert == 'rights':
+            if not isinstance(value, (list, tuple)) or any(type(item) is not str or item not in WORKSPACE_RIGHTS for item in value):
+                raise ValueError('Unknown workspace right')
+            getattr(body, name).extend(WORKSPACE_RIGHTS[item] for item in value)
         elif convert is list:
             if not isinstance(value, (tuple, list)) or any(type(v) is not str for v in value):
                 raise ValueError('Expected string list')
@@ -300,6 +335,10 @@ OUTCOMES = {'hello': 'hello', 'world_get': 'entity', 'world_create': 'entity',
             'transform_point': 'point',
             'inverse_point': 'point', 'uv_pixel': 'pixel', 'ray_panel': 'ray', 'integrate': 'pose',
             'sweep_sphere_aabb': 'sweep'}
+OUTCOMES.update({'git_repo_import': 'repository', 'git_worktree_create': 'worktree', 'git_status': 'git_status',
+                 'git_worktree_remove': 'worktree_removed', 'git_operation': 'git_operation',
+                 'workspace_create': 'workspace', 'workspace_get': 'workspace', 'workspace_member_set': 'workspace_ack',
+                 'workspace_available': 'workspace_ack', 'process_wait': 'process_wait'})
 
 
 def vector_value(value):
@@ -325,10 +364,15 @@ def result_value(reply):
         value = reply.actor_state
         return {'id': value.id, 'room': value.room, 'pose': pose_value(value.pose),
                 'axes': list(value.axes), 'held_keys': list(value.held_keys), 'held_buttons': list(value.held_buttons),
-                'focus': {'id': value.focus, 'generation': value.focus_generation} if value.HasField('focus') else None}
+                'focus': {'id': value.focus, 'generation': value.focus_generation} if value.HasField('focus') else None,
+                'workspace': value.workspace if value.HasField('workspace') else None}
     if kind == 'actor_closed':
         return {'closed': reply.actor_closed.closed}
     if kind == 'actor_action':
+        if reply.actor_action.HasField('worktree'): return worktree_value(reply.actor_action.worktree)
+        if reply.actor_action.HasField('process'):
+            value = reply.actor_action.process
+            return {'process_id': value.process_id, 'workspace': value.workspace}
         if reply.actor_action.HasField('observation'):
             value = reply.actor_action.observation
             return {'actor': value.actor, 'room': value.room, 'pose': pose_value(value.pose),
@@ -374,7 +418,25 @@ def result_value(reply):
         result = {'worldd_pid': value.worldd_pid, 'world_id': value.world_id}
         if value.spatialwm_pid:
             result.update(spatialwm_pid=value.spatialwm_pid, display=value.display)
+        if value.workspaced_pid: result['workspaced_pid'] = value.workspaced_pid
         return result
+    if kind == 'repository':
+        value = reply.repository
+        return {'id': value.id, 'path': value.path, 'source': value.source}
+    if kind == 'worktree': return worktree_value(reply.worktree)
+    if kind == 'git_status':
+        value = reply.git_status
+        return {'head': value.head, 'branch': value.branch, 'clean': value.clean,
+                'modified': list(value.modified), 'untracked': list(value.untracked)}
+    if kind == 'worktree_removed': return {'removed': reply.worktree_removed.removed}
+    if kind == 'git_operation': return {'state': reply.git_operation.state}
+    if kind == 'workspace':
+        value = reply.workspace; names = {v:k for k,v in WORKSPACE_RIGHTS.items()}
+        return {'id': value.id, 'worktree': value.worktree, 'policy': [names[item] for item in value.policy], 'revision': value.revision}
+    if kind == 'workspace_ack': return {'accepted': reply.workspace_ack.accepted}
+    if kind == 'process_wait':
+        if not reply.process_wait.HasField('exit_code'): raise ValueError('Missing process exit code')
+        return {'exit_code': reply.process_wait.exit_code}
     if kind == 'hello':
         value = reply.hello
         return {'protocol': value.protocol, 'implementation': value.implementation,
@@ -413,3 +475,7 @@ def surface_value(value):
             'pixels': [value.pixels.width, value.pixels.height], 'mapped': value.mapped,
             'parent_id': value.parent_id if value.HasField('parent_id') else None,
             'slot': value.slot if value.HasField('slot') else None}
+
+
+def worktree_value(value):
+    return {name: getattr(value, name) for name in ('id', 'repo', 'branch', 'path', 'head')}

@@ -14,7 +14,7 @@ class WalkthroughTests(XAcceptance):
             dt=min(.2,seconds);self.a.act("input",axes=axes);self.advance(dt);seconds-=dt
         self.a.act("stop")
     @case("P10","story.walk_work_return")
-    def test_walk_into_branch_room_use_real_window_launch_work_and_return(self):
+    def test_walk_to_room_use_real_window_work_in_selected_workspace_and_return(self):
         self.room("lab")
         self.obj("door",kind="portal",pose=pose([0,0,-.5]),size=[2,3],destination={"room":"lab","pose":pose([0,0,0])})
         q=axis_angle([0,1,0],math.pi)
@@ -22,19 +22,26 @@ class WalkthroughTests(XAcceptance):
         native,surf=self.probe(room="lab")
         repo=GitRepo(self.run_dir);self.call("git.repo.import",id="repo",path=str(repo.path))
         w=self.a.act("git.worktree.create",repo="repo",id="experiment",branch="agent/experiment",start="main",operation_id="story-create")
-        self.patch("lab",{"worktree":w["id"]})
+        rights=["workspace.select","files.read","files.write","process.launch"]
+        self.call("workspace.create",id="experiment-workspace",worktree=w["id"],policy=rights)
+        self.call("workspace.member.set",id="experiment-workspace",actor=self.a.id,rights=rights)
+        self.call("workspace.available",id="experiment-workspace",available=True)
+        self.assertIsNone(self.a.info()["workspace"])
+        self.a.act("workspace.select",id="experiment-workspace")
         before,_=self.capture(self.a);self.assertColor(before.mean_patch(64,64),[10,12,16])
         self.walk([0,0,-1,0,0,0],.6);self.assertEqual(self.a.info()["room"],"lab")
+        self.assertEqual(self.a.info()["workspace"],"experiment-workspace")
         self.aim();self.click();mark=len(native.events)
         self.a.act("key",keysym="x",pressed=True);self.a.act("key",keysym="x",pressed=False);self.fence()
         self.assertEqual([e["text_hex"] for e in native.input_events(mark) if e["event"]=="key" and e["pressed"]],["78"])
-        launched=self.a.act("process.launch",argv=[sys.executable,"-c","from pathlib import Path;Path('agent-result.txt').write_text('done\\n')"],operation_id="story-process")
+        launched=self.a.act("process.launch",argv=[sys.executable,"-c","from pathlib import Path;Path('agent-result.txt').write_text('done\\n')"],operation_id="story-process",profile="development")
         self.assertEqual(self.call("process.wait",id=launched["process_id"],timeout_seconds=5)["exit_code"],0)
         result=Path(w["path"])/"agent-result.txt"
         self.assertEqual(result.read_text(),"done\n");self.assertFalse((repo.path/"agent-result.txt").exists())
         self.walk([0,0,0,0,1,0],math.pi);self.walk([0,0,-1,0,0,0],.6)
         self.assertEqual(self.a.info()["room"],"room-a");self.assertVec(self.a.info()["pose"]["p"],[0,0,0],2e-5)
         self.assertEqual(result.read_text(),"done\n");self.assertIsNone(self.a.info()["focus"])
+        self.assertEqual(self.a.info()["workspace"],"experiment-workspace")
         self.assertEqual(repo.branch(w["path"]),"agent/experiment")
     @case("P10","story.observe_act_verify")
     def test_agent_observation_and_received_input_agree_on_target(self):

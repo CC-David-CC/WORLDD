@@ -6,7 +6,7 @@ A completed phase does not complete the overall goal.
 CURRENT_STATE.md records the latest implemented phase.
 Generated reports provide execution evidence.
 
-The 141-test legacy suite is one qualification layer.
+The 151-test acceptance suite is one qualification layer.
 It does not cover every Spatial-M1 requirement.
 Keep native hardware, authority, confinement, shared worlds, cabinets, and provider tests mandatory.
 
@@ -25,7 +25,7 @@ Keep native hardware, authority, confinement, shared worlds, cabinets, and provi
 | P10 | Complete actor workflows | Production walkthroughs with live applications, real files, observation, action, cancellation, and independent witnesses |
 
 P08 and P10 must use workspace execution context.
-Older room/worktree binding assertions require an explicit contract migration before that implementation.
+Migration 0.13.0 replaces the older room/worktree binding assertions with explicit workspace context.
 Preserve their isolation, real-filesystem, Git, and recovery guarantees.
 Room entry must not grant or select workspace authority.
 

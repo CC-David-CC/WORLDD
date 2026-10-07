@@ -2,7 +2,7 @@
   "id": "git.actual_status",
   "phase": "P08",
   "title": "git / actual status",
-  "invariant": "Git owns refs and worktree state; the room determines cwd and argv is never implicit shell syntax.",
+  "invariant": "Git owns real refs and files. Explicit workspace authority determines confined execution. Rooms do not select workspaces.",
   "contract_sections": [
     "8"
   ],

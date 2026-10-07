@@ -1,0 +1,29 @@
+[0/2] Re-checking globbed directories...
+[1/28] Generating python/core_pb2.py
+[2/28] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[3/28] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[4/28] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[5/28] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[6/28] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[7/28] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[8/28] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[9/28] Linking CXX static library libspatial-protobuf.a
+[10/28] Linking CXX static library libspatial-scene.a
+[11/28] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[12/28] Building CXX object CMakeFiles/spatial-native-input.dir/src/x11/input.cpp.o
+[13/28] Linking CXX static library libspatial-native-input.a
+[14/28] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[15/28] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[16/28] Linking CXX static library libspatial-core.a
+[17/28] Building CXX object CMakeFiles/spatialwm.dir/src/render/main.cpp.o
+[18/28] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[19/28] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[20/28] Building CXX object CMakeFiles/spatial-input-bridge.dir/tests/native/input_bridge.cpp.o
+[21/28] Linking CXX executable spatial-input-bridge
+[22/28] Building CXX object CMakeFiles/spatialwm.dir/src/x11/input_router.cpp.o
+[23/28] Linking CXX executable spatialwm
+[24/28] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[25/28] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[26/28] Linking CXX executable worldd
+[27/28] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[28/28] Linking CXX executable spatial-test-host

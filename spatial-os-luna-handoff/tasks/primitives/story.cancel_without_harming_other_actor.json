@@ -2,7 +2,7 @@
   "id": "story.cancel_without_harming_other_actor",
   "phase": "P10",
   "title": "story / cancel without harming other actor",
-  "invariant": "A real actor walks into a branch room, interacts with a real X client, works in the real worktree and returns.",
+  "invariant": "A real actor changes rooms, uses a real X client, works in its explicitly selected workspace, and returns.",
   "contract_sections": [
     "5",
     "6",

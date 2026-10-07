@@ -8,7 +8,7 @@ Start with `START_HERE_LUNA.md`. Codex instructions are in `AGENTS.md`. A ready-
 
 ## What is executable
 
-- `tests/acceptance/`: 141 named acceptance tests, plus seeded and parameterized checks within those tests, in 11 cumulative phases P00–P10. They call a production test-host interface that Luna must implement.
+- `tests/acceptance/`: 151 named acceptance tests, plus seeded and parameterized checks within those tests, in 11 cumulative phases P00–P10. They call a production test-host interface that Luna must implement.
 - `native/xprobe.c`: independent real X client. It draws known and random patterns, records actual X events, creates a transient, resizes, unmaps/remaps, and captures X drawables.
 - `harness/`: strict subprocess RPC, deadlines, concurrent response matching, external Git fixtures, independent geometry and pixel oracles.
 - `tests/harness/`: tests of the test apparatus, including negative cases. These do not certify the OS.

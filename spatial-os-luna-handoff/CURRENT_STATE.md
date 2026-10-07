@@ -1,5 +1,40 @@
 # Implementation status
 
+## 2026-10-07: P08 workspace contract migration
+
+Migration 0.13.0 assigns Git project context and process execution to workspaces.
+Rooms no longer determine execution context.
+Workspace creation, membership, availability, selection, and cabinet placement remain separate.
+The production broker, workspace registry, and confined execution effects are still unimplemented.
+New typed protobuf requests return explicit UNIMPLEMENTED errors.
+
+The migration preserves all 141 earlier requirements through two documented test-ID changes.
+Ten additional acceptance tests cover workspace authority and confined execution.
+Four new harness checks validate typed transport boundaries.
+The inventory now contains 151 acceptance tests and 140 primitive tickets.
+See docs/WORKSPACE_MIGRATION.md and docs/workspace-migration-0.13.0.json for the correction and exact hash changes.
+
+Both hosts passed Debug and ASan/UBSan runtime regression qualification:
+
+- All 113 cumulative P00-P07 acceptance tests.
+- All 135 core checks.
+- All 43 harness self-tests.
+
+The targeted P08 real-worktree case returned UNIMPLEMENTED from production on both hosts.
+Coverage is 113 passed, one diagnostic error, and 37 unrun.
+P08 is not complete. Full Spatial-M1 and physical qualification remain pending.
+Evidence is in evidence/workspace-contract-2026-10-07.
+Final audits verify 85 source hashes, with a documented formatting-only normalization of the acceptance lock after qualification.
+The original qualification lock remains in evidence. Final harness and diagnostic checks use the normalized lock.
+
+Namespace prerequisite checks found working passwordless sudo and privileged mount/PID namespaces on both hosts.
+Unprivileged user-namespace creation failed while writing uid_map.
+Bubblewrap 0.9.0 is installed. These prerequisites do not prove application confinement.
+No system configuration or operator session changed.
+Continue without local-model review under David's hardware-failure waiver.
+Next: implement git.real_worktree through the production workspace broker.
+The full project goal remains active.
+
 ## 2026-10-07: P07 object manipulation complete
 
 Actors can acquire visible, reachable objects through typed protobuf actions.

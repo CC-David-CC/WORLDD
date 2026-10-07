@@ -4,13 +4,13 @@
 
 The deliverable is a native spatial Linux/X11 session: a window manager/compositor, live application surfaces, persistent world objects and rooms, agents with independent input, Git/worktree context, physical SpaceMouse navigation, and operational recovery. It is not a replacement kernel or a promise to support every existing Linux application.
 
-Two main production processes are a useful starting point. `worldd` owns semantic state and actor action authorization. `spatialwm` owns X resources, the compositor, render submission, input delivery and physical device adaptation. A test host starts/controls them in a test-owned process group and forwards the contract requests. The host is not shipped as the desktop.
+The initial runtime has worldd and spatialwm. Workspace execution requires a separate production workspaced broker. `worldd` owns semantic state and actor action authorization. `spatialwm` owns X resources, the compositor, render submission, input delivery and physical device adaptation. A test host starts/controls them in a test-owned process group and forwards the contract requests. The host is not shipped as the desktop. Workspaced owns workspace identities, bare Git backing stores, process trees, and execution confinement. Its state is independent of world identity and spatial placement. Worldd holds explicit availability and per-world actor selection, then routes authorized operations to the broker. This broker is required work, not an implemented feature; consult CURRENT_STATE.md.
 
 ## What changed from the earlier proposal
 
 **No hidden root-coordinate atlas.** The previous design moved native windows into private input slots to accommodate legacy dispatch. Existing-software compatibility is no longer a constraint. The P06 suite instead keeps native root geometry fixed and requires actor-local input routing, distinct XI2 device identity, focus and capture. Use an XLibre server extension or internal server change where stock routing cannot express this naturally. The server-side operation must update genuine device state and normal event delivery; merely sending synthetic events to the witness is not the implementation.
 
-**No universal legacy-client policy.** The reference application contract uses XI2 for input and ordinary X windows for pixels. One actor holds an interactive lease per surface in this baseline. There is no requirement to make an unmodified legacy toolkit collaborative. Expand the supported application contract deliberately, rather than accumulating per-application exceptions. A lease is a world conflict rule, not a security sandbox.
+**No universal legacy-client policy.** The reference application contract uses XI2 for input and ordinary X windows for pixels. One actor controls an application instance and its surface group. Current transient grouping is an interim implementation; broker application identities remain mandatory. There is no requirement to make an unmodified legacy toolkit collaborative. Expand the supported application contract deliberately, rather than accumulating per-application exceptions. A lease is a world conflict rule, not a security sandbox.
 
 **No durable identity based on XID.** A live surface has a session-scoped ID and generation. A durable `surface_slot` owns a placement and, eventually, an explicit launch specification. A replacement window can attach to that slot. A directly created test client without a slot is transient; its death does not imply its process memory can be recovered. The slot/surface distinction is a real lifecycle boundary, not two competing copies of placement.
 
@@ -22,7 +22,7 @@ Two main production processes are a useful starting point. `worldd` owns semanti
 
 ## Canonical data boundaries
 
-A room is a coordinate chart. A portal maps a frame from one chart into another. Objects and surface slots own room-local poses. An actor has one pose, one room, one independently identified input context, and a capability set. A surface is an external framebuffer attachment. A repository, branch reference, commit, and worktree are different things.
+A room is a coordinate chart. A portal maps a frame from one chart into another. Objects and surface slots own room-local poses. An actor has one pose, one room, one independently identified input context, and a capability set. A surface is an external framebuffer attachment. A repository, branch reference, commit, worktree, and workspace are different things. A workspace owns one execution and filesystem authority. Rooms do not own worktrees or execution context. Independent mutable workspaces use separate writable directories and bare Git metadata. Multiple authorized representations of one workspace preserve its single authority.
 
 Application texture coordinates remain two-dimensional. Removing a 2D *desktop* does not remove pixels from application surfaces. World ray intersection produces surface-local UV, then pixel coordinates. Routing must preserve that result through the X server, including focus, held buttons, drag capture and cancellation.
 
@@ -36,4 +36,4 @@ The existing Composite, Damage and GLX texture-from-pixmap machinery is a reason
 
 ## Security scope
 
-The conformance actor-token tests check routing and API permission discipline. They do not isolate malicious processes sharing an unrestricted X connection or the same Unix user. Luna's full administrative permission is separate from what a world actor may do. A later hostile-agent deployment needs a real OS/process isolation boundary; this archive does not claim to provide it.
+The conformance actor-token tests check routing and API permission discipline. They do not isolate malicious processes sharing an unrestricted X connection or the same Unix user. Luna's full administrative permission is separate from what a world actor may do. Spatial-M1 requires real OS/process confinement and native X workspace isolation. Token routing alone does not qualify those requirements. The reference kernel simulator does not supply production execution authority. Each required boundary needs independent production evidence before M1 acceptance.

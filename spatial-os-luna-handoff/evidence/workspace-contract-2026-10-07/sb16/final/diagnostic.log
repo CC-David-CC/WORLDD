@@ -1,0 +1,24 @@
+test_create_is_a_real_git_worktree (tests.acceptance.test_08_git_processes.GitTests.test_create_is_a_real_git_worktree) ... ERROR
+
+======================================================================
+ERROR: test_create_is_a_real_git_worktree (tests.acceptance.test_08_git_processes.GitTests.test_create_is_a_real_git_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/acceptance/test_08_git_processes.py", line 12, in setUp
+    self.backing=self.call("git.repo.import",id="repo",path=str(self.repo.path))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/base.py", line 53, in call
+    return self.client.call(method, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: UNIMPLEMENTED: Workspace execution broker is not implemented
+
+----------------------------------------------------------------------
+Ran 1 test in 0.149s
+
+FAILED (errors=1)
+DIAGNOSTIC P08: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-workspace-contract-final/diagnostic.json

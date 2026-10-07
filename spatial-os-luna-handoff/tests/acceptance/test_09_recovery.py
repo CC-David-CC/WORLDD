@@ -37,17 +37,17 @@ class RecoveryTests(Acceptance):
         self.restart(crash=True);self.assertEqual(self.get("object-a"),before)
     @case("P09","recovery.git_side_effect_boundary")
     def test_git_effect_completed_before_db_ack_is_reconciled_once(self):
-        repo=GitRepo(self.run_dir);self.call("git.repo.import",id="repo",path=str(repo.path))
+        repo=GitRepo(self.run_dir);backing=self.call("git.repo.import",id="repo",path=str(repo.path))
         args={"repo":"repo","id":"branch-room","branch":"agent/recovered","start":"main","operation_id":"recover-create"}
         self.call("fault.arm",point="git.after_worktree_before_ready",action="exit")
         with self.assertRaises(TransportError):self.call("git.worktree.create",**args)
         self.client.proc.wait(timeout=5)
         # Observe the real external side effect BEFORE restarting/reconciling.
-        self.assertEqual(repo.run("worktree","list","--porcelain").count("branch refs/heads/agent/recovered"),1)
+        self.assertEqual(repo.run("worktree","list","--porcelain",cwd=backing["path"]).count("branch refs/heads/agent/recovered"),1)
         self.restart(crash=True)
         result=self.call("git.worktree.create",**args)
         self.assertEqual(repo.branch(result["path"]),"agent/recovered")
-        self.assertEqual(repo.run("worktree","list","--porcelain").count("branch refs/heads/agent/recovered"),1)
+        self.assertEqual(repo.run("worktree","list","--porcelain",cwd=backing["path"]).count("branch refs/heads/agent/recovered"),1)
         self.assertEqual(self.call("git.operation",operation_id="recover-create")["state"],"ready")
     @case("P09","recovery.kill_repeatedly")
     def test_repeated_sigkills_preserve_last_acknowledged_revision(self):

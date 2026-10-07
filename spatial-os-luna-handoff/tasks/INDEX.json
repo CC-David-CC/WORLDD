@@ -1,7 +1,7 @@
 {
-  "contract_version": 1,
-  "total_acceptance_tests": 141,
-  "total_primitive_tickets": 130,
+  "contract_version": 3,
+  "total_acceptance_tests": 151,
+  "total_primitive_tickets": 140,
   "status": "implementation_in_progress",
   "implementation_status": "CURRENT_STATE.md",
   "full_project_plan": "docs/MILESTONES.md",
@@ -336,18 +336,24 @@
     },
     {
       "phase": "P08",
-      "title": "Real Git worktrees and process context",
-      "invariant": "Git owns refs and worktree state; the room determines cwd and argv is never implicit shell syntax.",
+      "title": "Workspace-owned Git and confined process execution",
+      "invariant": "Git owns real refs and files. Explicit workspace authority determines confined execution. Rooms do not select workspaces.",
       "prior_gate": "P07",
-      "acceptance_count": 15,
+      "acceptance_count": 25,
       "acceptance_tests": [
         "tests.acceptance.test_08_git_processes.GitTests.test_actor_without_git_grant_cannot_create_worktree",
+        "tests.acceptance.test_08_git_processes.GitTests.test_application_profile_and_actor_rights_both_limit_writes",
+        "tests.acceptance.test_08_git_processes.GitTests.test_child_process_cannot_read_or_write_outside_workspace",
         "tests.acceptance.test_08_git_processes.GitTests.test_clean_removal_leaves_branch_intact",
         "tests.acceptance.test_08_git_processes.GitTests.test_create_is_a_real_git_worktree",
         "tests.acceptance.test_08_git_processes.GitTests.test_direct_git_commit_updates_world_view",
         "tests.acceptance.test_08_git_processes.GitTests.test_dirty_worktree_is_never_silently_discarded",
+        "tests.acceptance.test_08_git_processes.GitTests.test_independent_workspaces_cannot_share_writable_git_metadata",
         "tests.acceptance.test_08_git_processes.GitTests.test_invalid_branch_name_fails_without_side_effect",
-        "tests.acceptance.test_08_git_processes.GitTests.test_launched_process_runs_in_rooms_actual_worktree",
+        "tests.acceptance.test_08_git_processes.GitTests.test_launch_retry_cannot_change_workspace_context",
+        "tests.acceptance.test_08_git_processes.GitTests.test_launched_process_runs_in_selected_workspaces_project",
+        "tests.acceptance.test_08_git_processes.GitTests.test_ordinary_git_in_workspace_updates_real_worktree",
+        "tests.acceptance.test_08_git_processes.GitTests.test_portal_entry_keeps_selection_and_does_not_restart_runtime",
         "tests.acceptance.test_08_git_processes.GitTests.test_process_launch_retry_does_not_spawn_twice",
         "tests.acceptance.test_08_git_processes.GitTests.test_repository_branch_commit_and_worktree_are_distinct",
         "tests.acceptance.test_08_git_processes.GitTests.test_restart_reconciles_real_worktrees",
@@ -355,7 +361,11 @@
         "tests.acceptance.test_08_git_processes.GitTests.test_reused_operation_id_with_different_payload_rejected",
         "tests.acceptance.test_08_git_processes.GitTests.test_same_branch_cannot_be_force_checked_out_twice",
         "tests.acceptance.test_08_git_processes.GitTests.test_two_agents_do_not_share_working_files",
-        "tests.acceptance.test_08_git_processes.GitTests.test_untracked_and_modified_are_distinct"
+        "tests.acceptance.test_08_git_processes.GitTests.test_two_workspaces_use_same_project_path_in_distinct_mount_namespaces",
+        "tests.acceptance.test_08_git_processes.GitTests.test_unavailability_and_revocation_clear_selection",
+        "tests.acceptance.test_08_git_processes.GitTests.test_untracked_and_modified_are_distinct",
+        "tests.acceptance.test_08_git_processes.GitTests.test_workspace_creation_availability_and_selection_are_separate",
+        "tests.acceptance.test_08_git_processes.GitTests.test_world_presence_and_global_grants_do_not_grant_workspace_access"
       ],
       "tickets": [
         "tasks/primitives/git.actual_status.json",
@@ -371,8 +381,18 @@
         "tasks/primitives/git.permission.json",
         "tasks/primitives/git.real_worktree.json",
         "tasks/primitives/git.restart_registry.json",
+        "tasks/primitives/process.authority_intersection.json",
         "tasks/primitives/process.exact_launch_identity.json",
-        "tasks/primitives/process.room_worktree_cwd.json"
+        "tasks/primitives/process.filesystem_boundary.json",
+        "tasks/primitives/process.git_in_namespace.json",
+        "tasks/primitives/process.retry_workspace_binding.json",
+        "tasks/primitives/process.workspace_cwd.json",
+        "tasks/primitives/workspace.access.json",
+        "tasks/primitives/workspace.explicit_context.json",
+        "tasks/primitives/workspace.mount_isolation.json",
+        "tasks/primitives/workspace.private_git_metadata.json",
+        "tasks/primitives/workspace.room_independence.json",
+        "tasks/primitives/workspace.selection_clear.json"
       ],
       "completion_command": "python3 tools/gate.py --through P08",
       "needs_native_display": true,
@@ -415,13 +435,13 @@
     {
       "phase": "P10",
       "title": "Whole-world walkthroughs",
-      "invariant": "A real actor walks into a branch room, interacts with a real X client, works in the real worktree and returns.",
+      "invariant": "A real actor changes rooms, uses a real X client, works in its explicitly selected workspace, and returns.",
       "prior_gate": "P09",
       "acceptance_count": 3,
       "acceptance_tests": [
         "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_agent_observation_and_received_input_agree_on_target",
         "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable",
-        "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_into_branch_room_use_real_window_launch_work_and_return"
+        "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_to_room_use_real_window_work_in_selected_workspace_and_return"
       ],
       "tickets": [
         "tasks/primitives/story.cancel_without_harming_other_actor.json",

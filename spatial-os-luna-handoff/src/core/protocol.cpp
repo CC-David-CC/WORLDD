@@ -215,6 +215,17 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
         case wire::Request::OPERATION_NOT_SET:
             error(reply, wire::UNKNOWN_METHOD, "No recognized operation");
             break;
+        case wire::Request::kGitRepoImport:
+        case wire::Request::kGitWorktreeCreate:
+        case wire::Request::kGitStatus:
+        case wire::Request::kGitWorktreeRemove:
+        case wire::Request::kGitOperation:
+        case wire::Request::kWorkspaceCreate:
+        case wire::Request::kWorkspaceGet:
+        case wire::Request::kWorkspaceMemberSet:
+        case wire::Request::kWorkspaceAvailable:
+        case wire::Request::kProcessWait:
+            throw WorldError(wire::UNIMPLEMENTED, "Workspace execution broker is not implemented");
         }
     } catch (const WorldError& exception) {
         error(reply, exception.code, exception.what());

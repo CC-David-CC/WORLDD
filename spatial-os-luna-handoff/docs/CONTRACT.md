@@ -1,4 +1,4 @@
-# Spatial conformance contract, version 2
+# Spatial conformance contract, version 3
 
 This document and the acceptance suite specify observable behavior. Units, coordinate conventions, lifecycle semantics and independent evidence are normative. Suggested production file layout and server patch location are not.
 
@@ -73,7 +73,7 @@ Each durable create begins at `revision:1`. Each accepted update increments that
 
 Entity forms:
 
-- `room`: `id,kind:"room",label`, optional `worktree` ID.
+- `room`: `id,kind:"room",label`. Rooms have no worktree or execution context.
 - `object`: `id,kind:"object",room,pose,label` (label optional). Default small visible object pick proxy. Acquiring an object checks visibility and reach. Once grabbed, a permitted transform edit can place its preview farther away; this baseline is an object-editing operation, not a fixed-length physical arm.
 - `panel`: `id,kind:"panel",room,pose,size:[2],color:[R,G,B],label`. RGB integers 0–255, front-facing and opaque.
 - `barrier`: `id,kind:"barrier",room,pose,bounds:{min:[3],max:[3]}`. Test barriers use identity pose and axis-aligned room-local bounds.
@@ -81,11 +81,11 @@ Entity forms:
 - `surface_slot`: `id,kind:"surface_slot",room,pose,size:[2],label`. A durable placement; it has at most one live attachment.
 - `actor`: created/reconnected by `actor.open`, not arbitrary untrusted `world.create` requests. Its stable ID/pose/room can be inspected through management methods.
 
-All non-room entities reference an existing room. Portal destinations and room worktree bindings reference existing corresponding resources. A room change changes a reference, not object identity. Human-readable labels are data, including Unicode and shell metacharacters. Runtime actor get/inspect returns current live pose; the durable snapshot/checkpoint boundary determines what survives a crash.
+All non-room entities reference an existing room. Portal destinations reference existing rooms. Workspace bindings reference managed worktrees through the execution authority. A room change changes a reference, not object identity. Human-readable labels are data, including Unicode and shell metacharacters. Runtime actor get/inspect returns current live pose; the durable snapshot/checkpoint boundary determines what survives a crash.
 
 ## 5. Actor lifecycle and canonical actions
 
-`actor.open {id,room,pose,grants:[strings]}` is a privileged management/fixture method. It creates a fresh actor or reconnects an existing disconnected durable actor. A reconnect restores the saved room/pose, ignoring the initial defaults in the request, and does not reset it to the origin. It returns `{id,token}`. The new token is session scoped and bound to that actor. It is not a client-chosen actor identifier. `actor.close {token}` cancels motion and held input, rolls back active object preview, drops leases and revokes the token. `actor.inspect {token}` returns `id,room,pose,axes:[6],held_keys:[],held_buttons:[],focus` where focus is null or a current surface handle.
+`actor.open {id,room,pose,grants:[strings]}` is a privileged management/fixture method. It creates a fresh actor or reconnects an existing disconnected durable actor. A reconnect restores the saved room/pose, ignoring the initial defaults in the request, and does not reset it to the origin. It returns `{id,token}`. The new token is session scoped and bound to that actor. It is not a client-chosen actor identifier. `actor.close {token}` cancels motion and held input, rolls back active object preview, drops leases and revokes the token. `actor.inspect {token}` returns `id,room,pose,axes:[6],held_keys:[],held_buttons:[],focus` where focus is null or a current surface handle. The workspace field is a selected workspace ID or null. Selection belongs to this actor and world, not its room.
 
 `actor.act {token,seq,op,args}` is the single public action boundary. Each actor has a strictly increasing positive sequence. Replayed/older sequences return `STALE_SEQUENCE`. A syntactically well-formed sequence is consumed even when policy/argument validation denies the action; subsequent commands must use a new sequence. Unknown/revoked token: `UNAUTHORIZED`. A payload cannot select another actor. Missing grant returns `FORBIDDEN` before looking at focus/target state.
 
@@ -103,7 +103,9 @@ All non-room entities reference an existing room. Portal destinations and room w
 | `object.release` | `commit:bool` | Commit the preview durably, or cancel back to the original pose; drop the lease. |
 | `observe` | `{}` | Return `{actor,room,pose,world_revision,visible:[{id,...}]}` based on this actor's camera and occlusion, not all scene entities. |
 | `git.worktree.create` | same as management method below | `git.write`; invokes the same production Git operation handler. |
-| `process.launch` | `argv:[strings],operation_id` | `process.launch`; execute argv directly, cwd from current room's bound worktree; return `{process_id}`. No implicit shell. |
+| `workspace.select` | `id` | Require explicit world availability and workspace selection authority. Change only this actor's workspace context. |
+| `workspace.clear` | `{}` | Clear this actor's selection. Do not terminate workspace applications. |
+| `process.launch` | `argv:[strings],operation_id,profile` | Require a selected authorized workspace and execution authority. Use the production broker and requested profile; cwd is `/project`. Return `{process_id,workspace}`. No implicit shell. |
 
 Pure panels are world objects, not real application input sinks. Do not claim a successful X click for a panel without an application attachment. Input tests use live surfaces.
 
@@ -143,19 +145,108 @@ Native transients created with WM_TRANSIENT_FOR are attached to their parent sur
 
 `runtime.identities {}` returns the real `worldd_pid,spatialwm_pid,display` and may include server/build/device information. Workers must be real distinct processes within this test host's process group. Do not report the user's production services as test workers.
 
-## 8. Git and child processes
+## 8. Workspace-owned Git and child processes
 
-`git.repo.import {id,path}` registers an existing local repository. Use real Git as the authority for references, commits, index and worktree status. Do not replace it with a branch-name table. A registry stores identity and operational context, not an independently writable imitation of Git history.
+A workspace owns execution, project context, and workspace-local state.
+A room contains spatial representations and does not determine execution context.
+World entry and room entry do not create, grant, or select a workspace.
+Workspace creation, membership, world availability, actor selection, and cabinet placement are separate operations.
+None of the first four operations creates geometry.
 
-`git.worktree.create {repo,id,branch,start,operation_id}` creates a new branch at `start` and a real managed worktree inside the state directory. Return `{id,repo,branch,path,head}` with an absolute path. The branch name is validated with Git ref rules. Never force an already checked-out branch into a second writable worktree. Invalid reference: `INVALID_ARGUMENT`; already active branch: `BRANCH_IN_USE`. The operation ID is an idempotency key over a normalized request: same ID + same request returns the original result; same ID + different request gives `OPERATION_CONFLICT`.
+The production workspace broker owns workspace identities, Git backing stores, application processes, and execution boundaries.
+Its execution registry is independent of world identity and spatial placement.
+Worldd owns world availability and each actor's selection in that world.
+Several authorized presentations can refer to one workspace without creating another execution authority.
+The management test pipe supplies administrative fixture authority. It is not an untrusted actor endpoint.
+Cryptographic enrollment, delegation, and authenticated transport remain mandatory Spatial-M1 requirements.
 
-`git.status {worktree}` returns `{head,branch,clean,modified:[paths],untracked:[paths]}` from actual current Git state. It must notice changes made by a separate Git process. Paths with unusual characters must be parsed using machine-readable/NUL-delimited Git output, not whitespace splitting.
+### Git resources
 
-`git.worktree.remove {id,operation_id}` refuses dirty/untracked files with `DIRTY_WORKTREE`, removes a clean worktree without deleting its branch, and records completion. Do not use forced deletion as recovery. `git.operation {operation_id}` returns at least `{state}`; successful/reconciled create is `ready`. Pending is not ready.
+`git.repo.import {id,path}` imports an authorized local repository into a real managed bare backing store.
+Return `{id,path,source}`. The returned path identifies that bare repository inside the managed state directory.
+Do not modify the source repository or its working files.
+Use real Git as the authority for refs, objects, commits, indexes, and worktrees.
+A registry stores identity and effect state, not a writable imitation of Git history.
+Production workspace definitions use box-git as their shared Git remote.
+Acceptance fixtures use temporary local source repositories and do not publish test data to box-git.
+This fixture arrangement does not waive production Git-hosting qualification.
 
-A room can bind to a managed worktree. `process.launch` runs the provided argv directly in that worktree and returns a stable process-record ID. Reject a missing worktree context explicitly rather than using the user's home directory. Duplicate launch requests within a running manager return the same process record, not another process. `process.wait {id,timeout_seconds}` waits for that actual child and returns `{exit_code}` (nonzero preserved); exceeding the supplied deadline returns `TIMEOUT`. Do not infer completion from an output file merely existing.
+`git.worktree.create {repo,id,branch,start,operation_id}` creates a branch and a real linked worktree in that bare repository.
+Return `{id,repo,branch,path,head}` with an absolute managed worktree path.
+Validate branch names through Git rules. Never force one branch into another linked writable worktree.
+Invalid refs return INVALID_ARGUMENT. An active branch returns BRANCH_IN_USE.
+Repository, branch, commit, worktree, and workspace identities remain distinct.
 
-For an arbitrary launch interrupted around fork/exec, record/reconcile process identity using a supervisor and PID start time/pidfd where applicable. An unresolved state is `uncertain`, not “exactly once.” Do not automatically repeat arbitrary external side effects after losing their acknowledgment.
+Operation IDs bind normalized payloads. Equal IDs and payloads return the recorded result.
+A changed payload returns OPERATION_CONFLICT. Invalid requests have no external side effects.
+`git.status {worktree}` returns `{head,branch,clean,modified:[paths],untracked:[paths]}` from actual Git state.
+It observes changes from independent Git processes.
+Parse path output with machine-readable, NUL-delimited formats.
+`git.worktree.remove {id,operation_id}` returns `{removed:true}` for a successful clean removal.
+Refuse dirty or untracked files with DIRTY_WORKTREE. Preserve the branch after removing its worktree.
+Refuse removal of a workspace-bound worktree with IN_USE.
+`git.operation {operation_id}` returns its effect state. Only a completed or reconciled operation is ready.
+Do not force-delete worktrees during recovery.
+
+### Workspace context and authority
+
+`workspace.create {id,worktree,policy:[rights]}` creates a workspace with one authoritative writable project directory.
+Return `{id,worktree,policy,revision}`. Do not assign a room or default room.
+`workspace.get {id}` returns that descriptor.
+A second workspace cannot bind the same worktree or share its writable bare Git metadata.
+Return IN_USE for either conflict.
+Independent mutable workspaces require separate bare backing stores and writable directories.
+This keeps Git indexes, configuration, refs, and worktree administration inside their authority boundary.
+Shared committed data can come from the same authorized upstream.
+
+Fixture rights are workspace.select, files.read, files.write, and process.launch.
+They are structured protobuf enum values scoped to a workspace ID.
+Unknown rights fail closed. A path string is not a scope identity.
+`workspace.member.set {id,actor,rights:[rights]}` sets fixture membership rights for one registered actor.
+Empty rights revoke that membership. This administrative fixture operation does not implement cryptographic delegation.
+`workspace.available {id,available:bool}` changes explicit availability in the caller's world.
+It does not grant membership or create a cabinet.
+Availability requires explicit boolean presence, including false.
+
+Actor `workspace.select {id}` requires availability and effective workspace.select authority.
+Unavailable workspaces return UNAVAILABLE. Missing authority returns FORBIDDEN.
+Actor `workspace.clear {}` selects no workspace without stopping applications.
+Room changes preserve workspace selection. They do not copy or select another workspace.
+Unavailability or revoked selection authority clears the affected selection immediately.
+Re-enabling availability does not silently reselect a workspace.
+A world transition restores that destination world's previous valid selection, or none.
+Persist this context per actor and world. Never carry selection implicitly across worlds.
+Cross-world transition qualification remains mandatory under M05 and M06.
+
+### Real execution
+
+Actor `process.launch {argv:[strings],operation_id,profile}` resolves its explicitly selected workspace.
+A missing selection returns NO_WORKSPACE. Missing execution authority returns FORBIDDEN.
+Every launch and descendant uses one production broker.
+The broker calculates effective resources from workspace policy, launching-actor authority, and the requested application profile.
+Command names are not a security boundary. Editors, Git, compilers, terminals, and interpreters use real POSIX resources.
+The initial development profile requests project read/write and execution.
+The read-only profile requests project read and execution.
+The effective intersection can produce a read-only project even when the requested profile includes writes.
+Reject unknown profiles. Do not fall back to unrestricted host execution.
+
+Each process sees its workspace project at `/project` within its execution mount namespace.
+Different workspaces can use that same visible path while their underlying writable directories remain distinct.
+Required system dependencies are read-only. Workspace state, cache, and temporary writes stay within separately granted workspace boundaries.
+Do not expose unrelated projects, host secrets, private keys, or another workspace's writable Git metadata.
+Enforce no_new_privs, filesystem restrictions, namespaces, resource limits, and required syscall/device policies below applications.
+Child processes inherit confinement. Full independent escape testing remains mandatory under M03.
+Do not expose a generic host X connection to ordinary workspace processes; X authority requires M04's native server boundary.
+
+Use argv directly. Scripts and outputs used by confined acceptance processes reside within their granted workspace.
+The broker returns a stable process-record ID and resolved workspace ID after the real launch boundary.
+A live-manager retry cannot launch twice or change the resolved workspace, argv, or requested profile.
+Operation IDs are scoped to actor identity and bind the resolved workspace in their payload.
+A changed workspace under the same operation ID returns OPERATION_CONFLICT.
+`process.wait {id,timeout_seconds}` waits for that actual child and returns `{exit_code}` with explicit presence.
+Preserve nonzero exits. A deadline returns TIMEOUT. An output file alone is not completion evidence.
+Record and reconcile process identity using a supervisor and start identity or pidfd where applicable.
+An ambiguous external effect is uncertain. Do not replay arbitrary side effects after a lost acknowledgment.
 
 ## 9. Fault and restart boundaries
 

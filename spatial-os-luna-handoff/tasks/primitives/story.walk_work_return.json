@@ -2,7 +2,7 @@
   "id": "story.walk_work_return",
   "phase": "P10",
   "title": "story / walk work return",
-  "invariant": "A real actor walks into a branch room, interacts with a real X client, works in the real worktree and returns.",
+  "invariant": "A real actor changes rooms, uses a real X client, works in its explicitly selected workspace, and returns.",
   "contract_sections": [
     "5",
     "6",
@@ -12,7 +12,7 @@
   ],
   "objective": "Implement the production behavior exercised by the exact listed assertions; preserve the phase invariant.",
   "acceptance_tests": [
-    "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_into_branch_room_use_real_window_launch_work_and_return"
+    "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_to_room_use_real_window_work_in_selected_workspace_and_return"
   ],
   "suggested_production_roots": [
     "src/world/",
@@ -27,7 +27,7 @@
   ],
   "prior_gate": "P09",
   "diagnostic_commands": [
-    "python3 tools/gate.py --through P10 --case tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_into_branch_room_use_real_window_launch_work_and_return"
+    "python3 tools/gate.py --through P10 --case tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_to_room_use_real_window_work_in_selected_workspace_and_return"
   ],
   "completion_command": "python3 tools/gate.py --through P10",
   "command_note": "Set SPATIAL_SUT to the real JSON argv before these commands, or pass --sut with that same JSON argv. P04+ also requires the explicit dedicated test display.",

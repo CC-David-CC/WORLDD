@@ -129,6 +129,15 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     if (request.seq() <= actor.sequence) throw WorldError(wire::STALE_SEQUENCE, "Actor sequence already consumed");
     actor.sequence = request.seq();
     switch (request.action_case()) {
+    case wire::ActorActionRequest::kGitWorktreeCreate:
+        if (!actor.grants.contains("git.write")) throw WorldError(wire::FORBIDDEN, "Git administration grant required");
+        throw WorldError(wire::UNIMPLEMENTED, "Workspace Git broker is not implemented");
+    case wire::ActorActionRequest::kProcessLaunch:
+        if (!actor.grants.contains("process.launch")) throw WorldError(wire::FORBIDDEN, "Process launch grant required");
+        throw WorldError(wire::UNIMPLEMENTED, "Workspace execution broker is not implemented");
+    case wire::ActorActionRequest::kWorkspaceSelect:
+    case wire::ActorActionRequest::kWorkspaceClear:
+        throw WorldError(wire::UNIMPLEMENTED, "Workspace actor context is not implemented");
     case wire::ActorActionRequest::kObjectGrab:
     case wire::ActorActionRequest::kObjectMove:
     case wire::ActorActionRequest::kObjectRelease:
