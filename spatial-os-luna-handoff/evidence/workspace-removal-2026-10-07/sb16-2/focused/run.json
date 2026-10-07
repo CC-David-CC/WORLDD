@@ -1,0 +1,70 @@
+{
+  "base": "dc1690c4fd1f7f7f710dc899e290ddcde0dbd814",
+  "sources": {
+    "spatial-os-luna-handoff/src/core/protocol.cpp": {
+      "before": "27708e3c8d2e1dc387e69ed9fefe5218d89db2bbc2749adf28d8be544b898de0",
+      "after": "8070d34a3f2080d03330559ac093298699e259461c1c7bdfe5460197bf1b0593"
+    },
+    "spatial-os-luna-handoff/src/platform/broker.cpp": {
+      "before": "fcc71005e15aeb9a95b7aae3a6e08c18f27b2171670385949b5ad4abc45758b9",
+      "after": "e274202d1b0c0a86dccb1ed7c71eb1764027b72a6d6bdf704d0b1e28e4fc7890"
+    },
+    "spatial-os-luna-handoff/src/workspace/git.cpp": {
+      "before": "2bf14a3facb27acaddd225a769c903842d534d57e564a39fcaeae8a5dafe76c2",
+      "after": "5717b55f0812e95c2af840a3efab44aeafde25091e0863414407c00bfb02db4e"
+    },
+    "spatial-os-luna-handoff/src/workspace/git.hpp": {
+      "before": "ff74fc9a66f3d1e19cdaa557c86c03452c0f50efb0519ebdcbae9df4642b7a85",
+      "after": "ebbb5f9ef675a5c3a153cf5892489fc8a41941e9ee771d0172230e1aeb929d84"
+    },
+    "spatial-os-luna-handoff/src/workspace/main.cpp": {
+      "before": "49c188a60c5b5c881642dd2ba18f98aaa49bc9520e27c48242e904cd21390e2e",
+      "after": "0c45d2482908c6f02f4f344f3d4e67f1b5ac9e5c44c7bfba8bdc87a7e6396fd4"
+    },
+    "spatial-os-luna-handoff/tests/core/test_workspace_git.py": {
+      "before": "10b4a1a550c314918540eaf20a4e27b8abdd00a725b56c437f47f6ef4ac268f5",
+      "after": "5bfef6224ff795cb03c6f275070e873c1c71fe9c28c0910d942729dd323ab4bf"
+    }
+  },
+  "commands": [
+    {
+      "name": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF",
+        "-DSPATIAL_INPUT_TESTS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "python3",
+        "tests/core/test_workspace_git.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/workspaced",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-git-job-probe",
+        "-v"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

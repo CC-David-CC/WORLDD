@@ -1,0 +1,58 @@
+{
+  "base": "dc1690c4fd1f7f7f710dc899e290ddcde0dbd814",
+  "sources": {
+    "spatial-os-luna-handoff/src/workspace/git.cpp": {
+      "before": "5717b55f0812e95c2af840a3efab44aeafde25091e0863414407c00bfb02db4e",
+      "after": "300e19680485944dae8b206cde0a5f341ed78392dfb9e0488fb5cf17b496a016"
+    },
+    "spatial-os-luna-handoff/src/workspace/main.cpp": {
+      "before": "0c45d2482908c6f02f4f344f3d4e67f1b5ac9e5c44c7bfba8bdc87a7e6396fd4",
+      "after": "783ab695d8b761a5151832334d23c60c87903eed34ce7571daaa9ba4cb685431"
+    },
+    "spatial-os-luna-handoff/tests/core/test_workspace_git.py": {
+      "before": "5bfef6224ff795cb03c6f275070e873c1c71fe9c28c0910d942729dd323ab4bf",
+      "after": "23360000a4423ddad254aea678bed699326a10fb1aba0e48bdb7f5ecc2cee42f"
+    }
+  },
+  "commands": [
+    {
+      "name": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF",
+        "-DSPATIAL_INPUT_TESTS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "python3",
+        "tests/core/test_workspace_git.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/workspaced",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-git-job-probe",
+        "-v"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

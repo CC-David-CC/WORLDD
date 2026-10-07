@@ -1,5 +1,43 @@
 # Implementation status
 
+## 2026-10-07: P08 conservative worktree removal
+
+Workspaced now removes clean Git worktrees while preserving their actual files in private retained storage.
+It unregisters the worktree from real Git and preserves the branch.
+Private Git refs also preserve detached commits.
+Dirty files, ignored data, hidden index flags, active locks, and submodule entries prevent removal.
+
+Removal journals bind operation IDs and preserve uncertain effects.
+Completion receipts allow recovery after a failed acknowledgment without repeating filesystem changes.
+Retries preserve new files created at the original path.
+Open file descriptors continue writing to retained files.
+Interrupted retirement and contradictory recovery paths remain uncertain and preserved.
+Automatic restoration and permanent cleanup of retired data remain unimplemented.
+
+The execution registry advances to schema version 2 through an explicit migration.
+Normal startup refuses a version 1 database instead of silently changing it.
+See docs/WORKSPACE_REMOVAL.md for the migration command and recovery inspection procedure.
+Workspace-bound removal protection remains pending with workspace integration.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 113 preceding P00-P07 acceptance tests and thirteen P08 acceptance tests.
+- All 174 core checks, including thirty-nine broker checks.
+- All 43 harness self-tests.
+
+The full 138-case P00-P08 gate ran in each build on both hosts.
+Coverage is 126 passed, zero assertion failures, twelve errors, zero skipped, and thirteen unrun later tests.
+All twelve errors report UNIMPLEMENTED for workspace context or process execution.
+P08 remains incomplete. Full Spatial-M1 and native hardware qualification remain pending.
+All 96 source hashes match reviewed local files and both hosts.
+Evidence is in evidence/workspace-removal-2026-10-07.
+
+Locked tests, oracles, native witness sources, and protobuf schemas remain unchanged.
+No host configuration or operator session changed.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: workspace creation, membership, availability, and actor selection through the production broker.
+The full project goal remains active.
+
 ## 2026-10-07: P08 live Git status
 
 Workspaced now reads the current commit, branch, and file status from real Git.

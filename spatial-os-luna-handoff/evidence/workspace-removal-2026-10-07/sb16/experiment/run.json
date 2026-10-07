@@ -1,0 +1,142 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0/source",
+        "init",
+        "-b",
+        "main"
+      ],
+      "status": 0,
+      "stdout": "Initialized empty Git repository in /tmp/tmppxj71bb0/source/.git/\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0/source",
+        "add",
+        "data"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0/source",
+        "commit",
+        "-m",
+        "fixture"
+      ],
+      "status": 0,
+      "stdout": "[main (root-commit) 2737677] fixture\n 1 file changed, 1 insertion(+)\n create mode 100644 data\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0",
+        "clone",
+        "--bare",
+        "--no-hardlinks",
+        "/tmp/tmppxj71bb0/source",
+        "/tmp/tmppxj71bb0/bare.git"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": "Cloning into bare repository '/tmp/tmppxj71bb0/bare.git'...\ndone.\n"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0/bare.git",
+        "worktree",
+        "add",
+        "-b",
+        "feature",
+        "/tmp/tmppxj71bb0/work",
+        "main"
+      ],
+      "status": 0,
+      "stdout": "HEAD is now at 2737677 fixture\n",
+      "stderr": "Preparing worktree (new branch 'feature')\n"
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0/bare.git",
+        "worktree",
+        "move",
+        "--",
+        "/tmp/tmppxj71bb0/work",
+        "/tmp/tmppxj71bb0/retired/staging/project"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0/bare.git",
+        "worktree",
+        "remove",
+        "--",
+        "/tmp/tmppxj71bb0/retired/staging/project"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0/bare.git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "status": 0,
+      "stdout": "worktree /tmp/tmppxj71bb0/bare.git\nbare\n\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0/bare.git",
+        "rev-parse",
+        "feature"
+      ],
+      "status": 0,
+      "stdout": "2737677ea24d7a603c8a84f6710ad8f972adc13a\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/tmp/tmppxj71bb0/source",
+        "rev-parse",
+        "HEAD"
+      ],
+      "status": 0,
+      "stdout": "2737677ea24d7a603c8a84f6710ad8f972adc13a\n",
+      "stderr": ""
+    }
+  ],
+  "status": "passed",
+  "retained_contents": "original late write",
+  "recreated_original_preserved": true
+}

@@ -110,7 +110,8 @@ wire::Reply BrokerClient::call(wire::Request request) {
         if (!reply.has_error()) {
             const bool valid = (request.has_runtime_identities() && reply.has_identities()) ||
                 (request.has_git_repo_import() && reply.has_repository()) || (request.has_git_worktree_create() && reply.has_worktree()) ||
-                (request.has_git_operation() && reply.has_git_operation()) || (request.has_git_status() && reply.has_git_status());
+                (request.has_git_operation() && reply.has_git_operation()) || (request.has_git_status() && reply.has_git_status()) ||
+                (request.has_git_worktree_remove() && reply.has_worktree_removed());
             if (!valid) throw std::runtime_error("Broker reply has the wrong outcome");
         }
     } catch (...) { close(channel_); channel_ = -1; throw; }

@@ -44,7 +44,7 @@ The administrative command also has its existing output and execution-time limit
 Git status is an observation, not a filesystem lock or an atomic snapshot across external writers.
 Git index flags can hide working-file changes from ordinary status.
 Worktree removal must independently protect such files and handle concurrent writes.
-Worktree removal remains unimplemented in this increment.
+The subsequent [removal increment](WORKSPACE_REMOVAL.md) adds this protection and retains retired files.
 
 ## Qualification
 

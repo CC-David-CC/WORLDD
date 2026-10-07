@@ -1,0 +1,10 @@
+[0/2] Re-checking globbed directories...
+[1/9] Building CXX object CMakeFiles/spatial-core.dir/src/platform/broker.cpp.o
+[2/9] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[3/9] Linking CXX static library libspatial-core.a
+[4/9] Linking CXX executable worldd
+[5/9] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[6/9] Building CXX object CMakeFiles/workspaced.dir/src/workspace/git.cpp.o
+[7/9] Building CXX object CMakeFiles/workspaced.dir/src/workspace/status.cpp.o
+[8/9] Linking CXX executable workspaced
+[9/9] Linking CXX executable spatial-test-host

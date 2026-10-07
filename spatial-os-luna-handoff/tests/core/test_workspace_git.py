@@ -242,6 +242,171 @@ class WorkspaceGitTests(unittest.TestCase):
         self.assertEqual(len(list(path.iterdir())), len(files) + 2)
         self.assertEqual(self.call('git.operation', operation_id='create')['state'], 'ready')
 
+    def remove(self, **extra):
+        args = dict(id='work', operation_id='remove'); args.update(extra)
+        return self.call('git.worktree.remove', **args)
+
+    def retirement(self):
+        with self.registry() as db:
+            return Path(db.execute("SELECT retired FROM removals WHERE id='remove'").fetchone()[0])
+
+    def test_clean_removal_unregisters_git_but_retains_files_and_late_writes(self):
+        backing = self.imported(); work = self.create(); path = Path(work['path'])
+        inode = (path / 'README.txt').stat().st_ino
+        with (path / 'README.txt').open('a') as held:
+            self.assertEqual(self.remove(), {'removed': True})
+            self.assertFalse(path.exists())
+            retained = self.retirement() / 'data/project/README.txt'
+            self.assertEqual(retained.stat().st_ino, inode)
+            held.write('late edit\n'); held.flush()
+            self.assertEqual(retained.read_text(), 'base\nlate edit\n')
+        listing = self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path'])
+        self.assertEqual(listing.count('worktree '), 1)
+        self.assertEqual(self.repo.run('rev-parse', 'feature', cwd=backing['path']), work['head'])
+        self.assertTrue((self.retirement() / 'git/index').is_file())
+        self.error('NOT_FOUND', 'git.status', worktree='work')
+        self.assertEqual(self.call('git.operation', operation_id='remove')['state'], 'ready')
+
+    def test_removal_retries_preserve_new_files_at_the_original_path(self):
+        self.imported(); work = self.create(); self.remove()
+        path = Path(work['path']); path.mkdir(); (path / 'new-project').write_text('keep')
+        self.client.stop(crash=True); self.start()
+        self.assertEqual(self.remove(), {'removed': True})
+        self.assertEqual((path / 'new-project').read_text(), 'keep')
+        self.error('OPERATION_CONFLICT', 'git.worktree.remove', id='other', operation_id='remove')
+        self.error('OPERATION_CONFLICT', 'git.worktree.remove', id='work', operation_id='create')
+        self.error('OPERATION_CONFLICT', 'git.worktree.create', repo='repo', id='new', branch='new', start='main', operation_id='remove')
+        self.assertEqual(list(path.iterdir()), [path / 'new-project'])
+
+    def test_dirty_and_ignored_files_prevent_removal_without_a_journal_intent(self):
+        backing = self.imported(); work = self.create(); path = Path(work['path'])
+        self.repo.write('.gitignore', '*.secret\n', path)
+        self.repo.run('add', '--', '.gitignore', cwd=path); self.repo.run('commit', '-m', 'ignore', cwd=path)
+        before = self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path'])
+        for name in ['README.txt', 'untracked', 'ignored.secret']:
+            with self.subTest(name=name):
+                item = path / name; original = item.read_bytes() if item.exists() else None
+                item.write_text('valuable data')
+                self.error('DIRTY_WORKTREE', 'git.worktree.remove', id='work', operation_id='remove')
+                self.assertEqual(item.read_text(), 'valuable data')
+                if original is None: item.unlink()
+                else: item.write_bytes(original)
+        self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']), before)
+        with self.registry() as db: self.assertEqual(db.execute('SELECT count(*) FROM removals').fetchone()[0], 0)
+
+    def test_hidden_index_changes_cannot_be_discarded(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        for flag in ['assume-unchanged', 'skip-worktree']:
+            with self.subTest(flag=flag):
+                self.repo.run('update-index', '--' + flag, '--', 'README.txt', cwd=path)
+                (path / 'README.txt').write_text('hidden valuable edit\n')
+                self.assertEqual(self.repo.run('status', '--porcelain', cwd=path), '')
+                self.error('DIRTY_WORKTREE', 'git.worktree.remove', id='work', operation_id='remove')
+                self.assertEqual((path / 'README.txt').read_text(), 'hidden valuable edit\n')
+                (path / 'README.txt').write_text('base\n')
+                self.repo.run('update-index', '--no-' + flag, '--', 'README.txt', cwd=path)
+
+    def test_locked_worktrees_and_busy_indexes_remain_in_place(self):
+        backing = self.imported(); work = self.create(); path = Path(work['path'])
+        self.repo.run('worktree', 'lock', '--reason', 'independent owner', str(path), cwd=backing['path'])
+        self.error('IN_USE', 'git.worktree.remove', id='work', operation_id='remove')
+        self.repo.run('worktree', 'unlock', str(path), cwd=backing['path'])
+        lock = Path(self.repo.run('rev-parse', '--absolute-git-dir', cwd=path)) / 'index.lock'
+        lock.write_text('other Git process')
+        self.error('IN_USE', 'git.worktree.remove', id='work', operation_id='remove')
+        self.assertEqual(lock.read_text(), 'other Git process')
+        self.assertEqual((path / 'README.txt').read_text(), 'base\n')
+
+    def test_detached_retirement_pins_unreferenced_commits(self):
+        backing = self.imported(); work = self.create(); path = Path(work['path'])
+        self.repo.run('switch', '--detach', cwd=path)
+        self.repo.write('README.txt', 'detached data\n', path); self.repo.run('commit', '-am', 'detached', cwd=path)
+        commit = self.repo.head(path); self.remove(); retired = self.retirement()
+        pin = 'refs/spatial/retired/' + retired.name
+        self.assertEqual(self.repo.run('rev-parse', '--verify', pin, cwd=backing['path']), commit)
+        self.assertEqual((retired / 'data/project/README.txt').read_text(), 'detached data\n')
+        self.assertEqual(self.repo.run('rev-parse', 'feature', cwd=backing['path']), work['head'])
+
+    def deny_removal_ready(self):
+        with self.registry() as db:
+            db.execute("CREATE TRIGGER deny_removal_ready BEFORE UPDATE ON removals WHEN NEW.state='ready' BEGIN SELECT RAISE(FAIL,'witness write failure'); END")
+
+    def allow_removal_ready(self):
+        with self.registry() as db: db.execute('DROP TRIGGER deny_removal_ready')
+
+    def test_completed_removal_is_reconciled_after_failed_acknowledgment(self):
+        self.imported(); work = self.create(); self.deny_removal_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.remove', id='work', operation_id='remove')
+        retired = self.retirement(); self.assertFalse(Path(work['path']).exists())
+        self.assertTrue((retired / 'complete').is_file())
+        self.assertEqual(self.call('git.operation', operation_id='remove')['state'], 'pending')
+        self.allow_removal_ready(); self.client.stop(crash=True); self.start()
+        self.assertEqual(self.remove(), {'removed': True})
+        self.assertEqual(self.call('git.operation', operation_id='remove')['state'], 'ready')
+        self.assertEqual((retired / 'data/project/README.txt').read_text(), 'base\n')
+
+    def test_unwitnessed_removal_remains_uncertain_and_never_replays(self):
+        self.imported(); work = self.create(); self.deny_removal_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.remove', id='work', operation_id='remove')
+        retired = self.retirement(); (retired / 'complete').unlink()
+        original = Path(work['path']); original.mkdir(); (original / 'new-data').write_text('preserved')
+        self.allow_removal_ready(); self.client.stop(crash=True); self.start()
+        self.assertEqual(self.call('git.operation', operation_id='remove')['state'], 'uncertain')
+        self.error('STORAGE_ERROR', 'git.worktree.remove', id='work', operation_id='remove')
+        self.assertEqual((original / 'new-data').read_text(), 'preserved')
+        self.assertEqual((retired / 'data/project/README.txt').read_text(), 'base\n')
+
+    def test_execution_v1_migration_is_explicit_and_preserves_git_state(self):
+        self.imported(); work = self.create(); self.client.stop()
+        with self.registry() as db:
+            db.execute('DROP TABLE removals'); db.execute('PRAGMA user_version=1')
+            before = {name: db.execute('SELECT * FROM ' + name).fetchall() for name in ['repositories', 'worktrees', 'operations']}
+        refused = subprocess.run([BROKER, '--state-dir', str(self.state / 'execution')], input=b'', capture_output=True, timeout=5)
+        self.assertNotEqual(refused.returncode, 0); self.assertIn(b'--migrate-v1', refused.stderr)
+        command = [BROKER, '--state-dir', str(self.state / 'execution'), '--migrate-v1']
+        for _ in range(2):
+            migrated = subprocess.run(command, input=b'', capture_output=True, timeout=5)
+            self.assertEqual(migrated.returncode, 0, migrated.stderr)
+        with self.registry() as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 2)
+            for name, rows in before.items(): self.assertEqual(db.execute('SELECT * FROM ' + name).fetchall(), rows)
+        self.start(); self.assertEqual(self.create(), work); self.remove()
+
+    def test_submodule_index_entries_require_explicit_retirement(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        self.repo.run('update-index', '--add', '--cacheinfo', '160000,' + work['head'] + ',submodule', cwd=path)
+        (path / 'submodule').mkdir()
+        self.repo.run('commit', '-m', 'gitlink fixture', cwd=path)
+        self.assertTrue(self.call('git.status', worktree='work')['clean'])
+        self.error('IN_USE', 'git.worktree.remove', id='work', operation_id='remove')
+        self.assertTrue((path / 'submodule').is_dir())
+
+    def test_partial_retirement_is_preserved_without_automatic_effect_replay(self):
+        backing = self.imported(); work = self.create(); path = Path(work['path'])
+        admin = Path(self.repo.run('rev-parse', '--absolute-git-dir', cwd=path))
+        os.mkfifo(admin / 'unexpected-pipe')
+        self.error('STORAGE_ERROR', 'git.worktree.remove', id='work', operation_id='remove')
+        retired = self.retirement(); retained = retired / 'staging/project/README.txt'
+        self.assertFalse(path.exists()); self.assertEqual(retained.read_text(), 'base\n')
+        self.assertFalse((retired / 'complete').exists())
+        self.assertEqual(self.call('git.operation', operation_id='remove')['state'], 'pending')
+        listing = self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path'])
+        self.client.stop(crash=True); self.start()
+        self.assertEqual(self.call('git.operation', operation_id='remove')['state'], 'uncertain')
+        self.error('STORAGE_ERROR', 'git.worktree.remove', id='work', operation_id='remove')
+        self.assertEqual(retained.read_text(), 'base\n')
+        self.assertEqual(self.repo.run('worktree', 'list', '--porcelain', cwd=backing['path']), listing)
+
+    def test_recovery_does_not_accept_a_symlink_in_place_of_retained_data(self):
+        self.imported(); self.create(); self.deny_removal_ready()
+        self.error('STORAGE_ERROR', 'git.worktree.remove', id='work', operation_id='remove')
+        retired = self.retirement(); project = retired / 'data/project'; saved = retired / 'data/preserved'
+        project.rename(saved); project.symlink_to(self.repo.path, target_is_directory=True)
+        self.allow_removal_ready(); self.client.stop(crash=True); self.start()
+        self.assertEqual(self.call('git.operation', operation_id='remove')['state'], 'uncertain')
+        self.assertEqual((saved / 'README.txt').read_text(), 'base\n')
+        self.assertEqual((self.repo.path / 'README.txt').read_text(), 'base\n')
+
     def test_git_completion_before_failed_registry_ack_is_reconciled(self):
         backing = self.imported(); self.deny_ready()
         self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')

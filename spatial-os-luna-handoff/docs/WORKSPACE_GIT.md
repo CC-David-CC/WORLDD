@@ -2,7 +2,8 @@
 
 This increment implements real repository import and worktree creation through workspaced.
 Live Git status is now qualified in [WORKSPACE_STATUS.md](WORKSPACE_STATUS.md).
-Workspace membership, selection, application launch, and worktree removal remain incomplete.
+Conservative removal is now qualified in [WORKSPACE_REMOVAL.md](WORKSPACE_REMOVAL.md).
+Workspace membership, selection, application launch, and bound-worktree protection remain incomplete.
 The P08 phase is not complete.
 
 ## Authority and process ownership
@@ -125,4 +126,5 @@ No host configuration or operator session changed.
 Full Spatial-M1 and hardware qualification remain pending.
 The subsequent status increment observes independent Git changes and unusual paths.
 See WORKSPACE_STATUS.md for its qualification evidence and current counts.
-Next: implement conservative worktree removal with dirty-file protection and effect recovery.
+The removal increment preserves retired data and reconciles witnessed completion.
+Next: implement workspace membership, availability, selection, and confined execution.

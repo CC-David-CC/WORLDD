@@ -24,11 +24,15 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Wo
         case wire::Request::kGitWorktreeCreate: *reply.mutable_worktree() = git.create(request.git_worktree_create()); break;
         case wire::Request::kGitOperation: *reply.mutable_git_operation() = git.operation(request.git_operation().operation_id()); break;
         case wire::Request::kGitStatus: *reply.mutable_git_status() = git.status(request.git_status().worktree()); break;
+        case wire::Request::kGitWorktreeRemove: *reply.mutable_worktree_removed() = git.remove(request.git_worktree_remove()); break;
         case wire::Request::OPERATION_NOT_SET: throw spatial::WorldError(wire::UNKNOWN_METHOD, "No recognized broker operation");
         default: throw spatial::WorldError(wire::UNIMPLEMENTED, "Broker operation is not implemented");
         }
     } catch (const spatial::WorldError& error) {
         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
+    } catch (const std::filesystem::filesystem_error&) {
+        reply.mutable_error()->set_code(wire::STORAGE_ERROR);
+        reply.mutable_error()->set_message("Workspace filesystem effect failed; inspect operation state and retained data");
     } catch (const std::invalid_argument& error) {
         reply.mutable_error()->set_code(wire::INVALID_ARGUMENT); reply.mutable_error()->set_message(error.what());
     } catch (const std::exception&) {
@@ -38,12 +42,14 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Wo
 }
 }
 int main(int argc, char** argv) {
-    if (argc != 3 || std::string_view(argv[1]) != "--state-dir") {
-        std::cerr << "Usage: workspaced --state-dir ABSOLUTE_EXECUTION_DIRECTORY\n"; return 2;
+    const bool migration = argc == 4 && std::string_view(argv[3]) == "--migrate-v1";
+    if ((argc != 3 && !migration) || std::string_view(argv[1]) != "--state-dir") {
+        std::cerr << "Usage: workspaced --state-dir ABSOLUTE_EXECUTION_DIRECTORY [--migrate-v1]\n"; return 2;
     }
     try {
         umask(0077); signal(SIGPIPE, SIG_IGN);
-        spatial::WorkspaceGit git(argv[2]);
+        spatial::WorkspaceGit git(argv[2], migration);
+        if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }
         // The supervisor supplies a private trusted management channel. No actor listener.
         std::string bytes;
         while (spatial::read_frame(std::cin, bytes)) {

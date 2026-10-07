@@ -1,0 +1,20 @@
+test_dirty_worktree_is_never_silently_discarded (tests.acceptance.test_08_git_processes.GitTests.test_dirty_worktree_is_never_silently_discarded) ... FAIL
+
+======================================================================
+FAIL: test_dirty_worktree_is_never_silently_discarded (tests.acceptance.test_08_git_processes.GitTests.test_dirty_worktree_is_never_silently_discarded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/acceptance/test_08_git_processes.py", line 67, in test_dirty_worktree_is_never_silently_discarded
+    self.error("DIRTY_WORKTREE","git.worktree.remove",id=w["id"],operation_id="remove-a")
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/base.py", line 57, in error
+    self.assertEqual(ctx.exception.code, code)
+AssertionError: 'UNIMPLEMENTED' != 'DIRTY_WORKTREE'
+- UNIMPLEMENTED
++ DIRTY_WORKTREE
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.480s
+
+FAILED (failures=1)
+DIAGNOSTIC P08: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p08-git-removal-baseline/diagnostic.json
