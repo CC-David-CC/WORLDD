@@ -1,0 +1,17 @@
+{
+  "command": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tests/core/test_input.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe",
+    "ActorInputTests.test_drag_motion_keeps_signed_pixels_on_original_surface"
+  ],
+  "exit_code": 1,
+  "commit": "99d507d9ef3158f8d713874eba5a54cb7b9c20b8",
+  "test_sha256": "1eadbeaf00c11bd5eeb4430dd048d6bd059f6502884a4a0f40bd5d979dad92f1",
+  "status": "failed"
+}

@@ -48,14 +48,14 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
     if (cancel && found == seats_.end()) {
         wire::NativeActorInput result; result.set_actor_id(command.actor_id()); return result;
     }
-    if (!cancel && !command.has_pointer() && !command.has_key() && !command.has_scroll())
+    if (!cancel && !command.has_pointer() && !command.has_key() && !command.has_scroll() && !command.has_motion())
         throw std::invalid_argument("Missing renderer input operation");
     std::optional<wire::NativeSurface> target;
-    if (command.has_pointer() || command.has_scroll()) {
+    if (command.has_pointer() || command.has_scroll() || command.has_motion()) {
         target = surfaces_.native(command.target());
         if (!target || !target->server_generation()) throw WorldError(wire::STALE_TARGET, "Surface handle is stale");
-        if (!command.has_pixel() || command.pixel().x() >= target->pixels().width() ||
-            command.pixel().y() >= target->pixels().height()) throw std::invalid_argument("Input pixel is outside surface");
+        if (!command.has_motion() && (!command.has_pixel() || command.pixel().x() >= target->pixels().width() ||
+            command.pixel().y() >= target->pixels().height())) throw std::invalid_argument("Input pixel is outside surface");
     }
     if (command.has_pointer() && (!command.pointer().has_button() || !command.pointer().has_pressed() ||
         command.pointer().button() < 1 || command.pointer().button() > 3))
@@ -76,6 +76,8 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
         if (!key.pressed() && (!found->second.keys.contains(keycode) || found->second.keys.at(keycode) != key.keysym()))
             throw std::invalid_argument("Key release does not match held keysym");
     }
+    if (command.has_motion() && found == seats_.end())
+        throw WorldError(wire::NO_FOCUS, "Actor has no native capture");
     const bool created = found == seats_.end();
     if (created) {
         native_input::Request request; request.mutable_open();
@@ -101,6 +103,13 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
             if (key->pressed()) seat.keys[keycode] = command.key().keysym();
             return state(command.actor_id(), seat, reply);
         }
+        if (command.has_motion()) {
+            auto* motion = request.mutable_motion(); motion->set_seat(seat.id);
+            motion->mutable_target()->set_xid(target->xid());
+            motion->mutable_target()->set_generation(target->server_generation());
+            motion->set_x(command.motion().x()); motion->set_y(command.motion().y());
+            return state(command.actor_id(), seat, checked(request));
+        }
         auto button = [&](unsigned number, bool pressed) {
             native_input::Request action;
             auto* value = action.mutable_button(); value->set_seat(seat.id);
@@ -108,6 +117,7 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
             value->mutable_target()->set_generation(target->server_generation());
             value->set_x(command.pixel().x()); value->set_y(command.pixel().y());
             value->set_button(number); value->set_pressed(pressed); value->set_focus(true);
+            value->set_keep_capture_position(command.keep_capture_position());
             const auto reply = checked(action);
             if (pressed) seat.focus = command.target();
             return state(command.actor_id(), seat, reply);

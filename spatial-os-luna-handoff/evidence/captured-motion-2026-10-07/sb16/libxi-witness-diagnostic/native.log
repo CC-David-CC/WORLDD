@@ -1,0 +1,34 @@
+test_cancel_at_captured_position_releases_real_client (__main__.NativeInputTests.test_cancel_at_captured_position_releases_real_client) ... ok
+test_cancel_releases_native_keys_and_buttons (__main__.NativeInputTests.test_cancel_releases_native_keys_and_buttons) ... ok
+test_captured_motion_keeps_signed_coordinates_and_original_target (__main__.NativeInputTests.test_captured_motion_keeps_signed_coordinates_and_original_target) ... ok
+test_destroy_clears_focus_and_held_state (__main__.NativeInputTests.test_destroy_clears_focus_and_held_state) ... ok
+test_explicit_grab_is_denied_without_stealing_actor_capture (__main__.NativeInputTests.test_explicit_grab_is_denied_without_stealing_actor_capture) ... FAIL
+test_offscreen_window_preserves_local_coordinates (__main__.NativeInputTests.test_offscreen_window_preserves_local_coordinates) ... ok
+test_ordinary_core_client_receives_input (__main__.NativeInputTests.test_ordinary_core_client_receives_input) ... ok
+test_overlapping_windows_receive_local_pixels_and_separate_devices (__main__.NativeInputTests.test_overlapping_windows_receive_local_pixels_and_separate_devices) ... ok
+test_owner_disconnect_releases_native_state (__main__.NativeInputTests.test_owner_disconnect_releases_native_state) ... ok
+test_replayed_release_does_not_change_native_state (__main__.NativeInputTests.test_replayed_release_does_not_change_native_state) ... ok
+test_resize_back_invalidates_server_generation (__main__.NativeInputTests.test_resize_back_invalidates_server_generation) ... ok
+test_seat_lifecycle_does_not_leak_native_devices (__main__.NativeInputTests.test_seat_lifecycle_does_not_leak_native_devices) ... ok
+test_unprivileged_connection_cannot_open_or_inspect (__main__.NativeInputTests.test_unprivileged_connection_cannot_open_or_inspect) ... ok
+
+======================================================================
+FAIL: test_explicit_grab_is_denied_without_stealing_actor_capture (__main__.NativeInputTests.test_explicit_grab_is_denied_without_stealing_actor_capture)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_input_extension.py", line 335, in test_explicit_grab_is_denied_without_stealing_actor_capture
+    self.assertEqual(errors, [10])  # X BadAccess is explicit denial.
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != [10]
+
+Second list contains 1 additional elements.
+First extra element 0:
+10
+
+- []
++ [10]
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.201s
+
+FAILED (failures=1)

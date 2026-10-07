@@ -1,0 +1,54 @@
+{
+  "kind": "deliberate-production-mutation",
+  "mutation": "Disable the retained capture position on button delivery",
+  "original_actor_sha256": "8451c881992915694ee2ed835dfa11f57ec697b57364919663fb660cba7c7270",
+  "mutant_actor_sha256": "da8d37bf579ba1ab771aae577209b584d5cd4cde98509296d3718369d1b278a7",
+  "commands": [
+    {
+      "label": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_INPUT_TESTS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2",
+        "--target",
+        "spatial-test-host",
+        "spatial-xprobe",
+        "python-protobuf"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "diagnostic",
+      "argv": [
+        "python3",
+        "tools/with_test_display.py",
+        "--",
+        "python3",
+        "tests/core/test_input.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p06-capture-mutation-source/spatial-os-luna-handoff/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p06-capture-mutation-source/spatial-os-luna-handoff/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p06-capture-mutation-source/spatial-os-luna-handoff/build/spatial-xprobe",
+        "ActorInputTests.test_drag_motion_keeps_signed_pixels_on_original_surface"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "detected": true
+}

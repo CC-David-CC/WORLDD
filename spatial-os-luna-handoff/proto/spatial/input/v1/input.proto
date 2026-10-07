@@ -15,6 +15,14 @@ message Button {
   uint32 button = 5;
   bool pressed = 6;
   bool focus = 7;
+  // Preserve the last captured position for additional buttons and release.
+  bool keep_capture_position = 8;
+}
+message Motion {
+  fixed64 seat = 1;
+  Target target = 2;
+  sint32 x = 3;
+  sint32 y = 4;
 }
 message Key { fixed64 seat = 1; uint32 keycode = 2; bool pressed = 3; }
 message Request {
@@ -28,6 +36,7 @@ message Request {
     Seat cancel = 7;
     Seat close = 8;
     Seat status = 9;
+    Motion motion = 10;
   }
 }
 enum Code {

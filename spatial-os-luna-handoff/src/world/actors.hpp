@@ -21,6 +21,7 @@ public:
     wire::WorldCheckpointReply checkpoint();
     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
     void tick(double monotonic_seconds);
+    void flush_input();
     const wire::Entity* find(const std::string& id) const;
     bool manual_clock() const { return manual_clock_; }
 private:
@@ -36,6 +37,7 @@ private:
         wire::NativeActorInput native;
         wire::AimHit capture;
         std::string lease;
+        bool capture_motion_pending = false;
     };
     Actor& authenticated(const std::string& token);
     void step(double target);
@@ -44,6 +46,7 @@ private:
     wire::AimHit input_target(Actor& actor, bool captured = true);
     std::string control_group(const wire::SurfaceRecord& surface) const;
     void route_input(Actor& actor, const wire::ActorActionRequest& request);
+    void move_capture(Actor& actor, const wire::Vec3& direction);
     WorldStore& store_;
     Surfaces* surfaces_;
     RenderWorker* renderer_;

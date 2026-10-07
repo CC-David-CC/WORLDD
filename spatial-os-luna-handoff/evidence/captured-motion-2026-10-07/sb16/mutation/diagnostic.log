@@ -1,0 +1,21 @@
+test_drag_motion_keeps_signed_pixels_on_original_surface (__main__.ActorInputTests.test_drag_motion_keeps_signed_pixels_on_original_surface) ... FAIL
+
+======================================================================
+FAIL: test_drag_motion_keeps_signed_pixels_on_original_surface (__main__.ActorInputTests.test_drag_motion_keeps_signed_pixels_on_original_surface)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p06-capture-mutation-source/spatial-os-luna-handoff/tests/core/test_input.py", line 257, in test_drag_motion_keeps_signed_pixels_on_original_surface
+    self.assertEqual((buttons[-1]['x'], buttons[-1]['y']), (200, 180))
+AssertionError: Tuples differ: (80, 60) != (200, 180)
+
+First differing element 0:
+80
+200
+
+- (80, 60)
++ (200, 180)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.165s
+
+FAILED (failures=1)

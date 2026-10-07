@@ -47,7 +47,7 @@ class Relay:
         request = pb.Request(protocol_version=1, request_id=self.sequence)
         getattr(request, operation).CopyFrom({
             "open": pb.Empty, "inspect": pb.Inspect, "button": pb.Button,
-            "key": pb.Key, "cancel": pb.Seat, "close": pb.Seat, "status": pb.Seat
+            "key": pb.Key, "cancel": pb.Seat, "close": pb.Seat, "status": pb.Seat, "motion": pb.Motion
         }[operation](**values))
         data = request.SerializeToString()
         self.proc.stdin.write(struct.pack(">I", len(data)) + data)
@@ -91,6 +91,11 @@ class NativeInputTests(unittest.TestCase):
         self.display = self.xlib.XOpenDisplay(os.environ["SPATIAL_TEST_DISPLAY"].encode())
         self.assertTrue(self.display)
         self.xi = ctypes.CDLL("libXi.so.6")
+        self.xi.XIQueryVersion.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int)]
+        self.xi.XIQueryVersion.restype = ctypes.c_int
+        major, minor = ctypes.c_int(2), ctypes.c_int(2)
+        self.assertEqual(self.xi.XIQueryVersion(self.display, ctypes.byref(major), ctypes.byref(minor)), 0)
+        self.assertGreaterEqual((major.value, minor.value), (2, 0))
         self.xi.XIQueryDevice.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_int)]
         self.xi.XIQueryDevice.restype = ctypes.c_void_p
         self.xi.XIFreeDeviceInfo.argtypes = [ctypes.c_void_p]
@@ -267,6 +272,93 @@ class NativeInputTests(unittest.TestCase):
         self.button(seat, target, False)
         events = [e for e in probe.input_events() if e["event"] == "button"]
         self.assertEqual([(e["x"], e["y"]) for e in events], [(80, 60), (80, 60)])
+
+    def test_captured_motion_keeps_signed_coordinates_and_original_target(self):
+        probe, target = self.probe()
+        other, other_target = self.probe()
+        seat = self.owner.request("open").seat
+        self.owner.request("motion", code=pb.INVALID_ARGUMENT, seat=seat, target=target, x=10, y=20)
+        self.button(seat, target, True)
+        self.owner.request("motion", seat=seat, target=target, x=-160, y=360)
+        self.owner.request("motion", code=pb.BUSY, seat=seat, target=other_target, x=40, y=50)
+        self.owner.request("motion", code=pb.INVALID_ARGUMENT, seat=seat, target=target, x=32768, y=50)
+        self.owner.request("button", seat=seat, target=target, button=1, pressed=False, keep_capture_position=True)
+        events = probe.input_events()
+        motion = [event for event in events if event['event'] == 'motion']
+        self.assertEqual([(event['x'], event['y']) for event in motion], [(-160, 360)])
+        buttons = [event for event in events if event['event'] == 'button']
+        self.assertEqual([event['pressed'] for event in buttons], [True, False])
+        self.assertEqual((buttons[-1]['x'], buttons[-1]['y']), (-160, 360))
+        self.assertEqual([event for event in other.input_events() if event['event'] in ('button', 'motion')], [])
+
+    def test_cancel_at_captured_position_releases_real_client(self):
+        probe, target = self.probe(xi2=False)
+        seat = self.owner.request("open").seat
+        self.button(seat, target, True)
+        self.owner.request("motion", seat=seat, target=target, x=480, y=-120)
+        self.owner.request("cancel", id=seat)
+        events = probe.input_events()
+        motion = [event for event in events if event['event'] == 'motion']
+        self.assertEqual([(event['x'], event['y']) for event in motion], [(480, -120)])
+        release = [event for event in events if event['event'] == 'button' and not event['pressed']]
+        self.assertEqual([(event['x'], event['y']) for event in release], [(480, -120)])
+
+    def test_explicit_grab_is_denied_without_stealing_actor_capture(self):
+        probe, target = self.probe()
+        other, _ = self.probe()
+        opened = self.owner.request('open')
+        self.button(opened.seat, target, True)
+        # Use a checked XCB request. libXi maps a suppressed BadAccess to success.
+        class Cookie(ctypes.Structure):
+            _fields_ = [('sequence', ctypes.c_uint32)]
+        xcb = ctypes.CDLL('libxcb.so.1')
+        xi = ctypes.CDLL('libxcb-xinput.so.0')
+        libc = ctypes.CDLL(None)
+        libc.free.argtypes = [ctypes.c_void_p]
+        xcb.xcb_connect.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_int)]
+        xcb.xcb_connect.restype = ctypes.c_void_p
+        xcb.xcb_connection_has_error.argtypes = [ctypes.c_void_p]
+        xcb.xcb_disconnect.argtypes = [ctypes.c_void_p]
+        xi.xcb_input_xi_query_version.argtypes = [ctypes.c_void_p, ctypes.c_uint16, ctypes.c_uint16]
+        xi.xcb_input_xi_query_version.restype = Cookie
+        xi.xcb_input_xi_query_version_reply.argtypes = [ctypes.c_void_p, Cookie, ctypes.POINTER(ctypes.c_void_p)]
+        xi.xcb_input_xi_query_version_reply.restype = ctypes.c_void_p
+        xi.xcb_input_xi_grab_device.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32,
+            ctypes.c_uint32, ctypes.c_uint16, ctypes.c_uint8, ctypes.c_uint8, ctypes.c_uint8,
+            ctypes.c_uint16, ctypes.POINTER(ctypes.c_uint32)]
+        xi.xcb_input_xi_grab_device.restype = Cookie
+        xi.xcb_input_xi_grab_device_reply.argtypes = [ctypes.c_void_p, Cookie, ctypes.POINTER(ctypes.c_void_p)]
+        xi.xcb_input_xi_grab_device_reply.restype = ctypes.c_void_p
+        connection = xcb.xcb_connect(os.environ['SPATIAL_TEST_DISPLAY'].encode(), None)
+        self.assertTrue(connection)
+        try:
+            self.assertEqual(xcb.xcb_connection_has_error(connection), 0)
+            error = ctypes.c_void_p()
+            version = xi.xcb_input_xi_query_version(connection, 2, 2)
+            reply = xi.xcb_input_xi_query_version_reply(connection, version, ctypes.byref(error))
+            try:
+                self.assertTrue(reply); self.assertFalse(error.value)
+            finally:
+                libc.free(reply); libc.free(error)
+            mask = (ctypes.c_uint32 * 1)((1 << 4) | (1 << 5) | (1 << 6))
+            cookie = xi.xcb_input_xi_grab_device(connection, other.xid, 0, 0, opened.pointer_device, 1, 1, 0, 1, mask)
+            error = ctypes.c_void_p()
+            reply = xi.xcb_input_xi_grab_device_reply(connection, cookie, ctypes.byref(error))
+            try:
+                self.assertFalse(reply); self.assertTrue(error.value)
+                packet = ctypes.string_at(error, 32)
+                self.assertEqual(packet[:2], bytes((0, 10)))  # X error, BadAccess.
+                self.assertEqual(struct.unpack('=H', packet[8:10])[0], 51)  # XIGrabDevice.
+            finally:
+                libc.free(reply); libc.free(error)
+        finally:
+            xcb.xcb_disconnect(connection)
+        self.owner.request('motion', seat=opened.seat, target=target, x=420, y=-100)
+        self.owner.request('cancel', id=opened.seat)
+        events = probe.input_events()
+        self.assertEqual([(e['x'], e['y']) for e in events if e['event'] == 'motion'], [(420, -100)])
+        self.assertEqual([e['pressed'] for e in events if e['event'] == 'button'], [True, False])
+        self.assertEqual([e for e in other.input_events() if e['event'] in ('button', 'motion')], [])
 
 
 if __name__ == "__main__":

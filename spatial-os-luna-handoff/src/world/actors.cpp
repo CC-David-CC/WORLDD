@@ -10,6 +10,7 @@
 #include <cmath>
 #include <fstream>
 #include <iterator>
+#include <iostream>
 
 namespace spatial {
 namespace {
@@ -150,8 +151,9 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
             throw WorldError(wire::FORBIDDEN, "Navigation or interaction grant required");
         require(request.aim().has_direction(), "Missing aim direction");
         refresh_native();
-        actor.aim = pick_scene(scene(request.token()), request.aim().direction());
-        actor.direction = request.aim().direction();
+        const auto aim = pick_scene(scene(request.token()), request.aim().direction());
+        move_capture(actor, request.aim().direction());
+        actor.aim = aim; actor.direction = request.aim().direction();
         wire::ActorActionReply result; result.set_accepted(true); *result.mutable_aim() = actor.aim;
         return result;
     }
@@ -168,7 +170,7 @@ void Actors::release_input(Actor& actor, bool close) {
         if (close) actor.native.Clear();
     }
     if (!actor.lease.empty()) leases_.erase(actor.lease);
-    actor.lease.clear(); actor.capture.Clear();
+    actor.lease.clear(); actor.capture.Clear(); actor.capture_motion_pending = false;
 }
 std::string Actors::control_group(const wire::SurfaceRecord& surface) const {
     // Temporary native surface grouping. Broker application identities supersede
@@ -224,6 +226,35 @@ wire::AimHit Actors::input_target(Actor& actor, bool captured) {
         current.hit().pixel().y() != hit.pixel().y()) throw WorldError(wire::STALE_TARGET, "Aimed geometry or visibility changed");
     return hit;
 }
+void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
+    actor.capture_motion_pending = false;
+    if (!actor.native.held_buttons_size()) return;
+    if (!actor.grants.contains("interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
+    const auto surface = surfaces_->get(actor.capture.id());
+    const auto camera = scene_pose(actor.entity.pose());
+    const auto plane = scene_pose(surface.pose());
+    Vec3 local{input.x(), input.y(), input.z()};
+    const double scale = std::max({std::abs(local[0]), std::abs(local[1]), std::abs(local[2])});
+    require(std::isfinite(scale) && scale > 0, "Invalid captured aim direction");
+    for (auto& value : local) value /= scale;
+    const auto ray = inverse_point(Pose{{0,0,0}, plane.q}, transform_point(Pose{{0,0,0}, camera.q}, local));
+    const auto origin = inverse_point(plane, camera.p);
+    // An aim parallel to, or pointing away from, the capture plane has no new pixel.
+    // Keep the last native position and capture until release or cancellation.
+    if (ray[2] == 0) return;
+    const double distance = -origin[2] / ray[2];
+    if (distance < 0) return;
+    const double x = std::floor(((origin[0] + ray[0] * distance) / surface.size().x() + .5) * surface.pixels().width());
+    const double y = std::floor((.5 - (origin[1] + ray[1] * distance) / surface.size().y()) * surface.pixels().height());
+    require(std::isfinite(x) && std::isfinite(y) && x >= -32768 && x <= 32767 && y >= -32768 && y <= 32767,
+            "Captured pixel exceeds native coordinate range");
+    wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
+    command.mutable_target()->set_id(actor.capture.id());
+    command.mutable_target()->set_generation(actor.capture.generation());
+    command.mutable_motion()->set_x(static_cast<std::int32_t>(x));
+    command.mutable_motion()->set_y(static_cast<std::int32_t>(y));
+    actor.native = renderer_->input(command);
+}
 void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) {
     if (!renderer_ || !surfaces_) throw WorldError(wire::UNIMPLEMENTED, "Native actor input is unavailable");
     if (request.has_pointer()) require(request.pointer().has_button() && request.pointer().has_pressed() &&
@@ -257,6 +288,7 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
     if (actor.native.has_focus() && actor.native.focus().id() != hit.id()) release_input(actor);
     command.mutable_target()->set_id(hit.id()); command.mutable_target()->set_generation(hit.generation());
     *command.mutable_pixel() = hit.pixel();
+    command.set_keep_capture_position(request.has_pointer() && actor.native.held_buttons_size() > 0);
     actor.native = renderer_->input(command);
     if (actor.native.has_focus()) { actor.lease = group; leases_[group] = actor.entity.id(); }
     if (actor.native.held_buttons_size()) actor.capture = hit; else actor.capture.Clear();
@@ -277,17 +309,41 @@ void Actors::step(double target) {
             const Vec3 linear{actor.axes[0] * config_.linear_gain(), actor.axes[1] * config_.linear_gain(), actor.axes[2] * config_.linear_gain()};
             const Vec3 angular{actor.axes[3] * config_.angular_gain(), actor.axes[4] * config_.angular_gain(), actor.axes[5] * config_.angular_gain()};
             set_pose(actor.entity.mutable_pose(), integrate(as_pose(actor.entity.pose()), linear, angular, end - now_));
+            if (actor.native.held_buttons_size() && std::any_of(actor.axes.begin(), actor.axes.end(), [](double v) { return v != 0; }))
+                actor.capture_motion_pending = true;
         }
         if (target >= actor.expires) actor.axes.fill(0);
     }
     now_ = target;
 }
 void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic_seconds); }
+void Actors::flush_input() {
+    // Tick also runs while waiting on compositor I/O. Submit deferred motion only
+    // from the outer scheduler, never recursively inside a renderer exchange.
+    std::vector<std::string> pending;
+    for (const auto& [id, actor] : actors_) if (actor.capture_motion_pending) pending.push_back(id);
+    if (pending.empty()) return;
+    refresh_native();
+    for (const auto& id : pending) {
+        auto& actor = actors_.at(id);
+        try {
+            move_capture(actor, actor.direction);
+        } catch (const std::invalid_argument& error) {
+            release_input(actor); actor.axes.fill(0); actor.expires = now_;
+            std::cerr << "worldd: cancelled unrepresentable capture: " << error.what() << '\n';
+        } catch (const WorldError& error) {
+            if (error.code != wire::STALE_TARGET && error.code != wire::NO_FOCUS && error.code != wire::FORBIDDEN) throw;
+            release_input(actor); actor.axes.fill(0); actor.expires = now_;
+            std::cerr << "worldd: cancelled invalid capture: " << error.what() << '\n';
+        }
+    }
+}
 wire::ClockReply Actors::advance(const wire::ClockAdvanceRequest& request) {
     if (!manual_clock_) throw WorldError(wire::FORBIDDEN, "Manual clock is disabled");
     require(request.has_seconds() && std::isfinite(request.seconds()) && request.seconds() >= 0 &&
             request.seconds() <= 3600, "Invalid clock interval");
     step(now_ + request.seconds());
+    flush_input();
     wire::ClockReply result; result.set_seconds(now_); return result;
 }
 wire::WorldCheckpointReply Actors::checkpoint() {

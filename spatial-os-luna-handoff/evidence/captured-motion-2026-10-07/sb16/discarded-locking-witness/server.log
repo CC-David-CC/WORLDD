@@ -1,0 +1,146 @@
+Sync Extension 3.1
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-90.xkm"', fp = 0x651c9758cf40
+Pclose: fp = 0x651c9758cf40
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-90.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(189905).
+client(0): Reserved cmdname(Xvfb) and cmdargs(:90 -screen 0 1920x1080x24 -nolisten tcp -nolisten tcp -auth /tmp/xvfb-run.LA8Hdj/Xauthority).
+client(200000): Reserved pid(189909).
+client(200000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+AllocNewConnection: client index = 1, socket fd = 8, local = 1
+client(400000): Reserved pid(189908).
+client(400000): Reserved cmdname(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+AllocNewConnection: client index = 2, socket fd = 9, local = 1
+client(600000): Reserved pid(189910).
+client(600000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-c80da228476a4893be6ab9c2971bb582).
+AllocNewConnection: client index = 3, socket fd = 10, local = 1
+(dix) removing device 10
+(dix) removing device 11
+(dix) removing device 9
+(dix) removing device 8
+client(200000): Released pid(189909).
+client(200000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+client(600000): Released pid(189910).
+client(600000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-c80da228476a4893be6ab9c2971bb582).
+client(400000): Released pid(189908).
+client(400000): Released cmdline(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+client(200000): Reserved pid(189912).
+client(200000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+AllocNewConnection: client index = 1, socket fd = 8, local = 1
+client(400000): Reserved pid(189908).
+client(400000): Reserved cmdname(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+AllocNewConnection: client index = 2, socket fd = 9, local = 1
+client(600000): Reserved pid(189913).
+client(600000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-85fa0326c4264763bd9f8121d2e46725 --xi2).
+AllocNewConnection: client index = 3, socket fd = 10, local = 1
+(dix) removing device 10
+(dix) removing device 11
+(dix) removing device 9
+(dix) removing device 8
+client(200000): Released pid(189912).
+client(200000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+client(600000): Released pid(189913).
+client(600000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-85fa0326c4264763bd9f8121d2e46725 --xi2).
+client(400000): Released pid(189908).
+client(400000): Released cmdline(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+client(200000): Reserved pid(189915).
+client(200000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+AllocNewConnection: client index = 1, socket fd = 8, local = 1
+client(400000): Reserved pid(189908).
+client(400000): Reserved cmdname(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+AllocNewConnection: client index = 2, socket fd = 9, local = 1
+client(600000): Reserved pid(189916).
+client(600000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-d5fa692c91234e3fa863bc4b80a71a61 --xi2).
+AllocNewConnection: client index = 3, socket fd = 10, local = 1
+client(800000): Reserved pid(189918).
+client(800000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-a96c33bbafab493985223d6bf982f7ef --xi2).
+AllocNewConnection: client index = 4, socket fd = 11, local = 1
+(dix) removing device 10
+(dix) removing device 11
+(dix) removing device 9
+(dix) removing device 8
+client(200000): Released pid(189915).
+client(200000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+client(600000): Released pid(189916).
+client(600000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-d5fa692c91234e3fa863bc4b80a71a61 --xi2).
+client(800000): Released pid(189918).
+client(800000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-a96c33bbafab493985223d6bf982f7ef --xi2).
+client(400000): Released pid(189908).
+client(400000): Released cmdline(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+client(200000): Reserved pid(189920).
+client(200000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+AllocNewConnection: client index = 1, socket fd = 8, local = 1
+client(400000): Reserved pid(189908).
+client(400000): Reserved cmdname(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+AllocNewConnection: client index = 2, socket fd = 9, local = 1
+client(600000): Reserved pid(189921).
+client(600000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-cca18dae02014f3d8f8fd2ffc899d8fe --xi2).
+AllocNewConnection: client index = 3, socket fd = 10, local = 1
+(dix) removing device 10
+(dix) removing device 11
+(dix) removing device 9
+(dix) removing device 8
+client(200000): Released pid(189920).
+client(200000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+client(600000): Released pid(189921).
+client(600000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-cca18dae02014f3d8f8fd2ffc899d8fe --xi2).
+client(400000): Released pid(189908).
+client(400000): Released cmdline(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+client(200000): Reserved pid(189923).
+client(200000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+AllocNewConnection: client index = 1, socket fd = 8, local = 1
+client(400000): Reserved pid(189908).
+client(400000): Reserved cmdname(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+AllocNewConnection: client index = 2, socket fd = 9, local = 1
+client(600000): Reserved pid(189924).
+client(600000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-fdffc19302ff4fb583386cfc990841a3 --xi2).
+AllocNewConnection: client index = 3, socket fd = 10, local = 1
+client(800000): Reserved pid(189926).
+client(800000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-3629f62e893f41d1b2988a355e97776c --xi2).
+AllocNewConnection: client index = 4, socket fd = 11, local = 1
+client(400000): Released pid(189908).
+client(400000): Released cmdline(/usr/bin/python3) and cmdargs(tests/native/test_input_extension.py build/spatial-input-bridge).
+client(600000): Released pid(189924).
+client(600000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-fdffc19302ff4fb583386cfc990841a3 --xi2).
+(dix) removing device 10
+(dix) removing device 11
+(dix) removing device 9
+(dix) removing device 8
+client(200000): Released pid(189923).
+client(200000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-input-bridge) and cmdargs(--owner).
+client(800000): Released pid(189926).
+client(800000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe) and cmdargs(--id probe-3629f62e893f41d1b2988a355e97776c --xi2).
+(dix) removing device 2
+(dix) removing device 3
+(dix) removing device 5
+(dix) removing device 4
+(dix) removing device 7
+(dix) removing device 6
+client(0): Released pid(189905).
+client(0): Released cmdline(Xvfb) and cmdargs(:90 -screen 0 1920x1080x24 -nolisten tcp -nolisten tcp -auth /tmp/xvfb-run.LA8Hdj/Xauthority).

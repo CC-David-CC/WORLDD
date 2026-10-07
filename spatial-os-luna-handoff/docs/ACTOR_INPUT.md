@@ -1,7 +1,7 @@
 # Actor input integration
 
 This increment connects actor actions to the production compositor and XLibre input extension.
-The integrated baseline passes on both authorized hosts. P06 remains incomplete because captured motion is pending.
+The integrated baseline passes on both authorized hosts. Captured motion subsequently completed automated P06 qualification; see CAPTURED_MOTION.md.
 
 ## Protobuf migration 0.7.0
 
@@ -33,8 +33,8 @@ Cancellation releases native keys, buttons, focus, and the control lease.
 The initial lease group follows native transient-parent relationships.
 This is an interim P06 grouping, not the mandatory broker-owned application identity.
 Workspace authorization, immutable X connection identities, and full application-group security remain later mandatory milestones.
-Captured pointer motion beyond surface bounds still requires server and actor integration.
-Do not claim that balanced release tests prove captured motion.
+Captured pointer motion beyond surface bounds is implemented and qualified in CAPTURED_MOTION.md.
+Use the separate motion and release-coordinate witnesses as capture evidence.
 Native physical input and GPU acceptance remain pending.
 
 ## Validation

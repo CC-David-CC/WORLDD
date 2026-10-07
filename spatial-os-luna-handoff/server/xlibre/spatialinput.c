@@ -3,10 +3,12 @@
  */
 #include <dix-config.h>
 #include <stdint.h>
+#include <limits.h>
 #include <string.h>
 #include "dix/devices_priv.h"
 #include "dix/dix_priv.h"
 #include "dix/input_priv.h"
+#include "dix/inpututils_priv.h"
 #include "dix/request_priv.h"
 #include "dix/resource_priv.h"
 #include "dix/window_priv.h"
@@ -38,7 +40,7 @@ typedef struct SeatRec {
     DeviceIntPtr pointer, keyboard, pointer_slave, keyboard_slave;
     XID target, focus;
     uint64_t target_generation, focus_generation;
-    unsigned x, y;
+    int x, y;
     uint32_t buttons;
     uint8_t keys[32];
     InternalEvent *events;
@@ -133,7 +135,16 @@ static void send_input(SeatRec *seat, int type, unsigned detail)
     int count;
     if (type == KeyPress || type == KeyRelease)
         count = GetKeyboardEvents(events, device, type, detail);
-    else
+    else if (type == MotionNotify) {
+        ValuatorMask position;
+        WindowPtr win = live_window(seat->target, seat->target_generation);
+        if (!win) return;
+        valuator_mask_zero(&position);
+        valuator_mask_set_double(&position, 0, win->drawable.x + seat->x);
+        valuator_mask_set_double(&position, 1, win->drawable.y + seat->y);
+        count = GetPointerEvents(events, device, type, 0,
+                                 POINTER_NORAW | POINTER_ABSOLUTE | POINTER_SCREEN, &position);
+    } else
         count = GetPointerEvents(events, device, type, detail, POINTER_NORAW, NULL);
     for (int i = 0; i < count; ++i)
         mieqProcessDeviceEvent(device, &events[i], screenInfo.screens[0]);
@@ -315,6 +326,7 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
     case OP(OPEN): seat = open_seat(client); break;
     case OP(BUTTON): id = request->button->seat; break;
     case OP(KEY): id = request->key->seat; break;
+    case OP(MOTION): id = request->motion->seat; break;
     case OP(CANCEL): id = request->cancel->id; break;
     case OP(CLOSE): id = request->close->id; break;
     case OP(STATUS): id = request->status->id; break;
@@ -328,7 +340,8 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         const Spatial__Input__V1__Button *button = request->button;
         WindowPtr win = button->target ? live_window(button->target->xid, button->target->generation) : NULL;
         if (!win) { reply->code = CODE(STALE_TARGET); return; }
-        if (!button->button || button->button >= 32 || button->button > seat->pointer_slave->button->numButtons || button->x >= win->drawable.width || button->y >= win->drawable.height ||
+        if (!button->button || button->button >= 32 || button->button > seat->pointer_slave->button->numButtons || (!button->keep_capture_position && (button->x >= win->drawable.width || button->y >= win->drawable.height)) ||
+            (button->keep_capture_position && !seat->buttons) ||
             !!(seat->buttons & (1u << button->button)) == !!button->pressed) {
             reply->code = CODE(INVALID_ARGUMENT); return;
         }
@@ -336,7 +349,7 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
             reply->code = CODE(BUSY); return;
         }
         seat->target = button->target->xid; seat->target_generation = button->target->generation;
-        seat->x = button->x; seat->y = button->y;
+        if (!button->keep_capture_position) { seat->x = button->x; seat->y = button->y; }
         if (button->focus && button->pressed) {
             if (SetInputFocus(serverClient, seat->keyboard, seat->target, RevertToNone, CurrentTime, FALSE) != Success) {
                 reply->code = CODE(STALE_TARGET); return;
@@ -346,6 +359,23 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         send_input(seat, button->pressed ? ButtonPress : ButtonRelease, button->button);
         if (button->pressed) seat->buttons |= 1u << button->button;
         else seat->buttons &= ~(1u << button->button);
+    }
+    if (request->operation_case == OP(MOTION)) {
+        const Spatial__Input__V1__Motion *motion = request->motion;
+        WindowPtr win = motion->target ? live_window(motion->target->xid, motion->target->generation) : NULL;
+        if (!win) { reply->code = CODE(STALE_TARGET); return; }
+        if (!seat->buttons) { reply->code = CODE(INVALID_ARGUMENT); return; }
+        if (seat->target != motion->target->xid || seat->target_generation != motion->target->generation) {
+            reply->code = CODE(BUSY); return;
+        }
+        /* Core X events and sprite coordinates must not wrap signed 16-bit values. */
+        if (motion->x < INT16_MIN || motion->x > INT16_MAX || motion->y < INT16_MIN || motion->y > INT16_MAX ||
+            (int64_t)win->drawable.x + motion->x < INT16_MIN || (int64_t)win->drawable.x + motion->x > INT16_MAX ||
+            (int64_t)win->drawable.y + motion->y < INT16_MIN || (int64_t)win->drawable.y + motion->y > INT16_MAX) {
+            reply->code = CODE(INVALID_ARGUMENT); return;
+        }
+        seat->x = motion->x; seat->y = motion->y;
+        send_input(seat, MotionNotify, 0);
     }
     if (request->operation_case == OP(KEY)) {
         const Spatial__Input__V1__Key *key = request->key;

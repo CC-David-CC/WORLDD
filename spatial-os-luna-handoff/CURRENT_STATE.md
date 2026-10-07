@@ -1,5 +1,39 @@
 # Implementation status
 
+## 2026-10-07: P06 captured input complete
+
+Captured native motion now follows the actor's aim and camera pose.
+It stays on the original application surface beyond the surface edges.
+Additional buttons and releases preserve the last captured pointer position.
+The scheduler sends pose-driven motion without nested compositor requests.
+A real-time test verifies motion without query polling and expiry at the configured deadline.
+
+Both hosts passed:
+
+- All 98 cumulative P00 through P06 acceptance tests.
+- All 70 core counterexamples and 39 harness checks in Debug and sanitizer builds.
+- All 13 native input component checks against their private XLibre builds.
+- The upstream server unit and modesetting symbol checks.
+
+Independent clients witnessed signed coordinates, transformed capture planes, balanced release, and separate actor devices.
+A checked XCB witness verified explicit-grab denial without capture transfer.
+An isolated production mutation disabled retained capture coordinates.
+The new drag test detected its incorrect release position.
+The main runtime retained the correct implementation.
+
+P06 is complete for its automated software qualification.
+Legacy coverage remains 98 passed, zero current failures, and 43 unrun.
+P07 rooms, portals, collision, observation, and manipulation is next.
+Evidence is in evidence/captured-motion-2026-10-07.
+See docs/CAPTURED_MOTION.md for protocol migration, coordinate limits, diagnostics, and exact commands.
+
+These results use authenticated disposable Xvfb displays and software rendering.
+Sanitizers cover the runtime and compositor, not the XLibre server.
+Physical controls, native GPU performance, full workspace security, and the additional Spatial-M1 milestones remain pending.
+Interim transient grouping does not replace broker-owned application identity.
+The full project goal remains active.
+
+
 ## 2026-10-07: production actor input integration
 
 worldd now routes typed pointer, keyboard, scroll, and cancellation actions through spatialwm to XLibre.

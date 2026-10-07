@@ -37,6 +37,7 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* 
         const auto now = Clock::now();
         actors.tick(std::chrono::duration<double>(now - origin).count());
         if (renderer) renderer->check_alive();
+        actors.flush_input();
         if (output.empty() && input.size() >= 4) {
             const auto size = length(input);
             if (size > max_frame_bytes) throw std::runtime_error("Frame exceeds size limit");

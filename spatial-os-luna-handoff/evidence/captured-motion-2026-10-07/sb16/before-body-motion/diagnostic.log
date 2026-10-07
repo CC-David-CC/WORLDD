@@ -1,0 +1,14 @@
+test_body_motion_updates_the_captured_ray_before_clock_reply (__main__.ActorInputTests.test_body_motion_updates_the_captured_ray_before_clock_reply) ... FAIL
+
+======================================================================
+FAIL: test_body_motion_updates_the_captured_ray_before_clock_reply (__main__.ActorInputTests.test_body_motion_updates_the_captured_ray_before_clock_reply)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_input.py", line 300, in test_body_motion_updates_the_captured_ray_before_clock_reply
+    self.assertTrue(events, 'Changing camera pose must update the captured application pointer')
+AssertionError: [] is not true : Changing camera pose must update the captured application pointer
+
+----------------------------------------------------------------------
+Ran 1 test in 0.147s
+
+FAILED (failures=1)

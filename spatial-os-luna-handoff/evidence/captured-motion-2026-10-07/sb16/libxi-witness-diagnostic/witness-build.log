@@ -1,0 +1,2 @@
+cc -std=c11 -O2 -g -Wall -Wextra -Werror /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/native/xprobe.c -o /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe -lX11 -DSPATIAL_HAVE_XI2 -lXi
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/xprobe

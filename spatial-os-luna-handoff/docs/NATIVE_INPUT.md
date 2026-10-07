@@ -105,5 +105,5 @@ worldd now routes typed pointer, key, scroll, and unfocus actions through the pr
 Server generations are connected to compositor surface handles.
 The initial surface-group leases and balanced cancellation pass the P06 baseline gate on both hosts.
 See ACTOR_INPUT.md for the integration, sanitizer evidence, and explicit remaining limits.
-Captured pointer motion remains pending.
+Captured pointer motion is now qualified on both hosts; see CAPTURED_MOTION.md.
 Full broker-owned application-group authority and physical-device qualification remain mandatory.

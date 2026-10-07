@@ -85,16 +85,19 @@ message NativeActorInput {
   repeated uint32 held_buttons = 3;
   SurfaceHandle focus = 4;
 }
+message CapturedMotion { sint32 x = 1; sint32 y = 2; }
 message RendererInputCommand {
   string actor_id = 1;
   SurfaceHandle target = 2;
   Pixel pixel = 3;
+  bool keep_capture_position = 4;
   oneof operation {
     ActorPointerRequest pointer = 10;
     ActorKeyRequest key = 11;
     ActorScrollRequest scroll = 12;
     ActorStopRequest cancel = 13;
     ActorStopRequest close = 14;
+    CapturedMotion motion = 15;
   }
 }
 message PlacedSurface { SurfaceHandle handle = 1; Entity panel = 2; PixelExtent pixels = 3; }

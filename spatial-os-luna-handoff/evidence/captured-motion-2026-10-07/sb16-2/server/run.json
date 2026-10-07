@@ -1,0 +1,202 @@
+{
+  "host": "sb16-2",
+  "utc": "2026-10-07T11:15:49.508801+00:00",
+  "status": "passed",
+  "base_lock": {
+    "format": 1,
+    "xserver": {
+      "repository": "https://github.com/X11Libre/xserver.git",
+      "ref": "refs/tags/xlibre-xserver-25.1.9",
+      "commit": "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd"
+    },
+    "xorgproto": {
+      "repository": "https://gitlab.freedesktop.org/xorg/proto/xorgproto.git",
+      "ref": "refs/tags/xorgproto-2024.1",
+      "commit": "67469711055522b8adb2d795b01e7ba98cb8816c"
+    },
+    "reason": "Use the inspected stable XLibre release for shared DIX input routing in native Xorg and diagnostic Xvfb. Its Present and DRI3 protocols require project-local xorgproto 2024.1 headers.",
+    "inspected_utc_date": "2026-10-07",
+    "meson_options": [
+      "--buildtype=debug",
+      "-Dxorg=true",
+      "-Dxvfb=true",
+      "-Dxephyr=false",
+      "-Dxnest=false",
+      "-Dxwin=false",
+      "-Dxquartz=false",
+      "-Ddocs=false",
+      "-Ddevel-docs=false",
+      "-Dtests=true",
+      "-Dsystemd_logind=true",
+      "-Dseatd_libseat=false",
+      "-Dxkb_dir=/usr/share/X11/xkb",
+      "-Dxkb_bin_dir=/usr/bin",
+      "-Dfontrootdir=/usr/share/fonts/X11"
+    ],
+    "patches": [
+      "server/patches/0001-spatial-input.patch"
+    ],
+    "overlays": {
+      "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",
+      "server/xlibre/spatialinput.h": "include/spatialinput.h",
+      "server/xlibre/meson.build": "Xext/spatial/meson.build",
+      "proto/spatial/input/v1/input.proto": "Xext/spatial/input.proto"
+    }
+  },
+  "lock_sha256": "56acc1348cf4e03a413e2b70cab33bc35b3780ef5e29ad908e2637b80489ff9c",
+  "builder_sha256": "de99d5617b1d12a9ed181550ac491b25b0b97501f8327b41532c773f61d89485",
+  "commands": [
+    {
+      "name": "xorgproto-pristine",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xorgproto",
+        "diff",
+        "--exit-code",
+        "HEAD"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "xserver-pristine",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre",
+        "diff",
+        "--exit-code",
+        "HEAD"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-worktree",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre",
+        "worktree",
+        "add",
+        "--detach",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source",
+        "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-patch-0",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source",
+        "apply",
+        "--check",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/server/patches/0001-spatial-input.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-apply-0",
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source",
+        "apply",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/server/patches/0001-spatial-input.patch"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "protocol-configure",
+      "argv": [
+        "meson",
+        "setup",
+        "--reconfigure",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xorgproto/build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xorgproto",
+        "--prefix=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-deps"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "protocol-install",
+      "argv": [
+        "meson",
+        "install",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xorgproto/build"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-configure",
+      "argv": [
+        "meson",
+        "setup",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source/build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source",
+        "--prefix=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source/image",
+        "--buildtype=debug",
+        "-Dxorg=true",
+        "-Dxvfb=true",
+        "-Dxephyr=false",
+        "-Dxnest=false",
+        "-Dxwin=false",
+        "-Dxquartz=false",
+        "-Ddocs=false",
+        "-Ddevel-docs=false",
+        "-Dtests=true",
+        "-Dsystemd_logind=true",
+        "-Dseatd_libseat=false",
+        "-Dxkb_dir=/usr/share/X11/xkb",
+        "-Dxkb_bin_dir=/usr/bin",
+        "-Dfontrootdir=/usr/share/fonts/X11",
+        "-Dxkb_output_dir=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-build",
+      "argv": [
+        "ninja",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source/build",
+        "-j2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "server-unit",
+      "argv": [
+        "meson",
+        "test",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source/build",
+        "--no-rebuild",
+        "--print-errorlogs",
+        "unit",
+        "modesetting symbol test"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "binaries": {
+    "Xvfb": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source/build/hw/vfb/Xvfb",
+      "sha256": "97d7785bb65f0fe05ba34673ccdb24db33c7ebb8b68e21da8ed91cf1f1975cc1"
+    },
+    "Xorg": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source/build/hw/xfree86/Xorg",
+      "sha256": "9656e75f9665f08adcb18b12081e573360a61823d630b3489ce038e9cbff20cd"
+    }
+  },
+  "extension_sources": {
+    "server/patches/0001-spatial-input.patch": "5742a88f90bdbb5c166024f65244599e1d290ab24b9bbb63456b76d3431cf9d1",
+    "server/xlibre/spatialinput.c": "dba741b01ac6dc55ff935d0f01316ab16320aee98b67b7f4e4eedd2beefce978",
+    "server/xlibre/spatialinput.h": "f5558a3973360de8e6b7bfd0e6c59c8602f78f3747b07a1f9f8489b8588ce3ba",
+    "server/xlibre/meson.build": "56daccbb2fb7408bab485e14a9f71a5f1946b9bcdb4aca77bdf5f230c1cd7485",
+    "proto/spatial/input/v1/input.proto": "f38405ee4953c6f1fd30d604ceb00e07d4c330420554dd1722782480eb2e99f7"
+  },
+  "effective_source": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source"
+}

@@ -1,0 +1,122 @@
+{
+  "host": "sb16-2",
+  "utc": "2026-10-07T11:16:57.484467+00:00",
+  "status": "passed",
+  "commands": [
+    {
+      "name": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2",
+        "--target",
+        "spatial-input-bridge",
+        "input-python-protobuf"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "witness-build",
+      "argv": [
+        "/usr/bin/python3",
+        "tools/build_probe.py",
+        "--xi2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "native",
+      "argv": [
+        "/usr/bin/python3",
+        "tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "tests/native/test_input_extension.py",
+        "build/spatial-input-bridge"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "source_sha256": {
+    "CMakeLists.txt": "c8775d4fba5f171fff5615734638bc3b9e12cafc890a542013cb1c498c2e2ed5",
+    "harness/probe.py": "c5ff0b50e263d4c53f6823f202adfe9d3c8d3bb9bc824efa8eb8415d8effb019",
+    "native/xprobe.c": "8d26ff68ab6a861742f12ee02385a7915f0f51b1251eb8b385bbd7eaa586f8da",
+    "proto/spatial/core/v1/core.proto": "ac8352a17b183d996f9179147209b1a18cf3268306bfecd0948480c294ccea19",
+    "proto/spatial/input/v1/input.proto": "f38405ee4953c6f1fd30d604ceb00e07d4c330420554dd1722782480eb2e99f7",
+    "server/base.lock.json": "56acc1348cf4e03a413e2b70cab33bc35b3780ef5e29ad908e2637b80489ff9c",
+    "server/patches/0001-spatial-input.patch": "5742a88f90bdbb5c166024f65244599e1d290ab24b9bbb63456b76d3431cf9d1",
+    "server/xlibre/meson.build": "56daccbb2fb7408bab485e14a9f71a5f1946b9bcdb4aca77bdf5f230c1cd7485",
+    "server/xlibre/spatialinput.c": "dba741b01ac6dc55ff935d0f01316ab16320aee98b67b7f4e4eedd2beefce978",
+    "server/xlibre/spatialinput.h": "f5558a3973360de8e6b7bfd0e6c59c8602f78f3747b07a1f9f8489b8588ce3ba",
+    "src/core/framing.cpp": "2c73ccfa897612d34cf753b8d9f952c4304b96f51a012a416f8c68f8c5f02a77",
+    "src/core/geometry.cpp": "109c1111a03e319581b096a0a61a262f603249867773e0f2d87230f44c10d3a6",
+    "src/core/geometry.hpp": "1a05373eda75c51dc1b0163dd90fb7e3f19dcff8ad155006e2bedd5db96db7d2",
+    "src/core/protocol.cpp": "714a3ffa13bd105347dcb16ce0ada8d90eb210f62fae931d698e4373d0d059df",
+    "src/core/protocol.hpp": "0093ad1e44406d0fbf71514a600d7d2e9e9b66bed11af8acbe47db4f81f175bb",
+    "src/core/scene.cpp": "ee7ecaae0f2d71745aa47f6c5098cc4cdf37e210678c6527ac9043aa6a875bcd",
+    "src/core/scene.hpp": "68e5737ce0814761543a4ff32ceac46178d4084a21ef4a5a15ae24145ae315d4",
+    "src/platform/render_worker.cpp": "862383742d8adf588d71bfed6bd90744961131191af5a8098d0c0f9b4ac51359",
+    "src/platform/render_worker.hpp": "33197575b6d55909fbf248b8a4e0a40e36d70d53367f72e5d00562e7c5c2e219",
+    "src/platform/worker.cpp": "cab6b8df4ea0b2338c86b67d30e0d6f577fb3347a01abbed9866c0b43c1425df",
+    "src/platform/worker.hpp": "83dcec78dcf4d0e37621e0181bc34585eb4d50a8aad8df2f88f167d17e061415",
+    "src/render/main.cpp": "7fd44a8b48c932e16420569e93f29dd715ec1c9ab6ae9690289780a18b2dffcf",
+    "src/render/renderer.cpp": "4e30715e50c451d562a94d2a993285eb5a071fa51bb5f6739cec3ffc06341756",
+    "src/render/renderer.hpp": "ee306bdf2896168fbff261ee5b5b7c2f735f77e742e47fec298bf4adfce5905c",
+    "src/testing/main.cpp": "b2818a05240ea78e6d745c525bd4e054f1e523a16bd46fed7f20ad2db3b4ada4",
+    "src/world/actors.cpp": "8451c881992915694ee2ed835dfa11f57ec697b57364919663fb660cba7c7270",
+    "src/world/actors.hpp": "d66393fd0662eb212ceacea1aaa66efcb778ad4a1aac35666b3e323363f2c546",
+    "src/world/main.cpp": "387a2d65549e570bd5611820d7f1e978ea52ac480aa2e491196bbe5790a02fad",
+    "src/world/server.cpp": "3f03a7c025bf84be19110234552b3626ba0513e0dfe06a7bbfccbb1ef5a608f5",
+    "src/world/server.hpp": "55cb2fcdc5cb03488fc9b9783d6b8d84f9fb0f019c5576f3270b6ae893c2c83e",
+    "src/world/store.cpp": "45bf307be673925448ef7df689cd09826f9fe5ae94a11f8387cda1dcac6161ad",
+    "src/world/store.hpp": "5c4514aab646b5c3c050bbeb1ea4074f682bfe85926d679979c817fb17b0f0e0",
+    "src/world/surfaces.cpp": "0e66a214347b607109d59d15d58020ac9ae7e260b237126fecb3236c0eb946bb",
+    "src/world/surfaces.hpp": "94ae63a38bb568f28e8ca3ed62a6ee70dd0b259f823c9bb81e7bb170bd4ccb8f",
+    "src/x11/input.cpp": "370fd99abe316256cf2aed4655af1c1e55eca0dd741f283cfc81d3931c215d36",
+    "src/x11/input.hpp": "9b06f41bc966959136b1e0a6dcfcde3e11395ab7c3cbd5e22632e7bfdf85297a",
+    "src/x11/input_router.cpp": "34ee260f0db9d7b0134c3411d0b8d31607d4b247091ea304315b52fcfa5d64e8",
+    "src/x11/input_router.hpp": "84da52e1cb3c9df78f35acb743cea1d71b341a0b2bbee4e2da5989b6eb23a88a",
+    "src/x11/surfaces.cpp": "33f70b82b35ab00a2aa6a7becddffa965fb22fea5b3b71ee70d70bdfb7a2b761",
+    "src/x11/surfaces.hpp": "afaff8898023983931ea4432a2eb1ef99bed9095ff875db0d580de49d4d87051",
+    "tests/native/input_bridge.cpp": "a8e53eec7bfd2f46cf3c53fe6b237d1d16638386183d5a77a3f479a7b9d386ac",
+    "tests/native/test_input_extension.py": "9f4bdcb159450f36f09e23001d7ec23922ea6f0335b9c13ef0870605568e338e",
+    "tools/build_probe.py": "fc63de8835d584fb1175fa3b85d36ef429cff496416d8419c74e5e89794f779c",
+    "tools/build_xserver.py": "de99d5617b1d12a9ed181550ac491b25b0b97501f8327b41532c773f61d89485",
+    "tools/qualify_native_input.py": "7c64cb69b1fbb700bfe2cf134d37d521f66f7cd5caf798fe614161389cc0287a",
+    "tools/with_test_display.py": "cb2544ebfab411af7e0239a63ca1530518a3a9cf58c104b9ee8fee2f31109b45"
+  },
+  "server_report": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p06-capture-server-final/run.json",
+    "sha256": "04beb1229d72f0679cbdad4c8202fc8ca663bad24f771b95b39524ca2de10b5f"
+  },
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1be7c57434f26d111a25f428dacb66f22563787d76bb9b2953660056d1ec8785/source/build/hw/vfb/Xvfb",
+    "sha256": "97d7785bb65f0fe05ba34673ccdb24db33c7ebb8b68e21da8ed91cf1f1975cc1"
+  },
+  "native": {
+    "executed": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": true
+  },
+  "bridge_sha256": "e41571af496cef383e4c20aaf7491db6e76e22929c9057efd32b21fd1d80e333",
+  "witness_sha256": "9eb7ff1e44012fea362cb8f87840a4756068c3e89484d1374729dc211288e380"
+}

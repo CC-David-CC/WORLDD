@@ -1,0 +1,102 @@
+[New LWP 189927]
+[New LWP 189925]
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+futex_wait (private=0, expected=2, futex_word=0xca87b80) at ../sysdeps/nptl/futex-internal.h:146
+
+warning: 146	../sysdeps/nptl/futex-internal.h: No such file or directory
+
+Thread 3 (Thread 0x7fac75efe6c0 (LWP 189925) "python3"):
+#0  0x00007fac7851bd6a in __GI___libc_read (nbytes=8192, buf=0x7fac68000d50, fd=11) at ../sysdeps/unix/sysv/linux/read.c:26
+#1  __GI___libc_read (fd=11, buf=0x7fac68000d50, nbytes=8192) at ../sysdeps/unix/sysv/linux/read.c:24
+#2  0x000000000061bee3 in _Py_read ()
+#3  0x0000000000639ed9 in ?? ()
+#4  0x0000000000551fae in ?? ()
+#5  0x000000000054986f in PyObject_VectorcallMethod ()
+#6  0x000000000063d6c6 in ?? ()
+#7  0x00000000006ed65d in ?? ()
+#8  0x0000000000551922 in ?? ()
+#9  0x000000000054986f in PyObject_VectorcallMethod ()
+#10 0x00000000006eefff in ?? ()
+#11 0x000000000063ea0f in ?? ()
+#12 0x000000000063e52d in ?? ()
+#13 0x00000000005d7df4 in _PyEval_EvalFrameDefault ()
+#14 0x000000000054cb52 in ?? ()
+#15 0x00000000005db2ee in _PyEval_EvalFrameDefault ()
+#16 0x000000000054cb52 in ?? ()
+#17 0x00000000006f899c in ?? ()
+#18 0x00000000006b93bc in ?? ()
+#19 0x00007fac7849cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#20 0x00007fac78529ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 2 (Thread 0x7fac766ff6c0 (LWP 189927) "python3"):
+#0  0x00007fac7851bd6a in __GI___libc_read (nbytes=8192, buf=0x7fac70000c90, fd=15) at ../sysdeps/unix/sysv/linux/read.c:26
+#1  __GI___libc_read (fd=15, buf=0x7fac70000c90, nbytes=8192) at ../sysdeps/unix/sysv/linux/read.c:24
+#2  0x000000000061bee3 in _Py_read ()
+#3  0x0000000000639ed9 in ?? ()
+#4  0x0000000000551fae in ?? ()
+#5  0x000000000054986f in PyObject_VectorcallMethod ()
+#6  0x000000000063d6c6 in ?? ()
+#7  0x00000000006ed65d in ?? ()
+#8  0x0000000000551922 in ?? ()
+#9  0x000000000054986f in PyObject_VectorcallMethod ()
+#10 0x00000000006eefff in ?? ()
+#11 0x000000000063ea0f in ?? ()
+#12 0x000000000063e52d in ?? ()
+#13 0x00000000005d7df4 in _PyEval_EvalFrameDefault ()
+#14 0x000000000054cb52 in ?? ()
+#15 0x00000000005db2ee in _PyEval_EvalFrameDefault ()
+#16 0x000000000054cb52 in ?? ()
+#17 0x00000000006f899c in ?? ()
+#18 0x00000000006b93bc in ?? ()
+#19 0x00007fac7849cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#20 0x00007fac78529ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 1 (Thread 0x7fac787e4080 (LWP 189908) "python3"):
+#0  futex_wait (private=0, expected=2, futex_word=0xca87b80) at ../sysdeps/nptl/futex-internal.h:146
+#1  __GI___lll_lock_wait (futex=futex@entry=0xca87b80, private=0) at ./nptl/lowlevellock.c:49
+#2  0x00007fac784a01e1 in lll_mutex_lock_optimized (mutex=0xca87b80) at ./nptl/pthread_mutex_lock.c:48
+#3  ___pthread_mutex_lock (mutex=0xca87b80) at ./nptl/pthread_mutex_lock.c:93
+#4  0x00007fac76aea7e7 in ?? () from /lib/x86_64-linux-gnu/libX11.so.6
+#5  0x00007fac76aeceee in XUnlockDisplay () from /lib/x86_64-linux-gnu/libX11.so.6
+#6  0x00007fac78646b16 in ?? () from /lib/x86_64-linux-gnu/libffi.so.8
+#7  0x00007fac786433ef in ?? () from /lib/x86_64-linux-gnu/libffi.so.8
+#8  0x00007fac786460be in ffi_call () from /lib/x86_64-linux-gnu/libffi.so.8
+#9  0x00007fac7866c11c in ?? () from /usr/lib/python3.12/lib-dynload/_ctypes.cpython-312-x86_64-linux-gnu.so
+#10 0x00007fac786672af in ?? () from /usr/lib/python3.12/lib-dynload/_ctypes.cpython-312-x86_64-linux-gnu.so
+#11 0x0000000000548fb5 in _PyObject_MakeTpCall ()
+#12 0x00000000005d710f in _PyEval_EvalFrameDefault ()
+#13 0x000000000054caed in ?? ()
+#14 0x00000000005db2ee in _PyEval_EvalFrameDefault ()
+#15 0x000000000054a802 in _PyObject_Call_Prepend ()
+#16 0x00000000005a3778 in ?? ()
+#17 0x0000000000548fb5 in _PyObject_MakeTpCall ()
+#18 0x00000000005d710f in _PyEval_EvalFrameDefault ()
+#19 0x000000000054caed in ?? ()
+#20 0x00000000005db2ee in _PyEval_EvalFrameDefault ()
+#21 0x000000000054a802 in _PyObject_Call_Prepend ()
+#22 0x00000000005a3778 in ?? ()
+#23 0x0000000000548fb5 in _PyObject_MakeTpCall ()
+#24 0x00000000005d710f in _PyEval_EvalFrameDefault ()
+#25 0x000000000054caed in ?? ()
+#26 0x00000000005db2ee in _PyEval_EvalFrameDefault ()
+#27 0x000000000054a802 in _PyObject_Call_Prepend ()
+#28 0x00000000005a3778 in ?? ()
+#29 0x0000000000548fb5 in _PyObject_MakeTpCall ()
+#30 0x00000000005d710f in _PyEval_EvalFrameDefault ()
+#31 0x000000000054a8ca in _PyObject_Call_Prepend ()
+#32 0x000000000059e0ff in ?? ()
+#33 0x0000000000599bd3 in ?? ()
+#34 0x000000000054907e in _PyObject_MakeTpCall ()
+#35 0x00000000005d710f in _PyEval_EvalFrameDefault ()
+#36 0x00000000005d55eb in PyEval_EvalCode ()
+#37 0x0000000000608852 in ?? ()
+#38 0x00000000006b50d3 in ?? ()
+#39 0x00000000006b4e3a in _PyRun_SimpleFileObject ()
+#40 0x00000000006b4c6f in _PyRun_AnyFileObject ()
+#41 0x00000000006bccd5 in Py_RunMain ()
+#42 0x00000000006bc7bd in Py_BytesMain ()
+#43 0x00007fac7842a1ca in __libc_start_call_main (main=main@entry=0x5188c0, argc=argc@entry=3, argv=argv@entry=0x7ffd99ab7088) at ../sysdeps/nptl/libc_start_call_main.h:58
+#44 0x00007fac7842a28b in __libc_start_main_impl (main=0x5188c0, argc=3, argv=0x7ffd99ab7088, init=<optimized out>, fini=<optimized out>, rtld_fini=<optimized out>, stack_end=0x7ffd99ab7078) at ../csu/libc-start.c:360
+#45 0x0000000000657a05 in _start ()
+[Inferior 1 (process 189908) detached]

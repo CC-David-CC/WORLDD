@@ -6,7 +6,7 @@ import sys
 import tempfile
 import time
 import unittest
-from harness.oracles import pose
+from harness.oracles import pose, axis_angle
 from harness.probe import Probe
 from harness.rpc import Client, RpcError
 
@@ -232,6 +232,93 @@ class ActorInputTests(unittest.TestCase):
             self.error('UNAUTHORIZED', self.act, actor, 'key', keysym='a', pressed=True)
         keys = [e['pressed'] for e in self.events(probe) if e['event'] == 'key']
         self.assertEqual(keys, [True, False] * 40)
+
+    def test_drag_motion_keeps_signed_pixels_on_original_surface(self):
+        actor = self.actor()
+        probe, surface = self.probe()
+        other, _ = self.probe((2, -2, -4))
+        self.aim(actor, (-.5, .5, -4))
+        self.act(actor, 'pointer', button=1, pressed=True)
+        self.events(probe)
+        mark = len(probe.events)
+        for direction, expected in [((2, -2, -4), (480, 360)),
+                                    ((-2, 2, -4), (-160, -120)),
+                                    ((.25, -.5, -4), (200, 180))]:
+            self.aim(actor, direction)
+            self.call('runtime.fence')
+            motion = [event for event in probe.input_events(mark) if event['event'] == 'motion']
+            self.assertTrue(motion, 'Captured aim must produce a real native motion event')
+            self.assertEqual((motion[-1]['x'], motion[-1]['y']), expected)
+            self.assertEqual(motion[-1]['xid'], probe.xid)
+            mark = len(probe.events)
+        self.act(actor, 'pointer', button=1, pressed=False)
+        buttons = [event for event in self.events(probe) if event['event'] == 'button']
+        self.assertEqual([event['pressed'] for event in buttons], [True, False])
+        self.assertEqual((buttons[-1]['x'], buttons[-1]['y']), (200, 180))
+        self.assertEqual(self.state(actor)['focus']['id'], surface['id'])
+        self.assertEqual([event for event in self.events(other) if event['event'] in ('motion', 'button')], [])
+
+    def test_capture_projection_uses_camera_and_surface_rotations(self):
+        import math
+        actor = self.call('actor.open', id='rotated', grants=['interact'],
+                          pose=pose(q=axis_angle((0, 0, 1), -math.pi/2)))
+        self.seq[actor['token']] = 0
+        probe, surface = self.probe()
+        self.call('surface.place', id=surface['id'], room=self.room,
+                  pose=pose((0, 0, -4), axis_angle((0, 0, 1), math.pi/2)), size=[4, 2])
+        self.aim(actor); self.act(actor, 'pointer', button=1, pressed=True)
+        self.aim(actor, (3, 2, -4))
+        events = [event for event in self.events(probe) if event['event'] == 'motion']
+        self.assertTrue(events)
+        self.assertAlmostEqual(events[-1]['x'], -80, delta=1)
+        self.assertAlmostEqual(events[-1]['y'], 360, delta=1)
+
+    def test_additional_buttons_and_unprojectable_aim_preserve_capture_position(self):
+        actor = self.actor()
+        probe, _ = self.probe()
+        self.aim(actor); self.act(actor, 'pointer', button=1, pressed=True)
+        self.aim(actor, (2, -2, -4))
+        self.act(actor, 'pointer', button=2, pressed=True)
+        self.act(actor, 'pointer', button=1, pressed=False)
+        for direction in ((1, 0, 0), (0, 0, 1)):
+            self.aim(actor, direction)
+        self.error('INVALID_ARGUMENT', self.aim, actor, (1, 0, -1e-9))
+        self.assertEqual(self.state(actor)['held_buttons'], [2])
+        self.act(actor, 'stop')
+        events = [event for event in self.events(probe) if event['event'] == 'button']
+        self.assertEqual([(event['button'], event['pressed']) for event in events],
+                         [(1, True), (2, True), (1, False), (2, False)])
+        self.assertEqual([(event['x'], event['y']) for event in events[1:]], [(480, 360)] * 3)
+
+    def test_body_motion_updates_the_captured_ray_before_clock_reply(self):
+        actor = self.actor(grants=['navigate', 'interact'])
+        probe, _ = self.probe()
+        self.aim(actor); self.act(actor, 'pointer', button=1, pressed=True)
+        self.act(actor, 'input', axes=[1, 0, 0, 0, 0, 0])
+        self.call('clock.advance', seconds=.1)
+        events = [event for event in probe.input_events() if event['event'] == 'motion']
+        self.assertTrue(events, 'Changing camera pose must update the captured application pointer')
+        self.assertAlmostEqual(events[-1]['x'], 176, delta=1)
+        self.assertAlmostEqual(events[-1]['y'], 120, delta=1)
+        self.act(actor, 'stop')
+
+    def test_realtime_capture_moves_without_queries_and_stops_at_deadline(self):
+        self.stop()
+        self.client = Client([DAEMON, '--display', DISPLAY], self.root/'realtime-state',
+                             self.root/'realtime-logs', timeout=8)
+        self.room = self.call('world.info')['entry_room']
+        actor = self.actor(grants=['navigate', 'interact'])
+        probe, _ = self.probe()
+        self.aim(actor); self.act(actor, 'pointer', button=1, pressed=True)
+        self.events(probe); mark = len(probe.events)
+        self.act(actor, 'input', axes=[1, 0, 0, 0, 0, 0])
+        event = probe.wait(lambda value: value['event'] == 'motion' and value['x'] > 160, after=mark)
+        self.assertEqual(event['xid'], probe.xid)
+        time.sleep(.3)
+        self.assertEqual(self.state(actor)['axes'], [0] * 6)
+        events = [value for value in self.events(probe) if value['event'] == 'motion']
+        self.assertAlmostEqual(events[-1]['x'], 200, delta=1)
+        self.act(actor, 'stop')
 
 
 if __name__ == '__main__':

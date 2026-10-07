@@ -1,0 +1,14 @@
+test_drag_motion_keeps_signed_pixels_on_original_surface (__main__.ActorInputTests.test_drag_motion_keeps_signed_pixels_on_original_surface) ... FAIL
+
+======================================================================
+FAIL: test_drag_motion_keeps_signed_pixels_on_original_surface (__main__.ActorInputTests.test_drag_motion_keeps_signed_pixels_on_original_surface)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_input.py", line 250, in test_drag_motion_keeps_signed_pixels_on_original_surface
+    self.assertTrue(motion, 'Captured aim must produce a real native motion event')
+AssertionError: [] is not true : Captured aim must produce a real native motion event
+
+----------------------------------------------------------------------
+Ran 1 test in 0.163s
+
+FAILED (failures=1)

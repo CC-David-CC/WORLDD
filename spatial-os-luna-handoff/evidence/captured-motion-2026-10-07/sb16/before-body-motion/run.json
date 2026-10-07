@@ -1,0 +1,17 @@
+{
+  "command": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tests/core/test_input.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe",
+    "ActorInputTests.test_body_motion_updates_the_captured_ray_before_clock_reply"
+  ],
+  "exit_code": 1,
+  "status": "failed",
+  "test_sha256": "5cd6e04b61af5f1c3da16b9e5c415b5ea96b0bd371e8b83cb43ddce1b5a43698",
+  "actor_sha256": "1b2c4323a6dc76948b480a84ebcaa0a5e87872d3161f4d8b0b46d80923198533"
+}

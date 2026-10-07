@@ -1,0 +1,13 @@
+{"event":"ready","xid":6291457,"pid":194915,"width":320,"height":240,"xi2":true}
+{"event":"map","xid":6291457}
+{"event":"focus","focused":true,"device":9,"xid":6291457}
+{"event":"button","pressed":true,"button":1,"x":80,"y":60,"device":8,"xid":6291457}
+{"event":"ack","seq":1}
+{"event":"motion","x":480,"y":360,"device":8,"xid":6291457}
+{"event":"ack","seq":2}
+{"event":"motion","x":-160,"y":-120,"device":8,"xid":6291457}
+{"event":"ack","seq":3}
+{"event":"motion","x":200,"y":180,"device":8,"xid":6291457}
+{"event":"ack","seq":4}
+{"event":"button","pressed":false,"button":1,"x":200,"y":180,"device":8,"xid":6291457}
+{"event":"ack","seq":5}

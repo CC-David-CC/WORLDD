@@ -1,0 +1,31 @@
+[0/2] Re-checking globbed directories...
+[1/30] Generating python/input_pb2.py
+[2/30] Generating python/core_pb2.py
+[3/30] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[4/30] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[5/30] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[6/30] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[7/30] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[8/30] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[9/30] Linking CXX static library libspatial-protobuf.a
+[10/30] Linking CXX static library libspatial-scene.a
+[11/30] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[12/30] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[13/30] Running cpp protocol buffer compiler on proto/spatial/input/v1/input.proto
+[14/30] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[15/30] Building CXX object CMakeFiles/spatial-native-input.dir/src/x11/input.cpp.o
+[16/30] Linking CXX static library libspatial-core.a
+[17/30] Building CXX object CMakeFiles/spatialwm.dir/src/render/main.cpp.o
+[18/30] Building CXX object CMakeFiles/spatial-native-input.dir/input.pb.cc.o
+[19/30] Linking CXX static library libspatial-native-input.a
+[20/30] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[21/30] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[22/30] Building CXX object CMakeFiles/spatial-input-bridge.dir/tests/native/input_bridge.cpp.o
+[23/30] Linking CXX executable spatial-input-bridge
+[24/30] Building CXX object CMakeFiles/spatialwm.dir/src/x11/input_router.cpp.o
+[25/30] Linking CXX executable spatialwm
+[26/30] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[27/30] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[28/30] Linking CXX executable worldd
+[29/30] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[30/30] Linking CXX executable spatial-test-host
