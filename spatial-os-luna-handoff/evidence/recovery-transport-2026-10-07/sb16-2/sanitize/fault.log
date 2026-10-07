@@ -1,0 +1,25 @@
+test_crash_before_commit_keeps_old_state (tests.acceptance.test_09_recovery.RecoveryTests.test_crash_before_commit_keeps_old_state) ... ERROR
+
+======================================================================
+ERROR: test_crash_before_commit_keeps_old_state (tests.acceptance.test_09_recovery.RecoveryTests.test_crash_before_commit_keeps_old_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/acceptance/test_09_recovery.py", line 23, in test_crash_before_commit_keeps_old_state
+    self.crash_at("world.before_commit","world.update",id="object-a",expected_revision=before["revision"],patch={"label":"after"})
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/acceptance/test_09_recovery.py", line 14, in crash_at
+    self.call("fault.arm",point=point,action="exit")
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/base.py", line 53, in call
+    return self.client.call(method, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 91, in call
+    return self.call_message(make_request(method, {} if params is None else params), timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/rpc.py", line 135, in call_message
+    raise RpcError(e["code"], e.get("message", ""), e.get("details"))
+harness.rpc.RpcError: UNIMPLEMENTED: Recovery operation is not implemented
+
+----------------------------------------------------------------------
+Ran 1 test in 0.235s
+
+FAILED (errors=1)
+DIAGNOSTIC P09: FAILED (1/1 executed); report=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-transport-sanitize/fault.json

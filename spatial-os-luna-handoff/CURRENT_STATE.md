@@ -1,5 +1,33 @@
 # Implementation status
 
+## 2026-10-07: P09 recovery transport migration
+
+Migration 0.14.0 adds protobuf requests for the existing recovery contract.
+The requests cover fault arming, durable slot attachment, and live surface-handle validation.
+Fault controls remain separate from actor actions.
+All 151 acceptance identifiers, existing assertions, independent oracles, and native witnesses remain unchanged.
+The migration records each changed lock hash explicitly.
+
+Both hosts passed Debug and ASan/UBSan regression qualification:
+
+- All 138 P00-P08 acceptance tests.
+- All 199 core checks.
+- All 51 harness checks, including eight new transport checks.
+
+Three P09 diagnostics now reach production instead of failing in the codec.
+Fault arming and slot attachment return UNIMPLEMENTED errors.
+The stale-handle assertion fails because validation still returns UNIMPLEMENTED instead of STALE_TARGET.
+Coverage is 138 passed, one assertion failure, two errors, zero skipped, and ten unrun.
+P09 remains incomplete. No recovery effect is claimed by this transport migration.
+
+All 103 source hashes match reviewed local files and both hosts.
+Evidence is in evidence/recovery-transport-2026-10-07.
+See docs/RECOVERY_TRANSPORT_MIGRATION.md for the exact scope and qualification commands.
+No host configuration or operator session changed.
+Local-model review remains waived under David's hardware-failure instruction.
+Next: implement recovery.before_commit at the actual world transaction boundary.
+Full Spatial-M1, native hardware qualification, and the complete project goal remain active.
+
 ## 2026-10-07: P08 confined workspace processes complete
 
 Actors now launch real applications through the production workspace broker.

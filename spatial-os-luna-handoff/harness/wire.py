@@ -6,6 +6,10 @@ import core_pb2 as pb
 MAX_FRAME = 1024 * 1024
 WORKSPACE_RIGHTS = {'workspace.select': pb.WORKSPACE_SELECT, 'files.read': pb.FILES_READ,
                     'files.write': pb.FILES_WRITE, 'process.launch': pb.PROCESS_LAUNCH}
+FAULT_POINTS = {'world.before_commit': pb.FAULT_WORLD_BEFORE_COMMIT,
+                'world.after_commit_before_reply': pb.FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY,
+                'git.after_worktree_before_ready': pb.FAULT_GIT_AFTER_WORKTREE_BEFORE_READY,
+                'storage.next_write': pb.FAULT_STORAGE_NEXT_WRITE}
 
 
 def finite(message):
@@ -168,8 +172,37 @@ def entity_value(value):
     return result
 
 
+def surface_handle(value):
+    if not isinstance(value, dict) or set(value) - {'id', 'generation'}:
+        raise ValueError('Unknown surface handle fields')
+    result = pb.SurfaceHandle()
+    if 'id' in value:
+        if type(value['id']) is not str:
+            raise ValueError('Expected surface ID string')
+        result.id = value['id']
+    if 'generation' in value:
+        generation = value['generation']
+        if type(generation) is not int or not 0 <= generation < 2**64:
+            raise ValueError('Expected uint64 surface generation')
+        result.generation = generation
+    return result
+
+
 def make_request(method, params):
     request = pb.Request(protocol_version=1)
+    if method == 'fault.arm':
+        fields = {'point': ('point', FAULT_POINTS),
+                  'action': ('action', {'exit': pb.FAULT_EXIT, 'error': pb.FAULT_ERROR}),
+                  'errno': ('storage_error', {'ENOSPC': pb.STORAGE_FAULT_ENOSPC})}
+        if not isinstance(params, dict) or set(params) - set(fields):
+            raise ValueError('Unknown fault parameters')
+        request.fault_arm.SetInParent()
+        for name, value in params.items():
+            target, choices = fields[name]
+            if type(value) is not str or value not in choices:
+                raise ValueError('Unknown fault value')
+            setattr(request.fault_arm, target, choices[value])
+        return request
     if method == 'actor.act':
         if not isinstance(params, dict) or set(params) - {'token', 'seq', 'op', 'args'}:
             raise ValueError('Unknown actor action parameters')
@@ -265,6 +298,8 @@ def make_request(method, params):
         'surface.find': ('surface_find', {'probe_id': str}),
         'surface.get': ('surface_get', {'id': str}),
         'surface.place': ('surface_place', {'id': str, 'room': str, 'pose': pose, 'size': vec2}),
+        'surface.attach_slot': ('surface_attach_slot', {'id': str, 'slot': str}),
+        'surface.validate': ('surface_validate', {'handle': surface_handle}),
         'surface.children': ('surface_children', {'id': str}),
         'runtime.fence': ('runtime_fence', {}),
         'runtime.resources': ('runtime_resources', {}),
@@ -331,6 +366,8 @@ OUTCOMES = {'hello': 'hello', 'world_get': 'entity', 'world_create': 'entity',
             'actor_act': 'actor_action', 'world_checkpoint': 'checkpoint', 'clock_advance': 'clock',
             'render_capture': 'frame', 'render_present': 'frame',
             'surface_find': 'surface', 'surface_get': 'surface_record', 'surface_place': 'surface_record',
+            'surface_attach_slot': 'surface_record', 'surface_validate': 'surface_validation',
+            'fault_arm': 'fault_armed',
             'surface_children': 'surfaces', 'runtime_fence': 'fence', 'runtime_resources': 'resources',
             'transform_point': 'point',
             'inverse_point': 'point', 'uv_pixel': 'pixel', 'ray_panel': 'ray', 'integrate': 'pose',
@@ -347,6 +384,12 @@ def vector_value(value):
 
 def result_value(reply):
     kind = reply.WhichOneof('outcome')
+    if kind in ('fault_armed', 'surface_validation'):
+        field = 'armed' if kind == 'fault_armed' else 'valid'
+        value = getattr(reply, kind)
+        if not value.HasField(field):
+            raise ValueError('Missing recovery status')
+        return {field: getattr(value, field)}
     if kind == 'surface':
         return {'surface': surface_value(reply.surface.surface) if reply.surface.HasField('surface') else None}
     if kind == 'surface_record':

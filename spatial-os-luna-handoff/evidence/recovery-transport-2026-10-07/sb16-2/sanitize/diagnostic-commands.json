@@ -1,0 +1,100 @@
+[
+  {
+    "name": "p08",
+    "argv": [
+      "python3",
+      "tools/with_test_display.py",
+      "--",
+      "python3",
+      "tools/gate.py",
+      "--through",
+      "P08",
+      "--sut",
+      "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatial-test-host\"]",
+      "--report",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-transport-sanitize/p08.json"
+    ],
+    "exit_code": 0,
+    "counts": {
+      "passed": 138,
+      "failed": 0,
+      "error": 0,
+      "skipped": 0
+    }
+  },
+  {
+    "name": "fault",
+    "argv": [
+      "python3",
+      "tools/with_test_display.py",
+      "--",
+      "python3",
+      "tools/gate.py",
+      "--through",
+      "P09",
+      "--case",
+      "test_crash_before_commit_keeps_old_state",
+      "--sut",
+      "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatial-test-host\"]",
+      "--report",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-transport-sanitize/fault.json"
+    ],
+    "exit_code": 1,
+    "counts": {
+      "passed": 0,
+      "failed": 0,
+      "error": 1,
+      "skipped": 0
+    }
+  },
+  {
+    "name": "slot",
+    "argv": [
+      "python3",
+      "tools/with_test_display.py",
+      "--",
+      "python3",
+      "tools/gate.py",
+      "--through",
+      "P09",
+      "--case",
+      "test_replacement_x_window_attaches_to_durable_slot_not_old_xid",
+      "--sut",
+      "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatial-test-host\"]",
+      "--report",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-transport-sanitize/slot.json"
+    ],
+    "exit_code": 1,
+    "counts": {
+      "passed": 0,
+      "failed": 0,
+      "error": 1,
+      "skipped": 0
+    }
+  },
+  {
+    "name": "handle",
+    "argv": [
+      "python3",
+      "tools/with_test_display.py",
+      "--",
+      "python3",
+      "tools/gate.py",
+      "--through",
+      "P09",
+      "--case",
+      "test_old_surface_handle_cannot_control_new_window",
+      "--sut",
+      "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatial-test-host\"]",
+      "--report",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/p09-transport-sanitize/handle.json"
+    ],
+    "exit_code": 1,
+    "counts": {
+      "passed": 0,
+      "failed": 1,
+      "error": 0,
+      "skipped": 0
+    }
+  }
+]

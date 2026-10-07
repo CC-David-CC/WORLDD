@@ -110,6 +110,9 @@ message PlacedSurface { SurfaceHandle handle = 1; Entity panel = 2; PixelExtent 
 message SurfaceFindRequest { string probe_id = 1; }
 message SurfaceIdRequest { string id = 1; }
 message SurfacePlaceRequest { string id = 1; string room = 2; Pose pose = 3; Vec2 size = 4; }
+message SurfaceAttachSlotRequest { string id = 1; string slot = 2; }
+message SurfaceValidateRequest { SurfaceHandle handle = 1; }
+message SurfaceValidationReply { optional bool valid = 1; }
 message SurfaceReply { SurfaceRecord surface = 1; }
 message SurfaceListReply { repeated SurfaceRecord surfaces = 1; }
 message RuntimeFenceRequest {}
@@ -168,6 +171,29 @@ message WorkspaceMemberRequest { string id = 1; string actor = 2; repeated Works
 message WorkspaceAvailableRequest { string id = 1; optional bool available = 2; }
 message ProcessLaunchRequest { repeated string argv = 1; string operation_id = 2; string profile = 3; }
 message ProcessWaitRequest { string id = 1; optional double timeout_seconds = 2; }
+// Fixture management only. These operations never belong to ActorActionRequest.
+enum FaultPoint {
+  FAULT_POINT_UNSPECIFIED = 0;
+  FAULT_WORLD_BEFORE_COMMIT = 1;
+  FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY = 2;
+  FAULT_GIT_AFTER_WORKTREE_BEFORE_READY = 3;
+  FAULT_STORAGE_NEXT_WRITE = 4;
+}
+enum FaultAction {
+  FAULT_ACTION_UNSPECIFIED = 0;
+  FAULT_EXIT = 1;
+  FAULT_ERROR = 2;
+}
+enum StorageFault {
+  STORAGE_FAULT_UNSPECIFIED = 0;
+  STORAGE_FAULT_ENOSPC = 1;
+}
+message FaultArmRequest {
+  FaultPoint point = 1;
+  FaultAction action = 2;
+  optional StorageFault storage_error = 3;
+}
+message FaultArmReply { optional bool armed = 1; }
 message ActorActionRequest {
   string token = 1;
   optional uint64 seq = 2;
@@ -238,6 +264,8 @@ message Request {
     SurfaceIdRequest surface_children = 53;
     RuntimeFenceRequest runtime_fence = 54;
     RuntimeResourcesRequest runtime_resources = 55;
+    SurfaceAttachSlotRequest surface_attach_slot = 56;
+    SurfaceValidateRequest surface_validate = 57;
     RepositoryImportRequest git_repo_import = 60;
     WorktreeCreateRequest git_worktree_create = 61;
     WorktreeStatusRequest git_status = 62;
@@ -248,6 +276,7 @@ message Request {
     WorkspaceMemberRequest workspace_member_set = 72;
     WorkspaceAvailableRequest workspace_available = 73;
     ProcessWaitRequest process_wait = 80;
+    FaultArmRequest fault_arm = 90;
   }
 }
 
@@ -373,6 +402,7 @@ message Reply {
     SurfaceListReply surfaces = 53;
     FenceReply fence = 54;
     ResourceStats resources = 55;
+    SurfaceValidationReply surface_validation = 57;
     RepositoryReply repository = 60;
     WorktreeReply worktree = 61;
     GitStatusReply git_status = 62;
@@ -381,5 +411,6 @@ message Reply {
     WorkspaceReply workspace = 70;
     WorkspaceAck workspace_ack = 72;
     ProcessWaitReply process_wait = 80;
+    FaultArmReply fault_armed = 90;
   }
 }

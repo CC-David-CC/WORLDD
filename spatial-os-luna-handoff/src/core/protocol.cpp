@@ -60,6 +60,10 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             return reply;
         }
         switch (request.operation_case()) {
+        case wire::Request::kFaultArm:
+        case wire::Request::kSurfaceAttachSlot:
+        case wire::Request::kSurfaceValidate:
+            throw WorldError(wire::UNIMPLEMENTED, "Recovery operation is not implemented");
         case wire::Request::kHello: {
             auto* hello = reply.mutable_hello();
             hello->set_protocol("spatial-protobuf/1");

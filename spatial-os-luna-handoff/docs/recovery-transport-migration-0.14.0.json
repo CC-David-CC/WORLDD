@@ -1,0 +1,58 @@
+{
+    "migration":  "0.14.0",
+    "contract_version":  3,
+    "predecessor_commit":  "a4b46f190f71ea4fa02b1fbdbb5110033d908dbd",
+    "predecessor_lock_sha256":  "e443f452de94beb85c22aaa0ae75c52c80deb986c32b76c62cee3b3a279fde0c",
+    "test_id_renames":  {
+
+                        },
+    "added_acceptance_tests":  [
+
+                               ],
+    "changed_locked_files":  {
+                                 "proto/spatial/core/v1/core.proto":  {
+                                                                          "before":  "d26f8e9b0a6042799693a606d3d1b319d29e066c53fa395e9704fb05417b4314",
+                                                                          "after":  "afa5846fd245e28e04e47cec12d44d15642d5ac59f6fd6144a9f8976e318ce76"
+                                                                      },
+                                 "harness/wire.py":  {
+                                                         "before":  "9f2d1a651f8c522fbb5228d21abb4be9b625775cd8312fa9dfd181961b00ba3f",
+                                                         "after":  "e85696fcfd98baecdc50b63eafbdb22eafa596da68f5dd5e05f43cf13acff15b"
+                                                     }
+                             },
+    "added_locked_files":  {
+                               "tests/harness/test_recovery_wire.py":  "304766ca72133b68f0b28b4c4ee80e03c8580c05abdbb750efcb30738d4eff40"
+                           },
+    "counts":  {
+                   "previous_acceptance":  151,
+                   "retained_requirements":  151,
+                   "added_acceptance":  0,
+                   "acceptance":  151,
+                   "primitive_tickets":  140,
+                   "harness_self_tests_expected":  51
+               },
+    "review":  {
+                   "reviewer":  "primary coding agent",
+                   "local_model":  "Unavailable. David authorized continuation after its hardware failure. No local-model review is claimed."
+               },
+    "implementation_status":  "New typed operations return UNIMPLEMENTED. Real fault boundaries and durable surface attachments remain pending.",
+    "qualification":  {
+                          "hosts":  [
+                                        "sb16",
+                                        "sb16-2"
+                                    ],
+                          "builds":  [
+                                         "debug",
+                                         "sanitize"
+                                     ],
+                          "acceptance_passed":  138,
+                          "assertion_failures":  1,
+                          "diagnostic_errors":  2,
+                          "skipped":  0,
+                          "unrun":  10,
+                          "core_checks_per_run":  199,
+                          "harness_checks_per_run":  51,
+                          "source_hashes_verified":  103,
+                          "evidence":  "evidence/recovery-transport-2026-10-07",
+                          "P09_complete":  false
+                      }
+}
