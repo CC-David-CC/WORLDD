@@ -1,0 +1,385 @@
+diff --git a/spatial-os-luna-handoff/CMakeLists.txt b/spatial-os-luna-handoff/CMakeLists.txt
+index ae07d46..f94de22 100644
+--- a/spatial-os-luna-handoff/CMakeLists.txt
++++ b/spatial-os-luna-handoff/CMakeLists.txt
+@@ -150,7 +150,7 @@ target_link_libraries(worldd PRIVATE spatial-core spatial-issuer-watch-lib spati
+ add_dependencies(worldd spatialwm)
+ add_executable(spatial-app-init src/workspace/app_init.cpp)
+ target_link_libraries(spatial-app-init PRIVATE spatial-scene)
+-add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp)
++add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp)
+ target_include_directories(workspaced PRIVATE src)
+ target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
+ add_dependencies(workspaced spatial-app-init)
+@@ -264,6 +264,11 @@ if(BUILD_TESTING)
+     set_tests_properties(actor-collision PROPERTIES TIMEOUT 90
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     if(SPATIAL_INPUT_TESTS)
++        add_test(NAME application-control-lease COMMAND "${Python3_EXECUTABLE}"
++            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_control_lease.py" $<TARGET_FILE:identityd>
++            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
++        set_tests_properties(application-control-lease PROPERTIES TIMEOUT 180
++            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+         add_test(NAME application-observation COMMAND "${Python3_EXECUTABLE}"
+             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_observation.py" $<TARGET_FILE:identityd>
+             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+diff --git a/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto b/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto
+index 7c520ff..ba6bf3f 100644
+--- a/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto
++++ b/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto
+@@ -45,6 +45,19 @@ message ApplicationAccess {
+ }
+ // Results preserve request order and identity. Denied groups return explicit false values.
+ message ApplicationAccessReply { repeated ApplicationAccess applications = 1; }
++// Live control reservations are scoped to this private broker connection.
++message ApplicationControlRequest {
++  spatial.authority.v1.ActorRef principal = 1;
++  ApplicationRef application = 2;
++}
++message ApplicationControlLease {
++  bytes id = 1;
++  spatial.authority.v1.ActorRef principal = 2;
++  ApplicationRef application = 3;
++}
++// The trusted world releases native input before releasing this reservation.
++message ApplicationControlRelease { bytes id = 1; spatial.authority.v1.ActorRef principal = 2; }
++message ApplicationControlReleased { bytes id = 1; }
+ message LaunchRequest {
+   string workspace = 1; string actor = 2; spatial.core.v1.ProcessLaunchRequest command = 3;
+   spatial.authority.v1.ActorRef principal = 4;
+@@ -80,6 +93,8 @@ message Request {
+     GrantDelegateRequest delegate = 104;
+     GrantRevokeRequest revoke = 105;
+     ApplicationAccessRequest application_access = 106;
++    ApplicationControlRequest control_acquire = 107;
++    ApplicationControlRelease control_release = 108;
+   }
+ }
+ message Reply {
+@@ -93,5 +108,9 @@ message Reply {
+     spatial.authority.v1.GrantPage grants = 104;
+     spatial.authority.v1.GrantRecord grant = 105;
+     ApplicationAccessReply application_access = 106;
++    ApplicationControlLease control_lease = 107;
++    ApplicationControlReleased control_released = 108;
++    // Unsolicited event. request_id is zero. The reservation remains until release.
++    ApplicationControlLease control_revoked = 109;
+   }
+ }
+diff --git a/spatial-os-luna-handoff/src/workspace/authority.cpp b/spatial-os-luna-handoff/src/workspace/authority.cpp
+index e6c53b0..387b4db 100644
+--- a/spatial-os-luna-handoff/src/workspace/authority.cpp
++++ b/spatial-os-luna-handoff/src/workspace/authority.cpp
+@@ -49,6 +49,7 @@ struct WorkspaceAuthority::Impl {
+     std::uint64_t observed_revision = 0;
+     bool ready = false, broken = false, changed = true;
+     Clock::time_point last_exchange = Clock::now();
++    std::function<void()> observer = [] {};
+ 
+     Impl(const std::filesystem::path& path, ExecutionStore& execution) {
+         pb::WorkspaceAuthorityConfig config;
+@@ -73,10 +74,10 @@ struct WorkspaceAuthority::Impl {
+     void invalidate() { decisions.clear(); changed = true; }
+     void fail() { broken = true; active.clear(); invalidate(); }
+     void tick() {
+-        if (broken || !watcher) return;
+-        if (watcher->failed()) { fail(); return; }
++        if (broken || !watcher) { observer(); return; }
++        if (watcher->failed()) { fail(); observer(); return; }
+         while (const auto update = watcher->poll()) {
+-            if (update->has_error() || update->batch().issuer_id() != issuer) { fail(); return; }
++            if (update->has_error() || update->batch().issuer_id() != issuer) { fail(); observer(); return; }
+             const auto& batch = update->batch(); observed_revision = std::max(observed_revision, batch.head_revision());
+             if (batch.initial()) ready = true;
+             for (const auto& event : batch.events()) {
+@@ -85,6 +86,7 @@ struct WorkspaceAuthority::Impl {
+                 }
+             }
+         }
++        observer();
+     }
+     id::IssuerReply exchange(id::IssuerRequest request) {
+         if (broken) throw WorldError(wire::UNAVAILABLE, "Workspace identity service is disabled");
+@@ -204,6 +206,7 @@ void WorkspaceAuthority::keepalive() {
+     }
+ }
+ bool WorkspaceAuthority::consume_changes() { const bool result = impl_->changed; impl_->changed = false; return result; }
++void WorkspaceAuthority::set_observer(std::function<void()> observer) { impl_->observer = std::move(observer); }
+ void initialize_workspace_authority(const std::filesystem::path& path, ExecutionStore& execution) {
+     pb::WorkspaceAuthoritySeed seed;
+     require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &seed), "Invalid workspace authority seed");
+diff --git a/spatial-os-luna-handoff/src/workspace/authority.hpp b/spatial-os-luna-handoff/src/workspace/authority.hpp
+index 6562fa0..9d33d89 100644
+--- a/spatial-os-luna-handoff/src/workspace/authority.hpp
++++ b/spatial-os-luna-handoff/src/workspace/authority.hpp
+@@ -2,6 +2,7 @@
+ #include "broker.pb.h"
+ #include <filesystem>
+ #include <memory>
++#include <functional>
+ 
+ namespace spatial {
+ class ExecutionStore;
+@@ -21,6 +22,7 @@ public:
+     void tick();
+     void keepalive();
+     bool consume_changes();
++    void set_observer(std::function<void()> observer);
+ private:
+     struct Impl;
+     std::unique_ptr<Impl> impl_;
+diff --git a/spatial-os-luna-handoff/src/workspace/control.cpp b/spatial-os-luna-handoff/src/workspace/control.cpp
+new file mode 100644
+index 0000000..ee8ff74
+--- /dev/null
++++ b/spatial-os-luna-handoff/src/workspace/control.cpp
+@@ -0,0 +1,70 @@
++#include "workspace/control.hpp"
++#include "workspace/store.hpp"
++#include "world/store.hpp"
++#include <cerrno>
++#include <sys/random.h>
++
++namespace spatial {
++namespace {
++namespace pb = workspace::v1;
++std::string identifier() {
++    std::string result(32, '\0'); std::size_t used = 0;
++    while (used < result.size()) {
++        const auto count = getrandom(result.data()+used, result.size()-used, 0);
++        if (count < 0 && errno == EINTR) continue;
++        if (count <= 0) throw std::runtime_error("Cannot obtain control lease entropy");
++        used += static_cast<std::size_t>(count);
++    }
++    return result;
++}
++pb::ApplicationAccessRequest query(const pb::ApplicationControlLease& lease) {
++    pb::ApplicationAccessRequest result;
++    if (lease.has_principal()) *result.mutable_principal() = lease.principal();
++    *result.add_applications() = lease.application(); return result;
++}
++}
++ControlLeases::ControlLeases(ExecutionStore& store, std::function<void(const Lease&)> revoked)
++    : store_(store), revoked_(std::move(revoked)) {}
++ControlLeases::Lease ControlLeases::acquire(const pb::ApplicationControlRequest& request) {
++    Lease lease;
++    if (request.has_principal()) *lease.mutable_principal() = request.principal();
++    if (request.has_application()) *lease.mutable_application() = request.application();
++    if (!store_.application_access(query(lease)).applications(0).control())
++        throw WorldError(wire::FORBIDDEN, "Application control authority is required");
++    tick();
++    const auto group = lease.application().SerializeAsString();
++    const auto previous = groups_.find(group);
++    if (previous != groups_.end()) {
++        const auto& current = leases_.at(previous->second);
++        if (!current.revoked && current.lease.principal().SerializeAsString() == lease.principal().SerializeAsString())
++            return current.lease;
++        throw WorldError(wire::BUSY, "Application control reservation requires release");
++    }
++    if (leases_.size() >= 256) throw WorldError(wire::RESOURCE_EXHAUSTED, "Application control reservation limit reached");
++    do { lease.set_id(identifier()); } while (leases_.contains(lease.id()));
++    leases_.emplace(lease.id(), Reservation{lease}); groups_.emplace(group, lease.id()); return lease;
++}
++pb::ApplicationControlReleased ControlLeases::release(const pb::ApplicationControlRelease& request) {
++    if (request.id().size() != 32 || !request.has_principal() || request.principal().issuer_id().size() != 32 ||
++            request.principal().actor_id().size() != 32) throw std::invalid_argument("Invalid control release identity");
++    const auto found = leases_.find(request.id());
++    if (found == leases_.end()) throw WorldError(wire::NOT_FOUND, "Control reservation does not exist");
++    if (found->second.lease.principal().SerializeAsString() != request.principal().SerializeAsString())
++        throw WorldError(wire::FORBIDDEN, "Control reservation belongs to another actor");
++    groups_.erase(found->second.lease.application().SerializeAsString()); leases_.erase(found);
++    pb::ApplicationControlReleased result; result.set_id(request.id()); return result;
++}
++void ControlLeases::tick() {
++    for (auto& [id, reservation] : leases_) {
++        (void)id;
++        if (reservation.revoked) continue;
++        bool allowed = false;
++        try { allowed = store_.application_access(query(reservation.lease), false).applications(0).control(); }
++        catch (const WorldError&) { /* Unavailable authority cannot retain control. */ }
++        if (!allowed) {
++            // Keep the group reserved until the trusted world releases native input.
++            reservation.revoked = true; revoked_(reservation.lease);
++        }
++    }
++}
++}
+diff --git a/spatial-os-luna-handoff/src/workspace/control.hpp b/spatial-os-luna-handoff/src/workspace/control.hpp
+new file mode 100644
+index 0000000..d860444
+--- /dev/null
++++ b/spatial-os-luna-handoff/src/workspace/control.hpp
+@@ -0,0 +1,24 @@
++#pragma once
++#include "broker.pb.h"
++#include <functional>
++#include <map>
++
++namespace spatial {
++class ExecutionStore;
++// One private supervisor connection owns these ephemeral reservations.
++class ControlLeases {
++public:
++    using Lease = workspace::v1::ApplicationControlLease;
++    ControlLeases(ExecutionStore& store, std::function<void(const Lease&)> revoked);
++    Lease acquire(const workspace::v1::ApplicationControlRequest&);
++    workspace::v1::ApplicationControlReleased release(const workspace::v1::ApplicationControlRelease&);
++    // Uses already prepared issuer state. Performs no issuer exchange or process reaping.
++    void tick();
++private:
++    struct Reservation { Lease lease; bool revoked = false; };
++    ExecutionStore& store_;
++    std::function<void(const Lease&)> revoked_;
++    std::map<std::string, Reservation> leases_;
++    std::map<std::string, std::string> groups_;
++};
++}
+diff --git a/spatial-os-luna-handoff/src/workspace/main.cpp b/spatial-os-luna-handoff/src/workspace/main.cpp
+index ac5a6b9..0a48ba3 100644
+--- a/spatial-os-luna-handoff/src/workspace/main.cpp
++++ b/spatial-os-luna-handoff/src/workspace/main.cpp
+@@ -1,6 +1,7 @@
+ #include "workspace/store.hpp"
+ #include "workspace/authority.hpp"
+ #include "workspace/native_launch.hpp"
++#include "workspace/control.hpp"
+ #include "world/store.hpp"
+ #include "build_id.hpp"
+ #include <csignal>
+@@ -55,7 +56,7 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Ex
+     return reply;
+ }
+ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store,
+-                                            spatial::WorkspaceAuthority* authority) {
++                                            spatial::WorkspaceAuthority* authority, spatial::ControlLeases& controls) {
+     namespace broker = spatial::workspace::v1;
+     namespace wire = spatial::wire;
+     broker::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+@@ -68,6 +69,8 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
+         } else if (request.has_access()) *reply.mutable_access() = store.access(request.access());
+         else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
+         else if (request.has_application_access()) *reply.mutable_application_access() = store.application_access(request.application_access());
++        else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire());
++        else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release());
+         else if (request.has_grants() || request.has_delegate() || request.has_revoke()) {
+             if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
+             if (request.has_grants()) *reply.mutable_grants() = authority->list(request.grants());
+@@ -132,13 +135,50 @@ int main(int argc, char** argv) {
+         using Clock = std::chrono::steady_clock;
+         auto input_started = Clock::now(), output_started = Clock::now();
+         std::string input, output; std::size_t sent = 0; bool eof = false;
++        bool transport_failed = false;
++        const auto enqueue = [&](const spatial::workspace::v1::Reply& reply) {
++            std::ostringstream framed; spatial::write_frame(framed, reply);
++            const auto bytes = framed.str();
++            if (output.size()+bytes.size() > 2*spatial::max_frame_bytes) {
++                transport_failed = true; throw std::runtime_error("Workspace output queue exceeds limit");
++            }
++            if (output.empty()) { sent = 0; output_started = Clock::now(); }
++            output += bytes;
++        };
++        const auto flush = [&] {
++            if (transport_failed || (!output.empty() && Clock::now()-output_started > std::chrono::seconds(10))) {
++                transport_failed = true; throw std::runtime_error("Workspace reply transport failed");
++            }
++            if (output.empty()) return;
++            const auto count = write(STDOUT_FILENO, output.data()+sent, output.size()-sent);
++            if (count < 0 && errno != EAGAIN && errno != EINTR) {
++                transport_failed = true; throw std::runtime_error("Workspace reply failed");
++            }
++            if (count > 0) {
++                sent += static_cast<std::size_t>(count);
++                if (sent == output.size()) { output.clear(); sent = 0; }
++            }
++        };
++        spatial::ControlLeases controls(store, [&](const auto& lease) {
++            spatial::workspace::v1::Reply event; event.set_protocol_version(1);
++            *event.mutable_control_revoked() = lease; enqueue(event);
++        });
++        struct ClearObserver {
++            spatial::WorkspaceAuthority* authority;
++            ~ClearObserver() { if (authority) authority->set_observer([] {}); }
++        } clear_observer{authority.get()};
++        // Issuer and process waits call this on the same broker thread.
++        // Cached lease checks neither recurse into issuer I/O nor reap a borrowed job.
++        if (authority) authority->set_observer([&] { controls.tick(); flush(); });
+         const auto enforce = [&] {
++            if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
+             if (native) native->check();
+             if (authority) {
+                 authority->tick();
+                 if (authority->consume_changes()) store.reconcile_authority();
+             }
+             store.reap();
++            controls.tick();
+         };
+         for (;;) {
+             enforce();
+@@ -156,11 +196,10 @@ int main(int argc, char** argv) {
+                     if (!request.ParseFromArray(input.data()+4, static_cast<int>(length))) {
+                         reply.set_protocol_version(1); reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
+                         reply.mutable_error()->set_message("Malformed broker protobuf payload");
+-                    } else reply = dispatch_broker(request, store, authority.get());
++                    } else reply = dispatch_broker(request, store, authority.get(), controls);
+                     enforce();
+                     input.erase(0, length+4); input_started = Clock::now();
+-                    std::ostringstream framed; spatial::write_frame(framed, reply); output = framed.str();
+-                    sent = 0; output_started = Clock::now();
++                    enqueue(reply);
+                 }
+             }
+             if (eof && output.empty()) {
+@@ -174,9 +213,7 @@ int main(int argc, char** argv) {
+             if (ready < 0 || ((fds[0].revents | fds[1].revents) & POLLNVAL)) throw std::runtime_error("Workspace transport poll failed");
+             if (fds[1].revents & (POLLHUP | POLLERR)) throw std::runtime_error("Workspace supervisor disconnected");
+             if (!output.empty() && (fds[1].revents & POLLOUT)) {
+-                const auto count = write(STDOUT_FILENO, output.data()+sent, output.size()-sent);
+-                if (count < 0 && errno != EAGAIN && errno != EINTR) throw std::runtime_error("Workspace reply failed");
+-                if (count > 0) { sent += static_cast<std::size_t>(count); if (sent == output.size()) output.clear(); }
++                flush();
+             }
+             if (!eof && output.empty() && (fds[0].revents & (POLLIN | POLLHUP | POLLERR))) {
+                 std::array<char, 65536> bytes{};
+diff --git a/spatial-os-luna-handoff/src/workspace/store.cpp b/spatial-os-luna-handoff/src/workspace/store.cpp
+index 59d58c1..115080c 100644
+--- a/spatial-os-luna-handoff/src/workspace/store.cpp
++++ b/spatial-os-luna-handoff/src/workspace/store.cpp
+@@ -626,7 +626,7 @@ workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessReq
+     return out;
+ }
+ void ExecutionStore::set_authority(WorkspaceAuthority* authority) { impl_->authority = authority; }
+-workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request) {
++workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh) {
+     if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Application access requires authenticated actor authority");
+     const auto& principal = request.principal();
+     require(principal.issuer_id().size() == 32 && principal.actor_id().size() == 32, "Invalid authenticated actor reference");
+@@ -641,11 +641,13 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
+     // and component-scoped grants, not a previous application's cached decision.
+     std::set<std::string> prepared;
+     for (const auto& app : request.applications()) {
+-        if (impl_->authority && impl_->authority->bound(app.workspace()) && prepared.insert(app.workspace()).second)
++        if (refresh && impl_->authority && impl_->authority->bound(app.workspace()) && prepared.insert(app.workspace()).second)
+             (void)impl_->authority->application_permissions(app, principal, true);
+     }
+-    reconcile_authority(); reap();
+-    if (impl_->native) impl_->native->check();
++    if (refresh) {
++        reconcile_authority(); reap();
++        if (impl_->native) impl_->native->check();
++    }
+     workspace::v1::ApplicationAccessReply reply;
+     for (const auto& app : request.applications()) {
+         auto* result = reply.add_applications(); *result->mutable_application() = app;
+diff --git a/spatial-os-luna-handoff/src/workspace/store.hpp b/spatial-os-luna-handoff/src/workspace/store.hpp
+index 9153619..77664bd 100644
+--- a/spatial-os-luna-handoff/src/workspace/store.hpp
++++ b/spatial-os-luna-handoff/src/workspace/store.hpp
+@@ -25,7 +25,7 @@ public:
+     wire::WorkspaceReply workspace_get(const std::string& id);
+     wire::WorkspaceAck workspace_member(const wire::WorkspaceMemberRequest& request);
+     workspace::v1::AccessReply access(const workspace::v1::AccessRequest& request, bool fresh = true);
+-    workspace::v1::ApplicationAccessReply application_access(const workspace::v1::ApplicationAccessRequest& request);
++    workspace::v1::ApplicationAccessReply application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh = true);
+     void set_authority(WorkspaceAuthority* authority);
+     void set_native_launch(NativeLaunch* native);
+     void reconcile_authority();

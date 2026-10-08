@@ -2,6 +2,7 @@
 #include "broker.pb.h"
 #include <filesystem>
 #include <memory>
+#include <functional>
 
 namespace spatial {
 class ExecutionStore;
@@ -21,6 +22,7 @@ public:
     void tick();
     void keepalive();
     bool consume_changes();
+    void set_observer(std::function<void()> observer);
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

@@ -1,0 +1,29 @@
+{
+  "debug": {
+    "core_suites": 42,
+    "core_checks": 812,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime-sanitize": {
+    "core_suites": 42,
+    "core_checks": 812,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "native-server-sanitize": {
+    "checks": 25,
+    "GLX": false,
+    "failed": 0,
+    "skipped": 0
+  },
+  "authority-fixture": {
+    "debug_checks": 19,
+    "runtime_sanitize_checks": 19,
+    "failed": 0
+  }
+}

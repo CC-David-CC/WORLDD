@@ -25,7 +25,7 @@ public:
     wire::WorkspaceReply workspace_get(const std::string& id);
     wire::WorkspaceAck workspace_member(const wire::WorkspaceMemberRequest& request);
     workspace::v1::AccessReply access(const workspace::v1::AccessRequest& request, bool fresh = true);
-    workspace::v1::ApplicationAccessReply application_access(const workspace::v1::ApplicationAccessRequest& request);
+    workspace::v1::ApplicationAccessReply application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh = true);
     void set_authority(WorkspaceAuthority* authority);
     void set_native_launch(NativeLaunch* native);
     void reconcile_authority();

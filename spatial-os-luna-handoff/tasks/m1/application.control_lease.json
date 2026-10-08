@@ -1,0 +1,50 @@
+{
+    "id":  "application.control_lease",
+    "phase":  "M04",
+    "profile":  "tasks/spatial-m1.json",
+    "invariant":  "A broker application has one control reservation, and revoked reservations require cancellation acknowledgement before handoff.",
+    "production_roots":  [
+                             "proto/spatial/workspace/v1/broker.proto",
+                             "src/workspace/control.cpp",
+                             "src/workspace/control.hpp",
+                             "src/workspace/main.cpp",
+                             "src/workspace/authority.cpp",
+                             "src/workspace/authority.hpp",
+                             "src/workspace/store.cpp",
+                             "src/workspace/store.hpp"
+                         ],
+    "test_ids":  [
+                     "ApplicationControlLeaseTests.test_explicit_control_acquires_live_application",
+                     "ApplicationControlLeaseTests.test_repeated_acquire_preserves_the_same_live_reservation",
+                     "ApplicationControlLeaseTests.test_one_application_has_only_one_controller_until_release",
+                     "ApplicationControlLeaseTests.test_independent_applications_have_independent_controllers",
+                     "ApplicationControlLeaseTests.test_observation_does_not_grant_control",
+                     "ApplicationControlLeaseTests.test_readonly_actor_cannot_control_writable_application",
+                     "ApplicationControlLeaseTests.test_readonly_actor_can_control_readonly_application",
+                     "ApplicationControlLeaseTests.test_control_revocation_emits_event_and_keeps_execution",
+                     "ApplicationControlLeaseTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation",
+                     "ApplicationControlLeaseTests.test_other_actor_cannot_release_reservation",
+                     "ApplicationControlLeaseTests.test_independent_control_grant_survives_other_grant_revocation",
+                     "ApplicationControlLeaseTests.test_observation_revocation_invalidates_control_reservation",
+                     "ApplicationControlLeaseTests.test_actor_revocation_notifies_idle_controller",
+                     "ApplicationControlLeaseTests.test_application_exit_notifies_without_an_actor_wait_request",
+                     "ApplicationControlLeaseTests.test_revoked_reservation_does_not_resurrect_when_permission_returns",
+                     "ApplicationControlLeaseTests.test_unknown_and_malformed_release_cannot_change_reservation",
+                     "ApplicationControlLeaseTests.test_actor_revocation_notifies_during_an_unrelated_process_wait",
+                     "ApplicationControlLeaseTests.test_revoked_actor_can_acknowledge_input_cancellation",
+                     "ApplicationControlLeaseTests.test_revocation_event_is_emitted_once",
+                     "ApplicationControlLeaseTests.test_workspace_access_revocation_releases_control_without_stopping_execution",
+                     "ApplicationControlLeaseTests.test_released_id_cannot_release_a_new_reservation",
+                     "ApplicationControlLeaseTests.test_unowned_and_wrongly_attributed_applications_cannot_acquire_control",
+                     "ApplicationControlLeaseTests.test_missing_principal_cannot_acquire_control",
+                     "ApplicationControlLeaseTests.test_nonnative_application_cannot_acquire_control",
+                     "ApplicationControlLeaseTests.test_partial_private_request_does_not_block_revocation_notification"
+                 ],
+    "preceding_gate":  "P10",
+    "contract":  "docs/APPLICATION_CONTROL_LEASES.md",
+    "limitations":  [
+                        "Worldd subscription handling and native input cancellation remain pending.",
+                        "Broker release trusts the world cancellation acknowledgement.",
+                        "M04, M09, and Spatial-M1 remain incomplete."
+                    ]
+}

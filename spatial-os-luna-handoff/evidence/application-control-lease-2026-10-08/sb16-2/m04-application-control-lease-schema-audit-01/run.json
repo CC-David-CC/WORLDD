@@ -1,0 +1,14 @@
+{
+  "base_commit": "04e0cbf2aa1879248e77208f3760b0dbfc6774db",
+  "existing_messages_preserved": 18,
+  "existing_fields_preserved": 70,
+  "new_messages": [
+    "ApplicationControlLease",
+    "ApplicationControlRelease",
+    "ApplicationControlReleased",
+    "ApplicationControlRequest"
+  ],
+  "acceptance_lock_sha256": "2aab998275dd1c98723c5200ae9d262ca1c054aabee99c370bba325f99db8b69",
+  "acceptance_ids": 151,
+  "status": "passed"
+}

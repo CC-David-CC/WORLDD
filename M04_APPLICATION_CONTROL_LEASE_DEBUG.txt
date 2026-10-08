@@ -1,0 +1,51 @@
+Broker application control leases
+Date: 2026-10-08
+Base: 04e0cbf2aa1879248e77208f3760b0dbfc6774db
+
+David waived local-model review. The primary agent reviews this increment.
+Both hosts passed the prerequisite 51 harness checks and 151 P10 cases.
+Both old broker binaries failed all 16 baseline lease cases because the operations were missing.
+Both implementations passed the initial 16 cases.
+
+The expanded suite exposed a fixture error on sb16-2.
+Its issuer revocation request omitted the required expected_security_revision field.
+The assertion also left an outstanding process wait during teardown.
+The fixture now supplies the revision and releases its test process in a finally block.
+These failures do not establish a production lease defect.
+
+SSH briefly timed out on sb16 and reset an scp connection to sb16-2.
+Both hosts became reachable again.
+The sb16 focused-02 run did not produce a run directory or result.
+The sb16-2 focused-02 run completed with the recorded fixture failure.
+Neither missing evidence nor the failed fixture run counts as passed.
+
+Both hosts then passed all 25 focused lease cases.
+The cases cover exclusive reservations, actor and grant revocation, execution separation,
+blocked process waits, partial requests, cancellation acknowledgement, and stale lease identities.
+Both descriptor audits preserve 18 existing messages, 70 fields, and all 151 locked acceptance IDs.
+
+Full qualification passed on both hosts.
+Worldd does not acquire these broker leases yet.
+Authenticated native control, balanced input cancellation, and filtered pixel delivery remain pending.
+M04, M09, and Spatial-M1 remain incomplete.
+
+Full sb16-2 Debug qualification found a test-helper procfs race.
+The child exited between opening and reading /proc/PID/stat.
+Linux returned ESRCH as ProcessLookupError.
+The gone() helper now treats ESRCH as process absence, like ENOENT.
+All live-process, zombie-state, timeout, and side-effect assertions remain unchanged.
+The original failure remains in debug-01/core.log.
+A new full sb16-2 qualification uses suffix 02.
+An initial retry script incorrectly renamed a prerequisite evidence path.
+It exited before running tests or creating qualification output.
+The corrected script keeps prerequisite paths unchanged.
+
+Final checked results, per host:
+- Debug: 812 core checks / 42 suites, 51 harness checks, 151 P10 cases.
+- Runtime ASan/UBSan: 812 core checks / 42 suites, 51 harness checks, 151 P10 cases.
+- Native-server ASan/UBSan: 25 lease checks; GLX disabled; leak detection enabled.
+- No final profile skipped a case.
+Sb16 also reran the corrected 19-case authority fixture in both profiles.
+Sb16-2 passed full suffix-02 qualification after the ESRCH helper correction.
+All 11 reviewed production/build/test inputs match the collected host hashes.
+Native input cancellation, authenticated pixels, physical devices, GPU timing, and full M1 remain pending.

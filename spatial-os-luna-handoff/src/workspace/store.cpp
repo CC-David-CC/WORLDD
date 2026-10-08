@@ -626,7 +626,7 @@ workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessReq
     return out;
 }
 void ExecutionStore::set_authority(WorkspaceAuthority* authority) { impl_->authority = authority; }
-workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request) {
+workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh) {
     if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Application access requires authenticated actor authority");
     const auto& principal = request.principal();
     require(principal.issuer_id().size() == 32 && principal.actor_id().size() == 32, "Invalid authenticated actor reference");
@@ -641,11 +641,13 @@ workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const w
     // and component-scoped grants, not a previous application's cached decision.
     std::set<std::string> prepared;
     for (const auto& app : request.applications()) {
-        if (impl_->authority && impl_->authority->bound(app.workspace()) && prepared.insert(app.workspace()).second)
+        if (refresh && impl_->authority && impl_->authority->bound(app.workspace()) && prepared.insert(app.workspace()).second)
             (void)impl_->authority->application_permissions(app, principal, true);
     }
-    reconcile_authority(); reap();
-    if (impl_->native) impl_->native->check();
+    if (refresh) {
+        reconcile_authority(); reap();
+        if (impl_->native) impl_->native->check();
+    }
     workspace::v1::ApplicationAccessReply reply;
     for (const auto& app : request.applications()) {
         auto* result = reply.add_applications(); *result->mutable_application() = app;

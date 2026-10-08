@@ -1,0 +1,28 @@
+{
+  "results": [
+    {
+      "profile": "debug",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build",
+        "-V",
+        "-R",
+        "^workspace-authority$"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "runtime-sanitize",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build-sanitize",
+        "-V",
+        "-R",
+        "^workspace-authority$"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

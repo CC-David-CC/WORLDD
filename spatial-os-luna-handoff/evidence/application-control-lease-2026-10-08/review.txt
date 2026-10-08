@@ -1,0 +1,66 @@
+Primary-agent review: broker control leases
+
+David authorized work without local-model review.
+The primary agent reviews each changed file and execution evidence.
+
+proto/spatial/workspace/v1/broker.proto:
+- Add typed acquire, release, lease, and release-acknowledgement messages.
+- Add an unsolicited revocation outcome with request_id zero.
+- Preserve all 18 existing messages and 70 fields, verified by descriptor comparison.
+- Preserve the acceptance lock and all 151 identifiers.
+
+src/workspace/control.cpp and control.hpp:
+- Acquire only after the existing fresh application-control authority check succeeds.
+- Use random 32-byte lease identities and one reservation per native application group.
+- Keep repeated acquisition stable for the same actor and live reservation.
+- Keep revoked reservations until the original principal acknowledges cancellation.
+- Reject other principals, stale identities, and unauthorized applications.
+- Preserve the 256-reservation bound, including revoked reservations.
+- Compute revocation from prepared issuer state without nested issuer I/O or lifecycle reaping.
+- Emit one notification per invalidated lease.
+
+src/workspace/store.cpp and store.hpp:
+- Keep the existing fresh application-access path as the public RPC behavior.
+- Add an internal cached mode for watch callbacks.
+- The cached mode does not prepare identities, reap jobs, or reconcile a borrowed supervisor.
+- Both modes use the same grant, native identity, process, and execution-right checks.
+
+src/workspace/authority.cpp and authority.hpp:
+- Notify the broker observer on the authority thread, including failed watcher state.
+- Run notifications during issuer and process waits.
+- Keep process execution authority separate from control authority.
+
+src/workspace/main.cpp:
+- Dispatch the new private operations to ControlLeases.
+- Preserve complete frame order when events and ordinary replies share the output buffer.
+- Bound buffered output and retain the output deadline.
+- Keep transport failure sticky and fatal, including faults observed during nested waits.
+- Clear the observer before its lease and transport callback targets are destroyed.
+- Check leases again after process reaping.
+
+CMakeLists.txt and tests/core/test_application_control_lease.py:
+- Build the production lease implementation and register the integration suite.
+- Use real issuer proofs, persistent grants, native credentials, and confined processes.
+- Verify idle and blocked-wait revocation notifications through the actual private broker stream.
+- Verify cancellation acknowledgement blocks handoff and does not require still-active actor authority.
+- Verify independent execution and independent control grants remain valid.
+- Preserve baseline failures and the corrected expanded-fixture failure.
+
+Limits:
+- The private broker trusts the world's cancellation acknowledgement.
+- Worldd does not consume this lease protocol yet.
+- Native key/button release and authenticated input routing are not certified by these broker tests.
+- Authenticated pixel delivery and complete M1 qualification remain pending.
+- Full qualification passed on both hosts before integration.
+
+tests/core/test_workspace_authority.py:
+- Accept ESRCH only while checking whether a child process has exited.
+- Keep all process-state and revocation assertions unchanged.
+- Preserve the original failure and rerun the real authority integration suite.
+
+Qualification review:
+- Both Debug and runtime profiles pass 812 core, 51 harness, and 151 P10 checks per host.
+- Both native-server sanitizer runs pass all 25 cases with GLX disabled.
+- No skipped final cases or unresolved execution failures remain for this component.
+- Source hashes match the reviewed 11 inputs on both hosts.
+- Status and debug notes preserve the distinction between this component and complete M1.

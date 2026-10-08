@@ -1,0 +1,312 @@
+test_actor_revocation_notifies_idle_controller (__main__.ApplicationControlLeaseTests.test_actor_revocation_notifies_idle_controller) ... FAIL
+test_application_exit_notifies_without_an_actor_wait_request (__main__.ApplicationControlLeaseTests.test_application_exit_notifies_without_an_actor_wait_request) ... FAIL
+test_control_revocation_emits_event_and_keeps_execution (__main__.ApplicationControlLeaseTests.test_control_revocation_emits_event_and_keeps_execution) ... FAIL
+test_explicit_control_acquires_live_application (__main__.ApplicationControlLeaseTests.test_explicit_control_acquires_live_application) ... FAIL
+test_independent_applications_have_independent_controllers (__main__.ApplicationControlLeaseTests.test_independent_applications_have_independent_controllers) ... FAIL
+test_independent_control_grant_survives_other_grant_revocation (__main__.ApplicationControlLeaseTests.test_independent_control_grant_survives_other_grant_revocation) ... FAIL
+test_observation_does_not_grant_control (__main__.ApplicationControlLeaseTests.test_observation_does_not_grant_control) ... FAIL
+test_observation_revocation_invalidates_control_reservation (__main__.ApplicationControlLeaseTests.test_observation_revocation_invalidates_control_reservation) ... FAIL
+test_one_application_has_only_one_controller_until_release (__main__.ApplicationControlLeaseTests.test_one_application_has_only_one_controller_until_release) ... FAIL
+test_other_actor_cannot_release_reservation (__main__.ApplicationControlLeaseTests.test_other_actor_cannot_release_reservation) ... FAIL
+test_readonly_actor_can_control_readonly_application (__main__.ApplicationControlLeaseTests.test_readonly_actor_can_control_readonly_application) ... FAIL
+test_readonly_actor_cannot_control_writable_application (__main__.ApplicationControlLeaseTests.test_readonly_actor_cannot_control_writable_application) ... FAIL
+test_repeated_acquire_preserves_the_same_live_reservation (__main__.ApplicationControlLeaseTests.test_repeated_acquire_preserves_the_same_live_reservation) ... FAIL
+test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation (__main__.ApplicationControlLeaseTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation) ... FAIL
+test_revoked_reservation_does_not_resurrect_when_permission_returns (__main__.ApplicationControlLeaseTests.test_revoked_reservation_does_not_resurrect_when_permission_returns) ... FAIL
+test_unknown_and_malformed_release_cannot_change_reservation (__main__.ApplicationControlLeaseTests.test_unknown_and_malformed_release_cannot_change_reservation) ... FAIL
+
+======================================================================
+FAIL: test_actor_revocation_notifies_idle_controller (__main__.ApplicationControlLeaseTests.test_actor_revocation_notifies_idle_controller)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 154, in test_actor_revocation_notifies_idle_controller
+    app=self.application();lease=self.acquire(app)
+                                 ^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_application_exit_notifies_without_an_actor_wait_request (__main__.ApplicationControlLeaseTests.test_application_exit_notifies_without_an_actor_wait_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 158, in test_application_exit_notifies_without_an_actor_wait_request
+    app=self.application();lease=self.acquire(app)
+                                 ^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_control_revocation_emits_event_and_keeps_execution (__main__.ApplicationControlLeaseTests.test_control_revocation_emits_event_and_keeps_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 127, in test_control_revocation_emits_event_and_keeps_execution
+    app,record,lease=self.second_controller();self.revoke_record(record);self.broker.event(lease)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 95, in second_controller
+    return app,record,self.acquire(app,self.second)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_explicit_control_acquires_live_application (__main__.ApplicationControlLeaseTests.test_explicit_control_acquires_live_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 98, in test_explicit_control_acquires_live_application
+    app=self.application();lease=self.acquire(app);self.release(lease)
+                                 ^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_independent_applications_have_independent_controllers (__main__.ApplicationControlLeaseTests.test_independent_applications_have_independent_controllers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 111, in test_independent_applications_have_independent_controllers
+    app,record,lease=self.second_controller();other=self.launch_application()
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 95, in second_controller
+    return app,record,self.acquire(app,self.second)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_independent_control_grant_survives_other_grant_revocation (__main__.ApplicationControlLeaseTests.test_independent_control_grant_survives_other_grant_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 143, in test_independent_control_grant_survives_other_grant_revocation
+    app,record,lease=self.second_controller();self.delegate([grant.APPLICATION_CONTROL],app)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 95, in second_controller
+    return app,record,self.acquire(app,self.second)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_observation_does_not_grant_control (__main__.ApplicationControlLeaseTests.test_observation_does_not_grant_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 116, in test_observation_does_not_grant_control
+    self.denied(self.broker.request(control_acquire=pb.ApplicationControlRequest(principal=self.principal(self.second),application=app)),core.FORBIDDEN)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_observation_revocation_invalidates_control_reservation (__main__.ApplicationControlLeaseTests.test_observation_revocation_invalidates_control_reservation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 150, in test_observation_revocation_invalidates_control_reservation
+    record=self.delegate([grant.APPLICATION_OBSERVE],app);lease=self.acquire(app,self.second)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_one_application_has_only_one_controller_until_release (__main__.ApplicationControlLeaseTests.test_one_application_has_only_one_controller_until_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 106, in test_one_application_has_only_one_controller_until_release
+    app,record,lease=self.second_controller()
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 95, in second_controller
+    return app,record,self.acquire(app,self.second)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_other_actor_cannot_release_reservation (__main__.ApplicationControlLeaseTests.test_other_actor_cannot_release_reservation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 138, in test_other_actor_cannot_release_reservation
+    app,record,lease=self.second_controller()
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 95, in second_controller
+    return app,record,self.acquire(app,self.second)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_readonly_actor_can_control_readonly_application (__main__.ApplicationControlLeaseTests.test_readonly_actor_can_control_readonly_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 124, in test_readonly_actor_can_control_readonly_application
+    self.delegate([*access.READ,*access.APP_RIGHTS]);self.acquire(app,self.second)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 6
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_readonly_actor_cannot_control_writable_application (__main__.ApplicationControlLeaseTests.test_readonly_actor_cannot_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 120, in test_readonly_actor_cannot_control_writable_application
+    self.denied(self.broker.request(control_acquire=pb.ApplicationControlRequest(principal=self.principal(self.second),application=app)),core.FORBIDDEN)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_repeated_acquire_preserves_the_same_live_reservation (__main__.ApplicationControlLeaseTests.test_repeated_acquire_preserves_the_same_live_reservation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 102, in test_repeated_acquire_preserves_the_same_live_reservation
+    app=self.application();lease=self.acquire(app)
+                                 ^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation (__main__.ApplicationControlLeaseTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 133, in test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation
+    app,record,lease=self.second_controller();self.revoke_record(record);self.broker.event(lease)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 95, in second_controller
+    return app,record,self.acquire(app,self.second)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_revoked_reservation_does_not_resurrect_when_permission_returns (__main__.ApplicationControlLeaseTests.test_revoked_reservation_does_not_resurrect_when_permission_returns)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 162, in test_revoked_reservation_does_not_resurrect_when_permission_returns
+    app,record,lease=self.second_controller();self.revoke_record(record);self.broker.event(lease)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 95, in second_controller
+    return app,record,self.acquire(app,self.second)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_unknown_and_malformed_release_cannot_change_reservation (__main__.ApplicationControlLeaseTests.test_unknown_and_malformed_release_cannot_change_reservation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 168, in test_unknown_and_malformed_release_cannot_change_reservation
+    app=self.application();lease=self.acquire(app)
+                                 ^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 81, in acquire
+    self.assertTrue(reply.HasField('control_lease'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 16 tests in 22.097s
+
+FAILED (failures=16)

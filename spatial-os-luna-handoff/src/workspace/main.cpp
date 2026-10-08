@@ -1,6 +1,7 @@
 #include "workspace/store.hpp"
 #include "workspace/authority.hpp"
 #include "workspace/native_launch.hpp"
+#include "workspace/control.hpp"
 #include "world/store.hpp"
 #include "build_id.hpp"
 #include <csignal>
@@ -55,7 +56,7 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Ex
     return reply;
 }
 spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store,
-                                            spatial::WorkspaceAuthority* authority) {
+                                            spatial::WorkspaceAuthority* authority, spatial::ControlLeases& controls) {
     namespace broker = spatial::workspace::v1;
     namespace wire = spatial::wire;
     broker::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
@@ -68,6 +69,8 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         } else if (request.has_access()) *reply.mutable_access() = store.access(request.access());
         else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
         else if (request.has_application_access()) *reply.mutable_application_access() = store.application_access(request.application_access());
+        else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire());
+        else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release());
         else if (request.has_grants() || request.has_delegate() || request.has_revoke()) {
             if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
             if (request.has_grants()) *reply.mutable_grants() = authority->list(request.grants());
@@ -132,13 +135,50 @@ int main(int argc, char** argv) {
         using Clock = std::chrono::steady_clock;
         auto input_started = Clock::now(), output_started = Clock::now();
         std::string input, output; std::size_t sent = 0; bool eof = false;
+        bool transport_failed = false;
+        const auto enqueue = [&](const spatial::workspace::v1::Reply& reply) {
+            std::ostringstream framed; spatial::write_frame(framed, reply);
+            const auto bytes = framed.str();
+            if (output.size()+bytes.size() > 2*spatial::max_frame_bytes) {
+                transport_failed = true; throw std::runtime_error("Workspace output queue exceeds limit");
+            }
+            if (output.empty()) { sent = 0; output_started = Clock::now(); }
+            output += bytes;
+        };
+        const auto flush = [&] {
+            if (transport_failed || (!output.empty() && Clock::now()-output_started > std::chrono::seconds(10))) {
+                transport_failed = true; throw std::runtime_error("Workspace reply transport failed");
+            }
+            if (output.empty()) return;
+            const auto count = write(STDOUT_FILENO, output.data()+sent, output.size()-sent);
+            if (count < 0 && errno != EAGAIN && errno != EINTR) {
+                transport_failed = true; throw std::runtime_error("Workspace reply failed");
+            }
+            if (count > 0) {
+                sent += static_cast<std::size_t>(count);
+                if (sent == output.size()) { output.clear(); sent = 0; }
+            }
+        };
+        spatial::ControlLeases controls(store, [&](const auto& lease) {
+            spatial::workspace::v1::Reply event; event.set_protocol_version(1);
+            *event.mutable_control_revoked() = lease; enqueue(event);
+        });
+        struct ClearObserver {
+            spatial::WorkspaceAuthority* authority;
+            ~ClearObserver() { if (authority) authority->set_observer([] {}); }
+        } clear_observer{authority.get()};
+        // Issuer and process waits call this on the same broker thread.
+        // Cached lease checks neither recurse into issuer I/O nor reap a borrowed job.
+        if (authority) authority->set_observer([&] { controls.tick(); flush(); });
         const auto enforce = [&] {
+            if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
             if (native) native->check();
             if (authority) {
                 authority->tick();
                 if (authority->consume_changes()) store.reconcile_authority();
             }
             store.reap();
+            controls.tick();
         };
         for (;;) {
             enforce();
@@ -156,11 +196,10 @@ int main(int argc, char** argv) {
                     if (!request.ParseFromArray(input.data()+4, static_cast<int>(length))) {
                         reply.set_protocol_version(1); reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
                         reply.mutable_error()->set_message("Malformed broker protobuf payload");
-                    } else reply = dispatch_broker(request, store, authority.get());
+                    } else reply = dispatch_broker(request, store, authority.get(), controls);
                     enforce();
                     input.erase(0, length+4); input_started = Clock::now();
-                    std::ostringstream framed; spatial::write_frame(framed, reply); output = framed.str();
-                    sent = 0; output_started = Clock::now();
+                    enqueue(reply);
                 }
             }
             if (eof && output.empty()) {
@@ -174,9 +213,7 @@ int main(int argc, char** argv) {
             if (ready < 0 || ((fds[0].revents | fds[1].revents) & POLLNVAL)) throw std::runtime_error("Workspace transport poll failed");
             if (fds[1].revents & (POLLHUP | POLLERR)) throw std::runtime_error("Workspace supervisor disconnected");
             if (!output.empty() && (fds[1].revents & POLLOUT)) {
-                const auto count = write(STDOUT_FILENO, output.data()+sent, output.size()-sent);
-                if (count < 0 && errno != EAGAIN && errno != EINTR) throw std::runtime_error("Workspace reply failed");
-                if (count > 0) { sent += static_cast<std::size_t>(count); if (sent == output.size()) output.clear(); }
+                flush();
             }
             if (!eof && output.empty() && (fds[0].revents & (POLLIN | POLLHUP | POLLERR))) {
                 std::array<char, 65536> bytes{};

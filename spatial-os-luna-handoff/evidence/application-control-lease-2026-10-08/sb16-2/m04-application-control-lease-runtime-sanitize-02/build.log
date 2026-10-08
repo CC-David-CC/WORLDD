@@ -1,0 +1,40 @@
+[0/2] Re-checking globbed directories...
+[1/39] Generating python/broker_pb2.py
+[2/39] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[3/39] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[4/39] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[5/39] Linking CXX static library libspatial-protobuf.a
+[6/39] Linking CXX executable spatial-key
+[7/39] Linking CXX executable spatial-issuer-client
+[8/39] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[9/39] Linking CXX static library libspatial-issuer.a
+[10/39] Linking CXX executable spatial-issuer-watch
+[11/39] Linking CXX executable identityd
+[12/39] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[13/39] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[14/39] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[15/39] Linking CXX executable spatialwm
+[16/39] Building CXX object CMakeFiles/spatial-core.dir/src/platform/broker.cpp.o
+[17/39] Linking CXX static library libspatial-core.a
+[18/39] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[19/39] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[20/39] Building CXX object CMakeFiles/spatial-app-init.dir/src/workspace/app_init.cpp.o
+[21/39] Linking CXX executable spatial-app-init
+[22/39] Building CXX object CMakeFiles/worldd.dir/src/world/identity_sessions.cpp.o
+[23/39] Linking CXX executable worldd
+[24/39] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[25/39] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[26/39] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[27/39] Building CXX object CMakeFiles/workspaced.dir/src/workspace/native_launch.cpp.o
+[28/39] Building CXX object CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o
+[29/39] Building CXX object CMakeFiles/workspaced.dir/src/workspace/control.cpp.o
+[30/39] Linking CXX executable workspaced
+[31/39] Building CXX object CMakeFiles/native-launch-checkpoint-probe.dir/src/workspace/native_launch.cpp.o
+[32/39] Linking CXX executable native-launch-checkpoint-probe
+[33/39] Linking CXX executable spatial-authority-probe
+[34/39] Linking CXX executable spatial-issuer-client-probe
+[35/39] Linking CXX executable spatial-input-bridge
+[36/39] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[37/39] Linking CXX executable spatial-issuer-watch-probe
+[38/39] Linking CXX executable spatial-test-host
+[39/39] Linking CXX executable spatial-git-job-probe

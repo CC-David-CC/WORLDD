@@ -142,7 +142,8 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
     def gone(pids):
         for pid in pids:
             try: state = Path(f'/proc/{pid}/stat').read_text().rsplit(')',1)[1].split()[0]
-            except FileNotFoundError: continue
+            # A process can exit after open(), while procfs serves read().
+            except (FileNotFoundError, ProcessLookupError): continue
             if state not in ('Z','X'): return False
         return True
 

@@ -1,5 +1,40 @@
 # Implementation status
 
+## 2026-10-08: Broker application control reservations checked
+
+Workspaced now reserves each native application group for one authorized actor.
+Acquisition requires explicit control and observation grants plus sufficient effective execution rights.
+Revocation sends an unsolicited protobuf notification, including during idle time and process waits.
+The broker retains the reservation until the trusted world acknowledges input cancellation.
+Restored permissions do not reactivate a revoked reservation.
+Revoking control preserves independently authorized application execution.
+
+Both old brokers failed all 16 initial cases because the new operations were absent.
+Both implementations passed the expanded 25-case suite.
+Both hosts passed 812 core checks across 42 suites in Debug and runtime ASan/UBSan.
+Each profile also passed 51 harness checks and 151 P10 cases.
+Both native-server ASan/UBSan profiles passed 25 focused checks with GLX disabled and leak detection enabled.
+No final qualification profile skipped a case.
+
+The first sb16-2 Debug run exposed an ESRCH race in the process-exit test helper.
+The helper now accepts process disappearance during procfs reads.
+Its live-process, revocation, timeout, and side-effect assertions remain unchanged.
+Sb16-2 then passed full qualification with the correction.
+Sb16 also passed the corrected 19-case authority suite in both profiles after its full runs.
+The original failures and corrected execution evidence are preserved.
+
+The additive broker schema preserves 18 existing messages and 70 fields.
+The core schema, native witness, acceptance lock, and XLibre source remain unchanged.
+The primary agent reviewed each changed file without local-model review.
+See docs/APPLICATION_CONTROL_LEASES.md and evidence/application-control-lease-2026-10-08.
+The root M04_APPLICATION_CONTROL_LEASE_DEBUG.txt records failures and remaining work.
+
+Worldd does not consume these broker reservations yet.
+Authenticated input routing, balanced native cancellation, and filtered pixel delivery remain pending.
+These broker tests do not certify native input release.
+Physical input, native GPU timing, instrumented GLX lifecycle, and native soak remain unqualified here.
+M04, M09, M10, and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Authenticated application metadata checked
 
 Worldd now filters labeled application surfaces using the authenticated actor and native application identity.

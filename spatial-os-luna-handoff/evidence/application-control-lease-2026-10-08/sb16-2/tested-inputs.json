@@ -1,0 +1,13 @@
+{
+  "spatial-os-luna-handoff/CMakeLists.txt": "14472303f9f3905a555cff791bb4a5ae27d26e9b4245c53fc56f10ec66277bd1",
+  "spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto": "51eb94c2843ba811cbeeca6bf54626c04fcbf6256d15c43e01e60940f50f0dde",
+  "spatial-os-luna-handoff/src/workspace/main.cpp": "2ce5bfe3aaf8465e3529e0be899ab6960f69803136ca55bd3f2af6c711865a52",
+  "spatial-os-luna-handoff/src/workspace/store.cpp": "a859a876b009118cb52e220b99f467fb7978389564c547722f1cc6d948b1054e",
+  "spatial-os-luna-handoff/src/workspace/store.hpp": "fc16789d1b86344134f1e9aad61410cb30823dcab055418757618f65c7400037",
+  "spatial-os-luna-handoff/src/workspace/authority.cpp": "f4f6f59982bcd0b1f694d7681984c48089678bb67794c0a00a7a6bee430fdfaa",
+  "spatial-os-luna-handoff/src/workspace/authority.hpp": "4c6577b9b0497d9ab6e95d7bd8b18c698c6d2bc44f7668358e00d3e653bfd712",
+  "spatial-os-luna-handoff/src/workspace/control.cpp": "d82afc7750e0250417181979da29b86c3db12c29acf181535e09034d040d2b66",
+  "spatial-os-luna-handoff/src/workspace/control.hpp": "00c3e28e0ffc10e3e47aaebc7631bc069666c5b3457d0f1adf6b6fc58f89fb6d",
+  "spatial-os-luna-handoff/tests/core/test_application_control_lease.py": "520ffbb0fb1ed6904c96a7d26bd786cc59b80c223aa7eee009970e5736f0f1c4",
+  "spatial-os-luna-handoff/tests/core/test_workspace_authority.py": "555a29013a2f618b2af97e2b88e6f5d6ee5621295026a379d441caf09a53275e"
+}

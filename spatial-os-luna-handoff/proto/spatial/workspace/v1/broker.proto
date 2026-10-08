@@ -45,6 +45,19 @@ message ApplicationAccess {
 }
 // Results preserve request order and identity. Denied groups return explicit false values.
 message ApplicationAccessReply { repeated ApplicationAccess applications = 1; }
+// Live control reservations are scoped to this private broker connection.
+message ApplicationControlRequest {
+  spatial.authority.v1.ActorRef principal = 1;
+  ApplicationRef application = 2;
+}
+message ApplicationControlLease {
+  bytes id = 1;
+  spatial.authority.v1.ActorRef principal = 2;
+  ApplicationRef application = 3;
+}
+// The trusted world releases native input before releasing this reservation.
+message ApplicationControlRelease { bytes id = 1; spatial.authority.v1.ActorRef principal = 2; }
+message ApplicationControlReleased { bytes id = 1; }
 message LaunchRequest {
   string workspace = 1; string actor = 2; spatial.core.v1.ProcessLaunchRequest command = 3;
   spatial.authority.v1.ActorRef principal = 4;
@@ -80,6 +93,8 @@ message Request {
     GrantDelegateRequest delegate = 104;
     GrantRevokeRequest revoke = 105;
     ApplicationAccessRequest application_access = 106;
+    ApplicationControlRequest control_acquire = 107;
+    ApplicationControlRelease control_release = 108;
   }
 }
 message Reply {
@@ -93,5 +108,9 @@ message Reply {
     spatial.authority.v1.GrantPage grants = 104;
     spatial.authority.v1.GrantRecord grant = 105;
     ApplicationAccessReply application_access = 106;
+    ApplicationControlLease control_lease = 107;
+    ApplicationControlReleased control_released = 108;
+    // Unsolicited event. request_id is zero. The reservation remains until release.
+    ApplicationControlLease control_revoked = 109;
   }
 }

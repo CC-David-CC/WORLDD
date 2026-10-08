@@ -49,6 +49,7 @@ struct WorkspaceAuthority::Impl {
     std::uint64_t observed_revision = 0;
     bool ready = false, broken = false, changed = true;
     Clock::time_point last_exchange = Clock::now();
+    std::function<void()> observer = [] {};
 
     Impl(const std::filesystem::path& path, ExecutionStore& execution) {
         pb::WorkspaceAuthorityConfig config;
@@ -73,10 +74,10 @@ struct WorkspaceAuthority::Impl {
     void invalidate() { decisions.clear(); changed = true; }
     void fail() { broken = true; active.clear(); invalidate(); }
     void tick() {
-        if (broken || !watcher) return;
-        if (watcher->failed()) { fail(); return; }
+        if (broken || !watcher) { observer(); return; }
+        if (watcher->failed()) { fail(); observer(); return; }
         while (const auto update = watcher->poll()) {
-            if (update->has_error() || update->batch().issuer_id() != issuer) { fail(); return; }
+            if (update->has_error() || update->batch().issuer_id() != issuer) { fail(); observer(); return; }
             const auto& batch = update->batch(); observed_revision = std::max(observed_revision, batch.head_revision());
             if (batch.initial()) ready = true;
             for (const auto& event : batch.events()) {
@@ -85,6 +86,7 @@ struct WorkspaceAuthority::Impl {
                 }
             }
         }
+        observer();
     }
     id::IssuerReply exchange(id::IssuerRequest request) {
         if (broken) throw WorldError(wire::UNAVAILABLE, "Workspace identity service is disabled");
@@ -204,6 +206,7 @@ void WorkspaceAuthority::keepalive() {
     }
 }
 bool WorkspaceAuthority::consume_changes() { const bool result = impl_->changed; impl_->changed = false; return result; }
+void WorkspaceAuthority::set_observer(std::function<void()> observer) { impl_->observer = std::move(observer); }
 void initialize_workspace_authority(const std::filesystem::path& path, ExecutionStore& execution) {
     pb::WorkspaceAuthoritySeed seed;
     require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &seed), "Invalid workspace authority seed");
