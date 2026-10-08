@@ -1,0 +1,236 @@
+diff --git a/spatial-os-luna-handoff/CMakeLists.txt b/spatial-os-luna-handoff/CMakeLists.txt
+index dceaecc..401ec20 100644
+--- a/spatial-os-luna-handoff/CMakeLists.txt
++++ b/spatial-os-luna-handoff/CMakeLists.txt
+@@ -256,6 +256,11 @@ if(BUILD_TESTING)
+     set_tests_properties(actor-collision PROPERTIES TIMEOUT 90
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     if(SPATIAL_INPUT_TESTS)
++        add_test(NAME application-access COMMAND "${Python3_EXECUTABLE}"
++            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_access.py" $<TARGET_FILE:identityd>
++            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
++        set_tests_properties(application-access PROPERTIES TIMEOUT 180
++            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+         foreach(identity_suite surface_identity compositor_identity world_surface_groups)
+             add_test(NAME native-${identity_suite} COMMAND "${Python3_EXECUTABLE}"
+                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_${identity_suite}.py" $<TARGET_FILE:spatial-security-auth>)
+diff --git a/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto b/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto
+index 1bf44bf..7c520ff 100644
+--- a/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto
++++ b/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto
+@@ -32,6 +32,19 @@ message AccessRequest {
+   spatial.authority.v1.ActorRef principal = 3;
+ }
+ message AccessReply { repeated spatial.core.v1.WorkspaceRight rights = 1; uint64 revision = 2; }
++// Application groups come from trusted native attribution, not client properties.
++message ApplicationRef { bytes workspace = 1; bytes application = 2; bytes server_id = 3; }
++message ApplicationAccessRequest {
++  spatial.authority.v1.ActorRef principal = 1;
++  repeated ApplicationRef applications = 2;
++}
++message ApplicationAccess {
++  ApplicationRef application = 1;
++  optional bool observe = 2;
++  optional bool control = 3;
++}
++// Results preserve request order and identity. Denied groups return explicit false values.
++message ApplicationAccessReply { repeated ApplicationAccess applications = 1; }
+ message LaunchRequest {
+   string workspace = 1; string actor = 2; spatial.core.v1.ProcessLaunchRequest command = 3;
+   spatial.authority.v1.ActorRef principal = 4;
+@@ -66,6 +79,7 @@ message Request {
+     GrantListRequest grants = 103;
+     GrantDelegateRequest delegate = 104;
+     GrantRevokeRequest revoke = 105;
++    ApplicationAccessRequest application_access = 106;
+   }
+ }
+ message Reply {
+@@ -78,5 +92,6 @@ message Reply {
+     spatial.core.v1.ProcessLaunchReply launched = 103;
+     spatial.authority.v1.GrantPage grants = 104;
+     spatial.authority.v1.GrantRecord grant = 105;
++    ApplicationAccessReply application_access = 106;
+   }
+ }
+diff --git a/spatial-os-luna-handoff/src/workspace/authority.cpp b/spatial-os-luna-handoff/src/workspace/authority.cpp
+index 7ad18d1..e6c53b0 100644
+--- a/spatial-os-luna-handoff/src/workspace/authority.cpp
++++ b/spatial-os-luna-handoff/src/workspace/authority.cpp
+@@ -45,7 +45,7 @@ struct WorkspaceAuthority::Impl {
+     std::string issuer;
+     std::map<std::string, bool> active;
+     std::set<std::string> revoked;
+-    std::map<std::tuple<std::string, std::string, int>, bool> decisions;
++    std::map<std::tuple<std::string, std::string, int, std::vector<std::string>>, bool> decisions;
+     std::uint64_t observed_revision = 0;
+     bool ready = false, broken = false, changed = true;
+     Clock::time_point last_exchange = Clock::now();
+@@ -135,11 +135,13 @@ struct WorkspaceAuthority::Impl {
+         invalidate();
+         if (!identity_active(actor)) throw WorldError(wire::UNAUTHORIZED, "Workspace actor identity is inactive");
+     }
+-    bool allowed(const std::string& workspace, const a::ActorRef& actor, a::Right right) {
++    bool allowed(const std::string& workspace, const a::ActorRef& actor, a::Right right,
++                 const std::vector<std::string>& components = {}) {
+         if (!identity_active(actor)) return false;
+-        const auto key = std::make_tuple(workspace, actor.SerializeAsString(), static_cast<int>(right));
++        const auto key = std::make_tuple(workspace, actor.SerializeAsString(), static_cast<int>(right), components);
+         const auto cached = decisions.find(key); if (cached != decisions.end()) return cached->second;
+         a::Scope scope; *scope.mutable_domain() = domain(workspace);
++        for (const auto& component : components) scope.add_components(component);
+         const bool allowed = store(workspace).check(actor, scope, right, [this](const auto& value) { return identity_active(value); }).allowed();
+         if (decisions.size() >= 4096) decisions.clear();
+         decisions.emplace(key, allowed);
+@@ -166,6 +168,16 @@ unsigned WorkspaceAuthority::rights(const pb::AccessRequest& request, bool fresh
+     if (has(a::PROCESS_EXECUTE)) mask |= 1u << wire::PROCESS_LAUNCH;
+     return mask;
+ }
++ApplicationPermissions WorkspaceAuthority::application_permissions(const pb::ApplicationRef& app,
++                                                                   const a::ActorRef& actor, bool fresh) {
++    pb::AccessRequest request; request.set_workspace(app.workspace()); request.set_actor(actor_name(actor));
++    *request.mutable_principal() = actor;
++    ApplicationPermissions result; result.rights = rights(request, fresh);
++    const std::vector<std::string> scope{"applications", app.application()};
++    result.observe = impl_->allowed(app.workspace(), actor, a::APPLICATION_OBSERVE, scope);
++    result.control = impl_->allowed(app.workspace(), actor, a::APPLICATION_CONTROL, scope);
++    return result;
++}
+ a::GrantPage WorkspaceAuthority::list(const pb::GrantListRequest& request) {
+     impl_->prepare(request.workspace(), request.principal());
+     return impl_->store(request.workspace()).list(request.principal(), request.after_id(), request.limit());
+diff --git a/spatial-os-luna-handoff/src/workspace/authority.hpp b/spatial-os-luna-handoff/src/workspace/authority.hpp
+index 75ab8ae..6562fa0 100644
+--- a/spatial-os-luna-handoff/src/workspace/authority.hpp
++++ b/spatial-os-luna-handoff/src/workspace/authority.hpp
+@@ -5,6 +5,7 @@
+ 
+ namespace spatial {
+ class ExecutionStore;
++struct ApplicationPermissions { unsigned rights = 0; bool observe = false, control = false; };
+ // Called only on the broker authority thread. Runtime callbacks perform no issuer I/O.
+ class WorkspaceAuthority {
+ public:
+@@ -12,6 +13,8 @@ public:
+     ~WorkspaceAuthority();
+     bool bound(const std::string& workspace) const;
+     unsigned rights(const workspace::v1::AccessRequest&, bool fresh);
++    ApplicationPermissions application_permissions(const workspace::v1::ApplicationRef&,
++        const authority::v1::ActorRef&, bool fresh);
+     authority::v1::GrantPage list(const workspace::v1::GrantListRequest&);
+     authority::v1::GrantRecord delegate(const workspace::v1::GrantDelegateRequest&);
+     authority::v1::GrantRecord revoke(const workspace::v1::GrantRevokeRequest&);
+diff --git a/spatial-os-luna-handoff/src/workspace/main.cpp b/spatial-os-luna-handoff/src/workspace/main.cpp
+index ab80a8a..ac5a6b9 100644
+--- a/spatial-os-luna-handoff/src/workspace/main.cpp
++++ b/spatial-os-luna-handoff/src/workspace/main.cpp
+@@ -67,6 +67,7 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
+             *reply.mutable_management() = dispatch(request.management(), store);
+         } else if (request.has_access()) *reply.mutable_access() = store.access(request.access());
+         else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
++        else if (request.has_application_access()) *reply.mutable_application_access() = store.application_access(request.application_access());
+         else if (request.has_grants() || request.has_delegate() || request.has_revoke()) {
+             if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
+             if (request.has_grants()) *reply.mutable_grants() = authority->list(request.grants());
+diff --git a/spatial-os-luna-handoff/src/workspace/native_launch.cpp b/spatial-os-luna-handoff/src/workspace/native_launch.cpp
+index 12eecbf..4f03fde 100644
+--- a/spatial-os-luna-handoff/src/workspace/native_launch.cpp
++++ b/spatial-os-luna-handoff/src/workspace/native_launch.cpp
+@@ -78,7 +78,7 @@ int authority_file(const std::string& number, const std::string& cookie) {
+ 
+ struct NativeLaunch::Impl {
+     Fd socket_path, channel;
+-    std::string number;
++    std::string number, server_id;
+     unsigned opcode = 0, native_sequence = 0;
+     std::uint64_t sequence = 0;
+ 
+@@ -161,8 +161,10 @@ NativeLaunch::NativeLaunch(int sealed_config_fd) : impl_(std::make_unique<Impl>(
+     if (identity.code() != native_security::OK || !identity.has_identity() || identity.identity().role() != native_security::BROKER ||
+             identity.identity().server_id() != config.server_id() || !identity.identity().workspace().empty() ||
+             !identity.identity().application().empty()) unavailable();
++    impl_->server_id = identity.identity().server_id();
+ }
+ NativeLaunch::~NativeLaunch() = default;
++const std::string& NativeLaunch::server_id() const { return impl_->server_id; }
+ 
+ std::unique_ptr<NativeCredential> NativeLaunch::issue(const std::string& workspace, const std::string& application,
+                                                      const std::function<void()>& checkpoint) {
+diff --git a/spatial-os-luna-handoff/src/workspace/native_launch.hpp b/spatial-os-luna-handoff/src/workspace/native_launch.hpp
+index 702fae0..54b0dda 100644
+--- a/spatial-os-luna-handoff/src/workspace/native_launch.hpp
++++ b/spatial-os-luna-handoff/src/workspace/native_launch.hpp
+@@ -31,6 +31,7 @@ public:
+     std::unique_ptr<NativeCredential> issue(const std::string& workspace, const std::string& application,
+                                           const std::function<void()>& checkpoint);
+     void check();
++    const std::string& server_id() const;
+ private:
+     friend class NativeCredential;
+     void revoke(const std::string& id) noexcept;
+diff --git a/spatial-os-luna-handoff/src/workspace/store.cpp b/spatial-os-luna-handoff/src/workspace/store.cpp
+index 2cd29dd..59d58c1 100644
+--- a/spatial-os-luna-handoff/src/workspace/store.cpp
++++ b/spatial-os-luna-handoff/src/workspace/store.cpp
+@@ -626,6 +626,49 @@ workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessReq
+     return out;
+ }
+ void ExecutionStore::set_authority(WorkspaceAuthority* authority) { impl_->authority = authority; }
++workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request) {
++    if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Application access requires authenticated actor authority");
++    const auto& principal = request.principal();
++    require(principal.issuer_id().size() == 32 && principal.actor_id().size() == 32, "Invalid authenticated actor reference");
++    require(request.applications_size() > 0 && request.applications_size() <= 64, "Application access requires one to 64 groups");
++    std::set<std::string> unique;
++    for (const auto& app : request.applications()) {
++        valid_text(app.workspace()); valid_text(app.application());
++        require(app.server_id().size() == 32, "Invalid native server identity");
++        require(unique.insert(app.SerializeAsString()).second, "Duplicate application group");
++    }
++    // Prepare each workspace once. The complete batch uses current issuer status
++    // and component-scoped grants, not a previous application's cached decision.
++    std::set<std::string> prepared;
++    for (const auto& app : request.applications()) {
++        if (impl_->authority && impl_->authority->bound(app.workspace()) && prepared.insert(app.workspace()).second)
++            (void)impl_->authority->application_permissions(app, principal, true);
++    }
++    reconcile_authority(); reap();
++    if (impl_->native) impl_->native->check();
++    workspace::v1::ApplicationAccessReply reply;
++    for (const auto& app : request.applications()) {
++        auto* result = reply.add_applications(); *result->mutable_application() = app;
++        result->set_observe(false); result->set_control(false);
++        if (!impl_->native || impl_->native->server_id() != app.server_id() || !impl_->jobs.contains(app.application()) ||
++            !impl_->authority || !impl_->authority->bound(app.workspace())) continue;
++        Query record(impl_->db.get(), "SELECT workspace,rights,state FROM processes WHERE id=?"); record.text(1, app.application());
++        if (record.step() != SQLITE_ROW || record.text(0) != app.workspace() || record.text(2) != "running") continue;
++        const auto stored = sqlite3_column_int64(record.value, 1);
++        const unsigned required = (1u << wire::FILES_READ) | (1u << wire::PROCESS_LAUNCH);
++        if (stored != required && stored != (required | (1u << wire::FILES_WRITE)))
++            throw WorldError(wire::STORAGE_ERROR, "Stored process rights are invalid");
++        // Status exchanges and process callbacks above can observe revocation.
++        // Calculate every decision after that I/O, without reusing an earlier result.
++        const auto permission = impl_->authority->application_permissions(app, principal, false);
++        const unsigned effective = permission.rights & rights_mask(workspace_get(app.workspace()).policy());
++        if (!(effective & (1u << wire::WORKSPACE_SELECT))) continue;
++        result->set_observe(permission.observe);
++        result->set_control(permission.observe && permission.control &&
++            (effective & static_cast<unsigned>(stored)) == static_cast<unsigned>(stored));
++    }
++    return reply;
++}
+ void ExecutionStore::reconcile_authority() {
+     if (!impl_->authority) return;
+     struct Running { std::string id; workspace::v1::LaunchRequest request; unsigned rights; };
+diff --git a/spatial-os-luna-handoff/src/workspace/store.hpp b/spatial-os-luna-handoff/src/workspace/store.hpp
+index fd71ba2..9153619 100644
+--- a/spatial-os-luna-handoff/src/workspace/store.hpp
++++ b/spatial-os-luna-handoff/src/workspace/store.hpp
+@@ -25,6 +25,7 @@ public:
+     wire::WorkspaceReply workspace_get(const std::string& id);
+     wire::WorkspaceAck workspace_member(const wire::WorkspaceMemberRequest& request);
+     workspace::v1::AccessReply access(const workspace::v1::AccessRequest& request, bool fresh = true);
++    workspace::v1::ApplicationAccessReply application_access(const workspace::v1::ApplicationAccessRequest& request);
+     void set_authority(WorkspaceAuthority* authority);
+     void set_native_launch(NativeLaunch* native);
+     void reconcile_authority();

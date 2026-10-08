@@ -31,6 +31,7 @@ public:
     std::unique_ptr<NativeCredential> issue(const std::string& workspace, const std::string& application,
                                           const std::function<void()>& checkpoint);
     void check();
+    const std::string& server_id() const;
 private:
     friend class NativeCredential;
     void revoke(const std::string& id) noexcept;

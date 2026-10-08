@@ -1,5 +1,33 @@
 # Implementation status
 
+## 2026-10-08: Broker application-access authority checked
+
+Workspaced now answers bounded protobuf queries for application observation and control.
+It requires a live broker-owned process, matching native server identity, and explicit workspace application grants.
+Control also requires the actor's effective execution rights to cover the application's recorded rights.
+Read-only actors cannot control writable applications.
+Application scopes, parent revocation, and independent grants use the persistent authority store.
+Revoking observation or control does not itself terminate valid process execution.
+
+Both old brokers failed all 22 corrected baseline cases because the operation was absent.
+Both implementations then passed 28 focused checks using real issuers, grants, confined processes, and native credential issuance.
+Both Debug and runtime ASan/UBSan profiles passed 771 core checks across 40 suites.
+Each profile also passed 51 harness checks and all 151 P10 cases.
+Both native-server ASan/UBSan profiles passed the 28 new checks with GLX disabled and leak detection enabled.
+No final profile skipped a case.
+
+The additive broker schema preserves all 14 existing messages and all 59 existing fields.
+The core schema, locked tests, and acceptance lock remain unchanged.
+The primary agent reviewed this increment without local-model review.
+See docs/APPLICATION_ACCESS.md and evidence/application-access-2026-10-08.
+The root M04_APPLICATION_ACCESS_DEBUG.txt records failures and remaining work.
+
+The query is a permission snapshot, not a transferable grant or interaction lease.
+Worldd consumers, actor-filtered pixels and metadata, and application-control revocation remain required.
+Authenticated actors still receive no native application surfaces until that integration is complete.
+Physical input, native GPU output, full instrumented GLX lifecycle, and native soak remain unqualified.
+M04, M09, and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: World application relationships and leases checked
 
 Worldd now checks native server, workspace, and application identity before it follows a transient parent hint.

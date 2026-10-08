@@ -1,0 +1,65 @@
+Primary-agent review: broker application access
+
+David authorized primary-agent review without local-model review.
+No model endpoint was used.
+
+proto/spatial/workspace/v1/broker.proto:
+- Adds a private batch query with explicit application and actor identities.
+- Results preserve target identity, order, and boolean presence.
+- Existing message definitions and field numbers remain compatible.
+- Both descriptor audits preserve 14 existing messages and 59 existing fields.
+- The acceptance lock and its 151 identifiers remain unchanged.
+
+src/workspace/authority.cpp and authority.hpp:
+- Resolve application grants at exact components [applications, application identity].
+- Include scope components in cached authority decisions.
+- Prepare current issuer and grant-ancestor state through the existing production mechanism.
+- Keep project execution rights distinct from application observation and control rights.
+
+src/workspace/native_launch.cpp and native_launch.hpp:
+- Retain server identity only after the existing peer and native-role checks pass.
+- Expose that verified identity through an internal const accessor.
+- Do not expose a cookie, credential, file descriptor, or mutable configuration.
+
+src/workspace/store.cpp and store.hpp:
+- Validate the complete batch before constructing output.
+- Bound requests to 64 distinct groups with valid labels and server identities.
+- Require authenticated actor references and persistent workspace authority.
+- Match native server, workspace, application record, state, and live supervisor.
+- Prepare issuer state once per workspace, then calculate final permissions after lifecycle callbacks.
+- Require separate workspace access, observation, and control grants.
+- Require the controlling actor to cover every recorded application execution right.
+- Reject process-right masks outside the currently supported profile combinations.
+- Preserve independent execution when only observation or control is revoked.
+- Return false for stale, unknown, nonnative, and unowned groups.
+
+src/workspace/main.cpp:
+- Adds one checked private broker dispatch branch.
+- Keeps the actor channel and management channel separate.
+- A batch result is not an authentication proof or a transferable authority token.
+
+CMakeLists.txt:
+- Registers the real integration suite under SPATIAL_INPUT_TESTS.
+- Uses the existing generated protobuf bindings and instrumented runtime binaries.
+
+tests/core/test_application_access.py:
+- Uses real issuer services, grant stores, native servers, and confined applications.
+- Calls the private broker as a trusted test supervisor.
+- Tests explicit rights, application scope, workspace policy, execution profiles, revocation,
+  stale process identity, broker restart, malformed batches, and unsupported stored rights.
+- Does not claim resistance to arbitrary administrative tampering with valid authority records.
+- Does not claim worldd actor routing, pixel filtering, or application input qualification.
+- Uses orderly write-half shutdown for the broker under test.
+- Stores credentials only in private temporary fixture files.
+
+Documentation, task ticket, and root debug note:
+- Record the additive protocol contract and the actual scope of the tests.
+- Keep worldd consumers, physical acceptance, and complete M1 qualification pending.
+- Preserve early fixture failures separately from the corrected missing-feature baseline.
+
+Both Debug and runtime ASan/UBSan profiles passed on each host.
+Each profile passed 771 core checks, 51 harness checks, and 151 P10 cases.
+Both native-server sanitizer profiles passed all 28 new application-access checks with GLX disabled.
+No final profile skipped a case. Both collectors verified the counts and successful process exits.
+All ten tested inputs matched the Windows sources on both hosts.
+The source review and execution evidence support integration of this bounded component.

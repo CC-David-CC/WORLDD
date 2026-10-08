@@ -32,6 +32,19 @@ message AccessRequest {
   spatial.authority.v1.ActorRef principal = 3;
 }
 message AccessReply { repeated spatial.core.v1.WorkspaceRight rights = 1; uint64 revision = 2; }
+// Application groups come from trusted native attribution, not client properties.
+message ApplicationRef { bytes workspace = 1; bytes application = 2; bytes server_id = 3; }
+message ApplicationAccessRequest {
+  spatial.authority.v1.ActorRef principal = 1;
+  repeated ApplicationRef applications = 2;
+}
+message ApplicationAccess {
+  ApplicationRef application = 1;
+  optional bool observe = 2;
+  optional bool control = 3;
+}
+// Results preserve request order and identity. Denied groups return explicit false values.
+message ApplicationAccessReply { repeated ApplicationAccess applications = 1; }
 message LaunchRequest {
   string workspace = 1; string actor = 2; spatial.core.v1.ProcessLaunchRequest command = 3;
   spatial.authority.v1.ActorRef principal = 4;
@@ -66,6 +79,7 @@ message Request {
     GrantListRequest grants = 103;
     GrantDelegateRequest delegate = 104;
     GrantRevokeRequest revoke = 105;
+    ApplicationAccessRequest application_access = 106;
   }
 }
 message Reply {
@@ -78,5 +92,6 @@ message Reply {
     spatial.core.v1.ProcessLaunchReply launched = 103;
     spatial.authority.v1.GrantPage grants = 104;
     spatial.authority.v1.GrantRecord grant = 105;
+    ApplicationAccessReply application_access = 106;
   }
 }

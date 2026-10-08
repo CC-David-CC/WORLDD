@@ -45,7 +45,7 @@ struct WorkspaceAuthority::Impl {
     std::string issuer;
     std::map<std::string, bool> active;
     std::set<std::string> revoked;
-    std::map<std::tuple<std::string, std::string, int>, bool> decisions;
+    std::map<std::tuple<std::string, std::string, int, std::vector<std::string>>, bool> decisions;
     std::uint64_t observed_revision = 0;
     bool ready = false, broken = false, changed = true;
     Clock::time_point last_exchange = Clock::now();
@@ -135,11 +135,13 @@ struct WorkspaceAuthority::Impl {
         invalidate();
         if (!identity_active(actor)) throw WorldError(wire::UNAUTHORIZED, "Workspace actor identity is inactive");
     }
-    bool allowed(const std::string& workspace, const a::ActorRef& actor, a::Right right) {
+    bool allowed(const std::string& workspace, const a::ActorRef& actor, a::Right right,
+                 const std::vector<std::string>& components = {}) {
         if (!identity_active(actor)) return false;
-        const auto key = std::make_tuple(workspace, actor.SerializeAsString(), static_cast<int>(right));
+        const auto key = std::make_tuple(workspace, actor.SerializeAsString(), static_cast<int>(right), components);
         const auto cached = decisions.find(key); if (cached != decisions.end()) return cached->second;
         a::Scope scope; *scope.mutable_domain() = domain(workspace);
+        for (const auto& component : components) scope.add_components(component);
         const bool allowed = store(workspace).check(actor, scope, right, [this](const auto& value) { return identity_active(value); }).allowed();
         if (decisions.size() >= 4096) decisions.clear();
         decisions.emplace(key, allowed);
@@ -165,6 +167,16 @@ unsigned WorkspaceAuthority::rights(const pb::AccessRequest& request, bool fresh
     if (std::all_of(mutation_rights.begin(), mutation_rights.end(), has)) mask |= 1u << wire::FILES_WRITE;
     if (has(a::PROCESS_EXECUTE)) mask |= 1u << wire::PROCESS_LAUNCH;
     return mask;
+}
+ApplicationPermissions WorkspaceAuthority::application_permissions(const pb::ApplicationRef& app,
+                                                                   const a::ActorRef& actor, bool fresh) {
+    pb::AccessRequest request; request.set_workspace(app.workspace()); request.set_actor(actor_name(actor));
+    *request.mutable_principal() = actor;
+    ApplicationPermissions result; result.rights = rights(request, fresh);
+    const std::vector<std::string> scope{"applications", app.application()};
+    result.observe = impl_->allowed(app.workspace(), actor, a::APPLICATION_OBSERVE, scope);
+    result.control = impl_->allowed(app.workspace(), actor, a::APPLICATION_CONTROL, scope);
+    return result;
 }
 a::GrantPage WorkspaceAuthority::list(const pb::GrantListRequest& request) {
     impl_->prepare(request.workspace(), request.principal());

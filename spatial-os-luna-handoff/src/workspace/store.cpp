@@ -626,6 +626,49 @@ workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessReq
     return out;
 }
 void ExecutionStore::set_authority(WorkspaceAuthority* authority) { impl_->authority = authority; }
+workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request) {
+    if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Application access requires authenticated actor authority");
+    const auto& principal = request.principal();
+    require(principal.issuer_id().size() == 32 && principal.actor_id().size() == 32, "Invalid authenticated actor reference");
+    require(request.applications_size() > 0 && request.applications_size() <= 64, "Application access requires one to 64 groups");
+    std::set<std::string> unique;
+    for (const auto& app : request.applications()) {
+        valid_text(app.workspace()); valid_text(app.application());
+        require(app.server_id().size() == 32, "Invalid native server identity");
+        require(unique.insert(app.SerializeAsString()).second, "Duplicate application group");
+    }
+    // Prepare each workspace once. The complete batch uses current issuer status
+    // and component-scoped grants, not a previous application's cached decision.
+    std::set<std::string> prepared;
+    for (const auto& app : request.applications()) {
+        if (impl_->authority && impl_->authority->bound(app.workspace()) && prepared.insert(app.workspace()).second)
+            (void)impl_->authority->application_permissions(app, principal, true);
+    }
+    reconcile_authority(); reap();
+    if (impl_->native) impl_->native->check();
+    workspace::v1::ApplicationAccessReply reply;
+    for (const auto& app : request.applications()) {
+        auto* result = reply.add_applications(); *result->mutable_application() = app;
+        result->set_observe(false); result->set_control(false);
+        if (!impl_->native || impl_->native->server_id() != app.server_id() || !impl_->jobs.contains(app.application()) ||
+            !impl_->authority || !impl_->authority->bound(app.workspace())) continue;
+        Query record(impl_->db.get(), "SELECT workspace,rights,state FROM processes WHERE id=?"); record.text(1, app.application());
+        if (record.step() != SQLITE_ROW || record.text(0) != app.workspace() || record.text(2) != "running") continue;
+        const auto stored = sqlite3_column_int64(record.value, 1);
+        const unsigned required = (1u << wire::FILES_READ) | (1u << wire::PROCESS_LAUNCH);
+        if (stored != required && stored != (required | (1u << wire::FILES_WRITE)))
+            throw WorldError(wire::STORAGE_ERROR, "Stored process rights are invalid");
+        // Status exchanges and process callbacks above can observe revocation.
+        // Calculate every decision after that I/O, without reusing an earlier result.
+        const auto permission = impl_->authority->application_permissions(app, principal, false);
+        const unsigned effective = permission.rights & rights_mask(workspace_get(app.workspace()).policy());
+        if (!(effective & (1u << wire::WORKSPACE_SELECT))) continue;
+        result->set_observe(permission.observe);
+        result->set_control(permission.observe && permission.control &&
+            (effective & static_cast<unsigned>(stored)) == static_cast<unsigned>(stored));
+    }
+    return reply;
+}
 void ExecutionStore::reconcile_authority() {
     if (!impl_->authority) return;
     struct Running { std::string id; workspace::v1::LaunchRequest request; unsigned rights; };

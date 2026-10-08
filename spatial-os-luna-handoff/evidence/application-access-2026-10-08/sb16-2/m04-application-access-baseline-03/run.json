@@ -1,0 +1,16 @@
+{
+  "command": [
+    "python3",
+    "tests/core/test_application_access.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+  ],
+  "binary": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "exit_code": 1,
+  "broker_sha256": "8848498ceae10b00cdb60e4318d050c4eea9e39d9f45d43f1ad8349d713f84ad"
+}

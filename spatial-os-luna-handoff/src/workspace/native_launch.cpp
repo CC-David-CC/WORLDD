@@ -78,7 +78,7 @@ int authority_file(const std::string& number, const std::string& cookie) {
 
 struct NativeLaunch::Impl {
     Fd socket_path, channel;
-    std::string number;
+    std::string number, server_id;
     unsigned opcode = 0, native_sequence = 0;
     std::uint64_t sequence = 0;
 
@@ -161,8 +161,10 @@ NativeLaunch::NativeLaunch(int sealed_config_fd) : impl_(std::make_unique<Impl>(
     if (identity.code() != native_security::OK || !identity.has_identity() || identity.identity().role() != native_security::BROKER ||
             identity.identity().server_id() != config.server_id() || !identity.identity().workspace().empty() ||
             !identity.identity().application().empty()) unavailable();
+    impl_->server_id = identity.identity().server_id();
 }
 NativeLaunch::~NativeLaunch() = default;
+const std::string& NativeLaunch::server_id() const { return impl_->server_id; }
 
 std::unique_ptr<NativeCredential> NativeLaunch::issue(const std::string& workspace, const std::string& application,
                                                      const std::function<void()>& checkpoint) {

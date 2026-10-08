@@ -1,0 +1,35 @@
+Broker application-access authority
+Date: 2026-10-08
+Base: e69fd6d5b7bf53b1f5f1e4346bf9f37d4a83bb19
+
+David waived local-model review. The primary agent reviews this increment.
+No local-model request is required or used.
+
+Both hosts passed prerequisite harness and P10 checks.
+The new broker query was missing from the base implementation.
+With corrected fixtures, both old brokers failed all 22 original application-access cases.
+The old binaries rejected the new protobuf operation as an unknown field.
+
+The first two baseline runs failed during fixture setup.
+New helpers accidentally overrode inherited launch and enrollment-finish helpers.
+The third baseline reached the broker but also closed its socket before orderly shutdown.
+The fourth baseline corrected the helper names and used a write-half shutdown.
+Keep these earlier logs. They do not establish additional production defects.
+
+Both corrected implementations passed 28 focused application-access cases.
+The cases use real issuer authority, native credential issuance, and confined processes.
+They cover explicit grants, scope boundaries, process rights, revocation, and stale applications.
+Both schema audits preserve 14 existing messages, 59 existing fields, and the unchanged acceptance lock.
+
+Both Debug and runtime ASan/UBSan profiles passed on each host.
+Each profile passed 771 core checks across 40 suites, 51 harness checks, and all 151 P10 cases.
+Both focused native-server ASan/UBSan profiles passed all 28 new application-access checks.
+No final profile failed or skipped a case.
+The focused native-server profile disables GLX and enables leak detection.
+See spatial-os-luna-handoff/evidence/application-access-2026-10-08 for commands, hashes, and retained logs.
+
+Worldd does not consume these application decisions yet.
+Application pixel filtering, actor control checks, and live control revocation remain required.
+The private broker tests do not prove authenticated actor-channel enforcement.
+Automatic session provisioning, physical input, native GPU performance, and native soak remain unqualified.
+M04, M09, and Spatial-M1 remain incomplete.

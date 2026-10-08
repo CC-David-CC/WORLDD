@@ -1,0 +1,899 @@
+test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access) ... FAIL
+test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access) ... FAIL
+test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access) ... FAIL
+test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application) ... FAIL
+test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application) ... FAIL
+test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application) ... FAIL
+test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets) ... FAIL
+test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets) ... FAIL
+test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets) ... FAIL
+test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority) ... FAIL
+test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority) ... FAIL
+test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority) ... FAIL
+test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation) ... FAIL
+test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation) ... FAIL
+test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation) ... FAIL
+test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution) ... FAIL
+test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution) ... FAIL
+test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution) ... FAIL
+test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application) ... FAIL
+test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application) ... FAIL
+test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application) ... FAIL
+test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access) ... FAIL
+test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access) ... FAIL
+test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access) ... FAIL
+test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application) ... FAIL
+test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application) ... FAIL
+test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application) ... FAIL
+test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation) ... FAIL
+test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation) ... FAIL
+test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation) ... FAIL
+test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control) ... FAIL
+test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control) ... FAIL
+test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control) ... FAIL
+test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions) ... FAIL
+test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions) ... FAIL
+test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions) ... FAIL
+test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority) ... FAIL
+test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority) ... FAIL
+test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority) ... FAIL
+test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants) ... FAIL
+test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants) ... FAIL
+test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants) ... FAIL
+test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control) ... FAIL
+test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control) ... FAIL
+test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control) ... FAIL
+test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application) ... FAIL
+test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application) ... FAIL
+test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application) ... FAIL
+test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application) ... FAIL
+test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application) ... FAIL
+test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application) ... FAIL
+test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application) ... FAIL
+test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application) ... FAIL
+test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application) ... FAIL
+test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal) ... FAIL
+test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal) ... FAIL
+test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal) ... FAIL
+test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority) ... FAIL
+test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority) ... FAIL
+test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority) ... FAIL
+test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes) ... FAIL
+test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes) ... FAIL
+test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes) ... FAIL
+test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied) ... FAIL
+test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied) ... FAIL
+test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied) ... FAIL
+
+======================================================================
+FAIL: test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 170, in test_application_grants_do_not_imply_workspace_access
+    self.assertEqual(self.access(app, claims=self.second), [(False, False)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 190, in test_application_scope_does_not_authorize_another_application
+    self.assertEqual(self.access(first, second, claims=self.second), [(True, True), (False, False)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 8
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 267, in test_batch_rejects_duplicate_empty_and_excessive_targets
+    self.assertEqual(self.access(app), [(True, True)])
+                     ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 6
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 220, in test_broker_restart_does_not_restore_old_process_authority
+    app = self.setup_application(); self.assertEqual(self.access(app), [(True, True)])
+                                                     ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 165, in test_control_grant_does_not_imply_observation
+    self.assertEqual(self.access(app, claims=self.second), [(False, False)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 229, in test_control_revocation_preserves_independent_process_execution
+    self.assertEqual(self.access(app, claims=self.second), [(True, True)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 202, in test_deeper_scope_cannot_authorize_parent_application
+    self.assertEqual(self.access(app, claims=self.second), [(False, False)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 216, in test_exited_application_loses_access
+    app = self.setup_application(); self.assertEqual(self.access(app), [(True, True)])
+                                                     ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 152, in test_explicit_grants_authorize_live_application
+    app = self.setup_application(); self.assertEqual(self.access(app), [(True, True)])
+                                                     ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 248, in test_independent_application_grant_survives_other_revocation
+    self.assertEqual(self.access(app, claims=self.second), [(True, True)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 11
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 155, in test_launch_authority_does_not_imply_observation_or_control
+    app = self.setup_application(rights=workspace.RIGHTS); self.assertEqual(self.access(app), [(False, False)])
+                                                                            ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 275, in test_malformed_target_does_not_leave_partial_decisions
+    self.assertEqual(self.access(app), [(True, True)])
+                     ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 213, in test_nonnative_process_does_not_gain_native_application_authority
+    self.assertEqual(self.access(app), [(False, False)])
+                     ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 160, in test_observation_does_not_require_filesystem_or_execution_grants
+    self.assertEqual(self.access(app, claims=self.second), [(True, False)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 238, in test_observation_revocation_also_removes_control
+    self.assertEqual(self.access(app, claims=self.second), [(True, True)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 185, in test_partial_write_grants_do_not_control_writable_application
+    self.assertEqual(self.access(app, claims=self.second), [(True, False)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 180, in test_readonly_actor_can_control_readonly_application
+    self.assertEqual(self.access(app, claims=self.second), [(True, True)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 6
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 175, in test_readonly_actor_cannot_control_writable_application
+    self.assertEqual(self.access(app, claims=self.second), [(True, False)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 259, in test_request_requires_authenticated_principal
+    self.assertTrue(reply.HasField('error')); self.assertEqual(reply.error.code, core.FORBIDDEN)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 13
+
+======================================================================
+FAIL: test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 251, in test_revoked_actor_cannot_query_application_authority
+    app = self.setup_application(); self.assertEqual(self.access(app), [(True, True)])
+                                                     ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 196, in test_scope_components_are_exact_not_string_prefixes
+    self.assertEqual(self.access(app, claims=self.second), [(False, False)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 7
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 209, in test_wrong_native_server_unknown_application_and_workspace_are_denied
+    self.assertEqual(self.access(wrong_server, app, unknown, foreign), [(False, False), (True, True), (False, False), (False, False)])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 120, in access
+    self.assertTrue(reply.HasField('application_access'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+======================================================================
+FAIL: test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 64, in close_brokers
+    for item in reversed(self.brokers): item.close()
+                                        ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 50, in close
+    self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
+AssertionError: 2 != 0 : workspaced: Workspace supervisor disconnected
+
+
+----------------------------------------------------------------------
+Ran 22 tests in 30.142s
+
+FAILED (failures=66)

@@ -1,0 +1,401 @@
+test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access) ... ERROR
+test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application) ... ERROR
+test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets) ... ERROR
+test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority) ... ERROR
+test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation) ... ERROR
+test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution) ... ERROR
+test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application) ... ERROR
+test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access) ... ERROR
+test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application) ... ERROR
+test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation) ... ERROR
+test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control) ... ERROR
+test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions) ... ERROR
+test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority) ... ERROR
+test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants) ... ERROR
+test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control) ... ERROR
+test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application) ... ERROR
+test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application) ... ERROR
+test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application) ... ERROR
+test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal) ... ERROR
+test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority) ... ERROR
+test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes) ... ERROR
+test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied) ... ERROR
+
+======================================================================
+ERROR: test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+======================================================================
+ERROR: test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 59, in setUp
+    super().setUp()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_access.py", line 106, in launch
+    self.sequence += 1; principal = self.principal(claims)
+    ^^^^^^^^^^^^^
+AttributeError: 'ApplicationAccessTests' object has no attribute 'sequence'
+
+----------------------------------------------------------------------
+Ran 22 tests in 4.147s
+
+FAILED (errors=22)
