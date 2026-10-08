@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tools/gate.py",
+    "--through",
+    "P10",
+    "--sut",
+    "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host\"]",
+    "--report",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-isolation-baseline/p10.json"
+  ],
+  "exit_code": 0
+}

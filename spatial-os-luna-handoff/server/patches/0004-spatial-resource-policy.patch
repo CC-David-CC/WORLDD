@@ -1,0 +1,132 @@
+--- a/dix/dispatch.c
++++ b/dix/dispatch.c
+@@ -97,6 +97,7 @@
+  */
+ 
+ #include <dix-config.h>
++#include "spatialsecurity.h"
+ #include <version-config.h>
+ 
+ #include <stddef.h>
+@@ -1083,6 +1084,8 @@
+ 
+     CARD32 numChildren = 0;
+     for (WindowPtr pChild = pWin->lastChild; pChild != pHead; pChild = pChild->prevSib) {
++        if (!SpatialSecurityVisibleResource(client, pChild->drawable.id))
++            continue;
+         x_rpcbuf_write_CARD32(&rpcbuf, pChild->drawable.id);
+         numChildren++;
+     }
+@@ -1285,7 +1288,8 @@
+                                         x - pWin->drawable.x,
+                                         y - pWin->drawable.y, &box))
+                 ) {
+-                reply.child = pWin->drawable.id;
++                if (SpatialSecurityVisibleResource(client, pWin->drawable.id))
++                    reply.child = pWin->drawable.id;
+                 pWin = (WindowPtr) NULL;
+             }
+             else
+--- a/dix/events.c
++++ b/dix/events.c
+@@ -5556,8 +5556,10 @@
+         else
+             effectiveFocus = pWin = inputFocus;
+     }
+-    else
+-        dixLookupWindow(&pWin, stuff->destination, client, DixSendAccess);
++    else {
++        int rc = dixLookupWindow(&pWin, stuff->destination, client, DixSendAccess);
++        if (rc != Success) return rc;
++    }
+ 
+     if (!pWin)
+         return BadWindow;
+@@ -5568,8 +5570,8 @@
+     stuff->event.u.u.type |= SEND_EVENT_BIT;
+     if (stuff->propagate) {
+         for (; pWin; pWin = pWin->parent) {
+-            if (XaceHookSendAccess(client, NULL, pWin, &stuff->event, 1))
+-                return Success;
++            int rc = XaceHookSendAccess(client, NULL, pWin, &stuff->event, 1);
++            if (rc != Success) return rc;
+             if (DeliverEventsToWindow(dev, pWin,
+                                       &stuff->event, 1, stuff->eventMask,
+                                       NullGrab))
+@@ -5581,9 +5583,12 @@
+                 break;
+         }
+     }
+-    else if (!XaceHookSendAccess(client, NULL, pWin, &stuff->event, 1))
++    else {
++        int rc = XaceHookSendAccess(client, NULL, pWin, &stuff->event, 1);
++        if (rc != Success) return rc;
+         DeliverEventsToWindow(dev, pWin, &stuff->event,
+                               1, stuff->eventMask, NullGrab);
++    }
+     return Success;
+ }
+ 
+--- a/dix/window.c
++++ b/dix/window.c
+@@ -97,6 +97,7 @@
+ ******************************************************************/
+ 
+ #include <dix-config.h>
++#include "spatialsecurity.h"
+ 
+ #include "dix/colormap_priv.h"
+ #include "dix/cursor_priv.h"
+@@ -853,10 +854,16 @@
+     pWin->backgroundState = XaceBackgroundNoneState(pWin);
+     pWin->background.pixel = pScreen->whitePixel;
+ 
+-    pWin->borderIsPixel = pParent->borderIsPixel;
+-    pWin->border = pParent->border;
+-    if (pWin->borderIsPixel == FALSE)
+-        pWin->border.pixmap->refcnt++;
++    if (SpatialSecurityVisibleResource(client, pParent->drawable.id)) {
++        pWin->borderIsPixel = pParent->borderIsPixel;
++        pWin->border = pParent->border;
++        if (pWin->borderIsPixel == FALSE)
++            pWin->border.pixmap->refcnt++;
++    }
++    else {
++        pWin->borderIsPixel = TRUE;
++        pWin->border.pixel = pScreen->blackPixel;
++    }
+ 
+     pWin->origin.x = x + (int) bw;
+     pWin->origin.y = y + (int) bw;
+@@ -1174,6 +1181,10 @@
+                 }
+             }
+             else if (pixID == ParentRelative) {
++                if (pWin->parent && !SpatialSecurityVisibleResource(client, pWin->parent->drawable.id)) {
++                    error = BadAccess;
++                    goto PatchUp;
++                }
+                 if (pWin->parent &&
+                     pWin->drawable.depth != pWin->parent->drawable.depth) {
+                     error = BadMatch;
+@@ -1227,6 +1238,10 @@
+             pixID = (Pixmap) * pVlist;
+             pVlist++;
+             if (pixID == CopyFromParent) {
++                if (pWin->parent && !SpatialSecurityVisibleResource(client, pWin->parent->drawable.id)) {
++                    error = BadAccess;
++                    goto PatchUp;
++                }
+                 if (!pWin->parent ||
+                     (pWin->drawable.depth != pWin->parent->drawable.depth)) {
+                     error = BadMatch;
+@@ -2488,6 +2503,9 @@
+     ScreenPtr pScreen;
+ 
+     pScreen = pWin->drawable.pScreen;
++    if (pWin->backgroundState == ParentRelative &&
++        !SpatialSecurityVisibleResource(client, pParent->drawable.id))
++        return BadAccess;
+     if (TraverseTree(pWin, CompareWIDs, (void *) &pParent->drawable.id) ==
+         WT_STOPWALKING)
+         return BadMatch;

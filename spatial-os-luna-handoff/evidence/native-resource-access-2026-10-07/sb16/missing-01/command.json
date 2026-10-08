@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "python3",
+    "tests/native/test_resource_isolation.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+  ],
+  "exit_code": 1,
+  "xserver": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/7a32301512f67f9a551e5a699c5dc44a8c155066117c3d6c09898f267f5ccb03/source/build/hw/vfb/Xvfb"
+}

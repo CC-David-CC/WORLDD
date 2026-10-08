@@ -1,0 +1,93 @@
+{
+  "base_lock": {
+    "format": 1,
+    "xserver": {
+      "repository": "https://github.com/X11Libre/xserver.git",
+      "ref": "refs/tags/xlibre-xserver-25.1.9",
+      "commit": "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd"
+    },
+    "xorgproto": {
+      "repository": "https://gitlab.freedesktop.org/xorg/proto/xorgproto.git",
+      "ref": "refs/tags/xorgproto-2024.1",
+      "commit": "67469711055522b8adb2d795b01e7ba98cb8816c"
+    },
+    "reason": "Use the inspected stable XLibre release for shared DIX input routing in native Xorg and diagnostic Xvfb. Its Present and DRI3 protocols require project-local xorgproto 2024.1 headers.",
+    "inspected_utc_date": "2026-10-07",
+    "meson_options": [
+      "--buildtype=debug",
+      "-Dxorg=true",
+      "-Dxvfb=true",
+      "-Dxephyr=false",
+      "-Dxnest=false",
+      "-Dxwin=false",
+      "-Dxquartz=false",
+      "-Ddocs=false",
+      "-Ddevel-docs=false",
+      "-Dtests=true",
+      "-Dsystemd_logind=true",
+      "-Dseatd_libseat=false",
+      "-Dxkb_dir=/usr/share/X11/xkb",
+      "-Dxkb_bin_dir=/usr/bin",
+      "-Dfontrootdir=/usr/share/fonts/X11"
+    ],
+    "patches": [
+      "server/patches/0001-spatial-input.patch",
+      "server/patches/0002-spatial-security.patch",
+      "server/patches/0003-server-shutdown.patch",
+      "server/patches/0004-spatial-resource-policy.patch"
+    ],
+    "overlays": {
+      "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",
+      "server/xlibre/spatialinput.h": "include/spatialinput.h",
+      "server/xlibre/meson.build": "Xext/spatial/meson.build",
+      "proto/spatial/input/v1/input.proto": "Xext/spatial/input.proto",
+      "server/xlibre/spatialsecurity.c": "Xext/spatial/spatialsecurity.c",
+      "server/xlibre/spatialpolicy.c": "Xext/spatial/spatialpolicy.c",
+      "server/xlibre/spatialsecurity.h": "include/spatialsecurity.h",
+      "proto/spatial/security/v1/security.proto": "Xext/spatial/security.proto"
+    }
+  },
+  "source_sha256": {
+    "server/xlibre/spatialinput.c": "dba741b01ac6dc55ff935d0f01316ab16320aee98b67b7f4e4eedd2beefce978",
+    "server/xlibre/spatialinput.h": "f5558a3973360de8e6b7bfd0e6c59c8602f78f3747b07a1f9f8489b8588ce3ba",
+    "server/xlibre/meson.build": "45730d9e12840dd23043d4d0320b4f7c71f4d93e9570a1c0cf70f0a626971e42",
+    "proto/spatial/input/v1/input.proto": "f38405ee4953c6f1fd30d604ceb00e07d4c330420554dd1722782480eb2e99f7",
+    "server/xlibre/spatialsecurity.c": "6cb3e1876b67b653fc8383c310033a28d7ab4aac94df1a6512f0da0aed54ad15",
+    "server/xlibre/spatialpolicy.c": "2ee7187f2346c60a0807bc559fc6940d7224168bef34d7bf222349617f43edd9",
+    "server/xlibre/spatialsecurity.h": "15627513a22039be479561777ee4bb7a3134003ddbedc17f2ddc3e7970f4047b",
+    "proto/spatial/security/v1/security.proto": "ad6ee8fc05efaed347e4b0fc04e3d69bb787d4224712d3a5cb7732893a201e10"
+  },
+  "status": "detected",
+  "mutations": [
+    {
+      "name": "resource-access",
+      "test": "test_foreign_pixels_cannot_be_read",
+      "status": "detected",
+      "exit_code": 1,
+      "file": "Xext/spatial/spatialpolicy.c",
+      "before_sha256": "2ee7187f2346c60a0807bc559fc6940d7224168bef34d7bf222349617f43edd9",
+      "mutation_sha256": "339d25ca8e8dc281c85eaa40510393aca6d1a63b7beeb8fc25aa0970d3f69de6",
+      "binary_sha256": "b861fda1ea63e8c2776ddd08595e99d5c4c671686025fc965026f69066c3b2b4"
+    },
+    {
+      "name": "root-enumeration",
+      "test": "test_root_tree_filters_other_workspaces",
+      "status": "detected",
+      "exit_code": 1,
+      "file": "dix/dispatch.c",
+      "before_sha256": "6b5b6c644c57ffcc3c029a6c79e00c25beb346d99239bc94f391a242bb8b961c",
+      "mutation_sha256": "0fb526a52fbc3201d8c5d81f8f69526e0cf46e03dfd18a26664babe77c7b3fc3",
+      "binary_sha256": "1c05ba67150530843a00cc6faa0bbbafc0904b28397fc54fdfe1f30083183f9a"
+    },
+    {
+      "name": "parent-relative-pixels",
+      "test": "test_parent_relative_cannot_copy_private_root_background",
+      "status": "detected",
+      "exit_code": 1,
+      "file": "dix/window.c",
+      "before_sha256": "358450999ccfd81b0ee853e62277fd84a6c23b41f8b017e9933aaf9214f01052",
+      "mutation_sha256": "a84ba08f6b71c4df228283adf5eb1739297e347a0f6a08bff501db40b824214c",
+      "binary_sha256": "6dd67ed44620b8bb33676cb6c46a4be0a4cdee12e0a6d72b78dae824b30eaf88"
+    }
+  ]
+}

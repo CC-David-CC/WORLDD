@@ -9,4 +9,9 @@ const char *SpatialSecurityAuthorize(ClientPtr client, unsigned name_size,
                                      const char *name, unsigned cookie_size,
                                      const char *cookie);
 void SpatialSecurityExtensionInit(void);
+Bool SpatialSecurityPrivileged(ClientPtr client);
+Bool SpatialSecuritySameApplication(ClientPtr client, ClientPtr owner);
+Bool SpatialSecurityVisibleResource(ClientPtr client, XID id);
+void SpatialSecurityPolicyInit(void);
+void SpatialSecurityPolicyReset(void);
 #endif

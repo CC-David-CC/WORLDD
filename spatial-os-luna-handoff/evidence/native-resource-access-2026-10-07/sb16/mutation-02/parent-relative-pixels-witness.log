@@ -1,0 +1,16 @@
+test_parent_relative_cannot_copy_private_root_background (__main__.ResourceIsolationTests.test_parent_relative_cannot_copy_private_root_background) ... FAIL
+
+======================================================================
+FAIL: test_parent_relative_cannot_copy_private_root_background (__main__.ResourceIsolationTests.test_parent_relative_cannot_copy_private_root_background)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 305, in test_parent_relative_cannot_copy_private_root_background
+    self.denied(self.other, 2, self.other.pack('III', self.other_window, 1, 1))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+----------------------------------------------------------------------
+Ran 1 test in 0.068s
+
+FAILED (failures=1)

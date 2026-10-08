@@ -135,6 +135,32 @@ static SpatialConnection *connection(ClientPtr client)
     return dixLookupPrivate(&client->devPrivates, &client_key);
 }
 
+Bool SpatialSecurityPrivileged(ClientPtr client)
+{
+    if (!configured || client == serverClient) return TRUE;
+    if (!active || !client) return FALSE;
+    SpatialConnection *state = connection(client);
+    return state->connection && !state->closed &&
+        (state->label.role == ROLE(SUPERVISOR) || state->label.role == ROLE(COMPOSITOR));
+}
+
+Bool SpatialSecuritySameApplication(ClientPtr client, ClientPtr owner)
+{
+    if (!active || !client || !owner || client == serverClient || owner == serverClient) return FALSE;
+    SpatialConnection *subject = connection(client), *object = connection(owner);
+    if (!subject->connection || subject->closed || !object->connection || object->closed ||
+        subject->label.role != ROLE(APPLICATION) || object->label.role != ROLE(APPLICATION)) return FALSE;
+    return subject->label.workspace_size == object->label.workspace_size &&
+        subject->label.application_size == object->label.application_size &&
+        !memcmp(subject->label.workspace, object->label.workspace, subject->label.workspace_size) &&
+        !memcmp(subject->label.application, object->label.application, subject->label.application_size);
+}
+
+Bool SpatialSecurityVisibleResource(ClientPtr client, XID id)
+{
+    return SpatialSecurityPrivileged(client) || SpatialSecuritySameApplication(client, dixLookupXIDOwner(id));
+}
+
 static Grant *find_grant(const uint8_t *id)
 {
     for (unsigned i = 0; i < MAX_CREDENTIALS; ++i)
@@ -336,6 +362,7 @@ static void reset(ExtensionEntry *extension)
 {
     (void)extension;
     active = FALSE;
+    SpatialSecurityPolicyReset();
     DeleteCallback(&ClientStateCallback, client_state, NULL);
     memset(grants, 0, sizeof(grants));
     memset(server_id, 0, sizeof(server_id));
@@ -354,4 +381,5 @@ void SpatialSecurityExtensionInit(void)
     memcpy(grants[0].cookie, bootstrap, KEY_BYTES);
     grants[0].label.role = ROLE(SUPERVISOR); grants[0].active = TRUE;
     active = TRUE;
+    SpatialSecurityPolicyInit();
 }

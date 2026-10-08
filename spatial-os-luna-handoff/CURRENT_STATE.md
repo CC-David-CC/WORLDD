@@ -1,5 +1,48 @@
 # Implementation status
 
+## 2026-10-07: Native application resource access checked
+
+Strict project XLibre servers now enforce immutable application ownership at native resource lookup boundaries.
+Native resource lookups deny access across application identities, including applications in the same workspace.
+Connections with the same workspace and application identity retain legitimate resource sharing.
+The policy checks windows, pixmaps, graphics contexts, properties, and window event targets.
+Root enumeration filters foreign children. Root pixels and properties remain private to trusted services.
+Applications cannot retain resources after disconnect. Revocation destroys affected resources before acknowledgement.
+Native client-slot reuse does not carry the previous application's authority.
+
+Independent attacks also reproduced inherited pixel exposure through ParentRelative backgrounds.
+The server now checks background and border inheritance, including reparenting to the root.
+Unspecified foreign-parent borders use public black pixels.
+SendEvent now preserves access denials, including its input-focus alias.
+
+The final source passed this development matrix:
+
+- sb16 Debug: 151 P00-P10 acceptance cases, 570 core checks, and 51 harness checks.
+- sb16-2 runtime ASan/UBSan: the same 151 acceptance cases, 570 core checks, and 51 harness checks.
+- Both hosts' Debug native servers: 36 resource checks and all 22 connection-identity checks.
+- sb16-2 instrumented native server: all 58 resource and identity checks, with GLX explicitly disabled.
+- Three isolated mutations were detected: resource access, root enumeration, and parent-relative pixel checks.
+
+These executed suites had zero failures, errors, skips, or unrun cases.
+This increment did not repeat full Debug on sb16-2, full runtime sanitizer checks on sb16, or native server sanitizers on sb16.
+Final Spatial-M1 qualification still requires the complete profile on both hosts.
+The prior instrumented GLX graphics-provider cleanup failure remains open. This increment does not retest or resolve it.
+Earlier missing-feature failures and intermediate regression results remain with the final passing evidence.
+All recorded source hashes match local files and both hosts. Locked acceptance files remain unchanged.
+
+The contract is docs/NATIVE_RESOURCE_POLICY.md.
+Evidence is in evidence/native-resource-access-2026-10-07.
+The updated server ran only in disposable project displays. No host service or operator desktop changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+This is an M04 resource-access component. Full native resource isolation remains incomplete.
+Extension dispatch, global operations, atoms, selections, devices, aliases, and asynchronous metadata still require qualification.
+Broker provisioning and compositor authority integration remain required.
+Strict mode remains explicit. Do not connect untrusted applications before the complete native boundary passes.
+All incomplete M01-M16 and H01-H08 work remains active. Full Spatial-M1 is not claimed.
+Next: audit extension access and add independent attacks against global native operations.
+The full project goal remains active. No external blocker is recorded.
+
 ## 2026-10-07: Native X connection identity component qualified
 
 The pinned XLibre server now supports strict authentication from a sealed protobuf bootstrap descriptor.

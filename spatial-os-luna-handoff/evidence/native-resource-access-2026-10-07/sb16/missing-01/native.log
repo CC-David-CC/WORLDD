@@ -1,0 +1,343 @@
+test_broker_role_does_not_grant_application_pixels (__main__.ResourceIsolationTests.test_broker_role_does_not_grant_application_pixels) ... FAIL
+test_compositor_can_observe_application_resources (__main__.ResourceIsolationTests.test_compositor_can_observe_application_resources) ... ok
+test_copy_area_cannot_read_foreign_pixels (__main__.ResourceIsolationTests.test_copy_area_cannot_read_foreign_pixels) ... FAIL
+test_copy_area_cannot_write_foreign_pixels (__main__.ResourceIsolationTests.test_copy_area_cannot_write_foreign_pixels) ... FAIL
+test_foreign_graphics_context_cannot_be_used_or_changed (__main__.ResourceIsolationTests.test_foreign_graphics_context_cannot_be_used_or_changed) ... FAIL
+test_foreign_parent_cannot_receive_new_children (__main__.ResourceIsolationTests.test_foreign_parent_cannot_receive_new_children) ... FAIL
+test_foreign_pixels_cannot_be_read (__main__.ResourceIsolationTests.test_foreign_pixels_cannot_be_read) ... FAIL
+test_foreign_property_read_and_write_are_denied (__main__.ResourceIsolationTests.test_foreign_property_read_and_write_are_denied) ... FAIL
+test_foreign_resource_cannot_be_freed (__main__.ResourceIsolationTests.test_foreign_resource_cannot_be_freed) ... FAIL
+test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) ... 
+  test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=2) ... FAIL
+  test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=8) ... FAIL
+  test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=10) ... FAIL
+  test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=12) ... FAIL
+  test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=4) ... FAIL
+test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) ... FAIL
+test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) ... 
+  test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) (opcode=3) ... FAIL
+  test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) (opcode=14) ... FAIL
+  test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) (opcode=15) ... FAIL
+  test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) (opcode=21) ... FAIL
+test_reparent_cannot_cross_application_boundary (__main__.ResourceIsolationTests.test_reparent_cannot_cross_application_boundary) ... FAIL
+test_root_pixels_cannot_be_read (__main__.ResourceIsolationTests.test_root_pixels_cannot_be_read) ... FAIL
+test_root_properties_are_private_to_supervisor_and_compositor (__main__.ResourceIsolationTests.test_root_properties_are_private_to_supervisor_and_compositor) ... FAIL
+test_root_subwindow_operations_cannot_change_other_applications (__main__.ResourceIsolationTests.test_root_subwindow_operations_cannot_change_other_applications) ... 
+  test_root_subwindow_operations_cannot_change_other_applications (__main__.ResourceIsolationTests.test_root_subwindow_operations_cannot_change_other_applications) (opcode=5) ... FAIL
+  test_root_subwindow_operations_cannot_change_other_applications (__main__.ResourceIsolationTests.test_root_subwindow_operations_cannot_change_other_applications) (opcode=9) ... FAIL
+  test_root_subwindow_operations_cannot_change_other_applications (__main__.ResourceIsolationTests.test_root_subwindow_operations_cannot_change_other_applications) (opcode=11) ... FAIL
+test_root_tree_filters_other_workspaces (__main__.ResourceIsolationTests.test_root_tree_filters_other_workspaces) ... FAIL
+test_same_application_name_in_other_workspace_is_not_same_identity (__main__.ResourceIsolationTests.test_same_application_name_in_other_workspace_is_not_same_identity) ... FAIL
+test_same_workspace_does_not_grant_other_application_access (__main__.ResourceIsolationTests.test_same_workspace_does_not_grant_other_application_access) ... FAIL
+test_separate_connections_of_same_application_share_resources (__main__.ResourceIsolationTests.test_separate_connections_of_same_application_share_resources) ... ok
+test_swapped_client_cannot_bypass_resource_checks (__main__.ResourceIsolationTests.test_swapped_client_cannot_bypass_resource_checks) ... FAIL
+
+======================================================================
+FAIL: test_broker_role_does_not_grant_application_pixels (__main__.ResourceIsolationTests.test_broker_role_does_not_grant_application_pixels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 212, in test_broker_role_does_not_grant_application_pixels
+    self.denied(broker, 73, broker.pack('IhhHHI', self.pixmap, 0, 0, 1, 1, 0xffffffff), 2, True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x18\x02\x00\x01\x00\x00\x00\x00\x[105 chars]x00') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_copy_area_cannot_read_foreign_pixels (__main__.ResourceIsolationTests.test_copy_area_cannot_read_foreign_pixels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 168, in test_copy_area_cannot_read_foreign_pixels
+    self.denied(self.other, 62, self.other.pack('IIIhhhhHH', self.pixmap, target, gc, 0, 0, 0, 0, 1, 1))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 54, in operation
+    raise AssertionError('Unexpected event in resource witness: '+str(header[0]))
+AssertionError: Unexpected event in resource witness: 14
+
+======================================================================
+FAIL: test_copy_area_cannot_write_foreign_pixels (__main__.ResourceIsolationTests.test_copy_area_cannot_write_foreign_pixels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 172, in test_copy_area_cannot_write_foreign_pixels
+    self.denied(self.other, 62, self.other.pack('IIIhhhhHH', source, self.pixmap, gc, 0, 0, 0, 0, 1, 1))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 54, in operation
+    raise AssertionError('Unexpected event in resource witness: '+str(header[0]))
+AssertionError: Unexpected event in resource witness: 14
+
+======================================================================
+FAIL: test_foreign_graphics_context_cannot_be_used_or_changed (__main__.ResourceIsolationTests.test_foreign_graphics_context_cannot_be_used_or_changed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 176, in test_foreign_graphics_context_cannot_be_used_or_changed
+    self.denied(self.other, 70, self.other.pack('IIhhHH', pixmap, self.gc, 0, 0, 1, 1))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_parent_cannot_receive_new_children (__main__.ResourceIsolationTests.test_foreign_parent_cannot_receive_new_children)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 147, in test_foreign_parent_cannot_receive_new_children
+    self.denied(self.other, 1, self.other.pack('IIhhHHHHII', self.other.xid(), self.window,
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_pixels_cannot_be_read (__main__.ResourceIsolationTests.test_foreign_pixels_cannot_be_read)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 157, in test_foreign_pixels_cannot_be_read
+    self.denied(self.other, 73, self.other.pack('IhhHHI', self.pixmap, 0, 0, 1, 1, 0xffffffff), 2, True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x18\x04\x00\x01\x00\x00\x00\x00\x[105 chars]x00') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_property_read_and_write_are_denied (__main__.ResourceIsolationTests.test_foreign_property_read_and_write_are_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 188, in test_foreign_property_read_and_write_are_denied
+    self.denied(self.other, 20, self.other.pack('IIIII', self.window, 39, 0, 0, 16), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x08\x04\x00\x02\x00\x00\x00\x1f\x[106 chars]x00') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_resource_cannot_be_freed (__main__.ResourceIsolationTests.test_foreign_resource_cannot_be_freed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 181, in test_foreign_resource_cannot_be_freed
+    self.denied(self.other, 54, self.other.pack('I', self.pixmap))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 142, in test_foreign_window_changes_are_denied
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, payload)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=8)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 142, in test_foreign_window_changes_are_denied
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, payload)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=10)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 142, in test_foreign_window_changes_are_denied
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, payload)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 142, in test_foreign_window_changes_are_denied
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, payload)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) (opcode=4)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 142, in test_foreign_window_changes_are_denied
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, payload)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 143, in test_foreign_window_changes_are_denied
+    self.assertIn(self.window, root.tree(root.root))
+AssertionError: 4194305 not found in [6291457]
+
+======================================================================
+FAIL: test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) (opcode=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 134, in test_foreign_window_tree_and_attributes_are_denied
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, self.other.pack('I', self.window), reply=True)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x04\x00\x03\x00\x00\x00!\x00\[134 chars]x00') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) (opcode=14)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 134, in test_foreign_window_tree_and_attributes_are_denied
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, self.other.pack('I', self.window), reply=True)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x18\x06\x00\x00\x00\x00\x00\xa8\x[86 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) (opcode=15)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 134, in test_foreign_window_tree_and_attributes_are_denied
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, self.other.pack('I', self.window), reply=True)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x08\x00\x00\x00\x00\x00\xa8\x[92 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) (opcode=21)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 134, in test_foreign_window_tree_and_attributes_are_denied
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, self.other.pack('I', self.window), reply=True)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\n\x00\x00\x00\x00\x00\x00\x00[90 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_reparent_cannot_cross_application_boundary (__main__.ResourceIsolationTests.test_reparent_cannot_cross_application_boundary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 152, in test_reparent_cannot_cross_application_boundary
+    self.denied(self.other, 7, self.other.pack('IIhh', self.other_window, self.window, 0, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_root_pixels_cannot_be_read (__main__.ResourceIsolationTests.test_root_pixels_cannot_be_read)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 164, in test_root_pixels_cannot_be_read
+    self.denied(self.other, 73, self.other.pack('IhhHHI', self.other.root, 0, 0, 1, 1, 0xffffffff), 2, True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x18\x04\x00\x01\x00\x00\x00!\x00\[105 chars]x00') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_root_properties_are_private_to_supervisor_and_compositor (__main__.ResourceIsolationTests.test_root_properties_are_private_to_supervisor_and_compositor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 197, in test_root_properties_are_private_to_supervisor_and_compositor
+    self.denied(self.other, 20, self.other.pack('IIIII', self.other.root, 39, 0, 0, 16), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x08\x04\x00\x02\x00\x00\x00\x1f\x[106 chars]x00') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_root_subwindow_operations_cannot_change_other_applications (__main__.ResourceIsolationTests.test_root_subwindow_operations_cannot_change_other_applications) (opcode=5)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 203, in test_root_subwindow_operations_cannot_change_other_applications
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, self.other.pack('I', self.other.root))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_root_subwindow_operations_cannot_change_other_applications (__main__.ResourceIsolationTests.test_root_subwindow_operations_cannot_change_other_applications) (opcode=9)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 203, in test_root_subwindow_operations_cannot_change_other_applications
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, self.other.pack('I', self.other.root))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_root_subwindow_operations_cannot_change_other_applications (__main__.ResourceIsolationTests.test_root_subwindow_operations_cannot_change_other_applications) (opcode=11)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 203, in test_root_subwindow_operations_cannot_change_other_applications
+    with self.subTest(opcode=opcode): self.denied(self.other, opcode, self.other.pack('I', self.other.root))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_root_tree_filters_other_workspaces (__main__.ResourceIsolationTests.test_root_tree_filters_other_workspaces)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 114, in test_root_tree_filters_other_workspaces
+    self.assertEqual(self.other.tree(self.other.root), [self.other_window])
+AssertionError: Lists differ: [4194305, 6291457] != [6291457]
+
+First differing element 0:
+4194305
+6291457
+
+First list contains 1 additional elements.
+First extra element 1:
+6291457
+
+- [4194305, 6291457]
++ [6291457]
+
+======================================================================
+FAIL: test_same_application_name_in_other_workspace_is_not_same_identity (__main__.ResourceIsolationTests.test_same_application_name_in_other_workspace_is_not_same_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 123, in test_same_application_name_in_other_workspace_is_not_same_identity
+    self.denied(self.other, 14, self.other.pack('I', self.window), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x18\x04\x00\x00\x00\x00\x00\xa8\x[86 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_same_workspace_does_not_grant_other_application_access (__main__.ResourceIsolationTests.test_same_workspace_does_not_grant_other_application_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 118, in test_same_workspace_does_not_grant_other_application_access
+    self.denied(self.other, 14, self.other.pack('I', self.window), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x18\x04\x00\x00\x00\x00\x00\xa8\x[86 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_swapped_client_cannot_bypass_resource_checks (__main__.ResourceIsolationTests.test_swapped_client_cannot_bypass_resource_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 216, in test_swapped_client_cannot_bypass_resource_checks
+    self.denied(self.other, 14, self.other.pack('I', self.window), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 109, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x18\x00\x04\x00\x00\x00\x00\x00\x[86 chars] b'') != 10 : Expected native BadAccess
+
+----------------------------------------------------------------------
+Ran 20 tests in 1.346s
+
+FAILED (failures=28)

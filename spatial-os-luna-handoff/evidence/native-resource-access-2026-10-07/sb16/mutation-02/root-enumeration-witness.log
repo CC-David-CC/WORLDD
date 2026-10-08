@@ -1,0 +1,25 @@
+test_root_tree_filters_other_workspaces (__main__.ResourceIsolationTests.test_root_tree_filters_other_workspaces) ... FAIL
+
+======================================================================
+FAIL: test_root_tree_filters_other_workspaces (__main__.ResourceIsolationTests.test_root_tree_filters_other_workspaces)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 117, in test_root_tree_filters_other_workspaces
+    self.assertEqual(self.other.tree(self.other.root), [self.other_window])
+AssertionError: Lists differ: [4194305, 6291457] != [6291457]
+
+First differing element 0:
+4194305
+6291457
+
+First list contains 1 additional elements.
+First extra element 1:
+6291457
+
+- [4194305, 6291457]
++ [6291457]
+
+----------------------------------------------------------------------
+Ran 1 test in 0.068s
+
+FAILED (failures=1)

@@ -35,6 +35,7 @@ class NativeClient:
             if size > 1048576: raise AssertionError('Excessive native setup')
             payload = self.exact(size)
             if prefix[0] != 1: raise Denied(payload[:prefix[1]].decode(errors='replace'))
+            self.setup = payload
         except BaseException:
             self.close(); raise
         name = b'SPATIAL-SECURITY'

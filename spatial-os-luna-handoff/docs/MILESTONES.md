@@ -26,16 +26,24 @@ Authenticated local world channels now use real actor actions and cancel held na
 Nonempty bootstrap profiles, native application authority, remote actor transport, and distributed revocation acknowledgement remain required.
 Static baseline action grants do not establish workspace or application isolation. M01 remains incomplete.
 The persistent authority-store library now qualifies structural delegation and stored revocation. See AUTHORITY_STORE.md.
-Its 43 checks remain part of the current 512-check core suite.
+Its 43 checks remain part of the cumulative core suite.
 Current actor-status queries support ancestor validation. See ACTOR_STATUS.md.
 Worldd now enforces persistent world grants through authenticated local sessions. See WORLD_AUTHORITY.md.
 Its 27 checks cover live cancellation, delegation, scope, persistence, and configuration boundaries.
 Workspaced now enforces persistent workspace grants for selection and confined execution. See WORKSPACE_AUTHORITY.md.
 Its 19 checks cover real processes, scope restrictions, restart, and live revocation.
-All 512 core checks, 51 harness checks, and 151 acceptance cases pass both host build profiles.
+The workspace-authority increment passed 512 core checks, 51 harness checks, and 151 acceptance cases in both host build profiles.
 Three mutations detect missing process cancellation, excess writes, and stale launch retry acknowledgement.
 Native application authority and distributed revocation acknowledgement remain required. M02 remains incomplete.
-Next: immutable XLibre workspace and application identities, followed by resource isolation and independent native client attacks.
+Native connection identities now pass 22 independent checks. See NATIVE_SECURITY_IDENTITY.md.
+Native resource access adds 36 checks. See NATIVE_RESOURCE_POLICY.md.
+The current increment passes 570 core checks, 51 harness checks, and all 151 acceptance cases.
+Its development matrix uses Debug on sb16 and runtime ASan/UBSan on sb16-2.
+Both hosts passed focused Debug native checks. sb16-2 also passed focused core-X server sanitizers.
+The omitted host/build combinations remain unrun for this increment. Final two-host qualification remains mandatory.
+Native GLX sanitizer cleanup remains an open failure from the preceding increment.
+Extension access, global operations, atoms, selections, devices, and application authority integration remain required.
+Next: extension isolation and independent attacks against global native operations.
 
 ## Ordered implementation
 
