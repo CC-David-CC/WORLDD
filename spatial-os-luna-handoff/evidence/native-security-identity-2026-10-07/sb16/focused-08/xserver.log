@@ -1,0 +1,11 @@
+xorgproto-pristine: 0
+xserver-pristine: 0
+server-worktree: 0
+server-patch-0: 0
+server-apply-0: 0
+server-patch-1: 0
+server-apply-1: 0
+server-patch-2: 128
+server-patch-2 failed
+error: corrupt patch at line 40
+failed: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-server-08/run.json

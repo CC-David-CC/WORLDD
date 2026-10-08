@@ -1,0 +1,73 @@
+xorgproto-pristine: 0
+xserver-pristine: 0
+server-worktree: 0
+server-patch-0: 0
+server-apply-0: 0
+server-patch-1: 0
+server-apply-1: 0
+protocol-configure: 0
+protocol-install: 0
+server-configure: 0
+server-build: 1
+server-build failed
+../Xext/spatial/spatialsecurity.c:224:15: error: request for member ‘label’ in something not a structure or union
+  224 |         (state->label.role == ROLE(BROKER) && role != ROLE(APPLICATION)) || role == ROLE(SUPERVISOR)) {
+      |               ^~
+../Xext/spatial/spatialsecurity.c:245:71: error: request for member ‘connection’ in something not a structure or union
+  245 |     value.active = TRUE; value.label.role = role; value.issuer = state->connection;
+      |                                                                       ^~
+../Xext/spatial/spatialsecurity.c:246:31: error: request for member ‘label’ in something not a structure or union
+  246 |     memcpy(value.parent, state->label.credential, KEY_BYTES);
+      |                               ^~
+../Xext/spatial/spatialsecurity.c: In function ‘operate’:
+../Xext/spatial/spatialsecurity.c:269:15: error: request for member ‘connection’ in something not a structure or union
+  269 |     if (!state->connection || state->closed || !find_grant(state->label.credential)) {
+      |               ^~
+../Xext/spatial/spatialsecurity.c:269:36: error: request for member ‘closed’ in something not a structure or union
+  269 |     if (!state->connection || state->closed || !find_grant(state->label.credential)) {
+      |                                    ^~
+../Xext/spatial/spatialsecurity.c:269:65: error: request for member ‘label’ in something not a structure or union
+  269 |     if (!state->connection || state->closed || !find_grant(state->label.credential)) {
+      |                                                                 ^~
+../Xext/spatial/spatialsecurity.c:272:37: error: request for member ‘sequence’ in something not a structure or union
+  272 |     if (request->request_id <= state->sequence) { reply->code = CODE(STALE_SEQUENCE); return; }
+      |                                     ^~
+../Xext/spatial/spatialsecurity.c:273:10: error: request for member ‘sequence’ in something not a structure or union
+  273 |     state->sequence = request->request_id;
+      |          ^~
+../Xext/spatial/spatialsecurity.c:276:31: error: request for member ‘label’ in something not a structure or union
+  276 |         identity->role = state->label.role;
+      |                               ^~
+../Xext/spatial/spatialsecurity.c:277:58: error: request for member ‘label’ in something not a structure or union
+  277 |         identity->workspace = (ProtobufCBinaryData){state->label.workspace_size, state->label.workspace};
+      |                                                          ^~
+../Xext/spatial/spatialsecurity.c:277:87: error: request for member ‘label’ in something not a structure or union
+  277 |         identity->workspace = (ProtobufCBinaryData){state->label.workspace_size, state->label.workspace};
+      |                                                                                       ^~
+../Xext/spatial/spatialsecurity.c:278:60: error: request for member ‘label’ in something not a structure or union
+  278 |         identity->application = (ProtobufCBinaryData){state->label.application_size, state->label.application};
+      |                                                            ^~
+../Xext/spatial/spatialsecurity.c:278:91: error: request for member ‘label’ in something not a structure or union
+  278 |         identity->application = (ProtobufCBinaryData){state->label.application_size, state->label.application};
+      |                                                                                           ^~
+../Xext/spatial/spatialsecurity.c:279:73: error: request for member ‘label’ in something not a structure or union
+  279 |         identity->credential_id = (ProtobufCBinaryData){KEY_BYTES, state->label.credential};
+      |                                                                         ^~
+../Xext/spatial/spatialsecurity.c:280:40: error: request for member ‘connection’ in something not a structure or union
+  280 |         identity->connection_id = state->connection;
+      |                                        ^~
+../Xext/spatial/spatialsecurity.c:286:18: error: request for member ‘label’ in something not a structure or union
+  286 |         if (state->label.role != ROLE(SUPERVISOR) && state->label.role != ROLE(BROKER)) {
+      |                  ^~
+../Xext/spatial/spatialsecurity.c:286:59: error: request for member ‘label’ in something not a structure or union
+  286 |         if (state->label.role != ROLE(SUPERVISOR) && state->label.role != ROLE(BROKER)) {
+      |                                                           ^~
+../Xext/spatial/spatialsecurity.c:294:42: error: request for member ‘label’ in something not a structure or union
+  294 |         if (grant == &grants[0] || (state->label.role != ROLE(SUPERVISOR) &&
+      |                                          ^~
+../Xext/spatial/spatialsecurity.c:295:57: error: request for member ‘connection’ in something not a structure or union
+  295 |                                   grant->issuer != state->connection)) {
+      |                                                         ^~
+[341/668] Compiling C object Xext/libxserver_xext.a.p/spatial_spatialinput.c.o
+ninja: build stopped: subcommand failed.
+failed: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-server-01/run.json

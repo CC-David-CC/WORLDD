@@ -1,0 +1,78 @@
+{
+  "base_lock": {
+    "format": 1,
+    "xserver": {
+      "repository": "https://github.com/X11Libre/xserver.git",
+      "ref": "refs/tags/xlibre-xserver-25.1.9",
+      "commit": "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd"
+    },
+    "xorgproto": {
+      "repository": "https://gitlab.freedesktop.org/xorg/proto/xorgproto.git",
+      "ref": "refs/tags/xorgproto-2024.1",
+      "commit": "67469711055522b8adb2d795b01e7ba98cb8816c"
+    },
+    "reason": "Use the inspected stable XLibre release for shared DIX input routing in native Xorg and diagnostic Xvfb. Its Present and DRI3 protocols require project-local xorgproto 2024.1 headers.",
+    "inspected_utc_date": "2026-10-07",
+    "meson_options": [
+      "--buildtype=debug",
+      "-Dxorg=true",
+      "-Dxvfb=true",
+      "-Dxephyr=false",
+      "-Dxnest=false",
+      "-Dxwin=false",
+      "-Dxquartz=false",
+      "-Ddocs=false",
+      "-Ddevel-docs=false",
+      "-Dtests=true",
+      "-Dsystemd_logind=true",
+      "-Dseatd_libseat=false",
+      "-Dxkb_dir=/usr/share/X11/xkb",
+      "-Dxkb_bin_dir=/usr/bin",
+      "-Dfontrootdir=/usr/share/fonts/X11"
+    ],
+    "patches": [
+      "server/patches/0001-spatial-input.patch",
+      "server/patches/0002-spatial-security.patch",
+      "server/patches/0003-server-shutdown.patch"
+    ],
+    "overlays": {
+      "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",
+      "server/xlibre/spatialinput.h": "include/spatialinput.h",
+      "server/xlibre/meson.build": "Xext/spatial/meson.build",
+      "proto/spatial/input/v1/input.proto": "Xext/spatial/input.proto",
+      "server/xlibre/spatialsecurity.c": "Xext/spatial/spatialsecurity.c",
+      "server/xlibre/spatialsecurity.h": "include/spatialsecurity.h",
+      "proto/spatial/security/v1/security.proto": "Xext/spatial/security.proto"
+    }
+  },
+  "source_sha256": {
+    "server/xlibre/spatialinput.c": "dba741b01ac6dc55ff935d0f01316ab16320aee98b67b7f4e4eedd2beefce978",
+    "server/xlibre/spatialinput.h": "f5558a3973360de8e6b7bfd0e6c59c8602f78f3747b07a1f9f8489b8588ce3ba",
+    "server/xlibre/meson.build": "b31acf4698c94e2ea553632e5b86fa3296aa23e528a94f5d3cf180c6fba64338",
+    "proto/spatial/input/v1/input.proto": "f38405ee4953c6f1fd30d604ceb00e07d4c330420554dd1722782480eb2e99f7",
+    "server/xlibre/spatialsecurity.c": "49189499fe691c3c3dda698143b9e79b77a5429d19e2f70d29855f5753b38851",
+    "server/xlibre/spatialsecurity.h": "8755dbb93c7c29c48f2be8027d1a7fcaa06986871e4efb9da4acb5b2107b5419",
+    "proto/spatial/security/v1/security.proto": "ad6ee8fc05efaed347e4b0fc04e3d69bb787d4224712d3a5cb7732893a201e10"
+  },
+  "status": "detected",
+  "mutations": [
+    {
+      "name": "authentication-bypass",
+      "test": "test_bad_cookies_cannot_use_disabled_host_access_control",
+      "status": "detected",
+      "exit_code": 1,
+      "before_sha256": "49189499fe691c3c3dda698143b9e79b77a5429d19e2f70d29855f5753b38851",
+      "mutation_sha256": "e44b96c8a1a767928f2f3364404b2d08857841b95998381d8f1a85cf0fc86c72",
+      "binary_sha256": "e60cc7ffa9995546cfd31d4de3ef1ef4952a96d02f6d29d898ad7e21f46ea0b0"
+    },
+    {
+      "name": "issuer-disconnect",
+      "test": "test_issuing_connection_loss_revokes_its_credentials",
+      "status": "detected",
+      "exit_code": 1,
+      "before_sha256": "49189499fe691c3c3dda698143b9e79b77a5429d19e2f70d29855f5753b38851",
+      "mutation_sha256": "c643784543239a634ca754b595c208de719c59534fd08e259819a740165d3e8c",
+      "binary_sha256": "8723920505358b77ff632f10ff7dab7ff71bbb6d6d1527e821dd72ef4b7a8c68"
+    }
+  ]
+}

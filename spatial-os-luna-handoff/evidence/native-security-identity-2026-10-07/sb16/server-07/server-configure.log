@@ -1,0 +1,276 @@
+The Meson build system
+Version: 1.3.2
+Source dir: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source
+Build dir: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build
+Build type: native build
+Project name: xserver
+Project version: 25.1.9
+C compiler for the host machine: ccache cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C linker for the host machine: cc ld.bfd 2.42
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Compiler for C supports arguments -Wall: YES (cached)
+Compiler for C supports arguments -Wchar-subscripts: YES (cached)
+Compiler for C supports arguments -Wpointer-arith: YES (cached)
+Compiler for C supports arguments -Wmissing-declarations: YES (cached)
+Compiler for C supports arguments -Wformat=2: YES (cached)
+Compiler for C supports arguments -Wstrict-prototypes: YES (cached)
+Compiler for C supports arguments -Wmissing-prototypes: YES (cached)
+Compiler for C supports arguments -Wnested-externs: YES (cached)
+Compiler for C supports arguments -Wbad-function-cast: YES (cached)
+Compiler for C supports arguments -Wold-style-definition: YES (cached)
+Compiler for C supports arguments -Wunused: YES (cached)
+Compiler for C supports arguments -Wuninitialized: YES (cached)
+Compiler for C supports arguments -Wshadow: YES (cached)
+Compiler for C supports arguments -Wmissing-noreturn: YES (cached)
+Compiler for C supports arguments -Wmissing-format-attribute: YES (cached)
+Compiler for C supports arguments -Wredundant-decls: YES (cached)
+Compiler for C supports arguments -Werror=implicit: YES (cached)
+Compiler for C supports arguments -Werror=nonnull: YES (cached)
+Compiler for C supports arguments -Werror=init-self: YES (cached)
+Compiler for C supports arguments -Werror=main: YES (cached)
+Compiler for C supports arguments -Werror=missing-braces: YES (cached)
+Compiler for C supports arguments -Werror=sequence-point: YES (cached)
+Compiler for C supports arguments -Werror=return-type: YES (cached)
+Compiler for C supports arguments -Werror=trigraphs: YES (cached)
+Compiler for C supports arguments -Werror=array-bounds: YES (cached)
+Compiler for C supports arguments -Werror=write-strings: YES (cached)
+Compiler for C supports arguments -Werror=address: YES (cached)
+Compiler for C supports arguments -Werror=int-to-pointer-cast: YES (cached)
+Compiler for C supports arguments -Werror=pointer-to-int-cast: YES (cached)
+Compiler for C supports arguments -Woverride-init: YES (cached)
+Compiler for C supports arguments -Wvla: YES (cached)
+Compiler for C supports arguments -Wincompatible-pointer-types: YES (cached)
+local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/meson.build:85: WARNING: Consider using the built-in warning_level option instead of using "-Wall".
+Dependency x11 found: YES 1.8.7 (cached)
+Dependency xproto found: YES 7.0.33 (cached)
+Dependency randrproto found: YES 1.6.0 (cached)
+Dependency renderproto found: YES 0.11.1 (cached)
+Dependency xextproto found: YES 7.3.0 (cached)
+Dependency inputproto found: YES 2.3.99.2 (cached)
+Dependency kbproto found: YES 1.0.7 (cached)
+Dependency fontsproto found: YES 2.1.3 (cached)
+Dependency fixesproto found: YES 6.1 (cached)
+Dependency damageproto found: YES 1.2.1 (cached)
+Dependency xcmiscproto found: YES 1.2.2 (cached)
+Dependency bigreqsproto found: YES 1.1.2 (cached)
+Dependency presentproto found: YES 1.4 (cached)
+Dependency videoproto found: YES 2.3.3 (cached)
+Dependency compositeproto found: YES 0.4.2 (cached)
+Dependency recordproto found: YES 1.14.2 (cached)
+Dependency scrnsaverproto found: YES 1.2.3 (cached)
+Dependency resourceproto found: YES 1.2.0 (cached)
+Dependency xf86driproto found: YES 2.1.1 (cached)
+Dependency dri2proto found: YES 2.8 (cached)
+Dependency dri3proto found: YES 1.4 (cached)
+Dependency xineramaproto found: YES 1.2.1 (cached)
+Dependency xf86bigfontproto found: YES 1.2.0 (cached)
+Dependency xf86vidmodeproto found: YES 2.3.1 (cached)
+Dependency applewmproto found: YES 1.4.2 (cached)
+Dependency xshmfence found: YES 1.3 (cached)
+Dependency dpmsproto found: YES 1.2 (cached)
+Dependency pixman-1 found: YES 0.42.2 (cached)
+Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+Found CMake: /usr/bin/cmake (3.28.3)
+Run-time dependency libbsd-overlay found: NO (tried pkgconfig and cmake)
+Dependency xkbcomp found: YES 1.4.6 (cached)
+Dependency xkbfile found: YES 1.1.0 (cached)
+Dependency xfont2 found: YES 2.0.6 (cached)
+Dependency dbus-1 found: YES 1.14.10 (cached)
+Run-time dependency libseat found: NO (tried pkgconfig and cmake)
+Run-time dependency libsystemd found: NO (tried pkgconfig and cmake)
+Run-time dependency libsystemd-daemon found: NO (tried pkgconfig and cmake)
+Dependency libudev found: YES 255 (cached)
+Dependency libxcvt found: YES 0.1.2 (cached)
+Checking for function "getaddrinfo" : YES (cached)
+Message: IPv6 support: YES
+Dependency libudev found: YES 255 (cached)
+Dependency gbm found: YES 25.2.8-0ubuntu0.24.04.4 (cached)
+Dependency epoxy found: YES 1.5.10 (cached)
+Checking for function "SHA1Init" : NO (cached)
+Checking for function "CC_SHA1_Init" : NO (cached)
+Has header "wincrypt.h" : NO (cached)
+Library md found: NO
+Run-time dependency libsha1 found: NO (tried pkgconfig and cmake)
+Run-time dependency nettle found: NO (tried pkgconfig and cmake)
+libgcrypt-config found: NO
+Run-time dependency libgcrypt found: NO (tried pkgconfig and config-tool)
+Library crypto found: YES
+Dependency openssl found: YES 3.0.13 (cached)
+Message: Using libcrypto SHA1 functions
+Dependency xdmcp found: YES 1.1.3 (cached)
+Dependency dri found: YES 25.2.8-0ubuntu0.24.04.4 (cached)
+Dependency libdrm found: YES 2.4.125 (cached)
+Has header "sys/eventfd.h" : YES (cached)
+Dependency xf86dgaproto found: YES 2.1 (cached)
+Has header "linux/apm_bios.h" : YES (cached)
+Has header "sys/shm.h" : YES (cached)
+Library m found: YES
+Library dl found: YES
+Run-time dependency libselinux found: NO (tried pkgconfig and cmake)
+Run-time dependency audit found: NO (tried pkgconfig and cmake)
+Configuring Xserver.1 using configuration
+Dependency xorg-sgml-doctools found: YES 1.11 (cached)
+Program xmlto found: NO
+Program xsltproc found: NO
+Program fop found: NO
+Checking for function "clock_gettime" : YES (cached)
+Checking if "CLOCK_MONOTONIC" compiles: YES (cached)
+Checking for size of "unsigned long" : 8 (cached)
+Header "pthread.h" has symbol "PTHREAD_MUTEX_RECURSIVE" : YES (cached)
+Checking if "pthread_setname_np(tid, name)" compiles: YES (cached)
+Has header "dlfcn.h" : YES (cached)
+Has header "execinfo.h" : YES (cached)
+Has header "fnmatch.h" : YES (cached)
+Has header "linux/agpgart.h" : YES (cached)
+Has header "strings.h" : YES (cached)
+Has header "sys/agpgart.h" : NO (cached)
+Has header "sys/ucred.h" : NO (cached)
+Has header "sys/un.h" : YES (cached)
+Has header "sys/utsname.h" : YES (cached)
+Has header "sys/sysmacros.h" : YES (cached)
+Checking for function "arc4random_buf" with dependency libbsd-overlay: YES (cached)
+Checking for function "getrandom" : YES (cached)
+Checking for function "backtrace" : YES (cached)
+Checking for function "cbrt" : YES (cached)
+Checking for function "epoll_create1" : YES (cached)
+Checking for function "getuid" : YES (cached)
+Checking for function "geteuid" : YES (cached)
+Checking for function "isastream" : NO (cached)
+Checking for function "issetugid" : NO (cached)
+Checking for function "getaddrinfo" : YES (cached)
+Checking for function "getifaddrs" : YES (cached)
+Checking for function "getpeereid" : NO (cached)
+Checking for function "getpeerucred" : NO (cached)
+Checking for function "getprogname" : NO (cached)
+Checking for function "getzoneid" : NO (cached)
+Checking for function "inet_ntop" : YES (cached)
+Checking for function "memfd_create" : YES (cached)
+Checking for function "mkostemp" : YES (cached)
+Checking for function "mmap" : YES (cached)
+Checking for function "open_device" : NO (cached)
+Checking for function "poll" : YES (cached)
+Checking for function "pollset_create" : NO (cached)
+Checking for function "posix_fallocate" : YES (cached)
+Cleaning... 0 files.
+Checking for function "port_create" : NO (cached)
+Checking for function "reallocarray" with dependency libbsd-overlay: YES (cached)
+Checking for function "seteuid" : YES (cached)
+Checking for function "setitimer" : YES (cached)
+Checking for function "shmctl64" : NO (cached)
+Checking for function "sigaction" : YES (cached)
+Checking for function "sigprocmask" : YES (cached)
+Checking for type "socklen_t" : YES (cached)
+Checking for function "strcasestr" : YES (cached)
+Checking for function "strlcat" with dependency libbsd-overlay: YES (cached)
+Checking for function "strlcpy" with dependency libbsd-overlay: YES (cached)
+Checking for function "strndup" : YES (cached)
+Header "string.h" has symbol "strndup" : YES (cached)
+Checking for type "struct sockaddr_storage" : YES (cached)
+Checking for function "timingsafe_memcmp" : NO (cached)
+Checking for function "vasprintf" : YES (cached)
+Checking for function "vsnprintf" : YES (cached)
+Checking for function "walkcontext" : NO (cached)
+Checking whether type "struct xucred" has member "cr_pid" : NO (cached)
+Header "sys/socket.h" has symbol "SCM_RIGHTS" : YES (cached)
+Header "sys/socket.h" has symbol "SO_PEERCRED" : YES (cached)
+local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/include/meson.build:204: WARNING: Project targets '>= 0.61.0' but uses feature introduced in '1.0.0': "compiler.has_member" keyword argument "prefix" of type list.
+Checking whether type "struct sockaddr_in" has member "sin_len" : NO (cached)
+Dependency pciaccess found: YES 0.17 (cached)
+Checking for function "pci_device_is_boot_display" with dependency pciaccess: YES (cached)
+Configuring version-config.h using configuration
+Configuring xkb-config.h using configuration
+Has header "stropts.h" : NO (cached)
+Has header "sys/kd.h" : YES (cached)
+Has header "sys/vt.h" : YES (cached)
+Configuring xwin-config.h using configuration
+Configuring 10-nvidia.conf using configuration
+Configuring 10-nvidia-modules.conf using configuration
+Configuring 10-nvidia.conf.debian using configuration
+Configuring 10-nvidia-modules.conf.debian using configuration
+Program generate-atoms found: YES (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/dix/generate-atoms)
+Dependency glproto found: YES 1.4.17 (cached)
+Dependency gl found: YES 1.2 (cached)
+Dependency glproto found: YES 1.4.17 (cached)
+Dependency gl found: YES 1.2 (cached)
+Has header "syslog.h" : YES (cached)
+Library pthread found: YES
+Dependency xau found: YES 1.0.9 (cached)
+Dependency presentproto found: YES 1.4 (cached)
+Program protoc-c found: YES (/usr/bin/protoc-c)
+Program protoc-c found: YES (/usr/bin/protoc-c)
+Dependency libprotobuf-c found: YES 1.4.1 (cached)
+Dependency epoxy found: YES 1.5.10 (cached)
+Configuring Xvfb.1 using configuration
+Dependency pciaccess found: YES 0.17 (cached)
+Program awk found: YES (/usr/bin/awk)
+Has header "sys/agpio.h" : NO (cached)
+Has header "sys/agpgart.h" : NO (cached)
+Has header "linux/agpgart.h" : YES (cached)
+Dependency xau found: YES 1.0.9 (cached)
+Configuring exa.4 using configuration
+Configuring fbdevhw.4 using configuration
+Dependency libdrm found: YES 2.4.125 (cached)
+Compiler for C supports arguments -Wno-format-nonliteral: YES (cached)
+Configuring inputtestdrv.4 using configuration
+Configuring modesetting.4 using configuration
+Configuring Xorg.1 using configuration
+Configuring xorg.conf.5 using configuration
+Configuring xorg.conf.d.5 using configuration
+Configuring gtf.1 using configuration
+Message: testsuite: rendercheck triangles disabled
+Program rendercheck found: YES (/usr/bin/rendercheck)
+Program scripts/xvfb-piglit.sh found: YES (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/test/scripts/xvfb-piglit.sh)
+Dependency xcb found: YES 1.15 (cached)
+Run-time dependency xcb-xinput found: NO (tried pkgconfig and cmake)
+Dependency xcb found: YES 1.15 (cached)
+Run-time dependency xcb-damage found: NO (tried pkgconfig and cmake)
+Dependency xcb found: YES 1.15 (cached)
+Run-time dependency xcb-sync found: NO (tried pkgconfig and cmake)
+Dependency xcb found: YES 1.15 (cached)
+Run-time dependency xcb-image found: NO (tried pkgconfig and cmake)
+Run-time dependency xcb-util found: NO (tried pkgconfig and cmake)
+Compiler for C supports link arguments -Wl,-wrap: YES (cached)
+Program awk found: YES (/usr/bin/awk)
+Configuring xorg-server.pc using configuration
+Configuring xlibre-server.pc using configuration
+Configuring dix-config.h using configuration
+Configuring xorg-server.h using configuration
+Configuring xlibre-server.h using configuration
+Configuring xorg-config.h using configuration
+Build targets in project: 65
+WARNING: Project specifies a minimum meson_version '>= 0.61.0' but uses features which were added in newer versions:
+ * 1.0.0: {'"compiler.has_member" keyword argument "prefix" of type list'}
+
+xserver 25.1.9
+
+  DDX
+    Xorg          : YES
+    Xnest         : NO
+    Xvfb          : YES
+    Xwin          : NO
+    Xquartz       : NO
+    Xephyr        : NO
+    Xfbdev        : NO
+
+  User defined options
+    buildtype     : debug
+    prefix        : /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/image
+    b_sanitize    : none
+    devel-docs    : false
+    docs          : false
+    fontrootdir   : /usr/share/fonts/X11
+    seatd_libseat : false
+    systemd_logind: true
+    tests         : true
+    xephyr        : false
+    xkb_bin_dir   : /usr/bin
+    xkb_dir       : /usr/share/X11/xkb
+    xkb_output_dir: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled
+    xnest         : false
+    xorg          : true
+    xquartz       : false
+    xvfb          : true
+    xwin          : false
+
+Found ninja-1.11.1 at /usr/bin/ninja

@@ -1,0 +1,34 @@
+{
+  "id": "application.security_identity",
+  "phase": "M04",
+  "scope": "Native XLibre authentication and immutable connection identity",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/NATIVE_SECURITY_IDENTITY.md",
+  "invariant": "In strict mode, every native connection receives its immutable security identity before ordinary X requests run.",
+  "production_roots": ["server/xlibre/spatialsecurity.c", "server/xlibre/spatialsecurity.h", "server/patches/0002-spatial-security.patch", "proto/spatial/security/v1/security.proto"],
+  "counterexample_suite": "tests/native/test_security_identity.py",
+  "focused_command": "ctest --test-dir build -V -R '^native-security-identity$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts in Debug and ASan/UBSan",
+    "The native server is instrumented for focused core-X checks, with all identity assertions enabled and GLX disabled",
+    "Full P00-P10 baseline and unchanged locked assertions",
+    "Sealed protobuf bootstrap and strict authentication before host-access fallback",
+    "Immutable application labels and distinct native connection identities",
+    "Supervisor, broker, compositor, and application role separation",
+    "Revocation, issuer disconnect, descendant cancellation, and independent credential survival",
+    "Bounded credential storage, safe slot reuse, and new server generations",
+    "Ordinary Xlib authentication and both native byte orders",
+    "Malformed protobuf, unknown fields, invalid labels, replay, and unsupported version rejection",
+    "Independent mutations detect authentication bypass and missing disconnect revocation"
+  ],
+  "limitations": [
+    "This component does not enforce workspace resource isolation.",
+    "Strict mode is explicit; existing trusted diagnostic mode remains available.",
+    "Broker credential delivery and compositor security integration remain pending.",
+    "Retained resources require the forthcoming resource policy.",
+    "Instrumented GLX lifecycle checks expose installed graphics-driver leaks and remain failed pending a separate fix.",
+    "Native GPU and physical-device qualification remain pending."
+  ],
+  "next_components": ["application.resource_isolation", "authority.application"]
+}

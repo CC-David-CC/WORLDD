@@ -1,0 +1,12 @@
+[
+  {
+    "name": "xserver",
+    "argv": [
+      "python3",
+      "tools/build_xserver.py",
+      "--evidence-dir",
+      "local/m04-security-server-01"
+    ],
+    "exit_code": 1
+  }
+]

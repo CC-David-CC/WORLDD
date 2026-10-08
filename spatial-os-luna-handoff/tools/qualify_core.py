@@ -43,6 +43,7 @@ def main():
     else:
         server = Path(shutil.which('Xvfb') or '/missing-Xvfb')
     env['SPATIAL_RENDER_EVIDENCE'] = str(evidence / 'graphics')
+    env['SPATIAL_SECURITY_EVIDENCE'] = str(evidence / 'native-security')
     env['SPATIAL_XPROBE'] = str(build / 'spatial-xprobe')
     env['PYTHONPATH'] = os.pathsep.join([str(build / 'python'), str(ROOT), env.get('PYTHONPATH', '')])
     commands = [
@@ -66,7 +67,8 @@ def main():
     inputs = {ROOT / name for name in locked}
     inputs.update([ROOT / 'CMakeLists.txt', *ROOT.glob('src/**/*'), *ROOT.glob('proto/**/*.proto'),
                    *ROOT.glob('tests/core/*.py'), *ROOT.glob('config/*.textproto'), ROOT / 'tools/qualify_core.py',
-                   ROOT / 'tools/with_test_display.py', ROOT / 'acceptance.lock.json'])
+                   *ROOT.glob('tests/native/*.py'), *ROOT.glob('native/*.c'), *ROOT.glob('server/**/*'),
+                   ROOT / 'tools/build_xserver.py', ROOT / 'tools/with_test_display.py', ROOT / 'acceptance.lock.json'])
     for path in sorted(inputs):
         if path.is_file():
             record['source_sha256'][str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()

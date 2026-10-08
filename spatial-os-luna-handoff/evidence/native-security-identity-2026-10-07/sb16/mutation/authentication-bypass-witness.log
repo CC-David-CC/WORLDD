@@ -1,0 +1,15 @@
+test_bad_cookies_cannot_use_disabled_host_access_control (__main__.SecurityIdentityTests.test_bad_cookies_cannot_use_disabled_host_access_control) ... 
+  test_bad_cookies_cannot_use_disabled_host_access_control (__main__.SecurityIdentityTests.test_bad_cookies_cannot_use_disabled_host_access_control) (length=32) ... FAIL
+
+======================================================================
+FAIL: test_bad_cookies_cannot_use_disabled_host_access_control (__main__.SecurityIdentityTests.test_bad_cookies_cannot_use_disabled_host_access_control) (length=32)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 167, in test_bad_cookies_cannot_use_disabled_host_access_control
+    with self.subTest(length=len(cookie)), self.assertRaises(Denied): self.connect(cookie)
+AssertionError: Denied not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.070s
+
+FAILED (failures=1)

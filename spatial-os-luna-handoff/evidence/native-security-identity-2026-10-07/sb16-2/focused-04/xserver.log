@@ -1,0 +1,8 @@
+xorgproto-pristine: 0
+xserver-pristine: 0
+protocol-configure: 0
+protocol-install: 0
+server-configure: 0
+server-build: 0
+server-unit: 0
+passed: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-server-04/run.json

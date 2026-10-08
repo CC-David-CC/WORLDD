@@ -1,0 +1,880 @@
+   1542585:	find library=libasan.so.8 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libasan.so.8
+   1542585:	
+   1542585:	find library=libpixman-1.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libpixman-1.so.0
+   1542585:	
+   1542585:	find library=libXfont2.so.2 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libXfont2.so.2
+   1542585:	
+   1542585:	find library=libXdmcp.so.6 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libXdmcp.so.6
+   1542585:	
+   1542585:	find library=libm.so.6 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libm.so.6
+   1542585:	
+   1542585:	find library=libprotobuf-c.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libprotobuf-c.so.1
+   1542585:	
+   1542585:	find library=libcrypto.so.3 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libcrypto.so.3
+   1542585:	
+   1542585:	find library=libXau.so.6 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libXau.so.6
+   1542585:	
+   1542585:	find library=libGL.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libGL.so.1
+   1542585:	
+   1542585:	find library=libubsan.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libubsan.so.1
+   1542585:	
+   1542585:	find library=libc.so.6 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libc.so.6
+   1542585:	
+   1542585:	find library=libgcc_s.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libgcc_s.so.1
+   1542585:	
+   1542585:	find library=libz.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libz.so.1
+   1542585:	
+   1542585:	find library=libbz2.so.1.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libbz2.so.1.0
+   1542585:	
+   1542585:	find library=libfontenc.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libfontenc.so.1
+   1542585:	
+   1542585:	find library=libfreetype.so.6 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libfreetype.so.6
+   1542585:	
+   1542585:	find library=libbsd.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libbsd.so.0
+   1542585:	
+   1542585:	find library=libGLdispatch.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libGLdispatch.so.0
+   1542585:	
+   1542585:	find library=libGLX.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libGLX.so.0
+   1542585:	
+   1542585:	find library=libstdc++.so.6 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libstdc++.so.6
+   1542585:	
+   1542585:	find library=libpng16.so.16 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libpng16.so.16
+   1542585:	
+   1542585:	find library=libbrotlidec.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libbrotlidec.so.1
+   1542585:	
+   1542585:	find library=libmd.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libmd.so.0
+   1542585:	
+   1542585:	find library=libX11.so.6 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libX11.so.6
+   1542585:	
+   1542585:	find library=libbrotlicommon.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libbrotlicommon.so.1
+   1542585:	
+   1542585:	find library=libxcb.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libxcb.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling preinit: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb
+   1542585:	
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_printf (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_sprintf (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_snprintf (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_fprintf (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_vprintf (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_vsprintf (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_vsnprintf (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_vfprintf (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __b64_ntop (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __b64_pton (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: pthread_mutexattr_getrobust_np (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdrmem_create (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdrstdio_create (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_short (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_short (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_int (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_long (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_long (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_hyper (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_hyper (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_longlong_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_longlong_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int8_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_uint8_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int16_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_uint16_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int32_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_uint32_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int64_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_uint64_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_quad_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_quad_t (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_bool (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_enum (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_char (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_char (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_float (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_double (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_bytes (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_string (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdrrec_create (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_destroy (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: swift_demangle (fatal)
+   1542585:	
+   1542585:	calling init: /lib64/ld-linux-x86-64.so.2
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libc.so.6
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libXau.so.6
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libmd.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libbsd.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libXdmcp.so.6
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libxcb.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libX11.so.6
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libbrotlidec.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libz.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libm.so.6
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libpng16.so.16
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libgcc_s.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libstdc++.so.6
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libGLdispatch.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libGLX.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libbz2.so.1.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libfreetype.so.6
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libfontenc.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libubsan.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libGL.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libcrypto.so.3
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libprotobuf-c.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libXfont2.so.2
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libpixman-1.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libasan.so.8
+   1542585:	
+   1542585:	
+   1542585:	initialize program: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb
+   1542585:	
+   1542585:	
+   1542585:	transferring control: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb
+   1542585:	
+Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )
+Sync Extension 3.1
+   1542585:	find library=libgbm.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libgbm.so.1
+   1542585:	
+   1542585:	find library=libdrm.so.2 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libdrm.so.2
+   1542585:	
+   1542585:	find library=libexpat.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libexpat.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libexpat.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libdrm.so.2
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libgbm.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /usr/lib/x86_64-linux-gnu/dri/swrast_dri.so
+   1542585:	
+   1542585:	find library=libEGL.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libEGL.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libEGL.so.1
+   1542585:	
+   1542585:	find library=libEGL_nvidia.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libEGL_nvidia.so.0
+   1542585:	
+   1542585:	find library=libpthread.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libpthread.so.0
+   1542585:	
+   1542585:	find library=librt.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/librt.so.1
+   1542585:	
+   1542585:	find library=libdl.so.2 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libdl.so.2
+   1542585:	
+   1542585:	find library=libnvidia-glsi.so.580.178.04 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libnvidia-glsi.so.580.178.04
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libpthread.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/librt.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libdl.so.2
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libnvidia-glsi.so.580.178.04
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libEGL_nvidia.so.0
+   1542585:	
+   1542585:	find library=libnvidia-egl-wayland.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libnvidia-egl-wayland.so.1
+   1542585:	
+   1542585:	find library=libwayland-server.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libwayland-server.so.0
+   1542585:	
+   1542585:	find library=libwayland-client.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libwayland-client.so.0
+   1542585:	
+   1542585:	find library=libffi.so.8 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libffi.so.8
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libffi.so.8
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libwayland-client.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libwayland-server.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libnvidia-egl-wayland.so.1
+   1542585:	
+   1542585:	find library=libnvidia-eglcore.so.580.178.04 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libnvidia-eglcore.so.580.178.04
+   1542585:	
+   1542585:	find library=libnvidia-gpucomp.so.580.178.04 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libnvidia-gpucomp.so.580.178.04
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libnvidia-gpucomp.so.580.178.04
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libnvidia-eglcore.so.580.178.04
+   1542585:	
+   1542585:	/lib/x86_64-linux-gnu/libnvidia-eglcore.so.580.178.04: error: symbol lookup error: undefined symbol: ErrorF (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libnvidia-eglcore.so.580.178.04: error: symbol lookup error: undefined symbol: __malloc_hook (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libnvidia-eglcore.so.580.178.04: error: symbol lookup error: undefined symbol: __realloc_hook (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libnvidia-eglcore.so.580.178.04: error: symbol lookup error: undefined symbol: __free_hook (fatal)
+   1542585:	/lib/x86_64-linux-gnu/libnvidia-eglcore.so.580.178.04: error: symbol lookup error: undefined symbol: __memalign_hook (fatal)
+   1542585:	find library=libnvidia-egl-gbm.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libnvidia-egl-gbm.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libnvidia-egl-gbm.so.1
+   1542585:	
+   1542585:	find library=libnvidia-egl-xcb.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libnvidia-egl-xcb.so.1
+   1542585:	
+   1542585:	find library=libxcb-dri3.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libxcb-dri3.so.0
+   1542585:	
+   1542585:	find library=libxcb-present.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libxcb-present.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libxcb-present.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libxcb-dri3.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libnvidia-egl-xcb.so.1
+   1542585:	
+   1542585:	/lib/x86_64-linux-gnu/libnvidia-egl-xcb.so.1: error: symbol lookup error: undefined symbol: xcb_dri3_import_syncobj (fatal)
+   1542585:	find library=libnvidia-egl-xlib.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libnvidia-egl-xlib.so.1
+   1542585:	
+   1542585:	find library=libX11-xcb.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libX11-xcb.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libX11-xcb.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libnvidia-egl-xlib.so.1
+   1542585:	
+   1542585:	/lib/x86_64-linux-gnu/libnvidia-egl-xlib.so.1: error: symbol lookup error: undefined symbol: xcb_dri3_import_syncobj (fatal)
+   1542585:	find library=libEGL_mesa.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libEGL_mesa.so.0
+   1542585:	
+   1542585:	find library=libgallium-25.2.8-0ubuntu0.24.04.4.so [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.4.so
+   1542585:	
+   1542585:	find library=libxcb-randr.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libxcb-randr.so.0
+   1542585:	
+   1542585:	find library=libxcb-xfixes.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libxcb-xfixes.so.0
+   1542585:	
+   1542585:	find library=libxcb-shm.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libxcb-shm.so.0
+   1542585:	
+   1542585:	find library=libLLVM.so.20.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libLLVM.so.20.1
+   1542585:	
+   1542585:	find library=libzstd.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libzstd.so.1
+   1542585:	
+   1542585:	find library=libsensors.so.5 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libsensors.so.5
+   1542585:	
+   1542585:	find library=libxcb-sync.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libxcb-sync.so.1
+   1542585:	
+   1542585:	find library=libxshmfence.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libxshmfence.so.1
+   1542585:	
+   1542585:	find library=libdrm_amdgpu.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libdrm_amdgpu.so.1
+   1542585:	
+   1542585:	find library=libelf.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libelf.so.1
+   1542585:	
+   1542585:	find library=libdrm_intel.so.1 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libdrm_intel.so.1
+   1542585:	
+   1542585:	find library=libedit.so.2 [0]; searching
+   1542585:	 search path=/lib/x86_64-linux-gnu/../lib/glibc-hwcaps/x86-64-v3:/lib/x86_64-linux-gnu/../lib/glibc-hwcaps/x86-64-v2:/lib/x86_64-linux-gnu/../lib		(RUNPATH from file /lib/x86_64-linux-gnu/libLLVM.so.20.1)
+   1542585:	  trying file=/lib/x86_64-linux-gnu/../lib/glibc-hwcaps/x86-64-v3/libedit.so.2
+   1542585:	  trying file=/lib/x86_64-linux-gnu/../lib/glibc-hwcaps/x86-64-v2/libedit.so.2
+   1542585:	  trying file=/lib/x86_64-linux-gnu/../lib/libedit.so.2
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libedit.so.2
+   1542585:	
+   1542585:	find library=libxml2.so.2 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libxml2.so.2
+   1542585:	
+   1542585:	find library=libpciaccess.so.0 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libpciaccess.so.0
+   1542585:	
+   1542585:	find library=libtinfo.so.6 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libtinfo.so.6
+   1542585:	
+   1542585:	find library=libicuuc.so.74 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libicuuc.so.74
+   1542585:	
+   1542585:	find library=liblzma.so.5 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/liblzma.so.5
+   1542585:	
+   1542585:	find library=libicudata.so.74 [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libicudata.so.74
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libicudata.so.74
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/liblzma.so.5
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libicuuc.so.74
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libtinfo.so.6
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libpciaccess.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libxml2.so.2
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libedit.so.2
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libdrm_intel.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libzstd.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libelf.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libdrm_amdgpu.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libxshmfence.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libxcb-sync.so.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libsensors.so.5
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libLLVM.so.20.1
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libxcb-shm.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libxcb-xfixes.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libxcb-randr.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.4.so
+   1542585:	
+   1542585:	
+   1542585:	calling init: /lib/x86_64-linux-gnu/libEGL_mesa.so.0
+   1542585:	
+   1542585:	
+   1542585:	calling init: /usr/lib/x86_64-linux-gnu/gbm/nvidia-drm_gbm.so
+   1542585:	
+   1542585:	find library=libnvtegrahv.so [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	 search path=/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3:/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3:/usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2:/usr/lib/x86_64-linux-gnu:/lib/glibc-hwcaps/x86-64-v3:/lib/glibc-hwcaps/x86-64-v2:/lib:/usr/lib/glibc-hwcaps/x86-64-v3:/usr/lib/glibc-hwcaps/x86-64-v2:/usr/lib		(system search path)
+   1542585:	  trying file=/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libnvtegrahv.so
+   1542585:	  trying file=/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libnvtegrahv.so
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libnvtegrahv.so
+   1542585:	  trying file=/usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v3/libnvtegrahv.so
+   1542585:	  trying file=/usr/lib/x86_64-linux-gnu/glibc-hwcaps/x86-64-v2/libnvtegrahv.so
+   1542585:	  trying file=/usr/lib/x86_64-linux-gnu/libnvtegrahv.so
+   1542585:	  trying file=/lib/glibc-hwcaps/x86-64-v3/libnvtegrahv.so
+   1542585:	  trying file=/lib/glibc-hwcaps/x86-64-v2/libnvtegrahv.so
+   1542585:	  trying file=/lib/libnvtegrahv.so
+   1542585:	  trying file=/usr/lib/glibc-hwcaps/x86-64-v3/libnvtegrahv.so
+   1542585:	  trying file=/usr/lib/glibc-hwcaps/x86-64-v2/libnvtegrahv.so
+   1542585:	  trying file=/usr/lib/libnvtegrahv.so
+   1542585:	
+   1542585:	find library=libnvtegrahv.so [0]; searching
+   1542585:	 search cache=/etc/ld.so.cache
+   1542585:	 search path=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/lib:/usr/lib		(system search path)
+   1542585:	  trying file=/lib/x86_64-linux-gnu/libnvtegrahv.so
+   1542585:	  trying file=/usr/lib/x86_64-linux-gnu/libnvtegrahv.so
+   1542585:	  trying file=/lib/libnvtegrahv.so
+   1542585:	  trying file=/usr/lib/libnvtegrahv.so
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libEGL.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libEGL_nvidia.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libEGL_mesa.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.4.so [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libxcb-randr.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libxcb-xfixes.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libxcb-shm.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libsensors.so.5 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libxcb-sync.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libxshmfence.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libdrm_amdgpu.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libelf.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libdrm_intel.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libpciaccess.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libnvidia-egl-wayland.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libwayland-client.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libwayland-server.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libnvidia-eglcore.so.580.178.04 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libnvidia-glsi.so.580.178.04 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libnvidia-gpucomp.so.580.178.04 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libnvidia-egl-gbm.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libnvidia-egl-xcb.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libnvidia-egl-xlib.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libxcb-present.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libxcb-dri3.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libpthread.so.0 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libX11-xcb.so.1 [0]
+   1542585:	
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-0.xkm"', fp = 0x515000034100
+Pclose: fp = 0x515000034100
+   1542586:	find library=libc.so.6 [0]; searching
+   1542586:	 search cache=/etc/ld.so.cache
+   1542586:	  trying file=/lib/x86_64-linux-gnu/libc.so.6
+   1542586:	
+   1542586:	
+   1542586:	calling init: /lib64/ld-linux-x86-64.so.2
+   1542586:	
+   1542586:	
+   1542586:	calling init: /lib/x86_64-linux-gnu/libc.so.6
+   1542586:	
+   1542586:	
+   1542586:	initialize program: sh
+   1542586:	
+   1542586:	
+   1542586:	transferring control: sh
+   1542586:	
+   1542587:	find library=libX11.so.6 [0]; searching
+   1542587:	 search cache=/etc/ld.so.cache
+   1542587:	  trying file=/lib/x86_64-linux-gnu/libX11.so.6
+   1542587:	
+   1542587:	find library=libxkbfile.so.1 [0]; searching
+   1542587:	 search cache=/etc/ld.so.cache
+   1542587:	  trying file=/lib/x86_64-linux-gnu/libxkbfile.so.1
+   1542587:	
+   1542587:	find library=libc.so.6 [0]; searching
+   1542587:	 search cache=/etc/ld.so.cache
+   1542587:	  trying file=/lib/x86_64-linux-gnu/libc.so.6
+   1542587:	
+   1542587:	find library=libxcb.so.1 [0]; searching
+   1542587:	 search cache=/etc/ld.so.cache
+   1542587:	  trying file=/lib/x86_64-linux-gnu/libxcb.so.1
+   1542587:	
+   1542587:	find library=libXau.so.6 [0]; searching
+   1542587:	 search cache=/etc/ld.so.cache
+   1542587:	  trying file=/lib/x86_64-linux-gnu/libXau.so.6
+   1542587:	
+   1542587:	find library=libXdmcp.so.6 [0]; searching
+   1542587:	 search cache=/etc/ld.so.cache
+   1542587:	  trying file=/lib/x86_64-linux-gnu/libXdmcp.so.6
+   1542587:	
+   1542587:	find library=libbsd.so.0 [0]; searching
+   1542587:	 search cache=/etc/ld.so.cache
+   1542587:	  trying file=/lib/x86_64-linux-gnu/libbsd.so.0
+   1542587:	
+   1542587:	find library=libmd.so.0 [0]; searching
+   1542587:	 search cache=/etc/ld.so.cache
+   1542587:	  trying file=/lib/x86_64-linux-gnu/libmd.so.0
+   1542587:	
+   1542587:	
+   1542587:	calling init: /lib64/ld-linux-x86-64.so.2
+   1542587:	
+   1542587:	
+   1542587:	calling init: /lib/x86_64-linux-gnu/libc.so.6
+   1542587:	
+   1542587:	
+   1542587:	calling init: /lib/x86_64-linux-gnu/libmd.so.0
+   1542587:	
+   1542587:	
+   1542587:	calling init: /lib/x86_64-linux-gnu/libbsd.so.0
+   1542587:	
+   1542587:	
+   1542587:	calling init: /lib/x86_64-linux-gnu/libXdmcp.so.6
+   1542587:	
+   1542587:	
+   1542587:	calling init: /lib/x86_64-linux-gnu/libXau.so.6
+   1542587:	
+   1542587:	
+   1542587:	calling init: /lib/x86_64-linux-gnu/libxcb.so.1
+   1542587:	
+   1542587:	
+   1542587:	calling init: /lib/x86_64-linux-gnu/libX11.so.6
+   1542587:	
+   1542587:	
+   1542587:	calling init: /lib/x86_64-linux-gnu/libxkbfile.so.1
+   1542587:	
+   1542587:	
+   1542587:	initialize program: /usr/bin/xkbcomp
+   1542587:	
+   1542587:	
+   1542587:	transferring control: /usr/bin/xkbcomp
+   1542587:	
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+   1542587:	
+   1542587:	calling fini:  [0]
+   1542587:	
+   1542587:	
+   1542587:	calling fini: /lib/x86_64-linux-gnu/libxkbfile.so.1 [0]
+   1542587:	
+   1542587:	
+   1542587:	calling fini: /lib/x86_64-linux-gnu/libX11.so.6 [0]
+   1542587:	
+   1542587:	
+   1542587:	calling fini: /lib/x86_64-linux-gnu/libxcb.so.1 [0]
+   1542587:	
+   1542587:	
+   1542587:	calling fini: /lib/x86_64-linux-gnu/libXau.so.6 [0]
+   1542587:	
+   1542587:	
+   1542587:	calling fini: /lib/x86_64-linux-gnu/libXdmcp.so.6 [0]
+   1542587:	
+   1542587:	
+   1542587:	calling fini: /lib/x86_64-linux-gnu/libbsd.so.0 [0]
+   1542587:	
+   1542587:	
+   1542587:	calling fini: /lib/x86_64-linux-gnu/libmd.so.0 [0]
+   1542587:	
+   1542587:	
+   1542587:	calling fini: /lib/x86_64-linux-gnu/libc.so.6 [0]
+   1542587:	
+   1542587:	
+   1542587:	calling fini: /lib64/ld-linux-x86-64.so.2 [0]
+   1542587:	
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-0.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(1542585).
+client(0): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 5 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 3).
+client(200000): Reserved pid(1542583).
+client(200000): Reserved cmdname(python3) and cmdargs(tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth SecurityIdentityTests.test_bootstrap_binds_supervisor_before_native_requests).
+AllocNewConnection: client index = 1, socket fd = 5, local = 1
+client(200000): Released pid(1542583).
+client(200000): Released cmdline(python3) and cmdargs(tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth SecurityIdentityTests.test_bootstrap_binds_supervisor_before_native_requests).
+(dix) removing device 2
+(dix) removing device 3
+(dix) removing device 5
+(dix) removing device 4
+(dix) removing device 7
+(dix) removing device 6
+   1542585:	
+   1542585:	calling fini: /usr/lib/x86_64-linux-gnu/dri/swrast_dri.so [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libgbm.so.1 [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libexpat.so.1 [0]
+   1542585:	
+client(0): Released pid(1542585).
+client(0): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 5 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 3).
+   1542585:	
+   1542585:	calling fini:  [0]
+   1542585:	
+   1542585:	
+   1542585:	calling fini: /lib/x86_64-linux-gnu/libasan.so.8 [0]
+   1542585:	
+
+=================================================================
+==1542585==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 24 byte(s) in 1 object(s) allocated from:
+    #0 0x7a9df70fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7a9df5f287b0 in __GI___tsearch misc/tsearch.c:338
+    #2 0x7a9df708bb8e in tsearch ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:5986
+    #3 0x7a9df4d69182  (<unknown module>)
+
+Indirect leak of 320 byte(s) in 1 object(s) allocated from:
+    #0 0x7a9df70fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x7a9df31b98cb  (/usr/lib/x86_64-linux-gnu/gbm/nvidia-drm_gbm.so+0x178cb) (BuildId: 67240899edfcaf9f5a297304394cfbfd5187fa18)
+    #2 0x7a9df601957d  (<unknown module>)
+    #3 0x7a9df601961d  (<unknown module>)
+    #4 0x7a9df4d68903  (<unknown module>)
+
+Indirect leak of 112 byte(s) in 1 object(s) allocated from:
+    #0 0x7a9df70fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x7a9df31bae6c  (/usr/lib/x86_64-linux-gnu/gbm/nvidia-drm_gbm.so+0x18e6c) (BuildId: 67240899edfcaf9f5a297304394cfbfd5187fa18)
+
+Indirect leak of 72 byte(s) in 1 object(s) allocated from:
+    #0 0x7a9df70fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x7a9df4d6863c  (<unknown module>)
+
+Indirect leak of 24 byte(s) in 1 object(s) allocated from:
+    #0 0x7a9df70fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x7a9df6019463  (<unknown module>)
+    #2 0x7a9df601957d  (<unknown module>)
+    #3 0x7a9df601961d  (<unknown module>)
+    #4 0x7a9df4d68903  (<unknown module>)
+
+Indirect leak of 11 byte(s) in 1 object(s) allocated from:
+    #0 0x7a9df70f74e8 in strdup ../../../../src/libsanitizer/asan/asan_interceptors.cpp:578
+    #1 0x7a9df6019477  (<unknown module>)
+    #2 0x7a9df601957d  (<unknown module>)
+    #3 0x7a9df601961d  (<unknown module>)
+    #4 0x7a9df4d68903  (<unknown module>)
+
+SUMMARY: AddressSanitizer: 563 byte(s) leaked in 6 allocation(s).
+
+Backtrace:
+0: /lib/x86_64-linux-gnu/libasan.so.8 (0x7a9df7000000+0x831e0) [0x7a9df70831e0]
+1: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb (0x5db6b6c5c000+0x19df152) [0x5db6b863b152]
+2: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb (0x5db6b6c5c000+0x19f7423) [0x5db6b8653423]
+3: /lib/x86_64-linux-gnu/libc.so.6 (0x7a9df5e00000+0x45330) [0x7a9df5e45330]
+4: /lib/x86_64-linux-gnu/libc.so.6 (pthread_kill+0x11c) [0x7a9df5e9ec0c]
+5: /lib/x86_64-linux-gnu/libc.so.6 (gsignal+0x1e) [0x7a9df5e4527e]
+6: /lib/x86_64-linux-gnu/libc.so.6 (abort+0xdf) [0x7a9df5e288ff]
+7: /lib/x86_64-linux-gnu/libasan.so.8 (0x7a9df7000000+0x11fc30) [0x7a9df711fc30]
+8: /lib/x86_64-linux-gnu/libasan.so.8 (0x7a9df7000000+0x1307cd) [0x7a9df71307cd]
+9: /lib/x86_64-linux-gnu/libasan.so.8 (0x7a9df7000000+0x13c9cf) [0x7a9df713c9cf]
+10: /lib/x86_64-linux-gnu/libasan.so.8 (0x7a9df7000000+0x13a105) [0x7a9df713a105]
+11: /lib/x86_64-linux-gnu/libc.so.6 (__cxa_finalize+0xc2) [0x7a9df5e47382]
+12: /lib/x86_64-linux-gnu/libasan.so.8 (0x7a9df7000000+0x3b7b7) [0x7a9df703b7b7]
+
+
+Fatal server error:
+Caught signal 6 (Aborted). Server aborting
+

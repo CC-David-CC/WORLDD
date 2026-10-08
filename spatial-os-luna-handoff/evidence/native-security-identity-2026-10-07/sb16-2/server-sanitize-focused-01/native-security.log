@@ -1,0 +1,355 @@
+test_application_cannot_revoke_any_credentials (__main__.SecurityIdentityTests.test_application_cannot_revoke_any_credentials) ... ERROR
+test_application_labels_are_immutable_and_connections_are_distinct (__main__.SecurityIdentityTests.test_application_labels_are_immutable_and_connections_are_distinct) ... ERROR
+test_bad_cookies_cannot_use_disabled_host_access_control (__main__.SecurityIdentityTests.test_bad_cookies_cannot_use_disabled_host_access_control) ... ERROR
+test_bootstrap_binds_supervisor_before_native_requests (__main__.SecurityIdentityTests.test_bootstrap_binds_supervisor_before_native_requests) ... ERROR
+test_bootstrap_rejects_unknown_fields_empty_and_excessive_payloads (__main__.SecurityIdentityTests.test_bootstrap_rejects_unknown_fields_empty_and_excessive_payloads) ... ok
+test_bootstrap_requires_sealed_valid_protobuf (__main__.SecurityIdentityTests.test_bootstrap_requires_sealed_valid_protobuf) ... ok
+test_broker_can_issue_only_application_credentials (__main__.SecurityIdentityTests.test_broker_can_issue_only_application_credentials) ... ERROR
+test_compositor_cannot_issue_credentials (__main__.SecurityIdentityTests.test_compositor_cannot_issue_credentials) ... ERROR
+test_credential_ownership_prevents_other_broker_revocation (__main__.SecurityIdentityTests.test_credential_ownership_prevents_other_broker_revocation) ... ERROR
+test_invalid_labels_and_roles_are_rejected_without_changing_identity (__main__.SecurityIdentityTests.test_invalid_labels_and_roles_are_rejected_without_changing_identity) ... ERROR
+test_issuing_connection_loss_revokes_its_credentials (__main__.SecurityIdentityTests.test_issuing_connection_loss_revokes_its_credentials) ... ERROR
+test_malformed_and_unsupported_requests_leave_connection_usable (__main__.SecurityIdentityTests.test_malformed_and_unsupported_requests_leave_connection_usable) ... ERROR
+test_new_server_generation_rejects_old_application_cookie (__main__.SecurityIdentityTests.test_new_server_generation_rejects_old_application_cookie) ... ERROR
+test_new_server_generation_rejects_old_application_cookie (__main__.SecurityIdentityTests.test_new_server_generation_rejects_old_application_cookie) ... ERROR
+test_ordinary_xlib_application_uses_private_xauthority (__main__.SecurityIdentityTests.test_ordinary_xlib_application_uses_private_xauthority) ... /usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpn0g5lt8h/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmph35z1q4h/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpj9avd9ra/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpxngsomjs/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpatdxyotr/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmplxwals3i/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpsmg5n08h/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpvq63ew8n/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpu3gs26e_/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpncltdjt2/server-0.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/tmpncltdjt2/server-1.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ERROR
+test_registry_is_bounded_and_revoked_slots_are_reusable (__main__.SecurityIdentityTests.test_registry_is_bounded_and_revoked_slots_are_reusable) ... ERROR
+test_revocation_closes_existing_connections_and_blocks_reuse (__main__.SecurityIdentityTests.test_revocation_closes_existing_connections_and_blocks_reuse) ... ERROR
+test_revoking_broker_cascades_without_harming_independent_credentials (__main__.SecurityIdentityTests.test_revoking_broker_cascades_without_harming_independent_credentials) ... ERROR
+test_supervisor_cannot_revoke_bootstrap_or_revoke_an_unknown_credential (__main__.SecurityIdentityTests.test_supervisor_cannot_revoke_bootstrap_or_revoke_an_unknown_credential) ... ERROR
+test_supervisor_connections_have_separate_issuance_lifetimes (__main__.SecurityIdentityTests.test_supervisor_connections_have_separate_issuance_lifetimes) ... ERROR
+test_swapped_native_client_has_the_same_identity_checks (__main__.SecurityIdentityTests.test_swapped_native_client_has_the_same_identity_checks) ... ERROR
+test_unknown_fields_and_replayed_request_ids_are_rejected (__main__.SecurityIdentityTests.test_unknown_fields_and_replayed_request_ids_are_rejected) ... ERROR
+test_valid_maximum_opaque_labels_round_trip (__main__.SecurityIdentityTests.test_valid_maximum_opaque_labels_round_trip) ... ERROR
+
+======================================================================
+ERROR: test_application_cannot_revoke_any_credentials (__main__.SecurityIdentityTests.test_application_cannot_revoke_any_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_application_labels_are_immutable_and_connections_are_distinct (__main__.SecurityIdentityTests.test_application_labels_are_immutable_and_connections_are_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_bad_cookies_cannot_use_disabled_host_access_control (__main__.SecurityIdentityTests.test_bad_cookies_cannot_use_disabled_host_access_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_bootstrap_binds_supervisor_before_native_requests (__main__.SecurityIdentityTests.test_bootstrap_binds_supervisor_before_native_requests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_broker_can_issue_only_application_credentials (__main__.SecurityIdentityTests.test_broker_can_issue_only_application_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_compositor_cannot_issue_credentials (__main__.SecurityIdentityTests.test_compositor_cannot_issue_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_credential_ownership_prevents_other_broker_revocation (__main__.SecurityIdentityTests.test_credential_ownership_prevents_other_broker_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_invalid_labels_and_roles_are_rejected_without_changing_identity (__main__.SecurityIdentityTests.test_invalid_labels_and_roles_are_rejected_without_changing_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_issuing_connection_loss_revokes_its_credentials (__main__.SecurityIdentityTests.test_issuing_connection_loss_revokes_its_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_malformed_and_unsupported_requests_leave_connection_usable (__main__.SecurityIdentityTests.test_malformed_and_unsupported_requests_leave_connection_usable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_new_server_generation_rejects_old_application_cookie (__main__.SecurityIdentityTests.test_new_server_generation_rejects_old_application_cookie)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '17', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '4']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_new_server_generation_rejects_old_application_cookie (__main__.SecurityIdentityTests.test_new_server_generation_rejects_old_application_cookie)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_ordinary_xlib_application_uses_private_xauthority (__main__.SecurityIdentityTests.test_ordinary_xlib_application_uses_private_xauthority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_registry_is_bounded_and_revoked_slots_are_reusable (__main__.SecurityIdentityTests.test_registry_is_bounded_and_revoked_slots_are_reusable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_revocation_closes_existing_connections_and_blocks_reuse (__main__.SecurityIdentityTests.test_revocation_closes_existing_connections_and_blocks_reuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_revoking_broker_cascades_without_harming_independent_credentials (__main__.SecurityIdentityTests.test_revoking_broker_cascades_without_harming_independent_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_supervisor_cannot_revoke_bootstrap_or_revoke_an_unknown_credential (__main__.SecurityIdentityTests.test_supervisor_cannot_revoke_bootstrap_or_revoke_an_unknown_credential)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_supervisor_connections_have_separate_issuance_lifetimes (__main__.SecurityIdentityTests.test_supervisor_connections_have_separate_issuance_lifetimes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_swapped_native_client_has_the_same_identity_checks (__main__.SecurityIdentityTests.test_swapped_native_client_has_the_same_identity_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_unknown_fields_and_replayed_request_ids_are_rejected (__main__.SecurityIdentityTests.test_unknown_fields_and_replayed_request_ids_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+======================================================================
+ERROR: test_valid_maximum_opaque_labels_round_trip (__main__.SecurityIdentityTests.test_valid_maximum_opaque_labels_round_trip)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 117, in close
+    try: proc.wait(timeout=4)
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1d06a2c051e7df88614dbd5602cd577efb10a895c1f34a084bf2aced80203ec4/source/build-sanitize/hw/vfb/Xvfb', '-displayfd', '5', '-screen', '0', '128x128x24', '-nolisten', 'tcp', '-noreset', '-ac', '+byteswappedclients', '-spatial-security-fd', '3']' timed out after 4 seconds
+
+----------------------------------------------------------------------
+Ran 22 tests in 87.392s
+
+FAILED (errors=21)

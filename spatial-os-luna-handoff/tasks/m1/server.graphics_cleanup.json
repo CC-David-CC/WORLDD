@@ -1,0 +1,32 @@
+{
+  "id": "server.graphics_cleanup",
+  "phase": "M15",
+  "status": "failed",
+  "scope": "Sanitizer-clean shutdown with GLX and installed graphics providers",
+  "contract": "docs/NATIVE_SECURITY_IDENTITY.md",
+  "observed_hosts": ["sb16", "sb16-2"],
+  "observed_failure": "Instrumented project Xvfb reports graphics-provider allocations after GLX shutdown.",
+  "evidence": "evidence/native-security-identity-2026-10-07",
+  "fixed_server_defects": [
+    "GLX serverClient private was not released by the ordinary client-state callback",
+    "Repeated fatal shutdown could free the Xvfb framebuffer and CRTC array twice",
+    "Display-address retries leaked an unbound listener and its transport record"
+  ],
+  "remaining_defects": [
+    "Default GLX initialization loads NVIDIA EGL/GBM and leaves 563 bytes in the observed shutdown probe",
+    "Mesa-only EGL selection also leaves driver allocations in the observed shutdown probe"
+  ],
+  "inspection_notes": [
+    "The installed swrast_dri.so resolves to libdril_dri.so from libgl1-mesa-dri",
+    "Loader diagnostics confirm EGL provider enumeration during legacy DRI initialization",
+    "LIBGL_ALWAYS_SOFTWARE alone does not prevent NVIDIA EGL/GBM from loading",
+    "Core-X identity sanitizer tests disable GLX explicitly; their results do not resolve this failure"
+  ],
+  "required_followup": [
+    "Inspect the installed Mesa legacy DRI/EGL bridge and provider cleanup ownership",
+    "Preserve the current failing probe and all core-X identity assertions",
+    "Test the actual production graphics provider with address, undefined-behavior, and leak checks",
+    "Record any provider limitation separately from completed native-session acceptance",
+    "Do not disable sanitizer checks or silently suppress graphics-provider failures"
+  ]
+}

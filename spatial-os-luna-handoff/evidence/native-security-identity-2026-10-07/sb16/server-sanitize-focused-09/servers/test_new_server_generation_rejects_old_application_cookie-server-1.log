@@ -1,0 +1,110 @@
+Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )
+_XSERVTransSocketUNIXCreateListener: ...SocketCreateListener() failed
+_XSERVTransMakeAllCOTSServerListeners: server already running
+_XSERVTransSocketUNIXCreateListener: ...SocketCreateListener() failed
+_XSERVTransMakeAllCOTSServerListeners: server already running
+Sync Extension 3.1
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-2.xkm"', fp = 0x515000001e80
+Pclose: fp = 0x515000001e80
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-2.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(1543274).
+client(0): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 7 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 4 -extension GLX).
+client(200000): Reserved pid(1543215).
+client(200000): Reserved cmdname(python3) and cmdargs(tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+AllocNewConnection: client index = 1, socket fd = 7, local = 1
+client(400000): Reserved pid(1543215).
+client(400000): Reserved cmdname(python3) and cmdargs(tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+AllocNewConnection: client index = 2, socket fd = 10, local = 1
+client(400000): Released pid(1543215).
+client(400000): Released cmdline(python3) and cmdargs(tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+client(200000): Released pid(1543215).
+client(200000): Released cmdline(python3) and cmdargs(tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+(dix) removing device 2
+(dix) removing device 3
+(dix) removing device 5
+(dix) removing device 4
+(dix) removing device 7
+(dix) removing device 6
+client(0): Released pid(1543274).
+client(0): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 7 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 4 -extension GLX).
+
+=================================================================
+==1543274==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 192 byte(s) in 2 object(s) allocated from:
+    #0 0x7240da0fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x5d268a51d2fa in _XSERVTransSocketOpen ../os/Xtranssock.c:360
+    #2 0x5d268a51eead in _XSERVTransSocketOpenCOTSServer ../os/Xtranssock.c:513
+    #3 0x5d268a5292a3 in _XSERVTransOpen ../os/Xtrans.c:412
+    #4 0x5d268a529ba4 in _XSERVTransOpenCOTSServer ../os/Xtrans.c:517
+    #5 0x5d268a52c9d6 in _XSERVTransMakeAllCOTSServerListeners ../os/Xtrans.c:912
+    #6 0x5d268a50198d in TryCreateSocket ../os/connection.c:233
+    #7 0x5d268a501c7c in CreateWellKnownSockets ../os/connection.c:264
+    #8 0x5d2689d38404 in dix_main ../dix/main.c:157
+    #9 0x5d2689afedac in main ../dix/stubmain.c:34
+    #10 0x7240d8e2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #11 0x7240d8e2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #12 0x5d2689aed424 in _start (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb+0xfce424) (BuildId: 7978f508dd675a9b73a90e7f6f1ce81a0e463c74)
+
+Indirect leak of 4 byte(s) in 2 object(s) allocated from:
+    #0 0x7240da0f74e8 in strdup ../../../../src/libsanitizer/asan/asan_interceptors.cpp:578
+    #1 0x5d268a528bb8 in _XSERVTransParseAddress ../os/Xtrans.c:348
+    #2 0x5d268a52903c in _XSERVTransOpen ../os/Xtrans.c:386
+    #3 0x5d268a529ba4 in _XSERVTransOpenCOTSServer ../os/Xtrans.c:517
+    #4 0x5d268a52c9d6 in _XSERVTransMakeAllCOTSServerListeners ../os/Xtrans.c:912
+    #5 0x5d268a50198d in TryCreateSocket ../os/connection.c:233
+    #6 0x5d268a501c7c in CreateWellKnownSockets ../os/connection.c:264
+    #7 0x5d2689d38404 in dix_main ../dix/main.c:157
+    #8 0x5d2689afedac in main ../dix/stubmain.c:34
+    #9 0x7240d8e2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7240d8e2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x5d2689aed424 in _start (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb+0xfce424) (BuildId: 7978f508dd675a9b73a90e7f6f1ce81a0e463c74)
+
+SUMMARY: AddressSanitizer: 196 byte(s) leaked in 4 allocation(s).
+
+Backtrace:
+0: /lib/x86_64-linux-gnu/libasan.so.8 (0x7240da000000+0x831e0) [0x7240da0831e0]
+1: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb (0x5d2688b1f000+0x19df152) [0x5d268a4fe152]
+2: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb (0x5d2688b1f000+0x19f7423) [0x5d268a516423]
+3: /lib/x86_64-linux-gnu/libc.so.6 (0x7240d8e00000+0x45330) [0x7240d8e45330]
+4: /lib/x86_64-linux-gnu/libc.so.6 (pthread_kill+0x11c) [0x7240d8e9ec0c]
+5: /lib/x86_64-linux-gnu/libc.so.6 (gsignal+0x1e) [0x7240d8e4527e]
+6: /lib/x86_64-linux-gnu/libc.so.6 (abort+0xdf) [0x7240d8e288ff]
+7: /lib/x86_64-linux-gnu/libasan.so.8 (0x7240da000000+0x11fc30) [0x7240da11fc30]
+8: /lib/x86_64-linux-gnu/libasan.so.8 (0x7240da000000+0x1307cd) [0x7240da1307cd]
+9: /lib/x86_64-linux-gnu/libasan.so.8 (0x7240da000000+0x13c9cf) [0x7240da13c9cf]
+10: /lib/x86_64-linux-gnu/libasan.so.8 (0x7240da000000+0x13a105) [0x7240da13a105]
+11: /lib/x86_64-linux-gnu/libc.so.6 (__cxa_finalize+0xc2) [0x7240d8e47382]
+12: /lib/x86_64-linux-gnu/libasan.so.8 (0x7240da000000+0x3b7b7) [0x7240da03b7b7]
+
+
+Fatal server error:
+Caught signal 6 (Aborted). Server aborting
+

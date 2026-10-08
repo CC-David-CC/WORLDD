@@ -1,0 +1,51 @@
+[
+  {
+    "name": "xserver",
+    "argv": [
+      "python3",
+      "tools/build_xserver.py",
+      "--evidence-dir",
+      "local/m04-security-server-02"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DSPATIAL_INPUT_TESTS=ON",
+      "-DSPATIAL_SANITIZERS=OFF"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "spatial-security-auth",
+      "security-python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "native-security",
+    "argv": [
+      "python3",
+      "tests/native/test_security_identity.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+    ],
+    "exit_code": 1
+  }
+]

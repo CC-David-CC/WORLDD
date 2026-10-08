@@ -29,11 +29,14 @@
     "-Dxkb_bin_dir=/usr/bin",
     "-Dfontrootdir=/usr/share/fonts/X11"
   ],
-  "patches": ["server/patches/0001-spatial-input.patch"],
+  "patches": ["server/patches/0001-spatial-input.patch", "server/patches/0002-spatial-security.patch", "server/patches/0003-server-shutdown.patch"],
   "overlays": {
     "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",
     "server/xlibre/spatialinput.h": "include/spatialinput.h",
     "server/xlibre/meson.build": "Xext/spatial/meson.build",
-    "proto/spatial/input/v1/input.proto": "Xext/spatial/input.proto"
+    "proto/spatial/input/v1/input.proto": "Xext/spatial/input.proto",
+    "server/xlibre/spatialsecurity.c": "Xext/spatial/spatialsecurity.c",
+    "server/xlibre/spatialsecurity.h": "include/spatialsecurity.h",
+    "proto/spatial/security/v1/security.proto": "Xext/spatial/security.proto"
   }
 }

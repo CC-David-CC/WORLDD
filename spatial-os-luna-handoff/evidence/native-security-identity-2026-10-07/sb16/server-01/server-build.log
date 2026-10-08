@@ -1,0 +1,457 @@
+ninja: Entering directory `/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/7486ab15e3bad17b7e11182a8d0349e9cdd15405e9490a06a030d1b87008b808/source/build'
+[1/668] Compiling C object config/libxserver_config.a.p/config.c.o
+[2/668] Compiling C object config/libxserver_config.a.p/dbus-core.c.o
+[3/668] Generating 'dix/libxserver_dix.a.p/BuiltInAtoms.c'
+[4/668] Compiling C object config/libxserver_config.a.p/udev.c.o
+[5/668] Linking static target config/libxserver_config.a
+[6/668] Compiling C object dix/libxserver_dix.a.p/meson-generated_BuiltInAtoms.c.o
+[7/668] Compiling C object dix/libxserver_dix.a.p/client.c.o
+[8/668] Compiling C object dix/libxserver_dix.a.p/atom.c.o
+[9/668] Compiling C object dix/libxserver_dix.a.p/color.c.o
+[10/668] Compiling C object dix/libxserver_dix.a.p/colormap.c.o
+[11/668] Compiling C object dix/libxserver_dix.a.p/cursor.c.o
+[12/668] Compiling C object dix/libxserver_dix.a.p/devices.c.o
+[13/668] Compiling C object dix/libxserver_dix.a.p/display.c.o
+[14/668] Compiling C object dix/libxserver_dix.a.p/dispatch.c.o
+[15/668] Compiling C object dix/libxserver_dix.a.p/main.c.o
+[16/668] Compiling C object dix/libxserver_dix.a.p/dixfonts.c.o
+[17/668] Compiling C object dix/libxserver_dix.a.p/dixutils.c.o
+[18/668] Compiling C object dix/libxserver_dix.a.p/enterleave.c.o
+[19/668] Compiling C object dix/libxserver_dix.a.p/eventconvert.c.o
+[20/668] Compiling C object dix/libxserver_dix.a.p/extension.c.o
+[21/668] Compiling C object dix/libxserver_dix.a.p/events.c.o
+[22/668] Compiling C object dix/libxserver_dix.a.p/gc.c.o
+[23/668] Compiling C object dix/libxserver_dix.a.p/gestures.c.o
+[24/668] Compiling C object dix/libxserver_dix.a.p/globals.c.o
+[25/668] Compiling C object dix/libxserver_dix.a.p/getevents.c.o
+[26/668] Compiling C object dix/libxserver_dix.a.p/glyphcurs.c.o
+[27/668] Compiling C object dix/libxserver_dix.a.p/grabs.c.o
+[28/668] Compiling C object dix/libxserver_dix.a.p/inpututils.c.o
+[29/668] Compiling C object dix/libxserver_dix.a.p/lookup.c.o
+[30/668] Compiling C object dix/libxserver_dix.a.p/pixmap.c.o
+[31/668] Compiling C object dix/libxserver_dix.a.p/privates.c.o
+[32/668] Compiling C object dix/libxserver_dix.a.p/property.c.o
+[33/668] Compiling C object dix/libxserver_dix.a.p/ptrveloc.c.o
+[34/668] Compiling C object dix/libxserver_dix.a.p/registry.c.o
+[35/668] Compiling C object dix/libxserver_dix.a.p/region.c.o
+[36/668] Compiling C object dix/libxserver_dix.a.p/rpcbuf.c.o
+[37/668] Compiling C object dix/libxserver_dix.a.p/resource.c.o
+[38/668] Compiling C object dix/libxserver_dix.a.p/screen_hooks.c.o
+[39/668] Compiling C object dix/libxserver_dix.a.p/selection.c.o
+[40/668] Compiling C object dix/libxserver_dix.a.p/settings.c.o
+[41/668] Compiling C object dix/libxserver_dix.a.p/screen.c.o
+[42/668] Compiling C object dix/libxserver_dix.a.p/swaprep.c.o
+[43/668] Compiling C object dix/libxserver_dix.a.p/swapreq.c.o
+[44/668] Compiling C object dix/libxserver_dix.a.p/tables.c.o
+[45/668] Compiling C object dix/libxserver_dix.a.p/touch.c.o
+[46/668] Compiling C object dix/libxserver_main.a.p/stubmain.c.o
+[47/668] Linking static target dix/libxserver_main.a
+[48/668] Compiling C object dri3/libxserver_dri3.a.p/dri3.c.o
+[49/668] Compiling C object dix/libxserver_dix.a.p/window.c.o
+[50/668] Linking static target dix/libxserver_dix.a
+[51/668] Compiling C object dri3/libxserver_dri3.a.p/dri3_request.c.o
+[52/668] Compiling C object dri3/libxserver_dri3.a.p/dri3_screen.c.o
+[53/668] Linking static target dri3/libxserver_dri3.a
+[54/668] Compiling C object glx/libxserver_glx.a.p/indirect_dispatch.c.o
+[55/668] Compiling C object glx/libxserver_glx.a.p/indirect_dispatch_swap.c.o
+[56/668] Compiling C object glx/libxserver_glx.a.p/indirect_reqsize.c.o
+[57/668] Compiling C object glx/libxserver_glx.a.p/indirect_size_get.c.o
+[58/668] Compiling C object glx/libxserver_glx.a.p/indirect_table.c.o
+[59/668] Compiling C object glx/libxserver_glx.a.p/clientinfo.c.o
+[60/668] Compiling C object glx/libxserver_glx.a.p/extension_string.c.o
+[61/668] Compiling C object glx/libxserver_glx.a.p/createcontext.c.o
+[62/668] Compiling C object glx/libxserver_glx.a.p/indirect_util.c.o
+[63/668] Compiling C object glx/libxserver_glx.a.p/indirect_program.c.o
+[64/668] Compiling C object glx/libxserver_glx.a.p/indirect_texture_compression.c.o
+[65/668] Compiling C object glx/libxserver_glx.a.p/glxcmds.c.o
+[66/668] Compiling C object glx/libxserver_glx.a.p/glxcmdsswap.c.o
+[67/668] Compiling C object glx/libxserver_glx.a.p/glxext.c.o
+[68/668] Compiling C object glx/libxserver_glx.a.p/glxscreens.c.o
+[69/668] Compiling C object glx/libxserver_glx.a.p/render2.c.o
+[70/668] Compiling C object glx/libxserver_glx.a.p/render2swap.c.o
+[71/668] Compiling C object glx/libxserver_glx.a.p/renderpix.c.o
+[72/668] Compiling C object glx/libxserver_glx.a.p/renderpixswap.c.o
+[73/668] Compiling C object glx/libxserver_glx.a.p/rensize.c.o
+[74/668] Compiling C object glx/libxserver_glx.a.p/single2.c.o
+[75/668] Compiling C object glx/libxserver_glx.a.p/single2swap.c.o
+[76/668] Compiling C object glx/libxserver_glx.a.p/singlepix.c.o
+[77/668] Compiling C object glx/libxserver_glx.a.p/singlepixswap.c.o
+[78/668] Compiling C object glx/libxserver_glx.a.p/singlesize.c.o
+[79/668] Compiling C object glx/libxserver_glx.a.p/swap_interval.c.o
+[80/668] Compiling C object glx/libxserver_glx.a.p/xfont.c.o
+[81/668] Compiling C object glx/libxserver_glx.a.p/glx_dri_glxdriswrast.c.o
+[82/668] Compiling C object glx/libxserver_glx.a.p/glx_dri_glxdricommon.c.o
+[83/668] Linking static target glx/libxserver_glx.a
+[84/668] Compiling C object glx/libglxvnd.a.p/vndcmds.c.o
+[85/668] Compiling C object glx/libglxvnd.a.p/vndext.c.o
+[86/668] Compiling C object glx/libglxvnd.a.p/vndservermapping.c.o
+[87/668] Compiling C object glx/libglxvnd.a.p/vndservervendor.c.o
+[88/668] Linking static target glx/libglxvnd.a
+[89/668] Compiling C object fb/libxserver_fb.a.p/fballpriv.c.o
+[90/668] Compiling C object fb/libxserver_fb.a.p/fbarc.c.o
+[91/668] Compiling C object fb/libxserver_fb.a.p/fbblt.c.o
+[92/668] Compiling C object fb/libxserver_fb.a.p/fbbits.c.o
+[93/668] Compiling C object fb/libxserver_fb.a.p/fbcmap_mi.c.o
+[94/668] Compiling C object fb/libxserver_fb.a.p/fbbltone.c.o
+[95/668] Compiling C object fb/libxserver_fb.a.p/fbcopy.c.o
+[96/668] Compiling C object fb/libxserver_fb.a.p/fbfill.c.o
+[97/668] Compiling C object fb/libxserver_fb.a.p/fbfillrect.c.o
+[98/668] Compiling C object fb/libxserver_fb.a.p/fbfillsp.c.o
+[99/668] Compiling C object fb/libxserver_fb.a.p/fbgc.c.o
+[100/668] Compiling C object fb/libxserver_fb.a.p/fbgetsp.c.o
+[101/668] Compiling C object fb/libxserver_fb.a.p/fbglyph.c.o
+[102/668] Compiling C object fb/libxserver_fb.a.p/fbimage.c.o
+[103/668] Compiling C object fb/libxserver_fb.a.p/fbline.c.o
+[104/668] Compiling C object fb/libxserver_fb.a.p/fboverlay.c.o
+[105/668] Compiling C object fb/libxserver_fb.a.p/fbpict.c.o
+[106/668] Compiling C object fb/libxserver_fb.a.p/fbpixmap.c.o
+[107/668] Compiling C object fb/libxserver_fb.a.p/fbpoint.c.o
+[108/668] Compiling C object fb/libxserver_fb.a.p/fbpush.c.o
+[109/668] Compiling C object fb/libxserver_fb.a.p/fbscreen.c.o
+[110/668] Compiling C object fb/libxserver_fb.a.p/fbseg.c.o
+[111/668] Compiling C object fb/libxserver_fb.a.p/fbsetsp.c.o
+[112/668] Compiling C object fb/libxserver_fb.a.p/fbsolid.c.o
+[113/668] Compiling C object fb/libxserver_fb.a.p/fbtile.c.o
+[114/668] Compiling C object fb/libxserver_fb.a.p/fbtrap.c.o
+[115/668] Compiling C object fb/libxserver_fb.a.p/fbutil.c.o
+[116/668] Compiling C object fb/libxserver_fb.a.p/fbwindow.c.o
+[117/668] Linking static target fb/libxserver_fb.a
+[118/668] Compiling C object fb/libxserver_wfb.a.p/fballpriv.c.o
+[119/668] Compiling C object fb/libxserver_wfb.a.p/fbarc.c.o
+[120/668] Compiling C object fb/libxserver_wfb.a.p/fbblt.c.o
+[121/668] Compiling C object fb/libxserver_wfb.a.p/fbbits.c.o
+[122/668] Compiling C object fb/libxserver_wfb.a.p/fbcmap_mi.c.o
+[123/668] Compiling C object fb/libxserver_wfb.a.p/fbbltone.c.o
+[124/668] Compiling C object fb/libxserver_wfb.a.p/fbcopy.c.o
+[125/668] Compiling C object fb/libxserver_wfb.a.p/fbfill.c.o
+[126/668] Compiling C object fb/libxserver_wfb.a.p/fbfillsp.c.o
+[127/668] Compiling C object fb/libxserver_wfb.a.p/fbfillrect.c.o
+[128/668] Compiling C object fb/libxserver_wfb.a.p/fbgc.c.o
+[129/668] Compiling C object fb/libxserver_wfb.a.p/fbgetsp.c.o
+[130/668] Compiling C object fb/libxserver_wfb.a.p/fbglyph.c.o
+[131/668] Compiling C object fb/libxserver_wfb.a.p/fbimage.c.o
+[132/668] Compiling C object fb/libxserver_wfb.a.p/fbline.c.o
+[133/668] Compiling C object fb/libxserver_wfb.a.p/fboverlay.c.o
+[134/668] Compiling C object fb/libxserver_wfb.a.p/fbpict.c.o
+[135/668] Compiling C object fb/libxserver_wfb.a.p/fbpixmap.c.o
+[136/668] Compiling C object fb/libxserver_wfb.a.p/fbpoint.c.o
+[137/668] Compiling C object fb/libxserver_wfb.a.p/fbpush.c.o
+[138/668] Compiling C object fb/libxserver_wfb.a.p/fbscreen.c.o
+[139/668] Compiling C object fb/libxserver_wfb.a.p/fbseg.c.o
+[140/668] Compiling C object fb/libxserver_wfb.a.p/fbsetsp.c.o
+[141/668] Compiling C object fb/libxserver_wfb.a.p/fbsolid.c.o
+[142/668] Compiling C object fb/libxserver_wfb.a.p/fbtile.c.o
+[143/668] Compiling C object fb/libxserver_wfb.a.p/fbtrap.c.o
+[144/668] Compiling C object fb/libxserver_wfb.a.p/fbutil.c.o
+[145/668] Compiling C object fb/libxserver_wfb.a.p/fbwindow.c.o
+[146/668] Linking static target fb/libxserver_wfb.a
+[147/668] Compiling C object mi/libxserver_mi.a.p/micmap.c.o
+[148/668] Compiling C object mi/libxserver_mi.a.p/miarc.c.o
+[149/668] Compiling C object mi/libxserver_mi.a.p/micopy.c.o
+[150/668] Compiling C object mi/libxserver_mi.a.p/midash.c.o
+[151/668] Compiling C object mi/libxserver_mi.a.p/midispcur.c.o
+[152/668] Compiling C object mi/libxserver_mi.a.p/mieq.c.o
+[153/668] Compiling C object mi/libxserver_mi.a.p/miexpose.c.o
+[154/668] Compiling C object mi/libxserver_mi.a.p/mifillarc.c.o
+[155/668] Compiling C object mi/libxserver_mi.a.p/migc.c.o
+[156/668] Compiling C object mi/libxserver_mi.a.p/miglblt.c.o
+[157/668] Compiling C object mi/libxserver_mi.a.p/mioverlay.c.o
+[158/668] Compiling C object mi/libxserver_mi.a.p/mipointer.c.o
+[159/668] Compiling C object mi/libxserver_mi.a.p/mipolypnt.c.o
+[160/668] Compiling C object mi/libxserver_mi.a.p/mipoly.c.o
+[161/668] Compiling C object mi/libxserver_mi.a.p/mipolyrect.c.o
+[162/668] Compiling C object mi/libxserver_mi.a.p/mipolyseg.c.o
+[163/668] Compiling C object mi/libxserver_mi.a.p/mipolytext.c.o
+[164/668] Compiling C object mi/libxserver_mi.a.p/mipushpxl.c.o
+[165/668] Compiling C object mi/libxserver_mi.a.p/miscrinit.c.o
+[166/668] Compiling C object mi/libxserver_mi.a.p/misprite.c.o
+[167/668] Compiling C object mi/libxserver_mi.a.p/mivaltree.c.o
+[168/668] Compiling C object mi/libxserver_mi.a.p/miwideline.c.o
+[169/668] Compiling C object mi/libxserver_mi.a.p/miwindow.c.o
+[170/668] Compiling C object mi/libxserver_mi.a.p/mizerclip.c.o
+[171/668] Compiling C object mi/libxserver_mi.a.p/mizerarc.c.o
+[172/668] Compiling C object os/libxlibc.a.p/timingsafe_memcmp.c.o
+[173/668] Linking static target os/libxlibc.a
+[174/668] Compiling C object mi/libxserver_mi.a.p/mizerline.c.o
+[175/668] Linking static target mi/libxserver_mi.a
+[176/668] Compiling C object os/libxserver_os.a.p/WaitFor.c.o
+[177/668] Compiling C object os/libxserver_os.a.p/access.c.o
+[178/668] Compiling C object os/libxserver_os.a.p/alloc.c.o
+[179/668] Compiling C object os/libxserver_os.a.p/auth.c.o
+[180/668] Compiling C object os/libxserver_os.a.p/backtrace.c.o
+[181/668] Compiling C object os/libxserver_os.a.p/cmdline.c.o
+[182/668] Compiling C object os/libxserver_os.a.p/client.c.o
+[183/668] Compiling C object os/libxserver_os.a.p/fmt.c.o
+[184/668] Compiling C object os/libxserver_os.a.p/connection.c.o
+[185/668] Compiling C object os/libxserver_os.a.p/inputthread.c.o
+[186/668] Compiling C object os/libxserver_os.a.p/mitauth.c.o
+[187/668] Compiling C object os/libxserver_os.a.p/io.c.o
+[188/668] Compiling C object os/libxserver_os.a.p/ospoll.c.o
+[189/668] Compiling C object os/libxserver_os.a.p/osinit.c.o
+[190/668] Compiling C object os/libxserver_os.a.p/ossock.c.o
+[191/668] Compiling C object os/libxserver_os.a.p/string.c.o
+[192/668] Compiling C object os/libxserver_os.a.p/serverlock.c.o
+[193/668] Compiling C object os/libxserver_os.a.p/transport.c.o
+[194/668] Compiling C object os/libxserver_os.a.p/utils.c.o
+[195/668] Compiling C object os/libxserver_os.a.p/xhostname.c.o
+[196/668] Compiling C object os/libxserver_os.a.p/xdmauth.c.o
+[197/668] Compiling C object os/libxserver_os.a.p/xsha1.c.o
+[198/668] Compiling C object os/libxserver_os.a.p/xprintf.c.o
+[199/668] Compiling C object os/libxserver_os.a.p/busfault.c.o
+[200/668] Compiling C object os/libxserver_os.a.p/log.c.o
+[201/668] Compiling C object os/libxserver_os.a.p/xdmcp.c.o
+[202/668] Linking static target os/libxserver_os.a
+[203/668] Compiling C object composite/libxserver_composite.a.p/compalloc.c.o
+[204/668] Compiling C object composite/libxserver_composite.a.p/compinit.c.o
+[205/668] Compiling C object composite/libxserver_composite.a.p/compext.c.o
+[206/668] Compiling C object composite/libxserver_composite.a.p/compoverlay.c.o
+[207/668] Compiling C object composite/libxserver_composite.a.p/compwindow.c.o
+[208/668] Linking static target composite/libxserver_composite.a
+[209/668] Compiling C object dbe/libxserver_dbe.a.p/dbe.c.o
+[210/668] Compiling C object dbe/libxserver_dbe.a.p/midbe.c.o
+[211/668] Linking static target dbe/libxserver_dbe.a
+[212/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shadow.c.o
+[213/668] Compiling C object miext/damage/libxserver_miext_damage.a.p/damage.c.o
+[214/668] Linking static target miext/damage/libxserver_miext_damage.a
+[215/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/sh3224.c.o
+[216/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shafb4.c.o
+[217/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shafb8.c.o
+[218/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shiplan2p4.c.o
+[219/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shiplan2p8.c.o
+[220/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shpacked.c.o
+[221/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shplanar8.c.o
+[222/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shplanar.c.o
+[223/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot16pack_180.c.o
+[224/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot16pack_270.c.o
+[225/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot16pack_270YX.c.o
+[226/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot16pack_90.c.o
+[227/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot16pack_90YX.c.o
+[228/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot16pack.c.o
+[229/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot32pack_180.c.o
+[230/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot32pack_270.c.o
+[231/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot32pack_90.c.o
+[232/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot32pack.c.o
+[233/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot8pack_180.c.o
+[234/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot8pack_270.c.o
+[235/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot8pack_90.c.o
+[236/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrot8pack.c.o
+[237/668] Compiling C object miext/shadow/libxserver_miext_shadow.a.p/shrotate.c.o
+[238/668] Linking static target miext/shadow/libxserver_miext_shadow.a
+[239/668] Compiling C object miext/sync/libxserver_miext_sync.a.p/misync.c.o
+[240/668] Compiling C object miext/sync/libxserver_miext_sync.a.p/misyncfd.c.o
+[241/668] Compiling C object miext/sync/libxserver_miext_sync.a.p/misyncshm.c.o
+[242/668] Linking static target miext/sync/libxserver_miext_sync.a
+[243/668] Compiling C object present/libxserver_present.a.p/present.c.o
+[244/668] Compiling C object present/libxserver_present.a.p/present_event.c.o
+[245/668] Compiling C object present/libxserver_present.a.p/present_execute.c.o
+[246/668] Compiling C object present/libxserver_present.a.p/present_fake.c.o
+[247/668] Compiling C object present/libxserver_present.a.p/present_fence.c.o
+[248/668] Compiling C object present/libxserver_present.a.p/present_notify.c.o
+[249/668] Compiling C object present/libxserver_present.a.p/present_request.c.o
+[250/668] Compiling C object present/libxserver_present.a.p/present_scmd.c.o
+[251/668] Compiling C object present/libxserver_present.a.p/present_screen.c.o
+[252/668] Compiling C object present/libxserver_present.a.p/present_vblank.c.o
+[253/668] Linking static target present/libxserver_present.a
+[254/668] Compiling C object randr/libxserver_randr.a.p/randr.c.o
+[255/668] Compiling C object randr/libxserver_randr.a.p/rrdispatch.c.o
+[256/668] Compiling C object randr/libxserver_randr.a.p/rrcrtc.c.o
+[257/668] Compiling C object randr/libxserver_randr.a.p/rrinfo.c.o
+[258/668] Compiling C object randr/libxserver_randr.a.p/rrlease.c.o
+[259/668] Compiling C object randr/libxserver_randr.a.p/rrmode.c.o
+[260/668] Compiling C object randr/libxserver_randr.a.p/rrmonitor.c.o
+[261/668] Compiling C object randr/libxserver_randr.a.p/rroutput.c.o
+[262/668] Compiling C object randr/libxserver_randr.a.p/rrpointer.c.o
+[263/668] Compiling C object randr/libxserver_randr.a.p/rrproperty.c.o
+[264/668] Compiling C object randr/libxserver_randr.a.p/rrprovider.c.o
+[265/668] Compiling C object randr/libxserver_randr.a.p/rrproviderproperty.c.o
+[266/668] Compiling C object randr/libxserver_randr.a.p/rrscreen.c.o
+[267/668] Compiling C object randr/libxserver_randr.a.p/rrtransform.c.o
+[268/668] Compiling C object randr/libxserver_randr.a.p/rrxinerama.c.o
+[269/668] Linking static target randr/libxserver_randr.a
+[270/668] Compiling C object record/libxserver_record.a.p/set.c.o
+[271/668] Compiling C object record/libxserver_record.a.p/record.c.o
+[272/668] Linking static target record/libxserver_record.a
+[273/668] Compiling C object render/libxserver_render.a.p/animcur.c.o
+[274/668] Compiling C object render/libxserver_render.a.p/filter.c.o
+[275/668] Compiling C object render/libxserver_render.a.p/glyph.c.o
+[276/668] Compiling C object render/libxserver_render.a.p/matrix.c.o
+[277/668] Compiling C object render/libxserver_render.a.p/miindex.c.o
+[278/668] Compiling C object render/libxserver_render.a.p/mipict.c.o
+[279/668] Compiling C object render/libxserver_render.a.p/mirect.c.o
+[280/668] Compiling C object render/libxserver_render.a.p/mitrap.c.o
+[281/668] Compiling C object render/libxserver_render.a.p/mitri.c.o
+[282/668] Compiling C object render/libxserver_render.a.p/picture.c.o
+[283/668] Compiling C object render/libxserver_render.a.p/render.c.o
+[284/668] Linking static target render/libxserver_render.a
+[285/668] Compiling C object xfixes/libxserver_xfixes.a.p/cursor.c.o
+[286/668] Compiling C object xfixes/libxserver_xfixes.a.p/disconnect.c.o
+[287/668] Compiling C object xfixes/libxserver_xfixes.a.p/region.c.o
+[288/668] Compiling C object xfixes/libxserver_xfixes.a.p/saveset.c.o
+[289/668] Compiling C object xfixes/libxserver_xfixes.a.p/select.c.o
+[290/668] Compiling C object xfixes/libxserver_xfixes.a.p/xfixes.c.o
+[291/668] Linking static target xfixes/libxserver_xfixes.a
+[292/668] Compiling C object xkb/libxserver_xkb.a.p/ddxBeep.c.o
+[293/668] Compiling C object xkb/libxserver_xkb.a.p/ddxCtrls.c.o
+[294/668] Compiling C object xkb/libxserver_xkb.a.p/ddxLEDs.c.o
+[295/668] Compiling C object xkb/libxserver_xkb.a.p/ddxLoad.c.o
+[296/668] Compiling C object xkb/libxserver_xkb.a.p/maprules.c.o
+[297/668] Compiling C object xkb/libxserver_xkb.a.p/xkmread.c.o
+[298/668] Compiling C object xkb/libxserver_xkb.a.p/xkbtext.c.o
+[299/668] Compiling C object xkb/libxserver_xkb.a.p/xkbfmisc.c.o
+[300/668] Compiling C object xkb/libxserver_xkb.a.p/xkbout.c.o
+[301/668] Compiling C object xkb/libxserver_xkb.a.p/xkbUtils.c.o
+[302/668] Compiling C object xkb/libxserver_xkb.a.p/xkbEvents.c.o
+[303/668] Compiling C object xkb/libxserver_xkb.a.p/xkb.c.o
+[304/668] Compiling C object xkb/libxserver_xkb.a.p/xkbAccessX.c.o
+[305/668] Compiling C object xkb/libxserver_xkb.a.p/xkbLEDs.c.o
+[306/668] Compiling C object xkb/libxserver_xkb.a.p/xkbInit.c.o
+[307/668] Compiling C object xkb/libxserver_xkb.a.p/xkbActions.c.o
+[308/668] Compiling C object xkb/libxserver_xkb.a.p/xkbPrKeyEv.c.o
+[309/668] Compiling C object xkb/libxserver_xkb.a.p/XKBMisc.c.o
+[310/668] Compiling C object xkb/libxserver_xkb.a.p/XKBAlloc.c.o
+[311/668] Compiling C object xkb/libxserver_xkb.a.p/XKBGAlloc.c.o
+[312/668] Compiling C object xkb/libxserver_xkb.a.p/XKBMAlloc.c.o
+[313/668] Linking static target xkb/libxserver_xkb.a
+[314/668] Compiling C object xkb/libxserver_xkb_stubs.a.p/ddxKillSrv.c.o
+[315/668] Compiling C object xkb/libxserver_xkb_stubs.a.p/ddxPrivate.c.o
+[316/668] Generating Xext/spatial/spatial-input-protobuf with a custom command
+[317/668] Generating Xext/spatial/spatial-security-protobuf with a custom command
+[318/668] Compiling C object xkb/libxserver_xkb_stubs.a.p/ddxVT.c.o
+[319/668] Linking static target xkb/libxserver_xkb_stubs.a
+[320/668] Compiling C object Xext/libxserver_xext.a.p/meson-generated_.._spatial_input.pb-c.c.o
+[321/668] Compiling C object Xext/libxserver_xext.a.p/meson-generated_.._spatial_security.pb-c.c.o
+[322/668] Compiling C object Xext/libxserver_xext.a.p/bigreq.c.o
+[323/668] Compiling C object Xext/libxserver_xext.a.p/geext.c.o
+[324/668] Compiling C object Xext/libxserver_xext.a.p/sleepuntil.c.o
+[325/668] Compiling C object Xext/libxserver_xext.a.p/shape.c.o
+[326/668] Compiling C object Xext/libxserver_xext.a.p/xace.c.o
+[327/668] Compiling C object Xext/libxserver_xext.a.p/sync.c.o
+[328/668] Compiling C object Xext/libxserver_xext.a.p/xcmisc.c.o
+[329/668] Compiling C object Xext/libxserver_xext.a.p/xtest.c.o
+[330/668] Compiling C object Xext/libxserver_xext.a.p/dpms.c.o
+[331/668] Compiling C object Xext/libxserver_xext.a.p/hashtable.c.o
+[332/668] Compiling C object Xext/libxserver_xext.a.p/shm.c.o
+[333/668] Compiling C object Xext/libxserver_xext.a.p/xres.c.o
+[334/668] Compiling C object Xext/libxserver_xext.a.p/saver.c.o
+[335/668] Compiling C object Xext/libxserver_xext.a.p/panoramiX.c.o
+[336/668] Compiling C object Xext/libxserver_xext.a.p/xvmain.c.o
+[337/668] Compiling C object Xext/libxserver_xext.a.p/panoramiXprocs.c.o
+[338/668] Compiling C object Xext/libxserver_xext.a.p/xvmc.c.o
+[339/668] Compiling C object Xext/libxserver_xext.a.p/xvdisp.c.o
+[340/668] Compiling C object Xext/libxserver_xext.a.p/spatial_spatialsecurity.c.o
+FAILED: Xext/libxserver_xext.a.p/spatial_spatialsecurity.c.o 
+ccache cc -IXext/libxserver_xext.a.p -IXext -I../Xext -I. -I.. -IXi -I../Xi -Icomposite -I../composite -Iexa -I../exa -Ifb -I../fb -Iglamor -I../glamor -Imi -I../mi -Imiext/damage -I../miext/damage -Imiext/shadow -I../miext/shadow -Imiext/sync -I../miext/sync -Idbe -I../dbe -Idix -I../dix -Idri3 -I../dri3 -Iinclude -I../include -Ipresent -I../present -Irandr -I../randr -Irender -I../render -Ixfixes -I../xfixes -IXext/spatial -I../Xext/spatial -I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-deps/include -I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-deps/include/X11/dri -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng16 -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=gnu99 -O0 -g -DHAVE_DIX_CONFIG_H -fno-strict-aliasing -fvisibility=hidden -Wvla -fno-common -Wshift-negative-value -Wchar-subscripts -Wall -Wchar-subscripts -Wpointer-arith -Wmissing-declarations -Wformat=2 -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Wbad-function-cast -Wold-style-definition -Wunused -Wuninitialized -Wshadow -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Werror=implicit -Werror=nonnull -Werror=init-self -Werror=main -Werror=missing-braces -Werror=sequence-point -Werror=return-type -Werror=trigraphs -Werror=array-bounds -Werror=write-strings -Werror=address -Werror=int-to-pointer-cast -Werror=pointer-to-int-cast -Woverride-init -Wvla -Wincompatible-pointer-types -fPIC -MD -MQ Xext/libxserver_xext.a.p/spatial_spatialsecurity.c.o -MF Xext/libxserver_xext.a.p/spatial_spatialsecurity.c.o.d -o Xext/libxserver_xext.a.p/spatial_spatialsecurity.c.o -c ../Xext/spatial/spatialsecurity.c
+../Xext/spatial/spatialsecurity.c:53:3: error: conflicting types for ‘Connection’; have ‘struct <anonymous>’
+   53 | } Connection;
+      |   ^~~~~~~~~~
+In file included from ../include/pixmap.h:53,
+                 from ../include/gc.h:54,
+                 from ../include/dix.h:51,
+                 from ../include/privates.h:166,
+                 from ../include/cursor.h:53,
+                 from ../dix/input_priv.h:54,
+                 from ../dix/dix_priv.h:18,
+                 from ../Xext/spatial/spatialsecurity.c:15:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-deps/include/X11/extensions/randr.h:35:25: note: previous declaration of ‘Connection’ with type ‘Connection’ {aka ‘short unsigned int’}
+   35 | typedef unsigned short  Connection;
+      |                         ^~~~~~~~~~
+../Xext/spatial/spatialsecurity.c: In function ‘SpatialSecurityAuthorize’:
+../Xext/spatial/spatialsecurity.c:154:14: error: request for member ‘connection’ in something not a structure or union
+  154 |     if (state->connection) return denial;
+      |              ^~
+../Xext/spatial/spatialsecurity.c:160:10: error: request for member ‘label’ in something not a structure or union
+  160 |     state->label = match->label;
+      |          ^~
+../Xext/spatial/spatialsecurity.c:161:10: error: request for member ‘connection’ in something not a structure or union
+  161 |     state->connection = ++next_connection;
+      |          ^~
+../Xext/spatial/spatialsecurity.c: In function ‘close_revoked’:
+../Xext/spatial/spatialsecurity.c:189:18: error: request for member ‘connection’ in something not a structure or union
+  189 |         if (state->connection && !state->closed && !find_grant(state->label.credential)) {
+      |                  ^~
+../Xext/spatial/spatialsecurity.c:189:40: error: request for member ‘closed’ in something not a structure or union
+  189 |         if (state->connection && !state->closed && !find_grant(state->label.credential)) {
+      |                                        ^~
+../Xext/spatial/spatialsecurity.c:189:69: error: request for member ‘label’ in something not a structure or union
+  189 |         if (state->connection && !state->closed && !find_grant(state->label.credential)) {
+      |                                                                     ^~
+../Xext/spatial/spatialsecurity.c: In function ‘client_state’:
+../Xext/spatial/spatialsecurity.c:207:15: error: request for member ‘connection’ in something not a structure or union
+  207 |     if (!state->connection || state->closed) return;
+      |               ^~
+../Xext/spatial/spatialsecurity.c:207:36: error: request for member ‘closed’ in something not a structure or union
+  207 |     if (!state->connection || state->closed) return;
+      |                                    ^~
+../Xext/spatial/spatialsecurity.c:208:10: error: request for member ‘closed’ in something not a structure or union
+  208 |     state->closed = TRUE;
+      |          ^~
+../Xext/spatial/spatialsecurity.c:210:58: error: request for member ‘connection’ in something not a structure or union
+  210 |         if (grants[i].active && grants[i].issuer == state->connection) grants[i].active = FALSE;
+      |                                                          ^~
+../Xext/spatial/spatialsecurity.c: In function ‘issue’:
+../Xext/spatial/spatialsecurity.c:223:15: error: request for member ‘label’ in something not a structure or union
+  223 |     if ((state->label.role != ROLE(SUPERVISOR) && state->label.role != ROLE(BROKER)) ||
+      |               ^~
+../Xext/spatial/spatialsecurity.c:223:56: error: request for member ‘label’ in something not a structure or union
+  223 |     if ((state->label.role != ROLE(SUPERVISOR) && state->label.role != ROLE(BROKER)) ||
+      |                                                        ^~
+../Xext/spatial/spatialsecurity.c:224:15: error: request for member ‘label’ in something not a structure or union
+  224 |         (state->label.role == ROLE(BROKER) && role != ROLE(APPLICATION)) || role == ROLE(SUPERVISOR)) {
+      |               ^~
+../Xext/spatial/spatialsecurity.c:245:71: error: request for member ‘connection’ in something not a structure or union
+  245 |     value.active = TRUE; value.label.role = role; value.issuer = state->connection;
+      |                                                                       ^~
+../Xext/spatial/spatialsecurity.c:246:31: error: request for member ‘label’ in something not a structure or union
+  246 |     memcpy(value.parent, state->label.credential, KEY_BYTES);
+      |                               ^~
+../Xext/spatial/spatialsecurity.c: In function ‘operate’:
+../Xext/spatial/spatialsecurity.c:269:15: error: request for member ‘connection’ in something not a structure or union
+  269 |     if (!state->connection || state->closed || !find_grant(state->label.credential)) {
+      |               ^~
+../Xext/spatial/spatialsecurity.c:269:36: error: request for member ‘closed’ in something not a structure or union
+  269 |     if (!state->connection || state->closed || !find_grant(state->label.credential)) {
+      |                                    ^~
+../Xext/spatial/spatialsecurity.c:269:65: error: request for member ‘label’ in something not a structure or union
+  269 |     if (!state->connection || state->closed || !find_grant(state->label.credential)) {
+      |                                                                 ^~
+../Xext/spatial/spatialsecurity.c:272:37: error: request for member ‘sequence’ in something not a structure or union
+  272 |     if (request->request_id <= state->sequence) { reply->code = CODE(STALE_SEQUENCE); return; }
+      |                                     ^~
+../Xext/spatial/spatialsecurity.c:273:10: error: request for member ‘sequence’ in something not a structure or union
+  273 |     state->sequence = request->request_id;
+      |          ^~
+../Xext/spatial/spatialsecurity.c:276:31: error: request for member ‘label’ in something not a structure or union
+  276 |         identity->role = state->label.role;
+      |                               ^~
+../Xext/spatial/spatialsecurity.c:277:58: error: request for member ‘label’ in something not a structure or union
+  277 |         identity->workspace = (ProtobufCBinaryData){state->label.workspace_size, state->label.workspace};
+      |                                                          ^~
+../Xext/spatial/spatialsecurity.c:277:87: error: request for member ‘label’ in something not a structure or union
+  277 |         identity->workspace = (ProtobufCBinaryData){state->label.workspace_size, state->label.workspace};
+      |                                                                                       ^~
+../Xext/spatial/spatialsecurity.c:278:60: error: request for member ‘label’ in something not a structure or union
+  278 |         identity->application = (ProtobufCBinaryData){state->label.application_size, state->label.application};
+      |                                                            ^~
+../Xext/spatial/spatialsecurity.c:278:91: error: request for member ‘label’ in something not a structure or union
+  278 |         identity->application = (ProtobufCBinaryData){state->label.application_size, state->label.application};
+      |                                                                                           ^~
+../Xext/spatial/spatialsecurity.c:279:73: error: request for member ‘label’ in something not a structure or union
+  279 |         identity->credential_id = (ProtobufCBinaryData){KEY_BYTES, state->label.credential};
+      |                                                                         ^~
+../Xext/spatial/spatialsecurity.c:280:40: error: request for member ‘connection’ in something not a structure or union
+  280 |         identity->connection_id = state->connection;
+      |                                        ^~
+../Xext/spatial/spatialsecurity.c:286:18: error: request for member ‘label’ in something not a structure or union
+  286 |         if (state->label.role != ROLE(SUPERVISOR) && state->label.role != ROLE(BROKER)) {
+      |                  ^~
+../Xext/spatial/spatialsecurity.c:286:59: error: request for member ‘label’ in something not a structure or union
+  286 |         if (state->label.role != ROLE(SUPERVISOR) && state->label.role != ROLE(BROKER)) {
+      |                                                           ^~
+../Xext/spatial/spatialsecurity.c:294:42: error: request for member ‘label’ in something not a structure or union
+  294 |         if (grant == &grants[0] || (state->label.role != ROLE(SUPERVISOR) &&
+      |                                          ^~
+../Xext/spatial/spatialsecurity.c:295:57: error: request for member ‘connection’ in something not a structure or union
+  295 |                                   grant->issuer != state->connection)) {
+      |                                                         ^~
+[341/668] Compiling C object Xext/libxserver_xext.a.p/spatial_spatialinput.c.o
+ninja: build stopped: subcommand failed.

@@ -1,5 +1,51 @@
 # Implementation status
 
+## 2026-10-07: Native X connection identity component qualified
+
+The pinned XLibre server now supports strict authentication from a sealed protobuf bootstrap descriptor.
+Every accepted strict-mode connection receives immutable role, workspace, application, credential, connection, and server identities.
+Host-access exceptions cannot bypass strict authentication, including `-ac`.
+The supervisor and broker issue bounded application credentials through the native protobuf extension.
+Ordinary Xlib applications use private Xauthority files without a custom client library.
+Revocation closes dependent native connections and prevents cookie reuse.
+Issuer disconnect also revokes its credentials. Independent issuers and credentials remain valid.
+
+Both hosts passed Debug and runtime ASan/UBSan qualification with GLX enabled on the project server:
+
+- All 151 P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 534 core checks, including 22 native identity checks.
+- All 51 harness checks.
+
+Both instrumented native servers also passed all 22 identity checks with GLX explicitly disabled.
+That focused profile enables address, undefined-behavior, and leak checks, including server shutdown.
+It qualifies core X authentication. It does not qualify instrumented GLX or native GPU output.
+The default identity test and cumulative runs keep GLX enabled.
+Two independent mutations bypassed cookie matching and omitted issuer-disconnect revocation.
+Each mutation failed its corresponding counterexample. Neither entered production.
+
+Instrumentation exposed upstream GLX server-client and failed-listener leaks, plus repeated Xvfb cleanup.
+The maintained server patch fixes those owned allocations and clears freed framebuffer pointers.
+The GLX server-client leak also reproduced with strict security disabled.
+Installed graphics providers still leak during instrumented GLX shutdown.
+That failure remains open in tasks/m1/server.graphics_cleanup.json.
+No sanitizer suppression or system graphics change was applied.
+Initial build, fixture, and sanitizer failures remain with the passing evidence.
+
+All 168 recorded source hashes match local files and both hosts.
+The acceptance lock, locked assertions, and locked native witness remain unchanged.
+The additive contract is docs/NATIVE_SECURITY_IDENTITY.md.
+Evidence is in evidence/native-security-identity-2026-10-07.
+No system service, operator desktop, or actual David identity changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+This is an M04 component. Workspace resource isolation and broker/compositor provisioning remain required.
+Strict mode is explicit. Existing trusted diagnostic mode is not an application security boundary.
+Authenticated actors still receive no native application observation or control from this increment.
+Cross-workspace enumeration, pixels, properties, grabs, input injection, and retained-resource policy remain required.
+All incomplete M01-M16 and H01-H08 work remains active. Full Spatial-M1 is not claimed.
+Next: enforce native resource isolation and independently attack its boundaries.
+The full project goal remains active. No external blocker is recorded.
+
 ## 2026-10-07: Persistent workspace execution authority qualified
 
 Authenticated actors now use persistent workspace grants for selection and confined process execution.

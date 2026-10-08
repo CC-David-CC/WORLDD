@@ -1,0 +1,119 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "-C",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-mutation/source",
+      "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "patch-0",
+    "argv": [
+      "git",
+      "-C",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-mutation/source",
+      "apply",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/server/patches/0001-spatial-input.patch"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "patch-1",
+    "argv": [
+      "git",
+      "-C",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-mutation/source",
+      "apply",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/server/patches/0002-spatial-security.patch"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "patch-2",
+    "argv": [
+      "git",
+      "-C",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-mutation/source",
+      "apply",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/server/patches/0003-server-shutdown.patch"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "meson",
+      "setup",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-mutation/source/build",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-mutation/source",
+      "--buildtype=debug",
+      "-Dxorg=true",
+      "-Dxvfb=true",
+      "-Dxephyr=false",
+      "-Dxnest=false",
+      "-Dxwin=false",
+      "-Dxquartz=false",
+      "-Ddocs=false",
+      "-Ddevel-docs=false",
+      "-Dtests=true",
+      "-Dsystemd_logind=true",
+      "-Dseatd_libseat=false",
+      "-Dxkb_dir=/usr/share/X11/xkb",
+      "-Dxkb_bin_dir=/usr/bin",
+      "-Dfontrootdir=/usr/share/fonts/X11",
+      "--prefix=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-mutation/source/image",
+      "-Db_sanitize=none",
+      "-Dxkb_output_dir=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "authentication-bypass-build",
+    "argv": [
+      "ninja",
+      "-C",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-mutation/source/build",
+      "-j2",
+      "hw/vfb/Xvfb"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "authentication-bypass-witness",
+    "argv": [
+      "python3",
+      "tests/native/test_security_identity.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+      "SecurityIdentityTests.test_bad_cookies_cannot_use_disabled_host_access_control"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "issuer-disconnect-build",
+    "argv": [
+      "ninja",
+      "-C",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-security-mutation/source/build",
+      "-j2",
+      "hw/vfb/Xvfb"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "issuer-disconnect-witness",
+    "argv": [
+      "python3",
+      "tests/native/test_security_identity.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+      "SecurityIdentityTests.test_issuing_connection_loss_revokes_its_credentials"
+    ],
+    "exit_code": 1
+  }
+]

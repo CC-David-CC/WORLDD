@@ -21,6 +21,7 @@ def digest(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--evidence-dir', required=True)
+    parser.add_argument('--sanitize', action='store_true', help='Instrument the native server with ASan and UBSan')
     args = parser.parse_args()
     host = socket.gethostname().split('.')[0]
     if host not in ('sb16', 'sb16-2'):
@@ -33,7 +34,7 @@ def main():
     prefix = local / 'xlibre-deps'
     record = {'host': host, 'utc': datetime.now(timezone.utc).isoformat(), 'status': 'failed',
               'base_lock': lock, 'lock_sha256': digest(lock_path),
-              'builder_sha256': digest(Path(__file__)), 'commands': [], 'binaries': {}}
+              'builder_sha256': digest(Path(__file__)), 'sanitizers': args.sanitize, 'commands': [], 'binaries': {}}
 
     def run(label, argv, env=None, timeout=300):
         command = [str(item) for item in argv]
@@ -59,8 +60,8 @@ def main():
             raise RuntimeError(f'{name} checkout does not match its pin; no automatic reset')
         run(name + '-pristine', ['git', '-C', path, 'diff', '--exit-code', 'HEAD'])
 
-    def configure(label, path, options, env=None):
-        build = path / 'build'
+    def configure(label, path, options, env=None, build=None):
+        build = build if build is not None else path / 'build'
         command = ['meson', 'setup']
         if (build / 'meson-private/coredata.dat').is_file():
             command += ['--reconfigure']
@@ -118,12 +119,14 @@ def main():
         (local / 'xkb-compiled').mkdir(exist_ok=True)
         options = ['--prefix=' + str(server / 'image'), *lock['meson_options'],
                    '-Dxkb_output_dir=' + str(local / 'xkb-compiled')]
-        configure('server-configure', server, options, env)
-        run('server-build', ['ninja', '-C', server / 'build', '-j2'], env, timeout=900)
-        run('server-unit', ['meson', 'test', '-C', server / 'build', '--no-rebuild',
+        build = server / ('build-sanitize' if args.sanitize else 'build')
+        options += ['-Db_sanitize=' + ('address,undefined' if args.sanitize else 'none')]
+        configure('server-configure', server, options, env, build)
+        run('server-build', ['ninja', '-C', build, '-j2'], env, timeout=900)
+        run('server-unit', ['meson', 'test', '-C', build, '--no-rebuild',
                             '--print-errorlogs', 'unit', 'modesetting symbol test'], env)
         for name, relative in [('Xvfb', 'hw/vfb/Xvfb'), ('Xorg', 'hw/xfree86/Xorg')]:
-            path = server / 'build' / relative
+            path = build / relative
             record['binaries'][name] = {'path': str(path), 'sha256': digest(path)}
         record['status'] = 'passed'
     except Exception as error:

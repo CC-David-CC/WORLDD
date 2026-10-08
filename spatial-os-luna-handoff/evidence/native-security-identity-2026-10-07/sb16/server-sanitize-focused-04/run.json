@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "python3",
+    "tests/native/test_security_identity.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "SecurityIdentityTests.test_bootstrap_binds_supervisor_before_native_requests"
+  ],
+  "exit_code": 1,
+  "xserver": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/6bfead1ac13627ac4d82a674ec750d8df1ae624662525d20c53df3bed13ad257/source/build-sanitize/hw/vfb/Xvfb",
+    "sha256": "b69724a1e4f554ad545ee3a61de12ba2ec5a3239d374bc126bcb4fd292c5a265"
+  },
+  "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+}
