@@ -29,6 +29,13 @@ message Identity {
   uint64 connection_id = 5;
   bytes server_id = 6;
 }
+// Server-owned surface attribution. Contains no authentication credential.
+message ApplicationIdentity {
+  bytes workspace = 1;
+  bytes application = 2;
+  bytes server_id = 3;
+  uint64 connection_id = 4;
+}
 message Issue {
   Role role = 1;
   bytes workspace = 2;

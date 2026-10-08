@@ -1,5 +1,5 @@
 spatial_proto = custom_target('spatial-input-protobuf',
-    input: 'input.proto', output: ['input.pb-c.c', 'input.pb-c.h'],
+    input: ['input.proto', 'security.proto'], output: ['input.pb-c.c', 'input.pb-c.h'],
     command: [find_program('protoc-c'), '--c_out=@OUTDIR@',
               '--proto_path=' + meson.current_source_dir(), meson.current_source_dir() / 'input.proto'])
 srcs_xext += files('spatialinput.c')

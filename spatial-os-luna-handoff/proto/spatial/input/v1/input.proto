@@ -1,5 +1,6 @@
 syntax = "proto3";
 package spatial.input.v1;
+import "security.proto";
 
 // Private compositor-to-server interface. The authenticated X connection must
 // own SubstructureRedirect on the server root. Actor grants remain in worldd.
@@ -49,6 +50,7 @@ enum Code {
   BUSY = 6;
   RESOURCE_LIMIT = 7;
 }
+enum SecurityMode { SECURITY_UNSPECIFIED = 0; DEVELOPMENT = 1; ENFORCED = 2; }
 message Reply {
   uint32 protocol_version = 1;
   fixed64 request_id = 2;
@@ -62,4 +64,6 @@ message Reply {
   fixed32 held_buttons = 10;
   bytes held_keys = 11;
   Target focus = 12;
+  spatial.security.v1.ApplicationIdentity application_identity = 13;
+  SecurityMode security_mode = 14;
 }

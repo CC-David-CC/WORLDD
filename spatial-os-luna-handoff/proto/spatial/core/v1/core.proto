@@ -1,5 +1,6 @@
 syntax = "proto3";
 package spatial.core.v1;
+import "security.proto";
 
 // Units: meters, seconds, radians. Right-handed; forward is -Z.
 // Unspecified vector components are zero. Message presence is checked separately.
@@ -82,6 +83,7 @@ message NativeSurface {
   SurfaceHandle handle = 1; uint64 xid = 2; PixelExtent pixels = 3; bool mapped = 4;
   string probe_id = 5; uint64 parent_xid = 6; sint32 root_x = 7; sint32 root_y = 8;
   uint64 server_generation = 9;
+  spatial.security.v1.ApplicationIdentity application_identity = 10;
 }
 message ResourceStats { uint64 retired_pixmaps_pending = 1; uint64 invalid_texture_bindings = 2; uint64 live_pixmaps = 3; }
 message NativeSnapshot { repeated NativeSurface surfaces = 1; ResourceStats resources = 2; repeated NativeActorInput actors = 3; }

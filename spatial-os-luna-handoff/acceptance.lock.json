@@ -1,7 +1,7 @@
 {
   "edition": "spatial-protobuf/1",
-  "handoff_version": "0.14.0",
-  "notice": "Explicit recovery transport migration. Preserve all 151 acceptance tests and their assertions. Add typed fault and surface recovery requests plus eight transport checks. See docs/RECOVERY_TRANSPORT_MIGRATION.md. Recovery effects remain pending.",
+  "handoff_version": "0.15.0",
+  "notice": "Explicit native surface attribution migration. Preserve all 151 acceptance tests, assertions, oracles, and existing field numbers. Add private NativeSurface attribution. See docs/NATIVE_SURFACE_IDENTITY_MIGRATION.md.",
   "files": {
     "docs/CONTRACT.md": "784506e661aa36de6683a5dc493a952306216ef9206b5b51e20d265960e40b84",
     "harness/__init__.py": "e4a165ed823ff7b3bafb35fa5fc0cd9b8045a0687c64851dbc94fa84cbed0234",
@@ -30,7 +30,7 @@
     "tools/gate.py": "edcf0194c7faa9c51a603efd6e6513aaf214cfe9a195b6fed7e1d6823b4d70e8",
     "tools/guard.py": "40d14c9095f0af829fe0676bbf6d1e7a19a7349a3a9cfb3049c257abf4f16c31",
     "tools/probe_smoke.py": "cb366d78a7822f13cf07db389f2fa98579d0d26c2a2af33fa9c4db93b619ea38",
-    "proto/spatial/core/v1/core.proto": "afa5846fd245e28e04e47cec12d44d15642d5ac59f6fd6144a9f8976e318ce76",
+    "proto/spatial/core/v1/core.proto": "f035d055f1d9a12c4d2d32830e48dba5ddb74c883e36c4b46d571efd833ae513",
     "harness/wire.py": "e85696fcfd98baecdc50b63eafbdb22eafa596da68f5dd5e05f43cf13acff15b",
     "tests/core/test_protocol.py": "df6d7d54035db5968d1ca366e0a7bda8a1bb6c739f18de7708f6825fd06840ee",
     "tests/harness/test_transport.py": "a3277b52b0622d2ed46f10dcd3fed89989217b87c57c2af5321dce015a817523",
@@ -42,7 +42,8 @@
     "tests/core/test_actors.py": "cfe63115d3208a3b03be2a7deee59d78b20e56541e36e02bea51a7b7d71ed6ac",
     "config/conformance.textproto": "d3dcc8abee97528002f7facc562c1c0c68c11984f81a72777461e87a71e4d7a2",
     "tests/harness/test_workspace_wire.py": "87b8db839ce2bcb1b5be778f5564b438d883be7787524763d07c2b714c717378",
-    "tests/harness/test_recovery_wire.py": "304766ca72133b68f0b28b4c4ee80e03c8580c05abdbb750efcb30738d4eff40"
+    "tests/harness/test_recovery_wire.py": "304766ca72133b68f0b28b4c4ee80e03c8580c05abdbb750efcb30738d4eff40",
+    "proto/spatial/security/v1/security.proto": "3c8c814440624ce320bfc2395e7e0d9e9bfd25299bbf3ce0c7419047f3c47f48"
   },
   "test_ids": [
     "tests.acceptance.test_00_protocol.ProtocolTests.test_capabilities_are_unique_and_explicit",
@@ -197,5 +198,5 @@
     "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_cancelled_agent_leaves_human_usable",
     "tests.acceptance.test_10_walkthrough.WalkthroughTests.test_walk_to_room_use_real_window_work_in_selected_workspace_and_return"
   ],
-  "predecessor_sha256": "3a3a4a8b1f56f88511205eb3ae7e1c4d90c7b5c2f89b5effdbfb9f25fb8971c6"
+  "predecessor_sha256": "cdcc8989fa4ab908ecd5b69910d3e651b407396aa101d11cabed66ef2565d075"
 }
