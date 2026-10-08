@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-legacy-rejection-sanitize-01/rejection.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatial-security-auth"
+  ],
+  "old_server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/234393f40cdb44aa92005e9815b43d091fab524c8d30dc752d0430b4da7a8d78/source/build/hw/vfb/Xvfb",
+    "sha256": "821b7df2eda2e462fc47187ac47e04f368a8820d76b3e5536461aa46fd18eb1d"
+  },
+  "exit_code": 0
+}

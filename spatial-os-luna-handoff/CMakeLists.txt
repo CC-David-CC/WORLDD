@@ -256,6 +256,12 @@ if(BUILD_TESTING)
     set_tests_properties(actor-collision PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     if(SPATIAL_INPUT_TESTS)
+        foreach(identity_suite surface_identity compositor_identity)
+            add_test(NAME native-${identity_suite} COMMAND "${Python3_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_${identity_suite}.py" $<TARGET_FILE:spatial-security-auth>)
+            set_tests_properties(native-${identity_suite} PROPERTIES TIMEOUT 180
+                ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        endforeach()
         add_test(NAME native-application-launch COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_launch.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-application-launch PROPERTIES TIMEOUT 180

@@ -1,0 +1,428 @@
+{
+  "host": "sb16-2",
+  "runs": {
+    "baseline-01": {
+      "test.log": {
+        "python_checks": 15,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "baseline-02": {
+      "test.log": {
+        "python_checks": 22,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "baseline-03": {
+      "test.log": {
+        "python_checks": 22,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "build-01": {
+      "server-apply-4.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-patch-3.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-worktree.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "protocol-configure.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-apply-3.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-patch-2.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-patch-6.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-patch-5.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "xorgproto-pristine.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-build.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-patch-1.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "protocol-install.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-apply-1.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-unit.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-apply-0.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-patch-4.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-configure.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-apply-6.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-patch-0.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-apply-5.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "xserver-pristine.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-apply-2.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "debug-01": {
+      "compositor_identity.log": {
+        "python_checks": 7,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "surface_identity.log": {
+        "python_checks": 15,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "debug-02": {
+      "configure.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "build.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "harness.log": {
+        "python_checks": 51,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "debug-03": {
+      "configure.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "build.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "P10.log": {
+        "python_checks": 151,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "harness.log": {
+        "python_checks": 51,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "core.log": {
+        "python_checks": 729,
+        "unittest_summaries": 38,
+        "skipped_markers": 0,
+        "ctest_summary": [
+          "100% tests passed, 0 tests failed out of 38"
+        ]
+      }
+    },
+    "legacy-rejection-01": {
+      "test.log": {
+        "python_checks": 1,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "legacy-rejection-sanitize-01": {
+      "test.log": {
+        "python_checks": 1,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "native-sanitize-01": {
+      "selection_isolation.log": {
+        "python_checks": 14,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "application_input.log": {
+        "python_checks": 15,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "extension_isolation.log": {
+        "python_checks": 32,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "native_launch.log": {
+        "python_checks": 19,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "resource_isolation.log": {
+        "python_checks": 36,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "global_isolation.log": {
+        "python_checks": 19,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "actor_binding.log": {
+        "python_checks": 25,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "device_administration.log": {
+        "python_checks": 13,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "surface_identity.log": {
+        "python_checks": 15,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "security_identity.log": {
+        "python_checks": 22,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "prerequisite-01": {
+      "P10.log": {
+        "python_checks": 151,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "harness.log": {
+        "python_checks": 51,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "runtime-build-01": {
+      "configure.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "build.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "runtime-sanitize-03": {
+      "configure.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "build.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "P10.log": {
+        "python_checks": 151,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "harness.log": {
+        "python_checks": 51,
+        "unittest_summaries": 1,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "core.log": {
+        "python_checks": 729,
+        "unittest_summaries": 38,
+        "skipped_markers": 0,
+        "ctest_summary": [
+          "100% tests passed, 0 tests failed out of 38"
+        ]
+      }
+    },
+    "sanitize-build-01": {
+      "protocol-configure.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "xorgproto-pristine.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-build.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "protocol-install.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-unit.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "server-configure.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      },
+      "xserver-pristine.log": {
+        "python_checks": 0,
+        "unittest_summaries": 0,
+        "skipped_markers": 0,
+        "ctest_summary": []
+      }
+    },
+    "schema-audit-01": {}
+  },
+  "binaries": {
+    "build": {
+      "spatialwm": "a06978a4b68f46028d47e4eec4dd899d3d08ee452bf190a590fe7c9c70b0c46d",
+      "worldd": "3a84acdb30f9a805cf4ba562c1dc6b435c7ff9b0e9f05bc1e0ced956012af204",
+      "workspaced": "6b2be6b868520e8b489017c4115506fe84bae992f3502d3a630f7028ff5aa216"
+    },
+    "build-sanitize": {
+      "spatialwm": "6eb1e31d1b40d0c76261cd810e247806f2581675a0bc731199565261dfbc3bed",
+      "worldd": "376a451d5c02b3523d2ff52ce591cf6838b84ecf15b7076c919b04aefcb66968",
+      "workspaced": "59082bc27aa9832b0e032dfa55bdb5e8874a2b19ab24b7d802223513a0e04f32"
+    }
+  }
+}

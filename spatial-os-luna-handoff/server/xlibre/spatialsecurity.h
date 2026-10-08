@@ -12,6 +12,9 @@ void SpatialSecurityExtensionInit(void);
 Bool SpatialSecurityPrivileged(ClientPtr client);
 Bool SpatialSecuritySameApplication(ClientPtr client, ClientPtr owner);
 Bool SpatialSecurityVisibleResource(ClientPtr client, XID id);
+struct Spatial__Security__V1__ApplicationIdentity;
+Bool SpatialSecurityApplicationIdentity(ClientPtr client, XID id,
+                                        struct Spatial__Security__V1__ApplicationIdentity *identity);
 void SpatialSecurityPolicyInit(void);
 void SpatialSecurityPolicyReset(void);
 #endif

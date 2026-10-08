@@ -472,7 +472,8 @@ static Bool checked(const ProtobufCMessage *message)
     return TRUE;
 }
 
-static void operate(ClientPtr client, const Request *request, Reply *reply, Target *target, Target *focus)
+static void operate(ClientPtr client, const Request *request, Reply *reply, Target *target, Target *focus,
+                    Spatial__Security__V1__ApplicationIdentity *identity)
 {
     SeatRec *seat = NULL;
     uint64_t id = 0;
@@ -491,6 +492,9 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         }
         target->xid = win->drawable.id; target->generation = generation(win);
         reply->target = target; reply->width = win->drawable.width; reply->height = win->drawable.height;
+        reply->security_mode = SpatialSecurityEnabled() ? SPATIAL__INPUT__V1__SECURITY_MODE__ENFORCED :
+                                                         SPATIAL__INPUT__V1__SECURITY_MODE__DEVELOPMENT;
+        if (SpatialSecurityApplicationIdentity(client, win->drawable.id, identity)) reply->application_identity = identity;
         return;
     }
     switch (request->operation_case) {
@@ -582,8 +586,9 @@ static int dispatch(ClientPtr client)
     Request *request = spatial__input__v1__request__unpack(NULL, stuff->bytes, (const uint8_t *)(stuff + 1));
     Reply reply = SPATIAL__INPUT__V1__REPLY__INIT;
     Target target = SPATIAL__INPUT__V1__TARGET__INIT, focus = SPATIAL__INPUT__V1__TARGET__INIT;
+    Spatial__Security__V1__ApplicationIdentity identity = SPATIAL__SECURITY__V1__APPLICATION_IDENTITY__INIT;
     reply.protocol_version = 1;
-    if (request) { reply.request_id = request->request_id; operate(client, request, &reply, &target, &focus); }
+    if (request) { reply.request_id = request->request_id; operate(client, request, &reply, &target, &focus, &identity); }
     else reply.code = CODE(INVALID_ARGUMENT);
     uint8_t payload[MAX_PAYLOAD] = {0};
     size_t bytes = spatial__input__v1__reply__get_packed_size(&reply);

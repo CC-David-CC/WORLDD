@@ -1,0 +1,12 @@
+test_non_application_window_is_not_a_workspace_surface (__main__.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface) ... ok
+test_properties_do_not_choose_snapshot_identity (__main__.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity) ... ok
+test_revoked_application_disappears_from_snapshot (__main__.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot) ... ok
+test_same_group_new_connection_has_distinct_attribution (__main__.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution) ... ok
+test_separate_workspaces_remain_distinct_in_one_snapshot (__main__.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot) ... ok
+test_snapshot_contains_authenticated_application_identity (__main__.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity) ... ok
+test_unmap_clears_attribution_and_remap_restores_it (__main__.CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.126s
+
+OK

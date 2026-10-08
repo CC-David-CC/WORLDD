@@ -1,0 +1,246 @@
+test_application_cannot_query_foreign_attribution (test_surface_identity.SurfaceIdentityTests.test_application_cannot_query_foreign_attribution) ... ok
+test_child_window_uses_its_creator_connection (test_surface_identity.SurfaceIdentityTests.test_child_window_uses_its_creator_connection) ... FAIL
+test_non_application_window_has_no_application_identity (test_surface_identity.SurfaceIdentityTests.test_non_application_window_has_no_application_identity) ... FAIL
+test_non_controller_compositor_cannot_query_attribution (test_surface_identity.SurfaceIdentityTests.test_non_controller_compositor_cannot_query_attribution) ... ok
+test_owner_disconnect_removes_attribution (test_surface_identity.SurfaceIdentityTests.test_owner_disconnect_removes_attribution) ... FAIL
+test_owner_labels_share_the_geometry_and_generation_reply (test_surface_identity.SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply) ... FAIL
+test_remap_changes_generation_without_changing_owner (test_surface_identity.SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner) ... FAIL
+test_resize_returns_new_geometry_with_same_owner (test_surface_identity.SurfaceIdentityTests.test_resize_returns_new_geometry_with_same_owner) ... FAIL
+test_reused_xid_does_not_reuse_window_generation (test_surface_identity.SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation) ... FAIL
+test_revocation_removes_only_the_revoked_application (test_surface_identity.SurfaceIdentityTests.test_revocation_removes_only_the_revoked_application) ... FAIL
+test_same_application_name_in_another_workspace_is_distinct (test_surface_identity.SurfaceIdentityTests.test_same_application_name_in_another_workspace_is_distinct) ... FAIL
+test_same_group_connections_keep_separate_connection_ids (test_surface_identity.SurfaceIdentityTests.test_same_group_connections_keep_separate_connection_ids) ... FAIL
+test_same_workspace_different_application_is_distinct (test_surface_identity.SurfaceIdentityTests.test_same_workspace_different_application_is_distinct) ... FAIL
+test_swapped_application_keeps_exact_binary_labels (test_surface_identity.SurfaceIdentityTests.test_swapped_application_keeps_exact_binary_labels) ... FAIL
+test_window_properties_cannot_spoof_authority (test_surface_identity.SurfaceIdentityTests.test_window_properties_cannot_spoof_authority) ... FAIL
+test_non_application_window_is_not_a_workspace_surface (test_compositor_identity.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface) ... FAIL
+test_properties_do_not_choose_snapshot_identity (test_compositor_identity.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity) ... FAIL
+test_revoked_application_disappears_from_snapshot (test_compositor_identity.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot) ... ok
+test_same_group_new_connection_has_distinct_attribution (test_compositor_identity.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution) ... FAIL
+test_separate_workspaces_remain_distinct_in_one_snapshot (test_compositor_identity.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot) ... FAIL
+test_snapshot_contains_authenticated_application_identity (test_compositor_identity.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity) ... FAIL
+test_unmap_clears_attribution_and_remap_restores_it (test_compositor_identity.CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it) ... ok
+
+======================================================================
+FAIL: test_child_window_uses_its_creator_connection (test_surface_identity.SurfaceIdentityTests.test_child_window_uses_its_creator_connection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 128, in test_child_window_uses_its_creator_connection
+    a = self.attribution().application_identity; b = self.attribution(child).application_identity
+        ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_non_application_window_has_no_application_identity (test_surface_identity.SurfaceIdentityTests.test_non_application_window_has_no_application_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 97, in test_non_application_window_has_no_application_identity
+    self.assertEqual(reply.security_mode, inp.ENFORCED)
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_owner_disconnect_removes_attribution (test_surface_identity.SurfaceIdentityTests.test_owner_disconnect_removes_attribution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 113, in test_owner_disconnect_removes_attribution
+    self.setup_scene(); self.attribution(); self.owner.close()
+                        ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_owner_labels_share_the_geometry_and_generation_reply (test_surface_identity.SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 31, in test_owner_labels_share_the_geometry_and_generation_reply
+    self.setup_scene(); reply = self.attribution()
+                                ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_remap_changes_generation_without_changing_owner (test_surface_identity.SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 65, in test_remap_changes_generation_without_changing_owner
+    self.setup_scene(); before = self.attribution()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_resize_returns_new_geometry_with_same_owner (test_surface_identity.SurfaceIdentityTests.test_resize_returns_new_geometry_with_same_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 74, in test_resize_returns_new_geometry_with_same_owner
+    self.setup_scene(); before = self.attribution()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_reused_xid_does_not_reuse_window_generation (test_surface_identity.SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 83, in test_reused_xid_does_not_reuse_window_generation
+    self.setup_scene(); before = self.attribution()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_revocation_removes_only_the_revoked_application (test_surface_identity.SurfaceIdentityTests.test_revocation_removes_only_the_revoked_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 120, in test_revocation_removes_only_the_revoked_application
+    self.setup_scene(); other = self.attribution(self.other_window)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_same_application_name_in_another_workspace_is_distinct (test_surface_identity.SurfaceIdentityTests.test_same_application_name_in_another_workspace_is_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 36, in test_same_application_name_in_another_workspace_is_distinct
+    self.setup_scene(); a = self.attribution(); b = self.attribution(self.other_window)
+                            ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_same_group_connections_keep_separate_connection_ids (test_surface_identity.SurfaceIdentityTests.test_same_group_connections_keep_separate_connection_ids)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 49, in test_same_group_connections_keep_separate_connection_ids
+    a = self.attribution().application_identity; b = self.attribution(window).application_identity
+        ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_same_workspace_different_application_is_distinct (test_surface_identity.SurfaceIdentityTests.test_same_workspace_different_application_is_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 45, in test_same_workspace_different_application_is_distinct
+    self.assertEqual(self.attribution(window).application_identity.application, b'terminal')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_swapped_application_keeps_exact_binary_labels (test_surface_identity.SurfaceIdentityTests.test_swapped_application_keeps_exact_binary_labels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 133, in test_swapped_application_keeps_exact_binary_labels
+    self.setup_scene(endian='>'); value = self.attribution().application_identity
+                                          ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_window_properties_cannot_spoof_authority (test_surface_identity.SurfaceIdentityTests.test_window_properties_cannot_spoof_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 60, in test_window_properties_cannot_spoof_authority
+    self.setup_scene(); before = self.attribution().application_identity
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_non_application_window_is_not_a_workspace_surface (test_compositor_identity.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_compositor_identity.py", line 116, in test_non_application_window_is_not_a_workspace_surface
+    self.assertNotIn(window, self.snapshot())
+AssertionError: 2097153 unexpectedly found in {2097153: handle {
+  id: "surface-0c2a98d53c059bd999348572aea7f9ba-2"
+  generation: 1
+}
+xid: 2097153
+pixels {
+  width: 32
+  height: 32
+}
+mapped: true
+server_generation: 3
+, 4194305: handle {
+  id: "surface-0c2a98d53c059bd999348572aea7f9ba-1"
+  generation: 1
+}
+xid: 4194305
+pixels {
+  width: 32
+  height: 32
+}
+mapped: true
+server_generation: 2
+}
+
+======================================================================
+FAIL: test_properties_do_not_choose_snapshot_identity (test_compositor_identity.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_compositor_identity.py", line 94, in test_properties_do_not_choose_snapshot_identity
+    self.assertEqual((identity.workspace, identity.application), (b'one', b'editor'))
+AssertionError: Tuples differ: (b'', b'') != (b'one', b'editor')
+
+First differing element 0:
+b''
+b'one'
+
+- (b'', b'')
++ (b'one', b'editor')
+
+======================================================================
+FAIL: test_same_group_new_connection_has_distinct_attribution (test_compositor_identity.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_compositor_identity.py", line 130, in test_same_group_new_connection_has_distinct_attribution
+    self.assertNotEqual(a.connection_id, b.connection_id)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_separate_workspaces_remain_distinct_in_one_snapshot (test_compositor_identity.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_compositor_identity.py", line 101, in test_separate_workspaces_remain_distinct_in_one_snapshot
+    self.assertEqual(a.application, b.application); self.assertEqual((a.workspace, b.workspace), (b'one', b'two'))
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (b'', b'') != (b'one', b'two')
+
+First differing element 0:
+b''
+b'one'
+
+- (b'', b'')
++ (b'one', b'two')
+?    +++     +++
+
+
+======================================================================
+FAIL: test_snapshot_contains_authenticated_application_identity (test_compositor_identity.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-03/test_compositor_identity.py", line 85, in test_snapshot_contains_authenticated_application_identity
+    self.assertTrue(surface.HasField('application_identity'))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 22 tests in 2.042s
+
+FAILED (failures=18)

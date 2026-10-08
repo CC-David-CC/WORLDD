@@ -1,0 +1,13 @@
+[0/2] Re-checking globbed directories...
+[1/12] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[2/12] Linking CXX static library libspatial-issuer.a
+[3/12] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/12] Linking CXX executable identityd
+[5/12] Linking CXX static library libspatial-core.a
+[6/12] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[7/12] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[8/12] Linking CXX executable spatialwm
+[9/12] Linking CXX executable workspaced
+[10/12] Generating python/security_pb2.py
+[11/12] Linking CXX executable worldd
+[12/12] Linking CXX executable spatial-test-host

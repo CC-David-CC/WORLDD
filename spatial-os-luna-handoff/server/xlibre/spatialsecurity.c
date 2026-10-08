@@ -162,6 +162,21 @@ Bool SpatialSecurityVisibleResource(ClientPtr client, XID id)
     return SpatialSecurityPrivileged(client) || SpatialSecuritySameApplication(client, dixLookupXIDOwner(id));
 }
 
+Bool SpatialSecurityApplicationIdentity(ClientPtr client, XID id,
+                                        Spatial__Security__V1__ApplicationIdentity *identity)
+{
+    if (!active || !SpatialSecurityPrivileged(client)) return FALSE;
+    ClientPtr owner = dixLookupXIDOwner(id);
+    if (!owner || owner == serverClient) return FALSE;
+    SpatialConnection *state = connection(owner);
+    if (!state->connection || state->closed || state->label.role != ROLE(APPLICATION)) return FALSE;
+    identity->workspace = (ProtobufCBinaryData){state->label.workspace_size, state->label.workspace};
+    identity->application = (ProtobufCBinaryData){state->label.application_size, state->label.application};
+    identity->server_id = (ProtobufCBinaryData){KEY_BYTES, server_id};
+    identity->connection_id = state->connection;
+    return TRUE;
+}
+
 static Grant *find_grant(const uint8_t *id)
 {
     for (unsigned i = 0; i < MAX_CREDENTIALS; ++i)

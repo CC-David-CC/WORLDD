@@ -1,5 +1,28 @@
 # Implementation status
 
+## 2026-10-08: Native surface attribution checked
+
+The native Inspect reply now carries server-owned application attribution with window geometry and generation.
+The compositor checks that attribution and includes it in its private NativeSurface snapshot.
+Mapped infrastructure windows do not become workspace application surfaces.
+Unmapping and failed pixmap acquisition clear current attribution.
+Property spoofing cannot change the server-owned labels.
+Both hosts passed fifteen native checks and seven real compositor integration checks.
+Both also rejected an older server that omits the required security mode.
+
+Migration 0.15.0 explicitly records the additive locked core-schema change and its imported security schema.
+The descriptor audit preserves 481 existing fields, 71 enum values, and all 151 acceptance identifiers.
+The acceptance assertions, oracles, and native witness remain unchanged.
+Both hosts passed 729 core checks across 38 suites in Debug and runtime ASan/UBSan builds.
+Each profile also passed 51 harness checks and all 151 P10 cases.
+Both native-server ASan/UBSan profiles passed 210 focused checks with GLX disabled and leak detection enabled.
+The older-server rejection also passed with runtime sanitizers on both hosts.
+No final executed profile skipped a case.
+See docs/NATIVE_SURFACE_IDENTITY.md and docs/NATIVE_SURFACE_IDENTITY_MIGRATION.md.
+The root M04_SURFACE_IDENTITY_DEBUG.txt records failures and remaining work.
+Worldd application grants, leases, filtered actor metadata, and session provisioning remain required.
+M04, M09, and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Confined native application launch checked
 
 Workspaced now accepts a sealed NativeLaunchConfig protobuf descriptor from its supervisor.

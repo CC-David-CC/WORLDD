@@ -1,0 +1,20 @@
+test_application_cannot_query_foreign_attribution (__main__.SurfaceIdentityTests.test_application_cannot_query_foreign_attribution) ... ok
+test_child_window_uses_its_creator_connection (__main__.SurfaceIdentityTests.test_child_window_uses_its_creator_connection) ... ok
+test_non_application_window_has_no_application_identity (__main__.SurfaceIdentityTests.test_non_application_window_has_no_application_identity) ... ok
+test_non_controller_compositor_cannot_query_attribution (__main__.SurfaceIdentityTests.test_non_controller_compositor_cannot_query_attribution) ... ok
+test_owner_disconnect_removes_attribution (__main__.SurfaceIdentityTests.test_owner_disconnect_removes_attribution) ... ok
+test_owner_labels_share_the_geometry_and_generation_reply (__main__.SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply) ... ok
+test_remap_changes_generation_without_changing_owner (__main__.SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner) ... ok
+test_resize_returns_new_geometry_with_same_owner (__main__.SurfaceIdentityTests.test_resize_returns_new_geometry_with_same_owner) ... ok
+test_reused_xid_does_not_reuse_window_generation (__main__.SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation) ... ok
+test_revocation_removes_only_the_revoked_application (__main__.SurfaceIdentityTests.test_revocation_removes_only_the_revoked_application) ... ok
+test_same_application_name_in_another_workspace_is_distinct (__main__.SurfaceIdentityTests.test_same_application_name_in_another_workspace_is_distinct) ... ok
+test_same_group_connections_keep_separate_connection_ids (__main__.SurfaceIdentityTests.test_same_group_connections_keep_separate_connection_ids) ... ok
+test_same_workspace_different_application_is_distinct (__main__.SurfaceIdentityTests.test_same_workspace_different_application_is_distinct) ... ok
+test_swapped_application_keeps_exact_binary_labels (__main__.SurfaceIdentityTests.test_swapped_application_keeps_exact_binary_labels) ... ok
+test_window_properties_cannot_spoof_authority (__main__.SurfaceIdentityTests.test_window_properties_cannot_spoof_authority) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 1.247s
+
+OK

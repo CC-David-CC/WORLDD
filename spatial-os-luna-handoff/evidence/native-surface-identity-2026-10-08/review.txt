@@ -1,0 +1,57 @@
+Primary-agent review: native surface attribution
+
+David waived local-model review. No local-model proposal or approval is claimed.
+
+Server identity
+
+The lookup uses the actual window resource owner after the normal native window validation.
+The owner must have a live authenticated APPLICATION connection.
+The caller must have trusted native authority and hold root SubstructureRedirect.
+Workspace and application labels come from immutable connection state.
+The returned server ID and connection ID distinguish connection incarnations.
+No window property, PID, class hint, cookie, or client-supplied label determines attribution.
+The reply contains no cookie or credential identifier.
+The server packs borrowed immutable label bytes before another request can mutate connection lifetime.
+
+Protocol and compositor
+
+ApplicationIdentity is shared by the private security, input, and core protobuf schemas.
+Bindings remain generated build outputs.
+The native Inspect reply includes explicit DEVELOPMENT or ENFORCED mode.
+The compositor rejects unspecified and unknown modes.
+Both hosts directly tested the new compositor against the previous server.
+It exited before emitting readiness and reported the missing security mode.
+The same failure path passed with runtime ASan/UBSan, leak detection, and explicit abort/halt settings on both hosts.
+Mode is explicit because a default false boolean could silently accept an older reply.
+The compositor validates label lengths, null bytes, server ID length, and connection ID.
+It receives those labels in the same operation as native generation and geometry.
+Mapped infrastructure windows have no application identity and are excluded.
+Unmapped surfaces clear current attribution and obtain it again on remap.
+Review also cleared attribution when pixmap acquisition fails during an unmap or destruction race.
+No actor-facing permission is implied by a private compositor snapshot.
+
+Tests
+
+Independent X11 clients exercise the actual native extension and ordinary window operations.
+Cases cover separate workspaces, same-group connections, child creation, property spoofing, resize, remap, and XID reuse.
+Ordinary applications and non-controller compositor connections cannot query foreign attribution.
+Connection loss and credential revocation remove attributable targets.
+Real spatialwm instances provide independent integration evidence through private protobuf snapshots.
+These cases include infrastructure windows, forged properties, remapping, and revocation.
+The separately compiled C witness also creates a real application window under its native credential.
+Both runtime profiles on both hosts verified its dimensions, probe identity, and authenticated application attribution.
+The initial integration fixture omitted its required state directory. That fixture defect was corrected explicitly.
+The remap integration case now requires a present initial identity, preventing an empty-equals-empty false pass.
+The initial full matrix correctly rejected the unrecorded locked core-schema change.
+Migration 0.15.0 now records that additive change and locks its imported security schema.
+No locked acceptance test or oracle changed. All 151 acceptance identifiers remain intact.
+
+Limits
+
+This interface assumes the compositor has the intended native connection.
+Automatic sealed session configuration and credential provisioning still require integration.
+DEVELOPMENT is the existing dedicated diagnostic mode, not authenticated application authority.
+Worldd application grants, group leases, and actor-facing metadata filtering remain incomplete.
+Core native-server sanitizers disable GLX. The compositor runs with software GLX in the runtime profiles.
+Physical GPU-session behavior, hardware input, instrumented GLX lifecycle, timing, and soak are not established here.
+M04, M09, Spatial-M1, and the full project remain incomplete.

@@ -152,13 +152,30 @@ struct XSurfaces::Impl {
                 retire(surface);
                 surface.native.mutable_handle()->set_generation(surface.native.handle().generation()+1);
                 surface.native.set_mapped(false); surface.native.set_server_generation(0);
+                surface.native.clear_application_identity();
                 surface.dirty=true; return;
             }
             require(reply.code()==native_input::OK && reply.has_target(),"Cannot inspect native input generation");
+            require(reply.security_mode()==native_input::DEVELOPMENT || reply.security_mode()==native_input::ENFORCED,
+                    "Native server omitted its security mode");
+            if (reply.security_mode()==native_input::ENFORCED) {
+                // Trusted infrastructure windows are not workspace applications.
+                if (!reply.has_application_identity()) { remove(xid); return; }
+                const auto& identity=reply.application_identity();
+                require(!identity.workspace().empty() && identity.workspace().size()<=256 &&
+                        identity.workspace().find('\0')==std::string::npos && !identity.application().empty() &&
+                        identity.application().size()<=256 && identity.application().find('\0')==std::string::npos &&
+                        identity.server_id().size()==32 && identity.connection_id()>0, "Invalid native application identity");
+                *surface.native.mutable_application_identity()=identity;
+            } else {
+                require(!reply.has_application_identity(), "Development server returned application authority");
+                surface.native.clear_application_identity();
+            }
             server_generation=reply.target().generation();
             // Dimensions and input generation must come from the same server reply.
             attr.width=reply.width(); attr.height=reply.height();
         }
+        if (!mapped) surface.native.clear_application_identity();
         const bool changed=replaced || surface.native.mapped()!=mapped || surface.native.pixels().width()!=unsigned(attr.width) ||
                             surface.native.pixels().height()!=unsigned(attr.height) || surface.native.server_generation()!=server_generation;
         if (changed) {
@@ -340,7 +357,12 @@ void XSurfaces::event(const XEvent& event) {
 void XSurfaces::synchronize() {
     auto& r=*impl_;
     for (auto& [xid,surface]:r.windows) if (surface.native.mapped()) {
-        if (!surface.resource.pixmap && !r.acquire(xid,surface)) { surface.native.set_mapped(false); continue; }
+        if (!surface.resource.pixmap && !r.acquire(xid,surface)) {
+            surface.native.set_mapped(false);
+            surface.native.set_server_generation(0);
+            surface.native.clear_application_identity();
+            continue;
+        }
         if (surface.dirty) r.copy(surface);
     }
     r.drain(); glFinish();

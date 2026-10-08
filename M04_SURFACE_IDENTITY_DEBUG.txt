@@ -1,0 +1,43 @@
+Native surface attribution: 2026-10-08
+
+The previous production compositor could not resolve authenticated application ownership.
+Its previous native reply supplied window geometry and generation only.
+Window properties cannot establish workspace or application authority.
+
+The new implementation obtains server-owned workspace and application labels.
+It obtains server and connection identities in the same reply as native geometry and generation.
+The compositor carries that attribution in its private protobuf snapshot.
+No authentication cookie or credential identifier enters that snapshot.
+Infrastructure windows have no application attribution and are excluded in enforced mode.
+Unmapping clears current attribution. Remapping obtains a fresh checked reply.
+An absent or unknown security mode fails closed.
+
+Initial evidence
+
+Both hosts passed preceding harness and P10 checks at commit 972b61f.
+local/m04-surface-identity-baseline-01 reproduced thirteen missing-attribution failures among fifteen native checks.
+local/m04-surface-identity-baseline-02 also exposed a fixture directory-creation omission.
+The fixture now creates the required compositor state directory before launching spatialwm.
+local/m04-surface-identity-baseline-03 retains the corrected baseline evidence.
+Both hosts passed all 22 focused native and compositor checks.
+The first full matrix stopped because core.proto is a locked schema.
+Migration 0.15.0 records the additive field and preserves all 151 acceptance assertions and identifiers.
+The schema migration has a separate reviewed commit before production enforcement.
+local/m04-surface-identity-debug-03: 729 core checks, 51 harness checks, and 151 P10 cases passed.
+local/m04-surface-identity-runtime-sanitize-03: the same 729, 51, and 151 checks passed.
+local/m04-surface-identity-native-sanitize-01: all 210 focused native checks passed without GLX.
+Both hosts passed every final profile, without skipped cases.
+Both hosts rejected the previous server before compositor readiness in Debug and runtime sanitizer profiles.
+Evidence is in spatial-os-luna-handoff/evidence/native-surface-identity-2026-10-08.
+
+Remaining work
+
+This interface does not grant actors observation or control authority.
+Worldd still needs application grants, application-group leases, and filtered surface metadata.
+Review found its current transient relationship path does not compare the new application labels.
+Add same-application relationship validation before treating parent hints as application-group membership.
+This is an integration requirement, not a claim of a reproduced actor-facing exploit.
+Automatic native-session credential provisioning remains required.
+Physical devices, GPU output, full instrumented GLX lifecycle, performance, and soak are unrun here.
+No normal login or system display settings changed.
+M04, M09, and Spatial-M1 remain incomplete.

@@ -1,0 +1,6 @@
+test_previous_server_cannot_silently_select_development_mode (__main__.Rejection.test_previous_server_cannot_silently_select_development_mode) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.141s
+
+OK

@@ -1,0 +1,161 @@
+test_application_cannot_query_foreign_attribution (__main__.SurfaceIdentityTests.test_application_cannot_query_foreign_attribution) ... ok
+test_child_window_uses_its_creator_connection (__main__.SurfaceIdentityTests.test_child_window_uses_its_creator_connection) ... FAIL
+test_non_application_window_has_no_application_identity (__main__.SurfaceIdentityTests.test_non_application_window_has_no_application_identity) ... FAIL
+test_non_controller_compositor_cannot_query_attribution (__main__.SurfaceIdentityTests.test_non_controller_compositor_cannot_query_attribution) ... ok
+test_owner_disconnect_removes_attribution (__main__.SurfaceIdentityTests.test_owner_disconnect_removes_attribution) ... FAIL
+test_owner_labels_share_the_geometry_and_generation_reply (__main__.SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply) ... FAIL
+test_remap_changes_generation_without_changing_owner (__main__.SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner) ... FAIL
+test_resize_returns_new_geometry_with_same_owner (__main__.SurfaceIdentityTests.test_resize_returns_new_geometry_with_same_owner) ... FAIL
+test_reused_xid_does_not_reuse_window_generation (__main__.SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation) ... FAIL
+test_revocation_removes_only_the_revoked_application (__main__.SurfaceIdentityTests.test_revocation_removes_only_the_revoked_application) ... FAIL
+test_same_application_name_in_another_workspace_is_distinct (__main__.SurfaceIdentityTests.test_same_application_name_in_another_workspace_is_distinct) ... FAIL
+test_same_group_connections_keep_separate_connection_ids (__main__.SurfaceIdentityTests.test_same_group_connections_keep_separate_connection_ids) ... FAIL
+test_same_workspace_different_application_is_distinct (__main__.SurfaceIdentityTests.test_same_workspace_different_application_is_distinct) ... FAIL
+test_swapped_application_keeps_exact_binary_labels (__main__.SurfaceIdentityTests.test_swapped_application_keeps_exact_binary_labels) ... FAIL
+test_window_properties_cannot_spoof_authority (__main__.SurfaceIdentityTests.test_window_properties_cannot_spoof_authority) ... FAIL
+
+======================================================================
+FAIL: test_child_window_uses_its_creator_connection (__main__.SurfaceIdentityTests.test_child_window_uses_its_creator_connection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 129, in test_child_window_uses_its_creator_connection
+    a = self.attribution().application_identity; b = self.attribution(child).application_identity
+        ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_non_application_window_has_no_application_identity (__main__.SurfaceIdentityTests.test_non_application_window_has_no_application_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 98, in test_non_application_window_has_no_application_identity
+    self.assertTrue(reply.HasField('security_enabled')); self.assertTrue(reply.security_enabled)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_owner_disconnect_removes_attribution (__main__.SurfaceIdentityTests.test_owner_disconnect_removes_attribution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 114, in test_owner_disconnect_removes_attribution
+    self.setup_scene(); self.attribution(); self.owner.close()
+                        ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_owner_labels_share_the_geometry_and_generation_reply (__main__.SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 32, in test_owner_labels_share_the_geometry_and_generation_reply
+    self.setup_scene(); reply = self.attribution()
+                                ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_remap_changes_generation_without_changing_owner (__main__.SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 66, in test_remap_changes_generation_without_changing_owner
+    self.setup_scene(); before = self.attribution()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_resize_returns_new_geometry_with_same_owner (__main__.SurfaceIdentityTests.test_resize_returns_new_geometry_with_same_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 75, in test_resize_returns_new_geometry_with_same_owner
+    self.setup_scene(); before = self.attribution()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_reused_xid_does_not_reuse_window_generation (__main__.SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 84, in test_reused_xid_does_not_reuse_window_generation
+    self.setup_scene(); before = self.attribution()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_revocation_removes_only_the_revoked_application (__main__.SurfaceIdentityTests.test_revocation_removes_only_the_revoked_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 121, in test_revocation_removes_only_the_revoked_application
+    self.setup_scene(); other = self.attribution(self.other_window)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_same_application_name_in_another_workspace_is_distinct (__main__.SurfaceIdentityTests.test_same_application_name_in_another_workspace_is_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 37, in test_same_application_name_in_another_workspace_is_distinct
+    self.setup_scene(); a = self.attribution(); b = self.attribution(self.other_window)
+                            ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_same_group_connections_keep_separate_connection_ids (__main__.SurfaceIdentityTests.test_same_group_connections_keep_separate_connection_ids)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 50, in test_same_group_connections_keep_separate_connection_ids
+    a = self.attribution().application_identity; b = self.attribution(window).application_identity
+        ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_same_workspace_different_application_is_distinct (__main__.SurfaceIdentityTests.test_same_workspace_different_application_is_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 46, in test_same_workspace_different_application_is_distinct
+    self.assertEqual(self.attribution(window).application_identity.application, b'terminal')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_swapped_application_keeps_exact_binary_labels (__main__.SurfaceIdentityTests.test_swapped_application_keeps_exact_binary_labels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 134, in test_swapped_application_keeps_exact_binary_labels
+    self.setup_scene(endian='>'); value = self.attribution().application_identity
+                                          ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+======================================================================
+FAIL: test_window_properties_cannot_spoof_authority (__main__.SurfaceIdentityTests.test_window_properties_cannot_spoof_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 61, in test_window_properties_cannot_spoof_authority
+    self.setup_scene(); before = self.attribution().application_identity
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-01/test_surface_identity.py", line 18, in attribution
+    self.assertTrue(reply.HasField('security_enabled'), 'Missing explicit security mode')
+AssertionError: False is not true : Missing explicit security mode
+
+----------------------------------------------------------------------
+Ran 15 tests in 1.283s
+
+FAILED (failures=13)

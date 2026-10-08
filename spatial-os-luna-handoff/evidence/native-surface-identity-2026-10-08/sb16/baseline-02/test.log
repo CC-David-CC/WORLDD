@@ -1,0 +1,363 @@
+test_application_cannot_query_foreign_attribution (test_surface_identity.SurfaceIdentityTests.test_application_cannot_query_foreign_attribution) ... ok
+test_child_window_uses_its_creator_connection (test_surface_identity.SurfaceIdentityTests.test_child_window_uses_its_creator_connection) ... FAIL
+test_non_application_window_has_no_application_identity (test_surface_identity.SurfaceIdentityTests.test_non_application_window_has_no_application_identity) ... FAIL
+test_non_controller_compositor_cannot_query_attribution (test_surface_identity.SurfaceIdentityTests.test_non_controller_compositor_cannot_query_attribution) ... ok
+test_owner_disconnect_removes_attribution (test_surface_identity.SurfaceIdentityTests.test_owner_disconnect_removes_attribution) ... FAIL
+test_owner_labels_share_the_geometry_and_generation_reply (test_surface_identity.SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply) ... FAIL
+test_remap_changes_generation_without_changing_owner (test_surface_identity.SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner) ... FAIL
+test_resize_returns_new_geometry_with_same_owner (test_surface_identity.SurfaceIdentityTests.test_resize_returns_new_geometry_with_same_owner) ... FAIL
+test_reused_xid_does_not_reuse_window_generation (test_surface_identity.SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation) ... FAIL
+test_revocation_removes_only_the_revoked_application (test_surface_identity.SurfaceIdentityTests.test_revocation_removes_only_the_revoked_application) ... FAIL
+test_same_application_name_in_another_workspace_is_distinct (test_surface_identity.SurfaceIdentityTests.test_same_application_name_in_another_workspace_is_distinct) ... FAIL
+test_same_group_connections_keep_separate_connection_ids (test_surface_identity.SurfaceIdentityTests.test_same_group_connections_keep_separate_connection_ids) ... FAIL
+test_same_workspace_different_application_is_distinct (test_surface_identity.SurfaceIdentityTests.test_same_workspace_different_application_is_distinct) ... FAIL
+test_swapped_application_keeps_exact_binary_labels (test_surface_identity.SurfaceIdentityTests.test_swapped_application_keeps_exact_binary_labels) ... FAIL
+test_window_properties_cannot_spoof_authority (test_surface_identity.SurfaceIdentityTests.test_window_properties_cannot_spoof_authority) ... FAIL
+test_non_application_window_is_not_a_workspace_surface (test_compositor_identity.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface) ... FAIL
+test_non_application_window_is_not_a_workspace_surface (test_compositor_identity.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface) ... FAIL
+test_properties_do_not_choose_snapshot_identity (test_compositor_identity.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity) ... FAIL
+test_properties_do_not_choose_snapshot_identity (test_compositor_identity.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity) ... FAIL
+test_revoked_application_disappears_from_snapshot (test_compositor_identity.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot) ... FAIL
+test_revoked_application_disappears_from_snapshot (test_compositor_identity.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot) ... FAIL
+test_same_group_new_connection_has_distinct_attribution (test_compositor_identity.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution) ... FAIL
+test_same_group_new_connection_has_distinct_attribution (test_compositor_identity.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution) ... FAIL
+test_separate_workspaces_remain_distinct_in_one_snapshot (test_compositor_identity.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot) ... FAIL
+test_separate_workspaces_remain_distinct_in_one_snapshot (test_compositor_identity.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot) ... FAIL
+test_snapshot_contains_authenticated_application_identity (test_compositor_identity.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity) ... FAIL
+test_snapshot_contains_authenticated_application_identity (test_compositor_identity.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity) ... FAIL
+test_unmap_clears_attribution_and_remap_restores_it (test_compositor_identity.CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it) ... FAIL
+test_unmap_clears_attribution_and_remap_restores_it (test_compositor_identity.CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it) ... FAIL
+
+======================================================================
+FAIL: test_child_window_uses_its_creator_connection (test_surface_identity.SurfaceIdentityTests.test_child_window_uses_its_creator_connection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 128, in test_child_window_uses_its_creator_connection
+    a = self.attribution().application_identity; b = self.attribution(child).application_identity
+        ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_non_application_window_has_no_application_identity (test_surface_identity.SurfaceIdentityTests.test_non_application_window_has_no_application_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 97, in test_non_application_window_has_no_application_identity
+    self.assertEqual(reply.security_mode, inp.ENFORCED)
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_owner_disconnect_removes_attribution (test_surface_identity.SurfaceIdentityTests.test_owner_disconnect_removes_attribution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 113, in test_owner_disconnect_removes_attribution
+    self.setup_scene(); self.attribution(); self.owner.close()
+                        ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_owner_labels_share_the_geometry_and_generation_reply (test_surface_identity.SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 31, in test_owner_labels_share_the_geometry_and_generation_reply
+    self.setup_scene(); reply = self.attribution()
+                                ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_remap_changes_generation_without_changing_owner (test_surface_identity.SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 65, in test_remap_changes_generation_without_changing_owner
+    self.setup_scene(); before = self.attribution()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_resize_returns_new_geometry_with_same_owner (test_surface_identity.SurfaceIdentityTests.test_resize_returns_new_geometry_with_same_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 74, in test_resize_returns_new_geometry_with_same_owner
+    self.setup_scene(); before = self.attribution()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_reused_xid_does_not_reuse_window_generation (test_surface_identity.SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 83, in test_reused_xid_does_not_reuse_window_generation
+    self.setup_scene(); before = self.attribution()
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_revocation_removes_only_the_revoked_application (test_surface_identity.SurfaceIdentityTests.test_revocation_removes_only_the_revoked_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 120, in test_revocation_removes_only_the_revoked_application
+    self.setup_scene(); other = self.attribution(self.other_window)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_same_application_name_in_another_workspace_is_distinct (test_surface_identity.SurfaceIdentityTests.test_same_application_name_in_another_workspace_is_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 36, in test_same_application_name_in_another_workspace_is_distinct
+    self.setup_scene(); a = self.attribution(); b = self.attribution(self.other_window)
+                            ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_same_group_connections_keep_separate_connection_ids (test_surface_identity.SurfaceIdentityTests.test_same_group_connections_keep_separate_connection_ids)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 49, in test_same_group_connections_keep_separate_connection_ids
+    a = self.attribution().application_identity; b = self.attribution(window).application_identity
+        ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_same_workspace_different_application_is_distinct (test_surface_identity.SurfaceIdentityTests.test_same_workspace_different_application_is_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 45, in test_same_workspace_different_application_is_distinct
+    self.assertEqual(self.attribution(window).application_identity.application, b'terminal')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_swapped_application_keeps_exact_binary_labels (test_surface_identity.SurfaceIdentityTests.test_swapped_application_keeps_exact_binary_labels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 133, in test_swapped_application_keeps_exact_binary_labels
+    self.setup_scene(endian='>'); value = self.attribution().application_identity
+                                          ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_window_properties_cannot_spoof_authority (test_surface_identity.SurfaceIdentityTests.test_window_properties_cannot_spoof_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 60, in test_window_properties_cannot_spoof_authority
+    self.setup_scene(); before = self.attribution().application_identity
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_surface_identity.py", line 18, in attribution
+    self.assertEqual(reply.security_mode, inp.ENFORCED, 'Missing enforced security mode')
+AssertionError: 0 != 2 : Missing enforced security mode
+
+======================================================================
+FAIL: test_non_application_window_is_not_a_workspace_surface (test_compositor_identity.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 114, in test_non_application_window_is_not_a_workspace_surface
+    self.renderer(); self.surface()
+    ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 52, in renderer
+    self.assertTrue(self.receive().HasField('ready'), 'Real compositor did not start')
+                    ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 62, in receive
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 59, in exact
+    if not part: raise AssertionError('Production compositor closed its channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Production compositor closed its channel
+
+======================================================================
+FAIL: test_non_application_window_is_not_a_workspace_surface (test_compositor_identity.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 50, in close
+    self.assertEqual(proc.returncode, 0, diagnostic)
+AssertionError: 2 != 0 : spatialwm: filesystem error: cannot create directory: No such file or directory [/tmp/tmpfjnf9q_u/renderer/captures]
+
+
+======================================================================
+FAIL: test_properties_do_not_choose_snapshot_identity (test_compositor_identity.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 91, in test_properties_do_not_choose_snapshot_identity
+    self.scene(); self.forge(self.owner, self.window); self.renderer()
+                                                       ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 52, in renderer
+    self.assertTrue(self.receive().HasField('ready'), 'Real compositor did not start')
+                    ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 62, in receive
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 59, in exact
+    if not part: raise AssertionError('Production compositor closed its channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Production compositor closed its channel
+
+======================================================================
+FAIL: test_properties_do_not_choose_snapshot_identity (test_compositor_identity.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 50, in close
+    self.assertEqual(proc.returncode, 0, diagnostic)
+AssertionError: 2 != 0 : spatialwm: filesystem error: cannot create directory: No such file or directory [/tmp/tmpo8jxib_q/renderer/captures]
+
+
+======================================================================
+FAIL: test_revoked_application_disappears_from_snapshot (test_compositor_identity.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 118, in test_revoked_application_disappears_from_snapshot
+    self.scene(); self.renderer(); self.surface()
+                  ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 52, in renderer
+    self.assertTrue(self.receive().HasField('ready'), 'Real compositor did not start')
+                    ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 62, in receive
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 59, in exact
+    if not part: raise AssertionError('Production compositor closed its channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Production compositor closed its channel
+
+======================================================================
+FAIL: test_revoked_application_disappears_from_snapshot (test_compositor_identity.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 50, in close
+    self.assertEqual(proc.returncode, 0, diagnostic)
+AssertionError: 2 != 0 : spatialwm: filesystem error: cannot create directory: No such file or directory [/tmp/tmpt91f4bad/renderer/captures]
+
+
+======================================================================
+FAIL: test_same_group_new_connection_has_distinct_attribution (test_compositor_identity.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 127, in test_same_group_new_connection_has_distinct_attribution
+    self.renderer(); a = self.surface().application_identity; b = self.surface(window).application_identity
+    ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 52, in renderer
+    self.assertTrue(self.receive().HasField('ready'), 'Real compositor did not start')
+                    ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 62, in receive
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 59, in exact
+    if not part: raise AssertionError('Production compositor closed its channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Production compositor closed its channel
+
+======================================================================
+FAIL: test_same_group_new_connection_has_distinct_attribution (test_compositor_identity.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 50, in close
+    self.assertEqual(proc.returncode, 0, diagnostic)
+AssertionError: 2 != 0 : spatialwm: filesystem error: cannot create directory: No such file or directory [/tmp/tmps55w1tnr/renderer/captures]
+
+
+======================================================================
+FAIL: test_separate_workspaces_remain_distinct_in_one_snapshot (test_compositor_identity.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 99, in test_separate_workspaces_remain_distinct_in_one_snapshot
+    self.renderer(); a = self.surface().application_identity; b = self.surface(window).application_identity
+    ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 52, in renderer
+    self.assertTrue(self.receive().HasField('ready'), 'Real compositor did not start')
+                    ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 62, in receive
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 59, in exact
+    if not part: raise AssertionError('Production compositor closed its channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Production compositor closed its channel
+
+======================================================================
+FAIL: test_separate_workspaces_remain_distinct_in_one_snapshot (test_compositor_identity.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 50, in close
+    self.assertEqual(proc.returncode, 0, diagnostic)
+AssertionError: 2 != 0 : spatialwm: filesystem error: cannot create directory: No such file or directory [/tmp/tmpolijc507/renderer/captures]
+
+
+======================================================================
+FAIL: test_snapshot_contains_authenticated_application_identity (test_compositor_identity.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 83, in test_snapshot_contains_authenticated_application_identity
+    self.scene(); self.renderer(); surface = self.surface()
+                  ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 52, in renderer
+    self.assertTrue(self.receive().HasField('ready'), 'Real compositor did not start')
+                    ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 62, in receive
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 59, in exact
+    if not part: raise AssertionError('Production compositor closed its channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Production compositor closed its channel
+
+======================================================================
+FAIL: test_snapshot_contains_authenticated_application_identity (test_compositor_identity.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 50, in close
+    self.assertEqual(proc.returncode, 0, diagnostic)
+AssertionError: 2 != 0 : spatialwm: filesystem error: cannot create directory: No such file or directory [/tmp/tmp2vlwjmjb/renderer/captures]
+
+
+======================================================================
+FAIL: test_unmap_clears_attribution_and_remap_restores_it (test_compositor_identity.CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 103, in test_unmap_clears_attribution_and_remap_restores_it
+    self.scene(); self.renderer(); before = self.surface()
+                  ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 52, in renderer
+    self.assertTrue(self.receive().HasField('ready'), 'Real compositor did not start')
+                    ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 62, in receive
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 59, in exact
+    if not part: raise AssertionError('Production compositor closed its channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Production compositor closed its channel
+
+======================================================================
+FAIL: test_unmap_clears_attribution_and_remap_restores_it (test_compositor_identity.CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-surface-identity-baseline-02/test_compositor_identity.py", line 50, in close
+    self.assertEqual(proc.returncode, 0, diagnostic)
+AssertionError: 2 != 0 : spatialwm: filesystem error: cannot create directory: No such file or directory [/tmp/tmpwt1m4mdc/renderer/captures]
+
+
+----------------------------------------------------------------------
+Ran 22 tests in 1.565s
+
+FAILED (failures=27)

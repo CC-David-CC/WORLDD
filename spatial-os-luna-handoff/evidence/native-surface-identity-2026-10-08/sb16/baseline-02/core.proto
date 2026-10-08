@@ -1,0 +1,418 @@
+syntax = "proto3";
+package spatial.core.v1;
+import "security.proto";
+
+// Units: meters, seconds, radians. Right-handed; forward is -Z.
+// Unspecified vector components are zero. Message presence is checked separately.
+message Vec2 { double x = 1; double y = 2; }
+message Vec3 { double x = 1; double y = 2; double z = 3; }
+message Quaternion { double x = 1; double y = 2; double z = 3; double w = 4; }
+message Pose { Vec3 position = 1; Quaternion orientation = 2; }
+message PixelExtent { uint32 width = 1; uint32 height = 2; }
+message Pixel { uint32 x = 1; uint32 y = 2; }
+
+message HelloRequest {}
+message WorldGetRequest { string id = 1; }
+enum EntityKind {
+  ENTITY_KIND_UNSPECIFIED = 0;
+  ROOM = 1;
+  OBJECT = 2;
+  PANEL = 3;
+  BARRIER = 4;
+  PORTAL = 5;
+  SURFACE_SLOT = 6;
+  ACTOR = 7;
+}
+message Color { uint32 red = 1; uint32 green = 2; uint32 blue = 3; }
+message Bounds { Vec3 min = 1; Vec3 max = 2; }
+message Destination { string room = 1; Pose pose = 2; }
+// Presence is retained for patch validation, including immutable fields.
+message Entity {
+  optional string id = 1;
+  optional EntityKind kind = 2;
+  optional string room = 3;
+  optional string label = 4;
+  Pose pose = 5;
+  Vec2 size = 6;
+  Color color = 7;
+  Bounds bounds = 8;
+  Destination destination = 9;
+  optional uint64 revision = 10;
+  optional uint64 world_revision = 11;
+}
+message WorldCreateRequest { Entity entity = 1; }
+message WorldListRequest {}
+message WorldSnapshotRequest {}
+message WorldUpdateRequest {
+  string id = 1;
+  optional uint64 expected_revision = 2;
+  Entity patch = 3;
+}
+message WorldDeleteRequest { string id = 1; optional uint64 expected_revision = 2; }
+message WorldInfoRequest {}
+message RuntimeIdentitiesRequest {}
+message RuntimeConfig {
+  optional double linear_gain = 1;
+  optional double angular_gain = 2;
+  optional double deadzone = 3;
+  optional double input_timeout = 4;
+  RenderConfig render = 5;
+  optional double actor_radius = 6;
+  optional double interaction_reach = 7;
+}
+message RenderConfig {
+  optional double vertical_fov = 1;
+  optional double near_clip = 2;
+  optional double far_clip = 3;
+  Color background = 4;
+  Color barrier_color = 5;
+  Color portal_color = 6;
+  optional double object_size = 7;
+  Color object_color = 8;
+}
+message RenderRequest { string token = 1; uint32 width = 2; uint32 height = 3; }
+message FrameReply { string path = 1; uint64 frame_id = 2; uint64 world_revision = 3; uint64 xid = 4; }
+// Private worldd-to-spatialwm protocol. No actor credentials cross this boundary.
+message SurfaceHandle { string id = 1; uint64 generation = 2; }
+message SurfaceRecord {
+  string id = 1; uint64 xid = 2; uint64 generation = 3; string room = 4;
+  Pose pose = 5; Vec2 size = 6; PixelExtent pixels = 7; bool mapped = 8;
+  optional string parent_id = 9; optional string slot = 10;
+}
+message NativeSurface {
+  SurfaceHandle handle = 1; uint64 xid = 2; PixelExtent pixels = 3; bool mapped = 4;
+  string probe_id = 5; uint64 parent_xid = 6; sint32 root_x = 7; sint32 root_y = 8;
+  uint64 server_generation = 9;
+  spatial.security.v1.ApplicationIdentity application_identity = 10;
+}
+message ResourceStats { uint64 retired_pixmaps_pending = 1; uint64 invalid_texture_bindings = 2; uint64 live_pixmaps = 3; }
+message NativeSnapshot { repeated NativeSurface surfaces = 1; ResourceStats resources = 2; repeated NativeActorInput actors = 3; }
+message NativeActorInput {
+  string actor_id = 1;
+  repeated string held_keys = 2;
+  repeated uint32 held_buttons = 3;
+  SurfaceHandle focus = 4;
+}
+message CapturedMotion { sint32 x = 1; sint32 y = 2; }
+message RendererInputCommand {
+  string actor_id = 1;
+  SurfaceHandle target = 2;
+  Pixel pixel = 3;
+  bool keep_capture_position = 4;
+  oneof operation {
+    ActorPointerRequest pointer = 10;
+    ActorKeyRequest key = 11;
+    ActorScrollRequest scroll = 12;
+    ActorStopRequest cancel = 13;
+    ActorStopRequest close = 14;
+    CapturedMotion motion = 15;
+  }
+}
+message PlacedSurface { SurfaceHandle handle = 1; Entity panel = 2; PixelExtent pixels = 3; }
+message SurfaceFindRequest { string probe_id = 1; }
+message SurfaceIdRequest { string id = 1; }
+message SurfacePlaceRequest { string id = 1; string room = 2; Pose pose = 3; Vec2 size = 4; }
+message SurfaceAttachSlotRequest { string id = 1; string slot = 2; }
+message SurfaceValidateRequest { SurfaceHandle handle = 1; }
+message SurfaceValidationReply { optional bool valid = 1; }
+message SurfaceReply { SurfaceRecord surface = 1; }
+message SurfaceListReply { repeated SurfaceRecord surfaces = 1; }
+message RuntimeFenceRequest {}
+message RuntimeResourcesRequest {}
+message FenceReply { bool complete = 1; }
+message RendererSyncRequest {}
+message RenderScene { Pose camera = 1; RenderConfig config = 2; uint64 world_revision = 3; repeated Entity panels = 4; repeated PlacedSurface surfaces = 5; repeated Entity barriers = 6; repeated Entity portals = 7; repeated Entity objects = 8; }
+message RenderCommand {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  RenderScene scene = 3;
+  uint32 width = 4;
+  uint32 height = 5;
+  bool capture = 6;
+  RendererSyncRequest sync = 7;
+  RendererInputCommand input = 8;
+  bool observe = 9; // Read visibility from an isolated target; never present this view.
+}
+message VisibilitySample { uint32 index = 1; Pixel pixel = 2; uint64 pixels = 3; }
+message RenderVisibility { uint64 frame_id = 1; uint64 world_revision = 2; repeated VisibilitySample visible = 3; }
+message RendererReady { string gl_version = 1; string gl_renderer = 2; }
+message RenderResult {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; NativeSnapshot snapshot = 6; NativeActorInput input = 7; RenderVisibility visibility = 8; }
+}
+message ActorAimRequest { Vec3 direction = 1; }
+message AimHit { string id = 1; uint64 generation = 2; Vec2 uv = 3; Pixel pixel = 4; double distance = 5; }
+message AimReply { AimHit hit = 1; }
+message ActorOpenRequest { string id = 1; optional string room = 2; Pose pose = 3; repeated string grants = 4; }
+message ActorTokenRequest { string token = 1; }
+message ActorInputRequest { repeated double axes = 1; }
+message ActorStopRequest {}
+message ActorPointerRequest { optional uint32 button = 1; optional bool pressed = 2; }
+message ActorKeyRequest { optional string keysym = 1; optional bool pressed = 2; }
+message ActorScrollRequest { optional sint32 steps_y = 1; }
+message ActorObserveRequest { optional uint32 width = 1; optional uint32 height = 2; }
+message ObjectGrabRequest { string id = 1; }
+message ObjectMoveRequest { Pose pose = 1; }
+message ObjectReleaseRequest { optional bool commit = 1; }
+enum WorkspaceRight {
+  WORKSPACE_RIGHT_UNSPECIFIED = 0;
+  WORKSPACE_SELECT = 1;
+  FILES_READ = 2;
+  FILES_WRITE = 3;
+  PROCESS_LAUNCH = 4;
+}
+message RepositoryImportRequest { string id = 1; string path = 2; }
+message WorktreeCreateRequest { string repo = 1; string id = 2; string branch = 3; string start = 4; string operation_id = 5; }
+message WorktreeStatusRequest { string worktree = 1; }
+message WorktreeRemoveRequest { string id = 1; string operation_id = 2; }
+message GitOperationRequest { string operation_id = 1; }
+message WorkspaceCreateRequest { string id = 1; string worktree = 2; repeated WorkspaceRight policy = 3; }
+message WorkspaceIdRequest { string id = 1; }
+message WorkspaceMemberRequest { string id = 1; string actor = 2; repeated WorkspaceRight rights = 3; }
+message WorkspaceAvailableRequest { string id = 1; optional bool available = 2; }
+message ProcessLaunchRequest { repeated string argv = 1; string operation_id = 2; string profile = 3; }
+message ProcessWaitRequest { string id = 1; optional double timeout_seconds = 2; }
+// Fixture management only. These operations never belong to ActorActionRequest.
+enum FaultPoint {
+  FAULT_POINT_UNSPECIFIED = 0;
+  FAULT_WORLD_BEFORE_COMMIT = 1;
+  FAULT_WORLD_AFTER_COMMIT_BEFORE_REPLY = 2;
+  FAULT_GIT_AFTER_WORKTREE_BEFORE_READY = 3;
+  FAULT_STORAGE_NEXT_WRITE = 4;
+}
+enum FaultAction {
+  FAULT_ACTION_UNSPECIFIED = 0;
+  FAULT_EXIT = 1;
+  FAULT_ERROR = 2;
+}
+enum StorageFault {
+  STORAGE_FAULT_UNSPECIFIED = 0;
+  STORAGE_FAULT_ENOSPC = 1;
+}
+message FaultArmRequest {
+  FaultPoint point = 1;
+  FaultAction action = 2;
+  optional StorageFault storage_error = 3;
+}
+message FaultArmReply { optional bool armed = 1; }
+message ActorActionRequest {
+  string token = 1;
+  optional uint64 seq = 2;
+  oneof action {
+    ActorInputRequest input = 10; ActorStopRequest stop = 11; ActorAimRequest aim = 12;
+    ActorPointerRequest pointer = 13; ActorKeyRequest key = 14;
+    ActorScrollRequest scroll = 15; ActorStopRequest unfocus = 16;
+    ActorObserveRequest observe = 17;
+    ObjectGrabRequest object_grab = 18; ObjectMoveRequest object_move = 19;
+    ObjectReleaseRequest object_release = 20;
+    WorktreeCreateRequest git_worktree_create = 21;
+    WorkspaceIdRequest workspace_select = 22;
+    ActorStopRequest workspace_clear = 23;
+    ProcessLaunchRequest process_launch = 24;
+  }
+}
+message WorldCheckpointRequest {}
+message ClockAdvanceRequest { optional double seconds = 1; }
+message PointTransformRequest { Pose pose = 1; Vec3 point = 2; }
+message UvPixelRequest { Vec2 uv = 1; PixelExtent pixels = 2; }
+message RayPanelRequest {
+  Vec3 origin = 1;
+  Vec3 direction = 2;
+  Pose pose = 3;
+  Vec2 size = 4;
+  PixelExtent pixels = 5;
+}
+message IntegrateRequest {
+  Pose pose = 1;
+  Vec3 linear = 2;
+  Vec3 angular = 3;
+  optional double seconds = 4;
+}
+message SweepSphereRequest { Vec3 origin = 1; Vec3 displacement = 2; optional double radius = 3; Bounds bounds = 4; }
+message SweepSphereHit { double fraction = 1; Vec3 position = 2; Vec3 normal = 3; }
+message SweepSphereReply { SweepSphereHit hit = 1; }
+
+message Request {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    HelloRequest hello = 10;
+    WorldGetRequest world_get = 11;
+    PointTransformRequest transform_point = 12;
+    PointTransformRequest inverse_point = 13;
+    UvPixelRequest uv_pixel = 14;
+    RayPanelRequest ray_panel = 15;
+    IntegrateRequest integrate = 16;
+    SweepSphereRequest sweep_sphere_aabb = 17;
+    WorldCreateRequest world_create = 20;
+    WorldListRequest world_list = 21;
+    WorldSnapshotRequest world_snapshot = 22;
+    WorldUpdateRequest world_update = 23;
+    WorldDeleteRequest world_delete = 24;
+    WorldInfoRequest world_info = 25;
+    RuntimeIdentitiesRequest runtime_identities = 26;
+    ActorOpenRequest actor_open = 30;
+    ActorTokenRequest actor_inspect = 31;
+    ActorTokenRequest actor_close = 32;
+    ActorActionRequest actor_act = 33;
+    WorldCheckpointRequest world_checkpoint = 34;
+    ClockAdvanceRequest clock_advance = 35;
+    RenderRequest render_capture = 40;
+    RenderRequest render_present = 41;
+    SurfaceFindRequest surface_find = 50;
+    SurfaceIdRequest surface_get = 51;
+    SurfacePlaceRequest surface_place = 52;
+    SurfaceIdRequest surface_children = 53;
+    RuntimeFenceRequest runtime_fence = 54;
+    RuntimeResourcesRequest runtime_resources = 55;
+    SurfaceAttachSlotRequest surface_attach_slot = 56;
+    SurfaceValidateRequest surface_validate = 57;
+    RepositoryImportRequest git_repo_import = 60;
+    WorktreeCreateRequest git_worktree_create = 61;
+    WorktreeStatusRequest git_status = 62;
+    WorktreeRemoveRequest git_worktree_remove = 63;
+    GitOperationRequest git_operation = 64;
+    WorkspaceCreateRequest workspace_create = 70;
+    WorkspaceIdRequest workspace_get = 71;
+    WorkspaceMemberRequest workspace_member_set = 72;
+    WorkspaceAvailableRequest workspace_available = 73;
+    ProcessWaitRequest process_wait = 80;
+    FaultArmRequest fault_arm = 90;
+  }
+}
+
+enum ErrorCode {
+  ERROR_CODE_UNSPECIFIED = 0;
+  INVALID_ARGUMENT = 1;
+  UNKNOWN_METHOD = 2;
+  UNIMPLEMENTED = 3;
+  INTERNAL_ERROR = 4;
+  UNSUPPORTED_VERSION = 5;
+  NOT_FOUND = 6;
+  ALREADY_EXISTS = 7;
+  REVISION_CONFLICT = 8;
+  IN_USE = 9;
+  STORAGE_ERROR = 10;
+  RESOURCE_EXHAUSTED = 11;
+  UNAUTHORIZED = 12;
+  FORBIDDEN = 13;
+  STALE_SEQUENCE = 14;
+  NO_TARGET = 15;
+  STALE_TARGET = 16;
+  NO_FOCUS = 17;
+  BUSY = 18;
+  NOT_VISIBLE = 19;
+  OUT_OF_REACH = 20;
+  BRANCH_IN_USE = 21;
+  DIRTY_WORKTREE = 22;
+  OPERATION_CONFLICT = 23;
+  TIMEOUT = 24;
+  NO_WORKSPACE = 25;
+  UNAVAILABLE = 26;
+}
+message Error { ErrorCode code = 1; string message = 2; }
+message HelloReply {
+  string protocol = 1;
+  string build_id = 2;
+  repeated string capabilities = 3;
+  string implementation = 4;
+}
+message PointReply { Vec3 point = 1; }
+// Absent pixel/hit represents a miss. Never clamp a miss to a valid target.
+message PixelReply { Pixel pixel = 1; }
+message RayHit { Vec2 uv = 1; Pixel pixel = 2; double distance = 3; }
+message RayReply { RayHit hit = 1; }
+message PoseReply { Pose pose = 1; }
+message EntityReply { Entity entity = 1; }
+message WorldSnapshotReply {
+  string world_id = 1;
+  uint64 world_revision = 2;
+  repeated Entity entities = 3;
+  string entry_room = 4;
+}
+message WorldDeleteReply { bool deleted = 1; uint64 world_revision = 2; }
+message WorldInfoReply { string world_id = 1; string entry_room = 2; uint64 world_revision = 3; }
+message RuntimeIdentitiesReply { uint64 worldd_pid = 1; string world_id = 2; uint64 spatialwm_pid = 3; string display = 4; uint64 workspaced_pid = 5; }
+message ActorOpenReply { string id = 1; string token = 2; }
+message ActorStateReply {
+  string id = 1;
+  string room = 2;
+  Pose pose = 3;
+  repeated double axes = 4;
+  repeated string held_keys = 5;
+  repeated uint32 held_buttons = 6;
+  optional string focus = 7;
+  uint64 focus_generation = 8;
+  optional string workspace = 9;
+}
+message ObservedRepresentation {
+  string id = 1;
+  uint64 generation = 2;
+  Pose pose = 3;
+  Vec2 size = 4;
+  optional EntityKind kind = 5; // Absent for a live application surface.
+  PixelExtent pixels = 6; // Present only for an application surface.
+  Pixel sample = 7; // A visible pixel in the observation viewport, with top-left origin.
+  Vec3 direction = 8; // Camera-local ray through that sample.
+  uint64 visible_pixels = 9;
+  Bounds bounds = 10; // Solid geometry replaces planar size for a barrier.
+}
+message ActorObservation {
+  string actor = 1; string room = 2; Pose pose = 3; uint64 world_revision = 4;
+  repeated ObservedRepresentation visible = 5;
+  PixelExtent viewport = 6; uint64 frame_id = 7;
+}
+message RepositoryReply { string id = 1; string path = 2; string source = 3; }
+message WorktreeReply { string id = 1; string repo = 2; string branch = 3; string path = 4; string head = 5; }
+message GitStatusReply { string head = 1; string branch = 2; bool clean = 3; repeated string modified = 4; repeated string untracked = 5; }
+message WorktreeRemoveReply { bool removed = 1; }
+message GitOperationReply { string state = 1; }
+message WorkspaceReply { string id = 1; string worktree = 2; repeated WorkspaceRight policy = 3; uint64 revision = 4; }
+message WorkspaceAck { bool accepted = 1; }
+message ProcessLaunchReply { string process_id = 1; string workspace = 2; }
+message ProcessWaitReply { optional sint32 exit_code = 1; }
+message ActorActionReply { bool accepted = 1; AimReply aim = 2; ActorObservation observation = 3; WorktreeReply worktree = 4; ProcessLaunchReply process = 5; }
+message ActorCloseReply { bool closed = 1; }
+message WorldCheckpointReply { uint64 world_revision = 1; }
+message ClockReply { double seconds = 1; }
+message Reply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    Error error = 3;
+    HelloReply hello = 10;
+    PointReply point = 12;
+    PixelReply pixel = 14;
+    RayReply ray = 15;
+    PoseReply pose = 16;
+    SweepSphereReply sweep = 17;
+    EntityReply entity = 20;
+    WorldSnapshotReply snapshot = 21;
+    WorldDeleteReply deleted = 24;
+    WorldInfoReply world_info = 25;
+    RuntimeIdentitiesReply identities = 26;
+    ActorOpenReply actor_opened = 30;
+    ActorStateReply actor_state = 31;
+    ActorCloseReply actor_closed = 32;
+    ActorActionReply actor_action = 33;
+    WorldCheckpointReply checkpoint = 34;
+    ClockReply clock = 35;
+    FrameReply frame = 40;
+    SurfaceReply surface = 50;
+    SurfaceRecord surface_record = 51;
+    SurfaceListReply surfaces = 53;
+    FenceReply fence = 54;
+    ResourceStats resources = 55;
+    SurfaceValidationReply surface_validation = 57;
+    RepositoryReply repository = 60;
+    WorktreeReply worktree = 61;
+    GitStatusReply git_status = 62;
+    WorktreeRemoveReply worktree_removed = 63;
+    GitOperationReply git_operation = 64;
+    WorkspaceReply workspace = 70;
+    WorkspaceAck workspace_ack = 72;
+    ProcessWaitReply process_wait = 80;
+    FaultArmReply fault_armed = 90;
+  }
+}

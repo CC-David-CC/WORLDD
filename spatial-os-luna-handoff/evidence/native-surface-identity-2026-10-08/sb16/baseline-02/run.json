@@ -1,0 +1,13 @@
+{
+  "binary": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/234393f40cdb44aa92005e9815b43d091fab524c8d30dc752d0430b4da7a8d78/source/build/hw/vfb/Xvfb",
+    "sha256": "821b7df2eda2e462fc47187ac47e04f368a8820d76b3e5536461aa46fd18eb1d"
+  },
+  "command": [
+    "python3",
+    "-c",
+    "import sys; sys.argv=['witness',sys.argv[1]]; import test_surface_identity,test_compositor_identity,unittest; suite=unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromModule(m) for m in [test_surface_identity,test_compositor_identity]]); result=unittest.TextTestRunner(verbosity=2).run(suite); sys.exit(not result.wasSuccessful())",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+  ],
+  "exit_code": 1
+}

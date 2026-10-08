@@ -1,0 +1,38 @@
+======================================================================
+FAIL: test_baseline_intact (tests.harness.test_tools.ToolTests.test_baseline_intact)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/harness/test_tools.py", line 11, in test_baseline_intact
+    def test_baseline_intact(self):self.assertEqual(verify(ROOT,[t.id() for t in collect()]),[])
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['changed locked file: proto/spatial/core/v1/core.proto'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'changed locked file: proto/spatial/core/v1/core.proto'
+
+- ['changed locked file: proto/spatial/core/v1/core.proto']
++ []
+
+======================================================================
+FAIL: test_fixture_cannot_certify_product (tests.harness.test_tools.ToolTests.test_fixture_cannot_certify_product)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/harness/test_tools.py", line 31, in test_fixture_cannot_certify_product
+    self.assertEqual(r.returncode,1);self.assertEqual(json.loads((Path(d)/"report.json").read_text())["status"],"failed")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_no_sut_is_blocked_not_passed (tests.harness.test_tools.ToolTests.test_no_sut_is_blocked_not_passed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/harness/test_tools.py", line 25, in test_no_sut_is_blocked_not_passed
+    self.assertEqual(r.returncode,2);self.assertIn("no production SUT",r.stderr)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'no production SUT' not found in 'BLOCKED: baseline integrity\nchanged locked file: proto/spatial/core/v1/core.proto\n'
+
+----------------------------------------------------------------------
+Ran 51 tests in 0.603s
+
+FAILED (failures=3)
