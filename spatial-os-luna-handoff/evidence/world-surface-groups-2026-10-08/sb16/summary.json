@@ -1,0 +1,18 @@
+{
+  "debug": {
+    "core_suites": 39,
+    "core_checks": 743,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime-sanitize": {
+    "core_suites": 39,
+    "core_checks": 743,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "failed": 0,
+    "skipped": 0
+  }
+}

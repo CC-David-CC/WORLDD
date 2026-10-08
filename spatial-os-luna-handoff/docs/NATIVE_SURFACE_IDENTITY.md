@@ -39,7 +39,7 @@ The compositor witness starts real spatialwm and reads its private protobuf snap
 The compositor tests use software GLX; core native-server sanitizer checks run separately without GLX.
 These tests do not establish physical GPU-session qualification.
 
-Application observation grants, control grants, leases, and actor-facing metadata filtering remain required in worldd.
-Worldd must also compare application labels before accepting transient hints as application-group relationships.
+Worldd now validates application relationships and uses application identity for group leases. See WORLD_SURFACE_GROUPS.md.
+Application observation grants, control grants, and actor-facing metadata filtering remain required in worldd.
 Session credential provisioning also remains required.
 M04, M09, and Spatial-M1 remain incomplete.

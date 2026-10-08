@@ -1,0 +1,7 @@
+{
+    "spatial-os-luna-handoff/CMakeLists.txt":  "58b24774eb4f0fc48c8e0d911423c9edbb2b32436687ba48d27457743e46b597",
+    "spatial-os-luna-handoff/src/world/surfaces.cpp":  "88f71ed7e10ce24b81421b878e99d4ccaf6fe890344874c4f6652aefe775cfb2",
+    "spatial-os-luna-handoff/src/world/surfaces.hpp":  "67930bb8071457c8a4df0b9d3eee763a85355e73c8216534597925ff4abd0c6b",
+    "spatial-os-luna-handoff/src/world/actors.cpp":  "dc8d196f11ebc28274fdab896077b9be141aa8ea417fa33a32348eb172baf6e3",
+    "spatial-os-luna-handoff/tests/native/test_world_surface_groups.py":  "80774ab0258bfa041910bd3608f45f2efded372e4b2f4aaafa545739dbeac94a"
+}

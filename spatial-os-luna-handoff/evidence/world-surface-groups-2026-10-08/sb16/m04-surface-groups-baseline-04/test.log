@@ -1,0 +1,73 @@
+test_cross_application_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_application_hint_cannot_inherit_placement) ... FAIL
+test_cross_application_reparent_releases_input (__main__.WorldSurfaceGroupTests.test_cross_application_reparent_releases_input) ... FAIL
+test_cross_workspace_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_workspace_hint_cannot_inherit_placement) ... FAIL
+test_distinct_applications_allow_simultaneous_control (__main__.WorldSurfaceGroupTests.test_distinct_applications_allow_simultaneous_control) ... ok
+test_equal_application_names_in_distinct_workspaces_have_separate_leases (__main__.WorldSurfaceGroupTests.test_equal_application_names_in_distinct_workspaces_have_separate_leases) ... ok
+test_invalid_hint_does_not_break_other_scene_surfaces (__main__.WorldSurfaceGroupTests.test_invalid_hint_does_not_break_other_scene_surfaces) ... FAIL
+test_repaired_hint_restores_independent_placement (__main__.WorldSurfaceGroupTests.test_repaired_hint_restores_independent_placement) ... FAIL
+test_same_application_connections_can_form_relationship (__main__.WorldSurfaceGroupTests.test_same_application_connections_can_form_relationship) ... ok
+test_same_application_top_levels_exclude_second_actor (__main__.WorldSurfaceGroupTests.test_same_application_top_levels_exclude_second_actor) ... ok
+test_same_group_reparent_preserves_held_key_and_focus (__main__.WorldSurfaceGroupTests.test_same_group_reparent_preserves_held_key_and_focus) ... FAIL
+
+======================================================================
+FAIL: test_cross_application_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_application_hint_cannot_inherit_placement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 126, in test_cross_application_hint_cannot_inherit_placement
+    self.hidden(child, parent)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 98, in hidden
+    self.assertFalse(value['mapped'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_cross_application_reparent_releases_input (__main__.WorldSurfaceGroupTests.test_cross_application_reparent_releases_input)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 166, in test_cross_application_reparent_releases_input
+    self.hidden(child, parent)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 98, in hidden
+    self.assertFalse(value['mapped'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_cross_workspace_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_workspace_hint_cannot_inherit_placement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 122, in test_cross_workspace_hint_cannot_inherit_placement
+    self.hidden(child, parent)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 98, in hidden
+    self.assertFalse(value['mapped'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_invalid_hint_does_not_break_other_scene_surfaces (__main__.WorldSurfaceGroupTests.test_invalid_hint_does_not_break_other_scene_surfaces)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 137, in test_invalid_hint_does_not_break_other_scene_surfaces
+    self.hidden(child, parent)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 98, in hidden
+    self.assertFalse(value['mapped'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_repaired_hint_restores_independent_placement (__main__.WorldSurfaceGroupTests.test_repaired_hint_restores_independent_placement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 143, in test_repaired_hint_restores_independent_placement
+    self.hidden(child, parent)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 98, in hidden
+    self.assertFalse(value['mapped'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_same_group_reparent_preserves_held_key_and_focus (__main__.WorldSurfaceGroupTests.test_same_group_reparent_preserves_held_key_and_focus)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_world_surface_groups.py", line 156, in test_same_group_reparent_preserves_held_key_and_focus
+    self.assertIsNotNone(after['focus'], 'Same-application hint change canceled the lease')
+AssertionError: unexpectedly None : Same-application hint change canceled the lease
+
+----------------------------------------------------------------------
+Ran 10 tests in 2.166s
+
+FAILED (failures=6)

@@ -4,6 +4,18 @@
 #include <cmath>
 #include <set>
 namespace spatial {
+namespace {
+bool same_application(const wire::NativeSurface& a, const wire::NativeSurface& b) {
+    // Only the explicit native development mode supplies unlabelled mapped surfaces.
+    // Never join an attributed application to an unlabelled surface.
+    if (!a.has_application_identity() || !b.has_application_identity())
+        return !a.has_application_identity() && !b.has_application_identity();
+    const auto& left = a.application_identity();
+    const auto& right = b.application_identity();
+    return left.server_id() == right.server_id() && left.workspace() == right.workspace() &&
+           left.application() == right.application();
+}
+}
 void Surfaces::refresh(const wire::NativeSnapshot& snapshot) {
     validate_message(snapshot);
     std::set<std::string> present;
@@ -45,7 +57,9 @@ wire::SurfaceRecord Surfaces::resolve(const std::string& id, std::set<std::strin
     if (native.parent_xid()) {
         const auto parent = std::find_if(surfaces_.begin(), surfaces_.end(),
             [&](const auto& item) { return item.second.native.xid() == native.parent_xid(); });
-        if (parent == surfaces_.end()) { result.clear_room(); result.set_mapped(false); return result; }
+        if (parent == surfaces_.end() || !same_application(native, parent->second.native)) {
+            result.clear_room(); result.set_mapped(false); return result;
+        }
         const auto p = resolve(parent->first, ancestry);
         result.set_parent_id(p.id()); result.set_room(p.room()); result.set_mapped(p.mapped() && native.mapped());
         if (p.room().empty()) { result.set_mapped(false); return result; }
@@ -66,6 +80,29 @@ wire::SurfaceRecord Surfaces::resolve(const std::string& id, std::set<std::strin
 wire::SurfaceRecord Surfaces::get(const std::string& id) const {
     std::set<std::string> ancestry;
     return resolve(id, ancestry);
+}
+std::string Surfaces::control_group(const wire::SurfaceRecord& surface) const {
+    auto current = get(surface.id());
+    if (!current.mapped() || current.generation() != surface.generation())
+        throw WorldError(wire::STALE_TARGET, "Surface group is no longer live");
+    const auto& native = surfaces_.at(surface.id()).native;
+    if (native.has_application_identity()) {
+        const auto& identity = native.application_identity();
+        // Protobuf length framing keeps opaque labels distinct. Connection IDs
+        // must not split multiple connections belonging to one application.
+        spatial::security::v1::ApplicationIdentity group;
+        group.set_server_id(identity.server_id()); group.set_workspace(identity.workspace());
+        group.set_application(identity.application());
+        return "application:" + group.SerializeAsString();
+    }
+    // Diagnostic development sessions retain their existing transient grouping.
+    std::set<std::string> visited;
+    while (current.has_parent_id()) {
+        if (!visited.insert(current.id()).second || visited.size() > 32)
+            throw WorldError(wire::STALE_TARGET, "Invalid native surface group");
+        current = get(current.parent_id());
+    }
+    return "surface:" + current.id();
 }
 wire::SurfaceReply Surfaces::find(const std::string& probe) const {
     if (probe.empty() || probe.size() > 4096) throw std::invalid_argument("Invalid probe property value");
@@ -126,8 +163,11 @@ wire::SurfaceValidationReply Surfaces::validate_handle(const wire::SurfaceValida
 wire::SurfaceListReply Surfaces::children(const std::string& id) const {
     const auto parent = get(id);
     wire::SurfaceListReply result;
-    for (const auto& [child, surface] : surfaces_)
-        if (surface.native.parent_xid() == parent.xid()) *result.add_surfaces() = get(child);
+    for (const auto& [child, surface] : surfaces_) {
+        if (surface.native.parent_xid() != parent.xid()) continue;
+        const auto record = get(child);
+        if (record.has_parent_id() && record.parent_id() == id) *result.add_surfaces() = record;
+    }
     return result;
 }
 void Surfaces::append(wire::RenderScene& scene, const std::string& room) const {

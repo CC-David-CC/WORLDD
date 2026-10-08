@@ -1,5 +1,28 @@
 # Implementation status
 
+## 2026-10-08: World application relationships and leases checked
+
+Worldd now checks native server, workspace, and application identity before it follows a transient parent hint.
+Invalid relationships have no world placement and do not appear in a foreign application's child list.
+Control leases use authenticated application identity across separate connections and top-level windows.
+Valid same-application hint changes preserve held input.
+Invalid relationships and parent destruction release affected input.
+
+Both hosts reproduced six failures in the corrected ten-case baseline before the production change.
+Both then passed fourteen real native integration checks with independent C clients.
+Both Debug and runtime ASan/UBSan profiles passed 743 core checks across 39 suites.
+Each profile also passed 51 harness checks and all 151 P10 cases, with no skipped cases.
+The primary agent reviewed the change without local-model review.
+Schemas, locked acceptance tests, and the native XLibre server source remain unchanged.
+
+See docs/WORLD_SURFACE_GROUPS.md and evidence/world-surface-groups-2026-10-08.
+The root M04_SURFACE_GROUPS_DEBUG.txt records the baseline failures and remaining limits.
+These tests use management-fixture actors with genuine native application credentials.
+Authenticated actor sessions still exclude application surfaces until broker-authorized observation and control are integrated.
+Application grants, filtered metadata, revocation integration, and session provisioning remain required.
+Physical input, native GPU output, full instrumented GLX lifecycle, and native soak remain unqualified.
+M04, M09, and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Native surface attribution checked
 
 The native Inspect reply now carries server-owned application attribution with window geometry and generation.

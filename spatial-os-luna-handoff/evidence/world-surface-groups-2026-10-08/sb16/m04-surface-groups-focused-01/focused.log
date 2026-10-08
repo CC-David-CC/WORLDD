@@ -1,0 +1,15 @@
+test_cross_application_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_application_hint_cannot_inherit_placement) ... ok
+test_cross_application_reparent_releases_input (__main__.WorldSurfaceGroupTests.test_cross_application_reparent_releases_input) ... ok
+test_cross_workspace_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_workspace_hint_cannot_inherit_placement) ... ok
+test_distinct_applications_allow_simultaneous_control (__main__.WorldSurfaceGroupTests.test_distinct_applications_allow_simultaneous_control) ... ok
+test_equal_application_names_in_distinct_workspaces_have_separate_leases (__main__.WorldSurfaceGroupTests.test_equal_application_names_in_distinct_workspaces_have_separate_leases) ... ok
+test_invalid_hint_does_not_break_other_scene_surfaces (__main__.WorldSurfaceGroupTests.test_invalid_hint_does_not_break_other_scene_surfaces) ... ok
+test_repaired_hint_restores_independent_placement (__main__.WorldSurfaceGroupTests.test_repaired_hint_restores_independent_placement) ... ok
+test_same_application_connections_can_form_relationship (__main__.WorldSurfaceGroupTests.test_same_application_connections_can_form_relationship) ... ok
+test_same_application_top_levels_exclude_second_actor (__main__.WorldSurfaceGroupTests.test_same_application_top_levels_exclude_second_actor) ... ok
+test_same_group_reparent_preserves_held_key_and_focus (__main__.WorldSurfaceGroupTests.test_same_group_reparent_preserves_held_key_and_focus) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 2.232s
+
+OK

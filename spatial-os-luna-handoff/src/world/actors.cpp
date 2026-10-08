@@ -264,16 +264,7 @@ void Actors::release_input(Actor& actor, bool close) {
     actor.lease.clear(); actor.capture.Clear(); actor.capture_motion_pending = false;
 }
 std::string Actors::control_group(const wire::SurfaceRecord& surface) const {
-    // Temporary native surface grouping. Broker application identities supersede
-    // WM_TRANSIENT_FOR in the mandatory application-authority milestone.
-    auto current = surface;
-    std::set<std::string> visited;
-    while (current.has_parent_id()) {
-        if (!visited.insert(current.id()).second || visited.size() > 32)
-            throw WorldError(wire::STALE_TARGET, "Invalid native surface group");
-        current = surfaces_->get(current.parent_id());
-    }
-    return current.id();
+    return surfaces_->control_group(surface);
 }
 void Actors::refresh_native() {
     if (!renderer_ || !surfaces_) return;

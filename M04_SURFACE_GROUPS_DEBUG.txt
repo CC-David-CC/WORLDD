@@ -1,0 +1,35 @@
+World surface relationship and lease integration
+Date: 2026-10-08
+Base: 644e680ff93b601fb1e1474f5ba5bfb36c8186f2
+
+David waived local-model review. The primary agent reviews this change.
+No local-model request or GitHub publication is part of this increment.
+
+Both hosts passed the prerequisite 51 harness checks and 151 P10 cases.
+Independent C windows reproduced cross-application placement inheritance on both hosts.
+They also reproduced unwanted input cancellation after a valid same-application hint change.
+The corrected ten-test baseline had six failures and four passes on each host.
+
+The first three baseline runs contain test-fixture mistakes.
+Those mistakes used actor.state instead of actor.inspect, compared a focus object with a string,
+and used cancel instead of a supported actor action.
+The fourth baseline corrected those mistakes before the production implementation changed.
+Keep the earlier logs. They are not additional production defects.
+
+Worldd now checks server, workspace, and application identity before following parent hints.
+It keys application leases by those same identities instead of transient roots.
+Fourteen focused checks pass on each host.
+Real C clients confirm both key retention and cancellation behavior.
+
+Both hosts passed Debug and runtime ASan/UBSan qualification.
+Each profile passed 743 core checks across 39 suites, 51 harness checks, and all 151 P10 cases.
+No final profile failed or skipped a case.
+See spatial-os-luna-handoff/evidence/world-surface-groups-2026-10-08 for the retained evidence.
+No native server code changed. This increment does not repeat server-only sanitizer qualification.
+It preserves the previous native-server evidence and its GLX limitation.
+
+Application grants and actor-filtered metadata are not integrated yet.
+These tests use management-fixture actors and genuine native application credentials.
+They do not prove production actor admission or workspace-authorized application control.
+Session provisioning, physical devices, native GPU performance, and native soak remain unqualified.
+M04, M09, and Spatial-M1 remain incomplete.

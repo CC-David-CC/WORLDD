@@ -1,0 +1,52 @@
+Primary-agent review: world application groups
+
+David authorized primary-agent review without local-model review.
+No model endpoint was used for this increment.
+
+src/world/surfaces.cpp:
+- Parent resolution checks server, workspace, and application identity before recursion.
+- Differing connection IDs remain valid within one application.
+- A missing label cannot join a labelled surface.
+- Invalid relationships return no parent ID or world room.
+- Child lists use resolved relationships instead of raw XID hints.
+- Group lookup checks current mapping and generation.
+- Group keys use a new protobuf message with only the three group fields.
+- Protobuf field boundaries prevent ambiguous label concatenation.
+- Credentials and connection IDs do not enter the group key.
+- Keys are runtime-only. They are not persisted as durable application identity.
+- Diagnostic unlabelled sessions retain their existing grouping behavior.
+
+src/world/surfaces.hpp:
+- Adds an internal group lookup. It does not expose a new actor protocol or grant.
+
+src/world/actors.cpp:
+- Uses the validated group key for existing lease acquisition and focus refresh.
+- Keeps existing generation, room, and authority checks.
+- Keeps existing cancellation and native input cleanup.
+
+CMakeLists.txt:
+- Adds the real-world native group suite to SPATIAL_INPUT_TESTS.
+- Retains the existing cumulative suites and timeout/environment configuration.
+
+tests/native/test_world_surface_groups.py:
+- Starts the production native server, compositor, and world daemon.
+- Launches separate compiled C client processes with real application credentials.
+- Uses actor-management fixtures explicitly. It does not claim authenticated actor qualification.
+- Tests cross-workspace and cross-application parent hints, valid relationships,
+  descendants, cycles, destruction, repair, independent applications, and shared application leases.
+- Tests real key release and preservation with independent C event observations.
+- Stores credentials only in temporary private files. It does not print or commit them.
+- Does not edit the locked witness, codec, oracle, or acceptance suite.
+
+docs/WORLD_SURFACE_GROUPS.md, docs/NATIVE_SURFACE_IDENTITY.md, tasks/m1/surface.application_groups.json,
+CURRENT_STATE.md, and M04_SURFACE_GROUPS_DEBUG.txt:
+- Describe the invariant, test scope, and pending application authority integration.
+- Do not claim complete M04, M09, Spatial-M1, or physical qualification.
+
+Evidence:
+- Keep prerequisite, baseline, focused, and final run logs with exact commands and binary hashes.
+- Keep the early fixture failures separate from the corrected production baseline.
+- Exclude credentials, runtime databases, binaries, generated bindings, and actor session traces.
+- Both host collectors verified 743 core checks, 51 harness checks, and 151 P10 cases in each profile.
+- Both Debug and runtime ASan/UBSan profiles passed with no skipped cases.
+- Source review and execution evidence support integration of this bounded component.
