@@ -1,0 +1,30 @@
+{
+  "id": "application.extension_isolation",
+  "phase": "M04",
+  "scope": "Native extension admission and resource-safe RENDER and SHAPE requests",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/NATIVE_EXTENSION_POLICY.md",
+  "invariant": "Immutable connection roles authorize extension discovery and dispatch; admitted requests cannot bypass resource or pixel authority.",
+  "production_roots": ["server/xlibre/spatialpolicy.c", "server/patches/0005-animated-cursor-cleanup.patch"],
+  "counterexample_suite": "tests/native/test_extension_isolation.py",
+  "focused_command": "ctest --test-dir build -V -R '^native-(extension-isolation|resource-isolation|security-identity)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Missing-feature failures against the preceding native server",
+    "Direct forbidden opcodes rejected despite hidden discovery",
+    "Actual owned RENDER pixels, SHAPE operations, and cursor creation",
+    "Foreign pictures, glyph aliases, and cursor resources rejected",
+    "Window-picture source and alpha-map denial prevents shared-framebuffer exposure",
+    "Animated cursor timer cleanup after retained use and final cursor destruction",
+    "Unchanged locked P00-P10 assertions",
+    "Focused native server sanitizers with the GLX limitation recorded",
+    "Independent mutation detection"
+  ],
+  "next_components": ["application.global_isolation", "application.device_authority", "authority.application"],
+  "limitations": [
+    "This component does not complete M04 or enable untrusted native sessions.",
+    "Application window pictures are drawing destinations only; trusted services retain window-picture access.",
+    "Unqualified extension families remain denied until their resource and device boundaries pass independent checks.",
+    "Full qualification still requires both authorized hosts and both automated build modes."
+  ]
+}

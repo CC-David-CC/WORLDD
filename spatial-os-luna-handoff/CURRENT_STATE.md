@@ -1,5 +1,35 @@
 # Implementation status
 
+## 2026-10-08: Native extension access component passed
+
+The extension access component passed on sb16 and sb16-2.
+All three focused Debug CTest suites passed on both hosts.
+ASan/UBSan Xvfb builds passed the same suites on both hosts.
+GLX was disabled during these focused sanitizer runs.
+One sb16 security-identity attempt hit an Xvfb displayfd startup error.
+Its retry passed all 22 tests.
+The locked P00-P10 gate passed 151 of 151 cases on both hosts.
+
+The earlier project Xvfb exposed 18 extra extensions to applications.
+It also accepted direct XTEST version dispatch.
+Current M04 witnesses failed against that build, as expected.
+The baseline SHAPE-hole witness stopped at CreatePicture denial.
+That result does not prove pixel exposure.
+Mutation reports detected dispatch, discovery, window-pixel, resource-access,
+root-enumeration, and parent-relative-pixel mutations.
+See local/m04-extension-mutation-02/mutation.json,
+local/m04-extension-mutation-03/mutation.json, and
+local/m04-isolation-mutation-02/mutation.json on sb16.
+The earlier project server is local/xlibre-patched/6f3032647e19809e21d4390b8fc18aca0010447755096ab345f381687fbc8aba/source/build/hw/vfb/Xvfb.
+
+No TimerFree-specific mutation was run.
+Focused sanitizer runs do not qualify GLX cleanup.
+Full M04 and Spatial-M1 remain incomplete.
+Global operations, atom and selection privacy, device authority, aliases,
+asynchronous metadata, broker credential setup, and compositor authority remain.
+Physical acceptance and full Spatial-M1 qualification remain.
+Next: enforce global native operations and device authority.
+
 ## 2026-10-07: Native application resource access checked
 
 Strict project XLibre servers now enforce immutable application ownership at native resource lookup boundaries.

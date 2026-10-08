@@ -29,7 +29,13 @@
     "-Dxkb_bin_dir=/usr/bin",
     "-Dfontrootdir=/usr/share/fonts/X11"
   ],
-  "patches": ["server/patches/0001-spatial-input.patch", "server/patches/0002-spatial-security.patch", "server/patches/0003-server-shutdown.patch", "server/patches/0004-spatial-resource-policy.patch"],
+  "patches": [
+    "server/patches/0001-spatial-input.patch",
+    "server/patches/0002-spatial-security.patch",
+    "server/patches/0003-server-shutdown.patch",
+    "server/patches/0004-spatial-resource-policy.patch",
+    "server/patches/0005-animated-cursor-cleanup.patch"
+  ],
   "overlays": {
     "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",
     "server/xlibre/spatialinput.h": "include/spatialinput.h",

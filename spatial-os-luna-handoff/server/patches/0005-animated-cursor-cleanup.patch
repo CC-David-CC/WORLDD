@@ -1,0 +1,13 @@
+--- a/render/animcur.c
++++ b/render/animcur.c
+@@ -243,5 +243,8 @@
+-        if (pScreen->myNum == 0)
++        if (pScreen->myNum == 0) {
++            TimerFree(ac->timer);
++            ac->timer = NULL;
+             for (i = 0; i < ac->nelt; i++)
+                 FreeCursor(ac->elts[i].pCursor, 0);
++        }
+         ret = TRUE;
+     }
+     else

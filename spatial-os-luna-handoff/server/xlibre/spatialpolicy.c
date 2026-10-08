@@ -3,8 +3,12 @@
  * DIX retains that connection until its resource table has been destroyed.
  */
 #include <dix-config.h>
+#include <string.h>
+#include <X11/extensions/render.h>
 #include "dix/dix_priv.h"
 #include "dix/client_priv.h"
+#include "dix/extension_priv.h"
+#include "render/picturestr_priv.h"
 #include "Xext/xacestr.h"
 #include "windowstr.h"
 #include "spatialsecurity.h"
@@ -40,11 +44,29 @@ static void resource_access(CallbackListPtr *list, void *unused, void *data)
     if (SpatialSecurityPrivileged(rec->client)) return;
     ClientPtr owner = dixLookupXIDOwner(rec->id);
     if (SpatialSecuritySameApplication(rec->client, owner)) {
+        /* Window pictures can address a shared framebuffer outside the window.
+         * Only pixmap and procedural pictures are untrusted RENDER sources.
+         * This also rejects window alpha maps when they are bound.
+         */
+        if (rec->rtype == PictureType && (rec->access_mode & DixReadAccess)) {
+            PicturePtr picture = rec->res;
+            if (picture->pDrawable && picture->pDrawable->type == DRAWABLE_WINDOW) {
+                rec->status = BadAccess;
+                return;
+            }
+        }
         if ((rec->access_mode & DixCreateAccess) && rec->rtype == X11_RESTYPE_WINDOW)
             ((WindowPtr)rec->res)->forcedBG = TRUE;
         return;
     }
     if (owner == serverClient && SpatialSecuritySameApplication(rec->client, rec->client)) {
+        /* CreateCursor converts an already-authorized source into a temporary
+         * picture. ID zero cannot be addressed by a client request.
+         */
+        if (rec->id == 0 && rec->rtype == PictureType &&
+            rec->access_mode == (DixCreateAccess | DixSetAttrAccess) &&
+            rec->client->majorOp == EXTENSION_MAJOR_RENDER &&
+            rec->client->minorOp == X_RenderCreateCursor) return;
         if (rec->rtype == X11_RESTYPE_WINDOW) {
             WindowPtr window = rec->res;
             if (window && window == window->drawable.pScreen->root && root_access(rec->client, rec->access_mode))
@@ -55,6 +77,8 @@ static void resource_access(CallbackListPtr *list, void *unused, void *data)
          */
         if (rec->rtype == X11_RESTYPE_COLORMAP &&
             subset(rec->access_mode, DixReadAccess | DixGetAttrAccess | DixUseAccess | DixAddAccess)) return;
+        /* Server-defined pixel layouts contain no application content. */
+        if (rec->rtype == PictFormatType && rec->access_mode == DixReadAccess) return;
     }
     rec->status = BadAccess;
 }
@@ -101,13 +125,83 @@ static void client_access(CallbackListPtr *list, void *unused, void *data)
         rec->status = BadAccess;
 }
 
+static Bool extension_allowed(ClientPtr client, ExtensionEntry *extension, int minor)
+{
+    if (SpatialSecurityPrivileged(client)) return TRUE;
+    if (!strcmp(extension->name, "SPATIAL-SECURITY")) return minor < 0 || minor == 0;
+    switch (extension->base) {
+    case EXTENSION_MAJOR_BIG_REQUESTS: return minor < 0 || minor == 0;
+    case EXTENSION_MAJOR_XC_MISC: return minor < 0 || minor <= 2;
+    }
+    if (!SpatialSecuritySameApplication(client, client)) return FALSE;
+    switch (extension->base) {
+    case EXTENSION_MAJOR_SHAPE: return minor < 0 || minor <= 8;
+    case EXTENSION_MAJOR_RENDER:
+        if (minor < 0) return TRUE;
+        /* These pinned handlers check every externally supplied resource.
+         * Do not admit reserved or future requests from a numeric range alone.
+         */
+        switch (minor) {
+        case X_RenderQueryVersion:
+        case X_RenderQueryPictFormats:
+        case X_RenderQueryPictIndexValues:
+        case X_RenderCreatePicture:
+        case X_RenderChangePicture:
+        case X_RenderSetPictureClipRectangles:
+        case X_RenderFreePicture:
+        case X_RenderComposite:
+        case X_RenderTrapezoids:
+        case X_RenderTriangles:
+        case X_RenderTriStrip:
+        case X_RenderTriFan:
+        case X_RenderCreateGlyphSet:
+        case X_RenderReferenceGlyphSet:
+        case X_RenderFreeGlyphSet:
+        case X_RenderAddGlyphs:
+        case X_RenderFreeGlyphs:
+        case X_RenderCompositeGlyphs8:
+        case X_RenderCompositeGlyphs16:
+        case X_RenderCompositeGlyphs32:
+        case X_RenderFillRectangles:
+        case X_RenderCreateCursor:
+        case X_RenderSetPictureTransform:
+        case X_RenderQueryFilters:
+        case X_RenderSetPictureFilter:
+        case X_RenderCreateAnimCursor:
+        case X_RenderAddTraps:
+        case X_RenderCreateSolidFill:
+        case X_RenderCreateLinearGradient:
+        case X_RenderCreateRadialGradient:
+        case X_RenderCreateConicalGradient:
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+static void extension_access(CallbackListPtr *list, void *unused, void *data)
+{
+    ExtensionAccessCallbackParam *rec = data;
+    (void)list; (void)unused;
+    if (!extension_allowed(rec->client, rec->ext, -1)) rec->status = BadAccess;
+}
+
+static void extension_dispatch(CallbackListPtr *list, void *unused, void *data)
+{
+    ExtensionAccessCallbackParam *rec = data;
+    (void)list; (void)unused;
+    if (!extension_allowed(rec->client, rec->ext, rec->client->minorOp)) rec->status = BadAccess;
+}
+
 void SpatialSecurityPolicyInit(void)
 {
     if (!XaceRegisterCallback(XACE_RESOURCE_ACCESS, resource_access, NULL) ||
         !XaceRegisterCallback(XACE_PROPERTY_ACCESS, property_access, NULL) ||
         !XaceRegisterCallback(XACE_SEND_ACCESS, send_access, NULL) ||
         !XaceRegisterCallback(XACE_RECEIVE_ACCESS, receive_access, NULL) ||
-        !AddCallback(&ClientAccessCallback, client_access, NULL))
+        !AddCallback(&ClientAccessCallback, client_access, NULL) ||
+        !AddCallback(&ExtensionAccessCallback, extension_access, NULL) ||
+        !AddCallback(&ExtensionDispatchCallback, extension_dispatch, NULL))
         FatalError("Cannot initialize spatial resource policy\n");
 }
 
@@ -118,4 +212,6 @@ void SpatialSecurityPolicyReset(void)
     XaceDeleteCallback(XACE_SEND_ACCESS, send_access, NULL);
     XaceDeleteCallback(XACE_RECEIVE_ACCESS, receive_access, NULL);
     DeleteCallback(&ClientAccessCallback, client_access, NULL);
+    DeleteCallback(&ExtensionAccessCallback, extension_access, NULL);
+    DeleteCallback(&ExtensionDispatchCallback, extension_dispatch, NULL);
 }
