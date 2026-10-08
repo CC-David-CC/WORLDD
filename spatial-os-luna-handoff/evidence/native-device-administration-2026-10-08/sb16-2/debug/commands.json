@@ -1,0 +1,47 @@
+{
+  "commands": [
+    [
+      "native",
+      [
+        "ctest",
+        "--test-dir",
+        "build",
+        "-V",
+        "-R",
+        "^native-(device-administration|global-isolation|selection-isolation|extension-isolation|resource-isolation|security-identity)$"
+      ]
+    ],
+    [
+      "harness",
+      [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/harness",
+        "-t",
+        ".",
+        "-q"
+      ]
+    ],
+    [
+      "gate",
+      [
+        "python3",
+        "tools/with_test_display.py",
+        "--",
+        "python3",
+        "tools/gate.py",
+        "--through",
+        "P10",
+        "--report",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-device-debug-01/gate.json"
+      ]
+    ]
+  ],
+  "xserver": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/d75979bff8bd0e879dafee64c518e9dee9756e9b7051c461ca94475e4ef02ef5/source/build/hw/vfb/Xvfb",
+    "sha256": "906e1030c6796282a5331848bcc33c27424a5939b71fb9451f9a3701ea12d1ed"
+  }
+}

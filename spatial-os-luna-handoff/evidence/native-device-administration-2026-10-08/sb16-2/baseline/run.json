@@ -1,0 +1,8 @@
+{
+  "source_commit": "f5594ee9c96dac6c39d8adb369c5fd2cfcf203fc",
+  "xserver": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/4a539ade16f2143a63dfa274c2fd7d2f62714bcb8799192766b5749dc0b1efe2/source/build/hw/vfb/Xvfb",
+    "sha256": "851b11a5cd8655e5eaa18b8004a1fedff0302e114057d0519d314a5bb5f4cfec"
+  },
+  "last_exit": 1
+}

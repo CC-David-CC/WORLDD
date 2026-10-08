@@ -1,0 +1,14 @@
+{
+  "name": "pointer-control",
+  "target": "test_application_cannot_change_pointer_controls",
+  "argv": [
+    "python3",
+    "tests/native/test_device_administration.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "DeviceAdministrationTests.test_application_cannot_change_pointer_controls"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "1fa9a9f86f69aefe179f31a45136fdf54293e272841e8f5a95d67ef827cee47e",
+  "policy_sha256": "866b933c565b4ba1be512b235cd28a51cf1b512b3f0e14f047ae71760b77192d"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "bell",
+  "target": "test_application_cannot_ring_shared_keyboard_bell",
+  "argv": [
+    "python3",
+    "tests/native/test_device_administration.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "DeviceAdministrationTests.test_application_cannot_ring_shared_keyboard_bell"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "55772bd97d6774994d6e0da7d2515745262459366876eff1d9c6d365e4e288d0",
+  "policy_sha256": "9f2be7ddf666a39d7cd88ae62d4dfa8a787b60ebf7e78d1927e4ecc7384c012e"
+}

@@ -1,0 +1,4 @@
+{
+  "prompt": "Propose additive registration native-device-administration for Python3_EXECUTABLE tests/native/test_device_administration.py with auth executable arg $<TARGET_FILE:spatial-security-auth>. Under SPATIAL_INPUT_TESTS, TIMEOUT180, PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}. Existingchecks unchanged. Fragment only.",
+  "proposal": "```cmake\nif(SPATIAL_INPUT_TESTS)\n  add_test(\n    NAME native/test_device_administration\n    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_device_administration.py\n            $<TARGET_FILE:spatial-security-auth>\n  )\n  set_tests_properties(native/test_device_administration PROPERTIES\n    TIMEOUT 180\n    ENVIRONMENT \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}\"\n  )\nendif()\n```"
+}

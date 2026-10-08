@@ -1,0 +1,41 @@
+{
+  "host": "sb16-2",
+  "date": "2026-10-08T11:00:54.580359+00:00",
+  "diagnostic_only": true,
+  "ignored_mapping_notify": [
+    "220008000108f800000000000000000000000000000000000000000000000000",
+    "2200080000000000000000000000000000000000000000000000000000000000",
+    "220007000108f800000000000000000000000000000000000000000000000000",
+    "2200070000000000000000000000000000000000000000000000000000000000",
+    "22000b000108f800000000000000000000000000000000000000000000000000",
+    "22000b0000000000000000000000000000000000000000000000000000000000"
+  ],
+  "xserver": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/d75979bff8bd0e879dafee64c518e9dee9756e9b7051c461ca94475e4ef02ef5/source/build/hw/vfb/Xvfb",
+    "sha256": "906e1030c6796282a5331848bcc33c27424a5939b71fb9451f9a3701ea12d1ed"
+  },
+  "results": {
+    "shared_keymap": {
+      "keycode": 38,
+      "before": false,
+      "during": true,
+      "after": false,
+      "foreign_key_exposed": true
+    },
+    "keyboard_grab": {
+      "other_status": 0,
+      "owner_status": 1
+    },
+    "pointer_grab": {
+      "other_status": 0,
+      "owner_status": 1
+    },
+    "shared_pointer_warp": {
+      "other_request_result": null,
+      "supervisor_observed_coordinates": [
+        13,
+        17
+      ]
+    }
+  }
+}

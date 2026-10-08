@@ -1,0 +1,106 @@
+{
+  "host": "sb16-2",
+  "date": "2026-10-08T10:58:16.601771+00:00",
+  "source_base": "f5594ee9c96dac6c39d8adb369c5fd2cfcf203fc",
+  "working_tree_changes": true,
+  "xserver": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/d75979bff8bd0e879dafee64c518e9dee9756e9b7051c461ca94475e4ef02ef5/source/build/hw/vfb/Xvfb",
+    "sha256": "906e1030c6796282a5331848bcc33c27424a5939b71fb9451f9a3701ea12d1ed"
+  },
+  "diagnostic_only": true,
+  "results": [
+    {
+      "endian": "<",
+      "same_workspace": false,
+      "same_application": false,
+      "owner_window": 4194305,
+      "other_window": 6291457,
+      "other_observed_focus": 4194305,
+      "foreign_focus_exposed": true,
+      "other_set_focus_result": null,
+      "owner_observed_focus_after": 6291457,
+      "shared_focus_changed": true,
+      "shared_pointer_warp": [
+        77,
+        83
+      ],
+      "other_observed_pointer": [
+        77,
+        83
+      ],
+      "shared_pointer_exposed": true
+    },
+    {
+      "endian": ">",
+      "same_workspace": false,
+      "same_application": false,
+      "owner_window": 4194305,
+      "other_window": 6291457,
+      "other_observed_focus": 4194305,
+      "foreign_focus_exposed": true,
+      "other_set_focus_result": null,
+      "owner_observed_focus_after": 6291457,
+      "shared_focus_changed": true,
+      "shared_pointer_warp": [
+        77,
+        83
+      ],
+      "other_observed_pointer": [
+        77,
+        83
+      ],
+      "shared_pointer_exposed": true
+    },
+    {
+      "endian": "<",
+      "same_workspace": true,
+      "same_application": false,
+      "owner_window": 4194305,
+      "other_window": 6291457,
+      "other_observed_focus": 4194305,
+      "foreign_focus_exposed": true,
+      "other_set_focus_result": null,
+      "owner_observed_focus_after": 6291457,
+      "shared_focus_changed": true,
+      "shared_pointer_warp": [
+        77,
+        83
+      ],
+      "other_observed_pointer": [
+        77,
+        83
+      ],
+      "shared_pointer_exposed": true
+    },
+    {
+      "endian": "<",
+      "same_workspace": true,
+      "same_application": true,
+      "owner_window": 4194305,
+      "other_window": 6291457,
+      "other_observed_focus": 4194305,
+      "foreign_focus_exposed": true,
+      "other_set_focus_result": null,
+      "owner_observed_focus_after": 6291457,
+      "shared_focus_changed": true,
+      "shared_pointer_warp": [
+        77,
+        83
+      ],
+      "other_observed_pointer": [
+        77,
+        83
+      ],
+      "shared_pointer_exposed": true
+    },
+    {
+      "kind": "actor_application_binding",
+      "actor_seat": 1,
+      "actor_keyboard": 9,
+      "target": 4194305,
+      "actor_reported_focus": 4194305,
+      "application_reported_focus": 0,
+      "application_sees_actor_focus": false
+    }
+  ]
+}

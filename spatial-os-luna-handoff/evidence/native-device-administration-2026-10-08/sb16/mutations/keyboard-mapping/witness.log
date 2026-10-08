@@ -1,0 +1,19 @@
+test_application_cannot_replace_keyboard_mapping (__main__.DeviceAdministrationTests.test_application_cannot_replace_keyboard_mapping) ... FAIL
+
+======================================================================
+FAIL: test_application_cannot_replace_keyboard_mapping (__main__.DeviceAdministrationTests.test_application_cannot_replace_keyboard_mapping)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 19, in test_application_cannot_replace_keyboard_mapping
+    self.denied(self.other, 100, self.other.pack('BBH', self.other.setup[26], 1, 0)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 57, in operation
+    raise AssertionError('Unexpected event in resource witness: '+str(header[0]))
+AssertionError: Unexpected event in resource witness: 34
+
+----------------------------------------------------------------------
+Ran 1 test in 0.027s
+
+FAILED (failures=1)

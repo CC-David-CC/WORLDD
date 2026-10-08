@@ -1,0 +1,236 @@
+The Meson build system
+Version: 1.3.2
+Source dir: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-device-mutations-01/source
+Build dir: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-device-mutations-01/source/build
+Build type: native build
+Project name: xserver
+Project version: 25.1.9
+C compiler for the host machine: ccache cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C linker for the host machine: cc ld.bfd 2.42
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Compiler for C supports arguments -Wall: YES 
+Compiler for C supports arguments -Wchar-subscripts: YES 
+Compiler for C supports arguments -Wpointer-arith: YES 
+Compiler for C supports arguments -Wmissing-declarations: YES 
+Compiler for C supports arguments -Wformat=2: YES 
+Compiler for C supports arguments -Wstrict-prototypes: YES 
+Compiler for C supports arguments -Wmissing-prototypes: YES 
+Compiler for C supports arguments -Wnested-externs: YES 
+Compiler for C supports arguments -Wbad-function-cast: YES 
+Compiler for C supports arguments -Wold-style-definition: YES 
+Compiler for C supports arguments -Wunused: YES 
+Compiler for C supports arguments -Wuninitialized: YES 
+Compiler for C supports arguments -Wshadow: YES 
+Compiler for C supports arguments -Wmissing-noreturn: YES 
+Compiler for C supports arguments -Wmissing-format-attribute: YES 
+Compiler for C supports arguments -Wredundant-decls: YES 
+Compiler for C supports arguments -Werror=implicit: YES 
+Compiler for C supports arguments -Werror=nonnull: YES 
+Compiler for C supports arguments -Werror=init-self: YES 
+Compiler for C supports arguments -Werror=main: YES 
+Compiler for C supports arguments -Werror=missing-braces: YES 
+Compiler for C supports arguments -Werror=sequence-point: YES 
+Compiler for C supports arguments -Werror=return-type: YES 
+Compiler for C supports arguments -Werror=trigraphs: YES 
+Compiler for C supports arguments -Werror=array-bounds: YES 
+Compiler for C supports arguments -Werror=write-strings: YES 
+Compiler for C supports arguments -Werror=address: YES 
+Compiler for C supports arguments -Werror=int-to-pointer-cast: YES 
+Compiler for C supports arguments -Werror=pointer-to-int-cast: YES 
+Compiler for C supports arguments -Woverride-init: YES 
+Compiler for C supports arguments -Wvla: YES 
+Compiler for C supports arguments -Wincompatible-pointer-types: YES 
+local/m04-device-mutations-01/source/meson.build:85: WARNING: Consider using the built-in warning_level option instead of using "-Wall".
+Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+Run-time dependency x11 found: YES 1.8.7
+Run-time dependency xproto found: YES 7.0.33
+Run-time dependency randrproto found: YES 1.6.0
+Run-time dependency renderproto found: YES 0.11.1
+Run-time dependency xextproto found: YES 7.3.0
+Run-time dependency inputproto found: YES 2.3.99.2
+Run-time dependency kbproto found: YES 1.0.7
+Run-time dependency fontsproto found: YES 2.1.3
+Run-time dependency fixesproto found: YES 6.1
+Run-time dependency damageproto found: YES 1.2.1
+Run-time dependency xcmiscproto found: YES 1.2.2
+Run-time dependency bigreqsproto found: YES 1.1.2
+Run-time dependency presentproto found: YES 1.4
+Run-time dependency videoproto found: YES 2.3.3
+Run-time dependency compositeproto found: YES 0.4.2
+Run-time dependency recordproto found: YES 1.14.2
+Run-time dependency scrnsaverproto found: YES 1.2.3
+Run-time dependency resourceproto found: YES 1.2.0
+Run-time dependency xf86driproto found: YES 2.1.1
+Run-time dependency dri2proto found: YES 2.8
+Run-time dependency dri3proto found: YES 1.4
+Run-time dependency xineramaproto found: YES 1.2.1
+Run-time dependency xf86bigfontproto found: YES 1.2.0
+Run-time dependency xf86vidmodeproto found: YES 2.3.1
+Run-time dependency applewmproto found: YES 1.4.2
+Run-time dependency xshmfence found: YES 1.3
+Run-time dependency dpmsproto found: YES 1.2
+Run-time dependency pixman-1 found: YES 0.42.2
+Found CMake: /usr/bin/cmake (3.28.3)
+Run-time dependency libbsd-overlay found: NO (tried pkgconfig and cmake)
+Run-time dependency xkbcomp found: YES 1.4.6
+Run-time dependency xkbfile found: YES 1.1.0
+Run-time dependency xfont2 found: YES 2.0.6
+Run-time dependency dbus-1 found: YES 1.14.10
+Run-time dependency libseat found: NO (tried pkgconfig and cmake)
+Run-time dependency libsystemd found: NO (tried pkgconfig and cmake)
+Run-time dependency libsystemd-daemon found: NO (tried pkgconfig and cmake)
+Run-time dependency libudev found: YES 255
+Run-time dependency libxcvt found: YES 0.1.2
+Checking for function "getaddrinfo" : YES 
+Message: IPv6 support: YES
+Dependency libudev found: YES 255 (cached)
+Checking for function "SHA1Init" : NO 
+Checking for function "CC_SHA1_Init" : NO 
+Has header "wincrypt.h" : NO 
+Library md found: NO
+Run-time dependency libsha1 found: NO (tried pkgconfig and cmake)
+Run-time dependency nettle found: NO (tried pkgconfig and cmake)
+libgcrypt-config found: NO
+Run-time dependency libgcrypt found: NO (tried pkgconfig and config-tool)
+Library crypto found: YES
+Run-time dependency openssl found: YES 3.0.13
+Message: Using libcrypto SHA1 functions
+Run-time dependency xdmcp found: YES 1.1.3
+Run-time dependency dri found: YES 25.2.8-0ubuntu0.24.04.4
+Run-time dependency libdrm found: YES 2.4.125
+Has header "sys/eventfd.h" : YES 
+Run-time dependency xf86dgaproto found: YES 2.1
+Has header "linux/apm_bios.h" : YES 
+Has header "sys/shm.h" : YES 
+Library m found: YES
+Library dl found: YES
+Run-time dependency libselinux found: NO (tried pkgconfig and cmake)
+Run-time dependency audit found: NO (tried pkgconfig and cmake)
+Configuring Xserver.1 using configuration
+Run-time dependency xorg-sgml-doctools found: YES 1.11
+Program xmlto found: NO
+Program xsltproc found: NO
+Program fop found: NO
+Checking for function "clock_gettime" : YES 
+Checking if "CLOCK_MONOTONIC" compiles: YES 
+Checking for size of "unsigned long" : 8 
+Header "pthread.h" has symbol "PTHREAD_MUTEX_RECURSIVE" : YES 
+Checking if "pthread_setname_np(tid, name)" compiles: YES 
+Has header "dlfcn.h" : YES 
+Has header "execinfo.h" : YES 
+Has header "fnmatch.h" : YES 
+Has header "linux/agpgart.h" : YES 
+Has header "strings.h" : YES 
+Has header "sys/agpgart.h" : NO 
+Has header "sys/ucred.h" : NO 
+Has header "sys/un.h" : YES 
+Has header "sys/utsname.h" : YES 
+Has header "sys/sysmacros.h" : YES 
+Checking for function "arc4random_buf" with dependency libbsd-overlay: YES 
+Checking for function "getrandom" : YES 
+Checking for function "backtrace" : YES 
+Checking for function "cbrt" : YES 
+Checking for function "epoll_create1" : YES 
+Checking for function "getuid" : YES 
+Checking for function "geteuid" : YES 
+Checking for function "isastream" : NO 
+Checking for function "issetugid" : NO 
+Checking for function "getaddrinfo" : YES (cached)
+Checking for function "getifaddrs" : YES 
+Checking for function "getpeereid" : NO 
+Checking for function "getpeerucred" : NO 
+Checking for function "getprogname" : NO 
+Checking for function "getzoneid" : NO 
+Checking for function "inet_ntop" : YES 
+Checking for function "memfd_create" : YES 
+Checking for function "mkostemp" : YES 
+Checking for function "mmap" : YES 
+Checking for function "open_device" : NO 
+Checking for function "poll" : YES 
+Checking for function "pollset_create" : NO 
+Checking for function "posix_fallocate" : YES 
+Checking for function "port_create" : NO 
+Checking for function "reallocarray" with dependency libbsd-overlay: YES 
+Checking for function "seteuid" : YES 
+Checking for function "setitimer" : YES 
+Checking for function "shmctl64" : NO 
+Checking for function "sigaction" : YES 
+Checking for function "sigprocmask" : YES 
+Checking for type "socklen_t" : YES 
+Checking for function "strcasestr" : YES 
+Checking for function "strlcat" with dependency libbsd-overlay: YES 
+Checking for function "strlcpy" with dependency libbsd-overlay: YES 
+Checking for function "strndup" : YES 
+Header "string.h" has symbol "strndup" : YES 
+Checking for type "struct sockaddr_storage" : YES 
+Checking for function "timingsafe_memcmp" : NO 
+Checking for function "vasprintf" : YES 
+Checking for function "vsnprintf" : YES 
+Checking for function "walkcontext" : NO 
+Checking whether type "struct xucred" has member "cr_pid" : NO 
+Header "sys/socket.h" has symbol "SCM_RIGHTS" : YES 
+Header "sys/socket.h" has symbol "SO_PEERCRED" : YES 
+local/m04-device-mutations-01/source/include/meson.build:204: WARNING: Project targets '>= 0.61.0' but uses feature introduced in '1.0.0': "compiler.has_member" keyword argument "prefix" of type list.
+Checking whether type "struct sockaddr_in" has member "sin_len" : NO 
+Run-time dependency pciaccess found: YES 0.17
+Checking for function "pci_device_is_boot_display" with dependency pciaccess: YES 
+Configuring version-config.h using configuration
+Configuring xkb-config.h using configuration
+Has header "stropts.h" : NO 
+Has header "sys/kd.h" : YES 
+Has header "sys/vt.h" : YES 
+Configuring xwin-config.h using configuration
+Program generate-atoms found: YES (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-device-mutations-01/source/dix/generate-atoms)
+Run-time dependency glproto found: YES 1.4.17
+Run-time dependency gl found: YES 1.2
+Dependency glproto found: YES 1.4.17 (cached)
+Dependency gl found: YES 1.2 (cached)
+Has header "syslog.h" : YES 
+Library pthread found: YES
+Run-time dependency xau found: YES 1.0.9
+Dependency presentproto found: YES 1.4 (cached)
+Program protoc-c found: YES (/usr/bin/protoc-c)
+Program protoc-c found: YES (/usr/bin/protoc-c)
+Run-time dependency libprotobuf-c found: YES 1.4.1
+Configuring Xvfb.1 using configuration
+Configuring dix-config.h using configuration
+Configuring xorg-server.h using configuration
+Configuring xlibre-server.h using configuration
+Configuring xorg-config.h using configuration
+Build targets in project: 31
+WARNING: Project specifies a minimum meson_version '>= 0.61.0' but uses features which were added in newer versions:
+ * 1.0.0: {'"compiler.has_member" keyword argument "prefix" of type list'}
+
+xserver 25.1.9
+
+  DDX
+    Xorg          : NO
+    Xnest         : NO
+    Xvfb          : YES
+    Xwin          : NO
+    Xquartz       : NO
+    Xephyr        : NO
+    Xfbdev        : NO
+
+  User defined options
+    buildtype     : debug
+    prefix        : /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-device-mutations-01/image
+    b_sanitize    : none
+    devel-docs    : false
+    docs          : false
+    fontrootdir   : /usr/share/fonts/X11
+    seatd_libseat : false
+    systemd_logind: true
+    tests         : false
+    xephyr        : false
+    xkb_bin_dir   : /usr/bin
+    xkb_dir       : /usr/share/X11/xkb
+    xkb_output_dir: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled
+    xnest         : false
+    xorg          : false
+    xquartz       : false
+    xvfb          : true
+    xwin          : false
+
+Found ninja-1.11.1 at /usr/bin/ninja

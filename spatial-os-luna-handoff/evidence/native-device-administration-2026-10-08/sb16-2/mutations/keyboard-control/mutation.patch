@@ -1,0 +1,10 @@
+--- a/Xext/spatial/spatialpolicy.c
++++ b/Xext/spatial/spatialpolicy.c
+@@ -151,7 +151,6 @@
+     if (!(rec->access_mode & (DixManageAccess | DixBellAccess))) return;
+     switch (rec->client->majorOp) {
+     case X_ChangeKeyboardMapping:
+-    case X_ChangeKeyboardControl:
+     case X_Bell:
+     case X_ChangePointerControl:
+     case X_SetPointerMapping:

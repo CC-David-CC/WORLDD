@@ -1,0 +1,16 @@
+Updated: 2026-10-08
+
+RESOLVED: David authorized work without local-model review.
+The primary agent now reviews changes and runs applicable tests.
+The masked Strata service no longer blocks implementation.
+No service configuration was changed.
+
+Shared device administration passed on both hosts.
+Each Debug and runtime-sanitizer profile passed 648 core checks, 51 harness checks, and 151 P10 cases.
+Native-server sanitizers passed 136 focused checks with GLX disabled.
+Each host detected six isolated configuration bypass mutations.
+Final primary-agent review found no further defect within this component scope.
+
+Input privacy and application binding remain incomplete.
+See M04_INPUT_PRIVACY_FINDINGS.txt for native failure evidence on both hosts.
+Spatial-M1 and the full project remain incomplete.

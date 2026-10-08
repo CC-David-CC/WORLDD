@@ -1,0 +1,80 @@
+Updated: 2026-10-08
+
+M04 input isolation: confirmed native-runtime defects
+
+These are spatial security integration defects in our development server.
+They are not proposed upstream XLibre fixes.
+Both sb16 and sb16-2 reproduced them on disposable Xvfb displays.
+The normal desktop was not used.
+The tested binary SHA-256 is 906e1030c6796282a5331848bcc33c27424a5939b71fb9451f9a3701ea12d1ed.
+The source base is f5594ee9c96dac6c39d8adb369c5fd2cfcf203fc with the pending device-administration change.
+
+1. Foreign focus disclosure.
+An application in another workspace received the owner's focused window XID.
+Both X11 byte orders reproduced this disclosure.
+Different applications in one workspace also reproduced it.
+Same-application connections are a positive control, not a security defect.
+
+2. Shared focus modification.
+An application focused its own window.
+The other application's focus query then reported that window.
+Window ownership alone does not isolate the shared keyboard.
+
+3. Shared pointer disclosure.
+The supervisor moved the shared pointer to coordinates 77,83.
+An unrelated application queried its own window and received those coordinates.
+
+4. Shared held-key disclosure.
+The supervisor injected keycode 38 through XTEST on the disposable server.
+The unrelated application's QueryKeymap changed from released to pressed, then released.
+Ordinary application XTEST access was not granted.
+
+5. Shared keyboard and pointer grabs.
+An unrelated application grabbed each shared device successfully.
+The owner's subsequent grab received AlreadyGrabbed.
+Each grab was released before the next probe.
+
+6. Shared pointer modification.
+An application warped the pointer into its own window at coordinates 13,17.
+The supervisor observed that change on the shared pointer.
+
+7. Application input binding is missing.
+A genuine actor keyboard reported the application's target window as focused.
+The application's core GetInputFocus still returned None.
+The connection queried a different keyboard from the actor's keyboard.
+
+Proposed implementation direction
+
+Bind application connections to their authorized controller's genuine input devices.
+Apply the binding to every connection with the same workspace and application identity.
+Provide genuine private input state when the application has no controller.
+Check device observation and mutation against application identity and the active lease.
+Release held input, grabs, and focus before transfer or revocation.
+Keep legitimate same-application popup, dialog, focus, and grab behavior.
+Do not replace device state with fabricated successful replies.
+Qualify motion history, asynchronous events, connection teardown, and device teardown.
+Review this design and its native regression tests before integration.
+
+Evidence
+
+Diagnostic scripts and raw observations are in:
+spatial-os-luna-handoff/evidence/input-privacy-audit-2026-10-08/
+Each host keeps raw observations and disposable-server logs in spatial-os-luna-handoff/local/m04-input-privacy-audit-01/.
+The Windows folder contains copies under sb16 and sb16-2.
+The first additional probe stopped on a real MappingNotify event.
+The corrected diagnostic records those events and continues to the requested reply.
+Locked tests and production files were not changed by these probes.
+These results are failing-feature evidence, not passing acceptance tests.
+
+Review status
+
+The configured llm-79 service remains inactive.
+The service has no runtime limit, stop dependency, or stop override.
+The checked sudo journal identified our start command but did not identify the stop source.
+At 11:03 UTC, an authorized startup attempt failed because fleet-iq3.service was masked.
+The mask was not removed. No service configuration was changed.
+The bounded diagnostic-review request also failed with connection refused.
+David authorized primary-agent review without the local model on 2026-10-08.
+The primary agent reviewed the diagnostics and confirmed their limited scope.
+The administration increment received final primary-agent review.
+No model approval or full M04 completion is claimed.

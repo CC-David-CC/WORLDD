@@ -282,11 +282,11 @@ Keep bearer tokens outside AGENTS.md and Git.
 Read credentials from local configuration or environment variables.
 Use the Authorization: Bearer header with the configured credential.
 Defer further model testing until the implementation needs a model.
-For each file created or changed, request a bounded implementation proposal from the configured local model.
-Include the relevant source and requirements. Compare its proposal with the primary implementation.
-Review proposed changes and run the applicable tests before integration.
-Send concrete defects back to the local model and request corrected proposals.
-Repeat review until the identified defects are resolved. Do not accept unsupported claims.
+David authorized work without local-model review on 2026-10-08.
+The primary agent reviews each changed file and runs applicable tests before integration.
+Do not wait for local-model proposals or reviews.
+Resolve identified defects before integration. Do not accept unsupported claims.
+This review change does not remove real-model acceptance requirements for Spatial-M1.
 The local model is a coding collaborator. Its response is not execution evidence.
 The current server does not enable image input.
 Verify image support later, before visual-agent acceptance.

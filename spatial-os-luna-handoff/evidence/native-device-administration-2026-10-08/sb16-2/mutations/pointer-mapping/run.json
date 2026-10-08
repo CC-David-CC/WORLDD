@@ -1,0 +1,14 @@
+{
+  "name": "pointer-mapping",
+  "target": "test_application_cannot_replace_pointer_mapping",
+  "argv": [
+    "python3",
+    "tests/native/test_device_administration.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "DeviceAdministrationTests.test_application_cannot_replace_pointer_mapping"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "1632c096f9e54f24ad73757a460330c4d8380733ac02010aa03bf4a1cd6dbce5",
+  "policy_sha256": "148e292a76589f3490ab2043c50b70e562d390e4ff87f4d969f7ac2fb264767e"
+}

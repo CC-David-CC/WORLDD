@@ -1,0 +1,14 @@
+{
+  "name": "keyboard-mapping",
+  "target": "test_application_cannot_replace_keyboard_mapping",
+  "argv": [
+    "python3",
+    "tests/native/test_device_administration.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "DeviceAdministrationTests.test_application_cannot_replace_keyboard_mapping"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "47f0be6a4436e5d67f6dfec9361f7a5ecce0f7620335bbf945d59f1d9b9202c7",
+  "policy_sha256": "bea529cff49c61e614253d80c14369846280b82e35c39e70110b188f069505fd"
+}

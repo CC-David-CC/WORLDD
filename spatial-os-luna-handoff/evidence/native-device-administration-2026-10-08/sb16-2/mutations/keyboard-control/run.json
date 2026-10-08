@@ -1,0 +1,14 @@
+{
+  "name": "keyboard-control",
+  "target": "test_application_cannot_change_keyboard_controls",
+  "argv": [
+    "python3",
+    "tests/native/test_device_administration.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "DeviceAdministrationTests.test_application_cannot_change_keyboard_controls"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "ed5a9324c00bfb02e0d137f5a0af084211f79e5aed9805d33ff7c5c0157b1f79",
+  "policy_sha256": "e245a62ee7a94ff6fa424027bc6ab907e1dc69ffb4b7d2de0e9017d438856e9a"
+}

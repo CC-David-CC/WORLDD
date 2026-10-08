@@ -1,0 +1,6 @@
+{
+  "host": "sb16",
+  "diagnostic": "shared_device_probe.py before MappingNotify handling",
+  "error": "AssertionError: Unexpected event in resource witness: 34",
+  "correction": "The diagnostic records complete MappingNotify events and reads the next response. Registered tests and production were unchanged."
+}

@@ -1,0 +1,49 @@
+{
+  "id": "application.device_administration",
+  "phase": "M04",
+  "scope": "Shared keyboard and pointer configuration authority",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/NATIVE_DEVICE_ADMINISTRATION.md",
+  "status_source": "CURRENT_STATE.md",
+  "invariant": "Unprivileged applications and broker connections cannot configure shared input devices; public static mapping reads remain available.",
+  "production_roots": [
+    "server/xlibre/spatialpolicy.c"
+  ],
+  "counterexample_suite": "tests/native/test_device_administration.py",
+  "test_ids": [
+    "DeviceAdministrationTests.test_application_cannot_replace_keyboard_mapping",
+    "DeviceAdministrationTests.test_application_cannot_change_keyboard_controls",
+    "DeviceAdministrationTests.test_application_cannot_ring_shared_keyboard_bell",
+    "DeviceAdministrationTests.test_application_cannot_change_pointer_controls",
+    "DeviceAdministrationTests.test_application_cannot_replace_pointer_mapping",
+    "DeviceAdministrationTests.test_application_cannot_clear_modifier_mapping",
+    "DeviceAdministrationTests.test_workspace_membership_does_not_grant_device_administration",
+    "DeviceAdministrationTests.test_broker_has_no_device_administration_authority",
+    "DeviceAdministrationTests.test_swapped_requests_cannot_bypass_device_administration",
+    "DeviceAdministrationTests.test_application_can_read_public_keyboard_mapping",
+    "DeviceAdministrationTests.test_application_can_read_public_pointer_mapping",
+    "DeviceAdministrationTests.test_application_can_read_public_modifier_mapping",
+    "DeviceAdministrationTests.test_trusted_services_can_configure_shared_devices"
+  ],
+  "focused_command": "ctest --test-dir build -V -R '^native-(device-administration|global-isolation|selection-isolation|extension-isolation|resource-isolation|security-identity)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "New counterexamples fail on both pre-patch servers while positive controls pass.",
+    "The patched native suites pass in Debug and native-server ASan/UBSan on both hosts.",
+    "Public mapping tables and privileged configuration controls remain real and functional.",
+    "All six configuration requests reject unprivileged callers before effects.",
+    "Both native byte orders and broker/workspace-membership denials pass.",
+    "An isolated bypass for each of the six protected requests is detected.",
+    "Locked P00-P10 tests remain unchanged and pass against the patched server.",
+    "Source and tested binary hashes match both hosts."
+  ],
+  "limitations": [
+    "This component does not complete device authority, input privacy, M04, or Spatial-M1.",
+    "Actor-seat reads, application input binding, focus/pointer queries, grabs, and asynchronous metadata remain unqualified.",
+    "Native-server GLX-disabled checks do not qualify full runtime profiles or physical hardware."
+  ],
+  "next_components": [
+    "application.device_authority",
+    "authority.application"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "modifier-mapping",
+  "target": "test_application_cannot_clear_modifier_mapping",
+  "argv": [
+    "python3",
+    "tests/native/test_device_administration.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "DeviceAdministrationTests.test_application_cannot_clear_modifier_mapping"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "5452400983cd6ec4ea2e7f1536bc07e509ff7bf5b136d070ab0dc8279b7a1849",
+  "policy_sha256": "d70576489ac6e8f58661c3fe76937353403fa7ae657fce702edcbf0521fd9b78"
+}

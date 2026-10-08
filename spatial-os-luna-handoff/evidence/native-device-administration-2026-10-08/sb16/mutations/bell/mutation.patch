@@ -1,0 +1,10 @@
+--- a/Xext/spatial/spatialpolicy.c
++++ b/Xext/spatial/spatialpolicy.c
+@@ -152,7 +152,6 @@
+     switch (rec->client->majorOp) {
+     case X_ChangeKeyboardMapping:
+     case X_ChangeKeyboardControl:
+-    case X_Bell:
+     case X_ChangePointerControl:
+     case X_SetPointerMapping:
+     case X_SetModifierMapping:

@@ -1,0 +1,26 @@
+[0/2] Re-checking globbed directories...
+[1/25] Generating python/security_pb2.py
+[2/25] Running cpp protocol buffer compiler on proto/spatial/security/v1/security.proto
+[3/25] Building C object CMakeFiles/spatial-security-auth.dir/native/security_auth.c.o
+[4/25] Building CXX object CMakeFiles/spatial-protobuf.dir/security.pb.cc.o
+[5/25] Linking CXX static library libspatial-protobuf.a
+[6/25] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[7/25] Linking CXX executable spatial-key
+[8/25] Linking CXX executable spatial-issuer-client
+[9/25] Linking CXX static library libspatial-issuer.a
+[10/25] Linking CXX executable spatial-issuer-watch
+[11/25] Linking CXX executable identityd
+[12/25] Linking CXX executable spatialwm
+[13/25] Linking CXX executable spatial-app-init
+[14/25] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[15/25] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[16/25] Linking CXX static library libspatial-core.a
+[17/25] Linking CXX executable workspaced
+[18/25] Linking CXX executable worldd
+[19/25] Linking CXX executable spatial-authority-probe
+[20/25] Linking CXX executable spatial-test-host
+[21/25] Linking CXX executable spatial-input-bridge
+[22/25] Linking CXX executable spatial-issuer-client-probe
+[23/25] Linking C executable spatial-security-auth
+[24/25] Linking CXX executable spatial-git-job-probe
+[25/25] Linking CXX executable spatial-issuer-watch-probe

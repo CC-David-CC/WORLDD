@@ -1,0 +1,10 @@
+--- a/Xext/spatial/spatialpolicy.c
++++ b/Xext/spatial/spatialpolicy.c
+@@ -150,7 +150,6 @@
+     /* A client's last opcode must not affect asynchronous event access. */
+     if (!(rec->access_mode & (DixManageAccess | DixBellAccess))) return;
+     switch (rec->client->majorOp) {
+-    case X_ChangeKeyboardMapping:
+     case X_ChangeKeyboardControl:
+     case X_Bell:
+     case X_ChangePointerControl:

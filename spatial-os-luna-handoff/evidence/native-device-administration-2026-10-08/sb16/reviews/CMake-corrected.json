@@ -1,0 +1,4 @@
+{
+  "prompt": "GiveexactCMakefragment two separatecommands withnewline NOsemicolon; name native-device-administration; add_test COMMAND \"${Python3_EXECUTABLE}\" \"${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_device_administration.py\" $<TARGET_FILE:spatial-security-auth>; set_tests_properties TIMEOUT180 ENVIRONMENT \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}\". InsideexistingSPATIAL_INPUT_TESTS block, no extraif. Fragmentonly.",
+  "proposal": "add_test(NAME native-device-administration COMMAND \"${Python3_EXECUTABLE}\" \"${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_device_administration.py\" $<TARGET_FILE:spatial-security-auth>)\nset_tests_properties(native-device-administration PROPERTIES TIMEOUT 180 ENVIRONMENT \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}\")"
+}

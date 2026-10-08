@@ -1,5 +1,57 @@
 # Implementation status
 
+## 2026-10-08: Shared device administration checked
+
+Ordinary applications and brokers cannot configure shared keyboard or pointer devices.
+The policy checks keyboard mapping, keyboard controls, bell, pointer controls, pointer mapping, and modifier mapping.
+Management or bell access intent is required before the callback checks the core opcode.
+A previous opcode does not change authorization for asynchronous reads or event delivery.
+The callback preserves existing actor-seat denials.
+Public mapping reads and trusted service configuration remain available.
+
+Both pre-patch servers failed nine of the 13 new checks.
+All four positive controls passed on that baseline.
+Both patched Debug servers passed all 136 focused native checks.
+Both instrumented Xvfb servers passed the same checks with GLX disabled.
+The suites contain 13 device, 19 global, 14 selection, 32 extension, 36 resource, and 22 identity checks.
+Native sanitizer runs enabled leak detection and halted on invalid access or undefined behavior.
+Both Debug hosts passed all 151 locked P00-P10 cases and 51 harness checks.
+Each host detected six isolated configuration bypass mutations.
+No mutation entered production.
+
+The local model reviewed each implementation file and the additive contract.
+Incorrect callback signatures, privilege-helper arguments, guard interpretations, and CTest names were rejected.
+Corrected proposals received further review before integration.
+Model prose does not establish execution evidence.
+
+Strata was repeatedly stopped during documentation review.
+The recorded stop override was absent.
+The first authorized start restored bounded reviews.
+The second start was stopped cleanly during model loading, before port 8080 opened.
+No unit files changed.
+David subsequently authorized primary-agent review without the local model.
+The primary agent reviewed the source, tests, additive contract, and evidence summaries.
+The review found no further defect in this bounded administration change.
+The evidence records the service-state change and recovery command.
+
+The contract is docs/NATIVE_DEVICE_ADMINISTRATION.md.
+The primitive is tasks/m1/application.device_administration.json.
+Evidence is in evidence/native-device-administration-2026-10-08.
+Only disposable project displays ran the updated server.
+
+Both hosts also passed the complete registered core suite in Debug and runtime ASan/UBSan.
+Each profile passed 648 checks across 33 CTest suites, 51 harness checks, and 151 P10 cases.
+Those executed profiles report no skipped or unrun cases.
+Physical input profiles were not run.
+Shared device administration checks do not complete input authority or privacy.
+Application input binding, actor-seat reads, focus/pointer queries, grabs, and event metadata remain unqualified.
+Broker/compositor integration and GLX provider cleanup remain required.
+M04 and Spatial-M1 remain incomplete.
+Next: bind application input to its authorized controller and qualify private input observation.
+Both hosts now reproduce missing focus, pointer, held-key, and grab isolation.
+M04_INPUT_PRIVACY_FINDINGS.txt at the repository root records these diagnostics.
+
+
 ## 2026-10-08: Shared server administration checked
 
 The native policy now checks shared server administration and screen-saver access.

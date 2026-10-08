@@ -1,0 +1,117 @@
+test_application_can_read_public_keyboard_mapping (__main__.DeviceAdministrationTests.test_application_can_read_public_keyboard_mapping) ... ok
+test_application_can_read_public_modifier_mapping (__main__.DeviceAdministrationTests.test_application_can_read_public_modifier_mapping) ... ok
+test_application_can_read_public_pointer_mapping (__main__.DeviceAdministrationTests.test_application_can_read_public_pointer_mapping) ... ok
+test_application_cannot_change_keyboard_controls (__main__.DeviceAdministrationTests.test_application_cannot_change_keyboard_controls) ... FAIL
+test_application_cannot_change_pointer_controls (__main__.DeviceAdministrationTests.test_application_cannot_change_pointer_controls) ... FAIL
+test_application_cannot_clear_modifier_mapping (__main__.DeviceAdministrationTests.test_application_cannot_clear_modifier_mapping) ... FAIL
+test_application_cannot_replace_keyboard_mapping (__main__.DeviceAdministrationTests.test_application_cannot_replace_keyboard_mapping) ... FAIL
+test_application_cannot_replace_pointer_mapping (__main__.DeviceAdministrationTests.test_application_cannot_replace_pointer_mapping) ... FAIL
+test_application_cannot_ring_shared_keyboard_bell (__main__.DeviceAdministrationTests.test_application_cannot_ring_shared_keyboard_bell) ... FAIL
+test_broker_has_no_device_administration_authority (__main__.DeviceAdministrationTests.test_broker_has_no_device_administration_authority) ... FAIL
+test_swapped_requests_cannot_bypass_device_administration (__main__.DeviceAdministrationTests.test_swapped_requests_cannot_bypass_device_administration) ... FAIL
+test_trusted_services_can_configure_shared_devices (__main__.DeviceAdministrationTests.test_trusted_services_can_configure_shared_devices) ... ok
+test_workspace_membership_does_not_grant_device_administration (__main__.DeviceAdministrationTests.test_workspace_membership_does_not_grant_device_administration) ... FAIL
+
+======================================================================
+FAIL: test_application_cannot_change_keyboard_controls (__main__.DeviceAdministrationTests.test_application_cannot_change_keyboard_controls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 25, in test_application_cannot_change_keyboard_controls
+    self.denied(self.other, 102, self.other.pack('II', 2, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_change_pointer_controls (__main__.DeviceAdministrationTests.test_application_cannot_change_pointer_controls)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 37, in test_application_cannot_change_pointer_controls
+    self.denied(self.other, 105, self.other.pack('hhhBB', 2, 1, 4, 1, 1))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_clear_modifier_mapping (__main__.DeviceAdministrationTests.test_application_cannot_clear_modifier_mapping)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 51, in test_application_cannot_clear_modifier_mapping
+    self.denied(self.other, 118, minor=0, reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 57, in operation
+    raise AssertionError('Unexpected event in resource witness: '+str(header[0]))
+AssertionError: Unexpected event in resource witness: 34
+
+======================================================================
+FAIL: test_application_cannot_replace_keyboard_mapping (__main__.DeviceAdministrationTests.test_application_cannot_replace_keyboard_mapping)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 19, in test_application_cannot_replace_keyboard_mapping
+    self.denied(self.other, 100, self.other.pack('BBH', self.other.setup[26], 1, 0)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 57, in operation
+    raise AssertionError('Unexpected event in resource witness: '+str(header[0]))
+AssertionError: Unexpected event in resource witness: 34
+
+======================================================================
+FAIL: test_application_cannot_replace_pointer_mapping (__main__.DeviceAdministrationTests.test_application_cannot_replace_pointer_mapping)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 47, in test_application_cannot_replace_pointer_mapping
+    self.denied(self.other, 116, bytes(mapping), minor=count, reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 57, in operation
+    raise AssertionError('Unexpected event in resource witness: '+str(header[0]))
+AssertionError: Unexpected event in resource witness: 34
+
+======================================================================
+FAIL: test_application_cannot_ring_shared_keyboard_bell (__main__.DeviceAdministrationTests.test_application_cannot_ring_shared_keyboard_bell)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 32, in test_application_cannot_ring_shared_keyboard_bell
+    self.denied(self.other, 104)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_broker_has_no_device_administration_authority (__main__.DeviceAdministrationTests.test_broker_has_no_device_administration_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 60, in test_broker_has_no_device_administration_authority
+    self.denied(broker, 105, broker.pack('hhhBB', 2, 1, 4, 1, 1))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_swapped_requests_cannot_bypass_device_administration (__main__.DeviceAdministrationTests.test_swapped_requests_cannot_bypass_device_administration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 64, in test_swapped_requests_cannot_bypass_device_administration
+    self.denied(self.other, 102, self.other.pack('II', 2, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_workspace_membership_does_not_grant_device_administration (__main__.DeviceAdministrationTests.test_workspace_membership_does_not_grant_device_administration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_device_administration.py", line 55, in test_workspace_membership_does_not_grant_device_administration
+    self.denied(self.other, 102, self.other.pack('II', 2, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.034s
+
+FAILED (failures=9)

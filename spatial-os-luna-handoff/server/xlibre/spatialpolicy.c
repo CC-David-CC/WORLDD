@@ -7,6 +7,7 @@
 #include <X11/extensions/render.h>
 #include "dix/dix_priv.h"
 #include "dix/client_priv.h"
+#include "dix/devices_priv.h"
 #include "dix/extension_priv.h"
 #include "dix/selection_priv.h"
 #include "dix/server_priv.h"
@@ -140,6 +141,25 @@ static void screensaver_access(CallbackListPtr *list, void *unused, void *data)
     if (!SpatialSecurityPrivileged(rec->client)) rec->status = BadAccess;
 }
 
+static void device_administration(CallbackListPtr *list, void *unused, void *data)
+{
+    DeviceAccessCallbackParam *rec = data;
+    (void)list; (void)unused;
+    /* NULL is a server-internal call, never a native request connection. */
+    if (!rec->client || SpatialSecurityPrivileged(rec->client)) return;
+    /* A client's last opcode must not affect asynchronous event access. */
+    if (!(rec->access_mode & (DixManageAccess | DixBellAccess))) return;
+    switch (rec->client->majorOp) {
+    case X_ChangeKeyboardMapping:
+    case X_ChangeKeyboardControl:
+    case X_Bell:
+    case X_ChangePointerControl:
+    case X_SetPointerMapping:
+    case X_SetModifierMapping:
+        rec->status = BadAccess;
+    }
+}
+
 static void client_access(CallbackListPtr *list, void *unused, void *data)
 {
     ClientAccessCallbackParam *rec = data;
@@ -233,6 +253,7 @@ void SpatialSecurityPolicyInit(void)
         !XaceRegisterCallback(XACE_SEND_ACCESS, send_access, NULL) ||
         !XaceRegisterCallback(XACE_RECEIVE_ACCESS, receive_access, NULL) ||
         !AddCallback(&ClientAccessCallback, client_access, NULL) ||
+        !AddCallback(&DeviceAccessCallback, device_administration, NULL) ||
         !AddCallback(&ServerAccessCallback, server_access, NULL) ||
         !AddCallback(&ScreenSaverAccessCallback, screensaver_access, NULL) ||
         !AddCallback(&ExtensionAccessCallback, extension_access, NULL) ||
@@ -248,6 +269,7 @@ void SpatialSecurityPolicyReset(void)
     XaceDeleteCallback(XACE_SEND_ACCESS, send_access, NULL);
     XaceDeleteCallback(XACE_RECEIVE_ACCESS, receive_access, NULL);
     DeleteCallback(&ClientAccessCallback, client_access, NULL);
+    DeleteCallback(&DeviceAccessCallback, device_administration, NULL);
     DeleteCallback(&ServerAccessCallback, server_access, NULL);
     DeleteCallback(&ScreenSaverAccessCallback, screensaver_access, NULL);
     DeleteCallback(&ExtensionAccessCallback, extension_access, NULL);

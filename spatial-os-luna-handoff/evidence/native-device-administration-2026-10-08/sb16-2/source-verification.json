@@ -1,0 +1,24 @@
+{
+  "source_inputs": 401,
+  "mismatches": [],
+  "binary_hashes_verified": true,
+  "full_profiles": {
+    "debug": {
+      "core_checks": 648,
+      "ctest_suites": 33,
+      "P10": 151,
+      "harness": 51,
+      "skipped": 0
+    },
+    "runtime-sanitize": {
+      "core_checks": 648,
+      "ctest_suites": 33,
+      "P10": 151,
+      "harness": 51,
+      "skipped": 0
+    }
+  },
+  "native_sanitizer_checks": 136,
+  "mutations_detected": 6,
+  "summary_model_reviews": "waived by David; primary-agent review complete"
+}

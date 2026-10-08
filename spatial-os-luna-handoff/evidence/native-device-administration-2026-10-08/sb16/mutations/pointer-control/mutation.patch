@@ -1,0 +1,10 @@
+--- a/Xext/spatial/spatialpolicy.c
++++ b/Xext/spatial/spatialpolicy.c
+@@ -153,7 +153,6 @@
+     case X_ChangeKeyboardMapping:
+     case X_ChangeKeyboardControl:
+     case X_Bell:
+-    case X_ChangePointerControl:
+     case X_SetPointerMapping:
+     case X_SetModifierMapping:
+         rec->status = BadAccess;
