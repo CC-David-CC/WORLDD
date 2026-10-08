@@ -1,5 +1,36 @@
 # Implementation status
 
+## 2026-10-08: Broker control client checked
+
+The production broker client now supports checked control acquisition, release, and asynchronous revocation.
+It binds leases to the requested actor and native application identity.
+Idle polling and request wait callbacks use the same receive buffer.
+Partial frames retain a deadline and do not block the caller.
+A revocation received before its acquisition reply remains effective.
+Repeated acquisition cannot restore a revoked lease.
+Unknown notifications, duplicate events, substituted identities, and malformed replies close the authority channel.
+
+Both hosts passed 29 transport checks and 25 real issuer/broker client checks.
+Both hosts passed 866 core checks across 44 suites in Debug and runtime ASan/UBSan.
+Each profile also passed 51 harness checks and 151 P10 cases.
+Both native-server ASan/UBSan profiles passed the 25 live cases with GLX disabled and leak detection enabled.
+No final qualification profile skipped a case.
+
+The initial API scaffolding failed all 24 baseline transport cases on both hosts.
+The first live run exposed a probe half-close error and missing event draining during a blocked request.
+The corrected probe preserves normal broker shutdown and polls from the wait callback.
+The original failures remain separate from final passing evidence.
+The primary agent reviewed each changed file without local-model review.
+The protobuf schemas, locked tests, independent native witness, and XLibre source remain unchanged.
+See docs/BROKER_CONTROL_CLIENT.md and evidence/broker-control-client-2026-10-08.
+The root M04_BROKER_CONTROL_CLIENT_DEBUG.txt records failures and remaining work.
+
+Worldd does not acquire these leases yet.
+Consumers must poll during idle periods and component waits, and defer recursive release requests.
+Balanced native cancellation must precede broker release acknowledgement.
+Authenticated native input, filtered pixels, physical input, GPU timing, and complete M1 qualification remain pending.
+M04, M09, M10, and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Broker application control reservations checked
 
 Workspaced now reserves each native application group for one authorized actor.

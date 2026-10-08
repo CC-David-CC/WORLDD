@@ -1,0 +1,33 @@
+Checked broker control client
+Base: 01b49893f0931a0fe45ace7c6abcb9a40ee64bfd
+
+The primary agent reviews this change. No local-model review is required.
+Both hosts passed prerequisite 51 harness checks and 151 P10 cases.
+The initial probe used API scaffolding that returned UNIMPLEMENTED for missing lease methods.
+All 24 initial transport cases failed on both hosts.
+That baseline is not an unmodified release binary.
+
+The first implementation passed the 24 transport cases on both hosts.
+The live suite found a probe shutdown error.
+The probe closed the broker connection fully instead of using its normal write half-close.
+The probe now half-closes and waits for the broker's normal shutdown.
+
+The second focused run passed 27 transport cases and 24 of 25 live cases on both hosts.
+The remaining case required delivery during a blocked process-wait request.
+The client received the notification, but the probe drained it only after the request completed.
+The probe now drains notifications from the existing wait callback.
+Worldd must use this callback integration before authenticated control is enabled.
+
+The latest suite has 29 transport cases and 25 real issuer/broker cases.
+Both hosts passed all 29 transport cases and all 25 real issuer/broker cases.
+Full qualification passed on both hosts.
+Worldd control integration and balanced native input cancellation remain pending.
+M04, M09, M10, and Spatial-M1 remain incomplete.
+
+Final checked results, per host:
+- Debug: 866 core checks / 44 suites, 51 harness checks, 151 P10 cases.
+- Runtime ASan/UBSan: 866 core checks / 44 suites, 51 harness checks, 151 P10 cases.
+- Native-server ASan/UBSan: 25 live client cases; GLX disabled; leak detection enabled.
+- No final failed or skipped cases.
+All six reviewed source/build/test inputs match both host manifests.
+Worldd control integration and balanced native input cancellation remain pending.

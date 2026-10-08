@@ -1,0 +1,12 @@
+{
+  "build": {
+    "worldd": "a9cbb740de3660374351bee1b6fbbe0e55429348819c1bbbc8e4b276a6560b9b",
+    "spatial-broker-control-client-probe": "312e5edb26810c81ed4f86b6b6486e0407ec8f16fd9836e6fc9b48c49b624878",
+    "workspaced": "98686a62f8ccdbbd90916a8abafd808e7a994605f515357bc1c6ffeca850f50f"
+  },
+  "build-sanitize": {
+    "worldd": "9857da51d4b1695a841489b96b0bab7852b1f7dd9020f1fd20f44646a82ecc0f",
+    "spatial-broker-control-client-probe": "5983760e6ac91abbbe7f3f1265adf95aea5a269d67a0669518250e31a01d2483",
+    "workspaced": "f470f88a7e506e1778696057766a4f57a55ac24147e59b233213e269526bb384"
+  }
+}

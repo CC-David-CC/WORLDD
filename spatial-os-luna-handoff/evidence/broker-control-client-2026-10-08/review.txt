@@ -1,0 +1,48 @@
+Primary-agent review: checked broker control client
+
+src/platform/broker.hpp and broker.cpp:
+- Preserve existing checked ordinary broker outcomes.
+- Add typed control acquire and release methods.
+- Bind returned leases to the requested principal and native application identity.
+- Preserve one identity per application group until release.
+- Preserve revocation when it precedes an acquire reply or races with repeated acquisition.
+- Keep revoked leases unavailable until release acknowledgement.
+- Retain fragmented input across requests and idle polls.
+- Reject duplicate, unknown, mismatched, or malformed notifications.
+- Preserve reply correlation while the wait callback polls events.
+- Reject recursive exchanges instead of corrupting the pending reply.
+- Bound frame size, frame assembly time, pump work, reservations, and queued notifications.
+- Keep channel failure fatal and make local lease validity false after failure.
+- Keep local validity distinct from polling and native cancellation.
+
+src/testing/broker_control_client_probe.cpp:
+- Forward real protobuf operations to the production BrokerClient.
+- Verify reported revoked leases are inactive.
+- Expose events during idle time and blocked requests using the existing wait callback.
+- Preserve the normal half-close shutdown contract with the real broker.
+- Keep this test boundary separate from production world state and authority decisions.
+
+tests/core/test_broker_control_client.py:
+- Use a separate protocol peer to inject malformed identities and framing.
+- Verify early revocation, partial input, duplicate events, stale release events, and wrong replies.
+- Verify a partial idle frame reaches its real ten-second deadline.
+- Verify successful acquisition, repeated acquisition, and denial recovery.
+
+tests/core/test_broker_control_client_live.py:
+- Reuse all 25 real issuer/broker lease invariants through the production C++ client.
+- Preserve confined application processes, native identity, and persistent grants.
+- Preserve the existing blocked-wait deadline and cancellation-acknowledgement checks.
+
+CMakeLists.txt:
+- Build the thin probe against spatial-core.
+- Add one transport suite and one native broker integration suite.
+
+Documentation and task ticket:
+- Record callback polling and the prohibition on nested broker requests.
+- Preserve all failed attempts separately from final passing focused runs.
+- Keep worldd control, balanced native input cancellation, and M1 pending.
+
+Full qualification passed on both hosts before integration.
+Both Debug and runtime profiles passed 866 core, 51 harness, and 151 P10 checks.
+Both native-server sanitizer profiles passed 25 live cases.
+No final skipped cases or unresolved component failures remain.

@@ -1,0 +1,12 @@
+[0/2] Re-checking globbed directories...
+[1/11] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[2/11] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[3/11] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/11] Linking CXX static library libspatial-protobuf.a
+[5/11] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[6/11] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[7/11] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[8/11] Building CXX object CMakeFiles/spatial-core.dir/src/platform/broker.cpp.o
+[9/11] Linking CXX static library libspatial-core.a
+[10/11] Building CXX object CMakeFiles/spatial-broker-control-client-probe.dir/src/testing/broker_control_client_probe.cpp.o
+[11/11] Linking CXX executable spatial-broker-control-client-probe

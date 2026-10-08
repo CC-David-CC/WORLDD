@@ -1,0 +1,115 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start  1: broker-control-client
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-broker-control-client-probe"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+1: Test timeout computed to be: 90
+1: test_acquire_cannot_substitute_application (__main__.BrokerControlClientTests.test_acquire_cannot_substitute_application) ... ok
+1: test_acquire_cannot_substitute_principal (__main__.BrokerControlClientTests.test_acquire_cannot_substitute_principal) ... ok
+1: test_acquire_requires_full_lease_identity (__main__.BrokerControlClientTests.test_acquire_requires_full_lease_identity) ... ok
+1: test_acquire_returns_exact_lease (__main__.BrokerControlClientTests.test_acquire_returns_exact_lease) ... ok
+1: test_broker_denial_keeps_transport_usable (__main__.BrokerControlClientTests.test_broker_denial_keeps_transport_usable) ... ok
+1: test_duplicate_event_fails_closed (__main__.BrokerControlClientTests.test_duplicate_event_fails_closed) ... ok
+1: test_early_revocation_cannot_target_different_acquisition (__main__.BrokerControlClientTests.test_early_revocation_cannot_target_different_acquisition) ... ok
+1: test_event_requires_current_protocol (__main__.BrokerControlClientTests.test_event_requires_current_protocol) ... ok
+1: test_event_requires_zero_request_id (__main__.BrokerControlClientTests.test_event_requires_zero_request_id) ... ok
+1: test_excessive_idle_frame_fails_closed (__main__.BrokerControlClientTests.test_excessive_idle_frame_fails_closed) ... ok
+1: test_idle_revocation_is_delivered_without_request (__main__.BrokerControlClientTests.test_idle_revocation_is_delivered_without_request) ... ok
+1: test_partial_event_does_not_block_idle_loop (__main__.BrokerControlClientTests.test_partial_event_does_not_block_idle_loop) ... ok
+1: test_partial_event_survives_starting_request (__main__.BrokerControlClientTests.test_partial_event_survives_starting_request) ... ok
+1: test_partial_idle_frame_has_a_deadline (__main__.BrokerControlClientTests.test_partial_idle_frame_has_a_deadline) ... ok
+1: test_release_requires_matching_identity (__main__.BrokerControlClientTests.test_release_requires_matching_identity) ... ok
+1: test_released_lease_cannot_revoke_replacement (__main__.BrokerControlClientTests.test_released_lease_cannot_revoke_replacement) ... ok
+1: test_repeated_acquire_cannot_replace_live_identity (__main__.BrokerControlClientTests.test_repeated_acquire_cannot_replace_live_identity) ... ok
+1: test_repeated_acquire_preserves_identity (__main__.BrokerControlClientTests.test_repeated_acquire_preserves_identity) ... ok
+1: test_reply_requires_matching_request_id (__main__.BrokerControlClientTests.test_reply_requires_matching_request_id) ... ok
+1: test_revocation_before_acquire_reply_stays_revoked (__main__.BrokerControlClientTests.test_revocation_before_acquire_reply_stays_revoked) ... ok
+1: test_revocation_during_repeated_acquire_stays_revoked (__main__.BrokerControlClientTests.test_revocation_during_repeated_acquire_stays_revoked) ... ok
+1: test_revocation_during_unrelated_request_preserves_reply (__main__.BrokerControlClientTests.test_revocation_during_unrelated_request_preserves_reply) ... ok
+1: test_truncated_idle_frame_fails_closed (__main__.BrokerControlClientTests.test_truncated_idle_frame_fails_closed) ... ok
+1: test_unknown_event_fails_closed (__main__.BrokerControlClientTests.test_unknown_event_fails_closed) ... ok
+1: test_unsolicited_ordinary_reply_fails_closed (__main__.BrokerControlClientTests.test_unsolicited_ordinary_reply_fails_closed) ... ok
+1: test_wrong_actor_event_fails_closed (__main__.BrokerControlClientTests.test_wrong_actor_event_fails_closed) ... ok
+1: test_wrong_application_event_fails_closed (__main__.BrokerControlClientTests.test_wrong_application_event_fails_closed) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 27 tests in 10.459s
+1: 
+1: OK
+1/2 Test  #1: broker-control-client ............   Passed   10.54 sec
+test 16
+    Start 16: broker-control-client-live
+
+16: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client_live.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+16: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+16: Environment variables: 
+16:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+16: Test timeout computed to be: 180
+16: test_actor_revocation_notifies_during_an_unrelated_process_wait (__main__.BrokerControlClientLiveTests.test_actor_revocation_notifies_during_an_unrelated_process_wait) ... FAIL
+16: test_actor_revocation_notifies_idle_controller (__main__.BrokerControlClientLiveTests.test_actor_revocation_notifies_idle_controller) ... ok
+16: test_application_exit_notifies_without_an_actor_wait_request (__main__.BrokerControlClientLiveTests.test_application_exit_notifies_without_an_actor_wait_request) ... ok
+16: test_control_revocation_emits_event_and_keeps_execution (__main__.BrokerControlClientLiveTests.test_control_revocation_emits_event_and_keeps_execution) ... ok
+16: test_explicit_control_acquires_live_application (__main__.BrokerControlClientLiveTests.test_explicit_control_acquires_live_application) ... ok
+16: test_independent_applications_have_independent_controllers (__main__.BrokerControlClientLiveTests.test_independent_applications_have_independent_controllers) ... ok
+16: test_independent_control_grant_survives_other_grant_revocation (__main__.BrokerControlClientLiveTests.test_independent_control_grant_survives_other_grant_revocation) ... ok
+16: test_missing_principal_cannot_acquire_control (__main__.BrokerControlClientLiveTests.test_missing_principal_cannot_acquire_control) ... ok
+16: test_nonnative_application_cannot_acquire_control (__main__.BrokerControlClientLiveTests.test_nonnative_application_cannot_acquire_control) ... ok
+16: test_observation_does_not_grant_control (__main__.BrokerControlClientLiveTests.test_observation_does_not_grant_control) ... ok
+16: test_observation_revocation_invalidates_control_reservation (__main__.BrokerControlClientLiveTests.test_observation_revocation_invalidates_control_reservation) ... ok
+16: test_one_application_has_only_one_controller_until_release (__main__.BrokerControlClientLiveTests.test_one_application_has_only_one_controller_until_release) ... ok
+16: test_other_actor_cannot_release_reservation (__main__.BrokerControlClientLiveTests.test_other_actor_cannot_release_reservation) ... ok
+16: test_partial_private_request_does_not_block_revocation_notification (__main__.BrokerControlClientLiveTests.test_partial_private_request_does_not_block_revocation_notification) ... ok
+16: test_readonly_actor_can_control_readonly_application (__main__.BrokerControlClientLiveTests.test_readonly_actor_can_control_readonly_application) ... ok
+16: test_readonly_actor_cannot_control_writable_application (__main__.BrokerControlClientLiveTests.test_readonly_actor_cannot_control_writable_application) ... ok
+16: test_released_id_cannot_release_a_new_reservation (__main__.BrokerControlClientLiveTests.test_released_id_cannot_release_a_new_reservation) ... ok
+16: test_repeated_acquire_preserves_the_same_live_reservation (__main__.BrokerControlClientLiveTests.test_repeated_acquire_preserves_the_same_live_reservation) ... ok
+16: test_revocation_event_is_emitted_once (__main__.BrokerControlClientLiveTests.test_revocation_event_is_emitted_once) ... ok
+16: test_revoked_actor_can_acknowledge_input_cancellation (__main__.BrokerControlClientLiveTests.test_revoked_actor_can_acknowledge_input_cancellation) ... ok
+16: test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation (__main__.BrokerControlClientLiveTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation) ... ok
+16: test_revoked_reservation_does_not_resurrect_when_permission_returns (__main__.BrokerControlClientLiveTests.test_revoked_reservation_does_not_resurrect_when_permission_returns) ... ok
+16: test_unknown_and_malformed_release_cannot_change_reservation (__main__.BrokerControlClientLiveTests.test_unknown_and_malformed_release_cannot_change_reservation) ... ok
+16: test_unowned_and_wrongly_attributed_applications_cannot_acquire_control (__main__.BrokerControlClientLiveTests.test_unowned_and_wrongly_attributed_applications_cannot_acquire_control) ... ok
+16: test_workspace_access_revocation_releases_control_without_stopping_execution (__main__.BrokerControlClientLiveTests.test_workspace_access_revocation_releases_control_without_stopping_execution) ... ok
+16: 
+16: ======================================================================
+16: FAIL: test_actor_revocation_notifies_during_an_unrelated_process_wait (__main__.BrokerControlClientLiveTests.test_actor_revocation_notifies_during_an_unrelated_process_wait)
+16: ----------------------------------------------------------------------
+16: Traceback (most recent call last):
+16:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 184, in test_actor_revocation_notifies_during_an_unrelated_process_wait
+16:     self.broker.event(lease)
+16:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_control_lease.py", line 52, in event
+16:     self.fixture.assertTrue(select.select([self.stream],[],[],max(0,deadline-time.monotonic()))[0], 'No idle revocation notification')
+16: AssertionError: [] is not true : No idle revocation notification
+16: 
+16: ----------------------------------------------------------------------
+16: Ran 25 tests in 48.031s
+16: 
+16: FAILED (failures=1)
+2/2 Test #16: broker-control-client-live .......***Failed   48.17 sec
+
+The following tests passed:
+	broker-control-client
+
+50% tests passed, 1 tests failed out of 2
+
+Total Test time (real) =  58.71 sec
+
+The following tests FAILED:
+	 16 - broker-control-client-live (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

@@ -1,0 +1,527 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: broker-control-client
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-broker-control-client-probe"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+1: Test timeout computed to be: 90
+1: test_acquire_cannot_substitute_application (__main__.BrokerControlClientTests.test_acquire_cannot_substitute_application) ... FAIL
+1: test_acquire_cannot_substitute_principal (__main__.BrokerControlClientTests.test_acquire_cannot_substitute_principal) ... FAIL
+1: test_acquire_requires_full_lease_identity (__main__.BrokerControlClientTests.test_acquire_requires_full_lease_identity) ... FAIL
+1: test_acquire_returns_exact_lease (__main__.BrokerControlClientTests.test_acquire_returns_exact_lease) ... FAIL
+1: test_broker_denial_keeps_transport_usable (__main__.BrokerControlClientTests.test_broker_denial_keeps_transport_usable) ... FAIL
+1: test_duplicate_event_fails_closed (__main__.BrokerControlClientTests.test_duplicate_event_fails_closed) ... FAIL
+1: test_early_revocation_cannot_target_different_acquisition (__main__.BrokerControlClientTests.test_early_revocation_cannot_target_different_acquisition) ... FAIL
+1: test_event_requires_current_protocol (__main__.BrokerControlClientTests.test_event_requires_current_protocol) ... FAIL
+1: test_event_requires_zero_request_id (__main__.BrokerControlClientTests.test_event_requires_zero_request_id) ... FAIL
+1: test_excessive_idle_frame_fails_closed (__main__.BrokerControlClientTests.test_excessive_idle_frame_fails_closed) ... ERROR
+1: test_idle_revocation_is_delivered_without_request (__main__.BrokerControlClientTests.test_idle_revocation_is_delivered_without_request) ... FAIL
+1: test_partial_event_does_not_block_idle_loop (__main__.BrokerControlClientTests.test_partial_event_does_not_block_idle_loop) ... FAIL
+1: test_partial_event_survives_starting_request (__main__.BrokerControlClientTests.test_partial_event_survives_starting_request) ... FAIL
+1: test_release_requires_matching_identity (__main__.BrokerControlClientTests.test_release_requires_matching_identity) ... FAIL
+1: test_released_lease_cannot_revoke_replacement (__main__.BrokerControlClientTests.test_released_lease_cannot_revoke_replacement) ... FAIL
+1: test_repeated_acquire_cannot_replace_live_identity (__main__.BrokerControlClientTests.test_repeated_acquire_cannot_replace_live_identity) ... FAIL
+1: test_reply_requires_matching_request_id (__main__.BrokerControlClientTests.test_reply_requires_matching_request_id) ... FAIL
+1: test_revocation_before_acquire_reply_stays_revoked (__main__.BrokerControlClientTests.test_revocation_before_acquire_reply_stays_revoked) ... FAIL
+1: test_revocation_during_unrelated_request_preserves_reply (__main__.BrokerControlClientTests.test_revocation_during_unrelated_request_preserves_reply) ... FAIL
+1: test_truncated_idle_frame_fails_closed (__main__.BrokerControlClientTests.test_truncated_idle_frame_fails_closed) ... ERROR
+1: test_unknown_event_fails_closed (__main__.BrokerControlClientTests.test_unknown_event_fails_closed) ... ERROR
+1: test_unsolicited_ordinary_reply_fails_closed (__main__.BrokerControlClientTests.test_unsolicited_ordinary_reply_fails_closed) ... ERROR
+1: test_wrong_actor_event_fails_closed (__main__.BrokerControlClientTests.test_wrong_actor_event_fails_closed) ... FAIL
+1: test_wrong_application_event_fails_closed (__main__.BrokerControlClientTests.test_wrong_application_event_fails_closed) ... FAIL
+1: 
+1: ======================================================================
+1: ERROR: test_excessive_idle_frame_fails_closed (__main__.BrokerControlClientTests.test_excessive_idle_frame_fails_closed)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 157, in test_excessive_idle_frame_fails_closed
+1:     def test_excessive_idle_frame_fails_closed(self):self.peer.sendall(struct.pack('!I',1048577));self.rejected()
+1:                                                                                                   ^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 84, in rejected
+1:     self.assertEqual(self.proc.wait(timeout=3),2)
+1:                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+1:     return self._wait(timeout=timeout)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+1:     raise TimeoutExpired(self.args, timeout)
+1: subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-broker-control-client-probe', '5', '2475690']' timed out after 3 seconds
+1: 
+1: ======================================================================
+1: ERROR: test_truncated_idle_frame_fails_closed (__main__.BrokerControlClientTests.test_truncated_idle_frame_fails_closed)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 160, in test_truncated_idle_frame_fails_closed
+1:     self.peer.sendall(self.event()[:7]);self.peer.shutdown(socket.SHUT_WR);self.rejected()
+1:                                                                            ^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 84, in rejected
+1:     self.assertEqual(self.proc.wait(timeout=3),2)
+1:                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+1:     return self._wait(timeout=timeout)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+1:     raise TimeoutExpired(self.args, timeout)
+1: subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-broker-control-client-probe', '5', '2475690']' timed out after 3 seconds
+1: 
+1: ======================================================================
+1: ERROR: test_unknown_event_fails_closed (__main__.BrokerControlClientTests.test_unknown_event_fails_closed)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 115, in test_unknown_event_fails_closed
+1:     def test_unknown_event_fails_closed(self):self.peer.sendall(self.event());self.rejected()
+1:                                                                               ^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 84, in rejected
+1:     self.assertEqual(self.proc.wait(timeout=3),2)
+1:                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+1:     return self._wait(timeout=timeout)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+1:     raise TimeoutExpired(self.args, timeout)
+1: subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-broker-control-client-probe', '5', '2475690']' timed out after 3 seconds
+1: 
+1: ======================================================================
+1: ERROR: test_unsolicited_ordinary_reply_fails_closed (__main__.BrokerControlClientTests.test_unsolicited_ordinary_reply_fails_closed)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 155, in test_unsolicited_ordinary_reply_fails_closed
+1:     self.peer.sendall(frame(pb.Reply(protocol_version=1,request_id=99,control_lease=self.lease)));self.rejected()
+1:                                                                                                   ^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 84, in rejected
+1:     self.assertEqual(self.proc.wait(timeout=3),2)
+1:                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+1:     return self._wait(timeout=timeout)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+1:     raise TimeoutExpired(self.args, timeout)
+1: subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-broker-control-client-probe', '5', '2475690']' timed out after 3 seconds
+1: 
+1: ======================================================================
+1: FAIL: test_acquire_cannot_substitute_application (__main__.BrokerControlClientTests.test_acquire_cannot_substitute_application)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 134, in test_acquire_cannot_substitute_application
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_acquire_cannot_substitute_principal (__main__.BrokerControlClientTests.test_acquire_cannot_substitute_principal)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 130, in test_acquire_cannot_substitute_principal
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_acquire_requires_full_lease_identity (__main__.BrokerControlClientTests.test_acquire_requires_full_lease_identity)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 138, in test_acquire_requires_full_lease_identity
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_acquire_returns_exact_lease (__main__.BrokerControlClientTests.test_acquire_returns_exact_lease)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 86, in test_acquire_returns_exact_lease
+1:     def test_acquire_returns_exact_lease(self):self.acquire()
+1:                                                ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_broker_denial_keeps_transport_usable (__main__.BrokerControlClientTests.test_broker_denial_keeps_transport_usable)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 163, in test_broker_denial_keeps_transport_usable
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_duplicate_event_fails_closed (__main__.BrokerControlClientTests.test_duplicate_event_fails_closed)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 113, in test_duplicate_event_fails_closed
+1:     self.acquire();self.peer.sendall(self.event()+self.event());self.rejected()
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_early_revocation_cannot_target_different_acquisition (__main__.BrokerControlClientTests.test_early_revocation_cannot_target_different_acquisition)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 167, in test_early_revocation_cannot_target_different_acquisition
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_event_requires_current_protocol (__main__.BrokerControlClientTests.test_event_requires_current_protocol)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 127, in test_event_requires_current_protocol
+1:     self.acquire();self.peer.sendall(self.event(protocol_version=2));self.rejected()
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_event_requires_zero_request_id (__main__.BrokerControlClientTests.test_event_requires_zero_request_id)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 124, in test_event_requires_zero_request_id
+1:     self.acquire();self.peer.sendall(self.event(request_id=2));self.rejected()
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_idle_revocation_is_delivered_without_request (__main__.BrokerControlClientTests.test_idle_revocation_is_delivered_without_request)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 89, in test_idle_revocation_is_delivered_without_request
+1:     self.acquire();self.peer.sendall(self.event());self.assertEqual(self.result('control_revoked'),self.lease)
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_partial_event_does_not_block_idle_loop (__main__.BrokerControlClientTests.test_partial_event_does_not_block_idle_loop)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 102, in test_partial_event_does_not_block_idle_loop
+1:     self.acquire();event=self.event();self.peer.sendall(event[:2])
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_partial_event_survives_starting_request (__main__.BrokerControlClientTests.test_partial_event_survives_starting_request)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 107, in test_partial_event_survives_starting_request
+1:     self.acquire();event=self.event();self.peer.sendall(event[:7])
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_release_requires_matching_identity (__main__.BrokerControlClientTests.test_release_requires_matching_identity)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 142, in test_release_requires_matching_identity
+1:     self.acquire();request=self.send(control_release=pb.ApplicationControlRelease(id=self.lease.id,principal=self.principal))
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_released_lease_cannot_revoke_replacement (__main__.BrokerControlClientTests.test_released_lease_cannot_revoke_replacement)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 146, in test_released_lease_cannot_revoke_replacement
+1:     self.acquire();request=self.send(control_release=pb.ApplicationControlRelease(id=self.lease.id,principal=self.principal))
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_repeated_acquire_cannot_replace_live_identity (__main__.BrokerControlClientTests.test_repeated_acquire_cannot_replace_live_identity)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 171, in test_repeated_acquire_cannot_replace_live_identity
+1:     self.acquire();request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_reply_requires_matching_request_id (__main__.BrokerControlClientTests.test_reply_requires_matching_request_id)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 151, in test_reply_requires_matching_request_id
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_revocation_before_acquire_reply_stays_revoked (__main__.BrokerControlClientTests.test_revocation_before_acquire_reply_stays_revoked)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 92, in test_revocation_before_acquire_reply_stays_revoked
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_revocation_during_unrelated_request_preserves_reply (__main__.BrokerControlClientTests.test_revocation_during_unrelated_request_preserves_reply)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 97, in test_revocation_during_unrelated_request_preserves_reply
+1:     self.acquire();request=self.send(application_access=pb.ApplicationAccessRequest(principal=self.principal,applications=[self.app]))
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_wrong_actor_event_fails_closed (__main__.BrokerControlClientTests.test_wrong_actor_event_fails_closed)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 118, in test_wrong_actor_event_fails_closed
+1:     self.acquire();self.lease.principal.actor_id=b'b'*32;self.peer.sendall(self.event());self.rejected()
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ======================================================================
+1: FAIL: test_wrong_application_event_fails_closed (__main__.BrokerControlClientTests.test_wrong_application_event_fails_closed)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 121, in test_wrong_application_event_fails_closed
+1:     self.acquire();self.lease.application.application=b'other';self.peer.sendall(self.event());self.rejected()
+1:     ^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 74, in acquire
+1:     request=self.send(control_acquire=pb.ApplicationControlRequest(principal=self.principal,application=self.app))
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 62, in send
+1:     return receive(self.peer,pb.Request)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 28, in receive
+1:     n=struct.unpack('!I',exact(4))[0]
+1:                          ^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_broker_control_client.py", line 23, in exact
+1:     if not select.select([stream],[],[],3)[0]:raise AssertionError('Protocol peer timeout')
+1:                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Protocol peer timeout
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 24 tests in 72.407s
+1: 
+1: FAILED (failures=20, errors=4)
+1/1 Test #1: broker-control-client ............***Failed   72.49 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  72.49 sec
+
+The following tests FAILED:
+	  1 - broker-control-client (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

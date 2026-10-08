@@ -1,6 +1,7 @@
 #include "platform/broker.hpp"
 #include "world/store.hpp"
 #include <array>
+#include <algorithm>
 #include <cerrno>
 #include <csignal>
 #include <fcntl.h>
@@ -12,6 +13,13 @@
 #include <unistd.h>
 
 namespace spatial {
+namespace {
+bool valid_control_lease(const broker_wire::ApplicationControlLease& lease) {
+    return lease.id().size() == 32 && lease.principal().issuer_id().size() == 32 &&
+        lease.principal().actor_id().size() == 32 && lease.application().server_id().size() == 32 &&
+        !lease.application().workspace().empty() && !lease.application().application().empty();
+}
+}
 BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state, bool fixture_faults) {
     int pair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0) throw std::runtime_error("Cannot create broker channel");
@@ -67,6 +75,8 @@ void BrokerClient::wait(short events) {
     while (true) {
         tick_();
         if (std::chrono::steady_clock::now() >= deadline_) throw std::runtime_error("Workspace authority deadline exceeded");
+        pump();
+        if ((events & POLLIN) && response_) return;
         pollfd fds[2]{{channel_, events, 0}, {pidfd_, POLLIN, 0}};
         const auto ready = poll(fds, 2, 10);
         if (ready < 0 && errno == EINTR) continue;
@@ -75,17 +85,65 @@ void BrokerClient::wait(short events) {
         if (fds[0].revents & events) return;
     }
 }
-void BrokerClient::read_all(char* data, std::size_t size) {
-    std::size_t used = 0;
-    while (used < size) {
-        wait(POLLIN);
-        const auto n = read(channel_, data + used, size - used);
-        if (n < 0 && (errno == EAGAIN || errno == EINTR)) continue;
-        if (n <= 0) throw std::runtime_error("Truncated broker frame");
-        used += static_cast<std::size_t>(n);
+void BrokerClient::fail_channel() {
+    if (channel_ >= 0) close(channel_);
+    channel_ = -1;
+}
+void BrokerClient::revoked(const broker_wire::ApplicationControlLease& lease) {
+    if (!valid_control_lease(lease)) throw std::runtime_error("Invalid control revocation identity");
+    const auto found = controls_.find(lease.id());
+    if (found != controls_.end()) {
+        if (found->second.revoked || found->second.lease.SerializeAsString() != lease.SerializeAsString())
+            throw std::runtime_error("Invalid or repeated control revocation");
+        found->second.revoked = true;
+    } else {
+        if (!pending_ || !pending_->has_control_acquire() || early_revocation_ || lease.id().size() != 32 ||
+            lease.principal().SerializeAsString() != pending_->control_acquire().principal().SerializeAsString() ||
+            lease.application().SerializeAsString() != pending_->control_acquire().application().SerializeAsString())
+            throw std::runtime_error("Revocation does not match a control reservation");
+        early_revocation_ = lease;
+    }
+    if (revocations_.size() >= 256) throw std::runtime_error("Control notification queue exceeds limit");
+    revocations_.push_back(lease);
+}
+void BrokerClient::pump() {
+    check_alive();
+    if (!incoming_.empty() && std::chrono::steady_clock::now()-frame_started_ > std::chrono::seconds(10))
+        throw std::runtime_error("Broker frame deadline exceeded");
+    unsigned frames = 0; std::size_t received = 0;
+    for (;;) {
+        while (incoming_.size() >= 4) {
+            const auto* h = reinterpret_cast<const unsigned char*>(incoming_.data());
+            const auto size = (std::uint32_t(h[0])<<24) | (std::uint32_t(h[1])<<16) | (std::uint32_t(h[2])<<8) | h[3];
+            if (size > max_frame_bytes) throw std::runtime_error("Broker reply exceeds limit");
+            if (incoming_.size() < size+4) break;
+            broker_wire::Reply reply;
+            if (!reply.ParseFromArray(incoming_.data()+4, static_cast<int>(size)) || reply.protocol_version() != 1)
+                throw std::runtime_error("Invalid broker reply");
+            validate_message(reply);
+            incoming_.erase(0,size+4); frame_started_ = std::chrono::steady_clock::now();
+            if (reply.has_control_revoked()) {
+                if (reply.request_id() != 0) throw std::runtime_error("Invalid revocation request identity");
+                revoked(reply.control_revoked());
+            } else {
+                if (!pending_ || response_ || reply.request_id() != pending_->request_id())
+                    throw std::runtime_error("Unexpected broker reply identity");
+                response_ = std::move(reply);
+            }
+            if (++frames == 64) return;
+        }
+        if (received >= 262144) return;
+        std::array<char,65536> bytes{};
+        const auto n = read(channel_, bytes.data(), std::min(bytes.size(), max_frame_bytes+4-incoming_.size()));
+        if (n < 0 && errno == EINTR) continue;
+        if (n < 0 && errno == EAGAIN) return;
+        if (n <= 0) throw std::runtime_error("Broker authority channel closed");
+        if (incoming_.empty()) frame_started_ = std::chrono::steady_clock::now();
+        incoming_.append(bytes.data(),static_cast<std::size_t>(n)); received += static_cast<std::size_t>(n);
     }
 }
 broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
+    if (pending_) throw std::logic_error("Recursive broker exchange is not allowed");
     request.set_protocol_version(1); request.set_request_id(++sequence_);
     if (request.has_management()) {
         request.mutable_management()->set_protocol_version(1);
@@ -94,6 +152,11 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
     const auto payload = request.SerializeAsString();
     if (payload.size() > max_frame_bytes) throw std::invalid_argument("Broker frame exceeds limit");
     broker_wire::Reply reply;
+    pending_ = &request; response_.reset(); early_revocation_.reset();
+    struct ClearPending {
+        BrokerClient& client;
+        ~ClearPending() { client.pending_ = nullptr; client.response_.reset(); client.early_revocation_.reset(); }
+    } clear{*this};
     try {
         const auto size = static_cast<std::uint32_t>(payload.size());
         const std::array<char, 4> header{static_cast<char>(size >> 24), static_cast<char>(size >> 16), static_cast<char>(size >> 8), static_cast<char>(size)};
@@ -107,15 +170,33 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
             if (n <= 0) throw std::runtime_error("Cannot send broker request");
             sent += static_cast<std::size_t>(n);
         }
-        std::array<unsigned char, 4> incoming{}; read_all(reinterpret_cast<char*>(incoming.data()), incoming.size());
-        const std::uint32_t n = (std::uint32_t(incoming[0]) << 24) | (std::uint32_t(incoming[1]) << 16) | (std::uint32_t(incoming[2]) << 8) | incoming[3];
-        if (n > max_frame_bytes) throw std::runtime_error("Broker reply exceeds limit");
-        bytes.resize(n); read_all(bytes.data(), n);
-        if (!reply.ParseFromString(bytes) || reply.protocol_version() != 1 || reply.request_id() != sequence_)
-            throw std::runtime_error("Invalid broker reply identity");
-        validate_message(reply);
+        while (!response_) { pump(); if (!response_) wait(POLLIN); }
+        reply = std::move(*response_); response_.reset();
+        if (reply.has_error() && early_revocation_) throw std::runtime_error("Acquisition denial followed a new lease revocation");
         if (!reply.has_error()) {
             bool valid = (request.has_access() && reply.has_access()) || (request.has_launch() && reply.has_launched());
+            if (request.has_control_acquire() && reply.has_control_lease()) {
+                const auto& lease = reply.control_lease(); const auto& expected = request.control_acquire();
+                valid = valid_control_lease(lease) &&
+                    lease.principal().SerializeAsString() == expected.principal().SerializeAsString() &&
+                    lease.application().SerializeAsString() == expected.application().SerializeAsString();
+                if (early_revocation_) valid = valid && early_revocation_->SerializeAsString() == lease.SerializeAsString();
+                const auto previous = controls_.find(lease.id());
+                if (previous != controls_.end()) valid = valid &&
+                    previous->second.lease.SerializeAsString() == lease.SerializeAsString();
+                for (const auto& [id, control] : controls_)
+                    if (id != lease.id() && control.lease.application().SerializeAsString() == lease.application().SerializeAsString()) valid = false;
+                if (valid && previous == controls_.end()) {
+                    if (controls_.size() >= 256) throw std::runtime_error("Control reservation limit exceeded");
+                    controls_.emplace(lease.id(),Reservation{lease,early_revocation_.has_value()});
+                }
+            }
+            if (request.has_control_release() && reply.has_control_released()) {
+                const auto& expected = request.control_release(); const auto found = controls_.find(expected.id());
+                valid = reply.control_released().id() == expected.id() && found != controls_.end() &&
+                    found->second.lease.principal().SerializeAsString() == expected.principal().SerializeAsString();
+                if (valid) controls_.erase(found);
+            }
             if (request.has_application_access() && reply.has_application_access()) {
                 const auto& expected = request.application_access().applications();
                 const auto& received = reply.application_access().applications();
@@ -147,7 +228,7 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
             if (request.has_management() && reply.has_management()) {
                 const auto& command = request.management(); const auto& result = reply.management();
                 valid = result.protocol_version() == 1 && result.request_id() == sequence_ &&
-                    (result.has_error() || (command.has_runtime_identities() && result.has_identities()) ||
+                    (result.has_error() || (command.has_hello() && result.has_hello()) || (command.has_runtime_identities() && result.has_identities()) ||
                      (command.has_fault_arm() && result.has_fault_armed() && result.fault_armed().has_armed() && result.fault_armed().armed()) ||
                      (command.has_git_repo_import() && result.has_repository()) || (command.has_git_worktree_create() && result.has_worktree()) ||
                      (command.has_git_operation() && result.has_git_operation()) || (command.has_git_status() && result.has_git_status()) ||
@@ -158,7 +239,7 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
             }
             if (!valid) throw std::runtime_error("Broker reply has the wrong outcome");
         }
-    } catch (...) { close(channel_); channel_ = -1; throw; }
+    } catch (...) { fail_channel(); throw; }
     if (reply.has_error()) throw WorldError(reply.error().code(), reply.error().message().c_str());
     return reply;
 }
@@ -176,6 +257,21 @@ broker_wire::AccessReply BrokerClient::access(const std::string& workspace, cons
 broker_wire::ApplicationAccessReply BrokerClient::application_access(const broker_wire::ApplicationAccessRequest& command) {
     broker_wire::Request request; *request.mutable_application_access() = command;
     return exchange(request).application_access();
+}
+broker_wire::ApplicationControlLease BrokerClient::control_acquire(const broker_wire::ApplicationControlRequest& command) {
+    broker_wire::Request request; *request.mutable_control_acquire() = command; return exchange(request).control_lease();
+}
+broker_wire::ApplicationControlReleased BrokerClient::control_release(const broker_wire::ApplicationControlRelease& command) {
+    broker_wire::Request request; *request.mutable_control_release() = command; return exchange(request).control_released();
+}
+std::vector<broker_wire::ApplicationControlLease> BrokerClient::poll_control() {
+    try { pump(); } catch (...) { fail_channel(); throw; }
+    auto result = std::move(revocations_); revocations_.clear(); return result;
+}
+bool BrokerClient::control_active(const broker_wire::ApplicationControlLease& lease) const {
+    const auto found = controls_.find(lease.id());
+    return channel_ >= 0 && found != controls_.end() && !found->second.revoked &&
+        found->second.lease.SerializeAsString() == lease.SerializeAsString();
 }
 wire::ProcessLaunchReply BrokerClient::launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
                                             const authority::v1::ActorRef* principal) {

@@ -4,6 +4,9 @@
 #include <chrono>
 #include <filesystem>
 #include <functional>
+#include <vector>
+#include <map>
+#include <optional>
 #include <sys/types.h>
 
 namespace spatial {
@@ -31,6 +34,12 @@ public:
     wire::Reply call(wire::Request request);
     broker_wire::AccessReply access(const std::string& workspace, const std::string& actor, const authority::v1::ActorRef* principal = nullptr);
     broker_wire::ApplicationAccessReply application_access(const broker_wire::ApplicationAccessRequest&);
+    broker_wire::ApplicationControlLease control_acquire(const broker_wire::ApplicationControlRequest&);
+    broker_wire::ApplicationControlReleased control_release(const broker_wire::ApplicationControlRelease&);
+    // Nonblocking. Call while idle and during other component waits.
+    std::vector<broker_wire::ApplicationControlLease> poll_control();
+    // A local validity check, not a replacement for pumping the authority channel.
+    bool control_active(const broker_wire::ApplicationControlLease&) const;
     wire::ProcessLaunchReply launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
                                    const authority::v1::ActorRef* principal = nullptr);
     authority::v1::GrantPage grants(const broker_wire::GrantListRequest&);
@@ -42,11 +51,21 @@ public:
 private:
     broker_wire::Reply exchange(broker_wire::Request request);
     void wait(short events);
-    void read_all(char* data, std::size_t size);
+    void pump();
+    void revoked(const broker_wire::ApplicationControlLease&);
+    void fail_channel();
     int channel_ = -1, pidfd_ = -1;
     pid_t pid_;
     std::uint64_t sequence_ = 0;
     std::function<void()> tick_ = [] {};
     std::chrono::steady_clock::time_point deadline_;
+    std::chrono::steady_clock::time_point frame_started_;
+    std::string incoming_;
+    const broker_wire::Request* pending_ = nullptr;
+    std::optional<broker_wire::Reply> response_;
+    std::optional<broker_wire::ApplicationControlLease> early_revocation_;
+    struct Reservation { broker_wire::ApplicationControlLease lease; bool revoked = false; };
+    std::map<std::string, Reservation> controls_;
+    std::vector<broker_wire::ApplicationControlLease> revocations_;
 };
 }

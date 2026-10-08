@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python3",
+    "tests/core/test_broker_control_client_live.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+  ],
+  "binary": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build-sanitize/hw/vfb/Xvfb",
+    "sha256": "8931a2a5345ce66b627bd330a90d72f4946bae5e5de91e52255921b8001b142c"
+  },
+  "exit_code": 0,
+  "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+  "GLX": false
+}
