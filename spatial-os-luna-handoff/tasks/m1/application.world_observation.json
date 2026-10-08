@@ -1,0 +1,40 @@
+{
+    "id":  "application.world_observation",
+    "phase":  "M04",
+    "profile":  "tasks/spatial-m1.json",
+    "invariant":  "Authenticated actors receive labeled application scene metadata only through current broker observation authority, including after rendering and before queued writes.",
+    "production_roots":  [
+                             "src/platform/broker.cpp",
+                             "src/platform/broker.hpp",
+                             "src/world/actors.cpp",
+                             "src/world/actors.hpp",
+                             "src/world/surfaces.cpp",
+                             "src/world/surfaces.hpp",
+                             "src/world/identity_sessions.cpp"
+                         ],
+    "test_ids":  [
+                     "ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection",
+                     "ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation",
+                     "ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application",
+                     "ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application",
+                     "ApplicationObservationTests.test_application_scope_filters_other_live_application",
+                     "ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process",
+                     "ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene",
+                     "ApplicationObservationTests.test_observe_does_not_enable_input_control",
+                     "ApplicationObservationTests.test_revocation_after_render_prevents_queued_metadata_export",
+                     "ApplicationObservationTests.test_revocation_before_post_render_check_returns_no_metadata",
+                     "ApplicationObservationTests.test_broker_reply_cannot_substitute_application_identity",
+                     "ApplicationObservationTests.test_broker_reply_requires_explicit_observation_decision",
+                     "ApplicationObservationTests.test_broker_reply_requires_matching_group_count",
+                     "ApplicationObservationTests.test_broker_reply_cannot_grant_control_without_observation",
+                     "ApplicationObservationTests.test_legacy_world_grants_do_not_reveal_labeled_application",
+                     "ApplicationObservationTests.test_legacy_interaction_grant_cannot_control_labeled_application"
+                 ],
+    "preceding_gate":  "P10",
+    "contract":  "docs/APPLICATION_OBSERVATION.md",
+    "limitations":  [
+                        "Authenticated application input and pixel delivery remain pending.",
+                        "Native-server sanitizer GLX coverage remains unrun.",
+                        "M04, M09, M10, and Spatial-M1 remain incomplete."
+                    ]
+}

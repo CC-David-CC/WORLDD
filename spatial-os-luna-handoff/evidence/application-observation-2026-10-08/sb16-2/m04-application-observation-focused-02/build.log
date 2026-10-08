@@ -1,0 +1,31 @@
+[0/2] Re-checking globbed directories...
+[1/30] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[2/30] Linking CXX static library libspatial-issuer.a
+[3/30] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/30] Linking CXX executable identityd
+[5/30] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[6/30] Linking CXX executable spatialwm
+[7/30] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[8/30] Linking CXX static library libspatial-core.a
+[9/30] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[10/30] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[11/30] Building CXX object CMakeFiles/spatial-app-init.dir/src/workspace/app_init.cpp.o
+[12/30] Linking CXX executable spatial-app-init
+[13/30] Building CXX object CMakeFiles/worldd.dir/src/world/identity_sessions.cpp.o
+[14/30] Linking CXX executable worldd
+[15/30] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[16/30] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[17/30] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[18/30] Building CXX object CMakeFiles/workspaced.dir/src/workspace/native_launch.cpp.o
+[19/30] Building CXX object CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o
+[20/30] Linking CXX executable workspaced
+[21/30] Building CXX object CMakeFiles/native-launch-checkpoint-probe.dir/src/testing/native_launch_checkpoint_probe.cpp.o
+[22/30] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[23/30] Linking CXX executable spatial-test-host
+[24/30] Building CXX object CMakeFiles/native-launch-checkpoint-probe.dir/src/workspace/native_launch.cpp.o
+[25/30] Linking CXX executable spatial-authority-probe
+[26/30] Linking CXX executable native-launch-checkpoint-probe
+[27/30] Linking CXX executable spatial-input-bridge
+[28/30] Linking CXX executable spatial-issuer-client-probe
+[29/30] Linking CXX executable spatial-git-job-probe
+[30/30] Linking CXX executable spatial-issuer-watch-probe

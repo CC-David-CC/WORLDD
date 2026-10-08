@@ -1,0 +1,239 @@
+test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application) ... FAIL
+test_authorized_aim_uses_same_filtered_scene (__main__.ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene) ... FAIL
+test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection) ... FAIL
+test_observe_does_not_enable_input_control (__main__.ApplicationObservationTests.test_observe_does_not_enable_input_control) ... FAIL
+test_observe_grant_without_workspace_access_does_not_reveal_application (__main__.ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application) ... FAIL
+test_observe_revocation_removes_metadata_but_preserves_process (__main__.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process) ... FAIL
+test_workspace_access_alone_does_not_reveal_application (__main__.ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application) ... FAIL
+test_world_admission_and_placement_do_not_grant_application_observation (__main__.ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation) ... FAIL
+test_access_revocation_keeps_valid_process_execution (test_workspace_authority.WorkspaceAuthorityTests.test_access_revocation_keeps_valid_process_execution) ... ok
+test_actor_revocation_interrupts_a_blocked_process_wait (test_workspace_authority.WorkspaceAuthorityTests.test_actor_revocation_interrupts_a_blocked_process_wait) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (test_workspace_authority.WorkspaceAuthorityTests.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_authenticated_workspace_selection_and_confined_process (test_workspace_authority.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process) ... ok
+test_bound_workspace_rejects_static_authority_edits (test_workspace_authority.WorkspaceAuthorityTests.test_bound_workspace_rejects_static_authority_edits) ... ok
+test_credential_revocation_preserves_valid_workspace_process (test_workspace_authority.WorkspaceAuthorityTests.test_credential_revocation_preserves_valid_workspace_process) ... ok
+test_cross_domain_unknown_and_foreign_grants_are_rejected (test_workspace_authority.WorkspaceAuthorityTests.test_cross_domain_unknown_and_foreign_grants_are_rejected) ... ok
+test_file_scope_does_not_authorize_a_whole_project_mount (test_workspace_authority.WorkspaceAuthorityTests.test_file_scope_does_not_authorize_a_whole_project_mount) ... ok
+test_grant_revocation_kills_confined_process_without_recipient_request (test_workspace_authority.WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request) ... ok
+test_grants_do_not_make_workspace_available_implicitly (test_workspace_authority.WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly) ... ok
+test_independent_execution_grant_survives_other_grant_revocation (test_workspace_authority.WorkspaceAuthorityTests.test_independent_execution_grant_survives_other_grant_revocation) ... ok
+test_partial_file_write_grants_do_not_mount_entire_project_writable (test_workspace_authority.WorkspaceAuthorityTests.test_partial_file_write_grants_do_not_mount_entire_project_writable) ... ok
+test_partial_private_frame_does_not_block_revocation (test_workspace_authority.WorkspaceAuthorityTests.test_partial_private_frame_does_not_block_revocation) ... ok
+test_persistent_grants_and_selection_survive_broker_and_world_restart (test_workspace_authority.WorkspaceAuthorityTests.test_persistent_grants_and_selection_survive_broker_and_world_restart) ... ok
+test_readonly_profile_keeps_project_and_git_readonly (test_workspace_authority.WorkspaceAuthorityTests.test_readonly_profile_keeps_project_and_git_readonly) ... ok
+test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh (test_workspace_authority.WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh) ... ok
+test_revoked_ancestor_without_world_session_stops_process (test_workspace_authority.WorkspaceAuthorityTests.test_revoked_ancestor_without_world_session_stops_process) ... ok
+test_workspace_policy_limits_a_broader_actor_grant (test_workspace_authority.WorkspaceAuthorityTests.test_workspace_policy_limits_a_broader_actor_grant) ... ok
+test_world_admission_and_availability_do_not_grant_workspace_access (test_workspace_authority.WorkspaceAuthorityTests.test_world_admission_and_availability_do_not_grant_workspace_access) ... ok
+test_administration_and_held_rights_do_not_imply_delegation (test_world_authority.WorldAuthorityTests.test_administration_and_held_rights_do_not_imply_delegation) ... ok
+test_ancestor_credential_revocation_preserves_delegated_actor_rights (test_world_authority.WorldAuthorityTests.test_ancestor_credential_revocation_preserves_delegated_actor_rights) ... ok
+test_credential_revocation_during_ancestor_preparation_prevents_entry (test_world_authority.WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry) ... ok
+test_delegation_uses_authenticated_principal (test_world_authority.WorldAuthorityTests.test_delegation_uses_authenticated_principal) ... ok
+test_explicit_seed_and_real_actor_navigation (test_world_authority.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation) ... ok
+test_grant_cannot_cross_world_identity (test_world_authority.WorldAuthorityTests.test_grant_cannot_cross_world_identity) ... ok
+test_grant_listing_is_subject_filtered_and_paginated (test_world_authority.WorldAuthorityTests.test_grant_listing_is_subject_filtered_and_paginated) ... ok
+test_grants_survive_world_restart (test_world_authority.WorldAuthorityTests.test_grants_survive_world_restart) ... ok
+test_independent_navigation_grant_survives_revocation (test_world_authority.WorldAuthorityTests.test_independent_navigation_grant_survives_revocation) ... ok
+test_invalid_delegation_consumes_actor_sequence (test_world_authority.WorldAuthorityTests.test_invalid_delegation_consumes_actor_sequence) ... ok
+test_malformed_recipient_consumes_sequence_without_disconnect (test_world_authority.WorldAuthorityTests.test_malformed_recipient_consumes_sequence_without_disconnect) ... ok
+test_missing_authority_store_does_not_initialize_implicitly (test_world_authority.WorldAuthorityTests.test_missing_authority_store_does_not_initialize_implicitly) ... ok
+test_object_scope_and_visibility_are_enforced_in_actor_engine (test_world_authority.WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine) ... ERROR
+test_observation_revocation_cancels_object_lease (test_world_authority.WorldAuthorityTests.test_observation_revocation_cancels_object_lease) ... /usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/spatial-issuer-0hs3twj0/world-1.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=8, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=9, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=10, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=13, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ERROR
+test_persistent_config_rejects_static_authority_and_wrong_world (test_world_authority.WorldAuthorityTests.test_persistent_config_rejects_static_authority_and_wrong_world) ... ok
+test_private_admission_requires_persistent_enter_grant (test_world_authority.WorldAuthorityTests.test_private_admission_requires_persistent_enter_grant) ... ok
+test_private_admission_revocation_closes_only_affected_session (test_world_authority.WorldAuthorityTests.test_private_admission_revocation_closes_only_affected_session) ... ok
+test_public_admission_does_not_create_action_grants (test_world_authority.WorldAuthorityTests.test_public_admission_does_not_create_action_grants) ... ok
+test_revocation_cancels_object_draft_and_releases_lease (test_world_authority.WorldAuthorityTests.test_revocation_cancels_object_draft_and_releases_lease) ... ERROR
+test_revocation_stops_motion_without_a_recipient_request (test_world_authority.WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request) ... /usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/spatial-issuer-xmdk6wbl/world-1.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=8, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=9, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=10, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=13, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed file <_io.FileIO name='/tmp/spatial-issuer-br5_hmlo/world-1.log' mode='wb' closefd=True>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=15, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=16, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=17, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.12/contextlib.py:475: ResourceWarning: unclosed <socket.socket fd=18, family=1, type=1, proto=0>
+  @staticmethod
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_revoked_ancestor_without_world_session_stops_descendant (test_world_authority.WorldAuthorityTests.test_revoked_ancestor_without_world_session_stops_descendant) ... ok
+test_seed_validation_installs_no_partial_root_grants (test_world_authority.WorldAuthorityTests.test_seed_validation_installs_no_partial_root_grants) ... ok
+test_stale_revision_changes_no_grants_and_consumes_sequence (test_world_authority.WorldAuthorityTests.test_stale_revision_changes_no_grants_and_consumes_sequence) ... ok
+test_unauthenticated_channels_cannot_list_or_change_grants (test_world_authority.WorldAuthorityTests.test_unauthenticated_channels_cannot_list_or_change_grants) ... ok
+test_unknown_and_foreign_recipients_receive_no_grant (test_world_authority.WorldAuthorityTests.test_unknown_and_foreign_recipients_receive_no_grant) ... ok
+test_world_administration_does_not_mint_workspace_authority (test_world_authority.WorldAuthorityTests.test_world_administration_does_not_mint_workspace_authority) ... ok
+test_world_observation_omits_native_application_surfaces (test_world_authority.WorldAuthorityTests.test_world_observation_omits_native_application_surfaces) ... ERROR
+
+======================================================================
+ERROR: test_object_scope_and_visibility_are_enforced_in_actor_engine (test_world_authority.WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 262, in test_object_scope_and_visibility_are_enforced_in_actor_engine
+    self.enroll_second(); world = self.scoped_world(session.REGISTERED_ACTORS, native=True)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 124, in scoped_world
+    world = WorldProcess(self, config_path, state, native=native, runtime_config=runtime_path, broker=broker)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 61, in __init__
+    if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
+                                     ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 685, in __getitem__
+KeyError: 'SPATIAL_TEST_DISPLAY'
+
+======================================================================
+ERROR: test_observation_revocation_cancels_object_lease (test_world_authority.WorldAuthorityTests.test_observation_revocation_cancels_object_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 372, in test_observation_revocation_cancels_object_lease
+    self.enroll_second(); world = self.scoped_world(session.REGISTERED_ACTORS, native=True); identity = self.object(world)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 124, in scoped_world
+    world = WorldProcess(self, config_path, state, native=native, runtime_config=runtime_path, broker=broker)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 61, in __init__
+    if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
+                                     ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 685, in __getitem__
+KeyError: 'SPATIAL_TEST_DISPLAY'
+
+======================================================================
+ERROR: test_revocation_cancels_object_draft_and_releases_lease (test_world_authority.WorldAuthorityTests.test_revocation_cancels_object_draft_and_releases_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 273, in test_revocation_cancels_object_draft_and_releases_lease
+    self.enroll_second(); world = self.scoped_world(session.REGISTERED_ACTORS, native=True); identity = self.object(world)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 124, in scoped_world
+    world = WorldProcess(self, config_path, state, native=native, runtime_config=runtime_path, broker=broker)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 61, in __init__
+    if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
+                                     ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 685, in __getitem__
+KeyError: 'SPATIAL_TEST_DISPLAY'
+
+======================================================================
+ERROR: test_world_observation_omits_native_application_surfaces (test_world_authority.WorldAuthorityTests.test_world_observation_omits_native_application_surfaces)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 283, in test_world_observation_omits_native_application_surfaces
+    world = self.scoped_world(native=True); peer = world.peers[0]; self.object(world)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 124, in scoped_world
+    world = WorldProcess(self, config_path, state, native=native, runtime_config=runtime_path, broker=broker)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 61, in __init__
+    if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
+                                     ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 685, in __getitem__
+KeyError: 'SPATIAL_TEST_DISPLAY'
+
+======================================================================
+FAIL: test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 115, in test_application_scope_filters_other_live_application
+    self.assertEqual(self.visible(),{one['id']})
+AssertionError: Items in the second set but not the first:
+'surface-2bba556440d9362e121f61b114cb0c3a-1'
+
+======================================================================
+FAIL: test_authorized_aim_uses_same_filtered_scene (__main__.ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 129, in test_authorized_aim_uses_same_filtered_scene
+    self.assertTrue(reply.HasField('action'),reply);self.assertEqual(reply.action.aim.hit.id,surface['id'])
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '' != 'surface-5e8e87dcf2c76e0326b1fd4c8c678733-1'
++ surface-5e8e87dcf2c76e0326b1fd4c8c678733-1
+
+
+======================================================================
+FAIL: test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 95, in test_explicit_observation_shows_real_application_without_selection
+    self.assertIn(surface['id'],self.visible())
+AssertionError: 'surface-756875c4fc741fa6a31a9425dbcf0ece-1' not found in set()
+
+======================================================================
+FAIL: test_observe_does_not_enable_input_control (__main__.ApplicationObservationTests.test_observe_does_not_enable_input_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 134, in test_observe_does_not_enable_input_control
+    self.assertIn(surface['id'],self.visible())
+AssertionError: 'surface-725f420037d3dc883d7a83a0817f5723-1' not found in set()
+
+======================================================================
+FAIL: test_observe_grant_without_workspace_access_does_not_reveal_application (__main__.ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 110, in test_observe_grant_without_workspace_access_does_not_reveal_application
+    self.assertIn(surface['id'],self.visible(self.peer));self.assertNotIn(surface['id'],self.visible())
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'surface-b00e29b0912721e02d42d90ddde58f61-1' not found in set()
+
+======================================================================
+FAIL: test_observe_revocation_removes_metadata_but_preserves_process (__main__.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 121, in test_observe_revocation_removes_metadata_but_preserves_process
+    self.assertIn(surface['id'],self.visible());self.revoke_grant(self.peer,record)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'surface-80e2e3ec8eceef5ce3033d219fa223c2-1' not found in set()
+
+======================================================================
+FAIL: test_workspace_access_alone_does_not_reveal_application (__main__.ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 106, in test_workspace_access_alone_does_not_reveal_application
+    self.assertIn(surface['id'],self.visible(self.peer));self.assertNotIn(surface['id'],self.visible())
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'surface-5ee3bca2369e7bad354a9df28d9e08d6-1' not found in set()
+
+======================================================================
+FAIL: test_world_admission_and_placement_do_not_grant_application_observation (__main__.ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 101, in test_world_admission_and_placement_do_not_grant_application_observation
+    self.assertIn(surface['id'],self.visible(self.peer))
+AssertionError: 'surface-8074f899d6ced33720e0e6db266c3bb0-1' not found in set()
+
+----------------------------------------------------------------------
+Ran 54 tests in 90.032s
+
+FAILED (failures=8, errors=4)

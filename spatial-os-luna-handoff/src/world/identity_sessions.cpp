@@ -402,6 +402,10 @@ struct IdentitySessions::Impl {
             if (count < 0 || (fd.revents & (POLLERR | POLLHUP | POLLNVAL))) { drop(); continue; }
             if (!channel.output.empty() && (fd.revents & POLLOUT)) {
                 if (authority && channel.needs_observation && !authority->allowed(principal(channel.claims), "observe")) { drop(); continue; }
+                if (channel.needs_observation) {
+                    try { if (!actors.application_observation_valid(channel.token)) { drop(); continue; } }
+                    catch (const WorldError&) { drop(); continue; }
+                }
                 const auto written = write(channel.fd.value, channel.output.data()+channel.sent, channel.output.size()-channel.sent);
                 if (written < 0 && errno != EAGAIN && errno != EINTR) { drop(); continue; }
                 if (written > 0) { channel.sent += static_cast<std::size_t>(written); if (channel.sent == channel.output.size()) { channel.output.clear(); channel.needs_observation = false; } }

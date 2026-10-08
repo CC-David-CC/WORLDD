@@ -228,6 +228,14 @@ if(BUILD_TESTING)
     set_target_properties(spatial-xprobe PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
     target_compile_definitions(spatial-xprobe PRIVATE SPATIAL_HAVE_XI2=1)
     target_link_libraries(spatial-xprobe PRIVATE X11::X11 X11::Xi)
+    # ASan's shadow reservation exceeds the production application's RLIMIT_AS.
+    # Keep the confined independent witness uninstrumented, not the runtime.
+    add_executable(spatial-confined-xprobe native/xprobe.c)
+    set_target_properties(spatial-confined-xprobe PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
+    target_compile_definitions(spatial-confined-xprobe PRIVATE SPATIAL_HAVE_XI2=1)
+    target_compile_options(spatial-confined-xprobe PRIVATE -fno-sanitize=all)
+    target_link_options(spatial-confined-xprobe PRIVATE -fno-sanitize=all)
+    target_link_libraries(spatial-confined-xprobe PRIVATE X11::X11 X11::Xi)
     add_executable(spatial-security-auth native/security_auth.c)
     set_target_properties(spatial-security-auth PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
     target_link_libraries(spatial-security-auth PRIVATE X11::X11)
@@ -256,6 +264,11 @@ if(BUILD_TESTING)
     set_tests_properties(actor-collision PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     if(SPATIAL_INPUT_TESTS)
+        add_test(NAME application-observation COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_observation.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(application-observation PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME application-access COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_access.py" $<TARGET_FILE:identityd>
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)

@@ -1,0 +1,287 @@
+diff --git a/spatial-os-luna-handoff/CMakeLists.txt b/spatial-os-luna-handoff/CMakeLists.txt
+index 401ec20..ae07d46 100644
+--- a/spatial-os-luna-handoff/CMakeLists.txt
++++ b/spatial-os-luna-handoff/CMakeLists.txt
+@@ -228,6 +228,14 @@ if(BUILD_TESTING)
+     set_target_properties(spatial-xprobe PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
+     target_compile_definitions(spatial-xprobe PRIVATE SPATIAL_HAVE_XI2=1)
+     target_link_libraries(spatial-xprobe PRIVATE X11::X11 X11::Xi)
++    # ASan's shadow reservation exceeds the production application's RLIMIT_AS.
++    # Keep the confined independent witness uninstrumented, not the runtime.
++    add_executable(spatial-confined-xprobe native/xprobe.c)
++    set_target_properties(spatial-confined-xprobe PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
++    target_compile_definitions(spatial-confined-xprobe PRIVATE SPATIAL_HAVE_XI2=1)
++    target_compile_options(spatial-confined-xprobe PRIVATE -fno-sanitize=all)
++    target_link_options(spatial-confined-xprobe PRIVATE -fno-sanitize=all)
++    target_link_libraries(spatial-confined-xprobe PRIVATE X11::X11 X11::Xi)
+     add_executable(spatial-security-auth native/security_auth.c)
+     set_target_properties(spatial-security-auth PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
+     target_link_libraries(spatial-security-auth PRIVATE X11::X11)
+@@ -256,6 +264,11 @@ if(BUILD_TESTING)
+     set_tests_properties(actor-collision PROPERTIES TIMEOUT 90
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     if(SPATIAL_INPUT_TESTS)
++        add_test(NAME application-observation COMMAND "${Python3_EXECUTABLE}"
++            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_observation.py" $<TARGET_FILE:identityd>
++            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
++        set_tests_properties(application-observation PROPERTIES TIMEOUT 180
++            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+         add_test(NAME application-access COMMAND "${Python3_EXECUTABLE}"
+             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_access.py" $<TARGET_FILE:identityd>
+             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+diff --git a/spatial-os-luna-handoff/src/platform/broker.cpp b/spatial-os-luna-handoff/src/platform/broker.cpp
+index 1f7ae49..8549d4f 100644
+--- a/spatial-os-luna-handoff/src/platform/broker.cpp
++++ b/spatial-os-luna-handoff/src/platform/broker.cpp
+@@ -116,6 +116,16 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
+         validate_message(reply);
+         if (!reply.has_error()) {
+             bool valid = (request.has_access() && reply.has_access()) || (request.has_launch() && reply.has_launched());
++            if (request.has_application_access() && reply.has_application_access()) {
++                const auto& expected = request.application_access().applications();
++                const auto& received = reply.application_access().applications();
++                valid = expected.size() == received.size();
++                for (int i = 0; valid && i < expected.size(); ++i) {
++                    const auto& item = received.Get(i);
++                    valid = item.has_application() && item.application().SerializeAsString() == expected.Get(i).SerializeAsString() &&
++                        item.has_observe() && item.has_control() && (!item.control() || item.observe());
++                }
++            }
+             if (request.has_grants() && reply.has_grants()) {
+                 valid = reply.grants().grants_size() <= 16 && reply.grants().revision() <= INT64_MAX &&
+                     (reply.grants().next_after().empty() || reply.grants().next_after().size() == 32);
+@@ -163,6 +173,10 @@ broker_wire::AccessReply BrokerClient::access(const std::string& workspace, cons
+     if (principal) *request.mutable_access()->mutable_principal() = *principal;
+     return exchange(request).access();
+ }
++broker_wire::ApplicationAccessReply BrokerClient::application_access(const broker_wire::ApplicationAccessRequest& command) {
++    broker_wire::Request request; *request.mutable_application_access() = command;
++    return exchange(request).application_access();
++}
+ wire::ProcessLaunchReply BrokerClient::launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
+                                             const authority::v1::ActorRef* principal) {
+     broker_wire::Request request; auto* launch = request.mutable_launch();
+diff --git a/spatial-os-luna-handoff/src/platform/broker.hpp b/spatial-os-luna-handoff/src/platform/broker.hpp
+index 38ae46d..68b2dc3 100644
+--- a/spatial-os-luna-handoff/src/platform/broker.hpp
++++ b/spatial-os-luna-handoff/src/platform/broker.hpp
+@@ -30,6 +30,7 @@ public:
+     BrokerClient& operator=(const BrokerClient&) = delete;
+     wire::Reply call(wire::Request request);
+     broker_wire::AccessReply access(const std::string& workspace, const std::string& actor, const authority::v1::ActorRef* principal = nullptr);
++    broker_wire::ApplicationAccessReply application_access(const broker_wire::ApplicationAccessRequest&);
+     wire::ProcessLaunchReply launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
+                                    const authority::v1::ActorRef* principal = nullptr);
+     authority::v1::GrantPage grants(const broker_wire::GrantListRequest&);
+diff --git a/spatial-os-luna-handoff/src/world/actors.cpp b/spatial-os-luna-handoff/src/world/actors.cpp
+index a1e9551..96ae6bf 100644
+--- a/spatial-os-luna-handoff/src/world/actors.cpp
++++ b/spatial-os-luna-handoff/src/world/actors.cpp
+@@ -313,6 +313,9 @@ void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
+     if (!actor.native.held_buttons_size()) return;
+     if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
+     const auto surface = surfaces_->get(actor.capture.id());
++    wire::SurfaceHandle captured; captured.set_id(surface.id()); captured.set_generation(surface.generation());
++    if (actor.principal && surfaces_->application(captured))
++        throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
+     const auto camera = scene_pose(actor.entity.pose());
+     const auto plane = scene_pose(surface.pose());
+     Vec3 local{input.x(), input.y(), input.z()};
+@@ -350,12 +353,17 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request)
+     wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
+     if (request.has_key()) {
+         if (!actor.native.has_focus()) throw WorldError(wire::NO_FOCUS, "Actor has no focus");
++        if (actor.principal && surfaces_->application(actor.native.focus()))
++            throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
+         *command.mutable_key() = request.key(); actor.native = renderer_->input(command); return;
+     }
+     const auto hit = input_target(actor, !request.has_scroll());
+     if (request.has_scroll() && actor.native.held_buttons_size() && hit.id() != actor.capture.id())
+         throw WorldError(wire::BUSY, "Scroll cannot change the captured pointer target");
+     const auto surface = surfaces_->get(hit.id());
++    wire::SurfaceHandle target; target.set_id(hit.id()); target.set_generation(hit.generation());
++    if (actor.principal && surfaces_->application(target))
++        throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
+     const auto group = control_group(surface);
+     const auto holder = leases_.find(group);
+     if (holder != leases_.end() && holder->second != actor.entity.id())
+@@ -375,8 +383,42 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request)
+     if (actor.native.has_focus()) { actor.lease = group; leases_[group] = actor.entity.id(); }
+     if (actor.native.held_buttons_size()) actor.capture = hit; else actor.capture.Clear();
+ }
+-wire::RenderScene Actors::scene(const std::string& token) {
++std::set<std::string> Actors::observable_applications(const Actor& actor, const std::vector<ObservedApplication>& applications) {
++    std::set<std::string> allowed;
++    if (applications.empty() || !actor.principal || !broker_ || !surfaces_) return allowed;
++    workspace::v1::ApplicationAccessRequest request; *request.mutable_principal() = *actor.principal;
++    std::map<std::string, int> groups;
++    for (const auto& item : applications) {
++        const auto key = item.application.SerializeAsString();
++        if (groups.contains(key)) continue;
++        if (request.applications_size() == 64)
++            throw WorldError(wire::RESOURCE_EXHAUSTED, "Observation exceeds 64 application groups");
++        groups.emplace(key, request.applications_size()); *request.add_applications() = item.application;
++    }
++    const auto token = actor.token;
++    const auto result = broker_->application_access(request);
++    if (actor.token.empty() || actor.token != token || !granted(actor, "observe")) return allowed;
++    for (const auto& item : applications) {
++        if (!result.applications(groups.at(item.application.SerializeAsString())).observe()) continue;
++        try {
++            const auto current = surfaces_->application(item.handle);
++            const auto placement = surfaces_->get(item.handle.id());
++            if (current && current->SerializeAsString() == item.application.SerializeAsString() && placement.room() == actor.entity.room())
++                allowed.insert(item.handle.id());
++        } catch (const WorldError& error) {
++            if (error.code != wire::NOT_FOUND && error.code != wire::STALE_TARGET) throw;
++        }
++    }
++    return allowed;
++}
++bool Actors::application_observation_valid(const std::string& token) {
+     const auto& actor = authenticated(token);
++    const auto applications = actor.observed_applications;
++    return observable_applications(actor, applications).size() == applications.size();
++}
++wire::RenderScene Actors::scene(const std::string& token) {
++    auto& actor = authenticated(token);
++    actor.observed_applications.clear();
+     require(config_.has_render(), "Render configuration is missing");
+     refresh_objects();
+     auto snapshot = store_.snapshot();
+@@ -385,7 +427,22 @@ wire::RenderScene Actors::scene(const std::string& token) {
+         if (holder != object_leases_.end()) *entity.mutable_pose() = actors_.at(holder->second).object->preview;
+     }
+     auto result = panel_scene(snapshot, actor.entity, config_.render());
+-    if (surfaces_ && !actor.authority) surfaces_->append(result, actor.entity.room());
++    if (surfaces_) {
++        surfaces_->append(result, actor.entity.room());
++        std::vector<ObservedApplication> applications;
++        std::set<std::string> diagnostic;
++        for (const auto& surface : result.surfaces()) {
++            const auto app = surfaces_->application(surface.handle());
++            if (app && actor.principal) applications.push_back({surface.handle(), *app});
++            else if (!actor.authority && (!app || !actor.principal)) diagnostic.insert(surface.handle().id());
++        }
++        const auto allowed = observable_applications(actor, applications);
++        auto* surfaces = result.mutable_surfaces();
++        for (int i = surfaces->size() - 1; i >= 0; --i)
++            if (!allowed.contains(surfaces->Get(i).handle().id()) && !diagnostic.contains(surfaces->Get(i).handle().id()))
++                surfaces->DeleteSubrange(i, 1);
++        for (const auto& app : applications) if (allowed.contains(app.handle.id())) actor.observed_applications.push_back(app);
++    }
+     return result;
+ }
+ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveRequest& request) {
+@@ -402,6 +459,8 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
+     result.mutable_viewport()->set_width(width); result.mutable_viewport()->set_height(height);
+     // Copy camera context before compositor I/O. The scheduler may move actors while waiting.
+     const auto visibility = renderer_->observe(view, width, height);
++    if (!application_observation_valid(actor.token))
++        throw WorldError(wire::FORBIDDEN, "Application observation authority changed");
+     result.set_frame_id(visibility.frame_id());
+     const double focal = static_cast<float>(1 / std::tan(view.config().vertical_fov() / 2));
+     const auto geometry = scene_panels(view);
+diff --git a/spatial-os-luna-handoff/src/world/actors.hpp b/spatial-os-luna-handoff/src/world/actors.hpp
+index 2cc1ca2..3a8a381 100644
+--- a/spatial-os-luna-handoff/src/world/actors.hpp
++++ b/spatial-os-luna-handoff/src/world/actors.hpp
+@@ -2,6 +2,7 @@
+ #include "world/store.hpp"
+ #include "core/navigation.hpp"
+ #include "grants.pb.h"
++#include "broker.pb.h"
+ #include <array>
+ #include <map>
+ #include <set>
+@@ -26,6 +27,7 @@ public:
+     wire::ActorCloseReply close(const std::string& token);
+     wire::ActorActionReply act(const wire::ActorActionRequest& request);
+     wire::RenderScene scene(const std::string& token);
++    bool application_observation_valid(const std::string& token);
+     wire::WorldCheckpointReply checkpoint();
+     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
+     void tick(double monotonic_seconds);
+@@ -34,6 +36,10 @@ public:
+     bool room_in_use(const std::string& id) const;
+     bool manual_clock() const { return manual_clock_; }
+ private:
++    struct ObservedApplication {
++        wire::SurfaceHandle handle;
++        workspace::v1::ApplicationRef application;
++    };
+     struct ObjectHold {
+         wire::Entity original;
+         wire::Pose preview;
+@@ -55,11 +61,13 @@ private:
+         std::string lease;
+         bool capture_motion_pending = false;
+         bool interaction_reset_pending = false;
++        std::vector<ObservedApplication> observed_applications;
+         std::optional<ObjectHold> object;
+         wire::ErrorCode object_error = wire::NO_TARGET;
+     };
+     Actor& authenticated(const std::string& token);
+     bool granted(const Actor&, const std::string& right, const std::vector<std::string>& components = {}) const;
++    std::set<std::string> observable_applications(const Actor&, const std::vector<ObservedApplication>&);
+     std::string selected_workspace(const Actor& actor);
+     void step(double target);
+     void refresh_native();
+diff --git a/spatial-os-luna-handoff/src/world/identity_sessions.cpp b/spatial-os-luna-handoff/src/world/identity_sessions.cpp
+index f1b7786..f09db4a 100644
+--- a/spatial-os-luna-handoff/src/world/identity_sessions.cpp
++++ b/spatial-os-luna-handoff/src/world/identity_sessions.cpp
+@@ -402,6 +402,10 @@ struct IdentitySessions::Impl {
+             if (count < 0 || (fd.revents & (POLLERR | POLLHUP | POLLNVAL))) { drop(); continue; }
+             if (!channel.output.empty() && (fd.revents & POLLOUT)) {
+                 if (authority && channel.needs_observation && !authority->allowed(principal(channel.claims), "observe")) { drop(); continue; }
++                if (channel.needs_observation) {
++                    try { if (!actors.application_observation_valid(channel.token)) { drop(); continue; } }
++                    catch (const WorldError&) { drop(); continue; }
++                }
+                 const auto written = write(channel.fd.value, channel.output.data()+channel.sent, channel.output.size()-channel.sent);
+                 if (written < 0 && errno != EAGAIN && errno != EINTR) { drop(); continue; }
+                 if (written > 0) { channel.sent += static_cast<std::size_t>(written); if (channel.sent == channel.output.size()) { channel.output.clear(); channel.needs_observation = false; } }
+diff --git a/spatial-os-luna-handoff/src/world/surfaces.cpp b/spatial-os-luna-handoff/src/world/surfaces.cpp
+index f9e613f..48a4544 100644
+--- a/spatial-os-luna-handoff/src/world/surfaces.cpp
++++ b/spatial-os-luna-handoff/src/world/surfaces.cpp
+@@ -104,6 +104,17 @@ std::string Surfaces::control_group(const wire::SurfaceRecord& surface) const {
+     }
+     return "surface:" + current.id();
+ }
++std::optional<workspace::v1::ApplicationRef> Surfaces::application(const wire::SurfaceHandle& handle) const {
++    const auto current = get(handle.id());
++    if (!current.mapped() || current.generation() != handle.generation())
++        throw WorldError(wire::STALE_TARGET, "Application surface is no longer live");
++    const auto& native = surfaces_.at(handle.id()).native;
++    if (!native.has_application_identity()) return {};
++    const auto& identity = native.application_identity();
++    workspace::v1::ApplicationRef result;
++    result.set_workspace(identity.workspace()); result.set_application(identity.application());
++    result.set_server_id(identity.server_id()); return result;
++}
+ wire::SurfaceReply Surfaces::find(const std::string& probe) const {
+     if (probe.empty() || probe.size() > 4096) throw std::invalid_argument("Invalid probe property value");
+     wire::SurfaceReply result;
+diff --git a/spatial-os-luna-handoff/src/world/surfaces.hpp b/spatial-os-luna-handoff/src/world/surfaces.hpp
+index e04398c..438b1d1 100644
+--- a/spatial-os-luna-handoff/src/world/surfaces.hpp
++++ b/spatial-os-luna-handoff/src/world/surfaces.hpp
+@@ -1,6 +1,8 @@
+ #pragma once
+ #include "world/store.hpp"
++#include "broker.pb.h"
+ #include <map>
++#include <optional>
+ #include <set>
+ namespace spatial {
+ // World-owned placements; native handles and generations come only from spatialwm.
+@@ -11,6 +13,7 @@ public:
+     wire::SurfaceReply find(const std::string& probe) const;
+     wire::SurfaceRecord get(const std::string& id) const;
+     std::string control_group(const wire::SurfaceRecord& surface) const;
++    std::optional<workspace::v1::ApplicationRef> application(const wire::SurfaceHandle& handle) const;
+     wire::SurfaceRecord place(const wire::SurfacePlaceRequest& request);
+     wire::SurfaceRecord attach_slot(const wire::SurfaceAttachSlotRequest& request);
+     wire::SurfaceValidationReply validate_handle(const wire::SurfaceValidateRequest& request) const;

@@ -1,0 +1,24 @@
+{
+  "debug": {
+    "core_suites": 41,
+    "core_checks": 787,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "initial_failed_checks": 0,
+    "corrected_suite_checks": 16,
+    "remaining_failures": 0,
+    "skipped": 0,
+    "coverage_basis": "Complete initial core suite plus affected-suite rerun after confined-witness fixture correction; final harness and P10 rerun"
+  },
+  "runtime-sanitize": {
+    "core_suites": 41,
+    "core_checks": 787,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "initial_failed_checks": 16,
+    "corrected_suite_checks": 16,
+    "remaining_failures": 0,
+    "skipped": 0,
+    "coverage_basis": "Complete initial core suite plus affected-suite rerun after confined-witness fixture correction; final harness and P10 rerun"
+  }
+}

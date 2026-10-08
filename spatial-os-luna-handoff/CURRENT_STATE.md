@@ -1,5 +1,32 @@
 # Implementation status
 
+## 2026-10-08: Authenticated application metadata checked
+
+Worldd now filters labeled application surfaces using the authenticated actor and native application identity.
+The production broker checks explicit workspace and application observation authority.
+Aim and visibility metadata use the same filtered scene.
+Worldd rechecks access after rendering and before each queued metadata write.
+Late revocation discards the observation or closes the actor channel before further export.
+Legacy static interaction grants cannot control labeled applications.
+
+Both old worldd binaries failed the eight corrected baseline cases.
+Both implementations passed all 16 focused checks with real confined C clients and authenticated actor channels.
+Both Debug profiles passed 787 core checks across 41 suites, without skips.
+The initial runtime sanitizer profile passed 771 checks and failed 16 confined-witness startup checks.
+ASan shadow memory exceeded the production 4 GiB application address-space limit.
+A dedicated uninstrumented target now builds the same independent C witness.
+Production runtime instrumentation and resource limits remain enforced.
+Both profiles then passed the affected 16-case suite, 51 harness checks, and 151 P10 cases on both hosts.
+The final qualification combines the full core runs with affected-suite reruns after this fixture-only correction.
+All 787 core requirements have passing evidence per host/profile, with no skips or unresolved failures.
+No locked tests, schema, C witness, acceptance lock, or XLibre server source changed.
+The primary agent reviewed this increment without local-model review.
+See docs/APPLICATION_OBSERVATION.md and evidence/application-observation-2026-10-08.
+
+Authenticated pixel delivery, application control, and live input cancellation remain pending.
+Native-server sanitizer GLX coverage, physical input, GPU timing, and soak remain unqualified here.
+M04, M09, M10, and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Broker application-access authority checked
 
 Workspaced now answers bounded protobuf queries for application observation and control.

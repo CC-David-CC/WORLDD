@@ -1,0 +1,21 @@
+test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application) ... ok
+test_authorized_aim_uses_same_filtered_scene (__main__.ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene) ... ok
+test_broker_reply_cannot_grant_control_without_observation (__main__.ApplicationObservationTests.test_broker_reply_cannot_grant_control_without_observation) ... ok
+test_broker_reply_cannot_substitute_application_identity (__main__.ApplicationObservationTests.test_broker_reply_cannot_substitute_application_identity) ... ok
+test_broker_reply_requires_explicit_observation_decision (__main__.ApplicationObservationTests.test_broker_reply_requires_explicit_observation_decision) ... ok
+test_broker_reply_requires_matching_group_count (__main__.ApplicationObservationTests.test_broker_reply_requires_matching_group_count) ... ok
+test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection) ... ok
+test_legacy_interaction_grant_cannot_control_labeled_application (__main__.ApplicationObservationTests.test_legacy_interaction_grant_cannot_control_labeled_application) ... ok
+test_legacy_world_grants_do_not_reveal_labeled_application (__main__.ApplicationObservationTests.test_legacy_world_grants_do_not_reveal_labeled_application) ... ok
+test_observe_does_not_enable_input_control (__main__.ApplicationObservationTests.test_observe_does_not_enable_input_control) ... ok
+test_observe_grant_without_workspace_access_does_not_reveal_application (__main__.ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application) ... ok
+test_observe_revocation_removes_metadata_but_preserves_process (__main__.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process) ... ok
+test_revocation_after_render_prevents_queued_metadata_export (__main__.ApplicationObservationTests.test_revocation_after_render_prevents_queued_metadata_export) ... ok
+test_revocation_before_post_render_check_returns_no_metadata (__main__.ApplicationObservationTests.test_revocation_before_post_render_check_returns_no_metadata) ... ok
+test_workspace_access_alone_does_not_reveal_application (__main__.ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application) ... ok
+test_world_admission_and_placement_do_not_grant_application_observation (__main__.ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 54.021s
+
+OK

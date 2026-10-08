@@ -104,6 +104,17 @@ std::string Surfaces::control_group(const wire::SurfaceRecord& surface) const {
     }
     return "surface:" + current.id();
 }
+std::optional<workspace::v1::ApplicationRef> Surfaces::application(const wire::SurfaceHandle& handle) const {
+    const auto current = get(handle.id());
+    if (!current.mapped() || current.generation() != handle.generation())
+        throw WorldError(wire::STALE_TARGET, "Application surface is no longer live");
+    const auto& native = surfaces_.at(handle.id()).native;
+    if (!native.has_application_identity()) return {};
+    const auto& identity = native.application_identity();
+    workspace::v1::ApplicationRef result;
+    result.set_workspace(identity.workspace()); result.set_application(identity.application());
+    result.set_server_id(identity.server_id()); return result;
+}
 wire::SurfaceReply Surfaces::find(const std::string& probe) const {
     if (probe.empty() || probe.size() > 4096) throw std::invalid_argument("Invalid probe property value");
     wire::SurfaceReply result;

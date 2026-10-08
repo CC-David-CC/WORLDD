@@ -1,0 +1,22 @@
+{
+  "worldd": {
+    "sha256": "267c7f6a59a9781a9b7045ea919a5d28d8e714e2a578dae4f071a783bcc0108a",
+    "asan": true
+  },
+  "workspaced": {
+    "sha256": "7a6b0eb71862a2d49bf23f2c64dfbd86072e506fe51cc03d5b39667a5aaa09f2",
+    "asan": true
+  },
+  "spatialwm": {
+    "sha256": "6eb1e31d1b40d0c76261cd810e247806f2581675a0bc731199565261dfbc3bed",
+    "asan": true
+  },
+  "spatial-xprobe": {
+    "sha256": "7ef019362158441316c93dcd5e048a24ebda66395add989cbc066bfe278fc9a8",
+    "asan": true
+  },
+  "spatial-confined-xprobe": {
+    "sha256": "d0fda595c8b2b02608d031d1e7b1f76d6f32e9072fcfcdb4177aeb26b086cbc4",
+    "asan": false
+  }
+}

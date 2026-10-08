@@ -30,6 +30,7 @@ public:
     BrokerClient& operator=(const BrokerClient&) = delete;
     wire::Reply call(wire::Request request);
     broker_wire::AccessReply access(const std::string& workspace, const std::string& actor, const authority::v1::ActorRef* principal = nullptr);
+    broker_wire::ApplicationAccessReply application_access(const broker_wire::ApplicationAccessRequest&);
     wire::ProcessLaunchReply launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
                                    const authority::v1::ActorRef* principal = nullptr);
     authority::v1::GrantPage grants(const broker_wire::GrantListRequest&);

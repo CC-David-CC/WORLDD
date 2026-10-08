@@ -1,0 +1,56 @@
+Primary-agent review: authenticated application observation
+
+David authorized primary-agent review without local-model review.
+No inference service or helper agent was used.
+
+src/platform/broker.cpp and broker.hpp:
+- Add the production application-access query consumer.
+- Check result count, order, complete identity, and explicit observation/control decisions.
+- Reject a control decision that lacks observation permission.
+- Keep checked transport failure fatal to the broker connection.
+
+src/world/surfaces.cpp and surfaces.hpp:
+- Resolve application attribution from the private native snapshot.
+- Validate mapping and generation before returning an optional application reference.
+- Keep connection IDs and application-controlled properties out of authority lookup.
+
+src/world/actors.cpp and actors.hpp:
+- Query observation permission with the actor session principal.
+- Group related surfaces by native server, workspace, and application identity.
+- Filter before compositor observation and scene picking.
+- Recheck the complete retained application set after compositor I/O.
+- Retain immutable attribution and generation for queued observation validation.
+- Bound each view to 64 distinct application groups and fail explicitly above that limit.
+- Require broker checks for labeled applications even under legacy static world grants.
+- Keep labeled application input disabled for authenticated sessions until control integration.
+- Preserve explicitly enabled diagnostic unlabelled surfaces and management fixtures.
+
+src/world/identity_sessions.cpp:
+- Recheck application observation before each write of queued observation or aim metadata.
+- Close the actor channel when queued metadata loses authority.
+- Do not send a stale successful result after revocation.
+- Do not perform these broker queries inside scheduler tick callbacks.
+
+tests/core/test_application_observation.py and CMakeLists.txt:
+- Use real issuer proofs, persistent grants, production worldd, broker, and compositor.
+- Launch the unchanged independent C witness inside the actual workspace confinement boundary.
+- Build a separate uninstrumented witness target because ASan shadow memory exceeds the 4 GiB application address-space limit.
+- Preserve production runtime instrumentation and every application resource limit.
+- Exercise explicit observation, denied grants, scopes, aim, and live revocation.
+- Relay real broker traffic to inject invalid replies and real revocation at response boundaries.
+- Check denial after rendering and before queued metadata delivery.
+- Check legacy authenticated sessions cannot bypass application observation or input gates.
+- Restrict unittest discovery to this suite. Imported test classes need their own fixtures.
+- Preserve native, worldd, and broker logs and reject sanitizer diagnostics.
+
+Review limits:
+- Metadata observation is implemented. Authenticated pixel payload delivery remains pending.
+- Authenticated application control, balanced transfer, and live input revocation remain pending.
+- Native-server sanitizer GLX coverage is unrun for this increment.
+- Both full Debug core suites passed 787 checks. Both initial runtime sanitizer suites passed 771 checks.
+- The 16 sanitizer fixture failures were resolved by the dedicated uninstrumented confined witness.
+- Both profiles passed affected-suite, harness, and P10 reruns on both hosts.
+- Source audits prove the fixture correction did not change production C++ code.
+- Binary inspection confirms sanitizer instrumentation remains in the runtime.
+- The combined evidence supports integration. No checked requirement was skipped or weakened.
+- M04, M09, M10, and Spatial-M1 remain incomplete.

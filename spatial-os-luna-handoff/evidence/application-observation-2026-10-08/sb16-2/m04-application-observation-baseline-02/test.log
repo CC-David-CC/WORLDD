@@ -1,0 +1,84 @@
+test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application) ... FAIL
+test_authorized_aim_uses_same_filtered_scene (__main__.ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene) ... FAIL
+test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection) ... FAIL
+test_observe_does_not_enable_input_control (__main__.ApplicationObservationTests.test_observe_does_not_enable_input_control) ... FAIL
+test_observe_grant_without_workspace_access_does_not_reveal_application (__main__.ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application) ... FAIL
+test_observe_revocation_removes_metadata_but_preserves_process (__main__.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process) ... FAIL
+test_workspace_access_alone_does_not_reveal_application (__main__.ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application) ... FAIL
+test_world_admission_and_placement_do_not_grant_application_observation (__main__.ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation) ... FAIL
+
+======================================================================
+FAIL: test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 115, in test_application_scope_filters_other_live_application
+    self.assertEqual(self.visible(),{one['id']})
+AssertionError: Items in the second set but not the first:
+'surface-5ee8feef0e7bdcf38b6d169e880e346a-1'
+
+======================================================================
+FAIL: test_authorized_aim_uses_same_filtered_scene (__main__.ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 129, in test_authorized_aim_uses_same_filtered_scene
+    self.assertTrue(reply.HasField('action'),reply);self.assertEqual(reply.action.aim.hit.id,surface['id'])
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '' != 'surface-e04ba56dfe9be8ff389fcdb3100111ac-1'
++ surface-e04ba56dfe9be8ff389fcdb3100111ac-1
+
+
+======================================================================
+FAIL: test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 95, in test_explicit_observation_shows_real_application_without_selection
+    self.assertIn(surface['id'],self.visible())
+AssertionError: 'surface-939b51c703dfebc7a2b3f8c6e380ff90-1' not found in set()
+
+======================================================================
+FAIL: test_observe_does_not_enable_input_control (__main__.ApplicationObservationTests.test_observe_does_not_enable_input_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 134, in test_observe_does_not_enable_input_control
+    self.assertIn(surface['id'],self.visible())
+AssertionError: 'surface-d9b4af0173160cbe150a67f50b89d39a-1' not found in set()
+
+======================================================================
+FAIL: test_observe_grant_without_workspace_access_does_not_reveal_application (__main__.ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 110, in test_observe_grant_without_workspace_access_does_not_reveal_application
+    self.assertIn(surface['id'],self.visible(self.peer));self.assertNotIn(surface['id'],self.visible())
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'surface-f4c82e266669b610670f64f9001b366a-1' not found in set()
+
+======================================================================
+FAIL: test_observe_revocation_removes_metadata_but_preserves_process (__main__.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 121, in test_observe_revocation_removes_metadata_but_preserves_process
+    self.assertIn(surface['id'],self.visible());self.revoke_grant(self.peer,record)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'surface-2f064b18324d024d11e2c9026e3828b4-1' not found in set()
+
+======================================================================
+FAIL: test_workspace_access_alone_does_not_reveal_application (__main__.ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 106, in test_workspace_access_alone_does_not_reveal_application
+    self.assertIn(surface['id'],self.visible(self.peer));self.assertNotIn(surface['id'],self.visible())
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'surface-2c71fbf32095eceaeed9c9ebe681822b-1' not found in set()
+
+======================================================================
+FAIL: test_world_admission_and_placement_do_not_grant_application_observation (__main__.ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 101, in test_world_admission_and_placement_do_not_grant_application_observation
+    self.assertIn(surface['id'],self.visible(self.peer))
+AssertionError: 'surface-3a7d7d5437287cf93059b4578269214e-1' not found in set()
+
+----------------------------------------------------------------------
+Ran 8 tests in 23.771s
+
+FAILED (failures=8)

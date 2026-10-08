@@ -313,6 +313,9 @@ void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
     if (!actor.native.held_buttons_size()) return;
     if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
     const auto surface = surfaces_->get(actor.capture.id());
+    wire::SurfaceHandle captured; captured.set_id(surface.id()); captured.set_generation(surface.generation());
+    if (actor.principal && surfaces_->application(captured))
+        throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
     const auto camera = scene_pose(actor.entity.pose());
     const auto plane = scene_pose(surface.pose());
     Vec3 local{input.x(), input.y(), input.z()};
@@ -350,12 +353,17 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
     wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
     if (request.has_key()) {
         if (!actor.native.has_focus()) throw WorldError(wire::NO_FOCUS, "Actor has no focus");
+        if (actor.principal && surfaces_->application(actor.native.focus()))
+            throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
         *command.mutable_key() = request.key(); actor.native = renderer_->input(command); return;
     }
     const auto hit = input_target(actor, !request.has_scroll());
     if (request.has_scroll() && actor.native.held_buttons_size() && hit.id() != actor.capture.id())
         throw WorldError(wire::BUSY, "Scroll cannot change the captured pointer target");
     const auto surface = surfaces_->get(hit.id());
+    wire::SurfaceHandle target; target.set_id(hit.id()); target.set_generation(hit.generation());
+    if (actor.principal && surfaces_->application(target))
+        throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
     const auto group = control_group(surface);
     const auto holder = leases_.find(group);
     if (holder != leases_.end() && holder->second != actor.entity.id())
@@ -375,8 +383,42 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
     if (actor.native.has_focus()) { actor.lease = group; leases_[group] = actor.entity.id(); }
     if (actor.native.held_buttons_size()) actor.capture = hit; else actor.capture.Clear();
 }
-wire::RenderScene Actors::scene(const std::string& token) {
+std::set<std::string> Actors::observable_applications(const Actor& actor, const std::vector<ObservedApplication>& applications) {
+    std::set<std::string> allowed;
+    if (applications.empty() || !actor.principal || !broker_ || !surfaces_) return allowed;
+    workspace::v1::ApplicationAccessRequest request; *request.mutable_principal() = *actor.principal;
+    std::map<std::string, int> groups;
+    for (const auto& item : applications) {
+        const auto key = item.application.SerializeAsString();
+        if (groups.contains(key)) continue;
+        if (request.applications_size() == 64)
+            throw WorldError(wire::RESOURCE_EXHAUSTED, "Observation exceeds 64 application groups");
+        groups.emplace(key, request.applications_size()); *request.add_applications() = item.application;
+    }
+    const auto token = actor.token;
+    const auto result = broker_->application_access(request);
+    if (actor.token.empty() || actor.token != token || !granted(actor, "observe")) return allowed;
+    for (const auto& item : applications) {
+        if (!result.applications(groups.at(item.application.SerializeAsString())).observe()) continue;
+        try {
+            const auto current = surfaces_->application(item.handle);
+            const auto placement = surfaces_->get(item.handle.id());
+            if (current && current->SerializeAsString() == item.application.SerializeAsString() && placement.room() == actor.entity.room())
+                allowed.insert(item.handle.id());
+        } catch (const WorldError& error) {
+            if (error.code != wire::NOT_FOUND && error.code != wire::STALE_TARGET) throw;
+        }
+    }
+    return allowed;
+}
+bool Actors::application_observation_valid(const std::string& token) {
     const auto& actor = authenticated(token);
+    const auto applications = actor.observed_applications;
+    return observable_applications(actor, applications).size() == applications.size();
+}
+wire::RenderScene Actors::scene(const std::string& token) {
+    auto& actor = authenticated(token);
+    actor.observed_applications.clear();
     require(config_.has_render(), "Render configuration is missing");
     refresh_objects();
     auto snapshot = store_.snapshot();
@@ -385,7 +427,22 @@ wire::RenderScene Actors::scene(const std::string& token) {
         if (holder != object_leases_.end()) *entity.mutable_pose() = actors_.at(holder->second).object->preview;
     }
     auto result = panel_scene(snapshot, actor.entity, config_.render());
-    if (surfaces_ && !actor.authority) surfaces_->append(result, actor.entity.room());
+    if (surfaces_) {
+        surfaces_->append(result, actor.entity.room());
+        std::vector<ObservedApplication> applications;
+        std::set<std::string> diagnostic;
+        for (const auto& surface : result.surfaces()) {
+            const auto app = surfaces_->application(surface.handle());
+            if (app && actor.principal) applications.push_back({surface.handle(), *app});
+            else if (!actor.authority && (!app || !actor.principal)) diagnostic.insert(surface.handle().id());
+        }
+        const auto allowed = observable_applications(actor, applications);
+        auto* surfaces = result.mutable_surfaces();
+        for (int i = surfaces->size() - 1; i >= 0; --i)
+            if (!allowed.contains(surfaces->Get(i).handle().id()) && !diagnostic.contains(surfaces->Get(i).handle().id()))
+                surfaces->DeleteSubrange(i, 1);
+        for (const auto& app : applications) if (allowed.contains(app.handle.id())) actor.observed_applications.push_back(app);
+    }
     return result;
 }
 wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveRequest& request) {
@@ -402,6 +459,8 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
     result.mutable_viewport()->set_width(width); result.mutable_viewport()->set_height(height);
     // Copy camera context before compositor I/O. The scheduler may move actors while waiting.
     const auto visibility = renderer_->observe(view, width, height);
+    if (!application_observation_valid(actor.token))
+        throw WorldError(wire::FORBIDDEN, "Application observation authority changed");
     result.set_frame_id(visibility.frame_id());
     const double focal = static_cast<float>(1 / std::tan(view.config().vertical_fov() / 2));
     const auto geometry = scene_panels(view);

@@ -1,6 +1,8 @@
 #pragma once
 #include "world/store.hpp"
+#include "broker.pb.h"
 #include <map>
+#include <optional>
 #include <set>
 namespace spatial {
 // World-owned placements; native handles and generations come only from spatialwm.
@@ -11,6 +13,7 @@ public:
     wire::SurfaceReply find(const std::string& probe) const;
     wire::SurfaceRecord get(const std::string& id) const;
     std::string control_group(const wire::SurfaceRecord& surface) const;
+    std::optional<workspace::v1::ApplicationRef> application(const wire::SurfaceHandle& handle) const;
     wire::SurfaceRecord place(const wire::SurfacePlaceRequest& request);
     wire::SurfaceRecord attach_slot(const wire::SurfaceAttachSlotRequest& request);
     wire::SurfaceValidationReply validate_handle(const wire::SurfaceValidateRequest& request) const;

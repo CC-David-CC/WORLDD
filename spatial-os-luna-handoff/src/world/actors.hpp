@@ -2,6 +2,7 @@
 #include "world/store.hpp"
 #include "core/navigation.hpp"
 #include "grants.pb.h"
+#include "broker.pb.h"
 #include <array>
 #include <map>
 #include <set>
@@ -26,6 +27,7 @@ public:
     wire::ActorCloseReply close(const std::string& token);
     wire::ActorActionReply act(const wire::ActorActionRequest& request);
     wire::RenderScene scene(const std::string& token);
+    bool application_observation_valid(const std::string& token);
     wire::WorldCheckpointReply checkpoint();
     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
     void tick(double monotonic_seconds);
@@ -34,6 +36,10 @@ public:
     bool room_in_use(const std::string& id) const;
     bool manual_clock() const { return manual_clock_; }
 private:
+    struct ObservedApplication {
+        wire::SurfaceHandle handle;
+        workspace::v1::ApplicationRef application;
+    };
     struct ObjectHold {
         wire::Entity original;
         wire::Pose preview;
@@ -55,11 +61,13 @@ private:
         std::string lease;
         bool capture_motion_pending = false;
         bool interaction_reset_pending = false;
+        std::vector<ObservedApplication> observed_applications;
         std::optional<ObjectHold> object;
         wire::ErrorCode object_error = wire::NO_TARGET;
     };
     Actor& authenticated(const std::string& token);
     bool granted(const Actor&, const std::string& right, const std::vector<std::string>& components = {}) const;
+    std::set<std::string> observable_applications(const Actor&, const std::vector<ObservedApplication>&);
     std::string selected_workspace(const Actor& actor);
     void step(double target);
     void refresh_native();

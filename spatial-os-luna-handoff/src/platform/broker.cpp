@@ -116,6 +116,16 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
         validate_message(reply);
         if (!reply.has_error()) {
             bool valid = (request.has_access() && reply.has_access()) || (request.has_launch() && reply.has_launched());
+            if (request.has_application_access() && reply.has_application_access()) {
+                const auto& expected = request.application_access().applications();
+                const auto& received = reply.application_access().applications();
+                valid = expected.size() == received.size();
+                for (int i = 0; valid && i < expected.size(); ++i) {
+                    const auto& item = received.Get(i);
+                    valid = item.has_application() && item.application().SerializeAsString() == expected.Get(i).SerializeAsString() &&
+                        item.has_observe() && item.has_control() && (!item.control() || item.observe());
+                }
+            }
             if (request.has_grants() && reply.has_grants()) {
                 valid = reply.grants().grants_size() <= 16 && reply.grants().revision() <= INT64_MAX &&
                     (reply.grants().next_after().empty() || reply.grants().next_after().size() == 32);
@@ -162,6 +172,10 @@ broker_wire::AccessReply BrokerClient::access(const std::string& workspace, cons
     broker_wire::Request request; request.mutable_access()->set_workspace(workspace); request.mutable_access()->set_actor(actor);
     if (principal) *request.mutable_access()->mutable_principal() = *principal;
     return exchange(request).access();
+}
+broker_wire::ApplicationAccessReply BrokerClient::application_access(const broker_wire::ApplicationAccessRequest& command) {
+    broker_wire::Request request; *request.mutable_application_access() = command;
+    return exchange(request).application_access();
 }
 wire::ProcessLaunchReply BrokerClient::launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
                                             const authority::v1::ActorRef* principal) {

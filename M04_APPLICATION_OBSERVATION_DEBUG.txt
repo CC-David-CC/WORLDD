@@ -1,0 +1,43 @@
+World application observation
+Date: 2026-10-08
+Base: 180ee5537feaf80320b94958061aee8f08075bdf
+
+The primary agent reviews this increment. No local-model review is used.
+Both hosts passed the prerequisite 51 harness checks and 151 P10 cases.
+The corrected baseline failed all eight new observation cases on both hosts.
+The existing runtime hid application surfaces even from authorized observers.
+
+The first baseline accidentally discovered imported test classes.
+That run also executed unrelated tests without their required display fixture.
+The corrected baseline selects ApplicationObservationTests explicitly.
+Keep both logs. The extra errors do not establish production defects.
+
+The first build failed because surfaces.hpp lacked the optional header.
+The missing include is fixed.
+Both hosts then passed the eight initial observation cases.
+Both hosts also passed 14 expanded cases, including in-flight revocation and malformed replies.
+Both hosts passed all 16 focused cases, including two legacy-session counterexamples.
+The initial full Debug profile passed 787 core checks across 41 suites on both hosts.
+Each host also passed 51 harness checks and 151 P10 cases.
+
+The first sanitizer profile failed because the confined C witness inherited ASan instrumentation.
+ASan tried to reserve 15392894357504 bytes for shadow memory.
+The production application boundary permits 4 GiB of address space.
+The dedicated spatial-confined-xprobe target builds the unchanged witness without instrumentation.
+Production runtime instrumentation and application resource limits remain enabled.
+The initial runtime sanitizer profile passed the other 771 core checks on each host.
+After the fixture correction, both profiles passed the affected 16-case suite on both hosts.
+Both profiles also passed fresh 51-check harness and 151-case P10 runs on both hosts.
+These are full-suite results plus affected-suite reruns, not a new complete core run after correction.
+No production C++ source changed during the fixture correction.
+Binary inspection confirms worldd, workspaced, and spatialwm retain sanitizer instrumentation.
+All 787 core requirements have passing evidence in each host/profile combination. None were skipped.
+The failure and correction logs are retained under spatial-os-luna-handoff/evidence/application-observation-2026-10-08.
+
+Worldd now filters application scenes with broker observation decisions.
+It rechecks access after rendering and before queued metadata writes.
+The tests launch the real C witness through the confined production broker.
+Authenticated application control and pixel delivery remain pending.
+No XLibre patch or system-session change is part of this increment.
+Native-server sanitizer coverage with GLX remains unrun for this component.
+M04, M09, M10, and Spatial-M1 remain incomplete.

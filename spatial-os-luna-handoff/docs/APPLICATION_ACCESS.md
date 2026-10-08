@@ -56,8 +56,9 @@ The existing process-authority reconciliation remains independent.
 This reply is a decision snapshot. It is not a transferable grant or interaction lease.
 Worldd must recheck authority before consequential actions and cancel affected input after revocation.
 Worldd must also filter pixels and metadata using authorized application identities.
-Those consumers remain the next integration step.
-Authenticated actors still receive no native application surfaces in the current runtime.
+Worldd now consumes these decisions for filtered scene metadata and aim.
+See APPLICATION_OBSERVATION.md for post-render and queued-reply checks.
+Authenticated application pixel payloads and input control remain the next integration steps.
 
 The schema addition preserves all 14 existing broker messages and all 59 existing fields.
 It adds four messages and operation/outcome field 106.

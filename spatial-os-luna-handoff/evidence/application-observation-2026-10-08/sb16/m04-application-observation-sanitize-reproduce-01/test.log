@@ -1,0 +1,21 @@
+test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection) ... FAIL
+
+======================================================================
+FAIL: test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 159, in test_explicit_observation_shows_real_application_without_selection
+    self.setup_world(); app,surface=self.probe()
+                                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_application_observation.py", line 142, in probe
+    value = self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+----------------------------------------------------------------------
+Ran 1 test in 7.300s
+
+FAILED (failures=1)
