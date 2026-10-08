@@ -1,0 +1,24 @@
+{
+  "argv": [
+    "ctest",
+    "--test-dir",
+    "build",
+    "-V",
+    "-R",
+    "^native-(selection-isolation|extension-isolation|resource-isolation|security-identity)$"
+  ],
+  "xserver": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/dd5b403500c545e86f6140d14b7b5ca0ffc9e304c5ce858a5ff052b9d7018428/source/build-sanitize/hw/vfb/Xvfb",
+    "sha256": "775a8f5e287b9fca20890893d529663284b90adc9d10fbff8eb9ce816e8e0e3f"
+  },
+  "exit_code": 0,
+  "glx_disabled": true,
+  "asan_options": "detect_leaks=1:abort_on_error=1",
+  "ubsan_options": "halt_on_error=1:print_stacktrace=1",
+  "suite_counts": [
+    "14",
+    "32",
+    "36",
+    "22"
+  ]
+}

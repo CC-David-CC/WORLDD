@@ -1,0 +1,29 @@
+{
+  "argv": [
+    [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build"
+    ],
+    [
+      "python3",
+      "tests/native/test_selection_isolation.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+    ],
+    [
+      "ctest",
+      "--test-dir",
+      "build",
+      "--output-on-failure",
+      "-R",
+      "^native-(extension-isolation|resource-isolation|security-identity)$"
+    ]
+  ],
+  "xserver": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/4892be46dcdd4c1f4db1d1b833f6107438cec77e29b964191042609c3eb859a2/source/build/hw/vfb/Xvfb",
+    "sha256": "4d87d29f4e12516cb3de1e766520747315cb651d81aa0f1f45b1c8c5dfaa7501"
+  },
+  "policy_sha256": "14dadce882a1395b7747e7dd9c64b5f026ea34482f393f7c92609aaecf2d6a72"
+}

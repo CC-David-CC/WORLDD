@@ -1,0 +1,4 @@
+{
+  "prompt": "The evidence README now explicitly maps SPATIAL_TEST_XSERVER to binaries.Xvfb.path in local/m04-selection-debug-build-01/run.json for Debug and local/m04-selection-sanitize-build-01/run.json for sanitizer. It maps commands to debug/commands.json and sanitizer settings/binary to native-sanitize/run.json. All commands are in one shell block beginning with PYTHONPATH export. Fresh evidence dirs required for repeat runs. These address your identified issues. Review corrected mapping only; propose corrections if concrete issue remains, <=80words.",
+  "proposal": "The mapping is correct. Ensure `PYTHONPATH` precedes all commands in the single shell block. Verify `binaries.Xvfb.path` resolves correctly in both `run.json` files. Confirm `commands.json` and `native-sanitize/run.json` paths are absolute or relative to the evidence root. No further corrections needed if paths resolve and execution order is preserved."
+}

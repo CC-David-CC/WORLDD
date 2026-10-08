@@ -1,0 +1,109 @@
+test_application_name_in_another_workspace_is_not_same_identity (__main__.SelectionIsolationTests.test_application_name_in_another_workspace_is_not_same_identity) ... FAIL
+test_broker_cannot_query_application_selection (__main__.SelectionIsolationTests.test_broker_cannot_query_application_selection) ... FAIL
+test_claiming_secondary_does_not_grant_primary_access (__main__.SelectionIsolationTests.test_claiming_secondary_does_not_grant_primary_access) ... FAIL
+test_compositor_can_query_owner (__main__.SelectionIsolationTests.test_compositor_can_query_owner) ... ok
+test_foreign_conversion_is_denied (__main__.SelectionIsolationTests.test_foreign_conversion_is_denied) ... FAIL
+test_foreign_owner_clear_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_clear_is_denied) ... FAIL
+test_foreign_owner_query_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_query_is_denied) ... FAIL
+test_foreign_owner_replacement_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_replacement_is_denied) ... FAIL
+test_ownerless_selection_can_be_queried_and_claimed (__main__.SelectionIsolationTests.test_ownerless_selection_can_be_queried_and_claimed) ... ok
+test_same_application_connections_can_query_owner (__main__.SelectionIsolationTests.test_same_application_connections_can_query_owner) ... ok
+test_same_application_conversion_reaches_real_owner (__main__.SelectionIsolationTests.test_same_application_conversion_reaches_real_owner) ... ok
+test_supervisor_can_query_owner (__main__.SelectionIsolationTests.test_supervisor_can_query_owner) ... ok
+test_swapped_client_cannot_bypass_selection_policy (__main__.SelectionIsolationTests.test_swapped_client_cannot_bypass_selection_policy) ... FAIL
+test_workspace_membership_does_not_grant_selection_access (__main__.SelectionIsolationTests.test_workspace_membership_does_not_grant_selection_access) ... FAIL
+
+======================================================================
+FAIL: test_application_name_in_another_workspace_is_not_same_identity (__main__.SelectionIsolationTests.test_application_name_in_another_workspace_is_not_same_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py", line 48, in test_application_name_in_another_workspace_is_not_same_identity
+    self.denied(self.other, 23, self.other.pack('I', 1), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x04\x00\x00\x00\x00\x00\x01\x[89 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_broker_cannot_query_application_selection (__main__.SelectionIsolationTests.test_broker_cannot_query_application_selection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py", line 74, in test_broker_cannot_query_application_selection
+    self.denied(broker, 23, broker.pack('I', 1), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x02\x00\x00\x00\x00\x00\x01\x[89 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_claiming_secondary_does_not_grant_primary_access (__main__.SelectionIsolationTests.test_claiming_secondary_does_not_grant_primary_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py", line 92, in test_claiming_secondary_does_not_grant_primary_access
+    self.denied(self.other, 23, self.other.pack('I', 1), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x06\x00\x00\x00\x00\x00\x01\x[89 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_conversion_is_denied (__main__.SelectionIsolationTests.test_foreign_conversion_is_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py", line 40, in test_foreign_conversion_is_denied
+    self.denied(self.other, 24, self.other.pack('IIIII', self.other_window, 1, 31, 39, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_owner_clear_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_clear_is_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py", line 35, in test_foreign_owner_clear_is_denied
+    self.denied(self.other, 22, self.other.pack('III', 0, 1, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_owner_query_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_query_is_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py", line 26, in test_foreign_owner_query_is_denied
+    self.denied(self.other, 23, self.other.pack('I', 1), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x04\x00\x00\x00\x00\x00\x01\x[89 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_foreign_owner_replacement_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_replacement_is_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py", line 30, in test_foreign_owner_replacement_is_denied
+    self.denied(self.other, 22, self.other.pack('III', self.other_window, 1, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_swapped_client_cannot_bypass_selection_policy (__main__.SelectionIsolationTests.test_swapped_client_cannot_bypass_selection_policy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py", line 78, in test_swapped_client_cannot_bypass_selection_policy
+    self.denied(self.other, 23, self.other.pack('I', 1), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x00\x04\x00\x00\x00\x00\x00@\[89 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_workspace_membership_does_not_grant_selection_access (__main__.SelectionIsolationTests.test_workspace_membership_does_not_grant_selection_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py", line 44, in test_workspace_membership_does_not_grant_selection_access
+    self.denied(self.other, 23, self.other.pack('I', 1), reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x04\x00\x00\x00\x00\x00\x01\x[89 chars] b'') != 10 : Expected native BadAccess
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.352s
+
+FAILED (failures=9)

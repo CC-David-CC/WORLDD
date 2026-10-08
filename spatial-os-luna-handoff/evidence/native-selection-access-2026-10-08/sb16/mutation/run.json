@@ -1,0 +1,64 @@
+{
+  "mutation": "Bypass only owned-selection denial",
+  "parent_build": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/dd5b403500c545e86f6140d14b7b5ca0ffc9e304c5ce858a5ff052b9d7018428/source/build/hw/vfb/Xvfb",
+    "sha256": "4120e71c452a9daba2ab938d943379c549d4ef1bfb94f41fe7573e067e784012"
+  },
+  "base_commit": "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd",
+  "policy_before": "f86a57cfe1d82ffddeacee1d1b6e9da0e8b06f2183c1bbe5c03c0f4ed6f1655f",
+  "policy_after": "90e716e94da99f29e5dcef92763adcb6da349fc4d500ef9de0abb37ad17ec857",
+  "commands": [
+    {
+      "label": "configure",
+      "argv": [
+        "meson",
+        "setup",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-selection-mutation-01/source/build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-selection-mutation-01/source",
+        "--buildtype=debug",
+        "-Dxvfb=true",
+        "-Dxephyr=false",
+        "-Dxnest=false",
+        "-Dxwin=false",
+        "-Dxquartz=false",
+        "-Ddocs=false",
+        "-Ddevel-docs=false",
+        "-Dsystemd_logind=true",
+        "-Dseatd_libseat=false",
+        "-Dxkb_dir=/usr/share/X11/xkb",
+        "-Dxkb_bin_dir=/usr/bin",
+        "-Dfontrootdir=/usr/share/fonts/X11",
+        "-Dxorg=false",
+        "-Dtests=false",
+        "-Db_sanitize=none",
+        "--prefix=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-selection-mutation-01/image",
+        "-Dxkb_output_dir=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "build",
+      "argv": [
+        "ninja",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-selection-mutation-01/source/build",
+        "-j2",
+        "hw/vfb/Xvfb"
+      ],
+      "exit_code": 0
+    },
+    {
+      "label": "witness",
+      "argv": [
+        "python3",
+        "tests/native/test_selection_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "status": "detected",
+  "witness_count": 14,
+  "expected_failures": 9,
+  "xserver_sha256": "014623102134a89677e1bb49e54091c96b373c9b49d81d02cba50e5f0c339982"
+}

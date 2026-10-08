@@ -63,6 +63,24 @@ Property and event hooks also enforce the application boundary.
 These hooks do not establish actor-specific device authority.
 Server-generated events still require the input routing policy.
 
+## Owned selection access
+
+An owned selection follows its owner's immutable application identity.
+GetSelectionOwner, SetSelectionOwner, and ConvertSelection require the same workspace and application identity.
+Supervisor and compositor connections retain privileged selection access.
+Broker credentials grant no selection access to another application.
+Workspace membership alone does not authorize selection access.
+Valid ownerless selections remain queryable and claimable under core X11 rules.
+
+The policy checks XACE_SELECTION_ACCESS in the pinned server.
+It registers and removes the callback with the other resource-policy callbacks.
+The native witness checks PRIMARY and SECONDARY with real X11 requests.
+Credential setup and completion fences use Protocol Buffers.
+
+These checks qualify owned selection access only.
+Atom-name privacy, independent application selection namespaces, and asynchronous metadata remain unqualified.
+This component does not complete M04 or authorize untrusted native sessions.
+
 ## Verification and remaining work
 
 The independent witness sends real X11 requests to a disposable project XLibre server.

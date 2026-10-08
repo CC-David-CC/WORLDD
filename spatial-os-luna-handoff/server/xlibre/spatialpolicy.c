@@ -8,6 +8,7 @@
 #include "dix/dix_priv.h"
 #include "dix/client_priv.h"
 #include "dix/extension_priv.h"
+#include "dix/selection_priv.h"
 #include "render/picturestr_priv.h"
 #include "Xext/xacestr.h"
 #include "windowstr.h"
@@ -88,6 +89,17 @@ static void property_access(CallbackListPtr *list, void *unused, void *data)
     XacePropertyAccessRec *rec = data;
     (void)list; (void)unused;
     if (!SpatialSecurityVisibleResource(rec->client, rec->pWin->drawable.id)) rec->status = BadAccess;
+}
+
+static void selection_access(CallbackListPtr *list, void *unused, void *data)
+{
+    XaceSelectionAccessRec *rec = data;
+    (void)list; (void)unused;
+    if (SpatialSecurityPrivileged(rec->client)) return;
+    Selection *selection = *rec->ppSel;
+    if (selection && selection->client &&
+        !SpatialSecuritySameApplication(rec->client, selection->client))
+        rec->status = BadAccess;
 }
 
 static void send_access(CallbackListPtr *list, void *unused, void *data)
@@ -197,6 +209,7 @@ void SpatialSecurityPolicyInit(void)
 {
     if (!XaceRegisterCallback(XACE_RESOURCE_ACCESS, resource_access, NULL) ||
         !XaceRegisterCallback(XACE_PROPERTY_ACCESS, property_access, NULL) ||
+        !XaceRegisterCallback(XACE_SELECTION_ACCESS, selection_access, NULL) ||
         !XaceRegisterCallback(XACE_SEND_ACCESS, send_access, NULL) ||
         !XaceRegisterCallback(XACE_RECEIVE_ACCESS, receive_access, NULL) ||
         !AddCallback(&ClientAccessCallback, client_access, NULL) ||
@@ -209,6 +222,7 @@ void SpatialSecurityPolicyReset(void)
 {
     XaceDeleteCallback(XACE_RESOURCE_ACCESS, resource_access, NULL);
     XaceDeleteCallback(XACE_PROPERTY_ACCESS, property_access, NULL);
+    XaceDeleteCallback(XACE_SELECTION_ACCESS, selection_access, NULL);
     XaceDeleteCallback(XACE_SEND_ACCESS, send_access, NULL);
     XaceDeleteCallback(XACE_RECEIVE_ACCESS, receive_access, NULL);
     DeleteCallback(&ClientAccessCallback, client_access, NULL);

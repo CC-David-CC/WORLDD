@@ -1,0 +1,5 @@
+{
+  "file": "CMakeLists.txt",
+  "proposal": "add_test(NAME native-selection-isolation COMMAND \"${Python3_EXECUTABLE}\" \"${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_selection_isolation.py\" $<TARGET_FILE:spatial-security-auth>)\nset_tests_properties(native-selection-isolation PROPERTIES TIMEOUT 180 ENVIRONMENT \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}\")",
+  "result": "The bounded model proposal matches the integrated additive registration."
+}

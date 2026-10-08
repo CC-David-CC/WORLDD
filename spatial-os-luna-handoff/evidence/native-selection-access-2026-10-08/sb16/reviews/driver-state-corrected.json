@@ -1,0 +1,4 @@
+{
+  "prompt": "Your prior summary said sanitizer profile unrun without distinguishing native-server from runtime. Corrected checkpoint must record native-server ASan/UBSan104PASS BOTH HOSTS(GLXoff) separately from UNRUN complete runtime sanitizer and C++core profile. phaseM04 incomplete, last_complete_phaseP10. native_selection_owner_access_checkedtrue; native_selection_isolation_completefalse, M04_completefalse,full_project_completefalse. New realHEAD will be recorded only after commit. No blocking condition. Review those updates only, <=80words.",
+  "proposal": "Corrected checkpoint records native-server ASan/UBSan104 PASS on both hosts (GLXoff) separately from unrun runtime sanitizer and C++core profile. Phase M04 incomplete; last complete phase P10. Native selection owner access checked true; isolation complete false. M04 and full project completion false. New real HEAD recorded only post-commit. No blocking conditions."
+}

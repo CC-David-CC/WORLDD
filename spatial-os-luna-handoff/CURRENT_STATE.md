@@ -1,5 +1,44 @@
 # Implementation status
 
+## 2026-10-08: Owned selection access checked
+
+The native policy now checks owned selections through XACE_SELECTION_ACCESS.
+Foreign application identities cannot query, replace, clear, or convert an owned selection.
+Matching workspace membership or application names alone grant no access.
+Connections with the same workspace and application identity retain real selection conversion.
+Supervisor and compositor connections retain access. Broker credentials do not grant it.
+
+The rebuilt pre-patch baseline failed nine of the 14 new checks on each host.
+Five positive controls passed on that baseline.
+An older cached server had a different policy source hash.
+It was excluded from the current-source baseline claim.
+The rebuilt baseline and patched builds record their source and binary hashes.
+
+Both patched servers passed all 104 focused native checks in Debug and native-server ASan/UBSan.
+The suites contain 14 selection, 32 extension, 36 resource, and 22 identity checks.
+Focused sanitizer runs disabled GLX and enabled leak detection.
+Both Debug hosts also passed all 151 locked P00-P10 cases and 51 harness checks.
+An isolated selection-policy bypass mutation failed nine checks on sb16.
+The other five selection checks still passed against that mutation.
+
+The local model reviewed each implementation file and the additive contract.
+Its initial callback signature, access constants, and extra test helper were incorrect.
+Corrected proposals received further review before integration.
+Model responses are review evidence, not execution evidence.
+
+The contract addition is docs/NATIVE_RESOURCE_POLICY.md.
+The primitive is tasks/m1/application.selection_owner_access.json.
+Evidence is in evidence/native-selection-access-2026-10-08.
+Disposable project displays preserved the normal desktop and recovery routes.
+
+This increment did not repeat the complete C++ core or runtime-sanitizer profiles.
+Focused native-server sanitizers do not qualify GLX cleanup or physical hardware.
+Full M04 and Spatial-M1 remain incomplete.
+Atom-name privacy, independent selection namespaces, asynchronous metadata, global operations,
+device authority, and broker/compositor integration remain required.
+Next: audit global core requests and add independent native attacks.
+
+
 ## 2026-10-08: Native extension access component passed
 
 The extension access component passed on sb16 and sb16-2.
