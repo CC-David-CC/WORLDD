@@ -1,0 +1,21 @@
+test_object_scope_and_visibility_are_enforced_in_actor_engine (__main__.WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine) ... FAIL
+
+======================================================================
+FAIL: test_object_scope_and_visibility_are_enforced_in_actor_engine (__main__.WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-live-mutation-v2/source/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 268, in test_object_scope_and_visibility_are_enforced_in_actor_engine
+    self.denied(peer.act(object_grab=core.ObjectGrabRequest(id=two)), core.FORBIDDEN)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-live-mutation-v2/source/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 0 != 13 : protocol_version: 1
+request_id: 3
+action {
+  accepted: true
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 1.673s
+
+FAILED (failures=1)

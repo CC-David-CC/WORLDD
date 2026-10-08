@@ -11,7 +11,8 @@ The issuer TLS service listener is qualified. See ISSUER_TLS.md for its interfac
 The production checked issuer client is qualified. See ISSUER_CLIENT.md for its interface and limits.
 The ordered revocation feed and bounded watcher are qualified. See ISSUER_WATCH.md.
 Authenticated local world channels and native credential cancellation are qualified. See WORLD_IDENTITY.md for their limits.
-Nonempty bootstrap grants, persistent scoped authority, remote actor transport, and distributed revocation acknowledgement remain required.
+Persistent world grants now govern authenticated local actions. See WORLD_AUTHORITY.md.
+Nonempty bootstrap grants, workspace authority, remote actor transport, and distributed revocation acknowledgement remain required.
 
 ## Required integration
 
@@ -29,7 +30,8 @@ Credential revocation disables that credential. Actor revocation disables all it
 An independently valid credential or grant survives unrelated revocation.
 M02 supplies grant delegation and scoped authorization. Cryptographic proof alone grants no workspace or world authority.
 The persistent grant-store library is qualified separately. See AUTHORITY_STORE.md.
-Its authenticated runtime integration and use by bootstrap profiles remain pending.
+Worldd now integrates these records through authenticated local actor channels.
+Workspace integration and use by bootstrap profiles remain pending.
 The issuer now provides checked current actor-status batches for ancestor validation. See ACTOR_STATUS.md.
 These queries grant no authority and do not replace fresh caller authentication.
 

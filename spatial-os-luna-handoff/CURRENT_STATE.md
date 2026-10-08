@@ -1,5 +1,55 @@
 # Implementation status
 
+## 2026-10-07: Persistent world authority qualified
+
+Authenticated world actors now use persistent scoped grants in the production actor engine.
+An explicit private seed command installs world roots. Actor requests cannot mint roots.
+Grant listing filters records by the authenticated subject and uses bounded pages.
+Delegation and revocation share the actor sequence counter and require a matching authority revision.
+The adapter checks current caller and ancestor identities through the pinned issuer client.
+Private admission requires WORLD_ENTER. Public admission does not create action grants.
+Navigation, observation, and object manipulation use separate rights.
+Object grants use exact room and object scope components, plus existing visibility and reach checks.
+
+Committed grant changes cancel affected motion and object drafts before the world reply.
+Issuer actor-revocation events invalidate dependent grants even when the ancestor has no world session.
+Independent grants survive unrelated revocation. Credential revocation does not revoke actor grants.
+World grants cannot grant workspace selection, application control, or process execution.
+Native application surfaces remain excluded from persistent world actors until workspace authority is integrated.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 493 core checks, including 27 new world-authority checks.
+- All 51 harness checks.
+
+Tests used real issuer enrollment, cryptographic proofs, worldd, SQLite, and native X clients.
+They cover seed atomicity, scope attenuation, unknown recipients, replay, restart, motion cancellation, and object leases.
+The initial 16 checks passed before review added ten configuration and authority counterexamples.
+A further relay test reproduced credential revocation during ancestor-status preparation.
+Worldd now keeps in-progress credentials visible to the revocation handler until admission finishes.
+The final 27-check suite includes that race regression.
+An old-binary test first demonstrated missing world authority initialization on both hosts.
+Final-source mutations omitted grant-cache invalidation and object-scope enforcement.
+Both mutations failed their independent counterexamples. Neither entered production.
+
+All 151 source hashes match reviewed local files and both hosts.
+The acceptance lock and locked assertions remain unchanged.
+The preliminary sb16-2 sanitizer run exceeded the old 300-second aggregate core limit.
+The runner now permits 600 seconds for the expanded complete core suite.
+Individual test deadlines remain unchanged. Final qualification uses the revised runner.
+The additive protobuf contract is docs/WORLD_AUTHORITY.md.
+Evidence is in evidence/world-authority-2026-10-07.
+No system service, host configuration, operator session, or actual David identity changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+Actor channels remain local inherited sockets. Remote authenticated sessions remain required.
+Workspace grants, application visibility, execution authority, and nonempty bootstrap profiles remain required.
+Issuer snapshots and world effects are separate transactions. Distributed revocation acknowledgement remains required.
+M01, M02, Spatial-M1, and all other mandatory M01-M16/H01-H08 items remain incomplete.
+Next: connect workspace-domain grants to authenticated workspace access and broker execution.
+The full project goal remains active. No external blocker is recorded.
+
 ## 2026-10-07: Current actor-status service qualified
 
 The production issuer now returns bounded actor-status batches through its existing protected service interface.

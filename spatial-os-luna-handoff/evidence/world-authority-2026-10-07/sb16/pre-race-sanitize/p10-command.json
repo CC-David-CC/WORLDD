@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "python3",
+    "tools/with_test_display.py",
+    "--",
+    "python3",
+    "tools/gate.py",
+    "--through",
+    "P10",
+    "--sut",
+    "[\"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatial-test-host\"]",
+    "--report",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-live-sanitize/p10.json"
+  ],
+  "exit_code": 0,
+  "counts": {
+    "passed": 151,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  }
+}

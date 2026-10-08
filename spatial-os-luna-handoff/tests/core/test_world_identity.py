@@ -52,11 +52,12 @@ class SessionPeer:
 
 
 class WorldProcess:
-    def __init__(self, fixture, config, state, native=False, count=2):
+    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None):
         self.log=(fixture.root/f'world-{len(fixture.worlds)}.log').open('wb'); self.sequence=0
         pairs=[socket.socketpair() for _ in range(count)]
         self.peers=[SessionPeer(pair[0]) for pair in pairs]
         command=[str(WORLD),'--state-dir',str(state),'--identity-config',str(config)]
+        if runtime_config: command+=['--config',str(runtime_config)]
         if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
         self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,

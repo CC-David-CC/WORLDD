@@ -1,0 +1,22 @@
+{
+  "base": "8542c98695a3d3f00b437bd0ce3994f9aedd4296",
+  "generation": [
+    "protoc",
+    "--python_out=build/python",
+    "-Iproto/spatial/core/v1",
+    "-Iproto/spatial/identity/v1",
+    "-Iproto/spatial/authority/v1",
+    "proto/spatial/identity/v1/world_session.proto",
+    "proto/spatial/authority/v1/grants.proto"
+  ],
+  "test": [
+    "python3",
+    "tests/core/test_world_authority.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+    "WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation"
+  ],
+  "exit_code": 1,
+  "expected": "Old worldd rejects missing init-authority operation"
+}

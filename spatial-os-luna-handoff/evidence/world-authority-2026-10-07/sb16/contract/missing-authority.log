@@ -1,0 +1,17 @@
+test_explicit_seed_and_real_actor_navigation (__main__.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation) ... FAIL
+
+======================================================================
+FAIL: test_explicit_seed_and_real_actor_navigation (__main__.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 90, in test_explicit_seed_and_real_actor_navigation
+    world = self.scoped_world(); peer = world.peers[0]
+            ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 46, in scoped_world
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 2 != 0 : b'worldd: Unknown or incomplete worldd argument\n'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.472s
+
+FAILED (failures=1)

@@ -72,11 +72,32 @@ Actors::Actor& Actors::authenticated(const std::string& token) {
     if (token.empty() || found == sessions_.end()) throw WorldError(wire::UNAUTHORIZED, "Invalid actor session");
     return actors_.at(found->second);
 }
+bool Actors::granted(const Actor& actor, const std::string& right, const std::vector<std::string>& components) const {
+    return actor.authority ? actor.authority(right, components) : actor.grants.contains(right);
+}
+void Actors::consume_sequence(const std::string& token, std::uint64_t sequence) {
+    auto& actor = authenticated(token);
+    require(sequence > 0, "Missing positive actor sequence");
+    if (sequence <= actor.sequence) throw WorldError(wire::STALE_SEQUENCE, "Actor sequence already consumed");
+    actor.sequence = sequence;
+}
+void Actors::refresh_authority() {
+    refresh_objects();
+    for (auto& [id, actor] : actors_) {
+        (void)id;
+        if (!actor.authority) continue;
+        if (!granted(actor, "navigate")) { actor.axes.fill(0); actor.expires = now_; }
+        if (!granted(actor, "observe")) actor.aim.Clear();
+        if (!granted(actor, "interact") && !actor.native.actor_id().empty()) {
+            actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
+        }
+    }
+}
 std::string Actors::selected_workspace(const Actor& actor) {
     const auto selected = store_.selected_workspace(actor.entity.id());
     if (selected.empty()) return {};
     bool allowed = false;
-    if (broker_ && store_.workspace_available(selected)) {
+    if ((!actor.authority || granted(actor, "workspace.select", {selected})) && broker_ && store_.workspace_available(selected)) {
         try {
             const auto access = broker_->access(selected, actor.entity.id());
             allowed = std::find(access.rights().begin(), access.rights().end(), wire::WORKSPACE_SELECT) != access.rights().end();
@@ -87,7 +108,7 @@ std::string Actors::selected_workspace(const Actor& actor) {
     if (!allowed) { store_.clear_workspace(actor.entity.id()); return {}; }
     return selected;
 }
-wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool require_observation_grant) {
+wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool require_observation_grant, Authority authority) {
     require(request.grants_size() <= 64, "Too many grants");
     const std::set<std::string> allowed{"navigate", "interact", "observe", "world.write", "git.write", "process.launch"};
     std::set<std::string> grants;
@@ -110,6 +131,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
         found = actors_.emplace(entity.id(), std::move(actor)).first;
     }
     auto& actor = found->second;
+    actor.authority = std::move(authority);
     selected_workspace(actor);
     // An existing actor keeps its last valid pose, including a durable restore.
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
@@ -138,26 +160,25 @@ wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
     cancel_object(actor);
     release_input(actor, true);
-    actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.token.clear();
+    actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.token.clear();
     actor.aim.Clear();
     sessions_.erase(token);
     wire::ActorCloseReply result; result.set_closed(true); return result;
 }
 wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     auto& actor = authenticated(request.token());
-    require(request.has_seq() && request.seq() > 0, "Missing positive actor sequence");
-    if (request.seq() <= actor.sequence) throw WorldError(wire::STALE_SEQUENCE, "Actor sequence already consumed");
-    actor.sequence = request.seq();
+    require(request.has_seq(), "Missing actor sequence");
+    consume_sequence(request.token(), request.seq());
     switch (request.action_case()) {
     case wire::ActorActionRequest::kGitWorktreeCreate: {
-        if (!actor.grants.contains("git.write")) throw WorldError(wire::FORBIDDEN, "Git administration grant required");
+        if (!granted(actor, "git.write")) throw WorldError(wire::FORBIDDEN, "Git administration grant required");
         if (!broker_) throw WorldError(wire::UNIMPLEMENTED, "No workspace broker configured");
         wire::Request delegated; *delegated.mutable_git_worktree_create() = request.git_worktree_create();
         const auto result = broker_->call(delegated);
         wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_worktree() = result.worktree(); return reply;
     }
     case wire::ActorActionRequest::kProcessLaunch: {
-        if (!actor.grants.contains("process.launch")) throw WorldError(wire::FORBIDDEN, "Process launch grant required");
+        if (!granted(actor, "process.launch")) throw WorldError(wire::FORBIDDEN, "Process launch grant required");
         const auto workspace = selected_workspace(actor);
         if (workspace.empty()) throw WorldError(wire::NO_WORKSPACE, "Actor has no selected workspace");
         const auto access = broker_->access(workspace, actor.entity.id());
@@ -167,6 +188,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_process() = process; return reply;
     }
     case wire::ActorActionRequest::kWorkspaceSelect: {
+        if (actor.authority && !granted(actor, "workspace.select", {request.workspace_select().id()}))
+            throw WorldError(wire::FORBIDDEN, "Workspace selection authority required");
         if (!broker_) throw WorldError(wire::UNIMPLEMENTED, "No workspace authority configured");
         const auto& id = request.workspace_select().id();
         const auto access = broker_->access(id, actor.entity.id());
@@ -179,17 +202,17 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     case wire::ActorActionRequest::kObjectGrab:
     case wire::ActorActionRequest::kObjectMove:
     case wire::ActorActionRequest::kObjectRelease:
-        if (!actor.grants.contains("world.write")) throw WorldError(wire::FORBIDDEN, "World editing grant required");
+        if (!actor.authority && !granted(actor, "world.write")) throw WorldError(wire::FORBIDDEN, "World editing grant required");
         object_action(actor, request); break;
     case wire::ActorActionRequest::kObserve: {
-        if (actor.require_observation_grant && !actor.grants.contains("observe"))
+        if (actor.require_observation_grant && !granted(actor, "observe"))
             throw WorldError(wire::FORBIDDEN, "World observation grant required");
         wire::ActorActionReply result; result.set_accepted(true);
         *result.mutable_observation() = observe(actor, request.observe());
         return result;
     }
     case wire::ActorActionRequest::kInput: {
-        if (!actor.grants.contains("navigate")) throw WorldError(wire::FORBIDDEN, "Navigation grant required");
+        if (!granted(actor, "navigate")) throw WorldError(wire::FORBIDDEN, "Navigation grant required");
         require(request.input().axes_size() == 6, "Expected six motion axes");
         std::array<double, 6> axes{};
         for (std::size_t i = 0; i < axes.size(); ++i) {
@@ -208,10 +231,11 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     case wire::ActorActionRequest::kPointer:
     case wire::ActorActionRequest::kKey:
     case wire::ActorActionRequest::kScroll:
-        if (!actor.grants.contains("interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
+        if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
         route_input(actor, request); break;
     case wire::ActorActionRequest::kAim: {
-        if (!actor.grants.contains("navigate") && !actor.grants.contains("interact"))
+        if (actor.authority && !granted(actor, "observe")) throw WorldError(wire::FORBIDDEN, "Observation authority required");
+        if (!granted(actor, "navigate") && !granted(actor, "interact"))
             throw WorldError(wire::FORBIDDEN, "Navigation or interaction grant required");
         require(request.aim().has_direction(), "Missing aim direction");
         refresh_native();
@@ -294,7 +318,7 @@ wire::AimHit Actors::input_target(Actor& actor, bool captured) {
 void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
     actor.capture_motion_pending = false;
     if (!actor.native.held_buttons_size()) return;
-    if (!actor.grants.contains("interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
+    if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
     const auto surface = surfaces_->get(actor.capture.id());
     const auto camera = scene_pose(actor.entity.pose());
     const auto plane = scene_pose(surface.pose());
@@ -368,7 +392,7 @@ wire::RenderScene Actors::scene(const std::string& token) {
         if (holder != object_leases_.end()) *entity.mutable_pose() = actors_.at(holder->second).object->preview;
     }
     auto result = panel_scene(snapshot, actor.entity, config_.render());
-    if (surfaces_) surfaces_->append(result, actor.entity.room());
+    if (surfaces_ && !actor.authority) surfaces_->append(result, actor.entity.room());
     return result;
 }
 wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveRequest& request) {
@@ -429,6 +453,7 @@ void Actors::step(double target) {
     bool collision_ready = false;
     for (auto& [id, actor] : actors_) {
         (void)id;
+        if (actor.authority && !granted(actor, "navigate")) { actor.axes.fill(0); actor.expires = now_; }
         const double end = std::min(target, actor.expires);
         if (end > now_) {
             const Vec3 linear{actor.axes[0] * config_.linear_gain(), actor.axes[1] * config_.linear_gain(), actor.axes[2] * config_.linear_gain()};
@@ -484,7 +509,7 @@ void Actors::step(double target) {
 }
 void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic_seconds); }
 void Actors::flush_input() {
-    refresh_objects();
+    refresh_authority();
     // Tick also runs while waiting on compositor I/O. Submit deferred motion only
     // from the outer scheduler, never recursively inside a renderer exchange.
     for (auto& [id, actor] : actors_) {

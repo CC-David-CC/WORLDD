@@ -1,0 +1,14 @@
+[0/2] Re-checking globbed directories...
+[1/2] Re-running CMake...
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-live-mutation-v2/source/spatial-os-luna-handoff/build
+[0/2] Re-checking globbed directories...
+[1/8] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[2/8] Linking CXX static library libspatial-issuer.a
+[3/8] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[4/8] Linking CXX executable identityd
+[5/8] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[6/8] Linking CXX static library libspatial-core.a
+[7/8] Building CXX object CMakeFiles/worldd.dir/src/world/authority.cpp.o
+[8/8] Linking CXX executable worldd

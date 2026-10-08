@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "python3",
+    "/home/dflanag3/src/m02-live-race-test.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+    "WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry"
+  ],
+  "exit_code": 1,
+  "test_sha256": "33896c8e162252449d2c35e627ea10b313374e0ddb5f782464ad47bbbeeee5d5"
+}

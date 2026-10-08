@@ -1,0 +1,114 @@
+{
+  "base": "8542c98695a3d3f00b437bd0ce3994f9aedd4296",
+  "source_overlay": {
+    "base": "8542c98695a3d3f00b437bd0ce3994f9aedd4296",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "a44ad3ffab9f72a5992f37695bc021b9de7ae3911eea549a41381e9899a4bf4a",
+        "after": "5e5846f9a70893060fba19d543d6383c0039b85a445791fbd0c3c6eb16788c92",
+        "previous": "5e5846f9a70893060fba19d543d6383c0039b85a445791fbd0c3c6eb16788c92"
+      },
+      "spatial-os-luna-handoff/docs/WORLD_AUTHORITY.md": {
+        "before": null,
+        "after": "ee46c826fb3228cc4c92bdb074f2568b375c0574ca2e568d48c99635e0572d82",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/authority/v1/grants.proto": {
+        "before": "7af12af0fe1e984e2459a01e291de8b362b240e1450c74501168415861a2464a",
+        "after": "e7c9960cfc6ed6637f19d50ae00905765d345b7f44c422f88787041db58cea23",
+        "previous": "e7c9960cfc6ed6637f19d50ae00905765d345b7f44c422f88787041db58cea23"
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/world_session.proto": {
+        "before": "c59afa84295e61a726a3b9b6950fc96770565b8c85811cd67a7dfa5ea7d12dea",
+        "after": "79036e3c7f9a539be88316e50633b013d16ba650826cbcac84f73343df802c34",
+        "previous": "79036e3c7f9a539be88316e50633b013d16ba650826cbcac84f73343df802c34"
+      },
+      "spatial-os-luna-handoff/src/authority/store.cpp": {
+        "before": "d2c09f879bf582a64907520c6cc58806cacd7baaf6326661946a32c8e20e9de0",
+        "after": "90701f2bd5f84c1b7f4f1063d942a032f8468a9cd5a138b42b8eadae08cf1bfc",
+        "previous": "90701f2bd5f84c1b7f4f1063d942a032f8468a9cd5a138b42b8eadae08cf1bfc"
+      },
+      "spatial-os-luna-handoff/src/authority/store.hpp": {
+        "before": "f5bc8068896c58979420747c76c432c1132320fb22473046d2e383099d581603",
+        "after": "3881b9ec17c7b8d3047df5c748404945e487e3460f3ac767212af72af0deb75a",
+        "previous": "3881b9ec17c7b8d3047df5c748404945e487e3460f3ac767212af72af0deb75a"
+      },
+      "spatial-os-luna-handoff/src/world/actors.cpp": {
+        "before": "02aa81120875fe2938811f80822372ef04ecd13bcc6bf721c01aa5b25408c75e",
+        "after": "d62fd0e4b0ed2cd5e03dde35816e904f14eb0ae818e3ba087b2a2546d76f4e85",
+        "previous": "d62fd0e4b0ed2cd5e03dde35816e904f14eb0ae818e3ba087b2a2546d76f4e85"
+      },
+      "spatial-os-luna-handoff/src/world/actors.hpp": {
+        "before": "28bedb2c029dfef76015f68adc175b967a76d575c6a4e787e288ea67f9ebf113",
+        "after": "b5464f24cac419ad9ee1d754f1cff47a793de82c14279f0a483a073744a31281",
+        "previous": "b5464f24cac419ad9ee1d754f1cff47a793de82c14279f0a483a073744a31281"
+      },
+      "spatial-os-luna-handoff/src/world/authority.cpp": {
+        "before": null,
+        "after": "a3e4bb839aa3b07c6ce3be6bd2ddc1aae0f73d4cb4305b4aabcbb187310b5e8d",
+        "previous": "a3e4bb839aa3b07c6ce3be6bd2ddc1aae0f73d4cb4305b4aabcbb187310b5e8d"
+      },
+      "spatial-os-luna-handoff/src/world/authority.hpp": {
+        "before": null,
+        "after": "04bd4b1840b8901fd0b55d8b3d24bbfc36d54c97c7d788327d6bcb9d6d564123",
+        "previous": "04bd4b1840b8901fd0b55d8b3d24bbfc36d54c97c7d788327d6bcb9d6d564123"
+      },
+      "spatial-os-luna-handoff/src/world/identity_sessions.cpp": {
+        "before": "15ac6a7ec950e8a412b546cb4f8fea7b137a14d22f58fc282a6117527352aa45",
+        "after": "7b9a80d8b06990ce90a9c042cd2e604afcaac7cfe29d0b1514a103772700a580",
+        "previous": "2d8d41b6b35c3c4845b4b892affc02f1730fdeecdbe9f81e5e627d281f54adb1"
+      },
+      "spatial-os-luna-handoff/src/world/main.cpp": {
+        "before": "8f266631a1e29531e79ee7f25e9d92d5bb01437347e921a27ae41afff7cb9cb8",
+        "after": "7ad6227d04def07d8484ccf3e5bb06266755fda244e2e1909c3fcf62a417559e",
+        "previous": "7ad6227d04def07d8484ccf3e5bb06266755fda244e2e1909c3fcf62a417559e"
+      },
+      "spatial-os-luna-handoff/src/world/objects.cpp": {
+        "before": "5d14c7eb553f3a34f040955beaf1a263914dacc882d9533c43bb97a1f8029bf4",
+        "after": "3d02fc3fa458bcd051583b16fed070c3a651d587caaa154d2af99a4e3e71cb01",
+        "previous": "3d02fc3fa458bcd051583b16fed070c3a651d587caaa154d2af99a4e3e71cb01"
+      },
+      "spatial-os-luna-handoff/tasks/m1/authority.world.json": {
+        "before": null,
+        "after": "b77cb0c506d41d12f4f03beb33f50a56c209de745b405d73b9af4f1fbcf57694",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/tests/core/test_world_authority.py": {
+        "before": null,
+        "after": "33896c8e162252449d2c35e627ea10b313374e0ddb5f782464ad47bbbeeee5d5",
+        "previous": "3b788ee44f1cdb75c65b4e0d8e4a2a0d870254aac3e7849cd25e0ded7e6c6a4a"
+      },
+      "spatial-os-luna-handoff/tests/core/test_world_identity.py": {
+        "before": "5f011d5f2af3b24b72a42dffd2f55f9b949898cd23a6372271851e706abb4303",
+        "after": "8e36ff4202d5dabe4bd66ea41af7ec507608e2acb92d2893aa1c8f66d51095ed",
+        "previous": "8e36ff4202d5dabe4bd66ea41af7ec507608e2acb92d2893aa1c8f66d51095ed"
+      },
+      "spatial-os-luna-handoff/tools/qualify_core.py": {
+        "before": "aaa27f6105796012e01073f32b3eb6cd0d0e7b4797e09c6582bd859b9f62a27b",
+        "after": "657a443bfb1d1aa7dd92a07de82803b3f715716c3234f4d4c987ea9ac1635114",
+        "previous": null
+      }
+    }
+  },
+  "status": "detected",
+  "mutations": [
+    {
+      "name": "revocation-cache",
+      "test": "test_revocation_stops_motion_without_a_recipient_request",
+      "exit_code": 1,
+      "status": "detected",
+      "file": "src/world/authority.cpp",
+      "before_sha256": "a3e4bb839aa3b07c6ce3be6bd2ddc1aae0f73d4cb4305b4aabcbb187310b5e8d",
+      "after_sha256": "22b31daccc2e932757e779008baccd8ba6cb7c54442059a365d83297faedc220"
+    },
+    {
+      "name": "object-scope",
+      "test": "test_object_scope_and_visibility_are_enforced_in_actor_engine",
+      "exit_code": 1,
+      "status": "detected",
+      "file": "src/world/objects.cpp",
+      "before_sha256": "3d02fc3fa458bcd051583b16fed070c3a651d587caaa154d2af99a4e3e71cb01",
+      "after_sha256": "9e78436ead4d1091a214525ccae75fd6584b177f9266dda71f55cb22a549e7db"
+    }
+  ]
+}

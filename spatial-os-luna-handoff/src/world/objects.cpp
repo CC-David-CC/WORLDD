@@ -17,7 +17,8 @@ void Actors::refresh_objects() {
             const auto current = store_.get(actor.object->original.id());
             const auto& original = actor.object->original;
             valid = current.revision() == original.revision() && current.world_revision() == original.world_revision() &&
-                    current.room() == actor.entity.room() && actor.grants.contains("world.write");
+                    current.room() == actor.entity.room() && granted(actor, "world.write", {current.room(), current.id()}) &&
+                    (!actor.authority || granted(actor, "observe"));
         } catch (const WorldError& error) {
             if (error.code != wire::NOT_FOUND) throw;
         }
@@ -26,11 +27,16 @@ void Actors::refresh_objects() {
 }
 void Actors::object_action(Actor& actor, const wire::ActorActionRequest& request) {
     refresh_objects();
+    if (actor.authority && request.has_object_release() && request.object_release().has_commit() && !request.object_release().commit()) {
+        cancel_object(actor); return;
+    }
+    if (actor.authority && !granted(actor, "observe")) throw WorldError(wire::FORBIDDEN, "Observation authority required");
     if (request.has_object_grab()) {
         const auto& id = request.object_grab().id();
         if (id.empty() || id.size() > 256 || id.find('\0') != std::string::npos)
             throw std::invalid_argument("Invalid object ID");
         const auto object = store_.get(id);
+        if (!granted(actor, "world.write", {object.room(), object.id()})) throw WorldError(wire::FORBIDDEN, "Object manipulation authority required");
         if (object.kind() != wire::OBJECT) throw std::invalid_argument("Target is not a movable object");
         if (object.room() != actor.entity.room()) throw WorldError(wire::NOT_VISIBLE, "Object is in another room");
         if (actor.object) throw WorldError(wire::BUSY, "Actor already holds an object");

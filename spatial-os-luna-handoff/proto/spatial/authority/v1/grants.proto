@@ -53,3 +53,8 @@ message Decision {
   uint64 revision = 2;
   bytes grant_id = 3; // One complete valid chain. Never a union of sibling chains.
 }
+message GrantPage {
+  uint64 revision = 1;
+  repeated GrantRecord grants = 2;
+  bytes next_after = 3; // Empty means no next page.
+}

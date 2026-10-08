@@ -1,0 +1,180 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start  1: authority-store
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-authority-probe"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+1: Test timeout computed to be: 60
+1: test_administration_delegation_requires_explicit_permission (__main__.AuthorityTests.test_administration_delegation_requires_explicit_permission) ... ok
+1: test_administration_does_not_imply_other_rights_or_delegation (__main__.AuthorityTests.test_administration_does_not_imply_other_rights_or_delegation) ... ok
+1: test_bounded_scopes (__main__.AuthorityTests.test_bounded_scopes) ... ok
+1: test_changed_parent_policy_is_detected (__main__.AuthorityTests.test_changed_parent_policy_is_detected) ... ok
+1: test_child_cannot_retain_parent_depth (__main__.AuthorityTests.test_child_cannot_retain_parent_depth) ... ok
+1: test_corrupt_parent_chain_fails_closed (__main__.AuthorityTests.test_corrupt_parent_chain_fails_closed) ... ok
+1: test_database_has_real_durable_parent_and_scope_records (__main__.AuthorityTests.test_database_has_real_durable_parent_and_scope_records) ... ok
+1: test_delegable_right_requires_held_right (__main__.AuthorityTests.test_delegable_right_requires_held_right) ... ok
+1: test_delegable_subset_is_explicit (__main__.AuthorityTests.test_delegable_subset_is_explicit) ... ok
+1: test_domain_kind_and_identity_do_not_alias (__main__.AuthorityTests.test_domain_kind_and_identity_do_not_alias) ... ok
+1: test_empty_store_denies_and_root_is_explicit (__main__.AuthorityTests.test_empty_store_denies_and_root_is_explicit) ... ok
+1: test_failed_database_commit_rolls_back_revision_and_grant (__main__.AuthorityTests.test_failed_database_commit_rolls_back_revision_and_grant) ... ok
+1: test_generated_chains_attenuate_and_do_not_union (__main__.AuthorityTests.test_generated_chains_attenuate_and_do_not_union) ... ok
+1: test_grandchild_cannot_recover_removed_right (__main__.AuthorityTests.test_grandchild_cannot_recover_removed_right) ... ok
+1: test_held_right_is_not_implicitly_delegable (__main__.AuthorityTests.test_held_right_is_not_implicitly_delegable) ... ok
+1: test_inactive_ancestor_blocks_descendants (__main__.AuthorityTests.test_inactive_ancestor_blocks_descendants) ... ok
+1: test_inactive_subject_cannot_act_or_receive_delegation (__main__.AuthorityTests.test_inactive_subject_cannot_act_or_receive_delegation) ... ok
+1: test_independent_grants_survive_parent_revocation (__main__.AuthorityTests.test_independent_grants_survive_parent_revocation) ... ok
+1: test_issuer_can_revoke_child_and_subject_can_relinquish (__main__.AuthorityTests.test_issuer_can_revoke_child_and_subject_can_relinquish) ... ok
+1: test_missing_parent_is_not_an_implicit_root (__main__.AuthorityTests.test_missing_parent_is_not_an_implicit_root) ... ok
+1: test_missing_parent_record_is_storage_failure (__main__.AuthorityTests.test_missing_parent_record_is_storage_failure) ... ok
+1: test_parent_and_issuer_are_derived (__main__.AuthorityTests.test_parent_and_issuer_are_derived) ... ok
+1: test_parent_revocation_invalidates_all_descendants (__main__.AuthorityTests.test_parent_revocation_invalidates_all_descendants) ... ok
+1: test_private_database_and_directory_are_required (__main__.AuthorityTests.test_private_database_and_directory_are_required) ... ok
+1: test_process_death_preserves_committed_grants (__main__.AuthorityTests.test_process_death_preserves_committed_grants) ... ok
+1: test_records_and_decisions_survive_restart (__main__.AuthorityTests.test_records_and_decisions_survive_restart) ... ok
+1: test_revision_conflict_preserves_records (__main__.AuthorityTests.test_revision_conflict_preserves_records) ... ok
+1: test_rights_widening_fails (__main__.AuthorityTests.test_rights_widening_fails) ... ok
+1: test_same_actor_bytes_from_another_issuer_are_not_identity (__main__.AuthorityTests.test_same_actor_bytes_from_another_issuer_are_not_identity) ... ok
+1: test_scope_is_component_wise (__main__.AuthorityTests.test_scope_is_component_wise) ... ok
+1: test_scope_widening_and_sibling_delegation_fail (__main__.AuthorityTests.test_scope_widening_and_sibling_delegation_fail) ... ok
+1: test_scoped_administrator_cannot_revoke_outside_scope (__main__.AuthorityTests.test_scoped_administrator_cannot_revoke_outside_scope) ... ok
+1: test_sibling_rights_cannot_be_combined_for_delegation (__main__.AuthorityTests.test_sibling_rights_cannot_be_combined_for_delegation) ... ok
+1: test_symlink_and_hardlink_databases_are_rejected (__main__.AuthorityTests.test_symlink_and_hardlink_databases_are_rejected) ... ok
+1: test_unknown_database_schema_requires_explicit_migration (__main__.AuthorityTests.test_unknown_database_schema_requires_explicit_migration) ... ok
+1: test_unknown_duplicate_and_unspecified_rights_fail (__main__.AuthorityTests.test_unknown_duplicate_and_unspecified_rights_fail) ... ok
+1: test_unknown_fields_and_invalid_actor_are_rejected (__main__.AuthorityTests.test_unknown_fields_and_invalid_actor_are_rejected) ... ok
+1: test_unrelated_actor_cannot_revoke (__main__.AuthorityTests.test_unrelated_actor_cannot_revoke) ... ok
+1: test_workspace_rights_remain_independent (__main__.AuthorityTests.test_workspace_rights_remain_independent) ... ok
+1: test_world_cannot_grant_workspace_execution (__main__.AuthorityTests.test_world_cannot_grant_workspace_execution) ... ok
+1: test_wrong_domain_and_second_authority_cannot_open_store (__main__.AuthorityTests.test_wrong_domain_and_second_authority_cannot_open_store) ... ok
+1: test_wrong_subject_cannot_delegate (__main__.AuthorityTests.test_wrong_subject_cannot_delegate) ... ok
+1: test_zero_depth_and_excess_depth_are_invalid (__main__.AuthorityTests.test_zero_depth_and_excess_depth_are_invalid) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 43 tests in 1.968s
+1: 
+1: OK
+1/4 Test  #1: authority-store ..................   Passed    2.06 sec
+test 7
+    Start  7: actor-status
+
+7: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_status.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client"
+7: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+7: Environment variables: 
+7:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+7: Test timeout computed to be: 90
+7: test_actor_revocation_is_visible_without_a_new_credential (__main__.ActorStatusTests.test_actor_revocation_is_visible_without_a_new_credential) ... ok
+7: test_actor_status_discloses_no_labels_keys_or_credentials (__main__.ActorStatusTests.test_actor_status_discloses_no_labels_keys_or_credentials) ... ok
+7: test_batch_accepts_exactly_128_distinct_identities (__main__.ActorStatusTests.test_batch_accepts_exactly_128_distinct_identities) ... ok
+7: test_checked_client_remains_usable_after_typed_request_error (__main__.ActorStatusTests.test_checked_client_remains_usable_after_typed_request_error) ... ok
+7: test_client_rejects_inconsistent_actor_flags (__main__.ActorStatusTests.test_client_rejects_inconsistent_actor_flags) ... ok
+7: test_client_rejects_missing_or_extra_subject (__main__.ActorStatusTests.test_client_rejects_missing_or_extra_subject) ... ok
+7: test_client_rejects_reordered_or_substituted_subjects (__main__.ActorStatusTests.test_client_rejects_reordered_or_substituted_subjects) ... ok
+7: test_client_rejects_unknown_fields_and_excessive_revision (__main__.ActorStatusTests.test_client_rejects_unknown_fields_and_excessive_revision) ... ok
+7: test_client_rejects_wrong_issuer_pin (__main__.ActorStatusTests.test_client_rejects_wrong_issuer_pin) ... ok
+7: test_credential_revocation_does_not_revoke_actor_grants (__main__.ActorStatusTests.test_credential_revocation_does_not_revoke_actor_grants) ... ok
+7: test_empty_duplicate_short_and_excessive_batches_fail (__main__.ActorStatusTests.test_empty_duplicate_short_and_excessive_batches_fail) ... ok
+7: test_failed_revocation_does_not_publish_inactive_status (__main__.ActorStatusTests.test_failed_revocation_does_not_publish_inactive_status) ... ok
+7: test_human_and_agent_identities_use_the_same_status (__main__.ActorStatusTests.test_human_and_agent_identities_use_the_same_status) ... ok
+7: test_order_and_mixed_known_unknown_statuses_are_preserved (__main__.ActorStatusTests.test_order_and_mixed_known_unknown_statuses_are_preserved) ... ok
+7: test_production_client_reads_current_enrolled_actor (__main__.ActorStatusTests.test_production_client_reads_current_enrolled_actor) ... ok
+7: test_reads_do_not_change_database_or_security_revision (__main__.ActorStatusTests.test_reads_do_not_change_database_or_security_revision) ... ok
+7: test_revocation_status_survives_issuer_restart (__main__.ActorStatusTests.test_revocation_status_survives_issuer_restart) ... ok
+7: test_status_is_not_a_proof_or_an_administrator_credential (__main__.ActorStatusTests.test_status_is_not_a_proof_or_an_administrator_credential) ... ok
+7: test_unapproved_enrollment_is_not_an_actor (__main__.ActorStatusTests.test_unapproved_enrollment_is_not_an_actor) ... ok
+7: test_unknown_actor_is_explicitly_inactive (__main__.ActorStatusTests.test_unknown_actor_is_explicitly_inactive) ... ok
+7: test_unknown_request_fields_fail_without_poisoning_service (__main__.ActorStatusTests.test_unknown_request_fields_fail_without_poisoning_service) ... ok
+7: 
+7: ----------------------------------------------------------------------
+7: Ran 21 tests in 10.292s
+7: 
+7: OK
+2/4 Test  #7: actor-status .....................   Passed   10.43 sec
+test 14
+    Start 14: world-identity
+
+14: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+14: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+14: Environment variables: 
+14:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+14:  SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe
+14: Test timeout computed to be: 120
+14: test_actor_channel_does_not_expose_management (__main__.WorldIdentityTests.test_actor_channel_does_not_expose_management) ... ok
+14: test_actor_revocation_releases_native_input (__main__.WorldIdentityTests.test_actor_revocation_releases_native_input) ... ok
+14: test_anonymous_channel_cannot_act_or_inspect (__main__.WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect) ... ok
+14: test_caller_token_cannot_select_another_actor (__main__.WorldIdentityTests.test_caller_token_cannot_select_another_actor) ... ok
+14: test_credential_revocation_preserves_another_credential_for_actor (__main__.WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor) ... ok
+14: test_credential_revocation_releases_native_input_without_another_actor_request (__main__.WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request) ... ok
+14: test_current_status_blocks_actions_after_committed_revocation (__main__.WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation) ... ok
+14: test_disconnect_releases_real_native_input_and_keeps_application (__main__.WorldIdentityTests.test_disconnect_releases_real_native_input_and_keeps_application) ... ok
+14: test_excessive_frame_closes_actor_channel_and_releases_input (__main__.WorldIdentityTests.test_excessive_frame_closes_actor_channel_and_releases_input) ... ok
+14: test_idle_session_keeps_issuer_checks_available (__main__.WorldIdentityTests.test_idle_session_keeps_issuer_checks_available) ... ok
+14: test_issuer_failure_cancels_live_control_and_does_not_kill_application (__main__.WorldIdentityTests.test_issuer_failure_cancels_live_control_and_does_not_kill_application) ... ok
+14: test_private_world_requires_separate_admission (__main__.WorldIdentityTests.test_private_world_requires_separate_admission) ... ok
+14: test_proof_is_bound_to_its_channel (__main__.WorldIdentityTests.test_proof_is_bound_to_its_channel) ... ok
+14: test_public_admission_does_not_grant_action_authority (__main__.WorldIdentityTests.test_public_admission_does_not_grant_action_authority) ... ok
+14: test_revocation_between_challenge_and_completion_prevents_entry (__main__.WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry) ... ok
+14: test_revoked_credential_cannot_enter (__main__.WorldIdentityTests.test_revoked_credential_cannot_enter) ... ok
+14: test_session_reconnect_restores_saved_room_and_pose (__main__.WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose) ... ok
+14: test_world_audience_and_random_binding_are_checked (__main__.WorldIdentityTests.test_world_audience_and_random_binding_are_checked) ... ok
+14: test_world_session_derives_identity_and_uses_real_actor (__main__.WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor) ... ok
+14: test_wrong_key_and_replayed_completion_fail (__main__.WorldIdentityTests.test_wrong_key_and_replayed_completion_fail) ... ok
+14: 
+14: ----------------------------------------------------------------------
+14: Ran 20 tests in 20.202s
+14: 
+14: OK
+3/4 Test #14: world-identity ...................   Passed   20.45 sec
+test 15
+    Start 15: world-authority
+
+15: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_authority.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+15: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+15: Environment variables: 
+15:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+15:  SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe
+15: Test timeout computed to be: 180
+15: test_delegation_uses_authenticated_principal (__main__.WorldAuthorityTests.test_delegation_uses_authenticated_principal) ... ok
+15: test_explicit_seed_and_real_actor_navigation (__main__.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation) ... ok
+15: test_grant_cannot_cross_world_identity (__main__.WorldAuthorityTests.test_grant_cannot_cross_world_identity) ... ok
+15: test_grant_listing_is_subject_filtered_and_paginated (__main__.WorldAuthorityTests.test_grant_listing_is_subject_filtered_and_paginated) ... ok
+15: test_grants_survive_world_restart (__main__.WorldAuthorityTests.test_grants_survive_world_restart) ... ok
+15: test_independent_navigation_grant_survives_revocation (__main__.WorldAuthorityTests.test_independent_navigation_grant_survives_revocation) ... ok
+15: test_invalid_delegation_consumes_actor_sequence (__main__.WorldAuthorityTests.test_invalid_delegation_consumes_actor_sequence) ... ok
+15: test_object_scope_and_visibility_are_enforced_in_actor_engine (__main__.WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine) ... ok
+15: test_private_admission_requires_persistent_enter_grant (__main__.WorldAuthorityTests.test_private_admission_requires_persistent_enter_grant) ... ok
+15: test_private_admission_revocation_closes_only_affected_session (__main__.WorldAuthorityTests.test_private_admission_revocation_closes_only_affected_session) ... ok
+15: test_public_admission_does_not_create_action_grants (__main__.WorldAuthorityTests.test_public_admission_does_not_create_action_grants) ... ok
+15: test_revocation_cancels_object_draft_and_releases_lease (__main__.WorldAuthorityTests.test_revocation_cancels_object_draft_and_releases_lease) ... ok
+15: test_revocation_stops_motion_without_a_recipient_request (__main__.WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request) ... ok
+15: test_revoked_ancestor_without_world_session_stops_descendant (__main__.WorldAuthorityTests.test_revoked_ancestor_without_world_session_stops_descendant) ... ok
+15: test_world_administration_does_not_mint_workspace_authority (__main__.WorldAuthorityTests.test_world_administration_does_not_mint_workspace_authority) ... ok
+15: test_world_observation_omits_native_application_surfaces (__main__.WorldAuthorityTests.test_world_observation_omits_native_application_surfaces) ... ok
+15: 
+15: ----------------------------------------------------------------------
+15: Ran 16 tests in 23.378s
+15: 
+15: OK
+4/4 Test #15: world-authority ..................   Passed   23.63 sec
+
+The following tests passed:
+	authority-store
+	actor-status
+	world-identity
+	world-authority
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =  56.57 sec

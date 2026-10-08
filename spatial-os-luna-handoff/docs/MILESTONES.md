@@ -23,13 +23,14 @@ Manual and automatic issuance currently support only the empty-v1 profile. See E
 Issuer-side revocation and fresh authentication are qualified. See IDENTITY_REVOCATION.md for their scope.
 Protected issuer transport, its checked client, and its ordered revocation watcher are qualified components.
 Authenticated local world channels now use real actor actions and cancel held native input. See WORLD_IDENTITY.md.
-Nonempty bootstrap profiles, persistent scoped authority, remote actor transport, and distributed revocation acknowledgement remain required.
+Nonempty bootstrap profiles, workspace authority, remote actor transport, and distributed revocation acknowledgement remain required.
 Static baseline action grants do not establish workspace or application isolation. M01 remains incomplete.
 The persistent authority-store library now qualifies structural delegation and stored revocation. See AUTHORITY_STORE.md.
-Its 43 checks run in the 445-check core suite. Runtime adapters and nonempty profiles remain required.
-Worldd and workspaced do not yet consume these records. M02 remains incomplete.
-The current actor-status service and checked client now support ancestor validation. See ACTOR_STATUS.md.
-Its 21 checks run in the 466-check core suite. Live grant-store integration remains required.
+Its 43 checks remain part of the current 493-check core suite.
+Current actor-status queries support ancestor validation. See ACTOR_STATUS.md.
+Worldd now enforces persistent world grants through authenticated local sessions. See WORLD_AUTHORITY.md.
+Its 27 checks cover live cancellation, delegation, scope, persistence, and configuration boundaries.
+Workspace integration and distributed revocation acknowledgement remain required. M02 remains incomplete.
 
 ## Ordered implementation
 

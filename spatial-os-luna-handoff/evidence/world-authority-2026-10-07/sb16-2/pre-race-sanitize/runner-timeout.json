@@ -1,0 +1,9 @@
+{
+  "status": "timed_out",
+  "stage": "core",
+  "aggregate_limit_seconds": 300,
+  "last_completed_suite": "workspace-processes",
+  "interrupted_suite": "storage-faults",
+  "qualification_complete": false,
+  "followup": "Expanded complete-core budget to 600 seconds; individual CTest deadlines remain unchanged. Final sources require a fresh full qualification."
+}

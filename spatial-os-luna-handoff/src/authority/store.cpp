@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cerrno>
 #include <fcntl.h>
+#include <map>
 #include <set>
 #include <sys/file.h>
 #include <sys/stat.h>
@@ -240,6 +241,42 @@ struct Store::Impl {
 Store::Store(const std::filesystem::path& directory, const pb::Domain& domain, bool initialize)
     : impl_(std::make_unique<Impl>(directory, domain, initialize)) {}
 Store::~Store() = default;
+std::vector<pb::GrantRecord> Store::install_roots(const std::vector<pb::GrantTerms>& values, std::uint64_t revision) {
+    require(!values.empty() && values.size() <= 64, "Provision between one and 64 root grants");
+    for (const auto& value : values) { terms(value); permit(same(value.scope().domain(), impl_->owner)); }
+    Transaction tx(impl_->db.get()); impl_->expected(revision);
+    std::vector<pb::GrantRecord> result;
+    for (const auto& value : values) result.push_back(impl_->insert(value));
+    tx.commit(); return result;
+}
+std::vector<pb::ActorRef> Store::subjects(const pb::ActorRef& caller) {
+    actor(caller); Transaction tx(impl_->db.get());
+    std::map<std::pair<std::string, std::string>, pb::ActorRef> found;
+    const auto collect = [&](const pb::ActorRef& value) {
+        found.emplace(std::make_pair(value.issuer_id(), value.actor_id()), value); return true;
+    };
+    collect(caller);
+    Query rows(impl_->db.get(), "SELECT id FROM grant_record WHERE issuer=? AND actor=? ORDER BY id");
+    rows.blob(1, caller.issuer_id()); rows.blob(2, caller.actor_id());
+    while (rows.step() == SQLITE_ROW) impl_->active(impl_->get(rows.blob(0)), collect);
+    std::vector<pb::ActorRef> result;
+    for (const auto& [key, value] : found) { (void)key; result.push_back(value); }
+    tx.commit(); return result;
+}
+pb::GrantPage Store::list(const pb::ActorRef& caller, const std::string& after, std::uint32_t limit) {
+    actor(caller); require(after.empty() || after.size() == 32, "Invalid grant cursor");
+    require(limit <= 16, "Grant page limit exceeds 16"); if (!limit) limit = 16;
+    Transaction tx(impl_->db.get()); pb::GrantPage result; result.set_revision(impl_->revision());
+    Query rows(impl_->db.get(), "SELECT id FROM grant_record WHERE issuer=? AND actor=? AND id>? ORDER BY id LIMIT 17");
+    rows.blob(1, caller.issuer_id()); rows.blob(2, caller.actor_id()); rows.blob(3, after);
+    while (rows.step() == SQLITE_ROW) {
+        if (result.grants_size() == static_cast<int>(limit)) {
+            result.set_next_after(result.grants(result.grants_size()-1).id()); break;
+        }
+        *result.add_grants() = impl_->get(rows.blob(0));
+    }
+    tx.commit(); return result;
+}
 pb::GrantRecord Store::install_root(const pb::GrantTerms& value, std::uint64_t revision) {
     terms(value); permit(same(value.scope().domain(), impl_->owner));
     Transaction tx(impl_->db.get()); impl_->expected(revision);

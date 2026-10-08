@@ -1,0 +1,20 @@
+test_revocation_stops_motion_without_a_recipient_request (__main__.WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request) ... FAIL
+
+======================================================================
+FAIL: test_revocation_stops_motion_without_a_recipient_request (__main__.WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-live-mutation-v2/source/spatial-os-luna-handoff/tests/core/test_world_authority.py", line 223, in test_revocation_stops_motion_without_a_recipient_request
+    self.assertEqual(before, after)
+AssertionError: {'p': [0.12297206899999996, 0.0, 0.0], 'q': [0.0, 0.0, 0.0, 1.0]} != {'p': [0.27345816800000006, 0.0, 0.0], 'q': [0.0, 0.0, 0.0, 1.0]}
+- {'p': [0.12297206899999996, 0.0, 0.0], 'q': [0.0, 0.0, 0.0, 1.0]}
+?           ^^^^^  ---------
+
++ {'p': [0.27345816800000006, 0.0, 0.0], 'q': [0.0, 0.0, 0.0, 1.0]}
+?          ++++++ ^^^^^^^^
+
+
+----------------------------------------------------------------------
+Ran 1 test in 1.662s
+
+FAILED (failures=1)

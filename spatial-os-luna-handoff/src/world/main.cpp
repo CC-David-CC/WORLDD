@@ -1,4 +1,5 @@
 #include "world/server.hpp"
+#include "world/authority.hpp"
 #include "world/identity_sessions.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
@@ -12,7 +13,7 @@
 #include <string_view>
 
 int main(int argc, char** argv) {
-    std::filesystem::path state, config, identity_config;
+    std::filesystem::path state, config, identity_config, authority_seed;
     std::vector<int> actor_channels;
     std::string display;
     bool fixture_clock = false, fixture_faults = false, migration = false;
@@ -27,6 +28,7 @@ int main(int argc, char** argv) {
             else if (argument == "--state-dir" && state.empty() && i + 1 < argc) state = argv[++i];
             else if (argument == "--config" && config.empty() && i + 1 < argc) config = argv[++i];
             else if (argument == "--display" && display.empty() && i + 1 < argc) display = argv[++i];
+            else if (argument == "--init-authority" && authority_seed.empty() && i + 1 < argc) authority_seed = argv[++i];
             else if (argument == "--identity-config" && identity_config.empty() && i + 1 < argc) identity_config = argv[++i];
             else if (argument == "--actor-fd" && i + 1 < argc) {
                 int fd = -1; const std::string_view number(argv[++i]);
@@ -51,6 +53,13 @@ int main(int argc, char** argv) {
         for (const auto fd : actor_channels) {
             if (!unique_channels.insert(fd).second || fd == broker_fd) throw std::invalid_argument("Duplicate actor or broker channel");
             spatial::prepare_actor_channel(fd);
+        }
+        if (!authority_seed.empty()) {
+            if (migration || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
+                throw std::invalid_argument("Authority initialization only accepts --state-dir and --init-authority");
+            umask(0077); spatial::WorldStore world(state);
+            spatial::initialize_world_authority(authority_seed, world.info().world_id());
+            std::cerr << "World authority initialization complete\n"; return 0;
         }
         if (migration) {
             if (fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)

@@ -1,0 +1,29 @@
+test_credential_revocation_during_ancestor_preparation_prevents_entry (__main__.WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry) ... FAIL
+
+======================================================================
+FAIL: test_credential_revocation_during_ancestor_preparation_prevents_entry (__main__.WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/m02-live-race-test.py", line 387, in test_credential_revocation_during_ancestor_preparation_prevents_entry
+    self.denied(self.authenticate(world.peers[0]), core.UNAUTHORIZED)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 0 != 12 : protocol_version: 1
+request_id: 2
+opened {
+  actor_id: "identity:63d63e5745362ee0750ba9635c7413067d748f88a698de817b0d51502523e9da:ad2f01501f3c427ff59d3e65de97df8325f7258b641b8750ea15a9b6985dbd34"
+  world_id: "ce30805b76452700695780a5997717ba"
+  identity {
+    issuer_id: "c\326>WE6.\340u\013\251c\\t\023\006}t\217\210\246\230\336\201{\rQP%#\351\332"
+    actor_id: "\255/\001P\037<B\177\365\235>e\336\227\337\203%\367%\213d\033\207P\352\025\251\266\230]\2754"
+    credential_id: "\374PN\275^\361+\257\251\007\237\336M\013S\347\253\317\305[\346\353\034\3064\366\'Q\360\207e\232"
+    kind: HUMAN
+    active: true
+  }
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 1.293s
+
+FAILED (failures=1)

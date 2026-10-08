@@ -72,7 +72,10 @@ def main():
             record['source_sha256'][str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()
     for label, command in commands:
         with (evidence / f'{label}.log').open('wb') as log:
-            result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=300)
+            # The complete core suite has grown beyond the original aggregate budget.
+            # Individual CTest deadlines and acceptance assertions remain unchanged.
+            result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
+                                    timeout=600 if label == 'core' else 300)
         record['commands'].append({'name': label, 'argv': command, 'exit_code': result.returncode})
         print(f'{label}: {result.returncode}', flush=True)
         if result.returncode:

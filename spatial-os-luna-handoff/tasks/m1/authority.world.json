@@ -1,0 +1,31 @@
+{
+  "id": "authority.world",
+  "phase": "M02",
+  "scope": "Persistent grants in authenticated world actor actions",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/WORLD_AUTHORITY.md",
+  "invariant": "Each authenticated world action uses current scoped authority, and revocation cancels affected live actions without invalidating independent grants.",
+  "production_roots": ["src/world/", "src/authority/", "proto/spatial/identity/v1/world_session.proto"],
+  "counterexample_suite": "tests/core/test_world_authority.py",
+  "focused_command": "ctest --test-dir build -V -R '^(world-authority|world-identity|authority-store|actor-status)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts in Debug and ASan/UBSan",
+    "Full P00-P10 baseline and unchanged locked assertions",
+    "Explicit provisioning, transactional seed validation, and restart persistence",
+    "Authenticated delegation, parent attenuation, subject-filtered listing, and replay rejection",
+    "Motion and object cancellation after grant or ancestor revocation",
+    "Independent grants and credential-only revocation preserve valid authority",
+    "Real issuer revocation during ancestor-status preparation prevents pending admission",
+    "Native application observations and workspace execution remain unavailable through world grants",
+    "Independent mutations detect missing decision invalidation and object scope enforcement"
+  ],
+  "limitations": [
+    "Actor channels remain inherited local sockets.",
+    "Workspace grants, application visibility, and execution authority need separate integration.",
+    "Issuer snapshots are not atomic with later world effects.",
+    "Distributed revocation acknowledgement and nonempty bootstrap profiles remain pending.",
+    "Physical controls and full native session acceptance remain pending."
+  ],
+  "next_components": ["authority.workspace", "identity.bootstrap_profile", "identity.world_session"]
+}

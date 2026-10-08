@@ -2,8 +2,8 @@
 
 This component implements persistent grants for M02 and later bootstrap-profile integration.
 It is a production C++ library. Its test adapter is not an actor endpoint.
-Worldd and workspaced do not yet use this store for live authorization.
-Static world grants and existing workspace memberships remain unchanged at this increment.
+Worldd now uses this store for authenticated local actions when persistent authority is configured. See WORLD_AUTHORITY.md.
+Static world configuration remains available for baseline fixtures. Workspace grant integration remains pending.
 M01, M02, and Spatial-M1 remain incomplete.
 
 ## Ownership and trust boundary
@@ -27,7 +27,7 @@ The library does not authenticate actor references supplied by an untrusted requ
 The caller must also supply a current identity-status checker.
 Every evaluated grant chain checks its subject identities through that checker.
 The issuer now provides bounded current actor-status batches. See ACTOR_STATUS.md.
-The runtime must still connect those checks and reconcile their revisions with revocation notifications.
+The world adapter connects those checks and reconciles their revisions with revocation notifications.
 Missing checkers fail. Checker exceptions propagate; they never grant authority.
 Identity-check failure policy remains the runtime adapter's responsibility.
 
@@ -35,7 +35,7 @@ Install roots only through explicit trusted domain provisioning.
 Do not expose install_root through ordinary actor transport.
 Enrollment authority alone cannot install a domain root.
 Runtime integration must pin each domain's provisioning authority.
-That integration and nonempty bootstrap profiles remain required work.
+World roots now use explicit private operator provisioning. Workspace provisioning and nonempty bootstrap profiles remain required.
 
 ## Scope and rights
 

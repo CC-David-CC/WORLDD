@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <vector>
 
 namespace spatial::authority {
 // Callers must supply authenticated identities and a current identity checker.
@@ -17,6 +18,10 @@ public:
     // Only explicit trusted domain provisioning may call install_root.
     // Ordinary actors must use delegate, including domain administrators.
     v1::GrantRecord install_root(const v1::GrantTerms&, std::uint64_t expected_revision);
+    std::vector<v1::GrantRecord> install_roots(const std::vector<v1::GrantTerms>&, std::uint64_t expected_revision);
+    // Collect candidate-chain identities before external status I/O. This grants no authority.
+    std::vector<v1::ActorRef> subjects(const v1::ActorRef& caller);
+    v1::GrantPage list(const v1::ActorRef& caller, const std::string& after, std::uint32_t limit);
     v1::GrantRecord delegate(const v1::ActorRef& caller, const std::string& parent,
                             const v1::GrantTerms&, std::uint64_t expected_revision, const IdentityCheck&);
     v1::GrantRecord revoke(const v1::ActorRef& caller, const std::string& id,
