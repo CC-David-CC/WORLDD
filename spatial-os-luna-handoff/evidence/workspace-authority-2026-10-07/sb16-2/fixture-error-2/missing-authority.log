@@ -1,0 +1,23 @@
+test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process) ... ERROR
+
+======================================================================
+ERROR: test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_authority.py", line 146, in test_authenticated_workspace_selection_and_confined_process
+    world = self.workspace(); peer = world.peers[0]; self.select(peer)
+            ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_authority.py", line 75, in workspace
+    first.call('workspace.create', id='one', worktree='tree-one', policy=policy); first.close()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_authority.py", line 37, in call
+    self.sequence += 1; request = make_request(method, args); request.request_id = self.sequence
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 351, in make_request
+    raise ValueError('Unknown workspace right')
+ValueError: Unknown workspace right
+
+----------------------------------------------------------------------
+Ran 1 test in 0.863s
+
+FAILED (errors=1)

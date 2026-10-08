@@ -2,6 +2,7 @@
 #include "workspace/git_command.hpp"
 #include "workspace/status.hpp"
 #include "workspace/process.hpp"
+#include "workspace/authority.hpp"
 #include "world/store.hpp"
 #include <sqlite3.h>
 #include <fcntl.h>
@@ -138,6 +139,7 @@ struct ExecutionStore::Impl {
     File lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
     std::map<std::string, std::unique_ptr<ApplicationProcess>> jobs;
+    WorkspaceAuthority* authority = nullptr;
     explicit Impl(const std::filesystem::path& directory, unsigned migrate_from, bool enable_faults) : fixture_faults(enable_faults) {
         require(!migrate_from || !fixture_faults, "Migration cannot enable fixture faults");
         require(directory.is_absolute() && !std::filesystem::is_symlink(directory), "Execution state requires an absolute nonsymlink directory");
@@ -573,6 +575,8 @@ wire::WorkspaceReply ExecutionStore::workspace_create(const wire::WorkspaceCreat
     return workspace_get(request.id());
 }
 wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberRequest& request) {
+    if (impl_->authority && impl_->authority->bound(request.id()))
+        throw WorldError(wire::FORBIDDEN, "Persistent workspace authority cannot use static membership edits");
     valid_text(request.id()); valid_text(request.actor()); const auto rights = rights_mask(request.rights());
     Transaction transaction(impl_->db.get()); const auto workspace = workspace_get(request.id());
     unsigned previous = 0;
@@ -599,20 +603,52 @@ wire::WorkspaceAck ExecutionStore::workspace_member(const wire::WorkspaceMemberR
     }
     wire::WorkspaceAck out; out.set_accepted(true); return out;
 }
-workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessRequest& request) {
+workspace::v1::AccessReply ExecutionStore::access(const workspace::v1::AccessRequest& request, bool fresh) {
     valid_text(request.workspace()); valid_text(request.actor()); const auto descriptor = workspace_get(request.workspace());
     unsigned rights = 0;
-    Query q(impl_->db.get(), "SELECT rights FROM workspace_members WHERE workspace=? AND actor=?"); q.text(1, request.workspace()); q.text(2, request.actor());
-    if (q.step() == SQLITE_ROW) {
-        const auto stored = sqlite3_column_int64(q.value, 0);
-        if (stored < 0 || (stored & ~30)) throw WorldError(wire::STORAGE_ERROR, "Invalid stored workspace membership");
-        rights = static_cast<unsigned>(stored);
+    if (impl_->authority && impl_->authority->bound(request.workspace())) {
+        rights = impl_->authority->rights(request, fresh);
+    } else {
+        if (request.has_principal()) throw WorldError(wire::FORBIDDEN, "Persistent workspace authority is unavailable");
+        Query q(impl_->db.get(), "SELECT rights FROM workspace_members WHERE workspace=? AND actor=?"); q.text(1, request.workspace()); q.text(2, request.actor());
+        if (q.step() == SQLITE_ROW) {
+            const auto stored = sqlite3_column_int64(q.value, 0);
+            if (stored < 0 || (stored & ~30)) throw WorldError(wire::STORAGE_ERROR, "Invalid stored workspace membership");
+            rights = static_cast<unsigned>(stored);
+        }
     }
     rights &= rights_mask(descriptor.policy());
     workspace::v1::AccessReply out; out.set_revision(descriptor.revision());
     for (int right = wire::WORKSPACE_SELECT; right <= wire::PROCESS_LAUNCH; ++right)
         if (rights & (1u << right)) out.add_rights(static_cast<wire::WorkspaceRight>(right));
     return out;
+}
+void ExecutionStore::set_authority(WorkspaceAuthority* authority) { impl_->authority = authority; }
+void ExecutionStore::reconcile_authority() {
+    if (!impl_->authority) return;
+    struct Running { std::string id; workspace::v1::LaunchRequest request; unsigned rights; };
+    std::vector<Running> records;
+    {
+        Query q(impl_->db.get(), "SELECT id,payload,rights,workspace,actor FROM processes WHERE state='running'");
+        while (q.step() == SQLITE_ROW) {
+            Running record; record.id = q.text(0);
+            if (!record.request.ParseFromString(q.text(1)) || record.request.workspace() != q.text(3) || record.request.actor() != q.text(4))
+                throw WorldError(wire::STORAGE_ERROR, "Stored process authority is invalid");
+            validate_message(record.request);
+            const auto mask = sqlite3_column_int64(q.value, 2);
+            if (mask < 0 || (mask & ~30)) throw WorldError(wire::STORAGE_ERROR, "Stored process rights are invalid");
+            record.rights = static_cast<unsigned>(mask); records.push_back(std::move(record));
+        }
+    }
+    for (const auto& record : records) {
+        if (!record.request.has_principal()) continue;
+        workspace::v1::AccessRequest request; request.set_workspace(record.request.workspace()); request.set_actor(record.request.actor());
+        *request.mutable_principal() = record.request.principal();
+        const auto effective = rights_mask(access(request, false).rights());
+        if ((record.rights & effective) == record.rights) continue;
+        impl_->jobs.erase(record.id);
+        Query q(impl_->db.get(), "UPDATE processes SET state='revoked' WHERE id=?"); q.text(1, record.id); q.step();
+    }
 }
 wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchRequest& request) {
     valid_text(request.workspace()); valid_text(request.actor());
@@ -625,11 +661,14 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
     }
     require(size <= 32768, "Application argv exceeds limit");
     workspace::v1::AccessRequest query; query.set_workspace(request.workspace()); query.set_actor(request.actor());
+    if (request.has_principal()) *query.mutable_principal() = request.principal();
     unsigned effective = rights_mask(access(query).rights());
     const unsigned required = (1u << wire::WORKSPACE_SELECT) | (1u << wire::FILES_READ) | (1u << wire::PROCESS_LAUNCH);
     if ((effective & required) != required) throw WorldError(wire::FORBIDDEN, "Application requires project read and execution authority");
     effective &= ~(1u << wire::WORKSPACE_SELECT);
     if (command.profile() == "read-only") effective &= ~(1u << wire::FILES_WRITE);
+    // A fresh status reply can revoke an existing process before this retry lookup.
+    reconcile_authority();
     const auto payload = request.SerializeAsString();
     { Query old(impl_->db.get(), "SELECT id,payload,state FROM processes WHERE actor=? AND operation=?");
       old.text(1, request.actor()); old.text(2, command.operation_id());
@@ -660,9 +699,20 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
         if (!std::filesystem::create_directory(state)) throw std::runtime_error("Application state path already exists");
         for (const auto* name : {"home", "tmp", "cache", "config", "data"}) std::filesystem::create_directory(state / name);
         sync_path(state, true); sync_path(state.parent_path(), true);
-        auto process = std::make_unique<ApplicationProcess>(worktree.path(), repository.path(), state, (effective & (1u << wire::FILES_WRITE)) != 0, command);
+        std::function<void()> current = [] {};
+        if (request.has_principal()) current = [this, query, effective] {
+            impl_->authority->tick();
+            const auto rights = rights_mask(access(query, false).rights());
+            if ((effective & rights) != effective) throw WorldError(wire::FORBIDDEN, "Process execution authority was revoked");
+        };
+        auto process = std::make_unique<ApplicationProcess>(worktree.path(), repository.path(), state,
+            (effective & (1u << wire::FILES_WRITE)) != 0, command, std::move(current));
         impl_->jobs.emplace(id, std::move(process));
         Query q(impl_->db.get(), "UPDATE processes SET state='running' WHERE id=?"); q.text(1, id); q.step();
+    } catch (const WorldError& error) {
+        impl_->jobs.erase(id);
+        Query q(impl_->db.get(), "UPDATE processes SET state=? WHERE id=?");
+        q.text(1, error.code == wire::FORBIDDEN ? "revoked" : "uncertain"); q.text(2, id); q.step(); throw;
     } catch (...) {
         impl_->jobs.erase(id);
         Query q(impl_->db.get(), "UPDATE processes SET state='uncertain' WHERE id=?"); q.text(1, id); q.step();
@@ -684,6 +734,12 @@ wire::ProcessWaitReply ExecutionStore::wait(const wire::ProcessWaitRequest& requ
     if (found == impl_->jobs.end()) throw WorldError(wire::UNAVAILABLE, "No live supervisor owns this process");
     std::optional<int> result;
     try { result = found->second->wait(request.timeout_seconds()); }
+    catch (const WorldError& error) {
+        impl_->jobs.erase(found);
+        Query q(impl_->db.get(), "UPDATE processes SET state=? WHERE id=?");
+        q.text(1, error.code == wire::FORBIDDEN ? "revoked" : "uncertain"); q.text(2, request.id()); q.step();
+        throw WorldError(wire::UNAVAILABLE, "Process execution is revoked or completion is uncertain");
+    }
     catch (const std::exception&) {
         // One damaged application supervisor cannot poison unrelated future launches.
         impl_->jobs.erase(found);

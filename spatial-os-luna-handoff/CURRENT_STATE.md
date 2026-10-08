@@ -1,5 +1,51 @@
 # Implementation status
 
+## 2026-10-07: Persistent workspace execution authority qualified
+
+Authenticated actors now use persistent workspace grants for selection and confined process execution.
+The production broker opens explicitly configured workspace grant stores and checks current caller and ancestor identities.
+An exclusive seed command installs roots. Actor requests cannot install roots.
+World sessions expose subject-filtered listing, delegation, and revocation through additive protobuf fields.
+The broker derives access from scoped grants, workspace policy, and the requested process profile.
+World admission, world administration, and workspace availability do not grant workspace access.
+Static memberships cannot override a configured persistent workspace authority.
+
+Real processes use existing private bare repositories, worktrees, namespaces, and syscall restrictions.
+Partial file grants cannot make an entire project writable.
+Read-only profiles keep project files and Git administration read-only.
+Process records retain the authenticated principal and effective execution capabilities.
+Grant or ancestor revocation cancels processes that lose those capabilities, including idle and waiting processes.
+Independent grants can preserve execution. Losing selection or a credential does not stop otherwise authorized processes.
+Persistent grants, workspace selection, real files, and completed process records survive restart.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 512 core checks, including 19 workspace-authority checks.
+- All 51 harness checks.
+
+The tests use real issuer enrollment, authenticated world sessions, workspaced, Git, and confined POSIX processes.
+An expanded relay test reproduced stale launch acknowledgement after revocation during an issuer-status refresh.
+The broker now reconciles process authority before its retry lookup.
+An existing world-authority test also caught a changed denial code when no broker exists.
+The production fix preserves that assertion.
+Three independent mutations removed process cancellation, permitted excess writes, and restored the stale retry bug.
+Each mutation failed its corresponding counterexample. None entered production.
+Initial build and fixture errors remain in the evidence alongside final passing runs.
+
+All 154 source hashes match local files and both hosts.
+The acceptance lock and locked assertions remain unchanged.
+The additive contract is docs/WORKSPACE_AUTHORITY.md. Execution storage remains schema version 4.
+Evidence is in evidence/workspace-authority-2026-10-07.
+No system service, operator session, or actual David identity changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+Native application observation and control still require workspace and XLibre isolation.
+Cabinet actions, nonempty bootstrap profiles, remote actor transport, and distributed revocation acknowledgement remain required.
+M01, M02, Spatial-M1, and the other mandatory M01-M16/H01-H08 items remain incomplete.
+Next: assign native X connections immutable workspace and application identities, then enforce resource isolation.
+The full project goal remains active. No external blocker is recorded.
+
 ## 2026-10-07: Persistent world authority qualified
 
 Authenticated world actors now use persistent scoped grants in the production actor engine.

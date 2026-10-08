@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
             std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display);
         spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get());
         std::unique_ptr<spatial::IdentitySessions> sessions;
-        if (!identity_config.empty()) sessions = std::make_unique<spatial::IdentitySessions>(identity_config, actor_channels, world, actors);
+        if (!identity_config.empty()) sessions = std::make_unique<spatial::IdentitySessions>(identity_config, actor_channels, world, actors, broker.get());
         spatial::serve(world, actors, renderer.get(), &surfaces, broker.get(), sessions.get());
         return 0;
     } catch (const std::exception& error) {

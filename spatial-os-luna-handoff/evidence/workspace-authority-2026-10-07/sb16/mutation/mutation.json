@@ -1,0 +1,143 @@
+{
+  "base": "a5812399b1109d180d2f73b299826791963c13de",
+  "source_overlay": {
+    "base": "a5812399b1109d180d2f73b299826791963c13de",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "5e5846f9a70893060fba19d543d6383c0039b85a445791fbd0c3c6eb16788c92",
+        "after": "a39ba63c147436d8e3c026d1c739cc74f8ce4ff0086615aba9f5063a28c07ebc",
+        "previous": "a39ba63c147436d8e3c026d1c739cc74f8ce4ff0086615aba9f5063a28c07ebc"
+      },
+      "spatial-os-luna-handoff/docs/WORKSPACE_AUTHORITY.md": {
+        "before": null,
+        "after": "51245cbc8a9bd9e7888e3b04a61b5ab2f792e9db224074f3e3bd4a0460ec9011",
+        "previous": null
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/world_session.proto": {
+        "before": "79036e3c7f9a539be88316e50633b013d16ba650826cbcac84f73343df802c34",
+        "after": "3fb315ae473754757a0b3ee88e66339c3eb17ee456f7ae98f2bb2878e6b0e47a",
+        "previous": "3fb315ae473754757a0b3ee88e66339c3eb17ee456f7ae98f2bb2878e6b0e47a"
+      },
+      "spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto": {
+        "before": "0654306870dde412aa7293bfaffc31511d79b3e841c22b4105a98b9454966aa6",
+        "after": "7c8393a059056a5566b71ddec4df53932c0c8e4ad6cadb90844e9ee0ec4b0522",
+        "previous": "7c8393a059056a5566b71ddec4df53932c0c8e4ad6cadb90844e9ee0ec4b0522"
+      },
+      "spatial-os-luna-handoff/src/platform/broker.cpp": {
+        "before": "4774060e66ccf46bebc62f4c6ca2e9cd4b37a08ab84bcfea9817abc9273fea38",
+        "after": "52599dd1e75646d56131fa4325830bdc226c554804c94fd97eb5fff9488741e8",
+        "previous": "52599dd1e75646d56131fa4325830bdc226c554804c94fd97eb5fff9488741e8"
+      },
+      "spatial-os-luna-handoff/src/platform/broker.hpp": {
+        "before": "2b0281352a4d60ea732c5cc1ec8a2a148fd6e55329ead31dc7b20665d7dc2b9e",
+        "after": "09fb676133400a90f61b0d1b6bd5cfb9aa479469fc29c434fcc0415f2e686fda",
+        "previous": "09fb676133400a90f61b0d1b6bd5cfb9aa479469fc29c434fcc0415f2e686fda"
+      },
+      "spatial-os-luna-handoff/src/workspace/authority.cpp": {
+        "before": null,
+        "after": "5a35bf96608c3386e7eed2f4d1e36954f713754b0a3bdbb69c6078e2986206ad",
+        "previous": "5a35bf96608c3386e7eed2f4d1e36954f713754b0a3bdbb69c6078e2986206ad"
+      },
+      "spatial-os-luna-handoff/src/workspace/authority.hpp": {
+        "before": null,
+        "after": "44b83960ea5a44cd114cd5418f7b1eac82ca32551f9726fe15fa3b1d43f8a8a4",
+        "previous": "44b83960ea5a44cd114cd5418f7b1eac82ca32551f9726fe15fa3b1d43f8a8a4"
+      },
+      "spatial-os-luna-handoff/src/workspace/main.cpp": {
+        "before": "4b5bd7ee2df11fc5768d8dcc1dbb51e5a21b4414e012bdbfaecf3e99412db737",
+        "after": "8ceb0daa673d4f04d6459d52211ab1506b13bb843fc688aff54acf6d6f19aadf",
+        "previous": "8ceb0daa673d4f04d6459d52211ab1506b13bb843fc688aff54acf6d6f19aadf"
+      },
+      "spatial-os-luna-handoff/src/workspace/process.cpp": {
+        "before": "51430155c779e40470ce204eb0abafa97c9f53d1593629b9cb091b30ceeaf68f",
+        "after": "9be8cd5780942ec00413fe2ba0c5da8cadaf60ac60458e00847bd4c36baf3d49",
+        "previous": "5d28060e651f6389be87e316757ff763b9aa39e4b0f3af93aa935b93a37f0c9b"
+      },
+      "spatial-os-luna-handoff/src/workspace/process.hpp": {
+        "before": "997c6435aad5399d827d8c5c215c5e392b38042ac1010239ba9c74699682c6ea",
+        "after": "db2f21ae68b317ed38aeba24465086d2a355a454c3020bf72cb67700578b03ff",
+        "previous": "db2f21ae68b317ed38aeba24465086d2a355a454c3020bf72cb67700578b03ff"
+      },
+      "spatial-os-luna-handoff/src/workspace/store.cpp": {
+        "before": "aea9b88645ca2187013bac1c5329ed2873e7f38cfe2a2c03d5247418aa3bcc4c",
+        "after": "320cce42aaf41cb36df756cdcdf5472fe6f80b672f8be818d68943883c4e3b62",
+        "previous": "71cee3dca70a449eb3cbfb4db9127a600cd2b4b064770be93ec6ab46317c99be"
+      },
+      "spatial-os-luna-handoff/src/workspace/store.hpp": {
+        "before": "7bbba42bbbe7fc89410c00f1784b6694f79cbfb4b5d93e77e213f8b97c15c687",
+        "after": "b854ca02f48048add6680ec345c41c19fb1714d176d5a806a1eb691411145c65",
+        "previous": "b854ca02f48048add6680ec345c41c19fb1714d176d5a806a1eb691411145c65"
+      },
+      "spatial-os-luna-handoff/src/world/actors.cpp": {
+        "before": "d62fd0e4b0ed2cd5e03dde35816e904f14eb0ae818e3ba087b2a2546d76f4e85",
+        "after": "97fed6abbdaba41d196ca5070b63b349061708cc94b259d7dc86d58f2851f1a1",
+        "previous": "97fed6abbdaba41d196ca5070b63b349061708cc94b259d7dc86d58f2851f1a1"
+      },
+      "spatial-os-luna-handoff/src/world/actors.hpp": {
+        "before": "b5464f24cac419ad9ee1d754f1cff47a793de82c14279f0a483a073744a31281",
+        "after": "1a5d06aff3969ad1966d7ccda165bed28c4eef83cce7d0483fb89152ec8aed4f",
+        "previous": "1a5d06aff3969ad1966d7ccda165bed28c4eef83cce7d0483fb89152ec8aed4f"
+      },
+      "spatial-os-luna-handoff/src/world/identity_sessions.cpp": {
+        "before": "7b9a80d8b06990ce90a9c042cd2e604afcaac7cfe29d0b1514a103772700a580",
+        "after": "9dcc65b28a5c9f443b5e20984cb7c78f3e85951f39d102aec61e1a7d08a8a7b7",
+        "previous": "9dcc65b28a5c9f443b5e20984cb7c78f3e85951f39d102aec61e1a7d08a8a7b7"
+      },
+      "spatial-os-luna-handoff/src/world/identity_sessions.hpp": {
+        "before": "eea2bc4687e71f3921a6ad761978571aac55730f1a71e0ff1db3c7e50b598edc",
+        "after": "316c339b95b6c844f6ec3185efd7d3ad8a96b656bfd2d16a90022af84a190ab1",
+        "previous": "316c339b95b6c844f6ec3185efd7d3ad8a96b656bfd2d16a90022af84a190ab1"
+      },
+      "spatial-os-luna-handoff/src/world/main.cpp": {
+        "before": "7ad6227d04def07d8484ccf3e5bb06266755fda244e2e1909c3fcf62a417559e",
+        "after": "85aa48933a4c21919ddeff40188f55c64547c36f8c5e0a61e90b2c9d0337fb2f",
+        "previous": "85aa48933a4c21919ddeff40188f55c64547c36f8c5e0a61e90b2c9d0337fb2f"
+      },
+      "spatial-os-luna-handoff/tests/core/test_workspace_authority.py": {
+        "before": null,
+        "after": "037a6ace062cfc32ad834735b023dd0fdfbedfd511fe536fb1d0f69ffc668853",
+        "previous": "bb45cc8e2f1f8ecd1d33de714b894da543089b9162e32ac93f07dab4e5133f8c"
+      },
+      "spatial-os-luna-handoff/tests/core/test_world_authority.py": {
+        "before": "33896c8e162252449d2c35e627ea10b313374e0ddb5f782464ad47bbbeeee5d5",
+        "after": "2fb77331e04ced24bfa6aa7cc8c25314cd3ac7088d218c2d5f7a0f4b5da044e8",
+        "previous": "2fb77331e04ced24bfa6aa7cc8c25314cd3ac7088d218c2d5f7a0f4b5da044e8"
+      },
+      "spatial-os-luna-handoff/tests/core/test_world_identity.py": {
+        "before": "8e36ff4202d5dabe4bd66ea41af7ec507608e2acb92d2893aa1c8f66d51095ed",
+        "after": "b41f9b48d751077b39cce938e6a5f0cb22aa157e04c3b3e77295a21a3735c642",
+        "previous": "b41f9b48d751077b39cce938e6a5f0cb22aa157e04c3b3e77295a21a3735c642"
+      }
+    }
+  },
+  "status": "detected",
+  "mutations": [
+    {
+      "name": "process-cancellation",
+      "test": "test_grant_revocation_kills_confined_process_without_recipient_request",
+      "exit_code": 1,
+      "status": "detected",
+      "file": "src/workspace/store.cpp",
+      "before_sha256": "320cce42aaf41cb36df756cdcdf5472fe6f80b672f8be818d68943883c4e3b62",
+      "after_sha256": "b8d91833d874be0af9dc3501e74de9bf8b949ea4d63fc6d7367f4c16c74b07a0"
+    },
+    {
+      "name": "partial-write",
+      "test": "test_partial_file_write_grants_do_not_mount_entire_project_writable",
+      "exit_code": 1,
+      "status": "detected",
+      "file": "src/workspace/authority.cpp",
+      "before_sha256": "5a35bf96608c3386e7eed2f4d1e36954f713754b0a3bdbb69c6078e2986206ad",
+      "after_sha256": "a5a8f9c4a3eed24810877adb16459eb7c04061e38772a7b0033e644301cd7dfb"
+    },
+    {
+      "name": "stale-retry",
+      "test": "test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh",
+      "exit_code": 1,
+      "status": "detected",
+      "file": "src/workspace/store.cpp",
+      "before_sha256": "320cce42aaf41cb36df756cdcdf5472fe6f80b672f8be818d68943883c4e3b62",
+      "after_sha256": "e9d6bfccdfb51a925461fe6c3d3b8c62f5249c9af6e74b8eab3e4f1baa50c2fb"
+    }
+  ]
+}

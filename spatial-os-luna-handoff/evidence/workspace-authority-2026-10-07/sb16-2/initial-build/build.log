@@ -1,0 +1,55 @@
+[0/2] Re-checking globbed directories...
+[1/46] Generating python/broker_pb2.py
+[2/46] Generating python/world_session_pb2.py
+[3/46] Generating python/grants_pb2.py
+[4/46] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[5/46] Running cpp protocol buffer compiler on proto/spatial/identity/v1/world_session.proto
+[6/46] Generating python/grants_probe_pb2.py
+[7/46] Running cpp protocol buffer compiler on proto/spatial/authority/v1/grants.proto
+[8/46] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[9/46] Building CXX object CMakeFiles/spatial-protobuf.dir/world_session.pb.cc.o
+[10/46] Building CXX object CMakeFiles/spatial-protobuf.dir/grants.pb.cc.o
+[11/46] Linking CXX static library libspatial-protobuf.a
+[12/46] Linking CXX executable spatial-key
+[13/46] Linking CXX executable spatial-issuer-client
+[14/46] Linking CXX executable spatial-issuer-watch
+[15/46] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[16/46] Linking CXX static library libspatial-issuer.a
+[17/46] Linking CXX executable identityd
+[18/46] Building CXX object CMakeFiles/spatial-authority.dir/src/authority/store.cpp.o
+[19/46] Linking CXX static library libspatial-authority.a
+[20/46] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[21/46] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[22/46] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[23/46] Linking CXX executable spatialwm
+[24/46] Building CXX object CMakeFiles/spatial-core.dir/src/platform/broker.cpp.o
+[25/46] Linking CXX static library libspatial-core.a
+[26/46] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[27/46] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[28/46] Building CXX object CMakeFiles/worldd.dir/src/world/identity_sessions.cpp.o
+[29/46] Building CXX object CMakeFiles/worldd.dir/src/world/authority.cpp.o
+[30/46] Linking CXX executable worldd
+[31/46] Building CXX object CMakeFiles/spatial-app-init.dir/src/workspace/app_init.cpp.o
+[32/46] Linking CXX executable spatial-app-init
+[33/46] Building CXX object CMakeFiles/spatial-authority-probe.dir/src/testing/authority_probe.cpp.o
+[34/46] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[35/46] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[36/46] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[37/46] Building CXX object CMakeFiles/spatial-authority-probe.dir/grants_probe.pb.cc.o
+[38/46] Linking CXX executable spatial-authority-probe
+[39/46] Linking CXX executable spatial-issuer-client-probe
+[40/46] Linking CXX executable spatial-input-bridge
+[41/46] Linking CXX executable spatial-issuer-watch-probe
+[42/46] Building CXX object CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o
+FAILED: CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o 
+/usr/bin/c++  -I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/src -I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build -g -std=c++20 -Wall -Wextra -Wpedantic -Werror -MD -MT CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o -MF CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o.d -o CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o -c /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/src/workspace/authority.cpp
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/src/workspace/authority.cpp: In member function ‘bool spatial::WorkspaceAuthority::Impl::allowed(const std::string&, const spatial::authority::v1::ActorRef&, spatial::authority::v1::Right)’:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/src/workspace/authority.cpp:144:9: error: this ‘if’ clause does not guard... [-Werror=misleading-indentation]
+  144 |         if (decisions.size() >= 4096) decisions.clear(); decisions.emplace(key, allowed); return allowed;
+      |         ^~
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/src/workspace/authority.cpp:144:58: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  144 |         if (decisions.size() >= 4096) decisions.clear(); decisions.emplace(key, allowed); return allowed;
+      |                                                          ^~~~~~~~~
+cc1plus: all warnings being treated as errors
+[43/46] Linking CXX executable spatial-git-job-probe
+ninja: build stopped: subcommand failed.

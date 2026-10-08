@@ -1,0 +1,136 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source",
+      "a5812399b1109d180d2f73b299826791963c13de"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "process-cancellation-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "workspaced",
+      "spatial-app-init",
+      "worldd",
+      "identityd",
+      "spatial-issuer-client",
+      "spatial-xprobe",
+      "python-protobuf",
+      "key-python-protobuf",
+      "issuer-python-protobuf",
+      "world-session-python-protobuf",
+      "grants-python-protobuf",
+      "broker-python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "process-cancellation-witness",
+    "argv": [
+      "python3",
+      "tests/core/test_workspace_authority.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/build/worldd",
+      "WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "partial-write-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "workspaced",
+      "spatial-app-init",
+      "worldd",
+      "identityd",
+      "spatial-issuer-client",
+      "spatial-xprobe",
+      "python-protobuf",
+      "key-python-protobuf",
+      "issuer-python-protobuf",
+      "world-session-python-protobuf",
+      "grants-python-protobuf",
+      "broker-python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "partial-write-witness",
+    "argv": [
+      "python3",
+      "tests/core/test_workspace_authority.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/build/worldd",
+      "WorkspaceAuthorityTests.test_partial_file_write_grants_do_not_mount_entire_project_writable"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "stale-retry-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "workspaced",
+      "spatial-app-init",
+      "worldd",
+      "identityd",
+      "spatial-issuer-client",
+      "spatial-xprobe",
+      "python-protobuf",
+      "key-python-protobuf",
+      "issuer-python-protobuf",
+      "world-session-python-protobuf",
+      "grants-python-protobuf",
+      "broker-python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "stale-retry-witness",
+    "argv": [
+      "python3",
+      "tests/core/test_workspace_authority.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/build/worldd",
+      "WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh"
+    ],
+    "exit_code": 1
+  }
+]

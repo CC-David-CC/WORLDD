@@ -11,7 +11,7 @@ void prepare_actor_channel(int fd);
 class IdentitySessions {
 public:
     IdentitySessions(const std::filesystem::path& config, const std::vector<int>& channels,
-                     WorldStore& world, Actors& actors);
+                     WorldStore& world, Actors& actors, BrokerClient* broker = nullptr);
     ~IdentitySessions();
     IdentitySessions(const IdentitySessions&) = delete;
     IdentitySessions& operator=(const IdentitySessions&) = delete;

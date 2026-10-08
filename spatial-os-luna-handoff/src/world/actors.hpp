@@ -1,6 +1,7 @@
 #pragma once
 #include "world/store.hpp"
 #include "core/navigation.hpp"
+#include "grants.pb.h"
 #include <array>
 #include <map>
 #include <set>
@@ -17,7 +18,8 @@ class Actors {
 public:
     Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr, RenderWorker* renderer = nullptr, BrokerClient* broker = nullptr);
     using Authority = std::function<bool(const std::string&, const std::vector<std::string>&)>;
-    wire::ActorOpenReply open(const wire::ActorOpenRequest& request, bool require_observation_grant = false, Authority authority = {});
+    wire::ActorOpenReply open(const wire::ActorOpenRequest& request, bool require_observation_grant = false, Authority authority = {},
+                              std::optional<spatial::authority::v1::ActorRef> principal = {});
     void consume_sequence(const std::string& token, std::uint64_t sequence);
     void refresh_authority();
     wire::ActorStateReply inspect(const std::string& token);
@@ -41,6 +43,7 @@ private:
         std::string token;
         std::set<std::string> grants;
         Authority authority;
+        std::optional<spatial::authority::v1::ActorRef> principal;
         bool require_observation_grant = false;
         std::array<double, 6> axes{};
         std::uint64_t sequence = 0;

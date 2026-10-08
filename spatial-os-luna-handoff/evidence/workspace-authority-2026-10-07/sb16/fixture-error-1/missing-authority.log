@@ -1,0 +1,21 @@
+test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process) ... ERROR
+
+======================================================================
+ERROR: test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_authority.py", line 60, in setUp
+    super().setUp(); self.brokers = []
+    ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+TypeError: WorkspaceAuthorityTests.launch() missing 2 required positional arguments: 'peer' and 'code'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.092s
+
+FAILED (errors=1)

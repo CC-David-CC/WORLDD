@@ -21,14 +21,19 @@ message WorldAuthoritySeed {
   string authority_directory = 2;
   repeated spatial.authority.v1.GrantTerms roots = 3;
 }
-message WorldGrantList { bytes after_id = 1; uint32 limit = 2; } // limit 1..16; zero defaults to 16.
+// A present workspace selects that execution authority. An absent field selects this world.
+message WorldGrantList { bytes after_id = 1; uint32 limit = 2; optional string workspace = 3; } // limit 1..16; zero defaults to 16.
 message WorldGrantDelegate {
   optional uint64 seq = 1;
   bytes parent_id = 2;
   spatial.authority.v1.GrantTerms terms = 3;
   optional uint64 expected_revision = 4;
+  optional string workspace = 5;
 }
-message WorldGrantRevoke { optional uint64 seq = 1; bytes id = 2; optional uint64 expected_revision = 3; }
+message WorldGrantRevoke {
+  optional uint64 seq = 1; bytes id = 2; optional uint64 expected_revision = 3;
+  optional string workspace = 4;
+}
 message WorldAuthenticationBegin {
   SignedCredential credential = 1;
   optional string room = 2;

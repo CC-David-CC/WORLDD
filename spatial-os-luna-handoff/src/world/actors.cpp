@@ -97,9 +97,9 @@ std::string Actors::selected_workspace(const Actor& actor) {
     const auto selected = store_.selected_workspace(actor.entity.id());
     if (selected.empty()) return {};
     bool allowed = false;
-    if ((!actor.authority || granted(actor, "workspace.select", {selected})) && broker_ && store_.workspace_available(selected)) {
+    if ((!actor.authority || actor.principal || granted(actor, "workspace.select", {selected})) && broker_ && store_.workspace_available(selected)) {
         try {
-            const auto access = broker_->access(selected, actor.entity.id());
+            const auto access = broker_->access(selected, actor.entity.id(), actor.principal ? &*actor.principal : nullptr);
             allowed = std::find(access.rights().begin(), access.rights().end(), wire::WORKSPACE_SELECT) != access.rights().end();
         } catch (const WorldError& error) {
             if (error.code != wire::NOT_FOUND && error.code != wire::FORBIDDEN && error.code != wire::UNAVAILABLE) throw;
@@ -108,7 +108,8 @@ std::string Actors::selected_workspace(const Actor& actor) {
     if (!allowed) { store_.clear_workspace(actor.entity.id()); return {}; }
     return selected;
 }
-wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool require_observation_grant, Authority authority) {
+wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool require_observation_grant, Authority authority,
+                                  std::optional<spatial::authority::v1::ActorRef> principal) {
     require(request.grants_size() <= 64, "Too many grants");
     const std::set<std::string> allowed{"navigate", "interact", "observe", "world.write", "git.write", "process.launch"};
     std::set<std::string> grants;
@@ -131,7 +132,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
         found = actors_.emplace(entity.id(), std::move(actor)).first;
     }
     auto& actor = found->second;
-    actor.authority = std::move(authority);
+    actor.authority = std::move(authority); actor.principal = std::move(principal);
     selected_workspace(actor);
     // An existing actor keeps its last valid pose, including a durable restore.
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
@@ -160,7 +161,7 @@ wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
     cancel_object(actor);
     release_input(actor, true);
-    actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.token.clear();
+    actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
     actor.aim.Clear();
     sessions_.erase(token);
     wire::ActorCloseReply result; result.set_closed(true); return result;
@@ -178,21 +179,22 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_worktree() = result.worktree(); return reply;
     }
     case wire::ActorActionRequest::kProcessLaunch: {
-        if (!granted(actor, "process.launch")) throw WorldError(wire::FORBIDDEN, "Process launch grant required");
+        if (!actor.principal && !granted(actor, "process.launch")) throw WorldError(wire::FORBIDDEN, "Process launch grant required");
+        if (actor.principal && !broker_) throw WorldError(wire::FORBIDDEN, "Workspace execution authority is unavailable");
         const auto workspace = selected_workspace(actor);
         if (workspace.empty()) throw WorldError(wire::NO_WORKSPACE, "Actor has no selected workspace");
-        const auto access = broker_->access(workspace, actor.entity.id());
+        const auto access = broker_->access(workspace, actor.entity.id(), actor.principal ? &*actor.principal : nullptr);
         if (std::find(access.rights().begin(), access.rights().end(), wire::PROCESS_LAUNCH) == access.rights().end())
             throw WorldError(wire::FORBIDDEN, "Workspace execution authority required");
-        const auto process = broker_->launch(workspace, actor.entity.id(), request.process_launch());
+        const auto process = broker_->launch(workspace, actor.entity.id(), request.process_launch(), actor.principal ? &*actor.principal : nullptr);
         wire::ActorActionReply reply; reply.set_accepted(true); *reply.mutable_process() = process; return reply;
     }
     case wire::ActorActionRequest::kWorkspaceSelect: {
-        if (actor.authority && !granted(actor, "workspace.select", {request.workspace_select().id()}))
+        if (actor.authority && !actor.principal && !granted(actor, "workspace.select", {request.workspace_select().id()}))
             throw WorldError(wire::FORBIDDEN, "Workspace selection authority required");
-        if (!broker_) throw WorldError(wire::UNIMPLEMENTED, "No workspace authority configured");
+        if (!broker_) throw WorldError(actor.principal ? wire::FORBIDDEN : wire::UNIMPLEMENTED, "No workspace authority configured");
         const auto& id = request.workspace_select().id();
-        const auto access = broker_->access(id, actor.entity.id());
+        const auto access = broker_->access(id, actor.entity.id(), actor.principal ? &*actor.principal : nullptr);
         if (std::find(access.rights().begin(), access.rights().end(), wire::WORKSPACE_SELECT) == access.rights().end())
             throw WorldError(wire::FORBIDDEN, "Workspace selection authority required");
         store_.select_workspace(actor.entity.id(), id); break;

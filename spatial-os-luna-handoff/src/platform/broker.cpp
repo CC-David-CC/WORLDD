@@ -116,6 +116,24 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
         validate_message(reply);
         if (!reply.has_error()) {
             bool valid = (request.has_access() && reply.has_access()) || (request.has_launch() && reply.has_launched());
+            if (request.has_grants() && reply.has_grants()) {
+                valid = reply.grants().grants_size() <= 16 && reply.grants().revision() <= INT64_MAX &&
+                    (reply.grants().next_after().empty() || reply.grants().next_after().size() == 32);
+                for (const auto& record : reply.grants().grants())
+                    valid = valid && record.protocol_version() == 1 && record.id().size() == 32 &&
+                        record.terms().subject().SerializeAsString() == request.grants().principal().SerializeAsString() &&
+                        record.terms().scope().domain().kind() == authority::v1::WORKSPACE &&
+                        record.terms().scope().domain().id() == request.grants().workspace();
+            }
+            if (request.has_delegate() && reply.has_grant())
+                valid = reply.grant().protocol_version() == 1 && reply.grant().id().size() == 32 &&
+                    reply.grant().parent_id() == request.delegate().parent_id() &&
+                    reply.grant().issuer().SerializeAsString() == request.delegate().principal().SerializeAsString() &&
+                    reply.grant().terms().SerializeAsString() == request.delegate().terms().SerializeAsString();
+            if (request.has_revoke() && reply.has_grant())
+                valid = reply.grant().protocol_version() == 1 && reply.grant().id() == request.revoke().id() &&
+                    reply.grant().revoked_revision() > 0 && reply.grant().terms().scope().domain().kind() == authority::v1::WORKSPACE &&
+                    reply.grant().terms().scope().domain().id() == request.revoke().workspace();
             if (request.has_management() && reply.has_management()) {
                 const auto& command = request.management(); const auto& result = reply.management();
                 valid = result.protocol_version() == 1 && result.request_id() == sequence_ &&
@@ -140,13 +158,25 @@ wire::Reply BrokerClient::call(wire::Request request) {
     if (reply.has_error()) throw WorldError(reply.error().code(), reply.error().message().c_str());
     return reply;
 }
-broker_wire::AccessReply BrokerClient::access(const std::string& workspace, const std::string& actor) {
+broker_wire::AccessReply BrokerClient::access(const std::string& workspace, const std::string& actor, const authority::v1::ActorRef* principal) {
     broker_wire::Request request; request.mutable_access()->set_workspace(workspace); request.mutable_access()->set_actor(actor);
+    if (principal) *request.mutable_access()->mutable_principal() = *principal;
     return exchange(request).access();
 }
-wire::ProcessLaunchReply BrokerClient::launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command) {
+wire::ProcessLaunchReply BrokerClient::launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
+                                            const authority::v1::ActorRef* principal) {
     broker_wire::Request request; auto* launch = request.mutable_launch();
     launch->set_workspace(workspace); launch->set_actor(actor); *launch->mutable_command() = command;
+    if (principal) *launch->mutable_principal() = *principal;
     return exchange(request).launched();
+}
+authority::v1::GrantPage BrokerClient::grants(const broker_wire::GrantListRequest& command) {
+    broker_wire::Request request; *request.mutable_grants() = command; return exchange(request).grants();
+}
+authority::v1::GrantRecord BrokerClient::delegate(const broker_wire::GrantDelegateRequest& command) {
+    broker_wire::Request request; *request.mutable_delegate() = command; return exchange(request).grant();
+}
+authority::v1::GrantRecord BrokerClient::revoke(const broker_wire::GrantRevokeRequest& command) {
+    broker_wire::Request request; *request.mutable_revoke() = command; return exchange(request).grant();
 }
 }

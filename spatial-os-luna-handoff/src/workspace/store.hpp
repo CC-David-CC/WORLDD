@@ -5,6 +5,7 @@
 #include <memory>
 
 namespace spatial {
+class WorkspaceAuthority;
 // A host execution registry. It has no room, world, or actor-session identity.
 class ExecutionStore {
 public:
@@ -22,7 +23,9 @@ public:
     wire::WorkspaceReply workspace_create(const wire::WorkspaceCreateRequest& request);
     wire::WorkspaceReply workspace_get(const std::string& id);
     wire::WorkspaceAck workspace_member(const wire::WorkspaceMemberRequest& request);
-    workspace::v1::AccessReply access(const workspace::v1::AccessRequest& request);
+    workspace::v1::AccessReply access(const workspace::v1::AccessRequest& request, bool fresh = true);
+    void set_authority(WorkspaceAuthority* authority);
+    void reconcile_authority();
     wire::ProcessLaunchReply launch(const workspace::v1::LaunchRequest& request);
     wire::ProcessWaitReply wait(const wire::ProcessWaitRequest& request);
 private:

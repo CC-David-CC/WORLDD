@@ -1,0 +1,35 @@
+{
+  "id": "authority.workspace",
+  "phase": "M02",
+  "scope": "Persistent workspace grants in authenticated access and confined process execution",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/WORKSPACE_AUTHORITY.md",
+  "invariant": "Workspace actions use current scoped grants, and revocation cancels only processes that lose their effective execution rights.",
+  "production_roots": ["src/workspace/", "src/platform/broker.cpp", "src/world/", "proto/spatial/workspace/v1/", "proto/spatial/identity/v1/world_session.proto"],
+  "counterexample_suite": "tests/core/test_workspace_authority.py",
+  "focused_command": "ctest --test-dir build -V -R '^(workspace-authority|world-authority|workspace-context|workspace-processes)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts in Debug and ASan/UBSan",
+    "Full P00-P10 baseline and unchanged locked assertions",
+    "Explicit provisioning and persistent grants across broker and world restart",
+    "Authenticated selection, explicit availability, and real confined process execution",
+    "Workspace and world domain separation, unknown recipients, and foreign issuers",
+    "Read-only Git and project mounts; partial or narrow grants cannot authorize whole-project writes",
+    "Static membership cannot override a configured persistent authority",
+    "Grant and ancestor revocation cancel real processes without a recipient request",
+    "Independent execution grants, selection loss, and credential-only revocation preserve valid processes",
+    "Partial broker frames and process waits do not block issuer revocation",
+    "Launch retries cannot acknowledge processes revoked during current status preparation",
+    "Independent mutations detect missing process cancellation, excess writes, and stale retry acknowledgement"
+  ],
+  "limitations": [
+    "Actor channels remain inherited local sockets.",
+    "Native application observation and control need workspace and X-server integration.",
+    "File-scoped cabinet actions remain pending.",
+    "Issuer state and process effects are separate transactions.",
+    "Distributed revocation acknowledgement and nonempty bootstrap profiles remain pending.",
+    "Full Spatial-M1 and physical native-session acceptance remain pending."
+  ],
+  "next_components": ["authority.application", "identity.bootstrap_profile", "identity.world_session"]
+}

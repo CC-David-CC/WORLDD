@@ -1,5 +1,6 @@
 #include "world/identity_sessions.hpp"
 #include "world/authority.hpp"
+#include "platform/broker.hpp"
 #include "identity/issuer_client.hpp"
 #include "identity/issuer_watch.hpp"
 #include "identity/keys.hpp"
@@ -73,6 +74,7 @@ void prepare_actor_channel(int fd) {
 struct IdentitySessions::Impl {
     WorldStore& world;
     Actors& actors;
+    BrokerClient* broker;
     pb::WorldIdentityConfig config;
     std::unique_ptr<identity::IssuerClient> client;
     std::unique_ptr<identity::IssuerWatcher> watcher;
@@ -86,8 +88,8 @@ struct IdentitySessions::Impl {
     Clock::time_point last_exchange = Clock::now();
     bool ready = false, broken = false;
 
-    Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine)
-        : world(store), actors(engine) {
+    Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine, BrokerClient* execution)
+        : world(store), actors(engine), broker(execution) {
         require(!descriptors.empty() && descriptors.size() <= 32, "World requires between one and 32 actor channels");
         require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &config),
                 "Invalid world identity configuration");
@@ -301,7 +303,7 @@ struct IdentitySessions::Impl {
                 if (allowed != grants.end()) for (const auto& grant : allowed->second) open.add_grants(grant);
                 Actors::Authority check;
                 if (authority) check = [this, actor](const auto& right, const auto& scope) { return authority->allowed(actor, right, scope); };
-                const auto opened = actors.open(open, true, std::move(check));
+                const auto opened = actors.open(open, true, std::move(check), actor);
                 channel.token = opened.token(); channel.credential = pending->begin.credential(); channel.claims = pending->claims;
                 auto* value = reply.mutable_opened(); value->set_actor_id(opened.id()); value->set_world_id(world.info().world_id());
                 *value->mutable_identity() = status;
@@ -320,11 +322,36 @@ struct IdentitySessions::Impl {
                     actors.consume_sequence(channel.token, request.revoke().seq());
                 }
                 try {
-                    prepare(actor, request.has_delegate() ? &request.delegate().terms().subject() : nullptr);
+                    prepare(actor, request.has_delegate() && !request.delegate().has_workspace() ? &request.delegate().terms().subject() : nullptr);
                 } catch (const WorldError&) { disconnect(channel); throw; }
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "World session was revoked");
                 if (request.has_inspect()) *reply.mutable_state() = actors.inspect(channel.token);
                 else if (request.has_grants() || request.has_delegate() || request.has_revoke()) {
+                    const bool workspace = request.has_grants() ? request.grants().has_workspace() :
+                        request.has_delegate() ? request.delegate().has_workspace() : request.revoke().has_workspace();
+                    if (workspace) {
+                        if (!broker) throw WorldError(wire::UNAVAILABLE, "No workspace authority is connected");
+                        const auto selected = request.has_grants() ? request.grants().workspace() :
+                            request.has_delegate() ? request.delegate().workspace() : request.revoke().workspace();
+                        require(!selected.empty() && selected.size() <= 256 && selected.find('\0') == std::string::npos,
+                                "Explicit workspace identity is required");
+                        if (request.has_grants()) {
+                            broker_wire::GrantListRequest operation; operation.set_workspace(selected); *operation.mutable_principal() = actor;
+                            operation.set_after_id(request.grants().after_id()); operation.set_limit(request.grants().limit());
+                            *reply.mutable_grants() = broker->grants(operation);
+                        } else if (request.has_delegate()) {
+                            require(request.delegate().has_expected_revision(), "Authority revision is required");
+                            broker_wire::GrantDelegateRequest operation; operation.set_workspace(selected); *operation.mutable_principal() = actor;
+                            operation.set_parent_id(request.delegate().parent_id()); *operation.mutable_terms() = request.delegate().terms();
+                            operation.set_expected_revision(request.delegate().expected_revision()); *reply.mutable_grant() = broker->delegate(operation);
+                        } else {
+                            require(request.revoke().has_expected_revision(), "Authority revision is required");
+                            broker_wire::GrantRevokeRequest operation; operation.set_workspace(selected); *operation.mutable_principal() = actor;
+                            operation.set_id(request.revoke().id()); operation.set_expected_revision(request.revoke().expected_revision());
+                            *reply.mutable_grant() = broker->revoke(operation);
+                        }
+                        return reply;
+                    }
                     if (!authority) throw WorldError(wire::UNIMPLEMENTED, "Persistent world authority is not configured");
                     if (request.has_grants()) {
                         *reply.mutable_grants() = authority->list(actor, request.grants().after_id(), request.grants().limit());
@@ -401,8 +428,8 @@ struct IdentitySessions::Impl {
         }
     }
 };
-IdentitySessions::IdentitySessions(const std::filesystem::path& config, const std::vector<int>& channels, WorldStore& world, Actors& actors)
-    : impl_(std::make_unique<Impl>(config, channels, world, actors)) {}
+IdentitySessions::IdentitySessions(const std::filesystem::path& config, const std::vector<int>& channels, WorldStore& world, Actors& actors, BrokerClient* broker)
+    : impl_(std::make_unique<Impl>(config, channels, world, actors, broker)) {}
 IdentitySessions::~IdentitySessions() {
     for (auto& channel : impl_->channels) { try { impl_->disconnect(*channel); } catch (const std::exception&) {} }
 }

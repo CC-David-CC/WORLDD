@@ -105,7 +105,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
     def authenticate_second(self, peer):
         return self.authenticate(peer, self.second_record, self.second_key, self.second_public)
 
-    def scoped_world(self, admission=session.EXPLICIT_ACTORS, native=False, roots=None, issuer_port=None, authenticate=True):
+    def scoped_world(self, admission=session.EXPLICIT_ACTORS, native=False, roots=None, issuer_port=None, authenticate=True, broker=None):
         number = len(self.worlds); state = self.root/f'scoped-world-{number}'
         initial = self.world(state=state)
         self.world_info = initial.management('world.info'); initial.close()
@@ -121,7 +121,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
         runtime = core.RuntimeConfig(); text_format.Parse((WORLD.parent/'runtime.textproto').read_text(), runtime)
         runtime.input_timeout = 10
         runtime_path = self.root/f'runtime-{number}.textproto'; runtime_path.write_text(text_format.MessageToString(runtime))
-        world = WorldProcess(self, config_path, state, native=native, runtime_config=runtime_path)
+        world = WorldProcess(self, config_path, state, native=native, runtime_config=runtime_path, broker=broker)
         self.worlds.append(world); world.management('system.hello')
         world.state_path = state; world.config_path = config_path; world.runtime_path = runtime_path
         if authenticate: self.assertTrue(self.authenticate(world.peers[0]).HasField('opened'))

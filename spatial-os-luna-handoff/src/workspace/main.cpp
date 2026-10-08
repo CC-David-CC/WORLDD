@@ -1,10 +1,16 @@
 #include "workspace/store.hpp"
+#include "workspace/authority.hpp"
 #include "world/store.hpp"
 #include "build_id.hpp"
 #include <csignal>
 #include <iostream>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <array>
+#include <cerrno>
+#include <fcntl.h>
+#include <poll.h>
+#include <sstream>
 
 namespace {
 spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::ExecutionStore& git) {
@@ -47,7 +53,8 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Ex
     }
     return reply;
 }
-spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store) {
+spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store,
+                                            spatial::WorkspaceAuthority* authority) {
     namespace broker = spatial::workspace::v1;
     namespace wire = spatial::wire;
     broker::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
@@ -59,6 +66,12 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
             *reply.mutable_management() = dispatch(request.management(), store);
         } else if (request.has_access()) *reply.mutable_access() = store.access(request.access());
         else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
+        else if (request.has_grants() || request.has_delegate() || request.has_revoke()) {
+            if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
+            if (request.has_grants()) *reply.mutable_grants() = authority->list(request.grants());
+            else if (request.has_delegate()) *reply.mutable_grant() = authority->delegate(request.delegate());
+            else *reply.mutable_grant() = authority->revoke(request.revoke());
+        }
         else throw spatial::WorldError(wire::UNKNOWN_METHOD, "No recognized private broker operation");
     } catch (const spatial::WorldError& error) {
         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
@@ -71,27 +84,96 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
 }
 }
 int main(int argc, char** argv) {
-    const bool fixture_faults = argc == 4 && std::string_view(argv[3]) == "--fixture-faults";
-    const unsigned migration = argc == 4 ? (std::string_view(argv[3]) == "--migrate-v1" ? 1 : std::string_view(argv[3]) == "--migrate-v2" ? 2 : std::string_view(argv[3]) == "--migrate-v3" ? 3 : 0) : 0;
-    if ((argc != 3 && !migration && !fixture_faults) || std::string_view(argv[1]) != "--state-dir") {
-        std::cerr << "Usage: workspaced --state-dir ABSOLUTE_EXECUTION_DIRECTORY [--migrate-v1|--migrate-v2|--migrate-v3|--fixture-faults]\n"; return 2;
-    }
     try {
-        umask(0077); signal(SIGPIPE, SIG_IGN);
-        spatial::ExecutionStore git(argv[2], migration, fixture_faults);
-        if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }
-        // The supervisor supplies a private trusted management channel. No actor listener.
-        std::string bytes;
-        while (spatial::read_frame(std::cin, bytes)) {
-            spatial::workspace::v1::Request request;
-            spatial::workspace::v1::Reply reply;
-            if (!request.ParseFromString(bytes)) {
-                reply.set_protocol_version(1); reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
-                reply.mutable_error()->set_message("Malformed broker protobuf payload");
-            } else reply = dispatch_broker(request, git);
-            spatial::write_frame(std::cout, reply);
+        std::filesystem::path state, authority_config, seed;
+        unsigned migration = 0; bool fixture_faults = false;
+        for (int i = 1; i < argc; ++i) {
+            const std::string_view argument(argv[i]);
+            if (argument == "--state-dir" && state.empty() && i+1 < argc) state = argv[++i];
+            else if (argument == "--authority-config" && authority_config.empty() && i+1 < argc) authority_config = argv[++i];
+            else if (argument == "--init-authority" && seed.empty() && i+1 < argc) seed = argv[++i];
+            else if (argument == "--fixture-faults" && !fixture_faults) fixture_faults = true;
+            else if (argument == "--migrate-v1" && !migration) migration = 1;
+            else if (argument == "--migrate-v2" && !migration) migration = 2;
+            else if (argument == "--migrate-v3" && !migration) migration = 3;
+            else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
-        return 0;
+        if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
+        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty())) || (migration && !seed.empty()))
+            throw std::invalid_argument("Provisioning and migration require an exclusive stopped broker");
+        umask(0077); signal(SIGPIPE, SIG_IGN);
+        // Destroy jobs before their authority callback target.
+        std::unique_ptr<spatial::WorkspaceAuthority> authority;
+        spatial::ExecutionStore store(state, migration, fixture_faults);
+        if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }
+        if (!seed.empty()) { spatial::initialize_workspace_authority(seed, store); return 0; }
+        if (!authority_config.empty()) {
+            authority = std::make_unique<spatial::WorkspaceAuthority>(authority_config, store);
+            store.set_authority(authority.get());
+        }
+        // Keep the private management transport bounded while processing issuer events.
+        for (const int fd : {STDIN_FILENO, STDOUT_FILENO}) {
+            const int flags = fcntl(fd, F_GETFL);
+            if (flags < 0 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) throw std::runtime_error("Cannot configure broker transport");
+        }
+        using Clock = std::chrono::steady_clock;
+        auto input_started = Clock::now(), output_started = Clock::now();
+        std::string input, output; std::size_t sent = 0; bool eof = false;
+        const auto enforce = [&] {
+            if (authority) {
+                authority->tick();
+                if (authority->consume_changes()) store.reconcile_authority();
+            }
+        };
+        for (;;) {
+            enforce();
+            if (authority) { authority->keepalive(); enforce(); }
+            const auto now = Clock::now();
+            if ((!input.empty() && now-input_started > std::chrono::seconds(10)) ||
+                    (!output.empty() && now-output_started > std::chrono::seconds(10)))
+                throw std::runtime_error("Workspace transport deadline exceeded");
+            if (output.empty() && input.size() >= 4) {
+                const auto* header = reinterpret_cast<const unsigned char*>(input.data());
+                const auto length = (std::uint32_t(header[0]) << 24) | (std::uint32_t(header[1]) << 16) | (std::uint32_t(header[2]) << 8) | header[3];
+                if (length > spatial::max_frame_bytes) throw std::runtime_error("Excessive workspace frame");
+                if (input.size() >= length+4) {
+                    spatial::workspace::v1::Request request; spatial::workspace::v1::Reply reply;
+                    if (!request.ParseFromArray(input.data()+4, static_cast<int>(length))) {
+                        reply.set_protocol_version(1); reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
+                        reply.mutable_error()->set_message("Malformed broker protobuf payload");
+                    } else reply = dispatch_broker(request, store, authority.get());
+                    enforce();
+                    input.erase(0, length+4); input_started = Clock::now();
+                    std::ostringstream framed; spatial::write_frame(framed, reply); output = framed.str();
+                    sent = 0; output_started = Clock::now();
+                }
+            }
+            if (eof && output.empty()) {
+                if (!input.empty()) throw std::runtime_error("Truncated workspace frame");
+                return 0;
+            }
+            pollfd fds[2]{{!eof && output.empty() ? STDIN_FILENO : -1, POLLIN, 0},
+                          {STDOUT_FILENO, static_cast<short>(output.empty() ? 0 : POLLOUT), 0}};
+            const int ready = poll(fds, 2, 10);
+            if (ready < 0 && errno == EINTR) continue;
+            if (ready < 0 || ((fds[0].revents | fds[1].revents) & POLLNVAL)) throw std::runtime_error("Workspace transport poll failed");
+            if (fds[1].revents & (POLLHUP | POLLERR)) throw std::runtime_error("Workspace supervisor disconnected");
+            if (!output.empty() && (fds[1].revents & POLLOUT)) {
+                const auto count = write(STDOUT_FILENO, output.data()+sent, output.size()-sent);
+                if (count < 0 && errno != EAGAIN && errno != EINTR) throw std::runtime_error("Workspace reply failed");
+                if (count > 0) { sent += static_cast<std::size_t>(count); if (sent == output.size()) output.clear(); }
+            }
+            if (!eof && output.empty() && (fds[0].revents & (POLLIN | POLLHUP | POLLERR))) {
+                std::array<char, 65536> bytes{};
+                const auto count = read(STDIN_FILENO, bytes.data(), std::min(bytes.size(), spatial::max_frame_bytes+4-input.size()));
+                if (count < 0 && errno != EAGAIN && errno != EINTR) throw std::runtime_error("Workspace request failed");
+                if (!count) eof = true;
+                if (count > 0) {
+                    if (input.empty()) input_started = Clock::now();
+                    input.append(bytes.data(), static_cast<std::size_t>(count));
+                }
+            }
+        }
     } catch (const std::exception& error) {
         std::cerr << "workspaced: " << error.what() << '\n'; return 2;
     }

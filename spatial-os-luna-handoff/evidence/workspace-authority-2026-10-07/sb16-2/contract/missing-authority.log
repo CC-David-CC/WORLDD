@@ -1,0 +1,17 @@
+test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process) ... FAIL
+
+======================================================================
+FAIL: test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_authority.py", line 146, in test_authenticated_workspace_selection_and_confined_process
+    world = self.workspace(); peer = world.peers[0]; self.select(peer)
+            ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_workspace_authority.py", line 81, in workspace
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 2 != 0 : b'Usage: workspaced --state-dir ABSOLUTE_EXECUTION_DIRECTORY [--migrate-v1|--migrate-v2|--migrate-v3|--fixture-faults]\n'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.953s
+
+FAILED (failures=1)

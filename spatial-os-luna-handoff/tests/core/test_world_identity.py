@@ -52,16 +52,17 @@ class SessionPeer:
 
 
 class WorldProcess:
-    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None):
+    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None, broker=None):
         self.log=(fixture.root/f'world-{len(fixture.worlds)}.log').open('wb'); self.sequence=0
         pairs=[socket.socketpair() for _ in range(count)]
         self.peers=[SessionPeer(pair[0]) for pair in pairs]
         command=[str(WORLD),'--state-dir',str(state),'--identity-config',str(config)]
         if runtime_config: command+=['--config',str(runtime_config)]
         if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
+        if broker: command+=['--workspace-fd',str(broker.stream.fileno()),'--workspace-pid',str(broker.proc.pid)]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
         self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
-            pass_fds=tuple(server.fileno() for _,server in pairs))
+            pass_fds=tuple(server.fileno() for _,server in pairs)+(tuple([broker.stream.fileno()]) if broker else ()))
         for _,server in pairs: server.close()
     def management(self, method, **args):
         request=make_request(method,args); self.sequence+=1;request.request_id=self.sequence

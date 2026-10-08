@@ -2,6 +2,7 @@
 #include "workspace/process.hpp"
 #include "world/store.hpp"
 #include <array>
+#include <algorithm>
 #include <cerrno>
 #include <csignal>
 #include <cstddef>
@@ -23,10 +24,11 @@ namespace spatial {
 namespace {
 using Clock = std::chrono::steady_clock;
 struct File { int fd = -1; ~File() { if (fd >= 0) close(fd); } };
-void write_all(int fd, const std::string& bytes) {
+void write_all(int fd, const std::string& bytes, const std::function<void()>& authority = [] {}) {
     std::size_t used = 0;
     const auto deadline = Clock::now() + std::chrono::seconds(5);
     while (used < bytes.size()) {
+        authority();
         const auto n = write(fd, bytes.data() + used, bytes.size() - used);
         if (n < 0 && errno == EINTR) continue;
         if (n < 0 && errno == EAGAIN && Clock::now() < deadline) {
@@ -80,7 +82,9 @@ int directory(const std::filesystem::path& path) {
 }
 }
 ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, const std::filesystem::path& repository,
-                                      const std::filesystem::path& state, bool writable, const wire::ProcessLaunchRequest& request) {
+                                      const std::filesystem::path& state, bool writable, const wire::ProcessLaunchRequest& request,
+                                      std::function<void()> authority) : authority_(std::move(authority)) {
+    authority_();
     const auto executable = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatial-app-init";
     const char* bwrap = "/usr/local/libexec/spatial-bwrap";
     struct stat trusted{};
@@ -131,9 +135,10 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         workspace::v1::AppStart start; start.set_protocol_version(1); *start.mutable_argv() = request.argv();
         const auto payload = start.SerializeAsString(); const auto length = static_cast<std::uint32_t>(payload.size());
         std::string framed{static_cast<char>(length >> 24), static_cast<char>(length >> 16), static_cast<char>(length >> 8), static_cast<char>(length)};
-        framed += payload; write_all(input_write.fd, framed); close(input_write.fd); input_write.fd = -1;
+        framed += payload; write_all(input_write.fd, framed, authority_); close(input_write.fd); input_write.fd = -1;
         const auto ready = event(Clock::now() + std::chrono::seconds(5));
         if (!ready.has_started() || !ready.started()) throw std::runtime_error("Application did not confirm exec");
+        authority_();
     } catch (...) { stop(); if (output_ >= 0) close(output_); output_ = -1; throw; }
 }
 ApplicationProcess::~ApplicationProcess() { stop(); if (output_ >= 0) close(output_); }
@@ -148,6 +153,7 @@ void ApplicationProcess::stop() {
 void ApplicationProcess::read_all(char* bytes, std::size_t length, Clock::time_point deadline) {
     std::size_t used = 0;
     while (used < length) {
+        authority_();
         const auto n = read(output_, bytes + used, length - used);
         if (n > 0) { used += static_cast<std::size_t>(n); continue; }
         if (n < 0 && errno == EINTR) continue;
@@ -170,10 +176,16 @@ workspace::v1::AppEvent ApplicationProcess::event(Clock::time_point deadline) {
 }
 std::optional<int> ApplicationProcess::wait(double seconds) {
     if (result_) return result_;
+    const auto deadline = Clock::now()+std::chrono::duration<double>(seconds);
     pollfd fd{output_, POLLIN, 0};
-    const auto ready = poll(&fd, 1, static_cast<int>(seconds * 1000));
-    if (ready == 0 || (ready < 0 && errno == EINTR)) return {};
-    if (ready < 0) throw std::runtime_error("Cannot poll application completion");
+    for (;;) {
+        authority_();
+        const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(deadline-Clock::now()).count();
+        const auto ready = poll(&fd, 1, static_cast<int>(std::clamp<std::int64_t>(remaining, 0, 10)));
+        if (ready > 0) break;
+        if (ready < 0 && errno != EINTR) throw std::runtime_error("Cannot poll application completion");
+        if (Clock::now() >= deadline) return {};
+    }
     const auto reply = event(Clock::now() + std::chrono::seconds(1));
     if (!reply.has_exit_code()) throw std::runtime_error("Missing actual application exit");
     result_ = reply.exit_code(); stop(); return result_;

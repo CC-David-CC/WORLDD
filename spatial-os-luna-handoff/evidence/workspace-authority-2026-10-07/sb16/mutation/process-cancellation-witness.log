@@ -1,0 +1,17 @@
+test_grant_revocation_kills_confined_process_without_recipient_request (__main__.WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request) ... FAIL
+
+======================================================================
+FAIL: test_grant_revocation_kills_confined_process_without_recipient_request (__main__.WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/tests/core/test_workspace_authority.py", line 196, in test_grant_revocation_kills_confined_process_without_recipient_request
+    self.until(lambda:self.gone(pids), bool)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-mutation-v2/source/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: False
+
+----------------------------------------------------------------------
+Ran 1 test in 6.205s
+
+FAILED (failures=1)

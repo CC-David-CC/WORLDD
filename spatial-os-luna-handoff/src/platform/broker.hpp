@@ -29,8 +29,12 @@ public:
     BrokerClient(const BrokerClient&) = delete;
     BrokerClient& operator=(const BrokerClient&) = delete;
     wire::Reply call(wire::Request request);
-    broker_wire::AccessReply access(const std::string& workspace, const std::string& actor);
-    wire::ProcessLaunchReply launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command);
+    broker_wire::AccessReply access(const std::string& workspace, const std::string& actor, const authority::v1::ActorRef* principal = nullptr);
+    wire::ProcessLaunchReply launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
+                                   const authority::v1::ActorRef* principal = nullptr);
+    authority::v1::GrantPage grants(const broker_wire::GrantListRequest&);
+    authority::v1::GrantRecord delegate(const broker_wire::GrantDelegateRequest&);
+    authority::v1::GrantRecord revoke(const broker_wire::GrantRevokeRequest&);
     void set_tick(std::function<void()> tick) { tick_ = std::move(tick); }
     void check_alive() const;
     pid_t pid() const { return pid_; }
