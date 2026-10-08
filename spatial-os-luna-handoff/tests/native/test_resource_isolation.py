@@ -248,6 +248,16 @@ class ResourceIsolationTests(unittest.TestCase):
     def test_input_focus_alias_cannot_bypass_send_event_authorization(self):
         root = self.scene()
         self.assertIsNone(self.owner.operation(8, self.owner.pack('I', self.window)))
+        # The supervisor installs a foreign focus on the attacker's actual
+        # keyboard. Applications need not share the global core keyboard.
+        self.assertIsInstance(self.other.operation(43, reply=True), tuple)
+        name = b'XInputExtension'
+        extension, _ = root.operation(98, root.pack('HH', len(name), 0)+name, reply=True)
+        self.assertTrue(extension[8])
+        pointer, _ = root.operation(extension[9], root.pack('I', self.other_window), minor=45, reply=True)
+        self.assertTrue(pointer[8])
+        device = struct.unpack_from(root.endian+'H', pointer, 10)[0]
+        self.assertIsNone(root.operation(extension[9], root.pack('IHH', 0, device, 0), minor=44))
         self.assertIsNone(root.operation(42, root.pack('II', self.window, 0)))
         event = self.other.pack('BBHII20s', 33, 8, 0, self.window, 39, b'attack')
         self.denied(self.other, 25, self.other.pack('II', 1, 0)+event)
