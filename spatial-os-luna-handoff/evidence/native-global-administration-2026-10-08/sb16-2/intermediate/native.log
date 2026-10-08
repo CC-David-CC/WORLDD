@@ -1,0 +1,251 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 15
+    Start 15: native-global-isolation
+
+15: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+15: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+15: Environment variables: 
+15:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+15: Test timeout computed to be: 180
+15: test_application_can_list_public_font_information (__main__.GlobalIsolationTests.test_application_can_list_public_font_information) ... ok
+15: test_application_can_list_public_fonts (__main__.GlobalIsolationTests.test_application_can_list_public_fonts) ... ok
+15: test_application_cannot_change_access_control (__main__.GlobalIsolationTests.test_application_cannot_change_access_control) ... FAIL
+15: test_application_cannot_change_font_path (__main__.GlobalIsolationTests.test_application_cannot_change_font_path) ... ok
+15: test_application_cannot_change_host_acl (__main__.GlobalIsolationTests.test_application_cannot_change_host_acl) ... FAIL
+15: test_application_cannot_change_screen_saver_settings (__main__.GlobalIsolationTests.test_application_cannot_change_screen_saver_settings) ... ok
+15: test_application_cannot_force_screen_saver (__main__.GlobalIsolationTests.test_application_cannot_force_screen_saver) ... ok
+15: test_application_cannot_grab_server (__main__.GlobalIsolationTests.test_application_cannot_grab_server) ... ok
+15: test_application_cannot_list_hosts (__main__.GlobalIsolationTests.test_application_cannot_list_hosts) ... ok
+15: test_application_cannot_read_font_path (__main__.GlobalIsolationTests.test_application_cannot_read_font_path) ... ok
+15: test_application_cannot_read_screen_saver_settings (__main__.GlobalIsolationTests.test_application_cannot_read_screen_saver_settings) ... ok
+15: test_application_cannot_reap_retained_service_resources (__main__.GlobalIsolationTests.test_application_cannot_reap_retained_service_resources) ... ok
+15: test_application_cannot_ungrab_server (__main__.GlobalIsolationTests.test_application_cannot_ungrab_server) ... ok
+15: test_broker_has_no_server_administration_authority (__main__.GlobalIsolationTests.test_broker_has_no_server_administration_authority) ... ok
+15: test_compositor_can_query_global_settings (__main__.GlobalIsolationTests.test_compositor_can_query_global_settings) ... ok
+15: test_supervisor_can_reap_retained_service_resources (__main__.GlobalIsolationTests.test_supervisor_can_reap_retained_service_resources) ... ok
+15: test_supervisor_global_controls_remain_available (__main__.GlobalIsolationTests.test_supervisor_global_controls_remain_available) ... ok
+15: test_swapped_requests_cannot_bypass_global_checks (__main__.GlobalIsolationTests.test_swapped_requests_cannot_bypass_global_checks) ... ok
+15: test_workspace_membership_does_not_grant_server_management (__main__.GlobalIsolationTests.test_workspace_membership_does_not_grant_server_management) ... FAIL
+15: 
+15: ======================================================================
+15: FAIL: test_application_cannot_change_access_control (__main__.GlobalIsolationTests.test_application_cannot_change_access_control)
+15: ----------------------------------------------------------------------
+15: Traceback (most recent call last):
+15:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 35, in test_application_cannot_change_access_control
+15:     self.denied(self.other, 111, minor=1)
+15:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+15:     self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+15: AssertionError: None != 10 : Expected native BadAccess
+15: 
+15: ======================================================================
+15: FAIL: test_application_cannot_change_host_acl (__main__.GlobalIsolationTests.test_application_cannot_change_host_acl)
+15: ----------------------------------------------------------------------
+15: Traceback (most recent call last):
+15:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 31, in test_application_cannot_change_host_acl
+15:     self.denied(self.other, 109, self.other.pack('BBH', 0, 0, 4)+bytes([127, 0, 0, 1]))
+15:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+15:     self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+15: AssertionError: None != 10 : Expected native BadAccess
+15: 
+15: ======================================================================
+15: FAIL: test_workspace_membership_does_not_grant_server_management (__main__.GlobalIsolationTests.test_workspace_membership_does_not_grant_server_management)
+15: ----------------------------------------------------------------------
+15: Traceback (most recent call last):
+15:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 103, in test_workspace_membership_does_not_grant_server_management
+15:     self.denied(self.other, 111, minor=1)
+15:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+15:     self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+15: AssertionError: None != 10 : Expected native BadAccess
+15: 
+15: ----------------------------------------------------------------------
+15: Ran 19 tests in 1.528s
+15: 
+15: FAILED (failures=3)
+1/5 Test #15: native-global-isolation ..........***Failed    1.60 sec
+test 16
+    Start 16: native-selection-isolation
+
+16: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_selection_isolation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+16: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+16: Environment variables: 
+16:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+16: Test timeout computed to be: 180
+16: test_application_name_in_another_workspace_is_not_same_identity (__main__.SelectionIsolationTests.test_application_name_in_another_workspace_is_not_same_identity) ... ok
+16: test_broker_cannot_query_application_selection (__main__.SelectionIsolationTests.test_broker_cannot_query_application_selection) ... ok
+16: test_claiming_secondary_does_not_grant_primary_access (__main__.SelectionIsolationTests.test_claiming_secondary_does_not_grant_primary_access) ... ok
+16: test_compositor_can_query_owner (__main__.SelectionIsolationTests.test_compositor_can_query_owner) ... ok
+16: test_foreign_conversion_is_denied (__main__.SelectionIsolationTests.test_foreign_conversion_is_denied) ... ok
+16: test_foreign_owner_clear_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_clear_is_denied) ... ok
+16: test_foreign_owner_query_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_query_is_denied) ... ok
+16: test_foreign_owner_replacement_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_replacement_is_denied) ... ok
+16: test_ownerless_selection_can_be_queried_and_claimed (__main__.SelectionIsolationTests.test_ownerless_selection_can_be_queried_and_claimed) ... ok
+16: test_same_application_connections_can_query_owner (__main__.SelectionIsolationTests.test_same_application_connections_can_query_owner) ... ok
+16: test_same_application_conversion_reaches_real_owner (__main__.SelectionIsolationTests.test_same_application_conversion_reaches_real_owner) ... ok
+16: test_supervisor_can_query_owner (__main__.SelectionIsolationTests.test_supervisor_can_query_owner) ... ok
+16: test_swapped_client_cannot_bypass_selection_policy (__main__.SelectionIsolationTests.test_swapped_client_cannot_bypass_selection_policy) ... ok
+16: test_workspace_membership_does_not_grant_selection_access (__main__.SelectionIsolationTests.test_workspace_membership_does_not_grant_selection_access) ... ok
+16: 
+16: ----------------------------------------------------------------------
+16: Ran 14 tests in 1.055s
+16: 
+16: OK
+2/5 Test #16: native-selection-isolation .......   Passed    1.13 sec
+test 17
+    Start 17: native-extension-isolation
+
+17: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_extension_isolation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+17: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+17: Environment variables: 
+17:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+17: Test timeout computed to be: 180
+17: test_animated_cursor_timer_survives_use_then_releases_with_cursor (__main__.ExtensionIsolationTests.test_animated_cursor_timer_survives_use_then_releases_with_cursor) ... ok
+17: test_application_discovery_exposes_only_approved_extensions (__main__.ExtensionIsolationTests.test_application_discovery_exposes_only_approved_extensions) ... ok
+17: test_big_requests_and_client_local_ids_remain_usable (__main__.ExtensionIsolationTests.test_big_requests_and_client_local_ids_remain_usable) ... ok
+17: test_broker_has_only_credential_and_transport_extensions (__main__.ExtensionIsolationTests.test_broker_has_only_credential_and_transport_extensions) ... ok
+17: test_compositor_retains_service_extension_access (__main__.ExtensionIsolationTests.test_compositor_retains_service_extension_access) ... ok
+17: test_direct_resource_enumeration_is_rejected (__main__.ExtensionIsolationTests.test_direct_resource_enumeration_is_rejected) ... ok
+17: test_direct_spatial_input_is_rejected (__main__.ExtensionIsolationTests.test_direct_spatial_input_is_rejected) ... ok
+17: test_direct_xtest_input_is_rejected_before_dispatch (__main__.ExtensionIsolationTests.test_direct_xtest_input_is_rejected_before_dispatch) ... ok
+17: test_direct_xtest_version_cannot_bypass_hidden_extension (__main__.ExtensionIsolationTests.test_direct_xtest_version_cannot_bypass_hidden_extension) ... ok
+17: test_glyph_set_reference_cannot_copy_foreign_authority (__main__.ExtensionIsolationTests.test_glyph_set_reference_cannot_copy_foreign_authority) ... ok
+17: test_malformed_allowed_request_preserves_connection (__main__.ExtensionIsolationTests.test_malformed_allowed_request_preserves_connection) ... ok
+17: test_malformed_forbidden_requests_do_not_enter_extension_parser (__main__.ExtensionIsolationTests.test_malformed_forbidden_requests_do_not_enter_extension_parser) ... ok
+17: test_procedural_source_is_usable_and_cursor_scratch_id_is_not_addressable (__main__.ExtensionIsolationTests.test_procedural_source_is_usable_and_cursor_scratch_id_is_not_addressable) ... ok
+17: test_public_render_formats_allow_real_owned_pixel_output (__main__.ExtensionIsolationTests.test_public_render_formats_allow_real_owned_pixel_output) ... ok
+17: test_query_hides_global_and_unreviewed_extensions (__main__.ExtensionIsolationTests.test_query_hides_global_and_unreviewed_extensions) ... ok
+17: test_render_cannot_wrap_foreign_or_root_drawable (__main__.ExtensionIsolationTests.test_render_cannot_wrap_foreign_or_root_drawable) ... ok
+17: test_render_cursor_and_animation_preserve_resource_authority (__main__.ExtensionIsolationTests.test_render_cursor_and_animation_preserve_resource_authority) ... ok
+17: test_render_foreign_alpha_map_and_clip_mask_are_denied (__main__.ExtensionIsolationTests.test_render_foreign_alpha_map_and_clip_mask_are_denied) ... ok
+17: test_render_foreign_destination_is_denied (__main__.ExtensionIsolationTests.test_render_foreign_destination_is_denied) ... ok
+17: test_render_foreign_mask_is_denied (__main__.ExtensionIsolationTests.test_render_foreign_mask_is_denied) ... ok
+17: test_render_foreign_picture_mutation_and_release_are_denied (__main__.ExtensionIsolationTests.test_render_foreign_picture_mutation_and_release_are_denied) ... ok
+17: test_render_foreign_source_is_denied (__main__.ExtensionIsolationTests.test_render_foreign_source_is_denied) ... ok
+17: test_render_shape_hole_is_not_a_foreign_pixel_source (__main__.ExtensionIsolationTests.test_render_shape_hole_is_not_a_foreign_pixel_source) ... ok
+17: test_render_window_cursor_does_not_copy_pixels_outside_window_shape (__main__.ExtensionIsolationTests.test_render_window_cursor_does_not_copy_pixels_outside_window_shape) ... ok
+17: test_shape_changes_owned_window_only (__main__.ExtensionIsolationTests.test_shape_changes_owned_window_only) ... ok
+17: test_shape_combine_cannot_read_foreign_shape (__main__.ExtensionIsolationTests.test_shape_combine_cannot_read_foreign_shape) ... ok
+17: test_shape_foreign_queries_and_subscriptions_are_denied (__main__.ExtensionIsolationTests.test_shape_foreign_queries_and_subscriptions_are_denied) ... ok
+17: test_shape_hole_does_not_reveal_underlying_foreign_pixels (__main__.ExtensionIsolationTests.test_shape_hole_does_not_reveal_underlying_foreign_pixels) ... ok
+17: test_swapped_client_cannot_bypass_extension_policy (__main__.ExtensionIsolationTests.test_swapped_client_cannot_bypass_extension_policy) ... ok
+17: test_unapproved_minor_opcode_is_not_implicitly_authorized (__main__.ExtensionIsolationTests.test_unapproved_minor_opcode_is_not_implicitly_authorized) ... ok
+17: test_unreviewed_dispatch_families_fail_closed (__main__.ExtensionIsolationTests.test_unreviewed_dispatch_families_fail_closed) ... ok
+17: test_window_picture_is_a_real_drawing_target_but_not_a_read_alias (__main__.ExtensionIsolationTests.test_window_picture_is_a_real_drawing_target_but_not_a_read_alias) ... ok
+17: 
+17: ----------------------------------------------------------------------
+17: Ran 32 tests in 2.752s
+17: 
+17: OK
+3/5 Test #17: native-extension-isolation .......   Passed    2.83 sec
+test 18
+    Start 18: native-resource-isolation
+
+18: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+18: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+18: Environment variables: 
+18:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+18: Test timeout computed to be: 180
+18: test_application_resources_cannot_be_retained_after_disconnect (__main__.ResourceIsolationTests.test_application_resources_cannot_be_retained_after_disconnect) ... ok
+18: test_broker_role_does_not_grant_application_pixels (__main__.ResourceIsolationTests.test_broker_role_does_not_grant_application_pixels) ... ok
+18: test_compositor_can_observe_application_resources (__main__.ResourceIsolationTests.test_compositor_can_observe_application_resources) ... ok
+18: test_copy_area_cannot_read_foreign_pixels (__main__.ResourceIsolationTests.test_copy_area_cannot_read_foreign_pixels) ... ok
+18: test_copy_area_cannot_write_foreign_pixels (__main__.ResourceIsolationTests.test_copy_area_cannot_write_foreign_pixels) ... ok
+18: test_explicit_border_copy_cannot_read_private_root_color (__main__.ResourceIsolationTests.test_explicit_border_copy_cannot_read_private_root_color) ... ok
+18: test_foreign_graphics_context_cannot_be_used_or_changed (__main__.ResourceIsolationTests.test_foreign_graphics_context_cannot_be_used_or_changed) ... ok
+18: test_foreign_parent_cannot_receive_new_children (__main__.ResourceIsolationTests.test_foreign_parent_cannot_receive_new_children) ... ok
+18: test_foreign_pixels_cannot_be_read (__main__.ResourceIsolationTests.test_foreign_pixels_cannot_be_read) ... ok
+18: test_foreign_property_read_and_write_are_denied (__main__.ResourceIsolationTests.test_foreign_property_read_and_write_are_denied) ... ok
+18: test_foreign_resource_cannot_be_freed (__main__.ResourceIsolationTests.test_foreign_resource_cannot_be_freed) ... ok
+18: test_foreign_send_event_cannot_inject_application_messages (__main__.ResourceIsolationTests.test_foreign_send_event_cannot_inject_application_messages) ... ok
+18: test_foreign_window_changes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_changes_are_denied) ... ok
+18: test_foreign_window_tree_and_attributes_are_denied (__main__.ResourceIsolationTests.test_foreign_window_tree_and_attributes_are_denied) ... ok
+18: test_implicit_border_copy_uses_public_color_for_foreign_parent (__main__.ResourceIsolationTests.test_implicit_border_copy_uses_public_color_for_foreign_parent) ... ok
+18: test_input_focus_alias_cannot_bypass_send_event_authorization (__main__.ResourceIsolationTests.test_input_focus_alias_cannot_bypass_send_event_authorization) ... ok
+18: test_none_background_cannot_read_pixels_from_window_underneath (__main__.ResourceIsolationTests.test_none_background_cannot_read_pixels_from_window_underneath) ... ok
+18: test_owned_child_can_be_reparented_to_root (__main__.ResourceIsolationTests.test_owned_child_can_be_reparented_to_root) ... ok
+18: test_owned_parent_relative_background_remains_available (__main__.ResourceIsolationTests.test_owned_parent_relative_background_remains_available) ... ok
+18: test_owned_window_can_be_destroyed_without_root_mutation_authority (__main__.ResourceIsolationTests.test_owned_window_can_be_destroyed_without_root_mutation_authority) ... ok
+18: test_parent_relative_cannot_copy_private_root_background (__main__.ResourceIsolationTests.test_parent_relative_cannot_copy_private_root_background) ... ok
+18: test_reparent_cannot_cross_application_boundary (__main__.ResourceIsolationTests.test_reparent_cannot_cross_application_boundary) ... ok
+18: test_reparent_to_root_cannot_turn_owned_background_into_private_pixels (__main__.ResourceIsolationTests.test_reparent_to_root_cannot_turn_owned_background_into_private_pixels) ... ok
+18: test_reused_client_slot_does_not_retain_old_application_authority (__main__.ResourceIsolationTests.test_reused_client_slot_does_not_retain_old_application_authority) ... ok
+18: test_revocation_destroys_resources_before_acknowledgement (__main__.ResourceIsolationTests.test_revocation_destroys_resources_before_acknowledgement) ... ok
+18: test_root_event_selection_cannot_observe_other_applications (__main__.ResourceIsolationTests.test_root_event_selection_cannot_observe_other_applications) ... ok
+18: test_root_pixels_cannot_be_read (__main__.ResourceIsolationTests.test_root_pixels_cannot_be_read) ... ok
+18: test_root_properties_are_private_to_supervisor_and_compositor (__main__.ResourceIsolationTests.test_root_properties_are_private_to_supervisor_and_compositor) ... ok
+18: test_root_subwindow_operations_cannot_change_other_applications (__main__.ResourceIsolationTests.test_root_subwindow_operations_cannot_change_other_applications) ... ok
+18: test_root_tree_filters_other_workspaces (__main__.ResourceIsolationTests.test_root_tree_filters_other_workspaces) ... ok
+18: test_same_application_name_in_other_workspace_is_not_same_identity (__main__.ResourceIsolationTests.test_same_application_name_in_other_workspace_is_not_same_identity) ... ok
+18: test_same_workspace_does_not_grant_other_application_access (__main__.ResourceIsolationTests.test_same_workspace_does_not_grant_other_application_access) ... ok
+18: test_separate_connections_of_same_application_share_resources (__main__.ResourceIsolationTests.test_separate_connections_of_same_application_share_resources) ... ok
+18: test_swapped_client_cannot_bypass_resource_checks (__main__.ResourceIsolationTests.test_swapped_client_cannot_bypass_resource_checks) ... ok
+18: test_translate_coordinates_does_not_disclose_foreign_child (__main__.ResourceIsolationTests.test_translate_coordinates_does_not_disclose_foreign_child) ... ok
+18: test_wrong_application_cannot_kill_resource_owner (__main__.ResourceIsolationTests.test_wrong_application_cannot_kill_resource_owner) ... ok
+18: 
+18: ----------------------------------------------------------------------
+18: Ran 36 tests in 2.732s
+18: 
+18: OK
+4/5 Test #18: native-resource-isolation ........   Passed    2.81 sec
+test 19
+    Start 19: native-security-identity
+
+19: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+19: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+19: Environment variables: 
+19:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+19: Test timeout computed to be: 180
+19: test_application_cannot_revoke_any_credentials (__main__.SecurityIdentityTests.test_application_cannot_revoke_any_credentials) ... ok
+19: test_application_labels_are_immutable_and_connections_are_distinct (__main__.SecurityIdentityTests.test_application_labels_are_immutable_and_connections_are_distinct) ... ok
+19: test_bad_cookies_cannot_use_disabled_host_access_control (__main__.SecurityIdentityTests.test_bad_cookies_cannot_use_disabled_host_access_control) ... ok
+19: test_bootstrap_binds_supervisor_before_native_requests (__main__.SecurityIdentityTests.test_bootstrap_binds_supervisor_before_native_requests) ... ok
+19: test_bootstrap_rejects_unknown_fields_empty_and_excessive_payloads (__main__.SecurityIdentityTests.test_bootstrap_rejects_unknown_fields_empty_and_excessive_payloads) ... ok
+19: test_bootstrap_requires_sealed_valid_protobuf (__main__.SecurityIdentityTests.test_bootstrap_requires_sealed_valid_protobuf) ... ok
+19: test_broker_can_issue_only_application_credentials (__main__.SecurityIdentityTests.test_broker_can_issue_only_application_credentials) ... ok
+19: test_compositor_cannot_issue_credentials (__main__.SecurityIdentityTests.test_compositor_cannot_issue_credentials) ... ok
+19: test_credential_ownership_prevents_other_broker_revocation (__main__.SecurityIdentityTests.test_credential_ownership_prevents_other_broker_revocation) ... ok
+19: test_invalid_labels_and_roles_are_rejected_without_changing_identity (__main__.SecurityIdentityTests.test_invalid_labels_and_roles_are_rejected_without_changing_identity) ... ok
+19: test_issuing_connection_loss_revokes_its_credentials (__main__.SecurityIdentityTests.test_issuing_connection_loss_revokes_its_credentials) ... ok
+19: test_malformed_and_unsupported_requests_leave_connection_usable (__main__.SecurityIdentityTests.test_malformed_and_unsupported_requests_leave_connection_usable) ... ok
+19: test_new_server_generation_rejects_old_application_cookie (__main__.SecurityIdentityTests.test_new_server_generation_rejects_old_application_cookie) ... ok
+19: test_ordinary_xlib_application_uses_private_xauthority (__main__.SecurityIdentityTests.test_ordinary_xlib_application_uses_private_xauthority) ... ok
+19: test_registry_is_bounded_and_revoked_slots_are_reusable (__main__.SecurityIdentityTests.test_registry_is_bounded_and_revoked_slots_are_reusable) ... ok
+19: test_revocation_closes_existing_connections_and_blocks_reuse (__main__.SecurityIdentityTests.test_revocation_closes_existing_connections_and_blocks_reuse) ... ok
+19: test_revoking_broker_cascades_without_harming_independent_credentials (__main__.SecurityIdentityTests.test_revoking_broker_cascades_without_harming_independent_credentials) ... ok
+19: test_supervisor_cannot_revoke_bootstrap_or_revoke_an_unknown_credential (__main__.SecurityIdentityTests.test_supervisor_cannot_revoke_bootstrap_or_revoke_an_unknown_credential) ... ok
+19: test_supervisor_connections_have_separate_issuance_lifetimes (__main__.SecurityIdentityTests.test_supervisor_connections_have_separate_issuance_lifetimes) ... ok
+19: test_swapped_native_client_has_the_same_identity_checks (__main__.SecurityIdentityTests.test_swapped_native_client_has_the_same_identity_checks) ... ok
+19: test_unknown_fields_and_replayed_request_ids_are_rejected (__main__.SecurityIdentityTests.test_unknown_fields_and_replayed_request_ids_are_rejected) ... ok
+19: test_valid_maximum_opaque_labels_round_trip (__main__.SecurityIdentityTests.test_valid_maximum_opaque_labels_round_trip) ... ok
+19: 
+19: ----------------------------------------------------------------------
+19: Ran 22 tests in 1.758s
+19: 
+19: OK
+5/5 Test #19: native-security-identity .........   Passed    1.83 sec
+
+The following tests passed:
+	native-selection-isolation
+	native-extension-isolation
+	native-resource-isolation
+	native-security-identity
+
+80% tests passed, 1 tests failed out of 5
+
+Total Test time (real) =  10.20 sec
+
+The following tests FAILED:
+	 15 - native-global-isolation (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

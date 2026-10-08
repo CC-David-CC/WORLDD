@@ -1,0 +1,11 @@
+--- a/Xext/spatial/spatialpolicy.c
++++ b/Xext/spatial/spatialpolicy.c
+@@ -130,7 +130,7 @@
+     /* Font definitions are public dependencies. Their host paths are not. */
+     if (SpatialSecuritySameApplication(rec->client, rec->client) &&
+         (rec->client->majorOp == X_ListFonts || rec->client->majorOp == X_ListFontsWithInfo)) return;
+-    rec->status = BadAccess;
++    rec->status = Success;
+ }
+ 
+ static void screensaver_access(CallbackListPtr *list, void *unused, void *data)

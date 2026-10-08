@@ -1,0 +1,12 @@
+--- a/dix/dispatch.c
++++ b/dix/dispatch.c
+@@ -1231,9 +1231,6 @@
+ ProcUngrabServer(ClientPtr client)
+ {
+     REQUEST_SIZE_MATCH(xReq);
+-    int rc = dixCallServerAccessCallback(client, DixGrabAccess);
+-    if (rc != Success)
+-        return rc;
+     UngrabServer(client);
+     return Success;
+ }

@@ -1,0 +1,20 @@
+--- a/os/access.c
++++ b/os/access.c
+@@ -1244,16 +1244,13 @@
+ {
+     int rc;
+ 
+-    if (!client)
++    if (!client || defeatAccessControl)
+         return Success;
+ 
+     /* untrusted clients can't change host access */
+     rc = dixCallServerAccessCallback(client, DixManageAccess);
+     if (rc != Success)
+         return rc;
+-
+-    if (defeatAccessControl)
+-        return Success;
+ 
+     return client->local ? Success : BadAccess;
+ }

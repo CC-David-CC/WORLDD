@@ -1,0 +1,18 @@
+{
+  "name": "saver-callback",
+  "target": "test_application_cannot_change_screen_saver_settings",
+  "argv": [
+    "python3",
+    "tests/native/test_global_isolation.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "GlobalIsolationTests.test_application_cannot_change_screen_saver_settings"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "ad8c21d2c67073451e8804ee3d6456f70ba7e9ef7afb3c520c8a8e0ef66978ed",
+  "source_sha256": {
+    "Xext/spatial/spatialpolicy.c": "928680138ab686535db19be39eeb91f446b5a36c05b84b20eaa1e7bdb8ba10c2",
+    "dix/dispatch.c": "07a959e59fc1edd32dabe40670588cbf17e6ec73335c6905666fb044eb621c31",
+    "os/access.c": "efad265bfb7895e8933ac91fd6227256fd23c229dd1d354b4c2cbf9c02e70e3a"
+  }
+}

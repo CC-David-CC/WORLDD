@@ -1,0 +1,18 @@
+{
+  "name": "acl-ordering",
+  "target": "test_application_cannot_change_host_acl",
+  "argv": [
+    "python3",
+    "tests/native/test_global_isolation.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "GlobalIsolationTests.test_application_cannot_change_host_acl"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "0f0db2d686ac15ee32c51fcdb46115ea9afff9ee18bdcfad2f907d7f9d329f69",
+  "source_sha256": {
+    "Xext/spatial/spatialpolicy.c": "973c8b2428906333218a6fc3ae1d9e89311aefa1a010964628eccbf79520e4b7",
+    "dix/dispatch.c": "07a959e59fc1edd32dabe40670588cbf17e6ec73335c6905666fb044eb621c31",
+    "os/access.c": "5d5b1e703ee749484decd5d43cdaf3c07a2ef5f28da6d32bc697d4b1977bf3ed"
+  }
+}

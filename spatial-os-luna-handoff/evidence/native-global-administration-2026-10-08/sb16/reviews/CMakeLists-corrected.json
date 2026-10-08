@@ -1,0 +1,4 @@
+{
+  "prompt": "Your proposal omitted the required auth executable arg: test_security_identity import pops sys.argv[1] as PROBE. Corrected proposal must be add_test(NAME native-global-isolation COMMAND \"${Python3_EXECUTABLE}\" \"${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_global_isolation.py\" $<TARGET_FILE:spatial-security-auth>) with TIMEOUT180 and ENVIRONMENT \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}\". No workingdirectory necessary neighboring native tests same registration. Return corrected fragment only.",
+  "proposal": "```cmake\nadd_test(NAME native-global-isolation COMMAND \"${Python3_EXECUTABLE}\" \"${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_global_isolation.py\" $<TARGET_FILE:spatial-security-auth>)\nset_tests_properties(native-global-isolation PROPERTIES TIMEOUT 180 ENVIRONMENT \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}\")\n```"
+}

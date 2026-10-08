@@ -9,6 +9,8 @@
 #include "dix/client_priv.h"
 #include "dix/extension_priv.h"
 #include "dix/selection_priv.h"
+#include "dix/server_priv.h"
+#include "dix/screensaver_priv.h"
 #include "render/picturestr_priv.h"
 #include "Xext/xacestr.h"
 #include "windowstr.h"
@@ -120,6 +122,24 @@ static void receive_access(CallbackListPtr *list, void *unused, void *data)
     if (!SpatialSecurityVisibleResource(rec->client, rec->pWin->drawable.id)) rec->status = BadAccess;
 }
 
+static void server_access(CallbackListPtr *list, void *unused, void *data)
+{
+    ServerAccessCallbackParam *rec = data;
+    (void)list; (void)unused;
+    if (SpatialSecurityPrivileged(rec->client)) return;
+    /* Font definitions are public dependencies. Their host paths are not. */
+    if (SpatialSecuritySameApplication(rec->client, rec->client) &&
+        (rec->client->majorOp == X_ListFonts || rec->client->majorOp == X_ListFontsWithInfo)) return;
+    rec->status = BadAccess;
+}
+
+static void screensaver_access(CallbackListPtr *list, void *unused, void *data)
+{
+    ScreenSaverAccessCallbackParam *rec = data;
+    (void)list; (void)unused;
+    if (!SpatialSecurityPrivileged(rec->client)) rec->status = BadAccess;
+}
+
 static void client_access(CallbackListPtr *list, void *unused, void *data)
 {
     ClientAccessCallbackParam *rec = data;
@@ -213,6 +233,8 @@ void SpatialSecurityPolicyInit(void)
         !XaceRegisterCallback(XACE_SEND_ACCESS, send_access, NULL) ||
         !XaceRegisterCallback(XACE_RECEIVE_ACCESS, receive_access, NULL) ||
         !AddCallback(&ClientAccessCallback, client_access, NULL) ||
+        !AddCallback(&ServerAccessCallback, server_access, NULL) ||
+        !AddCallback(&ScreenSaverAccessCallback, screensaver_access, NULL) ||
         !AddCallback(&ExtensionAccessCallback, extension_access, NULL) ||
         !AddCallback(&ExtensionDispatchCallback, extension_dispatch, NULL))
         FatalError("Cannot initialize spatial resource policy\n");
@@ -226,6 +248,8 @@ void SpatialSecurityPolicyReset(void)
     XaceDeleteCallback(XACE_SEND_ACCESS, send_access, NULL);
     XaceDeleteCallback(XACE_RECEIVE_ACCESS, receive_access, NULL);
     DeleteCallback(&ClientAccessCallback, client_access, NULL);
+    DeleteCallback(&ServerAccessCallback, server_access, NULL);
+    DeleteCallback(&ScreenSaverAccessCallback, screensaver_access, NULL);
     DeleteCallback(&ExtensionAccessCallback, extension_access, NULL);
     DeleteCallback(&ExtensionDispatchCallback, extension_dispatch, NULL);
 }

@@ -34,7 +34,8 @@
     "server/patches/0002-spatial-security.patch",
     "server/patches/0003-server-shutdown.patch",
     "server/patches/0004-spatial-resource-policy.patch",
-    "server/patches/0005-animated-cursor-cleanup.patch"
+    "server/patches/0005-animated-cursor-cleanup.patch",
+    "server/patches/0006-global-server-access.patch"
   ],
   "overlays": {
     "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",

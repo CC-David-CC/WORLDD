@@ -1,0 +1,16 @@
+test_application_cannot_change_host_acl (__main__.GlobalIsolationTests.test_application_cannot_change_host_acl) ... FAIL
+
+======================================================================
+FAIL: test_application_cannot_change_host_acl (__main__.GlobalIsolationTests.test_application_cannot_change_host_acl)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 31, in test_application_cannot_change_host_acl
+    self.denied(self.other, 109, self.other.pack('BBH', 0, 0, 4)+bytes([127, 0, 0, 1]))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+----------------------------------------------------------------------
+Ran 1 test in 0.026s
+
+FAILED (failures=1)

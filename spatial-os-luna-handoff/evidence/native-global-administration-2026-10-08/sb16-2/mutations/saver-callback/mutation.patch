@@ -1,0 +1,11 @@
+--- a/Xext/spatial/spatialpolicy.c
++++ b/Xext/spatial/spatialpolicy.c
+@@ -137,7 +137,7 @@
+ {
+     ScreenSaverAccessCallbackParam *rec = data;
+     (void)list; (void)unused;
+-    if (!SpatialSecurityPrivileged(rec->client)) rec->status = BadAccess;
++    if (!SpatialSecurityPrivileged(rec->client)) rec->status = Success;
+ }
+ 
+ static void client_access(CallbackListPtr *list, void *unused, void *data)

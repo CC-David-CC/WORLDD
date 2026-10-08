@@ -1,0 +1,12 @@
+--- a/dix/dispatch.c
++++ b/dix/dispatch.c
+@@ -3513,9 +3513,6 @@
+     int rc;
+ 
+     if (stuff->id == AllTemporary) {
+-        rc = dixCallServerAccessCallback(client, DixDestroyAccess);
+-        if (rc != Success)
+-            return rc;
+         CloseDownRetainedResources();
+         return Success;
+     }

@@ -1,0 +1,18 @@
+{
+  "name": "server-callback",
+  "target": "test_application_cannot_grab_server",
+  "argv": [
+    "python3",
+    "tests/native/test_global_isolation.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "GlobalIsolationTests.test_application_cannot_grab_server"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "d71d44623355008326bdb33889e04b39266dd03f0b6a178437da48f702f7d463",
+  "source_sha256": {
+    "Xext/spatial/spatialpolicy.c": "7371c274ce9c1ef5dec6696bba4b2458e10994a9b992c42bbd323d2eab409ed1",
+    "dix/dispatch.c": "07a959e59fc1edd32dabe40670588cbf17e6ec73335c6905666fb044eb621c31",
+    "os/access.c": "efad265bfb7895e8933ac91fd6227256fd23c229dd1d354b4c2cbf9c02e70e3a"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "prompt": "Correct your checkpointproposal: phase MUST remain M04 (a phase identifier); status alone becomes component_complete (this checked primitive). last_complete_phaseP10 is correct. No prohibition on future tests: fullCPPcore/runtimeSAN/hardware were unrun in THISincrement; they remainrequiredforfinalqualification. actualcommit substitutedonlyaftergitcommit. nativeglobaladministrationcheckedtrue; nativeglobalisolation/M04/fullprojectcompletefalse. Preservependingallmilestones. Proposecorrectionsonlyifneeded<=80words.",
+  "proposal": "No correction needed. The proposal correctly maintains phase M04, sets status to component_complete, validates last_complete_phaseP10, and accurately reflects that CPPcore/runtimeSAN/hardware remain required for final qualification despite being unrun in this increment. Commit substitution timing, native global administration/isolation flags, and pending milestones are all correctly preserved as specified."
+}

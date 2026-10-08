@@ -1,0 +1,164 @@
+test_application_can_list_public_font_information (__main__.GlobalIsolationTests.test_application_can_list_public_font_information) ... ok
+test_application_can_list_public_fonts (__main__.GlobalIsolationTests.test_application_can_list_public_fonts) ... ok
+test_application_cannot_change_access_control (__main__.GlobalIsolationTests.test_application_cannot_change_access_control) ... FAIL
+test_application_cannot_change_font_path (__main__.GlobalIsolationTests.test_application_cannot_change_font_path) ... FAIL
+test_application_cannot_change_host_acl (__main__.GlobalIsolationTests.test_application_cannot_change_host_acl) ... FAIL
+test_application_cannot_change_screen_saver_settings (__main__.GlobalIsolationTests.test_application_cannot_change_screen_saver_settings) ... FAIL
+test_application_cannot_force_screen_saver (__main__.GlobalIsolationTests.test_application_cannot_force_screen_saver) ... FAIL
+test_application_cannot_grab_server (__main__.GlobalIsolationTests.test_application_cannot_grab_server) ... FAIL
+test_application_cannot_list_hosts (__main__.GlobalIsolationTests.test_application_cannot_list_hosts) ... FAIL
+test_application_cannot_read_font_path (__main__.GlobalIsolationTests.test_application_cannot_read_font_path) ... FAIL
+test_application_cannot_read_screen_saver_settings (__main__.GlobalIsolationTests.test_application_cannot_read_screen_saver_settings) ... FAIL
+test_application_cannot_reap_retained_service_resources (__main__.GlobalIsolationTests.test_application_cannot_reap_retained_service_resources) ... FAIL
+test_application_cannot_ungrab_server (__main__.GlobalIsolationTests.test_application_cannot_ungrab_server) ... FAIL
+test_broker_has_no_server_administration_authority (__main__.GlobalIsolationTests.test_broker_has_no_server_administration_authority) ... FAIL
+test_compositor_can_query_global_settings (__main__.GlobalIsolationTests.test_compositor_can_query_global_settings) ... ok
+test_supervisor_can_reap_retained_service_resources (__main__.GlobalIsolationTests.test_supervisor_can_reap_retained_service_resources) ... ok
+test_supervisor_global_controls_remain_available (__main__.GlobalIsolationTests.test_supervisor_global_controls_remain_available) ... ok
+test_swapped_requests_cannot_bypass_global_checks (__main__.GlobalIsolationTests.test_swapped_requests_cannot_bypass_global_checks) ... FAIL
+test_workspace_membership_does_not_grant_server_management (__main__.GlobalIsolationTests.test_workspace_membership_does_not_grant_server_management) ... FAIL
+
+======================================================================
+FAIL: test_application_cannot_change_access_control (__main__.GlobalIsolationTests.test_application_cannot_change_access_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 35, in test_application_cannot_change_access_control
+    self.denied(self.other, 111, minor=1)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_change_font_path (__main__.GlobalIsolationTests.test_application_cannot_change_font_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 39, in test_application_cannot_change_font_path
+    self.denied(self.other, 51, self.other.pack('HH', 0, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_change_host_acl (__main__.GlobalIsolationTests.test_application_cannot_change_host_acl)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 31, in test_application_cannot_change_host_acl
+    self.denied(self.other, 109, self.other.pack('BBH', 0, 0, 4)+bytes([127, 0, 0, 1]))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_change_screen_saver_settings (__main__.GlobalIsolationTests.test_application_cannot_change_screen_saver_settings)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 94, in test_application_cannot_change_screen_saver_settings
+    self.denied(self.other, 107, self.other.pack('hhBBH', 0, 0, 0, 0, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_force_screen_saver (__main__.GlobalIsolationTests.test_application_cannot_force_screen_saver)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 99, in test_application_cannot_force_screen_saver
+    self.denied(self.other, 115, minor=0)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_grab_server (__main__.GlobalIsolationTests.test_application_cannot_grab_server)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 18, in test_application_cannot_grab_server
+    self.denied(self.other, 36)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_list_hosts (__main__.GlobalIsolationTests.test_application_cannot_list_hosts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 27, in test_application_cannot_list_hosts
+    self.denied(self.other, 110, reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x04\x00\x00\x00\x00\x00\x00\x[92 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_read_font_path (__main__.GlobalIsolationTests.test_application_cannot_read_font_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 43, in test_application_cannot_read_font_path
+    self.denied(self.other, 52, reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x04\x00\x10\x00\x00\x00\x03\x[166 chars]x00') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_read_screen_saver_settings (__main__.GlobalIsolationTests.test_application_cannot_read_screen_saver_settings)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 89, in test_application_cannot_read_screen_saver_settings
+    self.denied(self.other, 108, reply=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: (b'\x01\x00\x04\x00\x00\x00\x00\x00X\x02X[86 chars] b'') != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_reap_retained_service_resources (__main__.GlobalIsolationTests.test_application_cannot_reap_retained_service_resources)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 84, in test_application_cannot_reap_retained_service_resources
+    self.denied(self.other, 113, self.other.pack('I', 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_application_cannot_ungrab_server (__main__.GlobalIsolationTests.test_application_cannot_ungrab_server)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 23, in test_application_cannot_ungrab_server
+    self.denied(self.other, 37)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_broker_has_no_server_administration_authority (__main__.GlobalIsolationTests.test_broker_has_no_server_administration_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 140, in test_broker_has_no_server_administration_authority
+    self.denied(broker, 36)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_swapped_requests_cannot_bypass_global_checks (__main__.GlobalIsolationTests.test_swapped_requests_cannot_bypass_global_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 146, in test_swapped_requests_cannot_bypass_global_checks
+    self.denied(self.other, 51, self.other.pack('HH', 0, 0))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+======================================================================
+FAIL: test_workspace_membership_does_not_grant_server_management (__main__.GlobalIsolationTests.test_workspace_membership_does_not_grant_server_management)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_global_isolation.py", line 103, in test_workspace_membership_does_not_grant_server_management
+    self.denied(self.other, 111, minor=1)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_resource_isolation.py", line 112, in denied
+    self.assertEqual(client.operation(opcode, payload, minor, reply), 10, 'Expected native BadAccess')
+AssertionError: None != 10 : Expected native BadAccess
+
+----------------------------------------------------------------------
+Ran 19 tests in 1.292s
+
+FAILED (failures=14)

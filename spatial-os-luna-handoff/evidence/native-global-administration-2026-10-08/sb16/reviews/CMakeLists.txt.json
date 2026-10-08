@@ -1,0 +1,4 @@
+{
+  "prompt": "Propose additive CTest fragment under SPATIAL_INPUT_TESTS for native-global-isolation, using Python3_EXECUTABLE, tests/native/test_global_isolation.py, $<TARGET_FILE:spatial-security-auth>. TIMEOUT180 and ENVIRONMENT PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}. Do not alter existing checks. Fragment only.",
+  "proposal": "```cmake\nadd_test(NAME native-global-isolation\n         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_global_isolation.py\n         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})\nset_tests_properties(native-global-isolation PROPERTIES\n                     TIMEOUT 180\n                     ENVIRONMENT \"PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}\")\n```"
+}

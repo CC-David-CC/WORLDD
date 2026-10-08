@@ -1,0 +1,8 @@
+ninja: Entering directory `/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-global-mutations-01/source/build'
+[1/7] Compiling C object os/libxserver_os.a.p/access.c.o
+[2/7] Compiling C object dix/libxserver_dix.a.p/dispatch.c.o
+[3/7] Linking static target os/libxserver_os.a
+[4/7] Linking static target dix/libxserver_dix.a
+[5/7] Compiling C object Xext/libxserver_xext.a.p/spatial_spatialpolicy.c.o
+[6/7] Linking static target Xext/libxserver_xext.a
+[7/7] Linking target hw/vfb/Xvfb

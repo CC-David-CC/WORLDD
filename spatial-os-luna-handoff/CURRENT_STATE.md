@@ -1,5 +1,51 @@
 # Implementation status
 
+## 2026-10-08: Shared server administration checked
+
+The native policy now checks shared server administration and screen-saver access.
+Application and broker connections cannot grab or explicitly release the entire server.
+They cannot administer host access controls, inspect font paths, or reap retained service resources.
+They cannot inspect, change, or force shared screen-saver state.
+Public font names and font information remain available to applications.
+Supervisor and compositor connections retain the privileged service boundary.
+
+Both pre-patch servers failed 14 of the 19 new checks.
+All five positive controls passed against that baseline.
+The first patch build failed because it used a nonexistent DixUngrabAccess constant.
+The corrected build exposed three host-access failures.
+The -ac flag bypassed the authority callback in AuthorizedClient.
+The final patch checks authority before that shortcut.
+It uses the verified DixGrabAccess mask for explicit ungrab authorization.
+The compile failure and intermediate test failures remain in the evidence.
+
+Both patched Debug servers passed all 123 focused native checks.
+Both native-server ASan/UBSan builds passed the same checks with GLX disabled.
+The suites contain 19 global, 14 selection, 32 extension, 36 resource, and 22 identity checks.
+Native sanitizer runs enabled leak detection and halted on invalid access or undefined behavior.
+Both Debug hosts passed all 151 locked P00-P10 cases and 51 harness checks.
+Five isolated bypass mutations were detected on each host.
+They cover the server callback, screen-saver callback, ungrab guard, temporary-resource guard, and -ac ordering.
+No mutation entered production.
+
+The local model reviewed each implementation file and the additive contract.
+Its initial wire-layout claims and CTest registration required correction.
+The primary implementation also required the recorded compile and host-access fixes.
+Model prose does not establish test outcomes.
+
+The contract is docs/NATIVE_GLOBAL_POLICY.md.
+The primitive is tasks/m1/application.global_administration.json.
+Evidence is in evidence/native-global-administration-2026-10-08.
+The updated servers ran only in disposable project displays.
+The normal desktop and recovery routes remain available.
+
+This increment did not repeat complete C++ core or runtime-sanitizer profiles.
+GLX provider cleanup and physical session qualification remain unverified.
+Full global isolation, M04, and Spatial-M1 remain incomplete.
+Device authority, focus and pointer queries, atom privacy, private selection namespaces,
+asynchronous metadata, and broker/compositor integration remain required.
+Next: audit device authority and global focus/pointer observation.
+
+
 ## 2026-10-08: Owned selection access checked
 
 The native policy now checks owned selections through XACE_SELECTION_ACCESS.

@@ -1,0 +1,59 @@
+{
+  "id": "application.global_administration",
+  "phase": "M04",
+  "scope": "Shared native server administration and screen-saver authority",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/NATIVE_GLOBAL_POLICY.md",
+  "invariant": "Ordinary application and broker connections cannot administer shared X server state; public font definitions remain accessible to applications.",
+  "production_roots": [
+    "server/xlibre/spatialpolicy.c",
+    "server/patches/0006-global-server-access.patch"
+  ],
+  "counterexample_suite": "tests/native/test_global_isolation.py",
+  "test_ids": [
+    "GlobalIsolationTests.test_application_cannot_grab_server",
+    "GlobalIsolationTests.test_application_cannot_ungrab_server",
+    "GlobalIsolationTests.test_application_cannot_list_hosts",
+    "GlobalIsolationTests.test_application_cannot_change_host_acl",
+    "GlobalIsolationTests.test_application_cannot_change_access_control",
+    "GlobalIsolationTests.test_application_cannot_change_font_path",
+    "GlobalIsolationTests.test_application_cannot_read_font_path",
+    "GlobalIsolationTests.test_application_can_list_public_fonts",
+    "GlobalIsolationTests.test_application_can_list_public_font_information",
+    "GlobalIsolationTests.test_application_cannot_reap_retained_service_resources",
+    "GlobalIsolationTests.test_application_cannot_read_screen_saver_settings",
+    "GlobalIsolationTests.test_application_cannot_change_screen_saver_settings",
+    "GlobalIsolationTests.test_application_cannot_force_screen_saver",
+    "GlobalIsolationTests.test_workspace_membership_does_not_grant_server_management",
+    "GlobalIsolationTests.test_supervisor_global_controls_remain_available",
+    "GlobalIsolationTests.test_supervisor_can_reap_retained_service_resources",
+    "GlobalIsolationTests.test_compositor_can_query_global_settings",
+    "GlobalIsolationTests.test_broker_has_no_server_administration_authority",
+    "GlobalIsolationTests.test_swapped_requests_cannot_bypass_global_checks"
+  ],
+  "focused_command": "ctest --test-dir build -V -R '^native-(global-isolation|selection-isolation|extension-isolation|resource-isolation|security-identity)$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "New counterexamples fail against the pre-patch server while positive controls pass.",
+    "Patched global, selection, extension, resource, and identity suites pass in Debug on both hosts.",
+    "The same native suites pass under ASan/UBSan on both hosts, with the GLX limit recorded.",
+    "Actual font names and font information remain available.",
+    "Explicit UngrabServer and KillClient AllTemporary enforce authority before effects.",
+    "The -ac flag cannot bypass host access administration authority.",
+    "Isolated bypass mutations for the server callback, screen-saver callback, explicit ungrab guard, temporary-resource reap guard, and -ac authority ordering are detected.",
+    "Locked P00-P10 assertions remain unchanged and pass against the patched server.",
+    "Source inputs and tested binary hashes match both hosts."
+  ],
+  "limitations": [
+    "This component does not complete M04 or authorize untrusted native sessions.",
+    "Device authority, focus/pointer queries, atom privacy, selection namespaces, and asynchronous metadata remain unqualified.",
+    "Broker provisioning and compositor authority integration remain required.",
+    "Focused native-server sanitizers do not replace full runtime or hardware qualification."
+  ],
+  "next_components": [
+    "application.device_authority",
+    "application.atom_privacy",
+    "authority.application"
+  ],
+  "status_source": "CURRENT_STATE.md"
+}

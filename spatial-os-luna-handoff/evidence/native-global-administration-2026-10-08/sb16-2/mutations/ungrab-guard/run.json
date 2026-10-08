@@ -1,0 +1,18 @@
+{
+  "name": "ungrab-guard",
+  "target": "test_application_cannot_ungrab_server",
+  "argv": [
+    "python3",
+    "tests/native/test_global_isolation.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+    "GlobalIsolationTests.test_application_cannot_ungrab_server"
+  ],
+  "exit_code": 1,
+  "status": "detected",
+  "binary_sha256": "17c39f18af341861b8da66109d3e37278ba74801fbd700243cfc53eb2a91465f",
+  "source_sha256": {
+    "Xext/spatial/spatialpolicy.c": "973c8b2428906333218a6fc3ae1d9e89311aefa1a010964628eccbf79520e4b7",
+    "dix/dispatch.c": "5f341fa56d4e5f10152447888bbb8e1692523ec21b5d7391c7650c6a63a2f221",
+    "os/access.c": "efad265bfb7895e8933ac91fd6227256fd23c229dd1d354b4c2cbf9c02e70e3a"
+  }
+}

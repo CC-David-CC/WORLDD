@@ -1,0 +1,4 @@
+{
+  "prompt": "Your contract review identified no semanticbug. Primaryaddedprecision: productionworkspace sessionsmustenablestrictnativeauthentication; nullhostaccesscaller path isserver-internal, native requestsalwaysprovideauthenticatedClientPtr andcannotchooseNULL. Invariantordinaryapps/brokerno globaladmin, privsupervisor/compositor remain, fontdefinitionspublic butpathprivate. Proposecorrectionsonly ifconcreteerror<=100words.",
+  "proposal": "No correction proposed. The analysis correctly identifies that the null host access path is server-internal and unreachable by native clients, which always provide an authenticated client pointer. The distinction between public font definitions and private paths, alongside the preservation of supervisor/compositor privileges, aligns with standard security invariants. No semantic bug exists."
+}
