@@ -41,7 +41,21 @@ bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& re
         (request.has_enrollment_complete() && reply.has_enrollment()) ||
         (request.has_authentication_complete() && reply.has_authentication()) ||
         (request.has_credential_check() && reply.has_identity_status()) ||
-        (request.has_revocations() && reply.has_revocations());
+        (request.has_revocations() && reply.has_revocations()) ||
+        (request.has_actor_status() && reply.has_actor_status());
+}
+void check_actor_status(const v1::ActorStatusRead& request, const v1::ActorStatusBatch& batch,
+                        const std::string& issuer_id) {
+    require(batch.issuer_id() == issuer_id && batch.security_revision() <= INT64_MAX &&
+            request.actor_ids_size() > 0 && request.actor_ids_size() <= 128 &&
+            batch.actors_size() == request.actor_ids_size(), "Invalid actor status batch context");
+    std::set<std::string> distinct;
+    for (int index = 0; index < batch.actors_size(); ++index) {
+        const auto& actor = batch.actors(index);
+        require(actor.actor_id().size() == 32 && actor.actor_id() == request.actor_ids(index) &&
+                distinct.insert(actor.actor_id()).second && (!actor.revoked() || actor.known()) &&
+                actor.active() == (actor.known() && !actor.revoked()), "Invalid actor status subject or flags");
+    }
 }
 void check_revocations(const v1::RevocationRead& request, const v1::RevocationBatch& batch,
                        const std::string& issuer_id) {
@@ -189,6 +203,7 @@ struct IssuerClient::Impl {
                     reply.info().public_key() == config.issuer_public_key() && reply.info().policy_revision() > 0,
                     "Issuer identity does not match configured pins");
             if (reply.has_revocations()) check_revocations(request.revocations(), reply.revocations(), config.issuer_id());
+            if (reply.has_actor_status()) check_actor_status(request.actor_status(), reply.actor_status(), config.issuer_id());
         }
         return reply;
     }

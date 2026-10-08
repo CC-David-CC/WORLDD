@@ -1,0 +1,64 @@
+{
+  "base": "a47ac345f3abfd0aa9b0051ba554a7f9bb2488e8",
+  "source_overlay": {
+    "base": "a47ac345f3abfd0aa9b0051ba554a7f9bb2488e8",
+    "files": {
+      "spatial-os-luna-handoff/CMakeLists.txt": {
+        "before": "5518edadd8e0d3c485c363de9ec8d0b44b7ee97367de09f79c5c828751a4fb6e",
+        "after": "a44ad3ffab9f72a5992f37695bc021b9de7ae3911eea549a41381e9899a4bf4a",
+        "previous": "a44ad3ffab9f72a5992f37695bc021b9de7ae3911eea549a41381e9899a4bf4a"
+      },
+      "spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto": {
+        "before": "e881f0f2b82451988a06df61b00b39c27d3ef008a83f7cc4f785673d87b30a0c",
+        "after": "bc6a4c51a6fe92c64b9ab0f987557782689ca559dc75c11dc4169a3eb14ed7d7",
+        "previous": "bc6a4c51a6fe92c64b9ab0f987557782689ca559dc75c11dc4169a3eb14ed7d7"
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.cpp": {
+        "before": "550a964534d8dfb48617c6176c6c9bde11bf2f1e1278032f27f6b180775ab349",
+        "after": "96bd8a7645e70c03f1c4a3f4c97516bbc7f04e702e832e5e46a8ccebb47aa287",
+        "previous": "96bd8a7645e70c03f1c4a3f4c97516bbc7f04e702e832e5e46a8ccebb47aa287"
+      },
+      "spatial-os-luna-handoff/src/identity/issuer.hpp": {
+        "before": "6207194c8105a7305df3724624cbcba861bc13d568c1964266a225b1cb31baae",
+        "after": "d0d66264f587a3f9d2221e8f1ef9bdf5c3becb78e96b595d274467eb16273571",
+        "previous": "d0d66264f587a3f9d2221e8f1ef9bdf5c3becb78e96b595d274467eb16273571"
+      },
+      "spatial-os-luna-handoff/src/identity/issuer_client.cpp": {
+        "before": "8278f738efc828b6a85b197b93391d17022845e143ffc96bdf66c125521603c0",
+        "after": "a95dad4abd657cc9e1d46f3671fec90ed14c6226492886534e4451e0e7e18e03",
+        "previous": "a95dad4abd657cc9e1d46f3671fec90ed14c6226492886534e4451e0e7e18e03"
+      },
+      "spatial-os-luna-handoff/src/identity/protocol.cpp": {
+        "before": "025bf4afedd6d884c554edc957ec44ead8030cc8053ab46c47f6b1da7d4f12a3",
+        "after": "ed86fd6cb53d7d1e010d4fa27919d056473245f8ae139967b14b68a4b94a0e07",
+        "previous": "ed86fd6cb53d7d1e010d4fa27919d056473245f8ae139967b14b68a4b94a0e07"
+      },
+      "spatial-os-luna-handoff/tests/core/test_actor_status.py": {
+        "before": null,
+        "after": "56d0bc64c41ece3ca3aedac3c876ea4429d3a1c715aa11bd9594c78f2ac3a3c4",
+        "previous": "698924e109e12bbffe31780e25d610df62315c942abdbc6999442b1e35335d78"
+      }
+    }
+  },
+  "status": "detected",
+  "mutations": [
+    {
+      "name": "revocation",
+      "test": "test_actor_revocation_is_visible_without_a_new_credential",
+      "exit_code": 1,
+      "status": "detected",
+      "file": "src/identity/issuer.cpp",
+      "before_sha256": "96bd8a7645e70c03f1c4a3f4c97516bbc7f04e702e832e5e46a8ccebb47aa287",
+      "after_sha256": "443ad2a22d366ba77d8fb821a554baac17816929959caf6c66b047052d257cdf"
+    },
+    {
+      "name": "issuer-pin",
+      "test": "test_client_rejects_wrong_issuer_pin",
+      "exit_code": 1,
+      "status": "detected",
+      "file": "src/identity/issuer_client.cpp",
+      "before_sha256": "a95dad4abd657cc9e1d46f3671fec90ed14c6226492886534e4451e0e7e18e03",
+      "after_sha256": "ddc23af7cd105cceef94bfff32ef1e6b693647bb6e8b10674620f2950fccc3d4"
+    }
+  ]
+}

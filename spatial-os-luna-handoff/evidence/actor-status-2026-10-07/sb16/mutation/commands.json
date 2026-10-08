@@ -1,0 +1,84 @@
+[
+  {
+    "name": "worktree",
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-status-mutation/source",
+      "a47ac345f3abfd0aa9b0051ba554a7f9bb2488e8"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "configure",
+    "argv": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Debug"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "revocation-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "identityd",
+      "spatial-issuer-client",
+      "issuer-python-protobuf",
+      "key-python-protobuf",
+      "python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "revocation-witness",
+    "argv": [
+      "python3",
+      "tests/core/test_actor_status.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-status-mutation/source/spatial-os-luna-handoff/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-status-mutation/source/spatial-os-luna-handoff/build/spatial-issuer-client",
+      "ActorStatusTests.test_actor_revocation_is_visible_without_a_new_credential"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "issuer-pin-build",
+    "argv": [
+      "cmake",
+      "--build",
+      "build",
+      "--parallel",
+      "2",
+      "--target",
+      "identityd",
+      "spatial-issuer-client",
+      "issuer-python-protobuf",
+      "key-python-protobuf",
+      "python-protobuf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "issuer-pin-witness",
+    "argv": [
+      "python3",
+      "tests/core/test_actor_status.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-status-mutation/source/spatial-os-luna-handoff/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-status-mutation/source/spatial-os-luna-handoff/build/spatial-issuer-client",
+      "ActorStatusTests.test_client_rejects_wrong_issuer_pin"
+    ],
+    "exit_code": 1
+  }
+]

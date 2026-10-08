@@ -21,6 +21,7 @@ public:
     v1::ChallengeReply enrollment_begin(const v1::EnrollmentIntent& intent);
     v1::EnrollmentRecord enrollment_complete(const v1::EnrollmentComplete& request);
     v1::IdentityStatus credential_check(const v1::SignedCredential& credential);
+    v1::ActorStatusBatch actor_status(const v1::ActorStatusRead& request);
     v1::ChallengeReply authentication_begin(const v1::AuthenticationBegin& request);
     v1::AuthenticationResult authentication_complete(const v1::AuthenticationComplete& request);
     v1::RevocationBatch revocations(const v1::RevocationRead& request);

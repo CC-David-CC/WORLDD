@@ -30,6 +30,8 @@ An independently valid credential or grant survives unrelated revocation.
 M02 supplies grant delegation and scoped authorization. Cryptographic proof alone grants no workspace or world authority.
 The persistent grant-store library is qualified separately. See AUTHORITY_STORE.md.
 Its authenticated runtime integration and use by bootstrap profiles remain pending.
+The issuer now provides checked current actor-status batches for ancestor validation. See ACTOR_STATUS.md.
+These queries grant no authority and do not replace fresh caller authentication.
 
 Enrollment and authentication require fresh, bounded, single-use challenges.
 Bind each challenge to the issuer, service incarnation, intended operation, request contents, key, and audience.

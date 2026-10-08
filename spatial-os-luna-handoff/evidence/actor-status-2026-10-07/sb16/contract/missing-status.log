@@ -1,0 +1,23 @@
+test_production_client_reads_current_enrolled_actor (__main__.ActorStatusTests.test_production_client_reads_current_enrolled_actor) ... FAIL
+
+======================================================================
+FAIL: test_production_client_reads_current_enrolled_actor (__main__.ActorStatusTests.test_production_client_reads_current_enrolled_actor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_status.py", line 35, in test_production_client_reads_current_enrolled_actor
+    batch = self.batch(self.read(self.client()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_status.py", line 30, in batch
+    self.assertTrue(reply.HasField('actor_status'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 1
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.332s
+
+FAILED (failures=1)

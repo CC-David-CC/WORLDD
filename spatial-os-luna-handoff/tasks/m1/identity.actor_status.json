@@ -1,0 +1,27 @@
+{
+  "id": "identity.actor_status",
+  "phase": "M02",
+  "scope": "Current issuer status for authenticated grant-chain subjects",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/ACTOR_STATUS.md",
+  "invariant": "A checked status batch identifies exactly the requested actors under the pinned issuer and reports only committed identity state.",
+  "production_roots": ["src/identity/", "proto/spatial/identity/v1/issuer.proto"],
+  "counterexample_suite": "tests/core/test_actor_status.py",
+  "focused_command": "ctest --test-dir build -V -R '^actor-status$'",
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Both authorized hosts in Debug and ASan/UBSan",
+    "Full P00-P10 baseline with unchanged acceptance lock",
+    "Real enrollment, credential revocation, actor revocation, and restart",
+    "Independent checked-client counterexamples for identity, order, count, and flags",
+    "Database witnesses for read-only behavior and rolled-back revocation",
+    "Counterexamples detect ignored actor revocation and an ignored issuer pin"
+  ],
+  "limitations": [
+    "Actor status is not proof of key possession or resource authority.",
+    "A status reply does not make later effects atomic with identity state.",
+    "Live world and workspace grant-store integration remains required.",
+    "Nonempty bootstrap profiles and distributed cancellation remain required."
+  ],
+  "next_components": ["authority.world", "authority.workspace", "identity.bootstrap_profile"]
+}

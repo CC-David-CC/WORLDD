@@ -26,6 +26,8 @@ An actor with matching bytes from another issuer is a different actor.
 The library does not authenticate actor references supplied by an untrusted request.
 The caller must also supply a current identity-status checker.
 Every evaluated grant chain checks its subject identities through that checker.
+The issuer now provides bounded current actor-status batches. See ACTOR_STATUS.md.
+The runtime must still connect those checks and reconcile their revisions with revocation notifications.
 Missing checkers fail. Checker exceptions propagate; they never grant authority.
 Identity-check failure policy remains the runtime adapter's responsibility.
 

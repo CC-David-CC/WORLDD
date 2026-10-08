@@ -1,0 +1,16 @@
+test_client_rejects_wrong_issuer_pin (__main__.ActorStatusTests.test_client_rejects_wrong_issuer_pin) ... FAIL
+
+======================================================================
+FAIL: test_client_rejects_wrong_issuer_pin (__main__.ActorStatusTests.test_client_rejects_wrong_issuer_pin)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-status-mutation/source/spatial-os-luna-handoff/tests/core/test_actor_status.py", line 150, in test_client_rejects_wrong_issuer_pin
+    self.forged(lambda b: setattr(b, 'issuer_id', b'x'*32))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-status-mutation/source/spatial-os-luna-handoff/tests/core/test_actor_status.py", line 144, in forged
+    self.assertEqual(client.proc.returncode, 2)
+AssertionError: 0 != 2
+
+----------------------------------------------------------------------
+Ran 1 test in 0.451s
+
+FAILED (failures=1)

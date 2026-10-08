@@ -28,6 +28,8 @@ Static baseline action grants do not establish workspace or application isolatio
 The persistent authority-store library now qualifies structural delegation and stored revocation. See AUTHORITY_STORE.md.
 Its 43 checks run in the 445-check core suite. Runtime adapters and nonempty profiles remain required.
 Worldd and workspaced do not yet consume these records. M02 remains incomplete.
+The current actor-status service and checked client now support ancestor validation. See ACTOR_STATUS.md.
+Its 21 checks run in the 466-check core suite. Live grant-store integration remains required.
 
 ## Ordered implementation
 

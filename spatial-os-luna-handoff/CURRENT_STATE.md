@@ -1,5 +1,47 @@
 # Implementation status
 
+## 2026-10-07: Current actor-status service qualified
+
+The production issuer now returns bounded actor-status batches through its existing protected service interface.
+Each batch reports the requested actors in order, with known, revoked, and active flags.
+The reply identifies the issuer and one committed security revision.
+Unknown actors remain inactive. Pending enrollment does not create an actor implicitly.
+The query discloses no labels, public keys, credentials, workspace memberships, or grants.
+Credential revocation remains separate from actor revocation.
+The checked client validates the issuer pin, exact actor list, count, order, flags, and revision range.
+Malformed successful replies disable the client. Typed request errors leave it usable.
+
+Both hosts passed Debug and ASan/UBSan qualification:
+
+- All 151 P00-P10 acceptance cases, with zero failures, errors, skips, or unrun baseline cases.
+- All 466 core checks, including 21 new actor-status checks.
+- All 51 harness checks.
+
+Tests used real enrollment, owner-authorized revocation, issuer restart, and production TLS clients.
+SQLite witnesses verified read-only queries and rolled-back revocation.
+Independent TLS peers supplied malformed responses to the checked client.
+Final-source mutations ignored actor revocation and an issuer pin. Both counterexamples detected their defect.
+The mutations never entered production.
+Initial tests observed the old issuer rejecting the new operation.
+The first 19 focused checks passed before review added restart and rollback counterexamples.
+The final 21 checks preserve those assertions and add malformed nested-field and inactive-flag cases.
+
+All 148 source hashes match reviewed local files and both hosts.
+The acceptance lock and locked assertions remain unchanged.
+issuer.proto adds a read-only service operation. Issuer database schema remains version 3.
+Evidence is in evidence/actor-status-2026-10-07. The contract is docs/ACTOR_STATUS.md.
+No system service, host configuration, operator session, or actual David identity changed.
+Local-model review remains waived under David's hardware-failure instruction.
+
+Grant checks now have an issuer API for ancestor status without collecting ancestor credentials or private keys.
+Worldd and workspaced still do not use that store for live authorization.
+Actor status does not authenticate a caller, grant resource authority, or cancel live control by itself.
+Status batches are point-in-time observations. Later external effects are not atomic with them.
+Persistent domain provisioning, authenticated action adapters, nonempty profiles, and live cancellation remain required.
+M01, M02, Spatial-M1, and all other mandatory M01-M16/H01-H08 items remain incomplete.
+Next: connect world-domain grants to authenticated actor actions and revocation handling.
+The full project goal remains active. No external blocker is recorded.
+
 ## 2026-10-07: Persistent grant-store component qualified
 
 The production authority library now stores scoped world or workspace grants in SQLite.

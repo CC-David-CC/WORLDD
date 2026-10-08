@@ -1,0 +1,130 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 5
+    Start 5: identity-revocation
+
+5: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_revocation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd"
+5: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+5: Environment variables: 
+5:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+5: Test timeout computed to be: 60
+5: test_actor_revocation_disables_all_its_credentials_but_not_another_actor (__main__.RevocationTests.test_actor_revocation_disables_all_its_credentials_but_not_another_actor) ... ok
+5: test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge (__main__.RevocationTests.test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge) ... ok
+5: test_authentication_expiry_and_restart_reject_old_proofs (__main__.RevocationTests.test_authentication_expiry_and_restart_reject_old_proofs) ... ok
+5: test_authentication_uses_the_same_bounded_challenge_pool (__main__.RevocationTests.test_authentication_uses_the_same_bounded_challenge_pool) ... ok
+5: test_changed_audience_binding_or_signature_purpose_is_rejected (__main__.RevocationTests.test_changed_audience_binding_or_signature_purpose_is_rejected) ... ok
+5: test_credential_revocation_preserves_other_credential_and_pending_proof (__main__.RevocationTests.test_credential_revocation_preserves_other_credential_and_pending_proof) ... ok
+5: test_credentials_and_proofs_do_not_cross_issuer_instances (__main__.RevocationTests.test_credentials_and_proofs_do_not_cross_issuer_instances) ... ok
+5: test_explicit_v2_migration_preserves_all_existing_credential_bytes (__main__.RevocationTests.test_explicit_v2_migration_preserves_all_existing_credential_bytes) ... ok
+5: test_fresh_actor_proof_derives_identity_from_registered_credential (__main__.RevocationTests.test_fresh_actor_proof_derives_identity_from_registered_credential) ... ok
+5: test_fresh_duplicate_revocation_preserves_first_reason_and_revision (__main__.RevocationTests.test_fresh_duplicate_revocation_preserves_first_reason_and_revision) ... ok
+5: test_fresh_enrollment_recovery_does_not_reactivate_a_revoked_credential (__main__.RevocationTests.test_fresh_enrollment_recovery_does_not_reactivate_a_revoked_credential) ... ok
+5: test_invalid_authentication_context_and_unknown_fields_are_rejected (__main__.RevocationTests.test_invalid_authentication_context_and_unknown_fields_are_rejected) ... ok
+5: test_invalid_revocation_requests_do_not_allocate_owner_challenges (__main__.RevocationTests.test_invalid_revocation_requests_do_not_allocate_owner_challenges) ... ok
+5: test_missing_targets_do_not_change_security_revision (__main__.RevocationTests.test_missing_targets_do_not_change_security_revision) ... ok
+5: test_only_owner_can_read_identity_status_or_revoke (__main__.RevocationTests.test_only_owner_can_read_identity_status_or_revoke) ... ok
+5: test_owner_and_authentication_challenges_cannot_cross_protocols (__main__.RevocationTests.test_owner_and_authentication_challenges_cannot_cross_protocols) ... ok
+5: test_revocation_and_security_revision_survive_process_death (__main__.RevocationTests.test_revocation_and_security_revision_survive_process_death) ... ok
+5: test_revocation_between_challenge_and_completion_denies_authentication (__main__.RevocationTests.test_revocation_between_challenge_and_completion_denies_authentication) ... ok
+5: test_revoked_actor_cannot_receive_an_additional_credential (__main__.RevocationTests.test_revoked_actor_cannot_receive_an_additional_credential) ... ok
+5: test_sqlite_abort_rolls_back_revocation_and_global_revision (__main__.RevocationTests.test_sqlite_abort_rolls_back_revocation_and_global_revision) ... ok
+5: test_stale_security_revision_does_not_revoke_another_identity (__main__.RevocationTests.test_stale_security_revision_does_not_revoke_another_identity) ... ok
+5: test_successful_actor_proof_cannot_be_replayed (__main__.RevocationTests.test_successful_actor_proof_cannot_be_replayed) ... ok
+5: test_tampered_or_self_signed_credential_cannot_start_authentication (__main__.RevocationTests.test_tampered_or_self_signed_credential_cannot_start_authentication) ... ok
+5: test_valid_issuer_signature_does_not_register_an_unissued_credential (__main__.RevocationTests.test_valid_issuer_signature_does_not_register_an_unissued_credential) ... ok
+5: 
+5: ----------------------------------------------------------------------
+5: Ran 24 tests in 4.391s
+5: 
+5: OK
+1/3 Test #5: identity-revocation ..............   Passed    4.46 sec
+test 7
+    Start 7: actor-status
+
+7: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_status.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client"
+7: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+7: Environment variables: 
+7:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+7: Test timeout computed to be: 90
+7: test_actor_revocation_is_visible_without_a_new_credential (__main__.ActorStatusTests.test_actor_revocation_is_visible_without_a_new_credential) ... ok
+7: test_actor_status_discloses_no_labels_keys_or_credentials (__main__.ActorStatusTests.test_actor_status_discloses_no_labels_keys_or_credentials) ... ok
+7: test_batch_accepts_exactly_128_distinct_identities (__main__.ActorStatusTests.test_batch_accepts_exactly_128_distinct_identities) ... ok
+7: test_checked_client_remains_usable_after_typed_request_error (__main__.ActorStatusTests.test_checked_client_remains_usable_after_typed_request_error) ... ok
+7: test_client_rejects_inconsistent_actor_flags (__main__.ActorStatusTests.test_client_rejects_inconsistent_actor_flags) ... ok
+7: test_client_rejects_missing_or_extra_subject (__main__.ActorStatusTests.test_client_rejects_missing_or_extra_subject) ... ok
+7: test_client_rejects_reordered_or_substituted_subjects (__main__.ActorStatusTests.test_client_rejects_reordered_or_substituted_subjects) ... ok
+7: test_client_rejects_unknown_fields_and_excessive_revision (__main__.ActorStatusTests.test_client_rejects_unknown_fields_and_excessive_revision) ... ok
+7: test_client_rejects_wrong_issuer_pin (__main__.ActorStatusTests.test_client_rejects_wrong_issuer_pin) ... ok
+7: test_credential_revocation_does_not_revoke_actor_grants (__main__.ActorStatusTests.test_credential_revocation_does_not_revoke_actor_grants) ... ok
+7: test_empty_duplicate_short_and_excessive_batches_fail (__main__.ActorStatusTests.test_empty_duplicate_short_and_excessive_batches_fail) ... ok
+7: test_human_and_agent_identities_use_the_same_status (__main__.ActorStatusTests.test_human_and_agent_identities_use_the_same_status) ... ok
+7: test_order_and_mixed_known_unknown_statuses_are_preserved (__main__.ActorStatusTests.test_order_and_mixed_known_unknown_statuses_are_preserved) ... ok
+7: test_production_client_reads_current_enrolled_actor (__main__.ActorStatusTests.test_production_client_reads_current_enrolled_actor) ... ok
+7: test_reads_do_not_change_database_or_security_revision (__main__.ActorStatusTests.test_reads_do_not_change_database_or_security_revision) ... ok
+7: test_status_is_not_a_proof_or_an_administrator_credential (__main__.ActorStatusTests.test_status_is_not_a_proof_or_an_administrator_credential) ... ok
+7: test_unapproved_enrollment_is_not_an_actor (__main__.ActorStatusTests.test_unapproved_enrollment_is_not_an_actor) ... ok
+7: test_unknown_actor_is_explicitly_inactive (__main__.ActorStatusTests.test_unknown_actor_is_explicitly_inactive) ... ok
+7: test_unknown_request_fields_fail_without_poisoning_service (__main__.ActorStatusTests.test_unknown_request_fields_fail_without_poisoning_service) ... ok
+7: 
+7: ----------------------------------------------------------------------
+7: Ran 19 tests in 7.613s
+7: 
+7: OK
+2/3 Test #7: actor-status .....................   Passed    7.70 sec
+test 8
+    Start 8: issuer-client
+
+8: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_issuer_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client"
+8: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+8: Environment variables: 
+8:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+8: Test timeout computed to be: 90
+8: test_bad_reply_envelopes_poison_client (__main__.ClientTests.test_bad_reply_envelopes_poison_client) ... ok
+8: test_client_certificate_must_be_trusted_by_issuer (__main__.ClientTests.test_client_certificate_must_be_trusted_by_issuer) ... ok
+8: test_client_reaches_real_issuer_and_preserves_caller_request_ids (__main__.ClientTests.test_client_reaches_real_issuer_and_preserves_caller_request_ids) ... ok
+8: test_client_rejects_expired_server_certificate (__main__.ClientTests.test_client_rejects_expired_server_certificate) ... ok
+8: test_client_uses_sni_and_unique_internal_request_ids (__main__.ClientTests.test_client_uses_sni_and_unique_internal_request_ids) ... ok
+8: test_client_verifies_explicit_server_trust (__main__.ClientTests.test_client_verifies_explicit_server_trust) ... ok
+8: test_client_verifies_server_name (__main__.ClientTests.test_client_verifies_server_name) ... ok
+8: test_common_name_without_dns_san_is_rejected (__main__.ClientTests.test_common_name_without_dns_san_is_rejected) ... ok
+8: test_fragmented_reply_is_received_without_losing_frame_identity (__main__.ClientTests.test_fragmented_reply_is_received_without_losing_frame_identity) ... ok
+8: test_invalid_config_does_not_connect (__main__.ClientTests.test_invalid_config_does_not_connect) ... ok
+8: test_invalid_local_payload_does_not_poison_connection (__main__.ClientTests.test_invalid_local_payload_does_not_poison_connection) ... ok
+8: test_issuer_pins_are_checked_before_actor_data (__main__.ClientTests.test_issuer_pins_are_checked_before_actor_data) ... ok
+8: test_lost_reply_does_not_reconnect_or_replay (__main__.ClientTests.test_lost_reply_does_not_reconnect_or_replay) ... ok
+8: test_missing_production_capability_rejected_before_actor_data (__main__.ClientTests.test_missing_production_capability_rejected_before_actor_data) ... ok
+8: test_numeric_ipv6_endpoint_reaches_real_issuer (__main__.ClientTests.test_numeric_ipv6_endpoint_reaches_real_issuer) ... ok
+8: test_real_enrollment_authentication_and_revocation_use_checked_client (__main__.ClientTests.test_real_enrollment_authentication_and_revocation_use_checked_client) ... ok
+8: test_reply_deadline_is_not_refreshed_by_partial_progress (__main__.ClientTests.test_reply_deadline_is_not_refreshed_by_partial_progress) ... ok
+8: test_startup_reply_identity_is_checked (__main__.ClientTests.test_startup_reply_identity_is_checked) ... ok
+8: test_tcp_handshake_timeout_is_bounded (__main__.ClientTests.test_tcp_handshake_timeout_is_bounded) ... ok
+8: test_tick_callback_cancels_and_poisons_library_connection (__main__.ClientTests.test_tick_callback_cancels_and_poisons_library_connection) ... ok
+8: test_tls12_has_no_fallback (__main__.ClientTests.test_tls12_has_no_fallback) ... ok
+8: test_truncated_and_excessive_replies_fail_closed (__main__.ClientTests.test_truncated_and_excessive_replies_fail_closed) ... ok
+8: test_unsafe_client_key_fails_before_connect (__main__.ClientTests.test_unsafe_client_key_fails_before_connect) ... ok
+8: test_valid_issuer_error_keeps_connection_usable (__main__.ClientTests.test_valid_issuer_error_keeps_connection_usable) ... ok
+8: 
+8: ----------------------------------------------------------------------
+8: Ran 24 tests in 6.491s
+8: 
+8: OK
+3/3 Test #8: issuer-client ....................   Passed    6.58 sec
+
+The following tests passed:
+	identity-revocation
+	actor-status
+	issuer-client
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =  18.75 sec

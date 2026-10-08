@@ -181,6 +181,10 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_tls.py" $<TARGET_FILE:identityd>)
     set_tests_properties(identity-tls PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME actor-status COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_status.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(actor-status PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_executable(spatial-issuer-client-probe src/testing/issuer_client_probe.cpp)
     target_link_libraries(spatial-issuer-client-probe PRIVATE spatial-issuer-client-lib)
     add_test(NAME issuer-client COMMAND "${Python3_EXECUTABLE}"

@@ -79,6 +79,20 @@ message IdentityStatus {
   bool active = 7;
   uint64 security_revision = 8;
 }
+// Read-only service query. Actor validity is independent of any one credential.
+// Keep request order. Require between one and 128 distinct 32-byte identities.
+message ActorStatusRead { repeated bytes actor_ids = 1; }
+message ActorState {
+  bytes actor_id = 1;
+  bool known = 2;
+  bool revoked = 3;
+  bool active = 4;
+}
+message ActorStatusBatch {
+  bytes issuer_id = 1;
+  uint64 security_revision = 2;
+  repeated ActorState actors = 3;
+}
 message AuthenticationBegin {
   SignedCredential credential = 1;
   string audience = 2;
@@ -168,6 +182,7 @@ message IssuerRequest {
     AuthenticationComplete authentication_complete = 17;
     SignedCredential credential_check = 18;
     RevocationRead revocations = 19;
+    ActorStatusRead actor_status = 20;
   }
 }
 message IssuerReply {
@@ -183,5 +198,6 @@ message IssuerReply {
     IdentityStatus identity_status = 16;
     AuthenticationResult authentication = 17;
     RevocationBatch revocations = 18;
+    ActorStatusBatch actor_status = 19;
   }
 }

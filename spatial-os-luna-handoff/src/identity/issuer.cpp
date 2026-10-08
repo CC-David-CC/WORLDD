@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <limits>
 #include <map>
+#include <set>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -508,6 +509,25 @@ v1::EnrollmentRecord Issuer::enrollment_complete(const v1::EnrollmentComplete& r
 }
 v1::IdentityStatus Issuer::credential_check(const v1::SignedCredential& credential) {
     return impl_->check_credential(credential);
+}
+v1::ActorStatusBatch Issuer::actor_status(const v1::ActorStatusRead& request) {
+    validate_message(request);
+    require(request.actor_ids_size() > 0 && request.actor_ids_size() <= 128, "Actor status requires one to 128 identities");
+    std::set<std::string> distinct;
+    for (const auto& id : request.actor_ids())
+        require(id.size() == 32 && distinct.insert(id).second, "Actor status identities must be distinct and contain 32 bytes");
+    Transaction transaction(impl_->db.get());
+    v1::ActorStatusBatch result; result.set_issuer_id(impl_->identity.issuer_id());
+    result.set_security_revision(impl_->security_revision());
+    for (const auto& id : request.actor_ids()) {
+        auto* status = result.add_actors(); status->set_actor_id(id);
+        Query actor(impl_->db.get(), "SELECT kind FROM actor WHERE id=?"); actor.blob(1, id);
+        if (actor.step() != SQLITE_ROW) continue;
+        storage(actor.integer(0) == v1::HUMAN || actor.integer(0) == v1::AGENT, "Invalid stored actor kind");
+        status->set_known(true); status->set_revoked(impl_->revoked(v1::ACTOR_TARGET, id));
+        status->set_active(!status->revoked());
+    }
+    transaction.commit(); return result;
 }
 v1::ChallengeReply Issuer::authentication_begin(const v1::AuthenticationBegin& request) {
     validate_message(request);
