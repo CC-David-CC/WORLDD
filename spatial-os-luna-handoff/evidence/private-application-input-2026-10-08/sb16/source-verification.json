@@ -1,0 +1,67 @@
+{
+  "host": "sb16",
+  "source_inputs": 406,
+  "mismatches": [],
+  "review": "primary agent; local-model requirement waived by David",
+  "profiles": {
+    "Debug": {
+      "core": 663,
+      "harness": 51,
+      "P10": 151
+    },
+    "runtime-sanitize": {
+      "core": 663,
+      "harness": 51,
+      "P10": 151
+    },
+    "native-sanitize": {
+      "focused": 151,
+      "GLX": false,
+      "leak_detection": true
+    }
+  },
+  "binaries": {
+    "native-debug": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/d0d74ed7207e0a9267fbe36a85574ef86b1b9d911b32355fda3d0a7b176cde6b/source/build/hw/vfb/Xvfb",
+      "sha256": "fdf3fc82a620484aa5423c2c8cf52ce5ad6742cf3691ef77d7a9c8296469b053"
+    },
+    "native-sanitize": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/d0d74ed7207e0a9267fbe36a85574ef86b1b9d911b32355fda3d0a7b176cde6b/source/build-sanitize/hw/vfb/Xvfb",
+      "sha256": "4a0fe567b116834b37c9c1dcdf2502af9d04603e4cb81c1798d2953709d0d241"
+    },
+    "build/spatial-test-host": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host",
+      "sha256": "914a0ef1939b362ca993202efee35e7401225ae500d121f756832141002eab8c"
+    },
+    "build/worldd": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+      "sha256": "f634facd058f73e3f6c00f99ceac7244c4df789267cb260d0ab7c9b5961c8324"
+    },
+    "build/spatialwm": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatialwm",
+      "sha256": "4c68e8da1136ab8fd15b6db6937420e259c297146e52212591000c0f851e723f"
+    },
+    "build/spatial-security-auth": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+      "sha256": "c1c1add9a9b84041a30771caf892dcee023f7e07348a12752f5c782aed3931a8"
+    },
+    "build-sanitize/spatial-test-host": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatial-test-host",
+      "sha256": "3320e9e87a6050657c35cf6be2ad4d532c99d2241a76510a1100544bbc57611f"
+    },
+    "build-sanitize/worldd": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/worldd",
+      "sha256": "f79222dd409403bf751c2f8db103dfdd89caafbe58a632bea598b003922ab07a"
+    },
+    "build-sanitize/spatialwm": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatialwm",
+      "sha256": "37facf2bbd88932eaac9af82057e709b219d90f516ac8a5c70b63ec10ba489f2"
+    },
+    "build-sanitize/spatial-security-auth": {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build-sanitize/spatial-security-auth",
+      "sha256": "852780520e7631cad1c062f4b1589d210b9c3583b8a6b81e10a57508d4ad76ff"
+    }
+  },
+  "M04_complete": false,
+  "actor_binding_complete": false
+}

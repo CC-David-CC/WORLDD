@@ -1,5 +1,38 @@
 # Implementation status
 
+## 2026-10-08: Private application input devices checked
+
+Authenticated application connections now share a real device pair within their application identity.
+Other applications receive separate pointer, keyboard, focus, and grab state.
+The server assigns devices before the connection's first native request.
+Allocation failure rejects authentication instead of selecting shared devices.
+The last connection releases its application's pair.
+
+Both previous servers failed 12 of the 15 new checks.
+Three same-application positive controls passed on that baseline.
+Both final hosts passed all 15 new checks and 136 existing focused native checks.
+Both native-server ASan/UBSan profiles passed those 151 checks with GLX disabled and leak detection enabled.
+Both final Debug and runtime sanitizer profiles passed 663 checks across 34 CTest suites.
+Each profile also passed 51 harness checks and 151 P10 cases.
+No executed profile reported skipped cases.
+
+The first native sanitizer run exposed a 193-byte XKB doodad-string leak.
+Patch 0007 frees all old destination doodad strings before geometry replacement.
+The original failure remains in the evidence. No suppression was added.
+The InputFocus attack fixture now uses the attacker's actual keyboard.
+Its BadAccess assertion remains unchanged, and the fixture correction has its own reviewed commit.
+
+David authorized primary-agent review without the local model.
+The primary agent reviewed the implementation, lifecycle paths, tests, and evidence.
+The contract is docs/PRIVATE_APPLICATION_INPUT.md.
+Evidence is in evidence/private-application-input-2026-10-08.
+
+This component supplies private idle devices. It does not bind applications to actor devices.
+The configured policy currently denies application access to unbound actor devices.
+Next: bind the whole application group to its authorized controller, then qualify transfer and revocation.
+Motion history, asynchronous metadata, broker/compositor integration, and physical sessions remain unqualified.
+M04 and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Shared device administration checked
 
 Ordinary applications and brokers cannot configure shared keyboard or pointer devices.

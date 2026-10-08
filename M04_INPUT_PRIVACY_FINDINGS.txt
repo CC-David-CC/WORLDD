@@ -2,6 +2,11 @@ Updated: 2026-10-08
 
 M04 input isolation: confirmed native-runtime defects
 
+Progress: private idle application devices now isolate focus, pointer state, held-key queries, and grabs.
+Both hosts passed the new native checks and sanitizer profiles.
+The historical observations below describe the preceding shared-device implementation.
+Actor-to-application binding and lease transitions remain unfinished.
+
 These are spatial security integration defects in our development server.
 They are not proposed upstream XLibre fixes.
 Both sb16 and sb16-2 reproduced them on disposable Xvfb displays.

@@ -23,6 +23,7 @@
 #include "exevents.h"
 #include "xichangehierarchy.h"
 #include "spatialinput.h"
+#include "spatialsecurity.h"
 #include "input.pb-c.h"
 
 typedef Spatial__Input__V1__Request Request;
@@ -53,10 +54,74 @@ typedef struct {
     DestroyWindowProcPtr destroy;
 } ScreenState;
 
+typedef struct {
+    DeviceIntPtr pointer, keyboard;
+    unsigned connections;
+} ApplicationInput;
+
 static DevPrivateKeyRec device_key, window_key, screen_key, client_key;
+static DevPrivateKeyRec application_key, application_device_key;
 static SeatRec *seats;
 static uint64_t next_seat, next_generation;
 static Bool active;
+
+/* Application identity, not a credential or a single X connection, owns the
+ * idle device pair. Devices contain genuine DIX focus, grabs and pointer state.
+ */
+Bool SpatialInputAuthorizeClient(ClientPtr client)
+{
+    if (!active) return FALSE;
+    if (!SpatialSecuritySameApplication(client, client)) {
+        client->clientPtr = inputInfo.pointer;
+        return TRUE;
+    }
+    ApplicationInput *application = NULL;
+    for (int i = 1; i < currentMaxClients; ++i) {
+        if (!clients[i] || clients[i] == client ||
+            !SpatialSecuritySameApplication(client, clients[i])) continue;
+        application = dixLookupPrivate(&clients[i]->devPrivates, &application_key);
+        if (application) break;
+    }
+    if (!application) {
+        application = calloc(1, sizeof(*application));
+        if (!application) return FALSE;
+        if (AllocDevicePair(serverClient, "Spatial application", &application->pointer,
+                            &application->keyboard, CorePointerProc, CoreKeyboardProc,
+                            TRUE) != Success) {
+            free(application);
+            return FALSE;
+        }
+        dixSetPrivate(&application->pointer->devPrivates, &application_device_key, application);
+        dixSetPrivate(&application->keyboard->devPrivates, &application_device_key, application);
+        if (ActivateDevice(application->pointer, FALSE) != Success ||
+            ActivateDevice(application->keyboard, FALSE) != Success ||
+            !EnableDevice(application->pointer, FALSE) ||
+            !EnableDevice(application->keyboard, FALSE) ||
+            SetInputFocus(serverClient, application->keyboard, None, RevertToNone,
+                          CurrentTime, FALSE) != Success) {
+            RemoveDevice(application->keyboard, FALSE);
+            RemoveDevice(application->pointer, FALSE);
+            free(application);
+            return FALSE;
+        }
+    }
+    ++application->connections;
+    dixSetPrivate(&client->devPrivates, &application_key, application);
+    client->clientPtr = application->pointer;
+    return TRUE;
+}
+
+static void close_application_connection(ClientPtr client)
+{
+    ApplicationInput *application = dixLookupPrivate(&client->devPrivates, &application_key);
+    if (!application) return;
+    dixSetPrivate(&client->devPrivates, &application_key, NULL);
+    client->clientPtr = NULL;
+    if (--application->connections) return;
+    RemoveDevice(application->keyboard, FALSE);
+    RemoveDevice(application->pointer, FALSE);
+    free(application);
+}
 
 static uint64_t generation(WindowPtr win)
 {
@@ -266,6 +331,13 @@ failed:
 static void device_access(CallbackListPtr *list, void *unused, void *data)
 {
     DeviceAccessCallbackParam *access = data;
+    if (SpatialSecurityEnabled()) {
+        if (!access->client || SpatialSecurityPrivileged(access->client)) return;
+        ApplicationInput *subject = dixLookupPrivate(&access->client->devPrivates, &application_key);
+        ApplicationInput *object = dixLookupPrivate(&access->dev->devPrivates, &application_device_key);
+        if (!subject || subject != object) access->status = BadAccess;
+        return;
+    }
     SeatRec *seat = dixLookupPrivate(&access->dev->devPrivates, &device_key);
     (void)list; (void)unused;
     if (!seat || access->client == serverClient) return;
@@ -280,6 +352,7 @@ static void client_state(CallbackListPtr *list, void *unused, void *data)
     NewClientInfoRec *info = data;
     (void)list; (void)unused;
     if (info->client->clientState != ClientStateGone && info->client->clientState != ClientStateRetained) return;
+    close_application_connection(info->client);
     for (SeatRec *seat = seats, *next; seat; seat = next) {
         next = seat->next;
         if (seat->owner == info->client) close_seat(seat);
@@ -434,6 +507,8 @@ static void reset(ExtensionEntry *extension)
 void SpatialInputExtensionInit(void)
 {
     if (!dixRegisterPrivateKey(&device_key, PRIVATE_DEVICE, 0) ||
+        !dixRegisterPrivateKey(&application_key, PRIVATE_CLIENT, 0) ||
+        !dixRegisterPrivateKey(&application_device_key, PRIVATE_DEVICE, 0) ||
         !dixRegisterPrivateKey(&client_key, PRIVATE_CLIENT, sizeof(uint64_t)) ||
         !dixRegisterPrivateKey(&window_key, PRIVATE_WINDOW, sizeof(uint64_t)) ||
         !dixRegisterPrivateKey(&screen_key, PRIVATE_SCREEN, sizeof(ScreenState)) ||

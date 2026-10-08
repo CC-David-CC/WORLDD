@@ -1,0 +1,18 @@
+test_application_can_read_public_keyboard_mapping (__main__.DeviceAdministrationTests.test_application_can_read_public_keyboard_mapping) ... ok
+test_application_can_read_public_modifier_mapping (__main__.DeviceAdministrationTests.test_application_can_read_public_modifier_mapping) ... ok
+test_application_can_read_public_pointer_mapping (__main__.DeviceAdministrationTests.test_application_can_read_public_pointer_mapping) ... ok
+test_application_cannot_change_keyboard_controls (__main__.DeviceAdministrationTests.test_application_cannot_change_keyboard_controls) ... ok
+test_application_cannot_change_pointer_controls (__main__.DeviceAdministrationTests.test_application_cannot_change_pointer_controls) ... ok
+test_application_cannot_clear_modifier_mapping (__main__.DeviceAdministrationTests.test_application_cannot_clear_modifier_mapping) ... ok
+test_application_cannot_replace_keyboard_mapping (__main__.DeviceAdministrationTests.test_application_cannot_replace_keyboard_mapping) ... ok
+test_application_cannot_replace_pointer_mapping (__main__.DeviceAdministrationTests.test_application_cannot_replace_pointer_mapping) ... ok
+test_application_cannot_ring_shared_keyboard_bell (__main__.DeviceAdministrationTests.test_application_cannot_ring_shared_keyboard_bell) ... ok
+test_broker_has_no_device_administration_authority (__main__.DeviceAdministrationTests.test_broker_has_no_device_administration_authority) ... ok
+test_swapped_requests_cannot_bypass_device_administration (__main__.DeviceAdministrationTests.test_swapped_requests_cannot_bypass_device_administration) ... ok
+test_trusted_services_can_configure_shared_devices (__main__.DeviceAdministrationTests.test_trusted_services_can_configure_shared_devices) ... ok
+test_workspace_membership_does_not_grant_device_administration (__main__.DeviceAdministrationTests.test_workspace_membership_does_not_grant_device_administration) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.201s
+
+OK

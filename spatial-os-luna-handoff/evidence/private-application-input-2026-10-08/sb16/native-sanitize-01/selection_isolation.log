@@ -1,0 +1,19 @@
+test_application_name_in_another_workspace_is_not_same_identity (__main__.SelectionIsolationTests.test_application_name_in_another_workspace_is_not_same_identity) ... ok
+test_broker_cannot_query_application_selection (__main__.SelectionIsolationTests.test_broker_cannot_query_application_selection) ... ok
+test_claiming_secondary_does_not_grant_primary_access (__main__.SelectionIsolationTests.test_claiming_secondary_does_not_grant_primary_access) ... ok
+test_compositor_can_query_owner (__main__.SelectionIsolationTests.test_compositor_can_query_owner) ... ok
+test_foreign_conversion_is_denied (__main__.SelectionIsolationTests.test_foreign_conversion_is_denied) ... ok
+test_foreign_owner_clear_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_clear_is_denied) ... ok
+test_foreign_owner_query_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_query_is_denied) ... ok
+test_foreign_owner_replacement_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_replacement_is_denied) ... ok
+test_ownerless_selection_can_be_queried_and_claimed (__main__.SelectionIsolationTests.test_ownerless_selection_can_be_queried_and_claimed) ... ok
+test_same_application_connections_can_query_owner (__main__.SelectionIsolationTests.test_same_application_connections_can_query_owner) ... ok
+test_same_application_conversion_reaches_real_owner (__main__.SelectionIsolationTests.test_same_application_conversion_reaches_real_owner) ... ok
+test_supervisor_can_query_owner (__main__.SelectionIsolationTests.test_supervisor_can_query_owner) ... ok
+test_swapped_client_cannot_bypass_selection_policy (__main__.SelectionIsolationTests.test_swapped_client_cannot_bypass_selection_policy) ... ok
+test_workspace_membership_does_not_grant_selection_access (__main__.SelectionIsolationTests.test_workspace_membership_does_not_grant_selection_access) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 1.302s
+
+OK

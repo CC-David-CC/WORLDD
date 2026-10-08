@@ -1,0 +1,74 @@
+{
+  "results": [
+    {
+      "suite": "application_input",
+      "command": [
+        "python3",
+        "tests/native/test_application_input.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 1
+    },
+    {
+      "suite": "device_administration",
+      "command": [
+        "python3",
+        "tests/native/test_device_administration.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "suite": "global_isolation",
+      "command": [
+        "python3",
+        "tests/native/test_global_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "suite": "selection_isolation",
+      "command": [
+        "python3",
+        "tests/native/test_selection_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "suite": "extension_isolation",
+      "command": [
+        "python3",
+        "tests/native/test_extension_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "suite": "resource_isolation",
+      "command": [
+        "python3",
+        "tests/native/test_resource_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "suite": "security_identity",
+      "command": [
+        "python3",
+        "tests/native/test_security_identity.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "binary": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/1a19ba0a69ff16524c41aa8114383941a47c3de0879d42dc42d972cbe066d7c7/source/build-sanitize/hw/vfb/Xvfb",
+    "sha256": "2eb3fca4ef722b03e7beda52f02ff5a8b6b03ccd0a53616d136fb8f7bd30f41e"
+  },
+  "GLX": false,
+  "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+}

@@ -1,0 +1,121 @@
+test_application_keyboard_grabs_do_not_compete (__main__.ApplicationInputTests.test_application_keyboard_grabs_do_not_compete) ... FAIL
+test_application_pointer_grabs_do_not_compete (__main__.ApplicationInputTests.test_application_pointer_grabs_do_not_compete) ... FAIL
+test_application_warp_cannot_move_another_pointer (__main__.ApplicationInputTests.test_application_warp_cannot_move_another_pointer) ... FAIL
+test_foreign_application_cannot_change_focus (__main__.ApplicationInputTests.test_foreign_application_cannot_change_focus) ... FAIL
+test_foreign_application_cannot_read_focus (__main__.ApplicationInputTests.test_foreign_application_cannot_read_focus) ... FAIL
+test_last_disconnect_reclaims_device_pairs (__main__.ApplicationInputTests.test_last_disconnect_reclaims_device_pairs) ... FAIL
+test_late_connection_joins_existing_application_input (__main__.ApplicationInputTests.test_late_connection_joins_existing_application_input) ... ok
+test_same_application_connections_share_real_focus (__main__.ApplicationInputTests.test_same_application_connections_share_real_focus) ... ok
+test_same_application_grabs_still_compete (__main__.ApplicationInputTests.test_same_application_grabs_still_compete) ... ok
+test_same_application_name_in_other_workspace_is_isolated (__main__.ApplicationInputTests.test_same_application_name_in_other_workspace_is_isolated) ... FAIL
+test_shared_held_key_is_not_observable (__main__.ApplicationInputTests.test_shared_held_key_is_not_observable) ... FAIL
+test_shared_pointer_motion_is_not_observable (__main__.ApplicationInputTests.test_shared_pointer_motion_is_not_observable) ... FAIL
+test_swapped_application_has_private_keyboard (__main__.ApplicationInputTests.test_swapped_application_has_private_keyboard) ... FAIL
+test_workspace_membership_does_not_share_keyboard (__main__.ApplicationInputTests.test_workspace_membership_does_not_share_keyboard) ... FAIL
+
+======================================================================
+FAIL: test_application_keyboard_grabs_do_not_compete (__main__.ApplicationInputTests.test_application_keyboard_grabs_do_not_compete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 109, in test_application_keyboard_grabs_do_not_compete
+    self.assertEqual(self.grab(self.owner, self.window, True), 0)
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_application_pointer_grabs_do_not_compete (__main__.ApplicationInputTests.test_application_pointer_grabs_do_not_compete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 114, in test_application_pointer_grabs_do_not_compete
+    self.assertEqual(self.grab(self.owner, self.window, False), 0)
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_application_warp_cannot_move_another_pointer (__main__.ApplicationInputTests.test_application_warp_cannot_move_another_pointer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 98, in test_application_warp_cannot_move_another_pointer
+    self.assertEqual(self.pointer(self.owner, self.window), foreign)
+AssertionError: Tuples differ: (13, 17, 13, 17, 0) != (64, 64, 64, 64, 0)
+
+First differing element 0:
+13
+64
+
+- (13, 17, 13, 17, 0)
++ (64, 64, 64, 64, 0)
+
+======================================================================
+FAIL: test_foreign_application_cannot_change_focus (__main__.ApplicationInputTests.test_foreign_application_cannot_change_focus)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 58, in test_foreign_application_cannot_change_focus
+    self.assertEqual(self.focus(self.owner), self.window)
+AssertionError: 6291457 != 4194305
+
+======================================================================
+FAIL: test_foreign_application_cannot_read_focus (__main__.ApplicationInputTests.test_foreign_application_cannot_read_focus)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 52, in test_foreign_application_cannot_read_focus
+    self.assertEqual(self.focus(self.other), 0)
+AssertionError: 4194305 != 0
+
+======================================================================
+FAIL: test_last_disconnect_reclaims_device_pairs (__main__.ApplicationInputTests.test_last_disconnect_reclaims_device_pairs)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 162, in test_last_disconnect_reclaims_device_pairs
+    self.assertEqual(self.focus(client), 0)
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_same_application_name_in_other_workspace_is_isolated (__main__.ApplicationInputTests.test_same_application_name_in_other_workspace_is_isolated)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 69, in test_same_application_name_in_other_workspace_is_isolated
+    self.assertEqual(self.focus(self.other), 0)
+AssertionError: 4194305 != 0
+
+======================================================================
+FAIL: test_shared_held_key_is_not_observable (__main__.ApplicationInputTests.test_shared_held_key_is_not_observable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 141, in test_shared_held_key_is_not_observable
+    self.assertFalse(held(self.other))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_shared_pointer_motion_is_not_observable (__main__.ApplicationInputTests.test_shared_pointer_motion_is_not_observable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 90, in test_shared_pointer_motion_is_not_observable
+    self.assertEqual(self.pointer(self.other, self.other_window), before)
+AssertionError: Tuples differ: (77, 83, 77, 83, 0) != (64, 64, 64, 64, 0)
+
+First differing element 0:
+77
+64
+
+- (77, 83, 77, 83, 0)
++ (64, 64, 64, 64, 0)
+
+======================================================================
+FAIL: test_swapped_application_has_private_keyboard (__main__.ApplicationInputTests.test_swapped_application_has_private_keyboard)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 74, in test_swapped_application_has_private_keyboard
+    self.assertEqual(self.focus(self.other), 0)
+AssertionError: 4194305 != 0
+
+======================================================================
+FAIL: test_workspace_membership_does_not_share_keyboard (__main__.ApplicationInputTests.test_workspace_membership_does_not_share_keyboard)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_application_input.py", line 64, in test_workspace_membership_does_not_share_keyboard
+    self.assertEqual(self.focus(self.other), 0)
+AssertionError: 4194305 != 0
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.947s
+
+FAILED (failures=11)

@@ -1,0 +1,22 @@
+Updated: 2026-10-08
+
+The application input sanitizer test found a 193-byte leak on both hosts.
+The failing case is ApplicationInputTests.test_shared_held_key_is_not_observable.
+Its input privacy assertions passed. Native-server shutdown failed LeakSanitizer.
+
+XkbCopyKeymap replaces the destination geometry's doodad array.
+_XkbCopyGeom frees strings only beyond the source doodad count.
+XkbGeomRealloc then clears every destination entry.
+Strings in the retained prefix become unreachable.
+The observed allocations were three text strings and three font strings.
+
+server/patches/0007-xkb-doodad-copy-cleanup.patch frees every old destination doodad's strings before replacement.
+The source keymap is distinct; XkbCopyKeymap returns early for self-copy.
+The patch preserves the existing text/font/logo cleanup operations.
+No sanitizer suppression or test weakening is used.
+
+Initial evidence remains on both hosts in spatial-os-luna-handoff/local/m04-app-input-native-sanitize-01/.
+The patched sanitizer builds are in local/m04-app-input-sanitize-build-02/.
+Both patched native-server sanitizer runs passed all 151 focused checks.
+Leak detection was enabled. GLX was disabled for this native-server profile.
+This local dependency fix does not qualify full XLibre stability or complete Spatial-M1.

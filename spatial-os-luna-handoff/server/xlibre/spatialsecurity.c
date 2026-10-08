@@ -17,6 +17,7 @@
 #include "extnsionst.h"
 #include "privates.h"
 #include "spatialsecurity.h"
+#include "spatialinput.h"
 #include "security.pb-c.h"
 
 typedef Spatial__Security__V1__Request Request;
@@ -185,6 +186,10 @@ const char *SpatialSecurityAuthorize(ClientPtr client, unsigned name_size,
     if (!match) return denial;
     state->label = match->label;
     state->connection = ++next_connection;
+    if (!SpatialInputAuthorizeClient(client)) {
+        memset(state, 0, sizeof(*state));
+        return denial;
+    }
     return NULL;
 }
 

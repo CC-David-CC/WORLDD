@@ -1,0 +1,40 @@
+{
+  "id": "application.private_input",
+  "phase": "M04",
+  "profile": "tasks/spatial-m1.json",
+  "invariant": "Connections with the same immutable workspace/application identity share genuine private idle devices; other applications cannot observe or change that state.",
+  "production_roots": [
+    "server/xlibre/spatialinput.c",
+    "server/xlibre/spatialinput.h",
+    "server/xlibre/spatialsecurity.c"
+  ],
+  "counterexample_suite": "tests/native/test_application_input.py",
+  "test_ids": [
+    "ApplicationInputTests.test_foreign_application_cannot_read_focus",
+    "ApplicationInputTests.test_foreign_application_cannot_change_focus",
+    "ApplicationInputTests.test_workspace_membership_does_not_share_keyboard",
+    "ApplicationInputTests.test_same_application_name_in_other_workspace_is_isolated",
+    "ApplicationInputTests.test_swapped_application_has_private_keyboard",
+    "ApplicationInputTests.test_same_application_connections_share_real_focus",
+    "ApplicationInputTests.test_shared_pointer_motion_is_not_observable",
+    "ApplicationInputTests.test_application_warp_cannot_move_another_pointer",
+    "ApplicationInputTests.test_application_keyboard_grabs_do_not_compete",
+    "ApplicationInputTests.test_application_pointer_grabs_do_not_compete",
+    "ApplicationInputTests.test_same_application_grabs_still_compete",
+    "ApplicationInputTests.test_shared_held_key_is_not_observable",
+    "ApplicationInputTests.test_late_connection_joins_existing_application_input",
+    "ApplicationInputTests.test_last_disconnect_reclaims_device_pairs",
+    "ApplicationInputTests.test_device_exhaustion_denies_connection_and_recovers"
+  ],
+  "preceding_gate": "P10",
+  "required_evidence": [
+    "Missing-feature failures and positive controls on both previous servers.",
+    "Debug and native-server ASan/UBSan on both hosts.",
+    "Last-connection cleanup and allocation failure recovery.",
+    "Registered core, harness and P10 regression checks."
+  ],
+  "limitations": [
+    "Actor-device binding and lease transfer remain required.",
+    "This component does not complete M04 or Spatial-M1."
+  ]
+}
