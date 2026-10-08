@@ -1,5 +1,28 @@
 # Implementation status
 
+## 2026-10-08: Confined native application launch checked
+
+Workspaced now accepts a sealed NativeLaunchConfig protobuf descriptor from its supervisor.
+It authenticates the pinned native server and issues one credential per confined application.
+The application identity is the broker-allocated process ID within the authorized workspace.
+Bubblewrap mounts only that application's read-only Xauthority record and the pinned X socket.
+Existing process, filesystem, namespace, and syscall restrictions remain enforced.
+Completed applications now lose native access while the broker is idle.
+Authority denial during issuance revokes only the tentative credential.
+Both hosts reproduced the two lifecycle defects before their corrections.
+Both final Debug and runtime ASan/UBSan profiles passed 707 checks across 36 CTest suites on each host.
+Each profile also passed 51 harness checks and all 151 P10 cases.
+Both native-server ASan/UBSan profiles passed 195 focused checks, including all 19 new launch checks.
+Those native profiles disabled GLX and enabled leak detection with abort/halt on sanitizer errors.
+No final executed profile skipped a case. Locked acceptance tests and their lock file remain unchanged.
+
+The primary agent reviewed this component under David's local-model review waiver.
+See docs/NATIVE_APPLICATION_LAUNCH.md and the repository-root M04_NATIVE_LAUNCH_DEBUG.txt.
+Evidence is in evidence/native-application-launch-2026-10-08.
+Automatic session provisioning, authenticated surface identity, and application grants remain required.
+Physical devices, native GPU output, full instrumented GLX lifecycle, and native soak remain unqualified.
+M04, M09, and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Native application actor binding checked
 
 Application connections now use their controlling actor's genuine native devices.

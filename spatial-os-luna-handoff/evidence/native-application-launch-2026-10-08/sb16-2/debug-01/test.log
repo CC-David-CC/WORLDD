@@ -1,0 +1,15 @@
+test_application_cannot_issue_native_credentials (__main__.NativeLaunchTests.test_application_cannot_issue_native_credentials) ... ok
+test_broker_loss_revokes_native_access (__main__.NativeLaunchTests.test_broker_loss_revokes_native_access) ... ok
+test_confined_application_has_real_native_identity (__main__.NativeLaunchTests.test_confined_application_has_real_native_identity) ... ok
+test_execution_revocation_revokes_native_access (__main__.NativeLaunchTests.test_execution_revocation_revokes_native_access) ... ok
+test_read_only_profile_retains_project_confinement (__main__.NativeLaunchTests.test_read_only_profile_retains_project_confinement) ... ok
+test_supervisor_credential_is_not_accepted_as_broker (__main__.NativeLaunchTests.test_supervisor_credential_is_not_accepted_as_broker) ... ok
+test_two_applications_receive_distinct_credentials_and_identities (__main__.NativeLaunchTests.test_two_applications_receive_distinct_credentials_and_identities) ... ok
+test_unsealed_configuration_is_rejected (__main__.NativeLaunchTests.test_unsealed_configuration_is_rejected) ... ok
+test_wrong_peer_process_is_rejected (__main__.NativeLaunchTests.test_wrong_peer_process_is_rejected) ... ok
+test_wrong_server_generation_is_rejected (__main__.NativeLaunchTests.test_wrong_server_generation_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 6.630s
+
+OK

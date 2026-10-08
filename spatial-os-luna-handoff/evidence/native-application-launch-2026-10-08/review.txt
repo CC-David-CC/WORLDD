@@ -1,0 +1,68 @@
+Primary-agent review: native application launch
+
+David waived local-model review. No local-model review is claimed.
+
+Configuration and native authority
+
+NativeLaunchConfig is private supervisor input over an inherited sealed memfd.
+Validation rejects unknown fields, absent identity fields, wrong versions, and oversized input.
+The broker disables dumps before reading the credential.
+The client pins the filesystem socket and verifies the actual server PID and UID.
+Native authentication also verifies the server generation and BROKER role.
+Native framing, sequence numbers, protobuf replies, and identity labels are checked.
+Channel errors fail closed. There is no ambient-display fallback.
+
+Application boundary
+
+ExecutionStore allocates the application identity after checking effective execution authority.
+The native credential binds that identity to the authorized workspace.
+The caller cannot supply an alternate native identity.
+Bubblewrap mounts only the pinned socket and a read-only private Xauthority record.
+Existing namespace, filesystem, syscall, process, and resource restrictions remain enforced.
+Application execution inherits no broker connection or supervisor credential.
+Each application may read its own credential. It cannot issue more credentials.
+
+Lifetime and ownership
+
+NativeLaunch outlives ExecutionStore and all application credential objects.
+ApplicationProcess owns its NativeCredential through unique_ptr.
+Failed construction and failed exec release the tentative credential.
+Normal process completion, execution revocation, and broker disconnection revoke native access.
+The broker now checks completed jobs during idle event-loop iterations.
+Recorded exit status remains queryable after cleanup.
+Launch retries preserve their process identity and do not repeat completed effects.
+
+Two confirmed defects corrected
+
+The first implementation required a process.wait request to reclaim an exited application's credential.
+Both hosts reproduced the idle credential leak.
+Moving process reaping into the normal broker event loop corrected the lifetime boundary.
+
+Review also found an authority callback could close the shared issuer during a native request.
+That invalidated unrelated applications' credentials.
+Two fault cases reproduced this defect with the actual native client on both hosts.
+Authority checks now surround the bounded native exchange.
+The second denial destroys only the tentative credential through normal ownership cleanup.
+The native exchange can delay that check by at most three seconds.
+The application receives no credential and starts no process before the check succeeds.
+
+Test and contract review
+
+The additive suite uses real workspaced, Bubblewrap, Xlib, and the patched native server.
+Independent connections inspect native identities and verify rejection after revocation.
+Checks include read-only confinement, descriptor closure, private sockets, and rejected bootstrap inputs.
+A near-exhaustion test proves failed exec returns the final available credential slot.
+The test-only checkpoint driver links the production native client without an alternate implementation.
+Its private protobuf response carries a fixture credential only to the independent witness.
+Credentials, application records, and runtime databases are excluded from evidence archives.
+The suite contains 19 focused checks. CMake applies its existing bounded test profile.
+Locked acceptance tests, locked oracles, and acceptance.lock.json are unchanged.
+
+Limits
+
+This qualifies a broker component, not complete native-session application authority.
+The launch fixture uses fixture-human workspace membership.
+Persistent issuer authority has separate tests; combined session provisioning still needs integration evidence.
+Authenticated compositor surface-identity resolution and worldd application grants remain required.
+Physical input, GPU output, full instrumented GLX lifecycle, timing, and soak remain unqualified.
+M04, M09, and Spatial-M1 remain incomplete.

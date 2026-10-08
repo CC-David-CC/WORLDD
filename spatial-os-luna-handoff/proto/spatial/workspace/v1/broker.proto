@@ -3,6 +3,16 @@ package spatial.workspace.v1;
 import "core.proto";
 import "grants.proto";
 
+// Sealed, inherited supervisor input. Never store cookies in workspace state.
+message NativeLaunchConfig {
+  uint32 protocol_version = 1;
+  optional uint32 display_number = 2;
+  bytes broker_cookie = 3;
+  bytes server_id = 4;
+  optional uint32 server_pid = 5;
+  optional uint32 server_uid = 6;
+}
+
 message WorkspaceAuthorityBinding { string workspace = 1; string authority_directory = 2; }
 message WorkspaceAuthorityConfig {
   uint32 protocol_version = 1;

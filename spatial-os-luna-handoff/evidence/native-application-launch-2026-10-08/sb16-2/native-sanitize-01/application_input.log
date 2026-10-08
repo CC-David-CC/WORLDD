@@ -1,0 +1,20 @@
+test_application_keyboard_grabs_do_not_compete (__main__.ApplicationInputTests.test_application_keyboard_grabs_do_not_compete) ... ok
+test_application_pointer_grabs_do_not_compete (__main__.ApplicationInputTests.test_application_pointer_grabs_do_not_compete) ... ok
+test_application_warp_cannot_move_another_pointer (__main__.ApplicationInputTests.test_application_warp_cannot_move_another_pointer) ... ok
+test_device_exhaustion_denies_connection_and_recovers (__main__.ApplicationInputTests.test_device_exhaustion_denies_connection_and_recovers) ... ok
+test_foreign_application_cannot_change_focus (__main__.ApplicationInputTests.test_foreign_application_cannot_change_focus) ... ok
+test_foreign_application_cannot_read_focus (__main__.ApplicationInputTests.test_foreign_application_cannot_read_focus) ... ok
+test_last_disconnect_reclaims_device_pairs (__main__.ApplicationInputTests.test_last_disconnect_reclaims_device_pairs) ... ok
+test_late_connection_joins_existing_application_input (__main__.ApplicationInputTests.test_late_connection_joins_existing_application_input) ... ok
+test_same_application_connections_share_real_focus (__main__.ApplicationInputTests.test_same_application_connections_share_real_focus) ... ok
+test_same_application_grabs_still_compete (__main__.ApplicationInputTests.test_same_application_grabs_still_compete) ... ok
+test_same_application_name_in_other_workspace_is_isolated (__main__.ApplicationInputTests.test_same_application_name_in_other_workspace_is_isolated) ... ok
+test_shared_held_key_is_not_observable (__main__.ApplicationInputTests.test_shared_held_key_is_not_observable) ... ok
+test_shared_pointer_motion_is_not_observable (__main__.ApplicationInputTests.test_shared_pointer_motion_is_not_observable) ... ok
+test_swapped_application_has_private_keyboard (__main__.ApplicationInputTests.test_swapped_application_has_private_keyboard) ... ok
+test_workspace_membership_does_not_share_keyboard (__main__.ApplicationInputTests.test_workspace_membership_does_not_share_keyboard) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 2.118s
+
+OK

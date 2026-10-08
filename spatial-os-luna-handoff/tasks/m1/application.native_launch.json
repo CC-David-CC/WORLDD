@@ -1,0 +1,51 @@
+{
+  "id": "application.native_launch",
+  "phase": "M04",
+  "profile": "tasks/spatial-m1.json",
+  "invariant": "Each authorized confined application receives only its own native credential and the pinned native socket; process completion and authority loss revoke native access.",
+  "production_roots": [
+    "src/workspace/native_launch.cpp",
+    "src/workspace/native_launch.hpp",
+    "src/workspace/process.cpp",
+    "src/workspace/process.hpp",
+    "src/workspace/store.cpp",
+    "src/workspace/store.hpp",
+    "src/workspace/main.cpp",
+    "proto/spatial/workspace/v1/broker.proto"
+  ],
+  "counterexample_suite": "tests/native/test_native_launch.py",
+  "test_ids": [
+    "NativeLaunchTests.test_confined_application_has_real_native_identity",
+    "NativeLaunchTests.test_two_applications_receive_distinct_credentials_and_identities",
+    "NativeLaunchTests.test_read_only_profile_retains_project_confinement",
+    "NativeLaunchTests.test_broker_loss_revokes_native_access",
+    "NativeLaunchTests.test_execution_revocation_revokes_native_access",
+    "NativeLaunchTests.test_exit_revokes_credentials_without_a_wait_request",
+    "NativeLaunchTests.test_native_broker_revocation_stops_configured_execution",
+    "NativeLaunchTests.test_failed_exec_releases_the_only_free_credential_slot",
+    "NativeLaunchTests.test_unknown_configuration_fields_are_rejected",
+    "NativeLaunchTests.test_wrong_peer_uid_is_rejected",
+    "NativeLaunchTests.test_application_cannot_issue_native_credentials",
+    "NativeLaunchTests.test_launch_retry_keeps_identity_and_does_not_reissue_after_exit",
+    "NativeLaunchTests.test_denied_launch_never_creates_application_state",
+    "NativeLaunchTests.test_pre_issue_authority_denial_preserves_other_credentials",
+    "NativeLaunchTests.test_post_issue_authority_denial_preserves_other_credentials",
+    "NativeLaunchTests.test_unsealed_configuration_is_rejected",
+    "NativeLaunchTests.test_wrong_server_generation_is_rejected",
+    "NativeLaunchTests.test_wrong_peer_process_is_rejected",
+    "NativeLaunchTests.test_supervisor_credential_is_not_accepted_as_broker"
+  ],
+  "preceding_gate": "P10",
+  "contract": "docs/NATIVE_APPLICATION_LAUNCH.md",
+  "required_evidence": [
+    "Independent native identity and real Xlib output from confined applications.",
+    "Namespace, descriptor, read-only profile, and denied-launch checks.",
+    "Failed-exec, completion, execution revocation, and broker-loss cleanup.",
+    "Debug, runtime sanitizer, and native-server sanitizer profiles on both hosts.",
+    "Cumulative core, harness, and P10 regression checks."
+  ],
+  "limitations": [
+    "Native-session service provisioning and compositor/worldd application-control authority remain required.",
+    "This component does not complete M04, M09, or Spatial-M1."
+  ]
+}

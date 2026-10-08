@@ -1,0 +1,19 @@
+[0/2] Re-checking globbed directories...
+-- GLOB mismatch!
+-- GLOB mismatch!
+[1/2] Re-running CMake...
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+[0/2] Re-checking globbed directories...
+[1/11] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[2/11] Building CXX object CMakeFiles/spatial-app-init.dir/src/workspace/app_init.cpp.o
+[3/11] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[4/11] Linking CXX static library libspatial-protobuf.a
+[5/11] Linking CXX executable spatial-app-init
+[6/11] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[7/11] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[8/11] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[9/11] Building CXX object CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o
+[10/11] Building CXX object CMakeFiles/workspaced.dir/src/workspace/native_launch.cpp.o
+[11/11] Linking CXX executable workspaced

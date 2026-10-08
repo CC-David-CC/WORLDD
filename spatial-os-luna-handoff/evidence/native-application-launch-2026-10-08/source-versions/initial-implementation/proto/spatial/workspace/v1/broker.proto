@@ -1,0 +1,82 @@
+syntax = "proto3";
+package spatial.workspace.v1;
+import "core.proto";
+import "grants.proto";
+
+// Sealed, inherited supervisor input. Never store cookies in workspace state.
+message NativeLaunchConfig {
+  uint32 protocol_version = 1;
+  optional uint32 display_number = 2;
+  bytes broker_cookie = 3;
+  bytes server_id = 4;
+  optional uint32 server_pid = 5;
+  optional uint32 server_uid = 6;
+}
+
+message WorkspaceAuthorityBinding { string workspace = 1; string authority_directory = 2; }
+message WorkspaceAuthorityConfig {
+  uint32 protocol_version = 1;
+  string issuer_client_config = 2;
+  repeated WorkspaceAuthorityBinding bindings = 3;
+}
+message WorkspaceAuthoritySeed {
+  uint32 protocol_version = 1;
+  string workspace = 2;
+  string authority_directory = 3;
+  repeated spatial.authority.v1.GrantTerms roots = 4;
+}
+
+// Private inherited authority channel. Never accept this envelope from actors.
+message AccessRequest {
+  string workspace = 1; string actor = 2;
+  spatial.authority.v1.ActorRef principal = 3;
+}
+message AccessReply { repeated spatial.core.v1.WorkspaceRight rights = 1; uint64 revision = 2; }
+message LaunchRequest {
+  string workspace = 1; string actor = 2; spatial.core.v1.ProcessLaunchRequest command = 3;
+  spatial.authority.v1.ActorRef principal = 4;
+}
+// The trusted world derives the principal from its authenticated actor channel.
+message GrantListRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  bytes after_id = 3; uint32 limit = 4;
+}
+message GrantDelegateRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  bytes parent_id = 3; spatial.authority.v1.GrantTerms terms = 4;
+  optional uint64 expected_revision = 5;
+}
+message GrantRevokeRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  bytes id = 3; optional uint64 expected_revision = 4;
+}
+// The broker and its namespace supervisor use this channel. Applications never receive it.
+message AppStart { uint32 protocol_version = 1; repeated string argv = 2; }
+message AppEvent {
+  uint32 protocol_version = 1;
+  oneof outcome { bool started = 2; sint32 exit_code = 3; string error = 4; }
+}
+message Request {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    spatial.core.v1.Request management = 100;
+    AccessRequest access = 101;
+    LaunchRequest launch = 102;
+    GrantListRequest grants = 103;
+    GrantDelegateRequest delegate = 104;
+    GrantRevokeRequest revoke = 105;
+  }
+}
+message Reply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    spatial.core.v1.Reply management = 100;
+    AccessReply access = 101;
+    spatial.core.v1.Error error = 102;
+    spatial.core.v1.ProcessLaunchReply launched = 103;
+    spatial.authority.v1.GrantPage grants = 104;
+    spatial.authority.v1.GrantRecord grant = 105;
+  }
+}

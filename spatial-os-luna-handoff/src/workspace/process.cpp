@@ -1,5 +1,6 @@
 #include "core/protocol.hpp"
 #include "workspace/process.hpp"
+#include "workspace/native_launch.hpp"
 #include "world/store.hpp"
 #include <array>
 #include <algorithm>
@@ -83,7 +84,8 @@ int directory(const std::filesystem::path& path) {
 }
 ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, const std::filesystem::path& repository,
                                       const std::filesystem::path& state, bool writable, const wire::ProcessLaunchRequest& request,
-                                      std::function<void()> authority) : authority_(std::move(authority)) {
+                                      std::function<void()> authority, std::unique_ptr<NativeCredential> native)
+    : authority_(std::move(authority)), native_(std::move(native)) {
     authority_();
     const auto executable = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatial-app-init";
     const char* bwrap = "/usr/local/libexec/spatial-bwrap";
@@ -102,8 +104,16 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         "--bind-fd", std::to_string(state_fd.fd), "/state", "--bind", (state / "tmp").string(), "/tmp",
         bind, std::to_string(project_fd.fd), "/project", "--symlink", "/project", project.string(),
         bind, std::to_string(repo_fd.fd), repository.string(),
-        "--ro-bind", executable.string(), "/spatial-app-init", "--chdir", "/project",
-        "--seccomp", std::to_string(policy.fd), "--remount-ro", "/", "--", "/spatial-app-init"};
+        "--ro-bind", executable.string(), "/spatial-app-init", "--chdir", "/project"};
+    if (native_) {
+        const std::vector<std::string> display{
+            "--dir", "/run/spatial", "--perms", "0400", "--ro-bind-data", std::to_string(native_->authority_fd()), "/run/spatial/Xauthority",
+            "--dir", "/tmp/.X11-unix", "--ro-bind-fd", std::to_string(native_->socket_fd()), "/tmp/.X11-unix/X"+native_->display_number(),
+            "--setenv", "DISPLAY", ":"+native_->display_number(), "--setenv", "XAUTHORITY", "/run/spatial/Xauthority"};
+        strings.insert(strings.end(), display.begin(), display.end());
+    }
+    const std::vector<std::string> tail{"--seccomp", std::to_string(policy.fd), "--remount-ro", "/", "--", "/spatial-app-init"};
+    strings.insert(strings.end(), tail.begin(), tail.end());
     std::vector<char*> argv;
     for (auto& value : strings) argv.push_back(value.data());
     argv.push_back(nullptr);
@@ -122,6 +132,8 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         // Only explicit mount and policy descriptors survive into Bubblewrap.
         if (syscall(SYS_close_range, 3u, ~0u, 4u /* CLOSE_RANGE_CLOEXEC */) != 0) _exit(126);
         for (const int fd : {project_fd.fd, repo_fd.fd, state_fd.fd, policy.fd}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
+        if (native_)
+            for (const int fd : {native_->authority_fd(), native_->socket_fd()}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
         char path[] = "PATH=/usr/bin:/bin"; char* env[]{path, nullptr};
         execve(bwrap, argv.data(), env); _exit(127);
     }

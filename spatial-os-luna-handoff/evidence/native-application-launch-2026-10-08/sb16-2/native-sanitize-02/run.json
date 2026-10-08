@@ -1,0 +1,91 @@
+{
+  "results": [
+    {
+      "name": "native_launch",
+      "command": [
+        "python3",
+        "tests/native/test_native_launch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "actor_binding",
+      "command": [
+        "python3",
+        "tests/native/test_actor_binding.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "application_input",
+      "command": [
+        "python3",
+        "tests/native/test_application_input.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "device_administration",
+      "command": [
+        "python3",
+        "tests/native/test_device_administration.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "global_isolation",
+      "command": [
+        "python3",
+        "tests/native/test_global_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "selection_isolation",
+      "command": [
+        "python3",
+        "tests/native/test_selection_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "extension_isolation",
+      "command": [
+        "python3",
+        "tests/native/test_extension_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "resource_isolation",
+      "command": [
+        "python3",
+        "tests/native/test_resource_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "security_identity",
+      "command": [
+        "python3",
+        "tests/native/test_security_identity.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "binary": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/234393f40cdb44aa92005e9815b43d091fab524c8d30dc752d0430b4da7a8d78/source/build-sanitize/hw/vfb/Xvfb",
+    "sha256": "3d606d16f75f9d7c7121d32c5b1e2df03e84cfb80fb7aa44a76d7f1ea3aebe36"
+  },
+  "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+}

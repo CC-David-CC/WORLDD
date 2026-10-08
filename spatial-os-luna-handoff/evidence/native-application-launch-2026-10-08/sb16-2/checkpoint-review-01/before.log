@@ -1,0 +1,55 @@
+test_pre_issue_authority_denial_preserves_other_credentials (__main__.NativeLaunchTests.test_pre_issue_authority_denial_preserves_other_credentials) ... FAIL
+test_post_issue_authority_denial_preserves_other_credentials (__main__.NativeLaunchTests.test_post_issue_authority_denial_preserves_other_credentials) ... FAIL
+
+======================================================================
+FAIL: test_pre_issue_authority_denial_preserves_other_credentials (__main__.NativeLaunchTests.test_pre_issue_authority_denial_preserves_other_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-native-launch-checkpoint-review-01/test_native_launch.py", line 289, in checkpoint_denial
+    reply = read_message(proc.stdout, security.Reply)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+    length, = struct.unpack('!I', read_exact(stream, 4))
+                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+    raise EOFError('SUT closed stdout during protobuf frame')
+EOFError: SUT closed stdout during protobuf frame
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-native-launch-checkpoint-review-01/test_native_launch.py", line 307, in test_pre_issue_authority_denial_preserves_other_credentials
+    self.checkpoint_denial(1)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-native-launch-checkpoint-review-01/test_native_launch.py", line 292, in checkpoint_denial
+    self.fail('Checkpoint probe failed: '+proc.stderr.read().decode(errors='replace'))
+AssertionError: Checkpoint probe failed: Native checkpoint probe: Native application authority channel is unavailable
+
+
+======================================================================
+FAIL: test_post_issue_authority_denial_preserves_other_credentials (__main__.NativeLaunchTests.test_post_issue_authority_denial_preserves_other_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-native-launch-checkpoint-review-01/test_native_launch.py", line 289, in checkpoint_denial
+    reply = read_message(proc.stdout, security.Reply)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 49, in read_message
+    length, = struct.unpack('!I', read_exact(stream, 4))
+                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/harness/wire.py", line 43, in read_exact
+    raise EOFError('SUT closed stdout during protobuf frame')
+EOFError: SUT closed stdout during protobuf frame
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-native-launch-checkpoint-review-01/test_native_launch.py", line 310, in test_post_issue_authority_denial_preserves_other_credentials
+    self.checkpoint_denial(2)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-native-launch-checkpoint-review-01/test_native_launch.py", line 292, in checkpoint_denial
+    self.fail('Checkpoint probe failed: '+proc.stderr.read().decode(errors='replace'))
+AssertionError: Checkpoint probe failed: Native checkpoint probe: Native application authority channel is unavailable
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.158s
+
+FAILED (failures=2)

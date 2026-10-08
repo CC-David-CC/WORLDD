@@ -1,5 +1,6 @@
 #include "workspace/store.hpp"
 #include "workspace/authority.hpp"
+#include "workspace/native_launch.hpp"
 #include "world/store.hpp"
 #include "build_id.hpp"
 #include <csignal>
@@ -87,29 +88,40 @@ int main(int argc, char** argv) {
     try {
         std::filesystem::path state, authority_config, seed;
         unsigned migration = 0; bool fixture_faults = false;
+        int native_fd = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string_view argument(argv[i]);
             if (argument == "--state-dir" && state.empty() && i+1 < argc) state = argv[++i];
             else if (argument == "--authority-config" && authority_config.empty() && i+1 < argc) authority_config = argv[++i];
             else if (argument == "--init-authority" && seed.empty() && i+1 < argc) seed = argv[++i];
             else if (argument == "--fixture-faults" && !fixture_faults) fixture_faults = true;
+            else if (argument == "--native-security-fd" && native_fd < 0 && i+1 < argc) {
+                const std::string value(argv[++i]); std::size_t used = 0;
+                native_fd = std::stoi(value, &used);
+                if (used != value.size() || native_fd < 3) throw std::invalid_argument("Invalid native security descriptor");
+            }
             else if (argument == "--migrate-v1" && !migration) migration = 1;
             else if (argument == "--migrate-v2" && !migration) migration = 2;
             else if (argument == "--migrate-v3" && !migration) migration = 3;
             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
-        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty())) || (migration && !seed.empty()))
+        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || native_fd >= 0)) || (migration && !seed.empty()))
             throw std::invalid_argument("Provisioning and migration require an exclusive stopped broker");
         umask(0077); signal(SIGPIPE, SIG_IGN);
         // Destroy jobs before their authority callback target.
         std::unique_ptr<spatial::WorkspaceAuthority> authority;
+        std::unique_ptr<spatial::NativeLaunch> native;
         spatial::ExecutionStore store(state, migration, fixture_faults);
         if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }
         if (!seed.empty()) { spatial::initialize_workspace_authority(seed, store); return 0; }
         if (!authority_config.empty()) {
             authority = std::make_unique<spatial::WorkspaceAuthority>(authority_config, store);
             store.set_authority(authority.get());
+        }
+        if (native_fd >= 0) {
+            native = std::make_unique<spatial::NativeLaunch>(native_fd);
+            store.set_native_launch(native.get());
         }
         // Keep the private management transport bounded while processing issuer events.
         for (const int fd : {STDIN_FILENO, STDOUT_FILENO}) {
@@ -120,10 +132,12 @@ int main(int argc, char** argv) {
         auto input_started = Clock::now(), output_started = Clock::now();
         std::string input, output; std::size_t sent = 0; bool eof = false;
         const auto enforce = [&] {
+            if (native) native->check();
             if (authority) {
                 authority->tick();
                 if (authority->consume_changes()) store.reconcile_authority();
             }
+            store.reap();
         };
         for (;;) {
             enforce();

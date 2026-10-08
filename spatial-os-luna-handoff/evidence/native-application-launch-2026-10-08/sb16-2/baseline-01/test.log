@@ -1,0 +1,134 @@
+test_application_cannot_issue_native_credentials (__main__.NativeLaunchTests.test_application_cannot_issue_native_credentials) ... ERROR
+test_broker_loss_revokes_native_access (__main__.NativeLaunchTests.test_broker_loss_revokes_native_access) ... ERROR
+test_confined_application_has_real_native_identity (__main__.NativeLaunchTests.test_confined_application_has_real_native_identity) ... ERROR
+test_execution_revocation_revokes_native_access (__main__.NativeLaunchTests.test_execution_revocation_revokes_native_access) ... ERROR
+test_read_only_profile_retains_project_confinement (__main__.NativeLaunchTests.test_read_only_profile_retains_project_confinement) ... ERROR
+test_supervisor_credential_is_not_accepted_as_broker (__main__.NativeLaunchTests.test_supervisor_credential_is_not_accepted_as_broker) ... ok
+test_two_applications_receive_distinct_credentials_and_identities (__main__.NativeLaunchTests.test_two_applications_receive_distinct_credentials_and_identities) ... ERROR
+test_unsealed_configuration_is_rejected (__main__.NativeLaunchTests.test_unsealed_configuration_is_rejected) ... ok
+test_wrong_peer_process_is_rejected (__main__.NativeLaunchTests.test_wrong_peer_process_is_rejected) ... ok
+test_wrong_server_generation_is_rejected (__main__.NativeLaunchTests.test_wrong_server_generation_is_rejected) ... ok
+
+======================================================================
+ERROR: test_application_cannot_issue_native_credentials (__main__.NativeLaunchTests.test_application_cannot_issue_native_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 197, in test_application_cannot_issue_native_credentials
+    self.launch_fixture(); process = self.launch(); record = self.record(process)
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 124, in launch_fixture
+    self.broker.call('system.hello')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 70, in call
+    reply = self.request(management=request)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 61, in request
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 57, in exact
+    part = self.stream.recv(size-len(data))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+======================================================================
+ERROR: test_broker_loss_revokes_native_access (__main__.NativeLaunchTests.test_broker_loss_revokes_native_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 181, in test_broker_loss_revokes_native_access
+    self.launch_fixture(); process = self.launch(); record = self.record(process)
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 124, in launch_fixture
+    self.broker.call('system.hello')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 70, in call
+    reply = self.request(management=request)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 61, in request
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 57, in exact
+    part = self.stream.recv(size-len(data))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+======================================================================
+ERROR: test_confined_application_has_real_native_identity (__main__.NativeLaunchTests.test_confined_application_has_real_native_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 151, in test_confined_application_has_real_native_identity
+    self.launch_fixture(); process = self.launch(); record = self.record(process)
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 124, in launch_fixture
+    self.broker.call('system.hello')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 70, in call
+    reply = self.request(management=request)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 61, in request
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 57, in exact
+    part = self.stream.recv(size-len(data))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+======================================================================
+ERROR: test_execution_revocation_revokes_native_access (__main__.NativeLaunchTests.test_execution_revocation_revokes_native_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 192, in test_execution_revocation_revokes_native_access
+    self.launch_fixture(); process = self.launch(); record = self.record(process)
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 124, in launch_fixture
+    self.broker.call('system.hello')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 70, in call
+    reply = self.request(management=request)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 61, in request
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 57, in exact
+    part = self.stream.recv(size-len(data))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+======================================================================
+ERROR: test_read_only_profile_retains_project_confinement (__main__.NativeLaunchTests.test_read_only_profile_retains_project_confinement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 175, in test_read_only_profile_retains_project_confinement
+    self.launch_fixture()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 124, in launch_fixture
+    self.broker.call('system.hello')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 70, in call
+    reply = self.request(management=request)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 61, in request
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 57, in exact
+    part = self.stream.recv(size-len(data))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+======================================================================
+ERROR: test_two_applications_receive_distinct_credentials_and_identities (__main__.NativeLaunchTests.test_two_applications_receive_distinct_credentials_and_identities)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 165, in test_two_applications_receive_distinct_credentials_and_identities
+    self.launch_fixture(); a = self.launch('one'); b = self.launch('two')
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 124, in launch_fixture
+    self.broker.call('system.hello')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 70, in call
+    reply = self.request(management=request)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 61, in request
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 57, in exact
+    part = self.stream.recv(size-len(data))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.853s
+
+FAILED (errors=6)

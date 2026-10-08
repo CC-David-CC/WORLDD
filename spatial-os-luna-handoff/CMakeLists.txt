@@ -143,7 +143,7 @@ target_link_libraries(worldd PRIVATE spatial-core spatial-issuer-watch-lib spati
 add_dependencies(worldd spatialwm)
 add_executable(spatial-app-init src/workspace/app_init.cpp)
 target_link_libraries(spatial-app-init PRIVATE spatial-scene)
-add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp)
+add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp)
 target_include_directories(workspaced PRIVATE src)
 target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
 add_dependencies(workspaced spatial-app-init)
@@ -154,6 +154,9 @@ add_dependencies(spatial-test-host worldd workspaced)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_executable(native-launch-checkpoint-probe src/testing/native_launch_checkpoint_probe.cpp src/workspace/native_launch.cpp)
+    target_include_directories(native-launch-checkpoint-probe PRIVATE src)
+    target_link_libraries(native-launch-checkpoint-probe PRIVATE spatial-scene)
     protobuf_generate_cpp(grants_probe_sources grants_probe_headers proto/spatial/authority/v1/grants_probe.proto)
     add_executable(spatial-authority-probe src/testing/authority_probe.cpp ${grants_probe_sources} ${grants_probe_headers})
     target_link_libraries(spatial-authority-probe PRIVATE spatial-authority)
@@ -245,6 +248,10 @@ if(BUILD_TESTING)
     set_tests_properties(actor-collision PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     if(SPATIAL_INPUT_TESTS)
+        add_test(NAME native-application-launch COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_launch.py" $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(native-application-launch PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME native-actor-binding COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_actor_binding.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-actor-binding PROPERTIES TIMEOUT 180

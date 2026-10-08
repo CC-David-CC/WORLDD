@@ -4,16 +4,19 @@
 #include <chrono>
 #include <filesystem>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <sys/types.h>
 
 namespace spatial {
+class NativeCredential;
 class ApplicationProcess {
 public:
     ApplicationProcess(const std::filesystem::path& project, const std::filesystem::path& repository,
                        const std::filesystem::path& state, bool writable,
-                       const wire::ProcessLaunchRequest& request, std::function<void()> authority = [] {});
+                       const wire::ProcessLaunchRequest& request, std::function<void()> authority = [] {},
+                       std::unique_ptr<NativeCredential> native = {});
     ~ApplicationProcess();
     ApplicationProcess(const ApplicationProcess&) = delete;
     ApplicationProcess& operator=(const ApplicationProcess&) = delete;
@@ -26,5 +29,6 @@ private:
     int pidfd_ = -1, output_ = -1;
     std::optional<int> result_;
     std::function<void()> authority_;
+    std::unique_ptr<NativeCredential> native_;
 };
 }

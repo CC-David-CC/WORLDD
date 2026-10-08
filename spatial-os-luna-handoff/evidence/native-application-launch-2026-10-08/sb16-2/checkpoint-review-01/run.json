@@ -1,0 +1,31 @@
+{
+  "host": "sb16-2",
+  "results": [
+    {
+      "label": "before",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-native-launch-checkpoint-review-01/test_native_launch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+        "NativeLaunchTests.test_pre_issue_authority_denial_preserves_other_credentials",
+        "NativeLaunchTests.test_post_issue_authority_denial_preserves_other_credentials"
+      ],
+      "exit_code": 1
+    },
+    {
+      "label": "after",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-native-launch-checkpoint-review-01/test_native_launch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth",
+        "NativeLaunchTests.test_pre_issue_authority_denial_preserves_other_credentials",
+        "NativeLaunchTests.test_post_issue_authority_denial_preserves_other_credentials"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "binary": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/234393f40cdb44aa92005e9815b43d091fab524c8d30dc752d0430b4da7a8d78/source/build/hw/vfb/Xvfb",
+    "sha256": "821b7df2eda2e462fc47187ac47e04f368a8820d76b3e5536461aa46fd18eb1d"
+  }
+}

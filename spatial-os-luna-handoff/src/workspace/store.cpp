@@ -2,6 +2,7 @@
 #include "workspace/git_command.hpp"
 #include "workspace/status.hpp"
 #include "workspace/process.hpp"
+#include "workspace/native_launch.hpp"
 #include "workspace/authority.hpp"
 #include "world/store.hpp"
 #include <sqlite3.h>
@@ -140,6 +141,7 @@ struct ExecutionStore::Impl {
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
     std::map<std::string, std::unique_ptr<ApplicationProcess>> jobs;
     WorkspaceAuthority* authority = nullptr;
+    NativeLaunch* native = nullptr;
     explicit Impl(const std::filesystem::path& directory, unsigned migrate_from, bool enable_faults) : fixture_faults(enable_faults) {
         require(!migrate_from || !fixture_faults, "Migration cannot enable fixture faults");
         require(directory.is_absolute() && !std::filesystem::is_symlink(directory), "Execution state requires an absolute nonsymlink directory");
@@ -677,15 +679,7 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
           if (old.text(2) != "running" && old.text(2) != "exited") throw WorldError(wire::UNAVAILABLE, "Launch outcome is unavailable; side effects will not be replayed");
           wire::ProcessLaunchReply out; out.set_process_id(old.text(0)); out.set_workspace(request.workspace()); return out;
       } }
-    // Reap acknowledged completions before enforcing the live-job budget.
-    std::vector<std::string> running;
-    for (const auto& [id, job] : impl_->jobs) { (void)job; running.push_back(id); }
-    for (const auto& id : running) {
-        wire::ProcessWaitRequest check; check.set_id(id); check.set_timeout_seconds(0);
-        try { wait(check); } catch (const WorldError& error) {
-            if (error.code != wire::TIMEOUT && error.code != wire::UNAVAILABLE) throw;
-        }
-    }
+    reap();
     if (impl_->jobs.size() >= 32) throw WorldError(wire::RESOURCE_EXHAUSTED, "Application process budget exhausted");
     const auto workspace = workspace_get(request.workspace());
     const auto worktree = impl_->worktree(workspace.worktree());
@@ -705,8 +699,9 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
             const auto rights = rights_mask(access(query, false).rights());
             if ((effective & rights) != effective) throw WorldError(wire::FORBIDDEN, "Process execution authority was revoked");
         };
+        auto native = impl_->native ? impl_->native->issue(request.workspace(), id, current) : nullptr;
         auto process = std::make_unique<ApplicationProcess>(worktree.path(), repository.path(), state,
-            (effective & (1u << wire::FILES_WRITE)) != 0, command, std::move(current));
+            (effective & (1u << wire::FILES_WRITE)) != 0, command, std::move(current), std::move(native));
         impl_->jobs.emplace(id, std::move(process));
         Query q(impl_->db.get(), "UPDATE processes SET state='running' WHERE id=?"); q.text(1, id); q.step();
     } catch (const WorldError& error) {
@@ -751,5 +746,17 @@ wire::ProcessWaitReply ExecutionStore::wait(const wire::ProcessWaitRequest& requ
     check(sqlite3_bind_int(q.value, 1, *result)); q.text(2, request.id()); q.step();
     impl_->jobs.erase(found);
     wire::ProcessWaitReply out; out.set_exit_code(*result); return out;
+}
+void ExecutionStore::set_native_launch(NativeLaunch* native) { impl_->native = native; }
+void ExecutionStore::reap() {
+    // Completion is a process lifecycle event, not an actor's wait request.
+    std::vector<std::string> running;
+    for (const auto& [id, job] : impl_->jobs) { (void)job; running.push_back(id); }
+    for (const auto& id : running) {
+        wire::ProcessWaitRequest check; check.set_id(id); check.set_timeout_seconds(0);
+        try { wait(check); } catch (const WorldError& error) {
+            if (error.code != wire::TIMEOUT && error.code != wire::UNAVAILABLE) throw;
+        }
+    }
 }
 }

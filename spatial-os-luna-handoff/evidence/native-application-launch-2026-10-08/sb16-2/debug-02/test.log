@@ -1,0 +1,28 @@
+test_application_cannot_issue_native_credentials (__main__.NativeLaunchTests.test_application_cannot_issue_native_credentials) ... ok
+test_broker_loss_revokes_native_access (__main__.NativeLaunchTests.test_broker_loss_revokes_native_access) ... ok
+test_confined_application_has_real_native_identity (__main__.NativeLaunchTests.test_confined_application_has_real_native_identity) ... ok
+test_execution_revocation_revokes_native_access (__main__.NativeLaunchTests.test_execution_revocation_revokes_native_access) ... ok
+test_exit_revokes_credentials_without_a_wait_request (__main__.NativeLaunchTests.test_exit_revokes_credentials_without_a_wait_request) ... FAIL
+test_failed_exec_releases_the_only_free_credential_slot (__main__.NativeLaunchTests.test_failed_exec_releases_the_only_free_credential_slot) ... ok
+test_native_broker_revocation_stops_configured_execution (__main__.NativeLaunchTests.test_native_broker_revocation_stops_configured_execution) ... ok
+test_read_only_profile_retains_project_confinement (__main__.NativeLaunchTests.test_read_only_profile_retains_project_confinement) ... ok
+test_supervisor_credential_is_not_accepted_as_broker (__main__.NativeLaunchTests.test_supervisor_credential_is_not_accepted_as_broker) ... ok
+test_two_applications_receive_distinct_credentials_and_identities (__main__.NativeLaunchTests.test_two_applications_receive_distinct_credentials_and_identities) ... ok
+test_unknown_configuration_fields_are_rejected (__main__.NativeLaunchTests.test_unknown_configuration_fields_are_rejected) ... ok
+test_unsealed_configuration_is_rejected (__main__.NativeLaunchTests.test_unsealed_configuration_is_rejected) ... ok
+test_wrong_peer_process_is_rejected (__main__.NativeLaunchTests.test_wrong_peer_process_is_rejected) ... ok
+test_wrong_peer_uid_is_rejected (__main__.NativeLaunchTests.test_wrong_peer_uid_is_rejected) ... ok
+test_wrong_server_generation_is_rejected (__main__.NativeLaunchTests.test_wrong_server_generation_is_rejected) ... ok
+
+======================================================================
+FAIL: test_exit_revokes_credentials_without_a_wait_request (__main__.NativeLaunchTests.test_exit_revokes_credentials_without_a_wait_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_native_launch.py", line 213, in test_exit_revokes_credentials_without_a_wait_request
+    self.assertLess(time.monotonic(), deadline, 'Exited application retained its native credential')
+AssertionError: 144394.827726773 not less than 144394.827439119 : Exited application retained its native credential
+
+----------------------------------------------------------------------
+Ran 15 tests in 12.848s
+
+FAILED (failures=1)

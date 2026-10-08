@@ -1,0 +1,7 @@
+test_pre_issue_authority_denial_preserves_other_credentials (__main__.NativeLaunchTests.test_pre_issue_authority_denial_preserves_other_credentials) ... ok
+test_post_issue_authority_denial_preserves_other_credentials (__main__.NativeLaunchTests.test_post_issue_authority_denial_preserves_other_credentials) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.179s
+
+OK

@@ -1,0 +1,24 @@
+test_application_can_list_public_font_information (__main__.GlobalIsolationTests.test_application_can_list_public_font_information) ... ok
+test_application_can_list_public_fonts (__main__.GlobalIsolationTests.test_application_can_list_public_fonts) ... ok
+test_application_cannot_change_access_control (__main__.GlobalIsolationTests.test_application_cannot_change_access_control) ... ok
+test_application_cannot_change_font_path (__main__.GlobalIsolationTests.test_application_cannot_change_font_path) ... ok
+test_application_cannot_change_host_acl (__main__.GlobalIsolationTests.test_application_cannot_change_host_acl) ... ok
+test_application_cannot_change_screen_saver_settings (__main__.GlobalIsolationTests.test_application_cannot_change_screen_saver_settings) ... ok
+test_application_cannot_force_screen_saver (__main__.GlobalIsolationTests.test_application_cannot_force_screen_saver) ... ok
+test_application_cannot_grab_server (__main__.GlobalIsolationTests.test_application_cannot_grab_server) ... ok
+test_application_cannot_list_hosts (__main__.GlobalIsolationTests.test_application_cannot_list_hosts) ... ok
+test_application_cannot_read_font_path (__main__.GlobalIsolationTests.test_application_cannot_read_font_path) ... ok
+test_application_cannot_read_screen_saver_settings (__main__.GlobalIsolationTests.test_application_cannot_read_screen_saver_settings) ... ok
+test_application_cannot_reap_retained_service_resources (__main__.GlobalIsolationTests.test_application_cannot_reap_retained_service_resources) ... ok
+test_application_cannot_ungrab_server (__main__.GlobalIsolationTests.test_application_cannot_ungrab_server) ... ok
+test_broker_has_no_server_administration_authority (__main__.GlobalIsolationTests.test_broker_has_no_server_administration_authority) ... ok
+test_compositor_can_query_global_settings (__main__.GlobalIsolationTests.test_compositor_can_query_global_settings) ... ok
+test_supervisor_can_reap_retained_service_resources (__main__.GlobalIsolationTests.test_supervisor_can_reap_retained_service_resources) ... ok
+test_supervisor_global_controls_remain_available (__main__.GlobalIsolationTests.test_supervisor_global_controls_remain_available) ... ok
+test_swapped_requests_cannot_bypass_global_checks (__main__.GlobalIsolationTests.test_swapped_requests_cannot_bypass_global_checks) ... ok
+test_workspace_membership_does_not_grant_server_management (__main__.GlobalIsolationTests.test_workspace_membership_does_not_grant_server_management) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 1.979s
+
+OK

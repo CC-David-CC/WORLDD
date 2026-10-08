@@ -1,0 +1,42 @@
+Native application launch: 2026-10-08
+
+The production broker now accepts a sealed native configuration descriptor.
+It gives each confined application a distinct native credential and a pinned X socket.
+The application receives no broker channel or supervisor credential.
+
+Confirmed lifecycle defect found during review
+
+The first implementation revoked native access only when someone requested process.wait.
+An exited application could retain a usable native credential while the broker was idle.
+The expanded test suite reproduced this failure on sb16 and sb16-2.
+The broker now reaps completed processes during its normal event loop.
+Recorded exit status remains available after native access is revoked.
+
+A second review found actor-authority cancellation could disconnect the shared native issuer.
+That disconnected unrelated applications and revoked their credentials.
+Both hosts reproduced failures before and during issuance.
+Authority checks now surround the bounded native request.
+A later denial revokes only the tentative credential.
+Both regression checks passed with the corrected production client on both hosts.
+
+Evidence on both hosts
+
+local/m04-native-launch-baseline-02: six functional failures before implementation.
+local/m04-native-launch-debug-02: idle exit cleanup failed; fourteen other checks passed.
+local/m04-native-launch-debug-04: all seventeen focused checks passed.
+local/m04-native-launch-native-sanitize-01: all 193 focused native checks passed with GLX disabled.
+local/m04-native-launch-checkpoint-review-01 preserves both failures and both corrected checks.
+local/m04-native-launch-final-focused-01: all nineteen final focused checks passed.
+local/m04-native-launch-native-sanitize-02: all 195 final native checks passed with GLX disabled.
+local/m04-native-launch-debug-06: 707 core checks, 51 harness checks, and 151 P10 cases passed.
+local/m04-native-launch-runtime-sanitize-06: the same 707, 51, and 151 checks passed.
+Both hosts passed every final profile. No final executed profile skipped a case.
+The final archive is spatial-os-luna-handoff/evidence/native-application-launch-2026-10-08.
+
+Unshown and unrun requirements
+
+These tests use disposable project Xvfb servers.
+They do not qualify physical keyboard, mouse, SpaceMouse, GPU output, or native timing.
+Automatic native-session provisioning and compositor/worldd application authority remain required.
+No system login or display configuration changed.
+M04, M09, and Spatial-M1 remain incomplete.

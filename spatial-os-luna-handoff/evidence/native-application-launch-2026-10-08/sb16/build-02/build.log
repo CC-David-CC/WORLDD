@@ -1,0 +1,11 @@
+[0/2] Re-checking globbed directories...
+[1/2] Re-running CMake...
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+[0/2] Re-checking globbed directories...
+[1/5] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[2/5] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[3/5] Building CXX object CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o
+[4/5] Building CXX object CMakeFiles/workspaced.dir/src/workspace/native_launch.cpp.o
+[5/5] Linking CXX executable workspaced

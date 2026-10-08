@@ -1,0 +1,24 @@
+test_application_cannot_issue_native_credentials (__main__.NativeLaunchTests.test_application_cannot_issue_native_credentials) ... ok
+test_broker_loss_revokes_native_access (__main__.NativeLaunchTests.test_broker_loss_revokes_native_access) ... ok
+test_confined_application_has_real_native_identity (__main__.NativeLaunchTests.test_confined_application_has_real_native_identity) ... ok
+test_denied_launch_never_creates_application_state (__main__.NativeLaunchTests.test_denied_launch_never_creates_application_state) ... ok
+test_execution_revocation_revokes_native_access (__main__.NativeLaunchTests.test_execution_revocation_revokes_native_access) ... ok
+test_exit_revokes_credentials_without_a_wait_request (__main__.NativeLaunchTests.test_exit_revokes_credentials_without_a_wait_request) ... ok
+test_failed_exec_releases_the_only_free_credential_slot (__main__.NativeLaunchTests.test_failed_exec_releases_the_only_free_credential_slot) ... ok
+test_launch_retry_keeps_identity_and_does_not_reissue_after_exit (__main__.NativeLaunchTests.test_launch_retry_keeps_identity_and_does_not_reissue_after_exit) ... ok
+test_native_broker_revocation_stops_configured_execution (__main__.NativeLaunchTests.test_native_broker_revocation_stops_configured_execution) ... ok
+test_post_issue_authority_denial_preserves_other_credentials (__main__.NativeLaunchTests.test_post_issue_authority_denial_preserves_other_credentials) ... ok
+test_pre_issue_authority_denial_preserves_other_credentials (__main__.NativeLaunchTests.test_pre_issue_authority_denial_preserves_other_credentials) ... ok
+test_read_only_profile_retains_project_confinement (__main__.NativeLaunchTests.test_read_only_profile_retains_project_confinement) ... ok
+test_supervisor_credential_is_not_accepted_as_broker (__main__.NativeLaunchTests.test_supervisor_credential_is_not_accepted_as_broker) ... ok
+test_two_applications_receive_distinct_credentials_and_identities (__main__.NativeLaunchTests.test_two_applications_receive_distinct_credentials_and_identities) ... ok
+test_unknown_configuration_fields_are_rejected (__main__.NativeLaunchTests.test_unknown_configuration_fields_are_rejected) ... ok
+test_unsealed_configuration_is_rejected (__main__.NativeLaunchTests.test_unsealed_configuration_is_rejected) ... ok
+test_wrong_peer_process_is_rejected (__main__.NativeLaunchTests.test_wrong_peer_process_is_rejected) ... ok
+test_wrong_peer_uid_is_rejected (__main__.NativeLaunchTests.test_wrong_peer_uid_is_rejected) ... ok
+test_wrong_server_generation_is_rejected (__main__.NativeLaunchTests.test_wrong_server_generation_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 12.525s
+
+OK
