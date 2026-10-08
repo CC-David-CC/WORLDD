@@ -1,0 +1,233 @@
+test_actor_close_returns_application_to_idle (__main__.ActorBindingTests.test_actor_close_returns_application_to_idle) ... ok
+test_application_dialog_uses_same_lease (__main__.ActorBindingTests.test_application_dialog_uses_same_lease) ... ok
+test_application_focus_change_stays_within_group (__main__.ActorBindingTests.test_application_focus_change_stays_within_group) ... ok
+test_application_uses_genuine_actor_device (__main__.ActorBindingTests.test_application_uses_genuine_actor_device) ... ok
+test_binding_releases_idle_active_grabs (__main__.ActorBindingTests.test_binding_releases_idle_active_grabs) ... ok
+test_busy_acquisition_preserves_existing_application (__main__.ActorBindingTests.test_busy_acquisition_preserves_existing_application) ... ok
+test_cancel_clears_locked_and_held_modifiers (__main__.ActorBindingTests.test_cancel_clears_locked_and_held_modifiers) ... ok
+test_cancel_delivers_button_release (__main__.ActorBindingTests.test_cancel_delivers_button_release) ... ok
+test_cancel_drains_frozen_key_events_before_transfer (__main__.ActorBindingTests.test_cancel_drains_frozen_key_events_before_transfer) ... ok
+test_cancel_preserves_other_actor (__main__.ActorBindingTests.test_cancel_preserves_other_actor) ... ok
+test_cancel_releases_active_grabs (__main__.ActorBindingTests.test_cancel_releases_active_grabs) ... ok
+test_cancel_releases_real_key_before_returning_to_idle (__main__.ActorBindingTests.test_cancel_releases_real_key_before_returning_to_idle) ... ok
+test_controller_disconnect_releases_binding (__main__.ActorBindingTests.test_controller_disconnect_releases_binding) ... ok
+test_different_applications_have_simultaneous_controllers (__main__.ActorBindingTests.test_different_applications_have_simultaneous_controllers) ... FAIL
+test_group_connections_share_actor_focus_and_keys (__main__.ActorBindingTests.test_group_connections_share_actor_focus_and_keys) ... ok
+test_late_connection_inherits_current_actor (__main__.ActorBindingTests.test_late_connection_inherits_current_actor) ... ok
+test_new_application_does_not_inherit_motion_history (__main__.ActorBindingTests.test_new_application_does_not_inherit_motion_history) ... ok
+test_passive_key_grab_survives_actor_close (__main__.ActorBindingTests.test_passive_key_grab_survives_actor_close) ... ok
+test_revoked_target_connection_cancels_without_closing_peer (__main__.ActorBindingTests.test_revoked_target_connection_cancels_without_closing_peer) ... ok
+test_second_actor_cannot_take_same_application (__main__.ActorBindingTests.test_second_actor_cannot_take_same_application) ... ok
+test_service_window_cannot_receive_application_binding (__main__.ActorBindingTests.test_service_window_cannot_receive_application_binding) ... ok
+test_swapped_application_observes_actor_state (__main__.ActorBindingTests.test_swapped_application_observes_actor_state) ... ok
+test_transfer_to_new_application_releases_old_keys (__main__.ActorBindingTests.test_transfer_to_new_application_releases_old_keys) ... ok
+test_transfer_to_second_actor_after_cancel (__main__.ActorBindingTests.test_transfer_to_second_actor_after_cancel) ... ok
+test_unmap_releases_binding (__main__.ActorBindingTests.test_unmap_releases_binding) ... ok
+
+======================================================================
+FAIL: test_different_applications_have_simultaneous_controllers (__main__.ActorBindingTests.test_different_applications_have_simultaneous_controllers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 133, in close
+    self.assertNotIn(marker,diagnostics,diagnostics)
+AssertionError: 'AddressSanitizer' unexpectedly found in 'Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )\nSync Extension 3.1\n[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!\n[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!\n[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!\n[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!\nPopen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-0.xkm"\', fp = 0x515000001e80\nPclose: fp = 0x515000001e80\nThe XKEYBOARD keymap compiler (xkbcomp) reports:\n> Warning:          Could not resolve keysym XF86CameraAccessEnable\n> Warning:          Could not resolve keysym XF86CameraAccessDisable\n> Warning:          Could not resolve keysym XF86CameraAccessToggle\n> Warning:          Could not resolve keysym XF86NextElement\n> Warning:          Could not resolve keysym XF86PreviousElement\n> Warning:          Could not resolve keysym XF86AutopilotEngageToggle\n> Warning:          Could not resolve keysym XF86MarkWaypoint\n> Warning:          Could not resolve keysym XF86Sos\n> Warning:          Could not resolve keysym XF86NavChart\n> Warning:          Could not resolve keysym XF86FishingChart\n> Warning:          Could not resolve keysym XF86SingleRangeRadar\n> Warning:          Could not resolve keysym XF86DualRangeRadar\n> Warning:          Could not resolve keysym XF86RadarOverlay\n> Warning:          Could not resolve keysym XF86TraditionalSonar\n> Warning:          Could not resolve keysym XF86ClearvuSonar\n> Warning:          Could not resolve keysym XF86SidevuSonar\n> Warning:          Could not resolve keysym XF86NavInfo\nErrors from xkbcomp are not fatal to the X server\nLoaded XKB keymap /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-0.xkm, defined=0x7f\n(dix) initialising device 6\n(dix) initialising device 7\n(dix) enabling device 6\n(dix) enabling device 7\nclient(0): Reserved pid(1941052).\nclient(0): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 5 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 3 -extension GLX).\nclient(200000): Reserved pid(1940997).\nclient(200000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).\nAllocNewConnection: client index = 1, socket fd = 5, local = 1\nclient(400000): Reserved pid(1940997).\nclient(400000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).\nAllocNewConnection: client index = 2, socket fd = 8, local = 1\nclient(600000): Reserved pid(1940997).\nclient(600000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).\nAllocNewConnection: client index = 3, socket fd = 9, local = 1\nclient(800000): Reserved pid(1940997).\nclient(800000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).\nAllocNewConnection: client index = 4, socket fd = 10, local = 1\nclient(a00000): Reserved pid(1940997).\nclient(a00000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).\nAllocNewConnection: client index = 5, socket fd = 11, local = 1\nclient(400000): Released pid(1940997).\nclient(400000): Released cmdline(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).\n(dix) removing device 9\n(dix) removing device 8\nclient(600000): Released pid(1940997).\nclient(600000): Released cmdline(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).\n(dix) removing device 11\n(dix) removing device 10\n=================================================================\n==1941052==ERROR: AddressSanitizer: heap-use-after-free on address 0x512000002a68 at pc 0x5c505f678e5b bp 0x7ffc41097480 sp 0x7ffc41097470\nREAD of size 8 at 0x512000002a68 thread T0\n    #0 0x5c505f678e5a in WindowIsParent ../dix/events.c:985\n    #1 0x5c505f6607ee in FirstPointerChild ../dix/enterleave.c:145\n    #2 0x5c505f661fe8 in CoreEnterLeaveToAncestor ../dix/enterleave.c:448\n    #3 0x5c505f662299 in CoreEnterLeaveEvents ../dix/enterleave.c:543\n    #4 0x5c505f6625bc in DoEnterLeaveEvents ../dix/enterleave.c:601\n    #5 0x5c505f698030 in CheckMotion ../dix/events.c:3253\n    #6 0x5c505f69817d in WindowsRestructured ../dix/events.c:3277\n    #7 0x5c505f7de365 in UnmapWindow ../dix/window.c:2869\n    #8 0x5c505f7b8fa6 in DeleteWindow ../dix/window.c:1058\n    #9 0x5c505f762779 in doFreeResource ../dix/resource.c:896\n    #10 0x5c505f766aa8 in FreeClientResources ../dix/resource.c:1154\n    #11 0x5c505f62cbb6 in CloseDownClient ../dix/dispatch.c:3717\n    #12 0x5c505fafb5aa in close_revoked ../Xext/spatial/spatialsecurity.c:222\n    #13 0x5c505fafc192 in client_state ../Xext/spatial/spatialsecurity.c:242\n    #14 0x5c505f65eaef in _CallCallbacks ../dix/dixutils.c:707\n    #15 0x5c505f5e5286 in CallCallbacks ../include/callback.h:79\n    #16 0x5c505f62ca52 in CloseDownClient ../dix/dispatch.c:3713\n    #17 0x5c505f62d293 in KillAllClients ../dix/dispatch.c:3746\n    #18 0x5c505f5eb0a8 in Dispatch ../dix/dispatch.c:599\n    #19 0x5c505f6577ce in dix_main ../dix/main.c:288\n    #20 0x5c505f41cdac in main ../dix/stubmain.c:34\n    #21 0x7ca88c02a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58\n    #22 0x7ca88c02a28a in __libc_start_main_impl ../csu/libc-start.c:360\n    #23 0x5c505f40b424 in _start (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb+0xfdb424) (BuildId: 9165b26f457baa0af15d620f6261a545b6e7332d)\n\n0x512000002a68 is located 40 bytes inside of 272-byte region [0x512000002a40,0x512000002b50)\nfreed by thread T0 here:\n    #0 0x7ca88d2fc4d8 in free ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:52\n    #1 0x5c505f737613 in _dixFreeObjectWithPrivates ../dix/privates.c:517\n    #2 0x5c505f7b9f7c in DeleteWindow ../dix/window.c:1082\n    #3 0x5c505f762779 in doFreeResource ../dix/resource.c:896\n    #4 0x5c505f766aa8 in FreeClientResources ../dix/resource.c:1154\n    #5 0x5c505f62cbb6 in CloseDownClient ../dix/dispatch.c:3717\n    #6 0x5c505fafb5aa in close_revoked ../Xext/spatial/spatialsecurity.c:222\n    #7 0x5c505fafc192 in client_state ../Xext/spatial/spatialsecurity.c:242\n    #8 0x5c505f65eaef in _CallCallbacks ../dix/dixutils.c:707\n    #9 0x5c505f5e5286 in CallCallbacks ../include/callback.h:79\n    #10 0x5c505f62ca52 in CloseDownClient ../dix/dispatch.c:3713\n    #11 0x5c505f62d293 in KillAllClients ../dix/dispatch.c:3746\n    #12 0x5c505f5eb0a8 in Dispatch ../dix/dispatch.c:599\n    #13 0x5c505f6577ce in dix_main ../dix/main.c:288\n    #14 0x5c505f41cdac in main ../dix/stubmain.c:34\n    #15 0x7ca88c02a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58\n    #16 0x7ca88c02a28a in __libc_start_main_impl ../csu/libc-start.c:360\n    #17 0x5c505f40b424 in _start (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb+0xfdb424) (BuildId: 9165b26f457baa0af15d620f6261a545b6e7332d)\n\npreviously allocated by thread T0 here:\n    #0 0x7ca88d2fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77\n    #1 0x5c505f73a0e7 in _dixAllocateScreenObjectWithPrivates ../dix/privates.c:687\n    #2 0x5c505f7b34f4 in dixCreateWindow ../dix/window.c:809\n    #3 0x5c505f5eef26 in DoCreateWindowReq ../dix/dispatch.c:749\n    #4 0x5c505f5ef4d8 in ProcCreateWindow ../dix/dispatch.c:775\n    #5 0x5c505f5eac7b in Dispatch ../dix/dispatch.c:567\n    #6 0x5c505f6577ce in dix_main ../dix/main.c:288\n    #7 0x5c505f41cdac in main ../dix/stubmain.c:34\n    #8 0x7ca88c02a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58\n    #9 0x7ca88c02a28a in __libc_start_main_impl ../csu/libc-start.c:360\n    #10 0x5c505f40b424 in _start (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb+0xfdb424) (BuildId: 9165b26f457baa0af15d620f6261a545b6e7332d)\n\nSUMMARY: AddressSanitizer: heap-use-after-free ../dix/events.c:985 in WindowIsParent\nShadow bytes around the buggy address:\n  0x512000002780: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd\n  0x512000002800: fd fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa\n  0x512000002880: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd\n  0x512000002900: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd\n  0x512000002980: fd fd fd fd fd fd fd fd fd fd fd fd fa fa fa fa\n=>0x512000002a00: fa fa fa fa fa fa fa fa fd fd fd fd fd[fd]fd fd\n  0x512000002a80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd\n  0x512000002b00: fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa fa\n  0x512000002b80: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00\n  0x512000002c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00\n  0x512000002c80: 00 00 00 00 00 00 00 00 00 00 fa fa fa fa fa fa\nShadow byte legend (one shadow byte represents 8 application bytes):\n  Addressable:           00\n  Partially addressable: 01 02 03 04 05 06 07 \n  Heap left redzone:       fa\n  Freed heap region:       fd\n  Stack left redzone:      f1\n  Stack mid redzone:       f2\n  Stack right redzone:     f3\n  Stack after return:      f5\n  Stack use after scope:   f8\n  Global redzone:          f9\n  Global init order:       f6\n  Poisoned by user:        f7\n  Container overflow:      fc\n  Array cookie:            ac\n  Intra object redzone:    bb\n  ASan internal:           fe\n  Left alloca redzone:     ca\n  Right alloca redzone:    cb\n==1941052==ABORTING\n\nBacktrace:\n0: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x831e0) [0x7ca88d2831e0]\n1: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x19f57e6) [0x5c505fe257e6]\n2: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1a0dab7) [0x5c505fe3dab7]\n3: /lib/x86_64-linux-gnu/libc.so.6 (0x7ca88c000000+0x45330) [0x7ca88c045330]\n4: /lib/x86_64-linux-gnu/libc.so.6 (pthread_kill+0x11c) [0x7ca88c09ec0c]\n5: /lib/x86_64-linux-gnu/libc.so.6 (gsignal+0x1e) [0x7ca88c04527e]\n6: /lib/x86_64-linux-gnu/libc.so.6 (abort+0xdf) [0x7ca88c0288ff]\n7: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x11fc30) [0x7ca88d31fc30]\n8: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x1307cd) [0x7ca88d3307cd]\n9: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x1085a6) [0x7ca88d3085a6]\n10: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x107b6d) [0x7ca88d307b6d]\n11: /lib/x86_64-linux-gnu/libasan.so.8 (__asan_report_load8+0x39) [0x7ca88d308f29]\n12: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1248e5b) [0x5c505f678e5b]\n13: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x12307ef) [0x5c505f6607ef]\n14: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1231fe9) [0x5c505f661fe9]\n15: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x123229a) [0x5c505f66229a]\n16: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x12325bd) [0x5c505f6625bd]\n17: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1268031) [0x5c505f698031]\n18: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x126817e) [0x5c505f69817e]\n19: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x13ae366) [0x5c505f7de366]\n20: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1388fa7) [0x5c505f7b8fa7]\n21: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x133277a) [0x5c505f76277a]\n22: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1336aa9) [0x5c505f766aa9]\n23: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11fcbb7) [0x5c505f62cbb7]\n24: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x16cb5ab) [0x5c505fafb5ab]\n25: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x16cc193) [0x5c505fafc193]\n26: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x122eaf0) [0x5c505f65eaf0]\n27: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11b5287) [0x5c505f5e5287]\n28: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11fca53) [0x5c505f62ca53]\n29: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11fd294) [0x5c505f62d294]\n30: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11bb0a9) [0x5c505f5eb0a9]\n31: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x12277cf) [0x5c505f6577cf]\n32: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0xfecdad) [0x5c505f41cdad]\n33: /lib/x86_64-linux-gnu/libc.so.6 (0x7ca88c000000+0x2a1ca) [0x7ca88c02a1ca]\n34: /lib/x86_64-linux-gnu/libc.so.6 (__libc_start_main+0x8b) [0x7ca88c02a28b]\n35: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0xfdb425) [0x5c505f40b425]\n\n\nFatal server error:\nCaught signal 6 (Aborted). Server aborting\n\n' : Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )
+Sync Extension 3.1
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-0.xkm"', fp = 0x515000001e80
+Pclose: fp = 0x515000001e80
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-0.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(1941052).
+client(0): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 5 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 3 -extension GLX).
+client(200000): Reserved pid(1940997).
+client(200000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+AllocNewConnection: client index = 1, socket fd = 5, local = 1
+client(400000): Reserved pid(1940997).
+client(400000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+AllocNewConnection: client index = 2, socket fd = 8, local = 1
+client(600000): Reserved pid(1940997).
+client(600000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+AllocNewConnection: client index = 3, socket fd = 9, local = 1
+client(800000): Reserved pid(1940997).
+client(800000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+AllocNewConnection: client index = 4, socket fd = 10, local = 1
+client(a00000): Reserved pid(1940997).
+client(a00000): Reserved cmdname(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+AllocNewConnection: client index = 5, socket fd = 11, local = 1
+client(400000): Released pid(1940997).
+client(400000): Released cmdline(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+(dix) removing device 9
+(dix) removing device 8
+client(600000): Released pid(1940997).
+client(600000): Released cmdline(python3) and cmdargs(tests/native/test_actor_binding.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth).
+(dix) removing device 11
+(dix) removing device 10
+=================================================================
+==1941052==ERROR: AddressSanitizer: heap-use-after-free on address 0x512000002a68 at pc 0x5c505f678e5b bp 0x7ffc41097480 sp 0x7ffc41097470
+READ of size 8 at 0x512000002a68 thread T0
+    #0 0x5c505f678e5a in WindowIsParent ../dix/events.c:985
+    #1 0x5c505f6607ee in FirstPointerChild ../dix/enterleave.c:145
+    #2 0x5c505f661fe8 in CoreEnterLeaveToAncestor ../dix/enterleave.c:448
+    #3 0x5c505f662299 in CoreEnterLeaveEvents ../dix/enterleave.c:543
+    #4 0x5c505f6625bc in DoEnterLeaveEvents ../dix/enterleave.c:601
+    #5 0x5c505f698030 in CheckMotion ../dix/events.c:3253
+    #6 0x5c505f69817d in WindowsRestructured ../dix/events.c:3277
+    #7 0x5c505f7de365 in UnmapWindow ../dix/window.c:2869
+    #8 0x5c505f7b8fa6 in DeleteWindow ../dix/window.c:1058
+    #9 0x5c505f762779 in doFreeResource ../dix/resource.c:896
+    #10 0x5c505f766aa8 in FreeClientResources ../dix/resource.c:1154
+    #11 0x5c505f62cbb6 in CloseDownClient ../dix/dispatch.c:3717
+    #12 0x5c505fafb5aa in close_revoked ../Xext/spatial/spatialsecurity.c:222
+    #13 0x5c505fafc192 in client_state ../Xext/spatial/spatialsecurity.c:242
+    #14 0x5c505f65eaef in _CallCallbacks ../dix/dixutils.c:707
+    #15 0x5c505f5e5286 in CallCallbacks ../include/callback.h:79
+    #16 0x5c505f62ca52 in CloseDownClient ../dix/dispatch.c:3713
+    #17 0x5c505f62d293 in KillAllClients ../dix/dispatch.c:3746
+    #18 0x5c505f5eb0a8 in Dispatch ../dix/dispatch.c:599
+    #19 0x5c505f6577ce in dix_main ../dix/main.c:288
+    #20 0x5c505f41cdac in main ../dix/stubmain.c:34
+    #21 0x7ca88c02a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #22 0x7ca88c02a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #23 0x5c505f40b424 in _start (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb+0xfdb424) (BuildId: 9165b26f457baa0af15d620f6261a545b6e7332d)
+
+0x512000002a68 is located 40 bytes inside of 272-byte region [0x512000002a40,0x512000002b50)
+freed by thread T0 here:
+    #0 0x7ca88d2fc4d8 in free ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:52
+    #1 0x5c505f737613 in _dixFreeObjectWithPrivates ../dix/privates.c:517
+    #2 0x5c505f7b9f7c in DeleteWindow ../dix/window.c:1082
+    #3 0x5c505f762779 in doFreeResource ../dix/resource.c:896
+    #4 0x5c505f766aa8 in FreeClientResources ../dix/resource.c:1154
+    #5 0x5c505f62cbb6 in CloseDownClient ../dix/dispatch.c:3717
+    #6 0x5c505fafb5aa in close_revoked ../Xext/spatial/spatialsecurity.c:222
+    #7 0x5c505fafc192 in client_state ../Xext/spatial/spatialsecurity.c:242
+    #8 0x5c505f65eaef in _CallCallbacks ../dix/dixutils.c:707
+    #9 0x5c505f5e5286 in CallCallbacks ../include/callback.h:79
+    #10 0x5c505f62ca52 in CloseDownClient ../dix/dispatch.c:3713
+    #11 0x5c505f62d293 in KillAllClients ../dix/dispatch.c:3746
+    #12 0x5c505f5eb0a8 in Dispatch ../dix/dispatch.c:599
+    #13 0x5c505f6577ce in dix_main ../dix/main.c:288
+    #14 0x5c505f41cdac in main ../dix/stubmain.c:34
+    #15 0x7ca88c02a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #16 0x7ca88c02a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #17 0x5c505f40b424 in _start (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb+0xfdb424) (BuildId: 9165b26f457baa0af15d620f6261a545b6e7332d)
+
+previously allocated by thread T0 here:
+    #0 0x7ca88d2fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x5c505f73a0e7 in _dixAllocateScreenObjectWithPrivates ../dix/privates.c:687
+    #2 0x5c505f7b34f4 in dixCreateWindow ../dix/window.c:809
+    #3 0x5c505f5eef26 in DoCreateWindowReq ../dix/dispatch.c:749
+    #4 0x5c505f5ef4d8 in ProcCreateWindow ../dix/dispatch.c:775
+    #5 0x5c505f5eac7b in Dispatch ../dix/dispatch.c:567
+    #6 0x5c505f6577ce in dix_main ../dix/main.c:288
+    #7 0x5c505f41cdac in main ../dix/stubmain.c:34
+    #8 0x7ca88c02a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7ca88c02a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5c505f40b424 in _start (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb+0xfdb424) (BuildId: 9165b26f457baa0af15d620f6261a545b6e7332d)
+
+SUMMARY: AddressSanitizer: heap-use-after-free ../dix/events.c:985 in WindowIsParent
+Shadow bytes around the buggy address:
+  0x512000002780: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x512000002800: fd fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa
+  0x512000002880: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x512000002900: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x512000002980: fd fd fd fd fd fd fd fd fd fd fd fd fa fa fa fa
+=>0x512000002a00: fa fa fa fa fa fa fa fa fd fd fd fd fd[fd]fd fd
+  0x512000002a80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x512000002b00: fd fd fd fd fd fd fd fd fd fd fa fa fa fa fa fa
+  0x512000002b80: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x512000002c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x512000002c80: 00 00 00 00 00 00 00 00 00 00 fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1941052==ABORTING
+
+Backtrace:
+0: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x831e0) [0x7ca88d2831e0]
+1: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x19f57e6) [0x5c505fe257e6]
+2: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1a0dab7) [0x5c505fe3dab7]
+3: /lib/x86_64-linux-gnu/libc.so.6 (0x7ca88c000000+0x45330) [0x7ca88c045330]
+4: /lib/x86_64-linux-gnu/libc.so.6 (pthread_kill+0x11c) [0x7ca88c09ec0c]
+5: /lib/x86_64-linux-gnu/libc.so.6 (gsignal+0x1e) [0x7ca88c04527e]
+6: /lib/x86_64-linux-gnu/libc.so.6 (abort+0xdf) [0x7ca88c0288ff]
+7: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x11fc30) [0x7ca88d31fc30]
+8: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x1307cd) [0x7ca88d3307cd]
+9: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x1085a6) [0x7ca88d3085a6]
+10: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ca88d200000+0x107b6d) [0x7ca88d307b6d]
+11: /lib/x86_64-linux-gnu/libasan.so.8 (__asan_report_load8+0x39) [0x7ca88d308f29]
+12: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1248e5b) [0x5c505f678e5b]
+13: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x12307ef) [0x5c505f6607ef]
+14: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1231fe9) [0x5c505f661fe9]
+15: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x123229a) [0x5c505f66229a]
+16: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x12325bd) [0x5c505f6625bd]
+17: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1268031) [0x5c505f698031]
+18: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x126817e) [0x5c505f69817e]
+19: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x13ae366) [0x5c505f7de366]
+20: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1388fa7) [0x5c505f7b8fa7]
+21: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x133277a) [0x5c505f76277a]
+22: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x1336aa9) [0x5c505f766aa9]
+23: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11fcbb7) [0x5c505f62cbb7]
+24: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x16cb5ab) [0x5c505fafb5ab]
+25: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x16cc193) [0x5c505fafc193]
+26: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x122eaf0) [0x5c505f65eaf0]
+27: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11b5287) [0x5c505f5e5287]
+28: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11fca53) [0x5c505f62ca53]
+29: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11fd294) [0x5c505f62d294]
+30: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x11bb0a9) [0x5c505f5eb0a9]
+31: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0x12277cf) [0x5c505f6577cf]
+32: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0xfecdad) [0x5c505f41cdad]
+33: /lib/x86_64-linux-gnu/libc.so.6 (0x7ca88c000000+0x2a1ca) [0x7ca88c02a1ca]
+34: /lib/x86_64-linux-gnu/libc.so.6 (__libc_start_main+0x8b) [0x7ca88c02a28b]
+35: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/2cfc3554d67e2bb8fd630f01b31880feca5f955209926aaf3df02a3a7160d6f7/source/build-sanitize/hw/vfb/Xvfb (0x5c505e430000+0xfdb425) [0x5c505f40b425]
+
+
+Fatal server error:
+Caught signal 6 (Aborted). Server aborting
+
+
+
+----------------------------------------------------------------------
+Ran 25 tests in 4.022s
+
+FAILED (failures=1)

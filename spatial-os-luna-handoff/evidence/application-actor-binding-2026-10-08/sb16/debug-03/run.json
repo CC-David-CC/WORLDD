@@ -1,0 +1,76 @@
+{
+  "host": "sb16",
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF",
+        "-DSPATIAL_INPUT_TESTS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "harness",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/harness",
+        "-t",
+        ".",
+        "-q"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "core",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build",
+        "-V"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "P10",
+      "command": [
+        "python3",
+        "tools/with_test_display.py",
+        "--",
+        "python3",
+        "tools/gate.py",
+        "--through",
+        "P10",
+        "--report",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m04-actor-binding-debug-03/P10.json"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "binary": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/234393f40cdb44aa92005e9815b43d091fab524c8d30dc752d0430b4da7a8d78/source/build/hw/vfb/Xvfb",
+    "sha256": "821b7df2eda2e462fc47187ac47e04f368a8820d76b3e5536461aa46fd18eb1d"
+  }
+}

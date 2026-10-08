@@ -1,5 +1,35 @@
 # Implementation status
 
+## 2026-10-08: Native application actor binding checked
+
+Application connections now use their controlling actor's genuine native devices.
+Connections with the same workspace/application identity share one controller and input state.
+Different application groups can have simultaneous controllers.
+Cancellation returns the group to private idle devices after releasing held input and active grabs.
+It also clears native focus, modifier locks, latches, and previous motion history.
+Passive core grabs retain valid device references across actor closure.
+
+Both previous servers failed 24 of the 25 new native checks.
+One application-local focus control passed on that baseline.
+Both corrected native-server ASan/UBSan profiles passed all 176 focused native checks.
+Those profiles disabled GLX, enabled leak detection, and halted on sanitizer errors.
+Both Debug and runtime sanitizer profiles passed 688 checks across 35 CTest suites.
+Each profile also passed 51 harness checks and 151 P10 cases, with no skipped cases.
+
+Sanitizer validation found two lifecycle defects in the spatial overlay.
+Actor teardown now publishes its hierarchy update after removing the complete device group.
+Keyboard routing now preserves the shared sprite window and leaves pointer transitions to pointer processing.
+The original failures remain in the evidence. No suppression or new upstream patch was added.
+The motion-history witness now queries the previous binding's timestamp interval, excluding legitimate fresh samples.
+Locked acceptance tests and acceptance.lock.json remain unchanged.
+
+The primary agent reviewed this increment under David's local-model review waiver.
+See docs/APPLICATION_ACTOR_BINDING.md and M04_ACTOR_BINDING_DEBUG.txt at the repository root.
+Evidence is in evidence/application-actor-binding-2026-10-08.
+Broker credential delivery and compositor/worldd application-authority integration remain required.
+Physical devices, native GPU output, full instrumented GLX lifecycle, and session soak remain unqualified.
+M04, M09, and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Private application input devices checked
 
 Authenticated application connections now share a real device pair within their application identity.

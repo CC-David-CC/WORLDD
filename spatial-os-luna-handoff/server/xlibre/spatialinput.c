@@ -22,6 +22,7 @@
 #include "mipointrst.h"
 #include "exevents.h"
 #include "xichangehierarchy.h"
+#include "xkb/xkbsrv_priv.h"
 #include "spatialinput.h"
 #include "spatialsecurity.h"
 #include "input.pb-c.h"
@@ -34,6 +35,8 @@ typedef Spatial__Input__V1__Target Target;
 #define MAX_SEATS 32
 #define MAX_PAYLOAD 4096
 
+typedef struct ApplicationInput ApplicationInput;
+
 typedef struct SeatRec {
     struct SeatRec *next;
     ClientPtr owner;
@@ -45,6 +48,7 @@ typedef struct SeatRec {
     uint32_t buttons;
     uint8_t keys[32];
     InternalEvent *events;
+    ApplicationInput *application;
 } SeatRec;
 
 typedef struct {
@@ -54,16 +58,60 @@ typedef struct {
     DestroyWindowProcPtr destroy;
 } ScreenState;
 
-typedef struct {
+struct ApplicationInput {
     DeviceIntPtr pointer, keyboard;
     unsigned connections;
-} ApplicationInput;
+    SeatRec *controller;
+};
 
 static DevPrivateKeyRec device_key, window_key, screen_key, client_key;
 static DevPrivateKeyRec application_key, application_device_key;
 static SeatRec *seats;
 static uint64_t next_seat, next_generation;
 static Bool active;
+static void cancel(SeatRec *seat);
+
+static DeviceIntPtr application_pointer(ApplicationInput *application)
+{
+    return application->controller ? application->controller->pointer : application->pointer;
+}
+
+static int retarget_passive_grabs(WindowPtr window, void *data)
+{
+    ApplicationInput *application = data;
+    DeviceIntPtr pointer = application_pointer(application);
+    DeviceIntPtr keyboard = GetMaster(pointer, MASTER_KEYBOARD);
+    for (GrabPtr grab = wPassiveGrabs(window); grab; grab = grab->next) {
+        ClientPtr owner = dixLookupXIDOwner(grab->resource);
+        if (grab->grabtype != CORE || !owner ||
+            dixLookupPrivate(&owner->devPrivates, &application_key) != application) continue;
+        grab->device = (grab->type == KeyPress || grab->type == KeyRelease) ? keyboard : pointer;
+        grab->modifierDevice = keyboard;
+    }
+    return WT_WALKCHILDREN;
+}
+
+static void rebind_application(ApplicationInput *application)
+{
+    for (int i = 1; i < currentMaxClients; ++i)
+        if (clients[i] && dixLookupPrivate(&clients[i]->devPrivates, &application_key) == application)
+            clients[i]->clientPtr = application_pointer(application);
+    /* Keep passive grabs alive, but never leave pointers to a retired seat. */
+    for (int i = 0; i < screenInfo.numScreens; ++i)
+        WalkTree(screenInfo.screens[i], retarget_passive_grabs, application);
+}
+
+static void clear_device_context(DeviceIntPtr device)
+{
+    if (device->valuator) {
+        device->valuator->first_motion = device->valuator->last_motion = 0;
+        device->valuator->motionHintWindow = NULL;
+    }
+    if (device->key) {
+        XkbEventCauseRec cause = {0};
+        XkbClearAllLatchesAndLocks(device, device->key->xkbInfo, TRUE, &cause);
+    }
+}
 
 /* Application identity, not a credential or a single X connection, owns the
  * idle device pair. Devices contain genuine DIX focus, grabs and pointer state.
@@ -107,7 +155,7 @@ Bool SpatialInputAuthorizeClient(ClientPtr client)
     }
     ++application->connections;
     dixSetPrivate(&client->devPrivates, &application_key, application);
-    client->clientPtr = application->pointer;
+    client->clientPtr = application_pointer(application);
     return TRUE;
 }
 
@@ -118,6 +166,7 @@ static void close_application_connection(ClientPtr client)
     dixSetPrivate(&client->devPrivates, &application_key, NULL);
     client->clientPtr = NULL;
     if (--application->connections) return;
+    if (application->controller) cancel(application->controller);
     RemoveDevice(application->keyboard, FALSE);
     RemoveDevice(application->pointer, FALSE);
     free(application);
@@ -162,6 +211,10 @@ WindowPtr SpatialInputRoute(DeviceIntPtr device, DeviceEvent *event)
     if (!active || !(seat = dixLookupPrivate(&device->devPrivates, &device_key)))
         return NULL;
     sprite = device->spriteInfo->sprite;
+    /* Key events share the pointer sprite but do not send pointer crossings.
+     * Changing its window here would leave DIX's PointerWindows entry stale.
+     */
+    if (IsKeyboardDevice(device)) return sprite->win;
     win = live_window(seat->target, seat->target_generation);
     if (!win) {
         sprite->spriteTraceGood = 1;
@@ -229,8 +282,45 @@ static void cancel(SeatRec *seat)
     if (seat->keyboard->deviceGrab.grab)
         seat->keyboard->deviceGrab.DeactivateGrab(seat->keyboard);
     SetInputFocus(serverClient, seat->keyboard, None, RevertToNone, CurrentTime, FALSE);
+    if (seat->application) {
+        ApplicationInput *application = seat->application;
+        DeviceIntPtr devices[] = {seat->pointer_slave, seat->keyboard_slave, seat->pointer, seat->keyboard};
+        for (unsigned i = 0; i < 4; ++i) clear_device_context(devices[i]);
+        for (unsigned i = 0; i < 4; ++i)
+            dixSetPrivate(&devices[i]->devPrivates, &application_device_key, NULL);
+        seat->application = NULL;
+        application->controller = NULL;
+        rebind_application(application);
+    }
     seat->target = seat->focus = None;
     seat->target_generation = seat->focus_generation = 0;
+}
+
+static int bind_application(SeatRec *seat, WindowPtr window)
+{
+    if (!SpatialSecurityEnabled()) return CODE(OK);
+    ClientPtr owner = dixLookupXIDOwner(window->drawable.id);
+    ApplicationInput *application = owner ? dixLookupPrivate(&owner->devPrivates, &application_key) : NULL;
+    if (!application) return CODE(FORBIDDEN);
+    if (application->controller && application->controller != seat) return CODE(BUSY);
+    if (seat->application == application) return CODE(OK);
+    cancel(seat);
+    if (application->pointer->deviceGrab.grab)
+        application->pointer->deviceGrab.DeactivateGrab(application->pointer);
+    if (application->keyboard->deviceGrab.grab)
+        application->keyboard->deviceGrab.DeactivateGrab(application->keyboard);
+    SetInputFocus(serverClient, application->keyboard, None, RevertToNone, CurrentTime, FALSE);
+    clear_device_context(application->pointer);
+    clear_device_context(application->keyboard);
+    application->controller = seat;
+    seat->application = application;
+    DeviceIntPtr devices[] = {seat->pointer, seat->keyboard, seat->pointer_slave, seat->keyboard_slave};
+    for (unsigned i = 0; i < 4; ++i) {
+        clear_device_context(devices[i]);
+        dixSetPrivate(&devices[i]->devPrivates, &application_device_key, application);
+    }
+    rebind_application(application);
+    return CODE(OK);
 }
 
 static void invalidate(WindowPtr win)
@@ -273,11 +363,18 @@ static void close_seat(SeatRec *seat)
     cancel(seat);
     for (int i = 0; i < currentMaxClients; ++i)
         if (clients[i] && clients[i]->clientPtr == seat->pointer) clients[i]->clientPtr = NULL;
-    /* Slaves depend on the master sprite. Remove slaves first. */
-    RemoveDevice(seat->pointer_slave, TRUE);
-    RemoveDevice(seat->keyboard_slave, TRUE);
-    RemoveDevice(seat->keyboard, TRUE);
-    RemoveDevice(seat->pointer, TRUE);
+    /* Hierarchy events inspect every pair. Publish only the complete removal,
+     * never the interval where a remaining master refers to a freed partner.
+     * Slaves depend on the master sprite; the keyboard precedes the pointer.
+     */
+    DeviceIntPtr devices[] = {seat->pointer_slave, seat->keyboard_slave, seat->keyboard, seat->pointer};
+    int flags[MAXDEVICES] = {0};
+    for (unsigned i = 0; i < 4; ++i) {
+        flags[devices[i]->id] = XIDeviceDisabled | (i < 2 ? XISlaveRemoved | XISlaveDetached : XIMasterRemoved);
+        DisableDevice(devices[i], FALSE);
+    }
+    for (unsigned i = 0; i < 4; ++i) RemoveDevice(devices[i], FALSE);
+    XISendDeviceHierarchyEvent(flags);
     SeatRec **link = &seats;
     while (*link && *link != seat) link = &(*link)->next;
     if (*link) *link = seat->next;
@@ -323,8 +420,9 @@ static SeatRec *open_seat(ClientPtr client)
     XISendDeviceHierarchyEvent(flags);
     return seat;
 failed:
-    RemoveDevice(seat->pointer_slave, TRUE); RemoveDevice(seat->keyboard_slave, TRUE);
-    RemoveDevice(seat->keyboard, TRUE); RemoveDevice(seat->pointer, TRUE);
+    /* No successful hierarchy addition was published for this seat. */
+    RemoveDevice(seat->pointer_slave, FALSE); RemoveDevice(seat->keyboard_slave, FALSE);
+    RemoveDevice(seat->keyboard, FALSE); RemoveDevice(seat->pointer, FALSE);
     FreeEventList(seat->events, GetMaximumEventsNum()); free(seat); return NULL;
 }
 
@@ -420,6 +518,10 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         }
         if (seat->buttons && (seat->target != button->target->xid || seat->target_generation != button->target->generation)) {
             reply->code = CODE(BUSY); return;
+        }
+        if (button->pressed) {
+            reply->code = bind_application(seat, win);
+            if (reply->code != CODE(OK)) return;
         }
         seat->target = button->target->xid; seat->target_generation = button->target->generation;
         if (!button->keep_capture_position) { seat->x = button->x; seat->y = button->y; }

@@ -1,0 +1,62 @@
+Primary-agent review
+
+David waived local-model review on 2026-10-08.
+No local-model proposal or approval is claimed for this increment.
+
+Reviewed production file: server/xlibre/spatialinput.c
+
+Application identity includes both workspace and application labels.
+Connections share an ApplicationInput group, not a credential or a window ID.
+The group holds one controller. The controller holds one application group.
+The BUSY check precedes cancellation of an actor's current application.
+Target, coordinate, button, and capture checks precede binding.
+Late connections use the current group's pointer.
+Cancellation delivers tracked releases before removing application device ownership.
+It clears locks, latches, history, focus, and active grabs before rebinding.
+Core passive grabs retain their definitions and receive valid device references.
+Last-connection destruction cancels the controller before freeing the group.
+
+Reviewed pinned server APIs and call paths
+
+PickPointer prioritizes active core grabs before clientPtr.
+PickKeyboard selects the paired master keyboard.
+CheckPassiveGrab retargets core grab devices for native event delivery.
+XkbClearAllLatchesAndLocks with genEv TRUE recomputes derived state.
+GetPointerEvents records samples for pointer button events too.
+XISendDeviceHierarchyEvent examines the remaining device pairs.
+The pinned remove_master disables and removes the group before publishing its hierarchy update.
+CheckMotion runs for master keyboard events too.
+DoEnterLeaveEvents returns without pointer crossings for a keyboard device.
+The spatial keyboard route must therefore preserve the shared pointer sprite window.
+
+Review and validation defects resolved in production
+
+The first sanitizer profile found a paired-device hierarchy use-after-free.
+The next profile found stale pointer-window tracking during simultaneous-controller teardown.
+Both defects belonged to the spatial overlay's lifecycle handling.
+The correction does not add another upstream XLibre patch or sanitizer suppression.
+Both hosts subsequently passed all 176 focused native sanitizer checks.
+
+Reviewed test: tests/native/test_actor_binding.py
+
+The witness observes actual X11 device IDs, replies, and key/button events.
+Protobuf requests use the production SPATIAL-INPUT extension.
+Same-group, foreign-group, simultaneous-controller, swapped-client, and late-connection cases are distinct.
+Grab tests include competing connections, synchronous input, and passive grabs after actor closure.
+Motion history checks use the previous binding's actual timestamp interval.
+The earlier empty-history assumption rejected legitimate new button samples and was corrected explicitly.
+The final witness fails 24 checks on each previous server. Its focus control passes.
+Locked acceptance tests, independent locked oracles, and acceptance.lock.json remain unchanged.
+
+Reviewed registration, documentation, and task record
+
+CMake registers the additive native suite with the generated protobuf modules and a bounded timeout.
+The additive contract records the trusted-compositor boundary and missing application-authority integration.
+The task record lists all 25 independent test IDs.
+The debug note preserves defects and unshown physical requirements.
+
+Limits
+
+These checks qualify the native server component on disposable Xvfb displays.
+They do not establish complete M04, M09, Spatial-M1, physical input, GPU output, or instrumented GLX lifecycle acceptance.
+The runtime still needs broker credential provisioning and actor-authority checks before application control.

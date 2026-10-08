@@ -1,0 +1,180 @@
+test_application_dialog_uses_same_lease (__main__.ActorBindingTests.test_application_dialog_uses_same_lease) ... FAIL
+test_application_focus_change_stays_within_group (__main__.ActorBindingTests.test_application_focus_change_stays_within_group) ... ok
+test_application_uses_genuine_actor_device (__main__.ActorBindingTests.test_application_uses_genuine_actor_device) ... FAIL
+test_cancel_clears_locked_and_held_modifiers (__main__.ActorBindingTests.test_cancel_clears_locked_and_held_modifiers) ... FAIL
+test_cancel_preserves_other_actor (__main__.ActorBindingTests.test_cancel_preserves_other_actor) ... FAIL
+test_cancel_releases_real_key_before_returning_to_idle (__main__.ActorBindingTests.test_cancel_releases_real_key_before_returning_to_idle) ... FAIL
+test_controller_disconnect_releases_binding (__main__.ActorBindingTests.test_controller_disconnect_releases_binding) ... FAIL
+test_different_applications_have_simultaneous_controllers (__main__.ActorBindingTests.test_different_applications_have_simultaneous_controllers) ... FAIL
+test_group_connections_share_actor_focus_and_keys (__main__.ActorBindingTests.test_group_connections_share_actor_focus_and_keys) ... FAIL
+test_late_connection_inherits_current_actor (__main__.ActorBindingTests.test_late_connection_inherits_current_actor) ... FAIL
+test_revoked_target_connection_cancels_without_closing_peer (__main__.ActorBindingTests.test_revoked_target_connection_cancels_without_closing_peer) ... FAIL
+test_second_actor_cannot_take_same_application (__main__.ActorBindingTests.test_second_actor_cannot_take_same_application) ... FAIL
+test_service_window_cannot_receive_application_binding (__main__.ActorBindingTests.test_service_window_cannot_receive_application_binding) ... FAIL
+test_swapped_application_observes_actor_state (__main__.ActorBindingTests.test_swapped_application_observes_actor_state) ... FAIL
+test_transfer_to_new_application_releases_old_keys (__main__.ActorBindingTests.test_transfer_to_new_application_releases_old_keys) ... FAIL
+test_transfer_to_second_actor_after_cancel (__main__.ActorBindingTests.test_transfer_to_second_actor_after_cancel) ... FAIL
+test_unmap_releases_binding (__main__.ActorBindingTests.test_unmap_releases_binding) ... FAIL
+
+======================================================================
+FAIL: test_application_dialog_uses_same_lease (__main__.ActorBindingTests.test_application_dialog_uses_same_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 226, in test_application_dialog_uses_same_lease
+    self.assertEqual(self.focus(self.owner), popup)
+AssertionError: 0 != 6291457
+
+======================================================================
+FAIL: test_application_uses_genuine_actor_device (__main__.ActorBindingTests.test_application_uses_genuine_actor_device)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 131, in test_application_uses_genuine_actor_device
+    self.assertEqual(self.device(self.window), self.seat.pointer_device)
+AssertionError: 8 != 12
+
+======================================================================
+FAIL: test_cancel_clears_locked_and_held_modifiers (__main__.ActorBindingTests.test_cancel_clears_locked_and_held_modifiers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 287, in test_cancel_clears_locked_and_held_modifiers
+    self.assertEqual(struct.unpack_from('<H', head, 24)[0] & 3, 3)
+AssertionError: 0 != 3
+
+======================================================================
+FAIL: test_cancel_preserves_other_actor (__main__.ActorBindingTests.test_cancel_preserves_other_actor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 189, in test_cancel_preserves_other_actor
+    self.assertEqual(self.focus(self.other), self.other_window)
+AssertionError: 0 != 8388609
+
+======================================================================
+FAIL: test_cancel_releases_real_key_before_returning_to_idle (__main__.ActorBindingTests.test_cancel_releases_real_key_before_returning_to_idle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 175, in test_cancel_releases_real_key_before_returning_to_idle
+    self.assertTrue(self.held(self.owner, 38))
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_controller_disconnect_releases_binding (__main__.ActorBindingTests.test_controller_disconnect_releases_binding)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 254, in test_controller_disconnect_releases_binding
+    self.assertEqual(self.device(self.window), self.seat.pointer_device)
+AssertionError: 8 != 12
+
+======================================================================
+FAIL: test_different_applications_have_simultaneous_controllers (__main__.ActorBindingTests.test_different_applications_have_simultaneous_controllers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 161, in test_different_applications_have_simultaneous_controllers
+    self.assertEqual(self.device(self.window), self.seat.pointer_device)
+AssertionError: 8 != 12
+
+======================================================================
+FAIL: test_group_connections_share_actor_focus_and_keys (__main__.ActorBindingTests.test_group_connections_share_actor_focus_and_keys)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 137, in test_group_connections_share_actor_focus_and_keys
+    self.assertEqual(self.focus(self.peer), self.window)
+AssertionError: 0 != 4194305
+
+======================================================================
+FAIL: test_late_connection_inherits_current_actor (__main__.ActorBindingTests.test_late_connection_inherits_current_actor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 216, in test_late_connection_inherits_current_actor
+    self.assertEqual(self.focus(late), self.window)
+AssertionError: 0 != 4194305
+
+======================================================================
+FAIL: test_revoked_target_connection_cancels_without_closing_peer (__main__.ActorBindingTests.test_revoked_target_connection_cancels_without_closing_peer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 268, in test_revoked_target_connection_cancels_without_closing_peer
+    self.assertTrue(self.held(self.peer, 38))
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_second_actor_cannot_take_same_application (__main__.ActorBindingTests.test_second_actor_cannot_take_same_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 154, in test_second_actor_cannot_take_same_application
+    self.click(self.second, expected=inp.BUSY)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 98, in click
+    self.call(expected, button=inp.Button(seat=seat.seat, target=target, x=4, y=5,
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 88, in call
+    self.assertEqual(reply.code, expected, reply)
+AssertionError: 0 != 6 : protocol_version: 1
+request_id: 7
+seat: 2
+pointer_device: 16
+keyboard_device: 17
+held_buttons: 2
+held_keys: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+focus {
+  xid: 4194305
+  generation: 2
+}
+
+
+======================================================================
+FAIL: test_service_window_cannot_receive_application_binding (__main__.ActorBindingTests.test_service_window_cannot_receive_application_binding)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 278, in test_service_window_cannot_receive_application_binding
+    self.click(window=window, expected=inp.FORBIDDEN)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 98, in click
+    self.call(expected, button=inp.Button(seat=seat.seat, target=target, x=4, y=5,
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 88, in call
+    self.assertEqual(reply.code, expected, reply)
+AssertionError: 0 != 2 : protocol_version: 1
+request_id: 4
+seat: 1
+pointer_device: 12
+keyboard_device: 13
+held_buttons: 2
+held_keys: "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+focus {
+  xid: 2097153
+  generation: 4
+}
+
+
+======================================================================
+FAIL: test_swapped_application_observes_actor_state (__main__.ActorBindingTests.test_swapped_application_observes_actor_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 147, in test_swapped_application_observes_actor_state
+    self.assertEqual(self.focus(self.owner), self.window)
+AssertionError: 0 != 4194305
+
+======================================================================
+FAIL: test_transfer_to_new_application_releases_old_keys (__main__.ActorBindingTests.test_transfer_to_new_application_releases_old_keys)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 200, in test_transfer_to_new_application_releases_old_keys
+    self.assertEqual(self.device(self.other_window), self.seat.pointer_device)
+AssertionError: 10 != 12
+
+======================================================================
+FAIL: test_transfer_to_second_actor_after_cancel (__main__.ActorBindingTests.test_transfer_to_second_actor_after_cancel)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 208, in test_transfer_to_second_actor_after_cancel
+    self.assertEqual(self.device(self.window), self.second.pointer_device)
+AssertionError: 8 != 16
+
+======================================================================
+FAIL: test_unmap_releases_binding (__main__.ActorBindingTests.test_unmap_releases_binding)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_actor_binding.py", line 243, in test_unmap_releases_binding
+    self.assertTrue(self.held(self.owner, 38))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 17 tests in 1.443s
+
+FAILED (failures=16)

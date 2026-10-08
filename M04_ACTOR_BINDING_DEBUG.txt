@@ -1,0 +1,50 @@
+Native application actor binding: 2026-10-08
+
+David authorized primary-agent review without the local model.
+The primary agent reviews the implementation and runs the checks.
+
+Confirmed defect found during validation
+
+The first native-server sanitizer run failed on both hosts.
+AddressSanitizer reported heap-use-after-free in Xi/xiquerydevice.c:GetDeviceUse.
+The call came from XISendDeviceHierarchyEvent during our close_seat function.
+Our code removed the master keyboard with an immediate hierarchy notification.
+The remaining master pointer still referred to that freed keyboard.
+
+The correction is local to server/xlibre/spatialinput.c.
+Disable the complete actor device group before removal.
+Remove the slave devices before their masters.
+Remove the keyboard before the pointer.
+Publish one hierarchy update after removing the complete group.
+Do not publish a successful hierarchy addition for failed seat initialization.
+The pinned server's remove_master function uses the same grouped teardown order.
+
+Second confirmed defect
+
+The next sanitizer run passed 24 checks and failed simultaneous-controller teardown.
+AddressSanitizer reported heap-use-after-free in dix/events.c:WindowIsParent.
+The call came from FirstPointerChild during window destruction.
+Our routing hook changed a shared pointer sprite during a keyboard event.
+DIX does not send pointer crossings for keyboard devices.
+Its PointerWindows entry therefore retained a window after that window was freed.
+Keyboard routing now preserves the pointer sprite's current window.
+Pointer events and restructuring perform the pointer transition.
+Both corrected paths passed all 25 actor-binding sanitizer checks on both hosts.
+All 151 existing focused native checks also passed on both hosts.
+
+Evidence paths
+
+Host-local failure: spatial-os-luna-handoff/local/m04-actor-binding-native-sanitize-01/.
+Second failure: spatial-os-luna-handoff/local/m04-actor-binding-native-sanitize-02/.
+Preserve this failure when collecting the final evidence.
+Passing native run: spatial-os-luna-handoff/local/m04-actor-binding-native-sanitize-03/.
+Both hosts passed full Debug and runtime sanitizer regression qualification.
+Each profile passed 688 core checks across 35 CTest suites, 51 harness checks, and 151 P10 cases.
+No executed profile skipped a case.
+
+Unshown and unrun requirements
+
+These tests use disposable native Xvfb servers.
+They do not show physical keyboard, mouse, SpaceMouse, or GPU-session behavior.
+Production broker/worldd application authority integration remains required.
+M04, M09, and Spatial-M1 remain incomplete.
