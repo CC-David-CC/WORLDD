@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-09: Participation worker passes focused Debug and sanitizer checks
+
+The isolated worker authenticates its service key and exact domains on one checked TLS connection.
+Its consumer must explicitly activate, acknowledge each consumed revision, and release a settled generation.
+A real activation race requires explicit resynchronization. Queue overflow permanently disables the worker.
+Destruction and connection loss preserve pending issuer obligations.
+
+On sb16-2, both Debug and runtime ASan/UBSan pass 14 new checks and 96 related regression checks.
+All 244 source hashes and 41 locked files match. Existing 265 protobuf messages retain their fields and enum values.
+Equivalent sb16 focused verification is running.
+The worker remains isolated. Actual world/broker effect settlement and supervisor fencing are still required.
+See evidence/participant-runtime-2026-10-09/candidate-04.
+
 ## 2026-10-09: Service participation proof qualified and integrated
 
 The issuer now binds registered service-key proof to its actual TLS connection.
@@ -8,7 +21,7 @@ The integrated source also includes the reviewed owner-idle fixture correction.
 Both hosts qualify 1153 core checks,51 harness checks, and 151 P10 cases in each Debug and runtime sanitizer profile.
 The final core count uses the full corrected 20-case workspace suite. The original failed run remains archived.
 All 238 source hashes and 41 locked files are verified. No operator state or running session changes.
-Commit and host adoption remain pending.
+Commit 69d6618 is pushed to box-git and adopted on both hosts. Both worktrees are clean.
 The barrier and participation worker remain isolated. Service proof alone does not satisfy M02 cancellation.
 See evidence/participant-session-2026-10-09/candidate-04.
 
@@ -28,7 +41,8 @@ Frozen sources and the failed full-run evidence remain unchanged.
 See evidence/workspace-owner-idle-2026-10-09.
 
 An isolated participant runtime worker draft now exists. Its first Debug build passed on sb16-2.
-It is not tested, integrated, or connected to worlds and brokers. M02 remains incomplete.
+Its real-issuer Debug tests now pass 13 new checks and 96 related regression checks on sb16-2.
+It remains isolated and unconnected to worlds and brokers. M02 remains incomplete.
 The barrier candidate passed full Debug on sb16: 1185 core, 51 harness, and 151 P10 checks, without failures or skips.
 Its sb16 sanitizer profile is running. The sb16-2 full barrier matrix has started.
 The remaining sb16-2 service-session sanitizer P10 run passed all 151 cases.
@@ -2310,8 +2324,8 @@ P06 native actor input is next. The full project goal remains active.
 Run these commands on either authorized host with new evidence directories:
 
 ~~~sh
-python3 tools/qualify_core.py --through P05 --evidence-dir local/new-surface-run
-python3 tools/qualify_core.py --through P05 --sanitize --build-dir build-sanitize --evidence-dir local/new-surface-sanitize
+python 3 tools/qualify_core.py --through P05 --evidence-dir local/new-surface-run
+python 3 tools/qualify_core.py --through P05 --sanitize --build-dir build-sanitize --evidence-dir local/new-surface-sanitize
 ~~~
 
 Both hosts reported these build identities:
@@ -2363,8 +2377,8 @@ See docs/MILESTONES.md for the complete plan.
 Run on sb16 or sb16-2 from this folder:
 
 ~~~sh
-python3 tools/qualify_core.py --through P04 --evidence-dir local/new-render-run
-python3 tools/qualify_core.py --through P04 --sanitize --build-dir build-sanitize --evidence-dir local/new-render-sanitize
+python 3 tools/qualify_core.py --through P04 --evidence-dir local/new-render-run
+python 3 tools/qualify_core.py --through P04 --sanitize --build-dir build-sanitize --evidence-dir local/new-render-sanitize
 ~~~
 
 Use a new evidence directory.
@@ -2390,7 +2404,7 @@ Commit fd7c781 delivered actor sessions, grants, motion expiry, and atomic pose 
 Its 60 cumulative acceptance tests passed on both hosts, including sanitizer builds.
 See docs/ACTORS.md and evidence/actors-2026-10-07.
 
-Commit f0e1ef3 delivered the persistent world daemon and passing P00-P02 gates.
+Commit f0e1ef 3 delivered the persistent world daemon and passing P00-P02 gates.
 Commit d31fc59 delivered the protobuf P00/P01 core.
 Commit 7283fd9 contains the earlier JSON P00 implementation.
 Earlier evidence remains under evidence/worldd-2026-10-07 and evidence/core-2026-10-07.

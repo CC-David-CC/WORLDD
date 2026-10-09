@@ -2,7 +2,7 @@
   "id": "identity.participant_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "candidate_04_full_sb16_qualification_started",
+  "current_step": "both_host_full_qualification_running",
   "parent": "identity.revocation_barrier",
   "integration_dependency": "identity.participant_session",
   "contract": "docs/AUTHORITY_PARTICIPANT_BARRIER.txt",
@@ -10,9 +10,9 @@
   "invariant": "Commit revocation and active-generation obligations atomically; require contiguous authenticated application before completion.",
   "integrated": false,
   "remaining": [
-    "Run full Debug and runtime sanitizer qualification on both hosts after preceding qualification exits.",
-    "Review exact source hashes and all logs.",
-    "Integrate only after service-session dependency qualifies."
+    "Finish both-host Debug and runtime sanitizer qualification.",
+    "Retain the integrated owner-idle fixture correction; validate its20-case suite against each barrier binary profile.",
+    "Review exact source hashes and all raw results before integration."
   ],
   "limitations": [
     "Trusted service acknowledgements require later independent production effect witnesses.",
@@ -29,5 +29,6 @@
     "skipped": 0,
     "new_server_checks": 19,
     "new_client_checks": 14
-  }
+  },
+  "service_dependency": "qualified and adopted69d6618"
 }

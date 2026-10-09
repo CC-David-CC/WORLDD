@@ -1,0 +1,600 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -132,6 +132,10 @@
+ target_link_libraries(spatial-issuer-client-lib PUBLIC spatial-identity-tls)
+ add_executable(spatial-issuer-client src/identity/client_main.cpp)
+ target_link_libraries(spatial-issuer-client PRIVATE spatial-issuer-client-lib)
++add_library(spatial-participant-runtime-lib STATIC src/identity/participant_runtime.cpp)
++target_link_libraries(spatial-participant-runtime-lib PUBLIC spatial-issuer-client-lib Threads::Threads)
++add_executable(spatial-participant-runtime-probe src/testing/participant_runtime_probe.cpp)
++target_link_libraries(spatial-participant-runtime-probe PRIVATE spatial-participant-runtime-lib)
+ add_library(spatial-issuer-watch-lib STATIC src/identity/issuer_watch.cpp)
+ target_link_libraries(spatial-issuer-watch-lib PUBLIC spatial-issuer-client-lib Threads::Threads)
+ add_executable(spatial-issuer-watch src/identity/watch_main.cpp)
+@@ -170,6 +174,11 @@
+ include(CTest)
+ if(BUILD_TESTING)
+     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
++    add_test(NAME identity-participant-runtime COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_runtime.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
++    set_tests_properties(identity-participant-runtime PROPERTIES TIMEOUT 180
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-participant-barrier-client COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_barrier_client.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+     set_tests_properties(identity-participant-barrier-client PROPERTIES TIMEOUT 180
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -317,3 +317,32 @@
+     AuthorityBarrierStatus authority_barrier = 25;
+   }
+ }
++
++// Trusted authority component queues. These messages grant no actor access.
++message AuthorityParticipantRuntimeConfig {
++  uint32 protocol_version = 1;
++  string issuer_client_config = 2;
++  string private_key_path = 3;
++  bytes participant_id = 4;
++  uint64 registered_revision = 5;
++}
++message ParticipantCommand {
++  uint64 request_id = 1;
++  oneof operation {
++    AuthorityActivate activate = 10;
++    AuthorityApplied applied = 11;
++    AuthorityRelease release = 12;
++  }
++}
++message ParticipantUpdate {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof outcome {
++    AuthorityAuthenticationResult authenticated = 10;
++    RevocationBatch revocations = 11;
++    AuthorityActivationState activated = 12;
++    AuthorityActivationState applied = 13;
++    AuthorityActivationState released = 14;
++    spatial.core.v1.Error error = 15;
++  }
++}
+--- /dev/null
++++ b/src/identity/participant_runtime.cpp
+@@ -0,0 +1,201 @@
++#include "identity/participant_runtime.hpp"
++#include "identity/issuer_client.hpp"
++#include "identity/keys.hpp"
++#include "identity/participants.hpp"
++#include "identity/tls_support.hpp"
++#include <google/protobuf/text_format.h>
++#include <openssl/rand.h>
++#include <algorithm>
++#include <deque>
++#include <mutex>
++#include <set>
++#include <thread>
++
++namespace spatial::identity {
++namespace {
++namespace core = spatial::core::v1;
++using participant_detail::require;
++using Domains = std::set<std::pair<int, std::string>>;
++Domains domain_set(const v1::AuthorityParticipant& participant) {
++    Domains result;
++    for (const auto& domain : participant.domains()) result.insert(participant_detail::domain_key(domain));
++    return result;
++}
++}
++struct ParticipantRuntime::Impl {
++    mutable std::mutex mutex;
++    std::deque<v1::ParticipantCommand> commands;
++    std::deque<v1::ParticipantUpdate> updates;
++    std::set<std::uint64_t> pending;
++    std::optional<std::uint64_t> delivered_revision;
++    bool broken = false, closed = false, releasing = false;
++    // Destruction requests stop and joins before destroying shared state.
++    std::jthread worker;
++
++    void fail_locked(core::ErrorCode code, const std::string& message, std::uint64_t request = 0) {
++        if (broken) return;
++        broken = true; commands.clear(); updates.clear(); pending.clear();
++        auto& update = updates.emplace_back(); update.set_protocol_version(1); update.set_request_id(request);
++        update.mutable_error()->set_code(code); update.mutable_error()->set_message(message);
++    }
++    bool publish(v1::ParticipantUpdate update) {
++        std::lock_guard lock(mutex);
++        if (broken) return false;
++        if (updates.size() >= 256) {
++            fail_locked(core::RESOURCE_EXHAUSTED, "Authority participant consumer fell behind"); return false;
++        }
++        update.set_protocol_version(1); updates.push_back(std::move(update)); return true;
++    }
++    void check_stop(std::stop_token stop) {
++        std::lock_guard lock(mutex);
++        if (stop.stop_requested() || broken) throw std::runtime_error("Authority participant stopped");
++    }
++    bool reply_error(const v1::IssuerReply& reply, std::uint64_t request = 0) {
++        if (!reply.has_error()) return false;
++        std::lock_guard lock(mutex); fail_locked(reply.error().code(), reply.error().message(), request); return true;
++    }
++    void run(std::stop_token stop, const v1::AuthorityParticipantRuntimeConfig& config, const Domains& expected) {
++        std::uint64_t current_request = 0;
++        try {
++            auto key = KeyPair::load(config.private_key_path());
++            IssuerClient client(config.issuer_client_config(), [this, stop] { check_stop(stop); });
++            v1::IssuerRequest begin; begin.set_protocol_version(1);
++            auto* auth = begin.mutable_authority_authentication_begin();
++            auth->set_participant_id(config.participant_id()); auth->set_registered_revision(config.registered_revision());
++            std::string incarnation(32, '\0');
++            require(RAND_bytes(reinterpret_cast<unsigned char*>(incarnation.data()), 32) == 1, "Service incarnation generation failed");
++            auth->set_service_incarnation(incarnation);
++            auto reply = client.call(std::move(begin)); if (reply_error(reply)) return;
++            v1::IssuerRequest complete; complete.set_protocol_version(1);
++            auto* proof = complete.mutable_authority_authentication_complete();
++            proof->set_nonce(reply.challenge().nonce()); *proof->mutable_proof() = key.sign(reply.challenge().signing_request());
++            reply = client.call(std::move(complete)); if (reply_error(reply)) return;
++            const auto& identity = reply.authority_authentication();
++            const auto& registration = identity.registration();
++            require(registration.participant().id() == config.participant_id() &&
++                    registration.registered_revision() == config.registered_revision() &&
++                    registration.participant().public_key() == key.public_key() &&
++                    domain_set(registration.participant()) == expected, "Registered authority domains or identity do not match runtime");
++            v1::ParticipantUpdate update; *update.mutable_authenticated() = identity;
++            if (!publish(std::move(update))) return;
++
++            std::optional<std::uint64_t> cursor;
++            std::optional<v1::AuthorityActivationState> active;
++            const auto wait = static_cast<std::uint32_t>(std::min<std::int64_t>(100, client.timeout().count()/2));
++            bool backlog = false;
++            while (!stop.stop_requested()) {
++                check_stop(stop);
++                std::optional<v1::ParticipantCommand> command;
++                std::optional<std::uint64_t> delivered;
++                bool queued = false;
++                {
++                    std::lock_guard lock(mutex); delivered = delivered_revision;
++                    // Publish the initial feed before accepting mutations.
++                    if (cursor && !commands.empty()) { command = std::move(commands.front()); commands.pop_front(); }
++                    queued = !commands.empty();
++                }
++                if (command) {
++                    current_request = command->request_id();
++                    v1::IssuerRequest request; request.set_protocol_version(1);
++                    if (command->has_activate()) {
++                        require(!active && delivered && command->activate().has_synchronized_revision() &&
++                                command->activate().synchronized_revision() == *delivered,
++                                "Activation requires the consumed synchronized revision");
++                        *request.mutable_authority_activate() = command->activate();
++                    } else if (command->has_applied()) {
++                        const auto& applied = command->applied();
++                        require(active && active->active() && delivered && applied.generation() == active->generation() &&
++                                applied.has_from_revision() && applied.has_through_revision() &&
++                                applied.from_revision() == active->applied_revision() && applied.from_revision() < INT64_MAX &&
++                                applied.through_revision() == applied.from_revision()+1 && applied.through_revision() <= *delivered,
++                                "Acknowledgement requires one contiguous consumed revision and the active generation");
++                        *request.mutable_authority_applied() = applied;
++                    } else {
++                        const auto& release = command->release();
++                        require(active && active->active() && release.generation() == active->generation() &&
++                                release.has_applied_revision() && release.applied_revision() == active->applied_revision(),
++                                "Release requires the active acknowledged generation");
++                        *request.mutable_authority_release() = release;
++                    }
++                    reply = client.call(std::move(request));
++                    update.Clear(); update.set_request_id(command->request_id());
++                    if (reply.has_error() && command->has_activate() && reply.error().code() == core::REVISION_CONFLICT) {
++                        // Fetch new events; the consumer must synchronize and explicitly request activation again.
++                        *update.mutable_error() = reply.error();
++                    } else {
++                        if (reply_error(reply, command->request_id())) return;
++                        active = reply.authority_activation();
++                        if (command->has_activate()) *update.mutable_activated() = *active;
++                        else if (command->has_applied()) *update.mutable_applied() = *active;
++                        else {
++                            *update.mutable_released() = *active;
++                            { std::lock_guard lock(mutex); closed = true; }
++                            publish(std::move(update)); return;
++                        }
++                    }
++                    if (!publish(std::move(update))) return;
++                    current_request = 0;
++                }
++                v1::IssuerRequest request; request.set_protocol_version(1);
++                auto* read = request.mutable_revocations();
++                if (cursor) read->set_after_revision(*cursor);
++                read->set_wait_ms(!cursor || backlog || queued ? 0 : wait);
++                reply = client.call(std::move(request)); if (reply_error(reply)) return;
++                auto batch = std::move(*reply.mutable_revocations());
++                const bool initial = !cursor; cursor = batch.through_revision(); backlog = *cursor < batch.head_revision();
++                if (initial || batch.events_size()) {
++                    update.Clear(); *update.mutable_revocations() = std::move(batch);
++                    if (!publish(std::move(update))) return;
++                }
++            }
++        } catch (const std::invalid_argument&) {
++            std::lock_guard lock(mutex);
++            if (!stop.stop_requested()) fail_locked(core::INVALID_ARGUMENT, "Invalid authority participant context or command", current_request);
++        } catch (const std::exception&) {
++            std::lock_guard lock(mutex);
++            if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Authority participant channel failed; reconciliation is required", current_request);
++        }
++    }
++    Impl(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains) {
++        v1::AuthorityParticipantRuntimeConfig config;
++        require(google::protobuf::TextFormat::ParseFromString(tls_detail::load_config(path), &config),
++                "Invalid authority participant runtime configuration");
++        validate_message(config);
++        require(config.protocol_version() == 1 && config.participant_id().size() == 32 &&
++                config.registered_revision() > 0 && config.registered_revision() <= INT64_MAX &&
++                std::filesystem::path(config.issuer_client_config()).is_absolute() &&
++                std::filesystem::path(config.private_key_path()).is_absolute(), "Invalid authority participant configuration");
++        v1::AuthorityParticipant expected; expected.set_id(config.participant_id()); expected.set_public_key(std::string(32, '\0'));
++        for (const auto& domain : domains) *expected.add_domains() = domain;
++        validate_participant(expected);
++        worker = std::jthread([this, config, domains = domain_set(expected)](std::stop_token stop) { run(stop, config, domains); });
++    }
++};
++ParticipantRuntime::ParticipantRuntime(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains)
++    : impl_(std::make_unique<Impl>(path, domains)) {}
++ParticipantRuntime::~ParticipantRuntime() = default;
++void ParticipantRuntime::submit(v1::ParticipantCommand command) {
++    validate_message(command);
++    require(command.operation_case() != v1::ParticipantCommand::OPERATION_NOT_SET, "Participant command requires an operation");
++    std::lock_guard lock(impl_->mutex);
++    if (impl_->broken || impl_->closed || impl_->releasing) throw std::runtime_error("Authority participant channel is unavailable");
++    require(!impl_->pending.contains(command.request_id()), "Participant command request ID is already pending");
++    if (impl_->pending.size() >= 128) {
++        impl_->fail_locked(core::RESOURCE_EXHAUSTED, "Authority participant command queue overflow"); return;
++    }
++    if (command.has_release()) {
++        require(impl_->pending.empty(), "Consume all command results before requesting release");
++        impl_->releasing = true;
++    }
++    impl_->pending.insert(command.request_id()); impl_->commands.push_back(std::move(command));
++}
++std::optional<v1::ParticipantUpdate> ParticipantRuntime::poll() {
++    std::lock_guard lock(impl_->mutex);
++    if (impl_->updates.empty()) return {};
++    auto update = std::move(impl_->updates.front()); impl_->updates.pop_front();
++    if (update.has_revocations()) impl_->delivered_revision = update.revocations().through_revision();
++    else if (!update.has_authenticated()) impl_->pending.erase(update.request_id());
++    return update;
++}
++bool ParticipantRuntime::failed() const { std::lock_guard lock(impl_->mutex); return impl_->broken; }
++}
+--- /dev/null
++++ b/src/identity/participant_runtime.hpp
+@@ -0,0 +1,26 @@
++#pragma once
++#include "issuer.pb.h"
++#include <filesystem>
++#include <memory>
++#include <optional>
++#include <vector>
++
++namespace spatial::identity {
++// The authority thread consumes events, settles effects, then explicitly acknowledges.
++// poll() and submit() never wait for network I/O. Failure is permanent.
++// The calling process must ignore SIGPIPE before construction.
++class ParticipantRuntime {
++public:
++    ParticipantRuntime(const std::filesystem::path& config,
++                       const std::vector<authority::v1::Domain>& expected_domains);
++    ~ParticipantRuntime();
++    ParticipantRuntime(const ParticipantRuntime&) = delete;
++    ParticipantRuntime& operator=(const ParticipantRuntime&) = delete;
++    void submit(v1::ParticipantCommand command);
++    std::optional<v1::ParticipantUpdate> poll();
++    bool failed() const;
++private:
++    struct Impl;
++    std::unique_ptr<Impl> impl_;
++};
++}
+--- /dev/null
++++ b/src/testing/participant_runtime_probe.cpp
+@@ -0,0 +1,94 @@
++#include "identity/participant_runtime.hpp"
++#include "identity/tls_support.hpp"
++#include "core/protocol.hpp"
++#include <cerrno>
++#include <chrono>
++#include <csignal>
++#include <iostream>
++#include <poll.h>
++#include <sstream>
++#include <sys/stat.h>
++#include <unistd.h>
++
++// Thin transport probe: all service state and transitions belong to ParticipantRuntime.
++int main(int argc, char** argv) {
++    using spatial::identity::tls_detail::require;
++    namespace id = spatial::identity::v1;
++    namespace authority = spatial::authority::v1;
++    using Clock = std::chrono::steady_clock;
++    umask(0077); signal(SIGPIPE, SIG_IGN);
++    try {
++        const bool overflow = argc > 1 && std::string_view(argv[1]) == "--queue-overflow";
++        const int config_index = overflow ? 2 : 1;
++        require(argc >= config_index+3 && (argc-config_index-1) % 2 == 0,
++                "Expected CONFIG and one or more world|workspace ID pairs");
++        std::vector<authority::Domain> domains;
++        for (int i = config_index+1; i < argc; i += 2) {
++            authority::Domain domain; const std::string_view kind(argv[i]);
++            require(kind == "world" || kind == "workspace", "Invalid authority domain kind");
++            domain.set_kind(kind == "world" ? authority::WORLD : authority::WORKSPACE); domain.set_id(argv[i+1]);
++            domains.push_back(std::move(domain));
++        }
++        spatial::identity::tls_detail::nonblocking(STDIN_FILENO);
++        spatial::identity::tls_detail::nonblocking(STDOUT_FILENO);
++        spatial::identity::ParticipantRuntime runtime(argv[config_index], domains);
++        if (overflow) {
++            // The independent TLS witness stalls the handshake. Exercise the real bounded queue.
++            for (std::uint64_t i = 0; i < 129; ++i) {
++                id::ParticipantCommand command; command.set_request_id(i);
++                command.mutable_activate()->set_synchronized_revision(0); runtime.submit(std::move(command));
++            }
++            const auto update = runtime.poll();
++            require(runtime.failed() && update && update->has_error() &&
++                    update->error().code() == spatial::wire::RESOURCE_EXHAUSTED && !runtime.poll(),
++                    "Command overflow did not discard stale work and permanently fail");
++            spatial::write_frame(std::cout,*update); return 2;
++        }
++        std::string input, output; std::size_t sent = 0; bool terminal = false;
++        auto output_deadline = Clock::now(), input_deadline = Clock::now();
++        for (;;) {
++            pollfd fds[]{{STDIN_FILENO, POLLIN, 0}, {STDOUT_FILENO, static_cast<short>(output.empty() ? 0 : POLLOUT), 0}};
++            const int result = ::poll(fds, 2, 5);
++            if (result < 0 && errno == EINTR) continue;
++            require(result >= 0, "Probe poll failed");
++            if (fds[0].revents & (POLLIN | POLLHUP)) {
++                char bytes[4096]; const auto count = read(STDIN_FILENO, bytes, sizeof(bytes));
++                if (!count) { require(input.empty(), "Truncated command frame"); return 0; }
++                if (count > 0) {
++                    if (input.empty()) input_deadline = Clock::now()+std::chrono::seconds(5);
++                    input.append(bytes, static_cast<std::size_t>(count));
++                    while (input.size() >= 4) {
++                        std::uint32_t size = 0;
++                        for (int i = 0; i < 4; ++i) size = (size << 8) | static_cast<unsigned char>(input[i]);
++                        require(size <= spatial::max_frame_bytes, "Excessive command frame");
++                        if (input.size() < 4+size) break;
++                        id::ParticipantCommand command;
++                        require(command.ParseFromArray(input.data()+4, static_cast<int>(size)), "Malformed participant command");
++                        input.erase(0,4+size); runtime.submit(std::move(command));
++                        input_deadline = Clock::now()+std::chrono::seconds(5);
++                    }
++                } else require(errno == EAGAIN || errno == EINTR, "Probe command read failed");
++            }
++            require(input.empty() || Clock::now() < input_deadline, "Command frame deadline exceeded");
++            require(!(fds[0].revents & (POLLERR | POLLNVAL)), "Probe input failed");
++            require(!(fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)), "Probe output closed");
++            if (output.empty()) {
++                if (auto update = runtime.poll()) {
++                    terminal = runtime.failed() || update->has_released();
++                    std::ostringstream frame; spatial::write_frame(frame,*update); output = frame.str(); sent = 0;
++                    output_deadline = Clock::now()+std::chrono::seconds(5);
++                }
++            }
++            if (output.empty()) continue;
++            require(Clock::now() < output_deadline, "Probe output deadline exceeded");
++            if (!(fds[1].revents & POLLOUT)) continue;
++            const auto count = write(STDOUT_FILENO,output.data()+sent,output.size()-sent);
++            if (count < 0 && (errno == EAGAIN || errno == EINTR)) continue;
++            require(count > 0, "Probe output write failed"); sent += static_cast<std::size_t>(count);
++            if (sent == output.size()) {
++                if (terminal) return runtime.failed() ? 2 : 0;
++                output.clear();
++            }
++        }
++    } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 2; }
++}
+--- /dev/null
++++ b/tests/core/test_identity_participant_runtime.py
+@@ -0,0 +1,207 @@
++"""Production participation worker against real TLS issuer and independent storage witnesses."""
++import os
++from pathlib import Path
++import select
++import sqlite3
++import socket
++import ssl
++import threading
++import struct
++import subprocess
++import sys
++import time
++import unittest
++from google.protobuf import text_format
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as pb
++from harness.wire import frame
++from test_issuer_client import ClientFixture, FaultPeer
++
++PROBE = Path(sys.argv.pop(1))
++
++class RuntimeProcess:
++    def __init__(self, fixture, config, domains, mode=None):
++        self.fixture=fixture;self.log=fixture.root/('participant-'+str(len(fixture.connections))+'.log')
++        self.stderr=self.log.open('wb')
++        self.proc=subprocess.Popen([str(PROBE),*([mode] if mode else []),str(config),*domains],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.stderr)
++        fixture.connections.append(self)
++    def send(self, request_id=1, **operation):
++        self.proc.stdin.write(frame(pb.ParticipantCommand(request_id=request_id,**operation)));self.proc.stdin.flush()
++    def receive(self, timeout=4):
++        deadline=time.monotonic()+timeout
++        def exact(size):
++            data=b''
++            while len(data)<size:
++                if not select.select([self.proc.stdout],[],[],max(0,deadline-time.monotonic()))[0]:raise AssertionError('Participant update deadline expired')
++                part=os.read(self.proc.stdout.fileno(),size-len(data))
++                if not part:raise AssertionError('Participant closed: '+self.log.read_text())
++                data+=part
++            return data
++        size=struct.unpack('!I',exact(4))[0]
++        if size>1048576:raise AssertionError('Excessive participant update')
++        result=pb.ParticipantUpdate.FromString(exact(size));self.fixture.assertEqual(result.protocol_version,1);return result
++    def close(self):
++        if self.proc.poll() is None:
++            self.proc.stdin.close()
++            try:self.proc.wait(timeout=2)
++            except subprocess.TimeoutExpired:self.proc.kill();self.proc.wait(timeout=2);raise
++        for stream in (self.proc.stdin,self.proc.stdout,self.stderr):
++            if not stream.closed:stream.close()
++        log=self.log.read_text();self.fixture.assertNotIn('Sanitizer',log);self.fixture.assertNotIn('runtime error:',log)
++
++class ActivationRaceRelay:
++    """Forward real issuer traffic; commit one revocation before forwarding activation."""
++    def __init__(self,fixture,revoke):
++        self.fixture=fixture;self.revoke=revoke;self.done=False;self.stop=threading.Event();self.errors=[];self.stream=None
++        context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);context.minimum_version=ssl.TLSVersion.TLSv1_3
++        context.load_cert_chain(str(fixture.server_cert),str(fixture.server_key));context.load_verify_locations(str(fixture.service_cert));context.verify_mode=ssl.CERT_REQUIRED
++        self.context=context;self.listener=socket.socket();self.listener.bind(('127.0.0.1',0));self.listener.listen(1);self.listener.settimeout(.1);self.port=self.listener.getsockname()[1]
++        self.thread=threading.Thread(target=self.run,daemon=True);self.thread.start();fixture.addCleanup(self.close)
++    def run(self):
++        upstream=None
++        try:
++            while not self.stop.is_set():
++                try:raw,_=self.listener.accept();break
++                except socket.timeout:continue
++            else:return
++            raw.settimeout(2);self.stream=self.context.wrap_socket(raw,server_side=True);upstream=self.fixture.connect()
++            def exact(size):
++                data=b''
++                while len(data)<size:
++                    part=self.stream.recv(size-len(data))
++                    if not part:raise EOFError()
++                    data+=part
++                return data
++            while not self.stop.is_set():
++                size=struct.unpack('!I',exact(4))[0]
++                if size>1048576:raise AssertionError('Excessive relay frame')
++                request=pb.IssuerRequest.FromString(exact(size));sequence=request.request_id
++                if request.HasField('authority_activate') and not self.done:self.revoke();self.done=True
++                reply=upstream.request(request);reply.request_id=sequence;self.stream.sendall(frame(reply))
++        except (OSError,EOFError):pass
++        except BaseException as error:self.errors.append(error)
++        finally:
++            if self.stream:self.stream.close()
++            if upstream:upstream.close()
++    def close(self):
++        self.stop.set();self.listener.close()
++        if self.stream:
++            try:self.stream.shutdown(socket.SHUT_RDWR)
++            except OSError:pass
++        self.thread.join(3)
++        if self.thread.is_alive():raise AssertionError('Activation relay did not stop')
++        if self.errors:raise self.errors[0]
++
++class ParticipantRuntimeTests(ClientFixture):
++    def setUp(self):
++        super().setUp();self.owner_peer=self.ready();self.signer,self.public=self.key('participant')
++        self.definition=pb.AuthorityParticipant(id=b'p'*32,public_key=self.public,domains=[grants.Domain(kind=grants.WORLD,id='world-one')])
++        op=pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(participant=self.definition,expected_registry_revision=0))
++        result=self.execute(self.owner_peer,self.challenge(self.owner_peer,op));self.assertTrue(result.HasField('participant'),result)
++        self.registration=result.participant
++    def start(self, domains=None, endpoint_port=None, mode=None, **changes):
++        config=pb.AuthorityParticipantRuntimeConfig(protocol_version=1,issuer_client_config=str(self.config_file(endpoint_port)),
++            private_key_path=str(self.signer),participant_id=self.definition.id,registered_revision=1)
++        for name,value in changes.items():setattr(config,name,value)
++        path=self.root/('participant-config-'+str(len(self.connections))+'.textproto')
++        path.write_text(text_format.MessageToString(config));path.chmod(0o600)
++        return RuntimeProcess(self,path,domains or ['world','world-one'],mode)
++    def ready_runtime(self, **changes):
++        runtime=self.start(**changes);auth=runtime.receive();self.assertTrue(auth.HasField('authenticated'),auth)
++        self.assertEqual(auth.authenticated.registration,self.registration)
++        baseline=runtime.receive();self.assertTrue(baseline.HasField('revocations'),baseline);self.assertTrue(baseline.revocations.initial)
++        return runtime,auth.authenticated,baseline.revocations
++    def activate(self,runtime,revision=0,request_id=1):
++        runtime.send(request_id,activate=pb.AuthorityActivate(synchronized_revision=revision));update=runtime.receive()
++        self.assertEqual(update.request_id,request_id);self.assertTrue(update.HasField('activated'),update);return update.activated
++    def rows(self):
++        with sqlite3.connect(self.state/'identity.db') as db:return db.execute('SELECT generation,service_incarnation,applied_revision,active FROM authority_activation ORDER BY generation').fetchall()
++    def revoke(self,revision=0):
++        peer=self.connect();self.actor_key,self.actor_public=self.key('actor-'+str(revision))
++        record=self.decide(peer,self.enroll(peer)).enrollment;claims=self.claims(record,self.info)
++        op=pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(target=pb.IdentityReference(kind=pb.ACTOR_TARGET,id=claims.actor_id),expected_security_revision=revision,reason='worker regression'))
++        result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('identity_status'),result);return claims
++    def barrier(self,revision=1):
++        peer=self.connect();op=pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(revision=revision))
++        result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('authority_barrier'),result);return result.authority_barrier
++    def event(self,runtime,revision):
++        update=runtime.receive();self.assertTrue(update.HasField('revocations'),update)
++        self.assertEqual(update.revocations.through_revision,revision);return update.revocations
++    def error(self,runtime,code):
++        update=runtime.receive();self.assertTrue(update.HasField('error'),update);self.assertEqual(update.error.code,code,update)
++        self.assertEqual(runtime.proc.wait(timeout=2),2);return update
++    def test_activation_race_requires_explicit_resynchronization_and_new_request(self):
++        relay=ActivationRaceRelay(self,self.revoke)
++        runtime,auth,baseline=self.ready_runtime(endpoint_port=relay.port)
++        runtime.send(10,activate=pb.AuthorityActivate(synchronized_revision=baseline.through_revision))
++        update=runtime.receive();self.assertTrue(update.HasField('error'),update)
++        self.assertEqual((update.request_id,update.error.code),(10,core.REVISION_CONFLICT));self.assertTrue(relay.done)
++        self.event(runtime,1);self.assertEqual(self.rows(),[]);self.assertIsNone(runtime.proc.poll())
++        # The losing activation was absent from the committed barrier; it must synchronize first.
++        self.assertEqual(self.barrier().participant_count,0)
++        state=self.activate(runtime,revision=1,request_id=11)
++        self.assertEqual((state.generation,state.applied_revision,state.head_revision),(1,1,1))
++        self.assertEqual(state.service_incarnation,auth.service_incarnation)
++        self.revoke(1);self.event(runtime,2);self.assertFalse(self.barrier(2).complete)
++        runtime.close()
++
++    def test_command_queue_overflow_is_permanent_before_activation(self):
++        peer=FaultPeer(self,stall_handshake=True)
++        runtime=self.start(endpoint_port=peer.port,mode='--queue-overflow')
++        self.error(runtime,core.RESOURCE_EXHAUSTED);self.assertEqual(self.rows(),[])
++
++    def test_authentication_and_baseline_do_not_activate_execution(self):
++        runtime,auth,baseline=self.ready_runtime();self.assertEqual(baseline.through_revision,0)
++        self.assertEqual(len(auth.service_incarnation),32);self.assertEqual(len(auth.connection_binding),32)
++        self.assertEqual(self.rows(),[]);runtime.close();self.assertEqual(self.rows(),[])
++    def test_real_barrier_waits_for_explicit_application_acknowledgement(self):
++        runtime,auth,baseline=self.ready_runtime();state=self.activate(runtime);self.assertEqual(state.service_incarnation,auth.service_incarnation)
++        self.revoke();self.event(runtime,1);status=self.barrier()
++        self.assertFalse(status.complete);self.assertEqual((status.participant_count,status.pending_count),(1,1));self.assertEqual(self.rows()[0][2:],(0,1))
++        runtime.send(2,applied=pb.AuthorityApplied(generation=state.generation,from_revision=0,through_revision=1));update=runtime.receive()
++        self.assertTrue(update.HasField('applied'),update);self.assertEqual((update.request_id,update.applied.applied_revision),(2,1))
++        self.assertTrue(self.barrier().complete)
++        runtime.send(3,release=pb.AuthorityRelease(generation=state.generation,applied_revision=1));update=runtime.receive()
++        self.assertTrue(update.HasField('released'),update);self.assertFalse(update.released.active);self.assertEqual(runtime.proc.wait(timeout=2),0)
++        self.assertEqual(self.rows()[0][2:],(1,0))
++    def test_destructor_preserves_pending_obligation_and_blocks_replacement(self):
++        runtime,auth,_=self.ready_runtime();self.activate(runtime);self.revoke();self.event(runtime,1);runtime.close()
++        self.assertFalse(self.barrier().complete);self.assertEqual(self.rows()[0][2:],(0,1))
++        other,other_auth,baseline=self.ready_runtime();self.assertNotEqual(auth.service_incarnation,other_auth.service_incarnation)
++        other.send(5,activate=pb.AuthorityActivate(synchronized_revision=baseline.through_revision));self.error(other,core.BUSY)
++        self.assertEqual(len(self.rows()),1);self.assertFalse(self.barrier().complete)
++    def test_clean_release_allows_new_incarnation_and_generation(self):
++        runtime,auth,_=self.ready_runtime();state=self.activate(runtime)
++        runtime.send(2,release=pb.AuthorityRelease(generation=state.generation,applied_revision=0));self.assertTrue(runtime.receive().HasField('released'));self.assertEqual(runtime.proc.wait(timeout=2),0)
++        other,next_auth,_=self.ready_runtime();next_state=self.activate(other)
++        self.assertEqual(next_state.generation,2);self.assertNotEqual(auth.service_incarnation,next_auth.service_incarnation)
++        self.assertEqual([r[3] for r in self.rows()],[0,1])
++    def test_domain_mismatch_never_activates(self):
++        for domains in [['world','another'],['workspace','world-one'],['world','world-one','workspace','extra']]:
++            with self.subTest(domains=domains):self.error(self.start(domains=domains),core.INVALID_ARGUMENT);self.assertEqual(self.rows(),[])
++    def test_wrong_service_key_never_authenticates(self):
++        key,_=self.key('unregistered');self.error(self.start(private_key_path=str(key)),core.UNAUTHORIZED);self.assertEqual(self.rows(),[])
++    def test_wrong_registration_revision_never_authenticates(self):
++        self.error(self.start(registered_revision=2),core.UNAUTHORIZED);self.assertEqual(self.rows(),[])
++    def test_future_revision_cannot_be_acknowledged(self):
++        runtime,_,_=self.ready_runtime();state=self.activate(runtime)
++        runtime.send(7,applied=pb.AuthorityApplied(generation=state.generation,from_revision=0,through_revision=1))
++        result=self.error(runtime,core.INVALID_ARGUMENT);self.assertEqual(result.request_id,7);self.assertEqual(self.rows()[0][2:],(0,1))
++    def test_application_acknowledgement_cannot_skip_committed_events(self):
++        runtime,_,_=self.ready_runtime();state=self.activate(runtime)
++        self.revoke();self.event(runtime,1);self.revoke(1);self.event(runtime,2)
++        runtime.send(8,applied=pb.AuthorityApplied(generation=state.generation,from_revision=0,through_revision=2));self.error(runtime,core.INVALID_ARGUMENT)
++        self.assertFalse(self.barrier(1).complete);self.assertFalse(self.barrier(2).complete)
++    def test_release_cannot_discard_unapplied_revocation(self):
++        runtime,_,_=self.ready_runtime();state=self.activate(runtime);self.revoke();self.event(runtime,1)
++        runtime.send(9,release=pb.AuthorityRelease(generation=state.generation,applied_revision=0));self.error(runtime,core.BUSY)
++        self.assertFalse(self.barrier().complete);self.assertEqual(self.rows()[0][2:],(0,1))
++    def test_transport_loss_never_releases_or_reconnects(self):
++        runtime,_,_=self.ready_runtime();self.activate(runtime);proc=self.daemons[-1][0];proc.stdin.close();self.assertEqual(proc.wait(timeout=2),0)
++        self.error(runtime,core.UNAVAILABLE);self.assertEqual(self.rows()[0][2:],(0,1))
++        self.launch();self.assertEqual(runtime.proc.poll(),2);self.assertEqual(len(self.rows()),1)
++    def test_exposed_private_key_is_rejected_before_service_authentication(self):
++        self.signer.chmod(0o644);self.error(self.start(),core.UNAVAILABLE);self.assertEqual(self.rows(),[])
++
++if __name__=='__main__':unittest.main(verbosity=2)

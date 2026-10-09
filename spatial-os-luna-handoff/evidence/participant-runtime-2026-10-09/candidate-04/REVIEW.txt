@@ -1,0 +1,21 @@
+Participant runtime candidate04
+
+The production worker implementation remains unchanged from candidate01.
+The thin probe now includes a command-queue overflow mode.
+The independent TLS fault peer stalls the handshake while 129 distinct commands fill the real bounded queue.
+The worker discards queued work, publishes RESOURCE_EXHAUSTED, and stays permanently failed.
+No service authentication, activation, or authority state is fabricated by that witness.
+The remaining 13 cases use the real issuer and independently inspect durable activation or barrier state.
+
+On sb16-2, Debug and runtime ASan/UBSan each passed 14 new checks and 96 related regression checks.
+No final case failed or skipped. All 244 source hashes match.
+The schema audit preserves 265 existing messages and every existing field and enum value.
+It adds exactly 3 component messages and preserves all 41 locked files.
+All existing test files remain byte-identical to barrier candidate04.
+Equivalent focused verification has started on sb16.
+Full runtime qualification and world/broker integration remain pending.
+
+The worker does not itself establish that input, motion, observations, leases, or processes stopped.
+Only the actual authority consumer can request acknowledgement after settling those effects.
+Before final integration, retain the owner-idle fixture correction now present in main.
+Do not overwrite that reviewed correction with the older frozen barrier baseline.

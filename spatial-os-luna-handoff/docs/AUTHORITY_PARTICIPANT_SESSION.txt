@@ -1,22 +1,22 @@
-Authority participant sessions: next component design
-Status: isolated server and checked-client candidate passes focused Debug tests. Full two-host qualification is running.
+Authority participant sessions: implemented component
+Status: qualified, integrated, and adopted on both hosts at 69d6618.
 Integration dependency: identity.participant_registry is qualified, integrated, and adopted at 2f86927.
-Independent baseline tests may run while that frozen registry candidate is under qualification.
+The historical design and focused results below explain the implementation and its evidence.
 This document does not claim an active execution authority or completed cancellation barrier.
 
 Invariant
 A service proves its registered key on the exact authenticated TLS connection that receives its service session.
 Actor proofs, issuer-owner proofs, and transport certificates do not substitute for the service proof.
 
-Confirmed source boundary
+Original source boundary before this component
 src/identity/tls_server.cpp owns one Peer per mutual-TLS connection.
-Peer::respond currently calls handle_issuer_frame without connection context.
+Before this component, Peer::respond called handle_issuer_frame without connection context.
 The issuer dispatcher also serves the private management pipe.
 Issuer pending challenges are nonce-keyed and already have bounded lifetime and count.
 Their current actor authentication binding comes from the request.
 Do not reuse that client-supplied actor binding for service sessions.
 
-Proposed additive protobuf contract
+Implemented additive protobuf contract
 Keep existing field numbers and meanings.
 Add AUTHORITY_PARTICIPATION = 5 to SignaturePurpose in key.proto.
 Add the following messages to issuer.proto in spatial.identity.v1.
@@ -109,7 +109,7 @@ Test malformed production-client challenge and result validation separately with
 The fault peers prove response validation only. They do not prove service authority.
 
 Integration boundary
-Keep this component isolated while the registry candidate remains under qualification.
+The completed qualification preceded integration. Frozen test sources remain preserved.
 Capture a failing baseline before implementation.
 Qualify complete Debug and runtime sanitizer profiles on both hosts before integration.
 Record all further contract changes explicitly.
@@ -132,3 +132,14 @@ Both schema audits preserve 253 messages, 966 fields, and 122 enum values.
 All 89 existing test files and 41 locked files remain unchanged.
 Full Debug and runtime sanitizer qualification is running on both hosts.
 The candidate remains isolated. Authentication does not establish execution activation or cancellation completion.
+
+Final qualification and adoption, 2026-10-09
+Candidate 04 retains candidate 03 production code and explicitly corrects one core test fixture.
+The owner connection now opens immediately before the test requests its real revocation.
+The added delayed case and all original assertions pass on both hosts in Debug and runtime ASan/UBSan.
+Each final profile covers 1153 core checks, 51 harness checks, and 151 P10 cases.
+The original sb16-2 failed run remains archived. The corrected suite replaces only its affected suite result.
+Both host adoption audits match all 238 source hashes and show clean worktrees.
+Commit 69d6618 is pushed to box-git. No runtime restart or operator database migration occurred.
+Service authentication is complete. Activation, effect settlement, and distributed cancellation remain separate requirements.
+See evidence/participant-session-2026-10-09/candidate-04.

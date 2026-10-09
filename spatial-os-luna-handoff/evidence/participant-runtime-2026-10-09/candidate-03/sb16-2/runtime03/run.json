@@ -1,0 +1,17 @@
+{
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-tests-03/test_identity_participant_runtime.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-02/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-02/debug/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-02/debug/build/spatial-participant-runtime-probe"
+  ],
+  "exit_code": 0,
+  "test_sha256": "8fbc2814c3abf633e3559f3f53014f419d453c2c1cb7a482b7658d76be208ec2",
+  "unchanged_compiled_inputs": true,
+  "binaries": {
+    "identityd": "7d2e1547461fdd735dc8153ee3051758c2b95bd8320ac33b8b1c54032089dfa0",
+    "spatial-issuer-client": "38dd3d923e0a0f61910f100661024f6595be088b7dd90252d0c6556c3a7682bf",
+    "spatial-participant-runtime-probe": "fa00b3914eb2132ba225afb986a25bde18143914872610b46987cca46636428e"
+  }
+}

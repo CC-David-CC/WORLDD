@@ -1,0 +1,18 @@
+test_activation_race_requires_explicit_resynchronization_and_new_request (__main__.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request) ... ok
+test_application_acknowledgement_cannot_skip_committed_events (__main__.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events) ... ok
+test_authentication_and_baseline_do_not_activate_execution (__main__.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution) ... ok
+test_clean_release_allows_new_incarnation_and_generation (__main__.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation) ... ok
+test_destructor_preserves_pending_obligation_and_blocks_replacement (__main__.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement) ... ok
+test_domain_mismatch_never_activates (__main__.ParticipantRuntimeTests.test_domain_mismatch_never_activates) ... ok
+test_exposed_private_key_is_rejected_before_service_authentication (__main__.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication) ... ok
+test_future_revision_cannot_be_acknowledged (__main__.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged) ... ok
+test_real_barrier_waits_for_explicit_application_acknowledgement (__main__.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement) ... ok
+test_release_cannot_discard_unapplied_revocation (__main__.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation) ... ok
+test_transport_loss_never_releases_or_reconnects (__main__.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects) ... ok
+test_wrong_registration_revision_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates) ... ok
+test_wrong_service_key_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 10.453s
+
+OK

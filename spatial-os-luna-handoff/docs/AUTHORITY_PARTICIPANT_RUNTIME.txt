@@ -30,13 +30,13 @@ Do not infer domains from host names or actor identities.
 
 Proposed additive issuer.proto messages
 AuthorityParticipantRuntimeConfig:
-  uint32 protocol_version=1; string issuer_client_config=2; string private_key_path=3;
+  uint 32 protocol_version=1; string issuer_client_config=2; string private_key_path=3;
   bytes participant_id=4; uint64 registered_revision=5.
 ParticipantCommand:
   uint64 request_id=1;
   oneof operation: AuthorityActivate activate=10; AuthorityApplied applied=11; AuthorityRelease release=12.
 ParticipantUpdate:
-  uint32 protocol_version=1; uint64 request_id=2;
+  uint 32 protocol_version=1; uint64 request_id=2;
   oneof outcome: AuthorityAuthenticationResult authenticated=10; RevocationBatch revocations=11;
   AuthorityActivationState activated=12; AuthorityActivationState applied=13;
   AuthorityActivationState released=14; spatial.core.v1.Error error=15.
@@ -119,3 +119,38 @@ Disconnect and restart the issuer or authority; pending obligations survive and 
 Run real native input and process witnesses and both-host delayed-delivery cases.
 Run complete Debug and runtime sanitizer qualification on both hosts before integration.
 Physical input, GPU timing, models, and full Spatial-M1 remain separate mandatory requirements.
+
+Worker implementation checkpoint, 2026-10-09
+An isolated production ParticipantRuntime worker now implements the proposed protobuf component interface.
+Candidate 03 passes 13 real-issuer Debug checks and 96 related regression checks on sb16-2.
+The activation-race witness commits a real revocation before forwarding activation.
+The worker reports REVISION_CONFLICT, delivers the new event, and waits for an explicit synchronized activation request.
+Owner barrier reads and SQLite inspection independently witness activation and acknowledgement state.
+Candidate 04 adds a stalled-handshake command-overflow test. Its two-profile focused qualification is running.
+The worker is not integrated or connected to worldd or workspaced.
+
+Queue contract clarification
+The command queue holds at most 128 outstanding commands, including unread command results.
+Request IDs must be unique among outstanding commands. Zero is a valid request ID.
+Consume all previous command results before submitting release.
+A release request rejects subsequent submissions to prevent silently stranded commands.
+The update queue holds at most 256 updates.
+Receiving a feed update advances only the consumer-delivered cursor. It does not acknowledge cancellation.
+The worker rejects skipped, future, and wrong-generation acknowledgements before sending them.
+The consumer remains responsible for proving effects have settled before submission.
+
+Configuration fields selected for runtime integration
+Add string participant_runtime_config = 7 to WorldIdentityConfig.
+Add string participant_runtime_config = 4 to WorkspaceAuthorityConfig.
+Each path identifies an owned private AuthorityParticipantRuntimeConfig file.
+Actor-serving worlds and authority-enabled brokers require this path before protected activity.
+Keep trusted management-only world creation available without actor admission.
+Require the participant issuer to match the existing configured actor issuer.
+Derive expected domains from the persisted world identity or all configured workspace bindings.
+A clean shutdown must settle effects and explicitly release its generation before permitting replacement.
+An uncertain shutdown retains the issuer's unresolved generation for verified supervisor recovery.
+
+Focused verification update
+Candidate04 passes 14 new worker checks and 96 related regression checks on sb16-2 in Debug and runtime ASan/UBSan.
+All 244 source hashes and 41 locked files match. The schema preserves 265 existing messages and adds 3 messages.
+The matching sb16 focused qualification is running.

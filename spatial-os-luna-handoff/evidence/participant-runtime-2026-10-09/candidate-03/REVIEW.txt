@@ -1,0 +1,27 @@
+Participant runtime: real TLS and storage evidence
+
+Candidate 03 passes 13 unique worker checks and 96 related regression checks on sb16-2 in Debug.
+Its compiled production inputs match candidate 02. Only the executed test file changed.
+Candidate 03 adds a deterministic activation race against the real issuer.
+The relay commits a revocation before forwarding the first activation request.
+The worker reports REVISION_CONFLICT, delivers revision1, and creates no generation automatically.
+A second explicit activation succeeds at revision1. The next revocation records its active obligation.
+Owner-authorized barrier queries and independent SQLite reads witness these transitions.
+
+The other worker cases cover proof-only startup, exact domains, wrong keys and registration revisions,
+explicit contiguous application, clean release, pending obligations after destruction, replacement denial,
+private key permissions, transport loss, skipped revisions, and future revisions.
+The probe only frames commands and updates. It does not implement authority or world state.
+The same ParticipantRuntime class will serve the real world and broker integration.
+
+Primary review checked bounded queues, request correlation, worker-owned TLS and keys, and failure handling.
+The successful actor-specific effect cancellation must still be proved separately after runtime integration.
+The queue consumer cursor is not a completed-effect acknowledgement.
+A stopped worker does not clear active generations or unresolved issuer obligations.
+
+Candidate 04 adds a stalled-handshake command-queue overflow witness.
+It submits 129 distinct commands without consuming replies and requires permanent RESOURCE_EXHAUSTED failure.
+That test uses the actual worker queue. The TLS fault peer supplies no authority responses.
+Candidate 04 focused Debug and runtime ASan/UBSan qualification is running on sb16-2.
+No full two-host qualification or production integration is claimed for this worker.
+Before integration, retain the separately integrated owner-idle fixture correction in the final source manifest.

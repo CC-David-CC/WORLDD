@@ -1,0 +1,68 @@
+{
+  "host": "sb16-2",
+  "source_files": 244,
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build",
+        "--parallel",
+        "2",
+        "--target",
+        "spatial-participant-runtime-probe",
+        "identityd",
+        "spatial-issuer-client",
+        "issuer-python-protobuf",
+        "grants-python-protobuf",
+        "key-python-protobuf",
+        "python-protobuf",
+        "security-python-protobuf"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "runtime",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build",
+        "-V",
+        "-R",
+        "^identity-participant-runtime$"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "regression",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build",
+        "-V",
+        "-R",
+        "^identity-participant(s|-client|-session(-client)?|-barrier(-client)?)$"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+}

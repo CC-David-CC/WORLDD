@@ -1,0 +1,11 @@
+{
+  "command": [
+    "ctest",
+    "--test-dir",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-02/debug/build",
+    "-V",
+    "-R",
+    "^identity-participant(s|-client|-session(-client)?|-barrier(-client)?)$"
+  ],
+  "exit_code": 0
+}

@@ -1,8 +1,8 @@
 {
   "id": "identity.participant_session",
   "phase": "M02",
-  "status": "in_progress",
-  "current_step": "qualified_source_integrated_pending_commit_and_host_adoption",
+  "status": "complete",
+  "current_step": "qualified_integrated_and_adopted",
   "parent": "identity.revocation_barrier",
   "integration_dependency": "identity.participant_registry",
   "contract": "docs/AUTHORITY_PARTICIPANT_SESSION.txt",
@@ -19,9 +19,7 @@
     "skipped": 0
   },
   "integrated": true,
-  "remaining": [
-    "Commit reviewed source and adopt its exact hashes on both hosts."
-  ],
+  "remaining": [],
   "limitations": [
     "A proof-only session does not activate execution or acknowledge cancellation.",
     "Durable activation, fencing, obligations, and cancellation acknowledgements remain pending."
@@ -86,5 +84,10 @@
     "failed_final": 0,
     "skipped_final": 0,
     "fixture_correction": "evidence/workspace-owner-idle-2026-10-09"
-  }
+  },
+  "integration_commit": "69d661810b1faa0bcd947b825c03fb157630bf32",
+  "adopted_hosts": [
+    "sb16",
+    "sb16-2"
+  ]
 }

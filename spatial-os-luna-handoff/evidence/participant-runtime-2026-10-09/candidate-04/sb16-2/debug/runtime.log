@@ -1,0 +1,47 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: identity-participant-runtime
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/tests/core/test_identity_participant_runtime.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build/spatial-participant-runtime-probe"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source
+1: Test timeout computed to be: 180
+1: test_activation_race_requires_explicit_resynchronization_and_new_request (__main__.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request) ... ok
+1: test_application_acknowledgement_cannot_skip_committed_events (__main__.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events) ... ok
+1: test_authentication_and_baseline_do_not_activate_execution (__main__.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution) ... ok
+1: test_clean_release_allows_new_incarnation_and_generation (__main__.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation) ... ok
+1: test_command_queue_overflow_is_permanent_before_activation (__main__.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation) ... ok
+1: test_destructor_preserves_pending_obligation_and_blocks_replacement (__main__.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement) ... ok
+1: test_domain_mismatch_never_activates (__main__.ParticipantRuntimeTests.test_domain_mismatch_never_activates) ... ok
+1: test_exposed_private_key_is_rejected_before_service_authentication (__main__.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication) ... ok
+1: test_future_revision_cannot_be_acknowledged (__main__.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged) ... ok
+1: test_real_barrier_waits_for_explicit_application_acknowledgement (__main__.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement) ... ok
+1: test_release_cannot_discard_unapplied_revocation (__main__.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation) ... ok
+1: test_transport_loss_never_releases_or_reconnects (__main__.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects) ... ok
+1: test_wrong_registration_revision_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates) ... ok
+1: test_wrong_service_key_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 14 tests in 10.603s
+1: 
+1: OK
+1/1 Test #1: identity-participant-runtime .....   Passed   10.76 sec
+
+The following tests passed:
+	identity-participant-runtime
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  10.77 sec

@@ -1,0 +1,12 @@
+{
+  "host": "sb16-2",
+  "new_checks": 13,
+  "regression_checks": 96,
+  "failed": 0,
+  "skipped": 0,
+  "source_files": 244,
+  "compiled_source_manifest": "candidate02",
+  "executed_test_manifest": "candidate03",
+  "runtime_integration": false,
+  "full_qualification": "pending"
+}
