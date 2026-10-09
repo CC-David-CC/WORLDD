@@ -17,6 +17,6 @@
   "correction_tests": "Candidate02 passed focused Debug and runtime ASan/UBSan on both hosts:112 checks across11 suites plus51 harness checks per profile; zero failures or skips. Both full cumulative runs are active.",
   "correction_test_evidence": "evidence/supervisor-broker-handoff-2026-10-09/observer-review-02.json",
   "isolated_candidate": 2,
-  "integration": "Exact five-file primary review and guarded patch prepared. --apply is unrun. Both-host full qualification remains required.",
+  "integration": "Exact five-file primary review, guarded patch, staged-source audit, and host-adoption scripts are prepared. Apply, stage audit, and adoption remain unrun for this candidate. Both-host full qualification remains required.",
   "next_task": "tasks/m1/identity.supervised_broker_participation.json"
 }

@@ -1,0 +1,33 @@
+Recovery gap audit after supervisor integration
+Source: 534a94c594429b095b8a3ee1e8f99c176e5d6121
+Reviewer: primary agent
+
+The integrated supervisor owns the process scope and native credential before execution.
+AuthorityLaunch::stop persists checked process and native cleanup receipts.
+It resets the participant connection without retiring its issuer generation.
+Read src/supervisor/launch.cpp, AuthorityLaunch::stop.
+
+The current issuer protobuf defines supervisor binding and exact launch authorization.
+It has no fencing or verified-retirement request.
+Read proto/spatial/identity/v1/issuer.proto.
+The issuer activation and applied-revision records therefore cannot establish completed crash recovery.
+
+Existing cleanup evidence must remain distinct from issuer retirement.
+The queued supervised broker crash check requires the outstanding obligation to remain visible.
+It must not report that unresolved obligation as completed recovery.
+
+The recovery contract still requires exact-generation fencing before trusted retirement.
+Keep the original applied revision as acknowledgement history.
+Do not advance it to conceal a crashed service's unresolved work.
+Require fresh supervisor proof, persisted checked receipts, and an exact idempotent retry.
+Reject stale service connections and replacement activation during recovery.
+
+World and compositor native handoff remains separate required work.
+Worldd currently starts RenderWorker with a display argument.
+RenderWorker starts spatialwm without a sealed native configuration argument.
+The supervisor's restricted child environment does not provide a production credential handoff.
+Read src/world/main.cpp and src/platform/render_worker.cpp.
+Existing display-based tests do not prove supervised world/compositor startup.
+
+This is a source audit. It does not qualify the missing recovery or handoff paths.
+Run independent crash, blocked-native-cancellation, replay, and restart witnesses before integration.
