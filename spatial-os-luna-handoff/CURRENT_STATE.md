@@ -1,5 +1,29 @@
 # Implementation status
 
+## 2026-10-09: Prepared authority launch passes both focused profiles
+
+The isolated prepared-launch candidate01 passed eighteen focused checks on both hosts in Debug and runtime ASan/UBSan.
+Eight checks cover the new preparation and descriptor boundary. Ten existing process cleanup checks remain unchanged.
+Each profile also passed 51 harness checks. No case failed or skipped.
+All 265 source hashes and 41 locked hashes match.
+
+The supervisor can identify an empty process scope before releasing authority execution.
+The start operation pins and migrates its child before exec and permits only explicitly selected inherited descriptors.
+Independent child witnesses verify the actual cgroup and descriptor contents.
+Stopped scopes, second starts, invalid descriptor tables, and execution retries after a failed exec are rejected.
+The existing stop and destructor implementations remain unchanged.
+
+Two new boundary checks first failed on both hosts against the previous production launcher.
+The patch and complete focused evidence are in evidence/authority-prepared-launch-2026-10-09.
+Read docs/AUTHORITY_PREPARED_LAUNCH.txt for the additive private protocol and its limits.
+The started flag records an attempt. It does not prove service readiness or issuer activation.
+
+Durable coordinated launch records and verified supervisor recovery remain unimplemented.
+The older 264-file combined candidate passed full Debug on both hosts.
+Each host passed 1260 core checks, 51 harness checks, and 151 P10 cases with no failures or skips.
+Its full sanitizer qualification continues.
+No prepared-launch source is integrated. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Supervisor native ownership passes both focused profiles
 
 The isolated native-scope candidate02 passed eleven new checks and 43 existing native regressions on both hosts.

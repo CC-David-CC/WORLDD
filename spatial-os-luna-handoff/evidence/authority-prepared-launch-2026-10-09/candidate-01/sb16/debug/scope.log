@@ -1,0 +1,76 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 4
+    Start 4: authority-prepared-launch
+
+4: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-prepared-8926a254982dc059ecf5e030110340fa0794d198ae78656e57ab69e5a8a4a495" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/source" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/source/tests/core/test_authority_prepared_launch.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build/spatial-process-scope-probe"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build
+4: Test timeout computed to be: 120
+4: Running as unit: spatial-prepared-8926a254982dc059ecf5e030110340fa0794d198ae78656e57ab69e5a8a4a495.service; invocation ID: 3f6c1697ed464ff18a13a5cc2baf07b5
+4: test_prepared_identity_and_membership_precede_child_execution (__main__.PreparedLaunchTests.test_prepared_identity_and_membership_precede_child_execution) ... ok
+4: test_stopped_prepared_scope_cannot_execute (__main__.PreparedLaunchTests.test_stopped_prepared_scope_cannot_execute) ... ok
+4: test_second_start_cannot_execute_or_replace_live_identity (__main__.PreparedLaunchTests.test_second_start_cannot_execute_or_replace_live_identity) ... ok
+4: test_only_explicit_descriptors_survive_exec_without_source_collision (__main__.PreparedLaunchTests.test_only_explicit_descriptors_survive_exec_without_source_collision) ... ok
+4: test_invalid_targets_are_rejected_before_start (__main__.PreparedLaunchTests.test_invalid_targets_are_rejected_before_start) ... ok
+4: test_mismatched_descriptor_table_is_rejected_before_start (__main__.PreparedLaunchTests.test_mismatched_descriptor_table_is_rejected_before_start) ... ok
+4: test_excessive_descriptor_table_is_rejected_before_start (__main__.PreparedLaunchTests.test_excessive_descriptor_table_is_rejected_before_start) ... ok
+4: test_failed_exec_requires_cleanup_and_cannot_retry_execution (__main__.PreparedLaunchTests.test_failed_exec_requires_cleanup_and_cannot_retry_execution) ... ok
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 8 tests in 0.160s
+4: 
+4: OK
+4: Finished with result: success
+4: Main processes terminated with: code=exited/status=0
+4: Service runtime: 252ms
+4: CPU time consumed: 191ms
+4: Memory peak: 1.7M
+4: Memory swap peak: 0B
+1/2 Test #4: authority-prepared-launch ........   Passed    0.27 sec
+test 5
+    Start 5: authority-process-scope
+
+5: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-scope-8926a254982dc059ecf5e030110340fa0794d198ae78656e57ab69e5a8a4a495" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/source" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/source/tests/core/test_authority_process_scope.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build/spatial-process-scope-probe"
+5: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-01/debug/build
+5: Test timeout computed to be: 120
+5: Running as unit: spatial-scope-8926a254982dc059ecf5e030110340fa0794d198ae78656e57ab69e5a8a4a495.service; invocation ID: a8f1375ca8824d2fa4d7c20a5fd4bea8
+5: test_detached_descendants_exit_before_receipt (__main__.ProcessScopeTests.test_detached_descendants_exit_before_receipt) ... ok
+5: test_exec_failure_removes_scope (__main__.ProcessScopeTests.test_exec_failure_removes_scope) ... ok
+5: test_invalid_executable_rejected_without_scope (__main__.ProcessScopeTests.test_invalid_executable_rejected_without_scope) ... ok
+5: test_kernel_denied_kill_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_kill_never_returns_stopped) ... ok
+5: test_kernel_denied_wait_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_wait_never_returns_stopped) ... ok
+5: test_leader_exit_does_not_hide_live_detached_child (__main__.ProcessScopeTests.test_leader_exit_does_not_hide_live_detached_child) ... ok
+5: test_ordinary_directory_rejected_before_execution (__main__.ProcessScopeTests.test_ordinary_directory_rejected_before_execution) ... ok
+5: test_parent_environment_is_not_exported (__main__.ProcessScopeTests.test_parent_environment_is_not_exported) ... ok
+5: test_stop_preserves_independent_scope (__main__.ProcessScopeTests.test_stop_preserves_independent_scope) ... ok
+5: test_unknown_protobuf_fields_rejected (__main__.ProcessScopeTests.test_unknown_protobuf_fields_rejected) ... ok
+5: 
+5: ----------------------------------------------------------------------
+5: Ran 10 tests in 0.208s
+5: 
+5: OK
+5: Finished with result: success
+5: Main processes terminated with: code=exited/status=0
+5: Service runtime: 285ms
+5: CPU time consumed: 207ms
+5: Memory peak: 1.5M
+5: Memory swap peak: 0B
+2/2 Test #5: authority-process-scope ..........   Passed    0.32 sec
+
+The following tests passed:
+	authority-prepared-launch
+	authority-process-scope
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   0.59 sec

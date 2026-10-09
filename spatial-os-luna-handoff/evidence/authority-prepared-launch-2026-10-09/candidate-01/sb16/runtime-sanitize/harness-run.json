@@ -1,0 +1,14 @@
+{
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests/harness",
+    "-t",
+    ".",
+    "-q"
+  ],
+  "exit_code": 0
+}

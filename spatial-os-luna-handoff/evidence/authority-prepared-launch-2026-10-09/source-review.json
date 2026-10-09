@@ -1,0 +1,17 @@
+{
+  "base": "authority-scopes-candidate-01",
+  "candidate": 1,
+  "files": 265,
+  "changed_files": [
+    "CMakeLists.txt",
+    "proto/spatial/supervisor/v1/process_scope.proto",
+    "src/supervisor/process_scope.cpp",
+    "src/supervisor/process_scope.hpp",
+    "src/testing/process_scope_probe.cpp",
+    "tests/core/test_authority_prepared_launch.py"
+  ],
+  "existing_tests_unchanged": true,
+  "stop_and_destructor_unchanged": true,
+  "locked_files_unchanged": 41,
+  "integrated": false
+}

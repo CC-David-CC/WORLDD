@@ -1,0 +1,33 @@
+{
+  "id": "identity.prepared_launch",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "current_step": "focused_both_host_profiles_passed",
+  "invariant": "Identify the owned process scope before execution and pass only explicitly selected descriptors to one start attempt.",
+  "contract": "docs/AUTHORITY_PREPARED_LAUNCH.txt",
+  "evidence": "evidence/authority-prepared-launch-2026-10-09",
+  "baseline": {
+    "hosts": ["sb16", "sb16-2"],
+    "expected_missing_boundary_failures_per_host": 2,
+    "profile": "Debug"
+  },
+  "candidate": {
+    "version": 1,
+    "source_files": 265,
+    "hosts": ["sb16", "sb16-2"],
+    "profiles": ["Debug", "runtime ASan/UBSan"],
+    "new_checks": 8,
+    "regression_checks": 10,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "integrated": false
+  },
+  "remaining": [
+    "Connect prepared process and native ownership through a durable trusted launch coordinator.",
+    "Persist and verify exact service context without replaying uncertain execution.",
+    "Implement checked supervisor recovery and broker reservation cleanup before issuer retirement.",
+    "Complete full combined qualification on both hosts before integration."
+  ]
+}

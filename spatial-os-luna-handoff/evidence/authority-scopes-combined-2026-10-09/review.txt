@@ -13,7 +13,8 @@ The complete matrix is running independently on sb16 and sb16-2.
 Expected totals per profile are 1260 core checks across 81 suites, 51 harness checks, and 151 P10 cases.
 Both hosts passed the focused Debug subset: eleven native-scope checks and ten process-scope checks.
 Both also passed 51 harness checks. All 264 source hashes and 41 locked hashes match.
-The remaining core, P10, and sanitizer qualification continue.
+Both hosts completed full Debug: 1260 core checks across 81 suites, 51 harness checks, and 151 P10 cases.
+No Debug case failed or skipped. Full sanitizer qualification continues.
 Expected totals are not execution results. Collect exact inventories after each completed profile.
 Do not restart or modify a live qualification tree.
 

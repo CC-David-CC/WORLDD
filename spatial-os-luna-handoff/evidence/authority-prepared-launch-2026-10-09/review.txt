@@ -1,0 +1,59 @@
+Primary review: prepared process ownership and descriptor selection
+
+Candidate01 contains 265 files based on combined authority-scopes candidate01.
+Six files differ. The 41 locked acceptance files and every existing test file remain unchanged.
+All source hashes match the tested trees on both hosts.
+No production source is integrated into main.
+
+Invariant and implementation
+
+The supervisor can now create and identify its cgroup before releasing authority code.
+prepare performs only the existing owned cgroup allocation and identity capture.
+start retains the existing child gate, parent-death check, pidfd pin, migration, and exec error exchange.
+The convenience launch method calls those same production operations.
+start rejects a stopped scope or any previous fork attempt, including a failed exec.
+Validation errors before the attempt do not execute a child.
+
+Each inherited descriptor comes from the caller's explicit private descriptor table.
+The matching protobuf list identifies only child targets, not arbitrary supervisor source descriptors.
+The production class checks the table length, unique targets, and target range before fork.
+It retains selected sources and the private child gate above the allowed target range.
+The child marks other descriptors close-on-exec before assigning the selected targets.
+This prevents target assignment from overwriting a source or exposing a startup gate.
+The parent descriptor table remains unchanged.
+
+The environment remains restricted to PATH and LANG.
+The existing stop implementation and destructor are byte-identical to the tested base.
+Kernel-denied kill and wait operations still cannot return successful cleanup.
+No process name, command name, or caller-supplied PID becomes an ownership proof.
+
+Protocol
+
+The private protobuf schema adds one descriptor-target list, a started field, and prepare/start operations.
+All existing fields retain their numbers and types.
+The started field records that the one-shot start attempt began.
+It does not prove service readiness, issuer activation, or successful application work.
+Those boundaries require their own checked protocol results.
+This isolated component has no deployed mixed-version clients to migrate.
+
+Evidence
+
+Both hosts first failed two new boundary checks with INVALID_STATE on the unchanged production launcher.
+The baseline uses the new schema and exposes the old launcher's missing prepare/start operations.
+It does not claim a kernel defect.
+
+Both hosts then passed eight new checks and ten unchanged process-scope checks in both profiles.
+Debug and runtime ASan/UBSan each passed all eighteen checks with no failures or skips.
+Each profile also passed the 51 harness checks.
+The child witnesses inspect their actual cgroup membership and descriptor contents after exec.
+Readiness files use atomic rename so existence cannot precede their complete contents.
+Independent pidfds prove that the selected child exits before the checked stop receipt.
+
+Limits and next step
+
+This change does not make filesystem, native-server, process, and issuer effects one transaction.
+The next coordinator must persist ownership before execution and retain uncertainty across crashes.
+It must bind the exact registration, service incarnation, launch identity, native credentials, and activation generation.
+Do not infer issuer retirement from a journal row or process exit alone.
+Durable launch recovery, broker reservation cleanup, signed fencing receipts, and cross-host recovery remain required.
+Full combined qualification is still required before source integration.

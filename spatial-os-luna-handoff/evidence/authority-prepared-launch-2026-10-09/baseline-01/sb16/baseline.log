@@ -1,0 +1,46 @@
+Running as unit: spatial-prepared-baseline-01.service; invocation ID: 9b66e047e2784b3285defa24cd887e9f
+test_prepared_identity_and_membership_precede_child_execution (__main__.PreparedLaunchTests.test_prepared_identity_and_membership_precede_child_execution) ... FAIL
+test_stopped_prepared_scope_cannot_execute (__main__.PreparedLaunchTests.test_stopped_prepared_scope_cannot_execute) ... FAIL
+
+======================================================================
+FAIL: test_prepared_identity_and_membership_precede_child_execution (__main__.PreparedLaunchTests.test_prepared_identity_and_membership_precede_child_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/source/tests/core/test_authority_prepared_launch.py", line 50, in test_prepared_identity_and_membership_precede_child_execution
+    proc=self.probe();identity=self.prepare(proc);ready=self.files/'membership'
+                               ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/source/tests/core/test_authority_prepared_launch.py", line 15, in prepare
+    self.assertTrue(reply.HasField('state'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_STATE
+}
+
+
+======================================================================
+FAIL: test_stopped_prepared_scope_cannot_execute (__main__.PreparedLaunchTests.test_stopped_prepared_scope_cannot_execute)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/source/tests/core/test_authority_prepared_launch.py", line 61, in test_stopped_prepared_scope_cannot_execute
+    proc=self.probe();identity=self.prepare(proc);receipt=self.stop(proc)
+                               ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/source/tests/core/test_authority_prepared_launch.py", line 15, in prepare
+    self.assertTrue(reply.HasField('state'),reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_STATE
+}
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.009s
+
+FAILED (failures=2)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 96ms
+CPU time consumed: 94ms
+Memory peak: 1.5M
+Memory swap peak: 0B

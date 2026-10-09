@@ -1,0 +1,51 @@
+{
+  "host": "sb16",
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/build",
+        "--target",
+        "spatial-process-scope-probe",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "baseline",
+      "command": [
+        "systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-prepared-baseline-01",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/source",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/source/tests/core/test_authority_prepared_launch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-prepared-launch-baseline-01/build/spatial-process-scope-probe",
+        "PreparedLaunchTests.test_prepared_identity_and_membership_precede_child_execution",
+        "PreparedLaunchTests.test_stopped_prepared_scope_cannot_execute"
+      ],
+      "exit_code": 1
+    }
+  ]
+}
