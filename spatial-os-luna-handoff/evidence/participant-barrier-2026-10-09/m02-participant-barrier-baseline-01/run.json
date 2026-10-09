@@ -1,0 +1,39 @@
+{
+  "source_files": 239,
+  "commands": [
+    {
+      "command": [
+        "protoc",
+        "--python_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/python",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/workspace/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/input/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/security/v1/security.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/core/v1/core.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/identity/v1/key.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/identity/v1/issuer.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/identity/v1/world_session.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/input/v1/input.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/workspace/v1/broker.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/authority/v1/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/proto/spatial/authority/v1/grants_probe.proto"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/tests/core/test_identity_participant_barrier.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/identityd",
+        "BarrierTests.test_activation_records_original_service_and_connection",
+        "BarrierTests.test_transport_alone_cannot_activate",
+        "BarrierTests.test_owner_reads_committed_barrier_with_no_active_participants"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "identityd_sha256": "b15d2775a30502c0d08396568a6ec95af5e5a7b3e909fe8674c969358c864060"
+}

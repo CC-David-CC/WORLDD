@@ -1,0 +1,11 @@
+{
+  "host": "sb16",
+  "profile": "Debug",
+  "new_checks": 19,
+  "regression_checks": 187,
+  "failed": 0,
+  "skipped": 0,
+  "source_files": 239,
+  "identityd_sha256": "460f1c4f806558b5ada2e62d6d98bd7fed95029546177bfb7c4db234b311e166",
+  "scope": "issuer persistence draft; checked-client and full qualification pending; actual cancellation effect wiring pending"
+}

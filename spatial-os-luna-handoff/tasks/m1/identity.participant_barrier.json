@@ -1,0 +1,31 @@
+{
+  "id": "identity.participant_barrier",
+  "phase": "M02",
+  "status": "in_progress",
+  "current_step": "issuer_focused_Debug_passed_checked_client_next",
+  "parent": "identity.revocation_barrier",
+  "integration_dependency": "identity.participant_session",
+  "contract": "docs/AUTHORITY_PARTICIPANT_BARRIER.txt",
+  "isolated_source": "local/participant-barrier-draft-01",
+  "invariant": "Commit revocation and active-generation obligations atomically; require contiguous authenticated application before completion.",
+  "integrated": false,
+  "remaining": [
+    "Implement strict checked-client validation and malformed-response tests.",
+    "Run full Debug and runtime sanitizer qualification on both hosts.",
+    "Integrate only after service-session dependency qualifies."
+  ],
+  "limitations": [
+    "Trusted service acknowledgements require later independent production effect witnesses.",
+    "Stranded generations need explicit supervisor fencing; disconnect never proves cleanup."
+  ],
+  "candidate": 2,
+  "source_files": 239,
+  "evidence": "evidence/participant-barrier-2026-10-09",
+  "focused_Debug": {
+    "host": "sb16",
+    "new_checks": 19,
+    "regression_checks": 187,
+    "failed": 0,
+    "skipped": 0
+  }
+}

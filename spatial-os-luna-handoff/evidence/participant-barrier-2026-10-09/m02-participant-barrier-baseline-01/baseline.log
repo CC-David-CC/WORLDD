@@ -1,0 +1,61 @@
+test_activation_records_original_service_and_connection (__main__.BarrierTests.test_activation_records_original_service_and_connection) ... FAIL
+test_transport_alone_cannot_activate (__main__.BarrierTests.test_transport_alone_cannot_activate) ... FAIL
+test_owner_reads_committed_barrier_with_no_active_participants (__main__.BarrierTests.test_owner_reads_committed_barrier_with_no_active_participants) ... FAIL
+
+======================================================================
+FAIL: test_activation_records_original_service_and_connection (__main__.BarrierTests.test_activation_records_original_service_and_connection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/tests/core/test_identity_participant_barrier.py", line 74, in test_activation_records_original_service_and_connection
+    state = self.activate(); proof = self.service['proof']
+            ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/tests/core/test_identity_participant_barrier.py", line 38, in activate
+    self.assertTrue(result.HasField('authority_activation'), result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 3
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_transport_alone_cannot_activate (__main__.BarrierTests.test_transport_alone_cannot_activate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/tests/core/test_identity_participant_barrier.py", line 86, in test_transport_alone_cannot_activate
+    self.denied(self.peer.call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)),core.FORBIDDEN)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 4
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_owner_reads_committed_barrier_with_no_active_participants (__main__.BarrierTests.test_owner_reads_committed_barrier_with_no_active_participants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/tests/core/test_identity_participant_barrier.py", line 90, in test_owner_reads_committed_barrier_with_no_active_participants
+    target = self.revoke_actor(); state = self.barrier()
+                                          ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/tests/core/test_identity_participant_barrier.py", line 60, in barrier
+    result = self.execute(self.peer, self.challenge(self.peer, op))
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-baseline-01/source/tests/core/test_identity_issuer.py", line 117, in challenge
+    self.assertTrue(reply.HasField('challenge'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 10
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.132s
+
+FAILED (failures=3)

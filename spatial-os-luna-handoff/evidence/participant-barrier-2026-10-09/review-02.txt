@@ -1,0 +1,48 @@
+Primary review: durable service participation candidate 02
+Status: isolated issuer draft. Do not integrate until checked-client support and both-host qualification pass.
+The primary agent reviewed each changed file. No helper or local model was used.
+
+Invariant
+Commit each new revocation and all active-generation obligations atomically.
+Only the original authenticated connection can advance that generation's contiguous applied revision.
+Disconnection and issuer restart retain active generations and pending obligations.
+
+Reviewed production changes
+issuer.proto defines additive activation, application, release, state, and owner barrier messages.
+issuer.hpp declares the four service operations.
+issuer.cpp introduces explicit transactional schema6 migration.
+It preserves immutable registration and process/connection context with each durable generation.
+A partial unique index permits one active generation per participant.
+Unique process incarnations prevent reuse after clean release.
+Activation compares synchronized revision with the transactional issuer head.
+Revocation inserts the barrier and all obligations in its existing transaction.
+Application accepts one next revision or the exact last duplicate after initial synchronization.
+Release requires synchronized application and no pending obligation.
+A new connection cannot replace, acknowledge, or release an active generation.
+Owner-signed status queries use bounded pages and global pending counts.
+Queries reject pre-migration events without manufacturing historical completion evidence.
+protocol.cpp passes the real TLS context and returns typed service and owner results.
+CMakeLists.txt adds one focused suite without removing existing suites.
+
+Reviewed tests and evidence
+The real proof-only issuer first rejected all three new baseline operations as unknown fields.
+Candidate01 passed16 of17 new checks. The rollback fixture omitted its required revocation reason.
+Candidate02 adds that reason without weakening the storage assertions.
+It also adds owner-only query and malformed-request checks. C++ source is unchanged from candidate01.
+The corrected suite passed19 checks. Ten existing suites passed187 checks on the same binaries.
+The source audit matches239 files and preserves257 messages,988 fields,and123 enum values.
+All41 locked files and87 existing test files remain unchanged.
+Four earlier migration fixtures explicitly remove the three new tables and expect schema6.
+Their original preservation assertions remain unchanged after this mechanical normalization.
+The new schema5 migration test preserves all old tables and keys and forbids invented completion records.
+The injected SQLite failure confirms revocation, revision, and obligation rollback in one transaction.
+All baseline and first-draft failures remain preserved.
+
+Remaining work
+Implement strict checked-client handling and malformed-response tests for the new operations.
+Qualify complete Debug and runtime sanitizer profiles on both hosts before integration.
+Wire world and broker authorities to activation and acknowledgements only after actual cancellation effects.
+Add independently witnessed native-input, process, lease, and multi-host completion tests.
+Implement explicit supervisor fencing and cleanup for stranded generations before recovery acceptance.
+Do not count a trusted service assertion as proof of external effect completion.
+No operator database or normal session changed.

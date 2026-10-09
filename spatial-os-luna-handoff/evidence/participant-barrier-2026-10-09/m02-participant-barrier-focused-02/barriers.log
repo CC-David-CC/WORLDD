@@ -1,0 +1,24 @@
+test_activation_records_original_service_and_connection (__main__.BarrierTests.test_activation_records_original_service_and_connection) ... ok
+test_another_connection_cannot_replace_acknowledge_or_release (__main__.BarrierTests.test_another_connection_cannot_replace_acknowledge_or_release) ... ok
+test_application_rejects_gaps_future_revisions_and_foreign_generations (__main__.BarrierTests.test_application_rejects_gaps_future_revisions_and_foreign_generations) ... ok
+test_clean_release_cannot_skip_pending_cancellation (__main__.BarrierTests.test_clean_release_cannot_skip_pending_cancellation) ... ok
+test_disconnect_keeps_obligation_and_blocks_replacement (__main__.BarrierTests.test_disconnect_keeps_obligation_and_blocks_replacement) ... ok
+test_duplicate_application_is_idempotent (__main__.BarrierTests.test_duplicate_application_is_idempotent) ... ok
+test_failed_v5_migration_rolls_back_tables_and_version (__main__.BarrierTests.test_failed_v5_migration_rolls_back_tables_and_version) ... ok
+test_issuer_restart_keeps_obligations_and_old_generation (__main__.BarrierTests.test_issuer_restart_keeps_obligations_and_old_generation) ... ok
+test_later_activation_does_not_change_earlier_obligations (__main__.BarrierTests.test_later_activation_does_not_change_earlier_obligations) ... ok
+test_malformed_queries_and_missing_application_fields_preserve_state (__main__.BarrierTests.test_malformed_queries_and_missing_application_fields_preserve_state) ... ok
+test_obligation_failure_rolls_back_revocation_and_revision (__main__.BarrierTests.test_obligation_failure_rolls_back_revocation_and_revision) ... ok
+test_owner_reads_committed_barrier_with_no_active_participants (__main__.BarrierTests.test_owner_reads_committed_barrier_with_no_active_participants) ... ok
+test_pagination_preserves_global_completion_counts (__main__.BarrierTests.test_pagination_preserves_global_completion_counts) ... ok
+test_reactivation_requires_new_incarnation_and_generation (__main__.BarrierTests.test_reactivation_requires_new_incarnation_and_generation) ... ok
+test_revocation_stays_pending_until_both_generations_apply (__main__.BarrierTests.test_revocation_stays_pending_until_both_generations_apply) ... ok
+test_service_key_cannot_read_owner_barrier_details (__main__.BarrierTests.test_service_key_cannot_read_owner_barrier_details) ... ok
+test_stale_activation_and_missing_revision_do_not_change_state (__main__.BarrierTests.test_stale_activation_and_missing_revision_do_not_change_state) ... ok
+test_transport_alone_cannot_activate (__main__.BarrierTests.test_transport_alone_cannot_activate) ... ok
+test_v5_migration_preserves_state_without_inventing_historical_completion (__main__.BarrierTests.test_v5_migration_preserves_state_without_inventing_historical_completion) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 12.361s
+
+OK

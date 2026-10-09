@@ -1,0 +1,27 @@
+{
+  "source_files": 239,
+  "identityd_sha256": "460f1c4f806558b5ada2e62d6d98bd7fed95029546177bfb7c4db234b311e166",
+  "results": [
+    {
+      "name": "barriers",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_identity_participant_barrier_02.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-01/debug/build/identityd"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "regression",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-01/debug/build",
+        "-V",
+        "-R",
+        "^(identity-participant-session(-client)?|identity-participants|identity-participant-client|identity-keys|identity-issuer|identity-tls|identity-bootstrap|identity-enrollment|identity-revocation)$"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

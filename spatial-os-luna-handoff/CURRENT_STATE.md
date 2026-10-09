@@ -1,5 +1,28 @@
 # Implementation status
 
+## 2026-10-09: Durable revocation-obligation draft passes focused Debug checks
+
+An isolated issuer draft records active service generations and their revocation obligations transactionally.
+It requires contiguous application acknowledgements from the generation's original authenticated connection.
+Disconnects and issuer restarts preserve pending obligations. Another connection cannot replace the active generation.
+Owner queries report global completion separately from the existing commit-only revocation reply.
+Clean release cannot skip pending cancellation. Explicit schema-6 migration preserves existing authority state.
+
+On sb16, candidate 02 passed 19 new checks and 187 related regression checks in Debug.
+The first draft passed 16 of 17 checks. One fixture omitted the required revocation reason.
+The corrected fixture reaches and passes its original rollback assertions. The failure remains archived.
+The audit preserves 257 messages, 988 fields, 123 enum values, and all 41 locked files.
+All 87 other existing test files are unchanged. Four migration fixtures have explicit schema-6 updates.
+All 239 candidate source hashes are pinned.
+
+Checked-client support and full qualification remain pending. This draft is not integrated.
+The separate service-session candidate passed complete Debug on sb16: 1,152 core, 51 harness, and 151 P10 checks.
+No case failed or skipped. Its sb16 sanitizer and sb16-2 qualification remain running.
+World/broker effect acknowledgements and supervisor fencing remain required.
+These issuer tests do not prove native input release, process cancellation, or full distributed cancellation.
+M02 and Spatial-M1 remain incomplete. No operator database or normal session changed.
+See evidence/participant-barrier-2026-10-09 and docs/AUTHORITY_PARTICIPANT_BARRIER.txt.
+
 ## 2026-10-09: Checked service authentication candidate under full qualification
 
 The isolated service-session candidate now includes strict TLS client response validation.

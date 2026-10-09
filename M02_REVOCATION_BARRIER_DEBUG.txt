@@ -52,3 +52,11 @@ Production now contains the reviewed registry implementation. Commit and host ad
 This completes registration only. Distributed cancellation remains incomplete.
 The service-proof draft passed focused server and checked-client tests on sb16.
 Its complete qualification remains pending.
+
+Durable obligation draft, 2026-10-09
+An isolated issuer draft now preserves active generations and pending obligations across disconnect and restart.
+It requires original-connection acknowledgements and contiguous applied revisions.
+Candidate02 passed19 new and187 related regression checks on sb16 in Debug.
+Its checked-client validation and full qualification remain pending.
+Production world/broker cancellation witnesses and supervisor fencing remain required.
+Evidence: spatial-os-luna-handoff/evidence/participant-barrier-2026-10-09

@@ -1,0 +1,124 @@
+Durable service participation and revocation obligations, interface proposal 1
+Status: isolated issuer draft passes focused Debug tests. Client validation, qualification, and runtime wiring remain pending.
+Dependency: identity.participant_session candidate 03. Keep its qualification source frozen.
+
+Invariant
+Every committed revocation records its active service-generation obligations in the same transaction.
+Only that generation's authenticated original connection can advance its contiguous applied revision.
+A disconnect, timeout, or issuer restart never completes or deletes an obligation.
+
+Scope and trust
+Registered services are trusted enforcement components. Actor clients cannot acknowledge their effects.
+An acknowledgement is a service assertion. Independent runtime witnesses must establish that its effects actually completed.
+This issuer component alone does not qualify distributed cancellation or allow world execution.
+The production world and broker must activate before admitting protected work.
+They must synchronize current authority before activation and acknowledge only completed cancellation effects.
+The existing revocation reply remains commit-only. Completion uses the separate owner-signed barrier query.
+
+Additive protobuf fields in issuer.proto
+AuthorityActivate: optional uint64 synchronized_revision=1.
+AuthorityApplied: uint64 generation=1; optional uint64 from_revision=2; optional uint64 through_revision=3.
+AuthorityRelease: uint64 generation=1; optional uint64 applied_revision=2.
+AuthorityStateRead: empty.
+AuthorityActivationState:
+  bytes issuer_id=1; AuthorityParticipantRecord registration=2; uint64 generation=3;
+  bytes service_incarnation=4; bytes issuer_incarnation=5; bytes connection_binding=6;
+  uint64 applied_revision=7; uint64 head_revision=8; bool active=9.
+AuthorityBarrierRead: uint64 revision=1; bytes after_participant_id=2; uint32 limit=3.
+AuthorityBarrierObligation:
+  AuthorityParticipantRecord registration=1; uint64 generation=2; bytes service_incarnation=3;
+  uint64 applied_revision=4; bool complete=5.
+AuthorityBarrierStatus:
+  bytes issuer_id=1; uint64 revision=2; IdentityReference target=3;
+  uint64 participant_count=4; uint64 pending_count=5; bool complete=6;
+  repeated AuthorityBarrierObligation obligations=7; bytes next_after=8.
+IssuerRequest adds authority_activate=24, authority_applied=25, authority_release=26, authority_state=27.
+IssuerReply adds authority_activation=24 and authority_barrier=25.
+IssuerOperation adds barrier_read=11. AdminResult adds barrier=7.
+Preserve all existing fields and meanings. Use the existing authenticated service connection context.
+No request supplies a participant identity, service incarnation, or transport binding for mutations.
+
+Validation and activation
+All revisions fit signed 64-bit storage. Generations and barrier revisions are positive.
+Activation requires an authenticated registered service and a present synchronized revision equal to the issuer head.
+Order activation and revocation through issuer transactions.
+A stale synchronization claim fails with REVISION_CONFLICT and creates no activation.
+Assign the next positive participant generation. Retain the immutable registration and process incarnation.
+Persist the current issuer incarnation and server-created connection binding.
+Permit only one active generation per participant.
+An already-active participant returns BUSY, including repeated activation on the same connection.
+Use authority_state to resolve a lost activation reply. Do not automatically replay activation.
+Never reuse a previous process incarnation for that participant, even after clean release.
+Activation is a trusted service's synchronization assertion; it is not external fencing evidence.
+
+Contiguous application and clean release
+An applied request names the active generation and a present from/through pair.
+Require through=from+1, through<=issuer head, and from equal to the durable applied revision.
+Allow an exact duplicate of the last successful from/through pair without changing durable state.
+Reject gaps, rollback, future revisions, foreign generations, and other connections.
+Recheck the authenticated issuer incarnation, service incarnation, registration, and connection for every mutation.
+Record application only after the production authority has cancelled all affected effects for that event.
+Receipt of a feed batch or its head revision is insufficient.
+A clean release requires the exact current applied revision, synchronization through issuer head, and no pending obligation.
+The production caller must also quiesce all other effects before requesting release.
+A duplicate clean release on its original connection returns the inactive state.
+Historical generations and their obligations remain durable.
+A new generation requires a new process incarnation after clean release.
+
+Disconnection and recovery
+Socket loss makes no durable state change.
+Another connection cannot acknowledge or release an active generation, even with the same service key and claimed incarnation.
+Issuer restart invalidates old connection context but retains active generations and pending obligations.
+A later supervisor-fencing component must verify external cleanup before resolving stranded generations.
+Do not add an owner 'forget' operation or use time expiry as cleanup evidence.
+This component intentionally leaves stranded generations unresolved until that recovery component exists.
+It does not provide automatic failover or world migration.
+
+Barrier creation and queries
+Create a barrier record for each new revocation, including one with no active participants.
+Snapshot every active generation into obligations within the revocation transaction.
+The immutable activation registration supplies the recorded domain set.
+New registration alone creates no obligation. Later activation must synchronize to the newer head.
+A barrier completes only when every recorded generation has applied at least its revision.
+Clean release cannot bypass this condition.
+Owner proof authorizes barrier queries. Transport access and service proof alone do not.
+Queries require an existing positive barrier revision, an empty or32-byte cursor, and a limit from0 through16.
+Limit0 means16. Sort obligations by binary participant identity and use exclusive continuation.
+Return global participant and pending counts, independent of page size.
+Complete must equal pending_count==0. A partial page must not imply complete.
+Return NOT_FOUND for events created before this schema migration; do not invent historical cancellation evidence.
+
+Storage migration
+Introduce issuer schema6 with explicit migration from supported prior schemas.
+Create authority_activation with immutable generation, registration, process, and connection context plus applied state.
+Keep a unique participant/incarnation pair and one active generation per participant.
+Create authority_barrier and authority_obligation with foreign keys and unique revision/participant keys.
+Preserve existing identities, keys, credentials, profiles, registry definitions, and revocation history.
+Do not backfill old revocations with completed barriers.
+Test migration only on disposable databases. Normal startup rejects unmigrated schema5.
+Earlier schema fixtures must explicitly remove new tables before restoring their historical schema version.
+Preserve their original data-preservation assertions and record these fixture changes.
+
+Required tests
+Prove activation requires service proof on the actual connection and synchronization at current head.
+Prove distinct active participants create independent durable obligations.
+Commit a revocation and observe pending until every generation applies the exact next revision.
+Reject forged, foreign, future, skipped, and stale application requests without durable mutation.
+Prove duplicate application and release are safe, and clean reactivation uses a new incarnation and generation.
+Retain obligations across disconnect and issuer restart. Reject replacement without cleanup evidence.
+Force obligation insertion failure and verify revocation, security revision, and all obligations roll back together.
+Verify owner-only bounded queries, binary pagination, and global completion counts.
+Verify later registration/activation cannot escape or retroactively acquire an earlier obligation.
+Verify explicit schema5 migration and failed-migration rollback without inventing historical completion.
+Test checked-client validation separately using explicit malformed TLS peers.
+Run full Debug and runtime sanitizer qualification on both hosts before integration.
+Later production tests must witness actual motion, native input, lease, observation, and process cancellation.
+
+Focused evidence, 2026-10-09
+Candidate02 passed19 new checks and187 related regression checks on sb16 in Debug.
+The three unsupported-operation baseline failures and the missing-reason fixture failure remain preserved.
+The schema audit preserves257 messages,988 fields,and123 enum values.
+All41 locked files and87 existing test files remain unchanged.
+Four prior migration fixtures explicitly remove the new tables and expect schema6.
+Their original data-preservation assertions remain intact.
+No production source, active qualification source, operator database, or normal session changed.

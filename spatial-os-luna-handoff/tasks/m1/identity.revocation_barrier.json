@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "registry_sanitizer_qualification_and_isolated_service_session_client",
+  "current_step": "service_session_qualification_and_durable_obligation_baseline",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -38,13 +38,14 @@
   "next_test": "An owner observes committed-but-pending revocation while one enrolled authority delays cancellation, then observes completion only after genuine cancellation acknowledgement.",
   "limitations": [
     "The diagnostic reproduces a known missing requirement. It is not passing M02 acceptance.",
-    "Participant registration is isolated and under qualification. Barrier persistence and acknowledgement interfaces remain unimplemented.",
+    "Participant registry is integrated. Service proof is under full qualification. Durable obligations remain unimplemented.",
     "Native input and multi-host cancellation barrier evidence remains unrun."
   ],
   "implementation_plan": "docs/REVOCATION_BARRIER_PLAN.txt",
   "component_tasks": [
     "tasks/m1/identity.participant_registry.json",
-    "tasks/m1/identity.participant_session.json"
+    "tasks/m1/identity.participant_session.json",
+    "tasks/m1/identity.participant_barrier.json"
   ],
-  "next_component_design": "docs/AUTHORITY_PARTICIPANT_SESSION.txt"
+  "next_component_design": "docs/AUTHORITY_PARTICIPANT_BARRIER.txt"
 }

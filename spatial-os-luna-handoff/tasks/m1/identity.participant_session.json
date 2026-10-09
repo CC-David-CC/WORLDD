@@ -37,5 +37,13 @@
     "preserved_enum_values": 122,
     "unchanged_existing_tests": 89,
     "locked_files": 41
+  },
+  "sb16_full_Debug": {
+    "core_checks": 1152,
+    "core_suites": 66,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
   }
 }
