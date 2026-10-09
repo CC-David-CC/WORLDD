@@ -11,7 +11,7 @@
   "correction_tests": "Both hosts passed Debug and runtime ASan/UBSan, with zero failures or skips.",
   "correction_test_evidence": "evidence/supervisor-broker-handoff-2026-10-09/observer-review-02.json",
   "isolated_candidate": 2,
-  "integration": "Reviewed five-file candidate02 integrated after all four full profiles and issuer-backed diagnostics passed. Host source adoption follows the commit.",
+  "integration": "Integrated at f4c4148 and adopted cleanly on both hosts. All283 source hashes match; no sessions restarted or operator state migrated.",
   "next_task": "tasks/m1/identity.supervised_broker_participation.json",
   "cumulative": "Each host/profile passed 1393 core checks across 93 suites, 51 harness checks, and 151 P10 cases.",
   "scope": "This completes the broker credential handoff primitive. World handoff, trusted retirement, and M02 remain incomplete."

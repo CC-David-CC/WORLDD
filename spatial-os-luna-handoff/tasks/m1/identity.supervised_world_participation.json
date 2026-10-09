@@ -1,0 +1,20 @@
+{
+  "id": "identity.supervised_world_participation",
+  "phase": "M02",
+  "status": "in_progress",
+  "parent": "identity.supervisor_recovery",
+  "contract": "docs/SUPERVISED_WORLD_PARTICIPATION.txt",
+  "evidence": "evidence/supervised-world-participation-2026-10-09",
+  "production_changed": false,
+  "tests": [
+    "test_owned_world_activates_authenticates_moves_and_releases_on_eof",
+    "test_anonymous_actor_cannot_use_supervised_world_authority",
+    "test_revocation_waits_for_world_cancellation_and_denies_further_actor_actions",
+    "test_world_crash_cleans_native_processes_but_retains_issuer_obligation"
+  ],
+  "qualification": "Both hosts passed all four checks in Debug and runtime ASan/UBSan against unchanged candidate02. Raw evidence independently reviewed.",
+  "remaining": [
+    "Complete full world candidate qualification and integrate its reviewed source."
+  ],
+  "scope": "These local integration checks do not complete trusted recovery or cross-host cancellation."
+}

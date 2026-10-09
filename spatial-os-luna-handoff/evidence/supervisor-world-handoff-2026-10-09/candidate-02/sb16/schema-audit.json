@@ -1,0 +1,7 @@
+{
+  "existing_files": 12,
+  "existing_descriptors_unchanged": true,
+  "added_optional_field": "AuthoritySupervisorConfig.compositor_native_target_fd",
+  "field_number": 12,
+  "added_message": "spatial.render.v1.NativeCompositorConfig"
+}

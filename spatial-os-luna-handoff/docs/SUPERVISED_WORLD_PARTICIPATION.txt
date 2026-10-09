@@ -1,0 +1,42 @@
+Supervised world participation
+Status: All four checks passed on both hosts in Debug and runtime ASan/UBSan.
+
+Invariant
+
+The real world activates only its registered world authority through the owning supervisor's private participant channel.
+Actor authentication and world grants remain separate from service authority.
+Revocation completion requires actual actor cancellation.
+
+Required evidence
+
+Create the persistent world with production worldd before registering its identity.
+Register only that world domain with the real issuer.
+Enroll a fixture human with its own cryptographic key.
+Initialize persistent world grants through the production initializer.
+Pass the supervisor-generated participant configuration and sealed compositor credential to the real world.
+Map a private actor channel through the checked process descriptor boundary.
+Verify activation before authenticated actor movement.
+Deny anonymous actor actions without creating an actor.
+Require graceful EOF to release the issuer generation before checked supervisor completion.
+Stop the disposable world process while committing actor revocation.
+Require the issuer barrier to stay pending while the world cannot cancel its actor.
+Resume the world and require motion cancellation before barrier completion.
+Reject further actions from the revoked actor.
+Kill the disposable world and verify both owned process handles become terminal.
+Require exact process and native cleanup receipts.
+Keep an independently authorized native connection valid.
+Preserve the unresolved issuer obligation after that crash.
+
+Execution and scope
+
+Run Debug and runtime ASan/UBSan on both authorized hosts.
+Use the frozen 290-file candidate after its focused qualification passes.
+Verify all source, acceptance-lock, and relevant binary hashes before execution.
+Run in unique disposable systemd units, databases, and native displays.
+Full cumulative qualification remains required before candidate integration.
+
+These checks do not authorize application control through world membership.
+They exercise real world authority and geometry motion with the native compositor present.
+Application observation and control require separate workspace grants and broker participation.
+Native pixel and held-input cleanup witnesses remain in the separate handoff regression suite.
+Trusted issuer retirement, cross-host cancellation, and complete M02 qualification remain required.

@@ -1,0 +1,26 @@
+{
+  "reviewer": "primary agent",
+  "test_sha256": "ea867d7d6f6caaf68902e238b5491740cc20c3d776ef2402a41beb47b56d4d4d",
+  "source_files": 290,
+  "expected_checks": 4,
+  "production_changed": false,
+  "invariant": "The supervised native world activates only its registered world authority, authenticates actors, and settles revocation after actual cancellation.",
+  "tests": [
+    "Real enrolled actor moves through the production authenticated actor channel and graceful EOF releases the issuer generation.",
+    "Anonymous actor commands fail without creating an actor.",
+    "A stopped world prevents barrier completion; resumed world cancels motion before completion and rejects further revoked actions.",
+    "World death cleans the compositor/process scope but preserves the issuer obligation and an independent native connection."
+  ],
+  "review": [
+    "Only fixture provisioning and descriptor transport are patched; all runtime actions use production protobuf interfaces.",
+    "Persistent world policy grants are initialized with the production authority initializer.",
+    "Source290, locked41 and both-profile binary hashes must match the focused-qualified candidate.",
+    "No application-control authority is inferred from world membership. Application input was covered separately by the native handoff checks."
+  ],
+  "unrun": true,
+  "remaining": [
+    "Run both profiles on both hosts.",
+    "Full world candidate qualification remains required before production integration.",
+    "Trusted retirement and cross-host cancellation remain pending."
+  ]
+}

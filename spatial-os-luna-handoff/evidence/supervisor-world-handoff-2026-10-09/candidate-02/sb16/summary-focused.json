@@ -1,0 +1,99 @@
+{
+  "host": "sb16",
+  "candidate": 2,
+  "mode": "focused",
+  "source_files": 290,
+  "locked_files": 41,
+  "integrated": false,
+  "schema": {
+    "existing_files": 12,
+    "existing_descriptors_unchanged": true,
+    "added_optional_field": "AuthoritySupervisorConfig.compositor_native_target_fd",
+    "field_number": 12,
+    "added_message": "spatial.render.v1.NativeCompositorConfig"
+  },
+  "debug": {
+    "core_checks": 126,
+    "core_suites": 13,
+    "parts": {
+      "handoff": {
+        "authority-world-handoff": 1
+      },
+      "regressions": {
+        "authority-world-handoff-regressions": 13
+      },
+      "focused": {
+        "authority-native-config": 3,
+        "authority-native-scope": 11,
+        "authority-supervisor": 14,
+        "authority-broker-handoff": 1,
+        "authority-broker-handoff-regressions": 9,
+        "authority-participant-relay": 10,
+        "authority-owned-participant": 11,
+        "authority-launch-coordinator": 14,
+        "authority-prepared-launch": 8,
+        "authority-process-scope": 10,
+        "native-application-launch": 21
+      }
+    },
+    "harness_checks": 51,
+    "P10_cases": "uncollected",
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "7926fc8b443f08fc44573affe350923b6b5529bf6e1faf1033ee3b8107c05ea6",
+      "workspaced": "82858e3be66b440b385c38dbd2472d1bc997538bedfa44c6c4b9076910953959",
+      "identityd": "ad683e743cc15d80fa4428c63edec556436f3d64655cb30cef5e85ab280cfde0",
+      "spatialwm": "b4ad4fab31586823e7e6916ea65e55f3df4ffe1bd3443cb63a5f5ef1b2d95c27",
+      "spatial-app-init": "2f363109120fdea602ee40bf5cbab9895d3f0dddc345fa1f2ade043dca3ae8f0",
+      "spatial-test-host": "d7629b0a7f08e1091e72ff20b62ff5dec85030ac14b5059e0c26c86395700d98",
+      "spatial-authority-supervisor": "4a0f4ac419d0b3a42f917976cf1d6bc8c12e0fcddf9b71ef74637fe24a0841a5",
+      "spatial-authority-launch-probe": "5bfc8bec7e814504285893f3946b6e7e69c3dea92c04e22387ab8b2a7faa601c",
+      "spatial-security-auth": "e7bb299d0479db60f53b9897c70f9e4401add4983fde910b18581f5bc8496723",
+      "spatial-issuer-client": "c103c393f7876fb4cf06d5b7221250a9cbdce5b12b2c434c66b183b0f36769a5",
+      "spatial-xprobe": "8decdd10794ac5b38ee45e18aa9e86100968a81b1d0b3bf02906e5cec70a86a9"
+    }
+  },
+  "runtime-sanitize": {
+    "core_checks": 126,
+    "core_suites": 13,
+    "parts": {
+      "handoff": {
+        "authority-world-handoff": 1
+      },
+      "regressions": {
+        "authority-world-handoff-regressions": 13
+      },
+      "focused": {
+        "authority-native-config": 3,
+        "authority-native-scope": 11,
+        "authority-supervisor": 14,
+        "authority-broker-handoff": 1,
+        "authority-broker-handoff-regressions": 9,
+        "authority-participant-relay": 10,
+        "authority-owned-participant": 11,
+        "authority-launch-coordinator": 14,
+        "authority-prepared-launch": 8,
+        "authority-process-scope": 10,
+        "native-application-launch": 21
+      }
+    },
+    "harness_checks": 51,
+    "P10_cases": "uncollected",
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "0a5ee30bb5e8751c2093bdc98553e8549233ddc5a00370a92fb4dd4fb93be64e",
+      "workspaced": "42db7aa1babdaad7d31282780d87017c39654b1892a425db2bd2e9267ce7c367",
+      "identityd": "8aebaf0c296b52ef07c0cc392d5d8d1f8badd827bb70fd49012a084d4779d288",
+      "spatialwm": "2bdbe5f1283ca2907ade0051f4c0969dc46121dd7409a43ae893c61af16e8d42",
+      "spatial-app-init": "809817ed646d1fdbeebd2d862f104a1e8ac3457edc45a660cce1ef532cdd393e",
+      "spatial-test-host": "e6a67039942aebb391f6dd16507229b26558896dcfed6c02c192f3895f01719a",
+      "spatial-authority-supervisor": "6b079a1c7a44a106b31bdf1acb4e41739ee5a54044430e74b984662c4b6f2c42",
+      "spatial-authority-launch-probe": "ca928bb86b804d441d8349a17b655ca0a883c59e22bf432853bdc5afd5daf4f4",
+      "spatial-security-auth": "a872db5789a9e63507a5011364097cac4f6a9df0e66f72cbe492a77f340a22a5",
+      "spatial-issuer-client": "09bea399ebc43b9f0ff5858a06a521099b25f9996ddbb0b976184e6ee114bc99",
+      "spatial-xprobe": "7635a460eb6d6bc236f7d08657f4179a056b704aa935c37904a91b5d3e047398"
+    }
+  }
+}

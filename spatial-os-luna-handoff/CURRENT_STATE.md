@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-09: Broker source adopted; supervised world participation passes
+
+Both hosts adopted broker commit f4c4148 with all 283 source hashes matching and clean worktrees.
+No runtime restarted and no operator state migrated.
+World candidate02 passed 126 focused core checks and 51 harness checks per host and profile.
+Both Debug and runtime ASan/UBSan passed with zero failures or skips.
+Read evidence/supervisor-world-handoff-2026-10-09/candidate-02.
+
+Four new issuer-backed world checks also passed on both hosts in both profiles.
+They verify persistent world authority, authenticated movement, anonymous denial, revocation cancellation, and graceful issuer release.
+The crash witness verifies exact native/process cleanup while preserving an independent connection and unresolved issuer obligations.
+Read evidence/supervised-world-participation-2026-10-09/results-review-01.json.
+These diagnostics used unchanged candidate02 source and binaries.
+
+World full cumulative qualification remains active on both hosts. World source remains unintegrated.
+Trusted fencing, issuer retirement, dependent lease cleanup, and cross-host cancellation remain required.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Broker handoff integrated after both-host full qualification
 
 Both hosts passed broker candidate02 in Debug and runtime ASan/UBSan.

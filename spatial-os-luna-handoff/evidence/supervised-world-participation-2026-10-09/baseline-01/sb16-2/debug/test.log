@@ -1,0 +1,16 @@
+Running as unit: spatial-supervised-world-d1c13f770d244d379988340c8986eebf.service; invocation ID: 6c160942727c40968bb5b8543b2c54f2
+test_owned_world_activates_authenticates_moves_and_releases_on_eof (__main__.SupervisedWorldParticipationTests.test_owned_world_activates_authenticates_moves_and_releases_on_eof) ... ok
+test_anonymous_actor_cannot_use_supervised_world_authority (__main__.SupervisedWorldParticipationTests.test_anonymous_actor_cannot_use_supervised_world_authority) ... ok
+test_revocation_waits_for_world_cancellation_and_denies_further_actor_actions (__main__.SupervisedWorldParticipationTests.test_revocation_waits_for_world_cancellation_and_denies_further_actor_actions) ... ok
+test_world_crash_cleans_native_processes_but_retains_issuer_obligation (__main__.SupervisedWorldParticipationTests.test_world_crash_cleans_native_processes_but_retains_issuer_obligation) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 7.973s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 8.136s
+CPU time consumed: 3.645s
+Memory peak: 1.5M
+Memory swap peak: 0B

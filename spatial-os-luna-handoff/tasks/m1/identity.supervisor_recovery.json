@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.revocation_barrier",
   "status": "in_progress",
-  "current_step": "supervisor02_full_runtime_sanitizer_qualification",
+  "current_step": "world290_full_qualification_then_checked_fencing_and_retirement",
   "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
   "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "evidence": "evidence/participant-recovery-2026-10-09",
@@ -20,11 +20,11 @@
     "recovery_qualified": false
   },
   "remaining": [
-    "Own production launches and retain process and native credential handles before protected execution.",
-    "Implement checked process, native input, observation, and lease cleanup.",
-    "Record exact additive protobuf interfaces and explicit persistence migration.",
-    "Bind registered supervisor proofs to exact launches and fenced generations.",
+    "Complete world/compositor full qualification and source integration.",
+    "Implement issuer fencing with exact additive protobuf interfaces and explicit persistence migration.",
+    "Bind registered supervisor cleanup proofs to exact launches and fenced generations.",
     "Reject stale service connections and unauthorized replacement activation.",
+    "Verify dependent application-control reservation cleanup before retirement.",
     "Test crash recovery, concurrent revocation, replay, and issuer or supervisor failure.",
     "Qualify Debug and runtime sanitizer profiles on both hosts."
   ],
@@ -61,15 +61,15 @@
   "authority_supervisor_task": "tasks/m1/identity.authority_supervisor.json",
   "native_configuration_ownership": "docs/NATIVE_SCOPE_DESCRIPTOR_OWNERSHIP.txt",
   "current_supervisor": {
-    "candidate": 2,
-    "source_files": 281,
+    "source_files": 283,
     "integrated": true,
-    "full_debug": "Passed on both hosts: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases per host.",
-    "full_runtime_sanitizers": "Passed on both hosts: 1383 core checks, 51 harness checks, and 151 P10 cases per host; zero failures or skips.",
-    "primary_review": "evidence/authority-supervisor-2026-10-09/integration-primary-review-02.json",
-    "evidence": "evidence/authority-supervisor-2026-10-09/full-candidate-02",
-    "remaining": "Broker and world native handoff, fencing, verified recovery, and issuer retirement remain required."
+    "commit": "f4c41482aa9d92eec42436bf0c73dadb8674a6e5",
+    "full_debug": "Both hosts passed1393 core checks across93 suites,51 harness checks,151 P10 cases.",
+    "full_runtime_sanitizers": "Both hosts passed the same1393/93+51+151 with zero failures or skips.",
+    "evidence": "evidence/supervisor-broker-handoff-2026-10-09",
+    "remaining": "World full qualification/integration, fencing, verified recovery, and issuer retirement."
   },
   "supervised_broker_participation_task": "tasks/m1/identity.supervised_broker_participation.json",
-  "supervisor_world_handoff_task": "tasks/m1/identity.supervisor_world_handoff.json"
+  "supervisor_world_handoff_task": "tasks/m1/identity.supervisor_world_handoff.json",
+  "supervised_world_participation_task": "tasks/m1/identity.supervised_world_participation.json"
 }
