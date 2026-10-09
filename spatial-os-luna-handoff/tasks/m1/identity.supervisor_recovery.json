@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.revocation_barrier",
   "status": "in_progress",
-  "current_step": "launch_authorization_focused_qualified_full_running",
+  "current_step": "owned_participant_implemented_qualification_running",
   "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
   "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "evidence": "evidence/participant-recovery-2026-10-09",
@@ -55,5 +55,6 @@
   "launch_coordinator_task": "tasks/m1/identity.launch_coordinator.json",
   "service_incarnation_task": "tasks/m1/identity.service_incarnation.json",
   "supervisor_registry_task": "tasks/m1/identity.supervisor_registry.json",
-  "launch_authorization_task": "tasks/m1/identity.launch_authorization.json"
+  "launch_authorization_task": "tasks/m1/identity.launch_authorization.json",
+  "owned_participant_task": "tasks/m1/identity.owned_participant.json"
 }

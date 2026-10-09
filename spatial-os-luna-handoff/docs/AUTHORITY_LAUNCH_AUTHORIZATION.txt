@@ -1,5 +1,5 @@
 Supervisor authorization for one authority launch
-Status: isolated candidate02 passed focused Debug on both hosts. Runtime sanitizer qualification is running.
+Status: isolated candidate03 passed both focused profiles on both hosts. Full qualification is running.
 
 Invariant
 

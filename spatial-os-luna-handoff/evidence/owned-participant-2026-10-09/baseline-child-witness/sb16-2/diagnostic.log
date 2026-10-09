@@ -1,0 +1,14 @@
+Running as unit: spatial-owned-baseline-witness-01.service; invocation ID: 3f53e4be18934a21ab7e791abcf333cf
+test_independent_child_observes_execution_without_approval (__main__.Diagnostic.test_independent_child_observes_execution_without_approval) ... {"confirmed_missing_gate": true, "launch_id": "da09cee7c8a19d6e01094896e03fe8a60b40530b17758473bf92b22f2c5c2b1e", "child": {"pid": 393131, "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-owned-baseline-witness-01.service/launch-tmplbvf25i9/authority-da09cee7c8a19d6e01094896e03fe8a60b40530b17758473bf92b22f2c5c2b1e\n"}}
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.595s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 739ms
+CPU time consumed: 424ms
+Memory peak: 1.5M
+Memory swap peak: 0B

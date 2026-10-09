@@ -1,5 +1,36 @@
 # Implementation status
 
+## 2026-10-09: Supervisor owns the launch participant; registry full matrix passes
+
+The isolated coordinator now owns the real participant worker and its issuer connection.
+It builds supervisor approval from that retained identity and the durable process launch identity.
+It persists the exact approval before releasing supervised child execution.
+Failed exec cannot permit activation. Commands require a live direct child in the owned scope.
+Restart cannot reconstruct this live ownership from the journal.
+Cleanup still preserves unresolved issuer generations and revocation obligations.
+
+Both hosts reproduced the missing start gate and unsupported attachment before implementation.
+A separate real child witness confirmed execution without approval inside the exact baseline cgroup.
+Candidate01 then passed all eleven new Debug checks and 51 harness checks on both hosts.
+The new child witness reads durable approval before execution continues and the real issuer accepts the retained connection.
+Rollback, wrong-key, identity mismatch, worker failure, cleanup, and restart checks also passed.
+
+Output01 passed 328 checks across twenty suites on each host.
+One existing native suite could not import input_pb2 because the build command omitted native-input dependencies.
+Its eleven checks remained unrun. The original command, failure, and source remain preserved.
+Corrected output02 builds every target and supplies the independent native input witness.
+Both corrected runs are active. They use the same 274 source files and unchanged test assertions.
+All 41 locked hashes remain unchanged. Descriptor review confirms additive protobuf changes only.
+Read docs/AUTHORITY_OWNED_PARTICIPANT.txt and evidence/owned-participant-2026-10-09.
+
+Registry candidate01 completed full Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 1305 core checks across 85 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. All 272 source hashes and 41 locked hashes match.
+Full launch-authorization qualification remains active on both hosts.
+
+No new candidate source is integrated.
+Private child-channel integration, fencing, recovery, M02, and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Exact launch authorization passes both focused profiles
 
 Candidate03 passed Debug and runtime ASan/UBSan on both hosts.

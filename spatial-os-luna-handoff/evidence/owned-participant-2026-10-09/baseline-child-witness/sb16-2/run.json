@@ -1,0 +1,25 @@
+{
+  "host": "sb16-2",
+  "command": [
+    "systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--unit=spatial-owned-baseline-witness-01",
+    "--property=Delegate=yes",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/source:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/source/tests/native:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/source/tests/core",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-execution-baseline-01/server",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-execution-baseline-01/driver.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/source/tests/native/test_authority_owned_participant.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/spatial-issuer-client"
+  ],
+  "exit_code": 0,
+  "source_files": 274,
+  "source": "owned-participant-baseline-01"
+}

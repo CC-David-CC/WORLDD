@@ -1,0 +1,10 @@
+{
+  "host": "sb16",
+  "source_files": 274,
+  "locked_files": 41,
+  "baseline_failures": 2,
+  "build": "passed",
+  "harness_checks": 51,
+  "result": "The old coordinator accepted a supervised start without approval and lacked participant attachment.",
+  "integrated": false
+}

@@ -14,9 +14,9 @@
   "setup_failure": "Output01 omitted spatial-issuer-client-probe. One existing test could not execute. Output02 builds the probe; source and assertions remain unchanged.",
   "migration": "Explicit issuer schema7 migration. Five historical fixtures remove the new table when constructing prior schemas. All41 locked files remain unchanged.",
   "remaining": [
-    "Complete full qualification and review before source integration.",
+    "Integrate with authenticated launch and checked supervisor recovery.",
     "Add authenticated per-launch supervisor authorization.",
     "Connect production ownership receipts to fenced generation retirement."
   ],
-  "full": "Full Debug passed on both hosts: 1305 core checks across 85 suites, 51 harness checks, and 151 P10 cases. Full runtime sanitizer qualification remains active."
+  "full": "Full Debug and runtime ASan/UBSan passed both hosts:1305core85suites51harness151P10 perprofile. No failures or skips;272 source and41locked hashes match."
 }

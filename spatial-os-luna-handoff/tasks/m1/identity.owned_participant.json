@@ -1,0 +1,19 @@
+{
+  "id": "identity.owned_participant",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "invariant": "A supervised child executes only after durable approval of its coordinator-owned participant connection.",
+  "contract": "docs/AUTHORITY_OWNED_PARTICIPANT.txt",
+  "candidate": 1,
+  "source_files": 274,
+  "integrated": false,
+  "evidence": "evidence/owned-participant-2026-10-09",
+  "baseline": "Both hosts reproduced missing start protection and unsupported attachment. Independent children confirmed execution in exact owned cgroups without approval.",
+  "focused": "Eleven new Debug checks passed on both hosts. Output01 passed328checks20suites51harness; native input binding was missing and11checks unrun. Corrected output02 builds all targets; qualification running.",
+  "remaining": [
+    "Complete both focused profiles and full qualification on both hosts.",
+    "Connect worldd and workspaced through a private inherited participant channel.",
+    "Implement fencing, checked recovery reconciliation, and exact generation retirement."
+  ]
+}

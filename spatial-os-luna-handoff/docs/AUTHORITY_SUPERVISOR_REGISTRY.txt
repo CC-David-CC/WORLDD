@@ -1,5 +1,5 @@
 Owner-controlled authority supervisor registry
-Status: isolated implementation in progress. No source integration or operator migration.
+Status: full Debug and runtime ASan/UBSan passed on both hosts. No source integration or operator migration.
 
 Invariant
 
@@ -76,6 +76,7 @@ Output02 builds the missing probe without changing source or assertions.
 Output02 passed all 246 focused checks across fourteen suites in Debug and runtime ASan/UBSan on both hosts.
 Each profile also passed 51 harness checks. No corrected case failed or skipped.
 Descriptor comparison confirms that existing protobuf descriptors remain unchanged.
-Fresh full qualification runs separately in output03 on both hosts.
-Both full-build Debug runs passed the eighteen registry checks and 51 harness checks.
-The remaining full matrix is pending. Source integration remains pending.
+Full qualification completed separately in output03 on both hosts.
+Each profile passed 1305 core checks across 85 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. All 272 source hashes and 41 locked hashes match.
+Source integration remains pending.

@@ -1,0 +1,361 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -172,6 +172,7 @@
+ target_link_libraries(spatial-issuer-client PRIVATE spatial-issuer-client-lib)
+ add_library(spatial-participant-runtime-lib STATIC src/identity/participant_runtime.cpp)
+ target_link_libraries(spatial-participant-runtime-lib PUBLIC spatial-issuer-client-lib Threads::Threads)
++target_link_libraries(spatial-authority-launch PUBLIC spatial-participant-runtime-lib)
+ add_executable(spatial-participant-runtime-probe src/testing/participant_runtime_probe.cpp)
+ target_link_libraries(spatial-participant-runtime-probe PRIVATE spatial-participant-runtime-lib)
+ add_library(spatial-issuer-watch-lib STATIC src/identity/issuer_watch.cpp)
+--- a/src/supervisor/launch.cpp
++++ b/src/supervisor/launch.cpp
+@@ -2,6 +2,12 @@
+ #include "supervisor/native_scope.hpp"
+ #include "supervisor/process_scope.hpp"
+ #include "core/protocol.hpp"
++#include "identity/participant_runtime.hpp"
++#include "identity/participants.hpp"
++#include "identity/issuer_client.hpp"
++#include "identity/keys.hpp"
++#include "identity/tls_support.hpp"
++#include <google/protobuf/text_format.h>
+ #include <cerrno>
+ #include <fcntl.h>
+ #include <iostream>
+@@ -73,13 +79,27 @@
+     const auto& binding = value.binding();
+     const auto& process = value.process();
+     const auto& native = value.native();
+-    require(value.schema_version() == 1 && value.revision() > 0 && binding.issuer_id().size() == 32 &&
++    require(value.schema_version() == (binding.supervised() ? 2u : 1u) && value.revision() > 0 && binding.issuer_id().size() == 32 &&
+         binding.participant_id().size() == 32 && binding.registered_revision() > 0 && binding.service_incarnation().size() == 32 &&
+         process.launch_id().size() == 32 && process.boot_id().size() == 36 && process.device() && process.inode() &&
+         !process.scope_name().empty() && native.launch_id() == process.launch_id() && native.server_id().size() == 32 &&
+         (native.role() == security::v1::BROKER || native.role() == security::v1::COMPOSITOR) &&
+         value.stage() >= v1::PREPARING && value.stage() <= v1::OWNED_SCOPES_STOPPED,
+         "Invalid durable launch record");
++    if (value.has_authorization()) {
++        const auto& approval = value.authorization();
++        const auto& request = approval.request();
++        const auto& service = request.service();
++        identity::validate_launch_begin(request, binding.issuer_id());
++        require(binding.supervised() && approval.authorization_id().size() == 32 &&
++            approval.supervisor_public_key().size() == 32 && approval.generation() == 0 &&
++            service.registration().participant().id() == binding.participant_id() &&
++            service.registration().registered_revision() == binding.registered_revision() &&
++            service.service_incarnation() == binding.service_incarnation() &&
++            request.launch_id() == process.launch_id(), "Invalid durable participant approval");
++    }
++    require(!binding.supervised() || value.stage() != v1::START_ATTEMPTED || value.has_authorization(),
++        "Supervised execution requires durable approval");
+     require(native.credential_id().size() == 32 ||
+         (native.credential_id().empty() && (value.stage() == v1::PREPARING || value.stage() == v1::CLEANUP_PENDING)),
+         "Missing durable native identity");
+@@ -98,6 +118,13 @@
+     v1::AuthorityLaunchRecord record;
+     std::unique_ptr<ProcessScope> process;
+     std::unique_ptr<NativeScope> native;
++    std::unique_ptr<identity::ParticipantRuntime> participant;
++    std::optional<identity::v1::AuthorityAuthenticationResult> authenticated;
++    bool attached = false, stopping = false, started = false;
++    void prepared_participant() const {
++        require(record.binding().supervised() && record.stage() == v1::PREPARED && process && native && !stopping,
++            "No live prepared supervised ownership");
++    }
+     explicit Impl(const std::filesystem::path& path) {
+         require(path.is_absolute(), "Launch directory must be absolute");
+         directory.fd = open(path.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
+@@ -173,7 +200,7 @@
+     auto config = configuration(fd);
+     impl_->process = ProcessScope::prepare(root);
+     v1::AuthorityLaunchRecord initial;
+-    initial.set_schema_version(1); *initial.mutable_binding() = binding;
++    initial.set_schema_version(binding.supervised() ? 2 : 1); *initial.mutable_binding() = binding;
+     *initial.mutable_process() = impl_->process->state().identity();
+     auto* native = initial.mutable_native();
+     native->set_launch_id(initial.process().launch_id()); native->set_server_id(config.server_id()); native->set_role(config.role());
+@@ -196,14 +223,21 @@
+ v1::AuthorityLaunchRecord AuthorityLaunch::start(const v1::AuthorityProcessLaunch& request,
+     const std::array<int, 3>& streams, const std::vector<int>& inherited) {
+     require(impl_->record.stage() == v1::PREPARED && impl_->process && impl_->native, "No live prepared launch ownership");
++    require(!impl_->stopping, "Launch cleanup has started");
++    if (impl_->record.binding().supervised())
++        require(impl_->record.has_authorization() && impl_->participant && !impl_->participant->failed(),
++            "Supervised launch requires a live approved participant connection");
+     auto next = impl_->record; next.set_stage(v1::START_ATTEMPTED);
+     impl_->persist(next); // A crash after this point must never replay execution.
+     impl_->process->start(request, streams, inherited);
++    impl_->started = true;
+     return impl_->record;
+ }
+ v1::AuthorityLaunchRecord AuthorityLaunch::stop() {
+     if (impl_->record.stage() == v1::OWNED_SCOPES_STOPPED) return impl_->record;
+     require(impl_->record.revision() && impl_->process && impl_->native, "Live ownership is unavailable; cleanup remains unresolved");
++    impl_->stopping = true;
++    impl_->participant.reset(); // Closing a connection does not retire its issuer generation.
+     if (impl_->record.stage() != v1::CLEANUP_PENDING) {
+         auto next = impl_->record;
+         // Native issuance can succeed before its prepared-record commit fails.
+@@ -220,9 +254,84 @@
+     auto next = impl_->record; next.set_stage(v1::OWNED_SCOPES_STOPPED); impl_->persist(next);
+     return impl_->record;
+ }
++void AuthorityLaunch::attach(const v1::AuthorityParticipantAttach& request) {
++    impl_->prepared_participant(); validate_message(request);
++    require(!impl_->attached && !impl_->record.has_authorization(), "Participant attachment cannot be repeated");
++    require(std::filesystem::path(request.runtime_config()).is_absolute(), "Participant configuration must be absolute");
++    identity::v1::AuthorityParticipantRuntimeConfig config;
++    require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(request.runtime_config()), &config),
++        "Invalid participant configuration");
++    validate_message(config);
++    const auto& binding = impl_->record.binding();
++    require(config.protocol_version() == 1 && config.participant_id() == binding.participant_id() &&
++        config.registered_revision() == binding.registered_revision() && config.has_service_incarnation() &&
++        config.service_incarnation() == binding.service_incarnation(), "Participant configuration differs from owned launch");
++    identity::v1::IssuerTlsClientConfig issuer;
++    require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(config.issuer_client_config()), &issuer),
++        "Invalid participant issuer configuration");
++    validate_message(issuer);
++    require(issuer.issuer_id() == binding.issuer_id(), "Participant issuer differs from owned launch");
++    impl_->attached = true; // A failed attempt must not substitute another connection.
++    impl_->participant = std::make_unique<identity::ParticipantRuntime>(request.runtime_config(),
++        std::vector<authority::v1::Domain>(request.domains().begin(), request.domains().end()));
++}
++std::optional<identity::v1::ParticipantUpdate> AuthorityLaunch::poll_participant() {
++    require(impl_->participant && !impl_->stopping, "No retained participant connection");
++    auto update = impl_->participant->poll();
++    if (update && update->has_authenticated()) {
++        const auto& service = update->authenticated(); const auto& binding = impl_->record.binding();
++        if (impl_->authenticated || service.issuer_id() != binding.issuer_id() ||
++            service.registration().participant().id() != binding.participant_id() ||
++            service.registration().registered_revision() != binding.registered_revision() ||
++            service.service_incarnation() != binding.service_incarnation()) {
++            impl_->participant.reset(); throw std::runtime_error("Retained participant identity differs from owned launch");
++        }
++        impl_->authenticated = service;
++    }
++    return update;
++}
++v1::AuthorityLaunchRecord AuthorityLaunch::authorize(const v1::AuthorityLaunchAuthorize& request) {
++    impl_->prepared_participant(); validate_message(request);
++    require(impl_->participant && !impl_->participant->failed() && impl_->authenticated &&
++        !impl_->record.has_authorization(), "No unapproved retained participant connection");
++    require(std::filesystem::path(request.issuer_client_config()).is_absolute() &&
++        std::filesystem::path(request.private_key_path()).is_absolute() && request.supervision_revision() > 0 &&
++        request.supervision_revision() <= INT64_MAX && request.has_previous_generation() &&
++        request.previous_generation() <= INT64_MAX, "Invalid supervisor approval configuration");
++    auto key = identity::KeyPair::load(request.private_key_path());
++    identity::IssuerClient client(request.issuer_client_config());
++    identity::v1::IssuerRequest begin; begin.set_protocol_version(1);
++    auto* approval = begin.mutable_authority_launch_begin();
++    *approval->mutable_service() = *impl_->authenticated;
++    approval->set_launch_id(impl_->record.process().launch_id());
++    approval->set_supervision_revision(request.supervision_revision());
++    approval->set_previous_generation(request.previous_generation());
++    auto result = client.call(std::move(begin));
++    require(result.has_challenge(), "Issuer rejected supervisor approval challenge");
++    identity::v1::IssuerRequest complete; complete.set_protocol_version(1);
++    auto* proof = complete.mutable_authority_launch_complete();
++    proof->set_nonce(result.challenge().nonce());
++    *proof->mutable_proof() = key.sign(result.challenge().signing_request());
++    result = client.call(std::move(complete));
++    require(result.has_authority_launch_authorization() && result.authority_launch_authorization().generation() == 0,
++        "Issuer did not approve the retained participant connection");
++    require(!impl_->participant->failed(), "Participant failed during supervisor approval");
++    auto next = impl_->record; *next.mutable_authorization() = result.authority_launch_authorization();
++    impl_->persist(next); // The remote approval alone never releases child execution.
++    return impl_->record;
++}
++void AuthorityLaunch::submit_participant(identity::v1::ParticipantCommand command) {
++    require(impl_->record.stage() == v1::START_ATTEMPTED && impl_->record.has_authorization() &&
++        impl_->participant && !impl_->participant->failed() && !impl_->stopping && impl_->started,
++        "Participant commands require a started owned supervised launch");
++    const auto process = impl_->process->state();
++    require(process.populated() && !process.direct_child_exited(), "Authority child is no longer running");
++    impl_->participant->submit(std::move(command));
++}
+ AuthorityLaunch::~AuthorityLaunch() {
+     // Destructors still stop owned effects. Only a successful explicit stop persists receipts.
+     // Preserve the record on partial preparation or any journal/cleanup failure.
++    impl_->participant.reset();
+     impl_->process.reset();
+     impl_->native.reset();
+ }
+--- a/src/supervisor/launch.hpp
++++ b/src/supervisor/launch.hpp
+@@ -3,6 +3,7 @@
+ #include <array>
+ #include <filesystem>
+ #include <memory>
++#include <optional>
+ #include <vector>
+ 
+ namespace spatial::supervisor {
+@@ -18,6 +19,11 @@
+         const v1::AuthorityLaunchBinding& binding, int sealed_native_config);
+     v1::AuthorityLaunchRecord start(const v1::AuthorityProcessLaunch& launch,
+         const std::array<int, 3>& streams, const std::vector<int>& inherited = {});
++    // The coordinator retains the real service connection; callers cannot supply its identity.
++    void attach(const v1::AuthorityParticipantAttach& request);
++    std::optional<identity::v1::ParticipantUpdate> poll_participant();
++    v1::AuthorityLaunchRecord authorize(const v1::AuthorityLaunchAuthorize& request);
++    void submit_participant(identity::v1::ParticipantCommand command);
+     v1::AuthorityLaunchRecord inspect() const;
+     v1::AuthorityLaunchRecord stop();
+ private:
+--- a/src/testing/authority_launch_probe.cpp
++++ b/src/testing/authority_launch_probe.cpp
+@@ -24,6 +24,15 @@
+                 if (request.protocol_version() != 1) throw std::runtime_error("Unsupported launch version");
+                 if (request.has_prepare()) *reply.mutable_view() = launch.prepare(argv[2], request.prepare(), config);
+                 else if (request.has_start()) *reply.mutable_view()->mutable_record() = launch.start(request.start(), {empty,empty,empty});
++                else if (request.has_attach()) { launch.attach(request.attach()); *reply.mutable_view()->mutable_record() = launch.inspect(); }
++                else if (request.has_participant_poll()) {
++                    if (auto update = launch.poll_participant()) *reply.mutable_participant_update() = *update;
++                    else *reply.mutable_view()->mutable_record() = launch.inspect();
++                }
++                else if (request.has_authorize()) *reply.mutable_view()->mutable_record() = launch.authorize(request.authorize());
++                else if (request.has_participant_command()) {
++                    launch.submit_participant(request.participant_command()); *reply.mutable_view()->mutable_record() = launch.inspect();
++                }
+                 else if (request.has_inspect()) *reply.mutable_view()->mutable_record() = launch.inspect();
+                 else if (request.has_stop()) *reply.mutable_view()->mutable_record() = launch.stop();
+                 else throw std::runtime_error("Unknown launch operation");
+--- a/tests/native/test_authority_owned_participant.py
++++ b/tests/native/test_authority_owned_participant.py
+@@ -1,5 +1,6 @@
+ """Owned process execution requires approval of the coordinator's actual participant connection."""
+ import os
++import sqlite3
+ from pathlib import Path
+ import sys
+ import time
+@@ -10,6 +11,7 @@
+ import test_supervisor_registry as registry
+ import issuer_pb2 as identity
+ import launch_pb2 as pb
++import process_scope_pb2 as process_pb
+ 
+ class OwnedParticipantTests(existing.AuthorityLaunchTests):
+     def setUp(self):
+@@ -65,6 +67,119 @@
+         batch=self.update(proc,'revocations').revocations;self.assertTrue(batch.initial)
+         self.stopped(proc)
+ 
++    def connected(self):
++        proc=self.probe();view=self.prepared(proc)
++        self.assertTrue(self.attach(proc).HasField('view'))
++        auth=self.update(proc,'authenticated').authenticated
++        batch=self.update(proc,'revocations').revocations
++        return proc,view,auth,batch
++
++    def authorize(self,proc,**changes):
++        request=pb.AuthorityLaunchAuthorize(issuer_client_config=str(self.issuer.config_file()),
++            private_key_path=str(self.issuer.supervisor_key),supervision_revision=1,previous_generation=0)
++        for n,v in changes.items():setattr(request,n,v)
++        return self.call(proc,authorize=request)
++
++    def activation_rows(self):
++        return self.issuer.snapshot_all()['authority_activation']
++
++    def activate(self,proc,revision=0):
++        return self.call(proc,participant_command=identity.ParticipantCommand(request_id=71,
++            activate=identity.AuthorityActivate(synchronized_revision=revision)))
++
++    def test_child_observes_durable_exact_approval_and_retained_connection_activates(self):
++        proc,view,auth,batch=self.connected();approved=self.authorize(proc)
++        self.assertTrue(approved.HasField('view'),approved);record=approved.view.record
++        self.assertEqual(record,self.read_record());self.assertEqual(record.schema_version,2)
++        self.assertEqual(record.authorization.request.service,auth)
++        self.assertEqual(record.authorization.request.launch_id,view.record.process.launch_id)
++        self.assertEqual(record.authorization.supervisor_public_key,self.issuer.supervisor_public)
++        self.assertEqual(record.authorization.generation,0)
++        for private in [str(self.issuer.supervisor_key).encode(),self.issuer.supervisor_key.read_bytes()]:
++            self.assertNotIn(private,record.SerializeToString())
++        observed=self.root/'approved-execution'
++        code=('import pathlib,sqlite3,time\n'
++            f'db=sqlite3.connect("file:"+{str(self.journal/"launch.db")!r}+"?mode=ro",uri=True)\n'
++            'data=db.execute("SELECT record FROM launch WHERE singleton=1").fetchone()[0]\n'
++            f'p=pathlib.Path({str(observed)!r});t=p.with_suffix(".tmp");t.write_bytes(data);t.replace(p);time.sleep(30)')
++        started=self.run_child(proc,code);self.assertTrue(started.HasField('view'),started);self.wait_file(observed)
++        actual=pb.AuthorityLaunchRecord.FromString(observed.read_bytes());self.assertEqual(actual,started.view.record)
++        self.assertEqual(actual.authorization,record.authorization)
++        self.assertTrue(self.activate(proc,batch.through_revision).HasField('view'))
++        active=self.update(proc,'activated').activated
++        self.assertEqual(active.generation,1);self.assertEqual(active.service_incarnation,self.binding.service_incarnation)
++        self.assertEqual(len(self.activation_rows()),1)
++        reply=self.call(proc,participant_command=identity.ParticipantCommand(request_id=72,
++            release=identity.AuthorityRelease(generation=1,applied_revision=batch.through_revision)))
++        self.assertTrue(reply.HasField('view'));self.assertTrue(self.update(proc,'released').HasField('released'))
++        self.stopped(proc)
++
++    def test_identity_mismatch_is_rejected_before_attaching_a_worker(self):
++        proc=self.probe();view=self.prepared(proc)
++        for changes in [dict(participant_id=b'x'*32),dict(registered_revision=2),dict(service_incarnation=b'x'*32)]:
++            reply=self.attach(proc,**changes);self.assertTrue(reply.HasField('error'),reply)
++            self.assertIn('differs from owned launch',reply.error.message)
++            self.assertEqual(self.read_record(),view.record)
++        self.assertTrue(self.attach(proc).HasField('view'))
++        self.update(proc,'authenticated');self.update(proc,'revocations');self.stopped(proc)
++
++    def test_wrong_supervisor_keys_cannot_approve_or_start_the_owned_launch(self):
++        proc,view,_,_=self.connected()
++        for key in [self.issuer.signer,self.issuer.owner]:
++            self.assertTrue(self.authorize(proc,private_key_path=str(key)).HasField('error'))
++            self.assertEqual(self.read_record(),view.record)
++            self.assertTrue(self.run_child(proc,'raise SystemExit(0)').HasField('error'))
++        self.assertEqual(self.issuer.snapshot_all()['authority_launch_authorization'],[])
++        self.stopped(proc)
++
++    def test_remote_approval_without_journal_commit_cannot_execute_and_exact_retry_recovers(self):
++        proc,view,_,_=self.connected()
++        with sqlite3.connect(self.journal/'launch.db') as db:
++            db.execute("CREATE TRIGGER deny_approval BEFORE UPDATE ON launch BEGIN SELECT RAISE(ABORT,'approval fault'); END")
++        reply=self.authorize(proc);self.assertTrue(reply.HasField('error'),reply)
++        self.assertEqual(self.read_record(),view.record)
++        rows=self.issuer.snapshot_all()['authority_launch_authorization'];self.assertEqual(len(rows),1)
++        self.assertTrue(self.run_child(proc,'raise SystemExit(0)').HasField('error'))
++        with sqlite3.connect(self.journal/'launch.db') as db:db.execute('DROP TRIGGER deny_approval')
++        reply=self.authorize(proc);self.assertTrue(reply.HasField('view'),reply)
++        self.assertEqual(self.issuer.snapshot_all()['authority_launch_authorization'],rows)
++        self.stopped(proc)
++
++    def test_activation_cannot_precede_the_owned_child_start(self):
++        proc,_,_,_=self.connected();self.assertTrue(self.authorize(proc).HasField('view'))
++        self.assertTrue(self.activate(proc).HasField('error'));self.assertEqual(self.activation_rows(),[])
++        self.stopped(proc)
++
++    def test_failed_exec_cannot_activate_a_generation(self):
++        proc,_,_,_=self.connected();self.assertTrue(self.authorize(proc).HasField('view'))
++        reply=self.call(proc,start=process_pb.AuthorityProcessLaunch(executable='/nonexistent-spatial-authority'))
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertEqual(self.read_record().stage,pb.START_ATTEMPTED)
++        self.assertTrue(self.activate(proc).HasField('error'));self.assertEqual(self.activation_rows(),[])
++        self.stopped(proc)
++
++    def test_worker_failure_blocks_execution_after_approval(self):
++        proc,_,_,_=self.connected();self.assertTrue(self.authorize(proc).HasField('view'))
++        self.issuer.stop_daemons();self.update(proc,'error')
++        self.assertTrue(self.run_child(proc,'raise SystemExit(0)').HasField('error'))
++        self.assertEqual(self.activation_rows(),[]);self.stopped(proc)
++
++    def test_restart_does_not_reconstruct_approved_live_ownership(self):
++        proc,_,_,_=self.connected();reply=self.authorize(proc);self.assertTrue(reply.HasField('view'),reply)
++        record=reply.view.record;proc.stdin.close();self.assertEqual(proc.wait(timeout=5),0)
++        other=self.probe(start_server=False)
++        self.assertEqual(self.call(other,inspect=pb.AuthorityLaunchQuery()).view.record,record)
++        self.assertTrue(self.run_child(other,'raise SystemExit(0)').HasField('error'))
++        self.assertTrue(self.attach(other).HasField('error'))
++        self.assertTrue(self.activate(other).HasField('error'));self.assertEqual(self.activation_rows(),[])
++
++    def test_cleanup_does_not_retire_an_activated_issuer_generation(self):
++        proc,_,_,batch=self.connected();self.assertTrue(self.authorize(proc).HasField('view'))
++        self.assertTrue(self.run_child(proc,'import time;time.sleep(30)').HasField('view'))
++        self.assertTrue(self.activate(proc,batch.through_revision).HasField('view'));self.update(proc,'activated')
++        before=self.activation_rows();self.stopped(proc);self.assertEqual(self.activation_rows(),before)
++        self.assertTrue(self.activate(proc).HasField('error'))
++
+ if __name__=='__main__':
+     suite=unittest.TestSuite(OwnedParticipantTests(n) for n in OwnedParticipantTests.__dict__ if n.startswith('test_'))
+     raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

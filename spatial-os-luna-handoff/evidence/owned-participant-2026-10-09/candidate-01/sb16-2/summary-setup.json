@@ -1,0 +1,42 @@
+{
+  "host": "sb16-2",
+  "candidate": 1,
+  "source_files": 274,
+  "locked_files": 41,
+  "integrated": false,
+  "mode": "setup",
+  "debug": {
+    "passed_checks": 328,
+    "passed_suites": 20,
+    "failed_setup_suites": [
+      "authority-native-scope"
+    ],
+    "unrun_checks": 11,
+    "harness_checks": 51
+  },
+  "schema": {
+    "existing_descriptors_unchanged": true,
+    "added_messages": [
+      "AuthorityLaunchAuthorize",
+      "AuthorityParticipantAttach"
+    ],
+    "added_fields": {
+      "AuthorityLaunchBinding": {
+        "supervised": 5
+      },
+      "AuthorityLaunchRecord": {
+        "authorization": 9
+      },
+      "AuthorityLaunchRequest": {
+        "attach": 14,
+        "participant_poll": 15,
+        "authorize": 16,
+        "participant_command": 17
+      },
+      "AuthorityLaunchReply": {
+        "participant_update": 12
+      }
+    },
+    "record_version": "New supervised records use2; existing unsupervised records stay1; SQLite container stays1."
+  }
+}

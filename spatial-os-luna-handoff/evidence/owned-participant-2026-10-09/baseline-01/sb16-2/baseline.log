@@ -1,0 +1,94 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 4
+    Start 4: authority-owned-participant
+
+4: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-owned-participant-bfd62b4edd8f78bbfbfd74ff0515596c49bb687734475fd43c813f0a1d762ff9" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/server" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/source/tests/native/test_authority_owned_participant.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/spatial-issuer-client"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build
+4: Test timeout computed to be: 120
+4: Running as unit: spatial-owned-participant-bfd62b4edd8f78bbfbfd74ff0515596c49bb687734475fd43c813f0a1d762ff9.service; invocation ID: 0229a60c56314f0d81306fe6b4dc7d52
+4: test_supervised_child_cannot_execute_without_durable_authorization (__main__.OwnedParticipantTests.test_supervised_child_cannot_execute_without_durable_authorization) ... FAIL
+4: test_coordinator_owns_real_authenticated_participant_connection (__main__.OwnedParticipantTests.test_coordinator_owns_real_authenticated_participant_connection) ... FAIL
+4: 
+4: ======================================================================
+4: FAIL: test_supervised_child_cannot_execute_without_durable_authorization (__main__.OwnedParticipantTests.test_supervised_child_cannot_execute_without_durable_authorization)
+4: ----------------------------------------------------------------------
+4: Traceback (most recent call last):
+4:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/source/tests/native/test_authority_owned_participant.py", line 52, in test_supervised_child_cannot_execute_without_durable_authorization
+4:     self.assertTrue(reply.HasField('error'),reply)
+4: AssertionError: False is not true : protocol_version: 1
+4: request_id: 55
+4: view {
+4:   record {
+4:     schema_version: 1
+4:     revision: 3
+4:     binding {
+4:       issuer_id: "\321\r\222\025t<qp\355\357?\211\303\231xyOf\260&k\237\254[5\346\235\255\370\2030\275"
+4:       participant_id: "pppppppppppppppppppppppppppppppp"
+4:       registered_revision: 1
+4:       service_incarnation: "\006n*\020\201=\036\220p\361\027\346\356\341\235k,\304\203S\231M8{\010\036\335\036L;\316\023"
+4:       supervised: true
+4:     }
+4:     process {
+4:       launch_id: "\010\207HPw\353\025\034\370\301\271\225\346m\020\034\356\017\263\214\326\271\213J\026`PS$\225\227\336"
+4:       scope_name: "authority-0887485077eb151cf8c1b995e66d101cee0fb38cd6b98b4a16605053249597de"
+4:       boot_id: "82b6b2cf-0183-4174-b69a-b86592a6bfba"
+4:       device: 31
+4:       inode: 165050
+4:     }
+4:     native {
+4:       launch_id: "\010\207HPw\353\025\034\370\301\271\225\346m\020\034\356\017\263\214\326\271\213J\026`PS$\225\227\336"
+4:       server_id: "\315\315V\365\323\200\260\014\2128\366EP\262c\241\243\3656\327\251~\313\331(U/\210\210\377\000\224"
+4:       credential_id: "\020S\364\312MZ\211\252\034P@5\254a<`\221\3209ka\031\301\255\247\217~\317\205\337\026\211"
+4:       role: BROKER
+4:     }
+4:     stage: START_ATTEMPTED
+4:   }
+4: }
+4: 
+4: 
+4: ======================================================================
+4: FAIL: test_coordinator_owns_real_authenticated_participant_connection (__main__.OwnedParticipantTests.test_coordinator_owns_real_authenticated_participant_connection)
+4: ----------------------------------------------------------------------
+4: Traceback (most recent call last):
+4:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/source/tests/native/test_authority_owned_participant.py", line 59, in test_coordinator_owns_real_authenticated_participant_connection
+4:     reply=self.attach(proc);self.assertTrue(reply.HasField('view'),reply)
+4:                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4: AssertionError: False is not true : protocol_version: 1
+4: request_id: 55
+4: error {
+4:   message: "Unknown launch operation"
+4: }
+4: 
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 2 tests in 0.839s
+4: 
+4: FAILED (failures=2)
+4: Finished with result: exit-code
+4: Main processes terminated with: code=exited/status=1
+4: Service runtime: 1.029s
+4: CPU time consumed: 613ms
+4: Memory peak: 1.5M
+4: Memory swap peak: 0B
+1/1 Test #4: authority-owned-participant ......***Failed    1.05 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   1.06 sec
+
+The following tests FAILED:
+	  4 - authority-owned-participant (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-baseline-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

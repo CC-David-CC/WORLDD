@@ -1,5 +1,5 @@
 Durable authority launch ownership
-Status: isolated candidate03. Full qualification is running. Source is not integrated.
+Status: isolated candidate03 passed full qualification on both hosts. Source is not integrated.
 
 Invariant
 

@@ -1,0 +1,167 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -32,6 +32,9 @@
+     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/launch.proto
+     DEPENDS proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
+         proto/spatial/supervisor/v1/native_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+@@ -154,7 +157,7 @@
+ target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope SQLite::SQLite3)
+ add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
+ target_link_libraries(spatial-authority-launch-probe PRIVATE spatial-authority-launch)
+-add_dependencies(spatial-authority-launch-probe launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf)
++add_dependencies(spatial-authority-launch-probe launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
+ add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
+ target_link_libraries(spatial-process-scope-probe PRIVATE spatial-process-scope)
+ add_dependencies(spatial-process-scope-probe scope-python-protobuf python-protobuf security-python-protobuf)
+@@ -228,6 +231,17 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(workspace-bootstrap-owner-idle PROPERTIES TIMEOUT 60
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME authority-owned-participant COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-owned-participant-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_owned_participant.py"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(authority-owned-participant PROPERTIES TIMEOUT 120)
+     add_test(NAME authority-launch-coordinator COMMAND systemd-run --user --wait --pipe --collect
+         --unit=spatial-coordinator-${build_hash} --property=Delegate=yes
+         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -2,6 +2,8 @@
+ package spatial.supervisor.v1;
+ import "process_scope.proto";
+ import "native_scope.proto";
++import "issuer.proto";
++import "grants.proto";
+ 
+ // Private supervisor context. Recording this does not authorize issuer activation.
+ message AuthorityLaunchBinding {
+@@ -9,6 +11,7 @@
+   bytes participant_id = 2;
+   uint64 registered_revision = 3;
+   bytes service_incarnation = 4;
++  bool supervised = 5;
+ }
+ enum AuthorityLaunchStage {
+   LAUNCH_STAGE_UNSPECIFIED = 0;
+@@ -28,6 +31,17 @@
+   AuthorityLaunchStage stage = 6;
+   ProcessScopeStopped process_stopped = 7;
+   NativeScopeStopped native_stopped = 8;
++  spatial.identity.v1.AuthorityLaunchAuthorization authorization = 9;
++}
++message AuthorityParticipantAttach {
++  string runtime_config = 1;
++  repeated spatial.authority.v1.Domain domains = 2;
++}
++message AuthorityLaunchAuthorize {
++  string issuer_client_config = 1;
++  string private_key_path = 2;
++  uint64 supervision_revision = 3;
++  optional uint64 previous_generation = 4;
+ }
+ message AuthorityLaunchQuery {}
+ message AuthorityLaunchRequest {
+@@ -38,6 +52,10 @@
+     AuthorityProcessLaunch start = 11;
+     AuthorityLaunchQuery inspect = 12;
+     AuthorityLaunchQuery stop = 13;
++    AuthorityParticipantAttach attach = 14;
++    AuthorityLaunchQuery participant_poll = 15;
++    AuthorityLaunchAuthorize authorize = 16;
++    spatial.identity.v1.ParticipantCommand participant_command = 17;
+   }
+ }
+ message AuthorityLaunchView {
+@@ -51,5 +69,6 @@
+   oneof outcome {
+     AuthorityLaunchView view = 10;
+     AuthorityLaunchError error = 11;
++    spatial.identity.v1.ParticipantUpdate participant_update = 12;
+   }
+ }
+--- /dev/null
++++ b/tests/native/test_authority_owned_participant.py
+@@ -0,0 +1,70 @@
++"""Owned process execution requires approval of the coordinator's actual participant connection."""
++import os
++from pathlib import Path
++import sys
++import time
++import unittest
++from google.protobuf import text_format
++sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'core'))
++import test_authority_launch as existing
++import test_supervisor_registry as registry
++import issuer_pb2 as identity
++import launch_pb2 as pb
++
++class OwnedParticipantTests(existing.AuthorityLaunchTests):
++    def setUp(self):
++        super().setUp()
++        self.issuer=registry.SupervisorRegistryTests('runTest')
++        def cleanup_issuer():
++            self.issuer.tearDown()
++            self.assertTrue(self.issuer.doCleanups(),'Issuer fixture cleanup failed')
++        self.addCleanup(cleanup_issuer);self.issuer.setUp()
++        self.assertTrue(self.issuer.bind().HasField('supervision'))
++        self.binding.CopyFrom(pb.AuthorityLaunchBinding(issuer_id=self.issuer.info.issuer_id,
++            participant_id=self.issuer.registration.participant.id,registered_revision=1,
++            service_incarnation=os.urandom(32),supervised=True))
++
++    def runtime_config(self,**changes):
++        config=identity.AuthorityParticipantRuntimeConfig(protocol_version=1,
++            issuer_client_config=str(self.issuer.config_file()),private_key_path=str(self.issuer.signer),
++            participant_id=self.binding.participant_id,registered_revision=1,
++            service_incarnation=self.binding.service_incarnation)
++        for n,v in changes.items():setattr(config,n,v)
++        path=self.root/('runtime-'+str(time.monotonic_ns())+'.textproto')
++        path.write_text(text_format.MessageToString(config));path.chmod(0o600);return path
++
++    def attach(self,proc,**changes):
++        return self.call(proc,attach=pb.AuthorityParticipantAttach(runtime_config=str(self.runtime_config(**changes)),
++            domains=self.issuer.registration.participant.domains))
++
++    def update(self,proc,field):
++        deadline=time.monotonic()+5
++        while True:
++            reply=self.call(proc,participant_poll=pb.AuthorityLaunchQuery())
++            self.assertFalse(reply.HasField('error'),reply)
++            if reply.HasField('participant_update'):
++                self.assertTrue(reply.participant_update.HasField(field),reply);return reply.participant_update
++            self.assertLess(time.monotonic(),deadline,'Owned participant update deadline');time.sleep(.005)
++
++    def test_supervised_child_cannot_execute_without_durable_authorization(self):
++        proc=self.probe();view=self.prepared(proc);observed=self.root/'unauthorized-execution'
++        reply=self.run_child(proc,f'import pathlib;pathlib.Path({str(observed)!r}).touch()')
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertFalse(observed.exists());self.assertEqual(self.read_record(),view.record)
++        self.assertEqual((self.cgroup/view.record.process.scope_name/'cgroup.procs').read_text(),'')
++        self.stopped(proc)
++
++    def test_coordinator_owns_real_authenticated_participant_connection(self):
++        proc=self.probe();self.prepared(proc)
++        reply=self.attach(proc);self.assertTrue(reply.HasField('view'),reply)
++        auth=self.update(proc,'authenticated').authenticated
++        self.assertEqual(auth.registration,self.issuer.registration)
++        self.assertEqual(auth.service_incarnation,self.binding.service_incarnation)
++        self.assertEqual(auth.issuer_id,self.binding.issuer_id)
++        self.assertEqual(len(auth.connection_binding),32)
++        batch=self.update(proc,'revocations').revocations;self.assertTrue(batch.initial)
++        self.stopped(proc)
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(OwnedParticipantTests(n) for n in OwnedParticipantTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())
