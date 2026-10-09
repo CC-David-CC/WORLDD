@@ -1,5 +1,5 @@
 Supervisor participant relay
-Status: isolated candidate01 implemented. Both-host qualification is running.
+Status: isolated candidate01 passed focused Debug on both hosts. Sanitizer qualification is running.
 
 Invariant
 
@@ -60,3 +60,8 @@ Keep the existing direct runtime and launch tests unchanged.
 Run Debug and runtime ASan/UBSan on both hosts before integration.
 
 This primitive does not complete worldd or workspaced wiring, supervisor recovery, or M02.
+
+Both hosts passed 366 focused Debug checks across 23 suites and 51 harness checks.
+All ten new relay tests passed. No Debug case failed or skipped.
+Existing protobuf declarations and 41 locked files remain unchanged.
+Full cumulative scripts reuse the frozen builds and do not repeat completed focused tests.

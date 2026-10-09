@@ -19,7 +19,9 @@ A forwarded stale revision remains unchanged for the real issuer to reject.
 Parent receipt and child delivery do not acknowledge completed revocation effects.
 
 Relay candidate01 contains 277 files and ten new tests.
-Its Debug builds are running on both hosts. No relay qualification result is claimed yet.
+Both hosts passed 366 focused Debug checks across 23 suites and 51 harness checks.
+No Debug case failed or skipped. Runtime sanitizer qualification is active.
+Descriptor review confirms additive protobuf changes. Full cumulative continuation is prepared but has not started.
 All previous test files and 41 locked files remain unchanged.
 Read docs/AUTHORITY_PARTICIPANT_RELAY.txt and evidence/participant-relay-2026-10-09.
 

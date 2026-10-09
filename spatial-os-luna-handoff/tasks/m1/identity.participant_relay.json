@@ -13,5 +13,7 @@
     "Complete both-host focused and cumulative qualification.",
     "Wire worldd and workspaced.",
     "Implement fencing and checked recovery."
-  ]
+  ],
+  "Debug": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips.",
+  "next": "Finish runtime sanitizers, then run the prepared cumulative continuation. Wire the production supervisor event loop to worldd and workspaced."
 }

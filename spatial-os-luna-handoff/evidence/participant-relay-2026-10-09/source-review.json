@@ -17,7 +17,7 @@
     "Clean release drains its reply before endpoint closure."
   ],
   "baseline": "Both hosts reject prepare_channel with Unknown launch operation;51harness passed.",
-  "qualification": "Candidate01 builds are running on both hosts. Ten new checks and all prior focused checks are pending.",
+  "qualification": "Both hosts passed 366 focused Debug checks across 23 suites and 51 harness checks. No failures or skips. Runtime sanitizer qualification remains active.",
   "remaining": [
     "Complete Debug/runtime sanitizer qualification and cumulative gate.",
     "Wire worldd and workspaced through the supervisor event loop.",
