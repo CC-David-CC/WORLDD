@@ -11,6 +11,7 @@ import tempfile
 import time
 import unittest
 import security_pb2 as pb
+from display_ready import read_display_notice
 
 PROBE = Path(sys.argv.pop(1)).resolve()
 AUTH = b'MIT-MAGIC-COOKIE-1'
@@ -135,12 +136,11 @@ class SecurityIdentityTests(unittest.TestCase):
             if expect_ready: self.assertIn(proc.returncode,(0,-15),diagnostics)
         self.addCleanup(close)
         try:
-            ready = select.select([incoming],[],[],5)[0]
-            data = os.read(incoming,64) if ready else b''
+            data = read_display_notice(incoming)
         finally: os.close(incoming)
         if not expect_ready:
             self.assertFalse(data); self.assertNotEqual(proc.wait(timeout=3),0); return
-        self.assertTrue(data.strip().isdigit(),self.log_path.read_text(errors='replace'))
+        self.assertTrue(data.endswith(b'\n') and data[:-1].isdigit(),self.log_path.read_text(errors='replace'))
         self.display = int(data); self.server = proc
         self.supervisor = self.connect(self.cookie)
         return self.supervisor

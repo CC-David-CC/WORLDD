@@ -161,6 +161,9 @@ add_dependencies(spatial-test-host worldd workspaced)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_test(NAME native-display-ready COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_display_ready.py")
+    set_tests_properties(native-display-ready PROPERTIES TIMEOUT 10)
     add_executable(spatial-render-observation-probe src/testing/render_observation_probe.cpp)
     target_link_libraries(spatial-render-observation-probe PRIVATE spatial-core)
     add_test(NAME render-observation-client COMMAND "${Python3_EXECUTABLE}"
