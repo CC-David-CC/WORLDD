@@ -1,0 +1,9 @@
+{
+  "host": "sb16-2",
+  "head": "bae095e35193c5bb0d1d7cdc4daa0dabdb143e58",
+  "preserved_stash": "a2df3d5ff5538c59ac8afb6cb872b2413e69c097",
+  "source_files": 455,
+  "mismatches": [],
+  "status": "clean",
+  "transport": "Verified Git bundle over controller SSH; direct box-git host-key verification failed."
+}

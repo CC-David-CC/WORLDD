@@ -1,0 +1,25 @@
+World application control integration
+
+Implementation commit: bae095e35193c5bb0d1d7cdc4daa0dabdb143e58
+The controller pushed this commit to origin/main on box-git.
+Both Linux hosts then fast-forwarded to that exact commit.
+Both working trees were clean after integration.
+All 455 recorded source and documentation hashes matched on both hosts.
+Each host preserved its tested draft in stash a2df3d5ff5538c59ac8afb6cb872b2413e69c097.
+The preceding stash was also retained. No history was discarded or force-pushed.
+
+Direct host pulls failed with: Host key verification failed.
+Their tested drafts had already been preserved before that failure.
+No host-key check was disabled and no credential was copied.
+The controller created a verified Git bundle from cd651f5e76e01296b813335914990794e500efd8 to the implementation commit.
+It transferred the bundle over each host's existing SSH connection.
+Each host fetched the bundle and used git merge --ff-only FETCH_HEAD.
+Each host then verified the committed source manifest and clean worktree.
+The per-host integration.json files record those checks.
+
+The controller's normal box-git push path works.
+Direct Linux-host access to box-git remains unverified after the host-key failure.
+Before using that path, establish its server key from a trusted source and verify repository authentication.
+The verified controller-and-bundle path allows project work to continue.
+
+This receipt records source integration. It does not claim a new native-session or hardware qualification.
