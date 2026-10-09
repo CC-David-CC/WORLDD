@@ -147,3 +147,15 @@ The sb16 native-control failure remains unexplained after twenty passing candida
 The sb16-2 bootstrap failure is reproducible after owner TLS idle expiry. A fresh connection before the challenge passes.
 The diagnostic correction is not yet in the maintained fixture. All raw failures are in evidence/participant-sanitizer-failures-2026-10-09.
 No operator display restart or production database migration occurred. M02 and M1 remain incomplete.
+
+2026-10-09: Read freshness and native denial fixture corrections
+Candidate06 passed full Debug and sanitizer qualification on sb16. sb16-2 failed one native-launch closure race.
+The native race is now reproduced in both profiles on both hosts. Only explicit protocol denial counts as success after retry.
+A separate world defect disabled unrelated actors when a delayed read was overtaken by a revocation event.
+Both new baseline cases failed on both hosts in both profiles. Candidate08 fixes that path without replaying an action.
+Both hosts passed111 related Debug checks and43 native Debug checks. Sanitizer qualification continues.
+The bootstrap owner-idle fixture correction is implemented in the isolated candidate.
+Candidate09 has255 files and remains unintegrated. Details: spatial-os-luna-handoff/evidence/m02-corrections-2026-10-09.
+The historical native-control failure is still not causally explained by the new defect. Keep its original evidence.
+
+2026-10-09: Candidate08 world111 and candidate09 native43 checks passed Debug and runtime ASan/UBSan on both hosts. Final evidence: spatial-os-luna-handoff/evidence/m02-corrections-2026-10-09. Candidate09 full qualification is running on both hosts in output10. No production source is integrated.

@@ -1,0 +1,61 @@
+{
+  "host": "sb16-2",
+  "candidate": 8,
+  "source_files": 255,
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-world-freshness-02/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-world-freshness-02/runtime-sanitize/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DSPATIAL_SANITIZERS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-world-freshness-02/runtime-sanitize/build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "harness",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/harness",
+        "-t",
+        ".",
+        "-q"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "freshness",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-world-freshness-02/runtime-sanitize/build",
+        "-V",
+        "-R",
+        "^(world-revision-interleave|workspace-bootstrap-owner-idle|world-bootstrap(-races)?|workspace-bootstrap(-races)?|world-authority|world-identity|identity-participant-runtime|world-revocation-receipts)$"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

@@ -1,5 +1,33 @@
 # Implementation status
 
+## 2026-10-09: World revision ordering and native witness corrections pass both focused profiles
+
+An older status reply can arrive after a newer participant revocation event.
+Two counterexamples proved that candidate06 then disabled unrelated world actors.
+Both failed on both hosts in Debug and runtime ASan/UBSan.
+The isolated correction rejects the superseded read without applying it or disabling unaffected sessions.
+Replies older than the revision known before the query still disable the invalid context.
+No action is replayed automatically. Existing revocation cancellation remains active.
+
+Candidate08 passed 111 focused checks across ten suites and 51 harness checks in both profiles on each host.
+Those checks include both interleavings, two invalid-replay cases, and the corrected bootstrap owner-idle regression.
+Debug and runtime ASan/UBSan completed with no failures or skips.
+
+Candidate06 finished full qualification on sb16: 1232 core, 51 harness, and 151 P10 cases per profile passed.
+On sb16-2, one sanitizer native-launch method failed during X extension discovery after its connection closed.
+A controlled real-server witness reproduced that ordering on both hosts and both profiles.
+The corrected polling helper still requires explicit protocol denial after any transient connection closure.
+Candidate09 passed 21 native-launch and 22 native security-identity checks in both profiles on each host.
+Its production inputs match candidate08. Its complete combined matrix is running on both hosts in output10.
+The expected matrix contains 1239 core checks, 51 harness checks, and 151 P10 cases per profile.
+Those expected totals are not completed results.
+
+The maintained bootstrap fixture now opens a fresh owner connection before requesting a mutation challenge.
+Candidate07 passed 82 focused Debug checks on each host. Its full runs continue as intermediate evidence.
+The historical native-control failure remains unexplained; the new ordering defect is not claimed as its proven cause.
+See evidence/m02-corrections-2026-10-09 for reviewed patches, explicit fixture changes, original failures, and exact manifests.
+No candidate07-09 source is integrated. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Process scope focused checks pass; broader sanitizer failures retained
 
 The isolated supervisor process-scope candidate03 passed ten checks per profile on both hosts.

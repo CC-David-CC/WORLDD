@@ -1,0 +1,71 @@
+Primary review: bootstrap fixture, world read freshness, and native denial witness
+
+Candidate09 contains 255 files. Eight files differ from combined participant candidate06.
+The patch remains isolated. It is not integrated into main.
+No protobuf field, production transport, or locked acceptance file changed.
+
+Bootstrap owner connection
+
+The fixture used one owner TLS connection across workspace setup.
+The issuer correctly closes that connection after three idle seconds.
+The added regression exceeds the unchanged idle timeout and reuses every assertion in the real confined-file test.
+The baseline driver accidentally imported the original test class into unittest discovery.
+It ran twelve checks per profile: eleven existing checks passed and the added idle case failed.
+Those complete baseline logs remain preserved. They are not reported as one-test runs.
+The maintained regression imports the module and runs exactly its one added case.
+
+The fixture now closes its old owner connection and opens a fresh one before requesting the profile mutation challenge.
+It does not retry an uncertain mutation, reuse a challenge, relax proof checks, or increase a timeout.
+The original test method bodies remain unchanged for this correction.
+Candidate07 passed 82 focused Debug checks and 51 harness checks on both hosts.
+Its broader qualification continues as a historical intermediate candidate.
+
+World read freshness
+
+Two authenticated channels can deliver a read reply after a later revocation event.
+Candidate06 treated the older read as an invalid issuer context and disabled all world sessions.
+Two real-relay counterexamples failed on both hosts in Debug and runtime ASan/UBSan.
+They revoke a different credential while holding a genuine credential_check or actor_status reply.
+The unaffected actor cannot inspect its world afterward on the baseline.
+
+The correction captures the known revision before each status query.
+An identity mismatch or a revision below that starting value still disables the invalid context.
+A later feed event can instead supersede a valid in-flight read.
+That case returns UNAVAILABLE without applying the read or disconnecting unrelated actors.
+The caller must make a new explicit request. No action is automatically replayed.
+Affected actors remain cancelled by the event. No cancelled token or held input is restored.
+Multi-batch preparation discards the complete buffered snapshot if revisions differ.
+Authentication completion uses the same request-start floor.
+
+Four new checks cover the two valid interleavings and two forged older-than-query replies.
+All four pass in both profiles on both hosts, together with 107 related checks across ten suites in total.
+The primary review checked both current/prepare exception boundaries and the authentication-completion path.
+The patch adds bounded private failure-location and error-code logging. It logs no credentials or actor identifiers.
+The historical native-control failure remains unproven as an instance of this defect.
+Do not erase that failure or claim a causal diagnosis from similar symptoms.
+
+Native denial witness
+
+Candidate06 passed the complete Debug and sanitizer matrix on sb16.
+sb16-2 failed one sanitizer native-launch case with BrokenPipeError during extension discovery.
+The server can accept setup before process exit, then revoke the credential before QueryExtension.
+A controlled witness reproduces that exact ordering on both hosts and both profiles.
+The old polling behavior fails. Retrying until explicit setup denial passes in all four configurations.
+
+The maintained helper retries connection closure only within the original deadline.
+Only native.Denied is success. Connection loss, timeout, malformed replies, and missing extensions cannot pass.
+The X client now closes its socket when extension discovery raises, using its existing cleanup guard.
+Every setup, sequence, framing, and extension-presence assertion remains in force.
+Two original polling test bodies now call the same helper. The AST audit lists these two explicit changes.
+A new real-server timing case requires fresh denial after closure during discovery.
+A second new case requires the helper to fail while a genuine live credential remains valid.
+Both hosts passed all 21 native-launch and 22 native security-identity checks in Debug and runtime ASan/UBSan.
+Candidate09 uses candidate08 binaries for these tests. All production, schema, configuration, and CMake inputs are identical.
+
+Remaining qualification
+
+Candidate08's 111 focused checks and candidate09's 43 native checks passed both profiles on both hosts.
+All four configurations have zero failures and zero skips. The final summaries retain exact counts.
+The complete candidate09 matrix is running on both hosts in output10 before source integration.
+Retain all earlier failures and exact source manifests.
+Supervisor recovery, cross-host participant qualification, and the remaining Spatial-M1 requirements remain pending.

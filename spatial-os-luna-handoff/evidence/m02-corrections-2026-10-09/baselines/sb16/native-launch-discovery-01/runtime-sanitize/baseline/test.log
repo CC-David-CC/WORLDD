@@ -1,0 +1,26 @@
+test_revoke_after_setup_before_extension_discovery (__main__.DiscoveryRace.test_revoke_after_setup_before_extension_discovery) ... ERROR
+
+======================================================================
+ERROR: test_revoke_after_setup_before_extension_discovery (__main__.DiscoveryRace.test_revoke_after_setup_before_extension_discovery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-native-launch-discovery-01.py", line 28, in test_revoke_after_setup_before_extension_discovery
+    try:peer=native.NativeClient(self.display,bytes.fromhex(record['cookie']))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/native/test_security_identity.py", line 43, in __init__
+    header, _ = self.request(98,struct.pack(endian+'HH',len(name),0)+padded(name))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-native-launch-discovery-01.py", line 24, in request
+    return original(client,opcode,*args,**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/native/test_security_identity.py", line 63, in request
+    self.send(opcode,payload,minor); header = self.exact(32)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/native/test_security_identity.py", line 60, in send
+    self.stream.sendall(struct.pack(self.endian+'BBH',opcode,minor,1+len(data)//4)+data)
+BrokenPipeError: [Errno 32] Broken pipe
+
+----------------------------------------------------------------------
+Ran 1 test in 1.081s
+
+FAILED (errors=1)

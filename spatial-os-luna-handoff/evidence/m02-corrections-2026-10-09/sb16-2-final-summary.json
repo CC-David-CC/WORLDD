@@ -1,0 +1,37 @@
+{
+  "host": "sb16-2",
+  "mode": "final",
+  "integrated": false,
+  "debug_freshness": {
+    "checks": 111,
+    "suites": 10,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime-sanitize_freshness": {
+    "checks": 111,
+    "suites": 10,
+    "failed": 0,
+    "skipped": 0
+  },
+  "debug_native": {
+    "checks": 43,
+    "suites": 2,
+    "parts": [
+      21,
+      22
+    ],
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime-sanitize_native": {
+    "checks": 43,
+    "suites": 2,
+    "parts": [
+      21,
+      22
+    ],
+    "failed": 0,
+    "skipped": 0
+  }
+}

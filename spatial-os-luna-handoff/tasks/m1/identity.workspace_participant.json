@@ -4,8 +4,8 @@
   "status": "in_progress",
   "parent": "identity.revocation_barrier",
   "invariant": "Acknowledge issuer revocation only after broker process and control effects settle.",
-  "candidate": 6,
-  "source_files": 253,
+  "candidate": 9,
+  "source_files": 255,
   "integrated": false,
   "source": "local/participant-fixtures-draft-01",
   "contract": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt",
@@ -25,7 +25,7 @@
     "failed": 0,
     "skipped": 0
   },
-  "current_step": "combined_full_qualification_candidate06_output07",
+  "current_step": "candidate09_full_combined_qualification",
   "remaining": [
     "Complete full Debug and runtime sanitizer qualification on both hosts.",
     "Resolve any repeated startup failure using retained service diagnostics.",
@@ -103,5 +103,20 @@
     "harness_checks": 51,
     "failed": 0,
     "skipped": 0
+  },
+  "candidate09_focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "world_checks": 111,
+    "native_checks": 43,
+    "failed": 0,
+    "skipped": 0,
+    "integrated": false
   }
 }

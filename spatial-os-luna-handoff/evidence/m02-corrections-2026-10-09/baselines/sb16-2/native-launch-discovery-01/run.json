@@ -1,0 +1,50 @@
+{
+  "host": "sb16-2",
+  "candidate": 6,
+  "results": [
+    {
+      "profile": "debug",
+      "mode": "baseline",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-native-launch-discovery-01.py",
+        "debug",
+        "baseline"
+      ],
+      "exit_code": 1
+    },
+    {
+      "profile": "debug",
+      "mode": "retry",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-native-launch-discovery-01.py",
+        "debug",
+        "retry"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "runtime-sanitize",
+      "mode": "baseline",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-native-launch-discovery-01.py",
+        "runtime-sanitize",
+        "baseline"
+      ],
+      "exit_code": 1
+    },
+    {
+      "profile": "runtime-sanitize",
+      "mode": "retry",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-native-launch-discovery-01.py",
+        "runtime-sanitize",
+        "retry"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

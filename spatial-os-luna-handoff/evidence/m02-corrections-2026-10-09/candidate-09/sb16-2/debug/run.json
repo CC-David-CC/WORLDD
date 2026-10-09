@@ -1,0 +1,26 @@
+{
+  "host": "sb16-2",
+  "candidate": 9,
+  "binary_candidate": 8,
+  "production_inputs_identical": true,
+  "results": [
+    {
+      "suite": "test_native_launch",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-native-witness-02/source/tests/native/test_native_launch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-world-freshness-02/debug/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "suite": "test_security_identity",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-native-witness-02/source/tests/native/test_security_identity.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-world-freshness-02/debug/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

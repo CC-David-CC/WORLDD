@@ -1,0 +1,361 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -174,6 +174,16 @@
+ include(CTest)
+ if(BUILD_TESTING)
+     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
++    add_test(NAME world-revision-interleave COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_revision_interleave.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
++    set_tests_properties(world-revision-interleave PROPERTIES TIMEOUT 90
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME workspace-bootstrap-owner-idle COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_bootstrap_owner_idle.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
++    set_tests_properties(workspace-bootstrap-owner-idle PROPERTIES TIMEOUT 60
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_executable(spatial-process-termination-probe src/testing/process_termination_probe.cpp src/workspace/process.cpp src/workspace/native_launch.cpp)
+     target_link_libraries(spatial-process-termination-probe PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
+     add_dependencies(spatial-process-termination-probe spatial-app-init)
+--- a/src/identity/participant_runtime.cpp
++++ b/src/identity/participant_runtime.cpp
+@@ -7,6 +7,7 @@
+ #include <openssl/rand.h>
+ #include <algorithm>
+ #include <deque>
++#include <iostream>
+ #include <mutex>
+ #include <set>
+ #include <thread>
+@@ -34,6 +35,7 @@
+ 
+     void fail_locked(core::ErrorCode code, const std::string& message, std::uint64_t request = 0) {
+         if (broken) return;
++        std::cerr << "authority participant failed: code=" << static_cast<int>(code) << " request=" << request << '\n';
+         broken = true; commands.clear(); updates.clear(); pending.clear();
+         auto& update = updates.emplace_back(); update.set_protocol_version(1); update.set_request_id(request);
+         update.mutable_error()->set_code(code); update.mutable_error()->set_message(message);
+--- a/src/world/identity_sessions.cpp
++++ b/src/world/identity_sessions.cpp
+@@ -15,6 +15,8 @@
+ #include <cerrno>
+ #include <fcntl.h>
+ #include <poll.h>
++#include <iostream>
++#include <source_location>
+ #include <sstream>
+ #include <sys/socket.h>
+ #include <sys/un.h>
+@@ -25,6 +27,9 @@
+ namespace pb = identity::v1;
+ using Clock = std::chrono::steady_clock;
+ struct CancellationFailure : std::runtime_error { using std::runtime_error::runtime_error; };
++struct SupersededAuthorityRead : WorldError {
++    SupersededAuthorityRead() : WorldError(wire::UNAVAILABLE, "Authority read was superseded by a newer security revision") {}
++};
+ void require(bool condition, const char* message) { if (!condition) throw std::invalid_argument(message); }
+ std::string random_binding() {
+     std::string bytes(32, '\0');
+@@ -155,7 +160,8 @@
+             catch (const std::exception&) { throw CancellationFailure("Cannot confirm native actor cancellation"); }
+         }
+     }
+-    void fail() {
++    void fail(const std::source_location location = std::source_location::current()) {
++        if (!broken) std::cerr << "worldd: identity service disabled at identity_sessions.cpp:" << location.line() << '\n';
+         broken = true;
+         for (auto& channel : channels) disconnect(*channel);
+     }
+@@ -267,17 +273,19 @@
+         }
+         return reply;
+     }
+-    void identity_matches(const pb::IdentityStatus& status, const pb::ActorCredential& claims) {
++    void identity_matches(const pb::IdentityStatus& status, const pb::ActorCredential& claims, std::uint64_t request_revision) {
+         if (status.issuer_id() != issuer.issuer_id() || status.actor_id() != claims.actor_id() ||
+                 status.credential_id() != claims.credential_id() || status.kind() != claims.kind() || status.security_revision() > INT64_MAX ||
+-                status.security_revision() < observed_revision) {
++                status.security_revision() < request_revision) {
+             fail(); throw WorldError(wire::UNAVAILABLE, "Issuer returned inconsistent identity context");
+         }
++        if (status.security_revision() < observed_revision) throw SupersededAuthorityRead();
+         observed_revision = std::max(observed_revision, status.security_revision());
+     }
+     pb::IdentityStatus current(pb::SignedCredential credential, pb::ActorCredential claims) {
+         pb::IssuerRequest request; *request.mutable_credential_check() = credential;
+-        const auto status = exchange(std::move(request)).identity_status(); identity_matches(status, claims);
++        const auto request_revision = observed_revision;
++        const auto status = exchange(std::move(request)).identity_status(); identity_matches(status, claims, request_revision);
+         if (!status.active() || status.actor_revoked() || status.credential_revoked())
+             throw WorldError(wire::UNAUTHORIZED, "Actor credential is revoked");
+         return status;
+@@ -327,10 +335,13 @@
+         while (next != ids.end()) {
+             pb::IssuerRequest request; auto* query = request.mutable_actor_status();
+             while (next != ids.end() && query->actor_ids_size() < 128) query->add_actor_ids(*next++);
++            const auto request_revision = observed_revision;
+             const auto batch = exchange(std::move(request)).actor_status();
+-            if ((revision && *revision != batch.security_revision()) || batch.security_revision() < observed_revision) {
+-                fail(); throw WorldError(wire::UNAVAILABLE, "Actor status changed during authority preparation");
+-            }
++            if (batch.security_revision() < request_revision) {
++                fail(); throw WorldError(wire::UNAVAILABLE, "Issuer returned an actor snapshot older than the requested context");
++            }
++            if ((revision && *revision != batch.security_revision()) || batch.security_revision() < observed_revision)
++                throw SupersededAuthorityRead();
+             revision = batch.security_revision();
+             states.insert(states.end(), batch.actors().begin(), batch.actors().end());
+         }
+@@ -462,8 +473,9 @@
+                     ~ClearCompletion() { channel.completing.reset(); }
+                 } completion{channel};
+                 pb::IssuerRequest complete; *complete.mutable_authentication_complete() = request.complete();
++                const auto request_revision = observed_revision;
+                 const auto result = exchange(std::move(complete)).authentication();
+-                identity_matches(result.identity(), pending->claims);
++                identity_matches(result.identity(), pending->claims, request_revision);
+                 if (result.audience() != audience || result.channel_binding() != pending->binding ||
+                         !result.identity().active() || result.identity().actor_revoked() || result.identity().credential_revoked()) {
+                     fail(); throw WorldError(wire::UNAVAILABLE, "Issuer authentication context mismatch");
+@@ -493,6 +505,7 @@
+                 const auto actor = principal(channel.claims);
+                 try {
+                     current(channel.credential, channel.claims);
++                } catch (const SupersededAuthorityRead&) { throw;
+                 } catch (const WorldError&) { disconnect(channel); throw; }
+                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "World session was revoked");
+                 if (request.has_bootstrap_bind()) {
+@@ -513,6 +526,7 @@
+                 }
+                 try {
+                     prepare(actor, request.has_delegate() && !request.delegate().has_workspace() ? &request.delegate().terms().subject() : nullptr);
++                } catch (const SupersededAuthorityRead&) { throw;
+                 } catch (const WorldError&) { disconnect(channel); throw; }
+                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "World session was revoked");
+                 if (request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
+--- a/tests/core/test_workspace_bootstrap.py
++++ b/tests/core/test_workspace_bootstrap.py
+@@ -29,6 +29,8 @@
+         if domain_id is not None: terms.scope.domain.id=domain_id
+         profile=issuer.BootstrapProfile(id=name,grants=[issuer.BootstrapGrantTemplate(id='project',terms=terms)])
+         operation=issuer.IssuerOperation(profile_put=issuer.BootstrapProfilePut(profile=profile,expected_revision=revision))
++        # Setup may outlast the issuer's idle limit. Start a new proof, without replaying a mutation.
++        self.owner_peer.close();self.owner_peer=self.connect()
+         reply=self.execute(self.owner_peer,self.challenge(self.owner_peer,operation))
+         self.assertTrue(reply.HasField('profile'),reply);return reply.profile
+ 
+--- /dev/null
++++ b/tests/core/test_workspace_bootstrap_owner_idle.py
+@@ -0,0 +1,18 @@
++"""The bootstrap fixture must start a fresh owner proof after a long setup."""
++import time
++import unittest
++import test_workspace_bootstrap as existing
++
++
++class BootstrapOwnerIdleTests(existing.BootstrapWorkspaceFixture):
++    def workspace(self, *args, **kwargs):
++        world = super().workspace(*args, **kwargs)
++        time.sleep(self.config.idle_timeout_ms / 1000 + .2)
++        return world
++
++    def test_idle_owner_does_not_block_workspace_bootstrap(self):
++        # Reuse every assertion in the existing confined-file acceptance case.
++        existing.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write(self)
++
++
++if __name__ == '__main__': unittest.main(verbosity=2)
+--- /dev/null
++++ b/tests/core/test_world_revision_interleave.py
+@@ -0,0 +1,105 @@
++"""An older read reply must not disable an unrelated actor after a newer feed event."""
++import unittest
++import struct
++import core_pb2 as core
++import issuer_pb2 as issuer
++import world_session_pb2 as session
++import test_world_authority as existing
++import test_world_bootstrap_races as races
++from harness.wire import frame
++
++
++class ReplayedStatusRelay(existing.RelayingIssuer):
++    def __init__(self, fixture, operation):
++        self.operation = operation
++        super().__init__(fixture, lambda: None)
++
++    def relay(self, raw):
++        upstream = None; stream = raw
++        try:
++            raw.settimeout(2); stream = self.context.wrap_socket(raw, server_side=True); self.streams.append(stream)
++            upstream = self.fixture.connect()
++            def exact(size):
++                data = b''
++                while len(data) < size:
++                    part = stream.recv(size-len(data))
++                    if not part: raise EOFError()
++                    data += part
++                return data
++            while not self.stop.is_set():
++                size = struct.unpack('!I', exact(4))[0]
++                if size > 1048576: raise AssertionError('Excessive relay frame')
++                request = issuer.IssuerRequest.FromString(exact(size)); sequence = request.request_id
++                reply = upstream.request(request); reply.request_id = sequence
++                if request.HasField(self.operation) and self.armed.is_set():
++                    self.armed.clear()
++                    status = reply.identity_status if self.operation == 'credential_check' else reply.actor_status
++                    if status.security_revision != 1: raise AssertionError('Expected a genuine revision-one reply')
++                    status.security_revision = 0
++                    self.delivered.set()
++                stream.sendall(frame(reply))
++        except (OSError, EOFError): pass
++        except BaseException as error: self.errors.append(error)
++        finally:
++            stream.close()
++            if upstream: upstream.close()
++
++
++class RevisionInterleaveTests(existing.WorldAuthorityTests):
++    def revoke_second(self):
++        peer = self.connect()
++        try:
++            mutation = issuer.IssuerOperation(identity_revoke=issuer.IdentityRevoke(
++                target=issuer.IdentityReference(kind=issuer.CREDENTIAL_TARGET, id=self.second.credential_id),
++                expected_security_revision=0, reason='independent credential interleaving'))
++            result = self.execute(peer, self.challenge(peer, mutation))
++            self.assertTrue(result.HasField('identity_status'), result)
++        finally: peer.close()
++
++    def unrelated_revocation_during(self, operation):
++        self.enroll_second()
++        relay = races.BootstrapRelay(self, self.revoke_second, operation)
++        world = self.scoped_world(issuer_port=relay.port)
++        peer = world.peers[0]
++        relay.armed.set()
++        first = peer.act(stop=core.ActorStopRequest())
++        self.assertTrue(relay.delivered.is_set(), 'The real revocation must precede the held status reply')
++        self.assertEqual(relay.remaining, 0)
++        # A stale in-flight action may fail. The independent identity remains usable.
++        self.assertTrue(first.HasField('action') or first.HasField('error'), first)
++        retry = peer.call(inspect=session.WorldSessionInspect())
++        self.assertTrue(retry.HasField('state'), retry)
++        world.close(); self.assertEqual(world.proc.returncode, 0)
++
++    def test_old_credential_reply_does_not_disable_unrelated_actor(self):
++        self.unrelated_revocation_during('credential_check')
++
++    def test_old_actor_reply_does_not_disable_unrelated_actor(self):
++        self.unrelated_revocation_during('actor_status')
++
++    def replayed_before_query(self, operation):
++        self.enroll_second(); relay = ReplayedStatusRelay(self, operation)
++        world = self.scoped_world(issuer_port=relay.port); peer = world.peers[0]
++        self.revoke_second()
++        self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'))
++        relay.armed.set()
++        denied = peer.act(stop=core.ActorStopRequest())
++        self.assertTrue(denied.HasField('error'), denied)
++        self.assertTrue(relay.delivered.is_set())
++        retry = peer.call(inspect=session.WorldSessionInspect())
++        self.assertTrue(retry.HasField('error'), retry)
++        self.assertEqual(retry.error.code, core.UNAVAILABLE)
++        self.assertIn('disabled', retry.error.message)
++
++    def test_credential_reply_older_than_query_context_is_terminal(self):
++        self.replayed_before_query('credential_check')
++
++    def test_actor_reply_older_than_query_context_is_terminal(self):
++        self.replayed_before_query('actor_status')
++
++
++def suite():
++    return unittest.TestSuite(RevisionInterleaveTests(name) for name in vars(RevisionInterleaveTests) if name.startswith('test_'))
++
++
++if __name__ == '__main__': unittest.main(defaultTest='suite', verbosity=2)
+--- a/tests/native/test_native_launch.py
++++ b/tests/native/test_native_launch.py
+@@ -10,6 +10,7 @@
+ import subprocess
+ import time
+ import unittest
++from unittest.mock import patch
+ import broker_pb2 as broker
+ import core_pb2 as core
+ import security_pb2 as security
+@@ -197,12 +198,16 @@
+     def test_broker_loss_revokes_native_access(self):
+         self.launch_fixture(); process = self.launch(); record = self.record(process)
+         self.broker.proc.kill(); self.broker.proc.wait(timeout=3)
++        self.wait_native_denied(bytes.fromhex(record['cookie']), 'Native access survived broker death')
++
++    def wait_native_denied(self, cookie, message):
+         deadline = time.monotonic()+3
+         while True:
+-            try: peer = native.NativeClient(self.display, bytes.fromhex(record['cookie']))
++            try: peer = native.NativeClient(self.display, cookie)
+             except native.Denied: break
++            except (ConnectionError, EOFError): pass # Closure is not a successful denial witness.
+             else: peer.close()
+-            self.assertLess(time.monotonic(), deadline, 'Native access survived broker death')
++            self.assertLess(time.monotonic(), deadline, message)
+             time.sleep(.01)
+ 
+     def test_execution_revocation_revokes_native_access(self):
+@@ -215,14 +220,30 @@
+     def test_exit_revokes_credentials_without_a_wait_request(self):
+         self.launch_fixture(); process = self.launch(); record = self.record(process)
+         (self.broker.state/'applications'/process.process_id/'data/release').touch()
+-        deadline = time.monotonic()+3
+-        while True:
+-            try: peer = native.NativeClient(self.display, bytes.fromhex(record['cookie']))
+-            except native.Denied: break
+-            else: peer.close()
+-            self.assertLess(time.monotonic(), deadline, 'Exited application retained its native credential')
+-            time.sleep(.01)
++        self.wait_native_denied(bytes.fromhex(record['cookie']), 'Exited application retained its native credential')
+         self.assertEqual(self.broker.call('process.wait', id=process.process_id, timeout_seconds=0), {'exit_code':0})
++
++    def test_revocation_during_extension_discovery_requires_fresh_denial(self):
++        self.launch_fixture(); process = self.launch(); record = self.record(process)
++        original = native.NativeClient.request; interrupted = []
++        def request(client, opcode, *args, **kwargs):
++            if opcode == 98 and not interrupted:
++                (self.broker.state/'applications'/process.process_id/'data/release').touch()
++                self.assertTrue(select.select([client.stream], [], [], 3)[0])
++                self.assertEqual(client.stream.recv(1), b'')
++                interrupted.append(True)
++            return original(client, opcode, *args, **kwargs)
++        with patch.object(native.NativeClient, 'request', request):
++            self.wait_native_denied(bytes.fromhex(record['cookie']), 'Fresh connection never received protocol denial')
++        self.assertEqual(interrupted, [True])
++        self.assertEqual(self.broker.call('process.wait', id=process.process_id, timeout_seconds=0), {'exit_code':0})
++
++    def test_denial_wait_does_not_accept_a_live_credential(self):
++        self.launch_fixture(); process = self.launch(); record = self.record(process)
++        with self.assertRaisesRegex(AssertionError, 'Live credential never became denied'):
++            self.wait_native_denied(bytes.fromhex(record['cookie']), 'Live credential never became denied')
++        self.assertEqual(self.connect(bytes.fromhex(record['cookie'])).inspect().application, process.process_id.encode())
++        self.release(process)
+ 
+     def test_native_broker_revocation_stops_configured_execution(self):
+         self.launch_fixture(); process = self.launch(); record = self.record(process)
+--- a/tests/native/test_security_identity.py
++++ b/tests/native/test_security_identity.py
+@@ -37,12 +37,12 @@
+             payload = self.exact(size)
+             if prefix[0] != 1: raise Denied(payload[:prefix[1]].decode(errors='replace'))
+             self.setup = payload
++            name = b'SPATIAL-SECURITY'
++            header, _ = self.request(98,struct.pack(endian+'HH',len(name),0)+padded(name))
++            if not header[8]: raise AssertionError('SPATIAL-SECURITY is missing')
++            self.opcode = header[9]
+         except BaseException:
+             self.close(); raise
+-        name = b'SPATIAL-SECURITY'
+-        header, _ = self.request(98,struct.pack(endian+'HH',len(name),0)+padded(name))
+-        if not header[8]: self.close(); raise AssertionError('SPATIAL-SECURITY is missing')
+-        self.opcode = header[9]
+ 
+     def exact(self, size):
+         result = b''

@@ -1,0 +1,49 @@
+test_idle_owner_does_not_block_workspace_bootstrap (__main__.BootstrapOwnerIdleTests.test_idle_owner_does_not_block_workspace_bootstrap) ... ERROR
+test_actor_cannot_bind_another_holders_parent (test_workspace_bootstrap.WorkspaceBootstrapTests.test_actor_cannot_bind_another_holders_parent) ... ok
+test_application_does_not_make_workspace_available (test_workspace_bootstrap.WorkspaceBootstrapTests.test_application_does_not_make_workspace_available) ... ok
+test_binding_revocation_blocks_new_recipients_but_preserves_existing_access (test_workspace_bootstrap.WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access) ... ok
+test_broker_and_world_restart_preserve_binding_receipt_and_real_file (test_workspace_bootstrap.WorkspaceBootstrapTests.test_broker_and_world_restart_preserve_binding_receipt_and_real_file) ... ok
+test_broker_rejects_mismatched_missing_and_forged_credentials (test_workspace_bootstrap.WorkspaceBootstrapTests.test_broker_rejects_mismatched_missing_and_forged_credentials) ... ok
+test_explicit_application_enables_confined_real_file_write (test_workspace_bootstrap.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write) ... ok
+test_read_only_bootstrap_does_not_authorize_writable_application (test_workspace_bootstrap.WorkspaceBootstrapTests.test_read_only_bootstrap_does_not_authorize_writable_application) ... ok
+test_retry_preserves_receipt_and_parent_revocation_denies_execution (test_workspace_bootstrap.WorkspaceBootstrapTests.test_retry_preserves_receipt_and_parent_revocation_denies_execution) ... ok
+test_second_credential_does_not_revive_revoked_receipt (test_workspace_bootstrap.WorkspaceBootstrapTests.test_second_credential_does_not_revive_revoked_receipt) ... ok
+test_unknown_workspace_never_redirects_application_to_current_world (test_workspace_bootstrap.WorkspaceBootstrapTests.test_unknown_workspace_never_redirects_application_to_current_world) ... ok
+test_updated_profile_cannot_replace_prior_actor_receipt (test_workspace_bootstrap.WorkspaceBootstrapTests.test_updated_profile_cannot_replace_prior_actor_receipt) ... ok
+
+======================================================================
+ERROR: test_idle_owner_does_not_block_workspace_bootstrap (__main__.BootstrapOwnerIdleTests.test_idle_owner_does_not_block_workspace_bootstrap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_bootstrap_owner_idle.py", line 15, in test_idle_owner_does_not_block_workspace_bootstrap
+    WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write(self)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_bootstrap.py", line 64, in test_explicit_application_enables_confined_real_file_write
+    world,binding,actor=self.ready_workspace();peer=world.peers[1]
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_bootstrap.py", line 56, in ready_workspace
+    world=self.workspace();self.publish(rights=rights);binding=self.binding(world)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_bootstrap.py", line 32, in publish
+    reply=self.execute(self.owner_peer,self.challenge(self.owner_peer,operation))
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_issuer.py", line 116, in challenge
+    reply = client.call(challenge=operation or self.operation())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_tls.py", line 47, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_tls.py", line 41, in request
+    reply = self.receive()
+            ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_tls.py", line 34, in receive
+    length = struct.unpack('!I', exact(4))[0]
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_tls.py", line 31, in exact
+    if not part: raise EOFError('Issuer TLS stream closed')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Issuer TLS stream closed
+
+----------------------------------------------------------------------
+Ran 12 tests in 47.254s
+
+FAILED (errors=1)

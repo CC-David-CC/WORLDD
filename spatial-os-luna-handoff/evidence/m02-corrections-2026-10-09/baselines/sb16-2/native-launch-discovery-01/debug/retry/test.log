@@ -1,0 +1,6 @@
+test_revoke_after_setup_before_extension_discovery (__main__.DiscoveryRace.test_revoke_after_setup_before_extension_discovery) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.060s
+
+OK

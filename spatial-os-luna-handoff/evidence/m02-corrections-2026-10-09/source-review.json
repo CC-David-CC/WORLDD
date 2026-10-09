@@ -1,0 +1,20 @@
+{
+  "base_candidate": 6,
+  "candidate": 9,
+  "source_files": 255,
+  "changed_files": [
+    "CMakeLists.txt",
+    "src/identity/participant_runtime.cpp",
+    "src/world/identity_sessions.cpp",
+    "tests/core/test_workspace_bootstrap.py",
+    "tests/core/test_workspace_bootstrap_owner_idle.py",
+    "tests/core/test_world_revision_interleave.py",
+    "tests/native/test_native_launch.py",
+    "tests/native/test_security_identity.py"
+  ],
+  "changed_existing_test_methods": [
+    "tests/native/test_native_launch.py:NativeLaunchTests.test_broker_loss_revokes_native_access",
+    "tests/native/test_native_launch.py:NativeLaunchTests.test_exit_revokes_credentials_without_a_wait_request"
+  ],
+  "integrated": false
+}

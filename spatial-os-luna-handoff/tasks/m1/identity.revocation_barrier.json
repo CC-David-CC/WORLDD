@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "combined_participant_candidate06_full_qualification",
+  "current_step": "candidate09_full_combined_qualification",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -35,12 +35,13 @@
     "No model inference or additional host is needed for this component.",
     "Do not modify the active remote-transport candidate."
   ],
-  "next_test": "Collect candidate06 full Debug and runtime sanitizer profiles on both hosts. Require 1232 core checks, 51 harness checks, and 151 P10 cases per profile.",
+  "next_test": "Complete candidate09 full Debug and runtime sanitizer qualification on both hosts in output10.",
   "limitations": [
     "Issuer barrier and checked process cleanup are integrated and adopted on both hosts.",
     "Combined candidate04 passed 1226 core checks and failed one self-revocation receipt test on each host. Debug P10 and runtime sanitizer were unrun after that failure.",
     "Candidate05 passed full Debug core and P10 on both hosts, but a separate native-cleanup diagnostic failed. Candidate06 adds the final native cleanup check and passes 81 focused Debug checks on both hosts.",
-    "Crash witnesses passed on both hosts. Trusted supervisor recovery and cross-host participation witnesses remain pending."
+    "Crash witnesses passed on both hosts. Trusted supervisor recovery and cross-host participation witnesses remain pending.",
+    "Candidate06 passed full qualification on sb16; sb16-2 native-launch closure race failed. Bootstrap idle and native witness corrections are explicit. World read interleaving is a separately reproduced defect corrected in candidate08. Focused world and native checks pass both profiles on both hosts. Complete combined qualification is running."
   ],
   "implementation_plan": "docs/REVOCATION_BARRIER_PLAN.txt",
   "component_tasks": [
@@ -51,7 +52,8 @@
     "tasks/m1/identity.process_termination.json",
     "tasks/m1/identity.workspace_participant.json",
     "tasks/m1/identity.supervisor_recovery.json",
-    "tasks/m1/identity.native_settlement.json"
+    "tasks/m1/identity.native_settlement.json",
+    "tasks/m1/identity.world_read_freshness.json"
   ],
   "next_component_design": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt"
 }
