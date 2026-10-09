@@ -1,0 +1,222 @@
+[
+  {
+    "repetition": 1,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 2,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 3,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 4,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 5,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 6,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 7,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 8,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 9,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 10,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 11,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 12,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 13,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 14,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 15,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 16,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 17,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 18,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 19,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  },
+  {
+    "repetition": 20,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+    ],
+    "exit_code": 0
+  }
+]

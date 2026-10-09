@@ -1,3 +1,19 @@
+## 2026-10-09: Transport diagnostics now record the missing failure context
+
+Both hosts completed 20 owner-idle repetitions with no failure. The original failures remain unresolved.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/owner-idle-results-review-04.json.
+
+A separate diagnostic build now records client operation, I/O stage, deadline lag, and TLS errors.
+It also records server peer state, close timing, connection-limit events, and event-loop delay.
+No payloads or credentials are logged. Production source, assertions, deadlines, and retries remain unchanged.
+Three controlled faults will verify the diagnostics before the original failing scenarios run.
+These controls do not establish the cause of the original failures.
+Both hosts started the diagnostic build with two compiler jobs each.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/transport-diagnostic-review-05.json.
+
+Supervisor and automatic crash-fencing full qualification continue on both hosts.
+Integration remains on hold. Production remains broker283. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Automatic crash fencing passes both focused profiles
 
 Both hosts passed ten new checks and 51 harness checks in Debug and runtime ASan/UBSan.

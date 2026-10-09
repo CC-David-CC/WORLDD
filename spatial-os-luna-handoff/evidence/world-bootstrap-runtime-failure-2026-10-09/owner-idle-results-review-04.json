@@ -1,0 +1,61 @@
+{
+  "reviewer": "primary agent",
+  "hosts": {
+    "sb16": {
+      "repetitions": 20,
+      "failed": 0,
+      "test_log_hashes": {
+        "1": "fc93215db80dfc5410b512f92cbd5b4289fd53f9aa98242c6d76c5e7c82070d4",
+        "2": "547cfdfcbf884f65e7752669ce6ad73f18e67af921548288d74a0b355d04a899",
+        "3": "0683c1a0b41aa3e39ec037703b1d081b5b95c8becdb00cf61d8a646fc9bc6187",
+        "4": "65a4ba2a14d6933a19668be6bd24163dfd01b28ce50d74649c3e021867e8d187",
+        "5": "14b30289c5455062bef2eed24de4824fff1135b355763cb149c47468f4eafd29",
+        "6": "aa2b900b3492e7672ccddc2697cfecd0a5e95ab4a61b2cf4aefc8bbc91c21e27",
+        "7": "0ce46a1b04d598711965d52a9493a3283e24657db2ae7a630be546615436b50e",
+        "8": "8e1042a1fb2c193c1c466aa1f4a15203a1e74622d4e86dc1c0b90ef28f910e1c",
+        "9": "da958593ff7416f2f1a1a9ccfed6b6b2a1de5e99a285453d6cea7ce4176b2367",
+        "10": "83b7fcd8c1624a4f4db4db82f9227bfff32beade6b6e26cea0f6f185c687742f",
+        "11": "3285aa7c07ca61d0cdd772aa5e538ac1e8d2f520e12e7df8d6c4788bfa9016fb",
+        "12": "274a8d2761744acdbcd6eba4dfeddd86fb00a9a55d052bdae594311f2e462954",
+        "13": "60a055a43392910ad8c26d020febd61bcde0f2e808f6433ff13ea7026c284068",
+        "14": "67a74935b95137c9fac3fdbe503b95c5ce88909bc6bf12db27ed5979ff351bfe",
+        "15": "75e84e5e85ead044995a9fd65a75e6d7627e338a4e303285f4f40e4469c098ee",
+        "16": "f6aef162b4b83f7a3d2773a5adb5e30bfdab356c2ae71a83db321ddc7b107286",
+        "17": "4533403cb9ac510100534c7fa951afa589f54661e86b9df13c6b55c9e28523a4",
+        "18": "2796b24c88cde9cfa797607d656b4324154f129ee9344625bd45aa3a16e0f4e4",
+        "19": "b57b81e2762c075ba6e717e25586e70cacdd81ab8c6dbeae141b5cb3ba96762b",
+        "20": "808808e449447cb588d19a4c96b5a7af210cd9eaff11a46b8c7a365d3780afc1"
+      }
+    },
+    "sb16-2": {
+      "repetitions": 20,
+      "failed": 0,
+      "test_log_hashes": {
+        "1": "1609feb4ed8d700cc8de8c38864c07e07975341dc0929378c9b0478cd6e58d47",
+        "2": "a4c0fe77f9f06a9aac9630d814192a6b9c11511d3b6b342a3b98a18dbbfe3c43",
+        "3": "f5afc6f019ef5d1ee4a1fcf60e49a25f3d16cc223e25109f69888690ea864def",
+        "4": "40c5b839436acdfcfbf541d3fa0832cccf42ccfcf3dc2826b0912a351a1ece33",
+        "5": "ca43efc70685f386570966d6cf4316e031557bbd76e63c887583295b5cdc0865",
+        "6": "b9d9f58c7fd1fbf259f710672b7646c14a93b74428f1f5818d69eae6466d9bbd",
+        "7": "53a0f10fa0c6352c958b64ecc787ee1dd5fd6d64476ae7764566dc005b8e7acf",
+        "8": "7d387dd480f21d368e0c4f741654a482cd426d8eaaf297c2ed2501850fc332f2",
+        "9": "b613da94f438fe159eff788b0ad469e005ad9e34216ea36b9b3153197b11bfc7",
+        "10": "1554502030c548ac95c56b055cc6cb505187e686e9b3400f23d75a91a7e4ff3c",
+        "11": "3b5b6340dff9e6cac8e6387f59a5e650c2a2cc5ef23dd5c7a5df3d8c116a5cc2",
+        "12": "63ea4033adba8322c3fd6442857822f27f8a55b5b3c24c792db679059e2e8894",
+        "13": "acd2a8aa3be0986edff5f402330d4965f7fde66914e5352cc33127f3281dacac",
+        "14": "7020c9b3b40fd3d71d1a516f3fe909bbfb576a4a7a33301160a76f95bede5e06",
+        "15": "bde8993ca11aa76faaea296847512065b4ced11c7c05e2cc8a6caa958768e9ae",
+        "16": "aa78e4b10b2b2886c8d589204256641082f44ac703fe5beac79cf2ce43a4b40c",
+        "17": "b39ac8ac0269dc03f72047a11689bafe5379cbfb82f20392e2f5e9425f696c58",
+        "18": "1f9e8356f76c8b40d0b914f02971c7f8d53b3dce135ee49ef372d0aa0fe5c1e1",
+        "19": "866fa4200bfe1c31ede4de0c7e9ad1012af41561d9c759f17e9c079112488c8c",
+        "20": "2380177bc9e1b800af6feb03de5f1b193df3d773a8a62fe948d6c0963f019ce1"
+      }
+    }
+  },
+  "diagnostic_only": true,
+  "qualification": false,
+  "original_failures_unresolved": true,
+  "conclusion": "The distinct owner-idle scenario did not reproduce under existing exception-only diagnostic binaries."
+}

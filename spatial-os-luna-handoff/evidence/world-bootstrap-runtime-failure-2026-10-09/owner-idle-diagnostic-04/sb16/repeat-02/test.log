@@ -1,0 +1,6 @@
+test_idle_owner_does_not_block_workspace_bootstrap (__main__.BootstrapOwnerIdleTests.test_idle_owner_does_not_block_workspace_bootstrap) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 8.520s
+
+OK

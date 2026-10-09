@@ -1,0 +1,181 @@
+--- a/src/identity/issuer_client.cpp
++++ b/src/identity/issuer_client.cpp
+@@ -19,6 +19,8 @@
+ #include <poll.h>
+ #include <set>
+ #include <sstream>
++#include <iostream>
++#include <syncstream>
+ #include <sys/socket.h>
+ 
+ namespace spatial::identity {
+@@ -114,6 +116,21 @@
+     Clock::time_point deadline;
+     std::uint64_t sequence = 0;
+     bool broken = false, busy = false;
++    const char* diagnostic_stage = "startup";
++    int diagnostic_operation = 0, diagnostic_ssl_error = 0, diagnostic_errno = 0;
++    void diagnostic(const char* reason) {
++        sockaddr_in local{}; socklen_t size = sizeof(local);
++        const bool ipv4 = getsockname(socket.value, reinterpret_cast<sockaddr*>(&local), &size) == 0 && local.sin_family == AF_INET;
++        const auto now = Clock::now();
++        std::osyncstream(std::cerr) << "issuer-client diagnostic: reason=" << reason
++            << " operation=" << diagnostic_operation << " sequence=" << sequence
++            << " stage=" << diagnostic_stage << " ssl_error=" << diagnostic_ssl_error
++            << " errno=" << diagnostic_errno << " local_port=" << (ipv4 ? ntohs(local.sin_port) : 0)
++            << " late_ms=" << std::chrono::duration_cast<std::chrono::milliseconds>(now-deadline).count()
++            << " time_ms=" << std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count()
++            << " pending=" << (tls ? SSL_pending(tls.get()) : -1)
++            << " buffered=" << (tls ? SSL_has_pending(tls.get()) : -1) << '\n';
++    }
+     struct ServiceChallenge {
+         v1::SignRequest signing_request;
+         v1::AuthorityAuthenticationChallenge context;
+@@ -511,6 +528,7 @@
+     void poison() noexcept { broken = true; tls.reset(); socket.reset(); }
+     void check() {
+         if (tick) tick();
++        if (Clock::now() >= deadline) diagnostic("deadline");
+         require(Clock::now() < deadline, "Issuer client deadline exceeded");
+     }
+     void wait(short events) {
+@@ -524,7 +542,11 @@
+     void retry(int error) {
+         if (error == SSL_ERROR_WANT_READ) wait(POLLIN);
+         else if (error == SSL_ERROR_WANT_WRITE) wait(POLLOUT);
+-        else throw std::runtime_error("Issuer TLS connection failed");
++        else {
++            diagnostic_ssl_error = error; diagnostic_errno = errno;
++            diagnostic("tls-fatal");
++            throw std::runtime_error("Issuer TLS connection failed");
++        }
+     }
+     void transfer(char* data, std::size_t size, bool writing) {
+         std::size_t offset = 0;
+@@ -564,16 +586,21 @@
+             auto node = service_challenges.extract(request.authority_authentication_complete().nonce());
+             if (!node.empty()) service_pending = std::move(node.mapped());
+         }
++        diagnostic_operation = static_cast<int>(request.operation_case());
+         const auto sent = Clock::now();
+         require(sequence < std::numeric_limits<std::uint64_t>::max(), "Issuer request sequence exhausted");
+         request.set_request_id(++sequence);
+         std::ostringstream output; write_frame(output, request); auto bytes = output.str();
++        diagnostic_stage = "write-request";
+         transfer(bytes.data(), bytes.size(), true);
++        diagnostic_stage = "read-header";
+         std::array<unsigned char, 4> header{}; transfer(reinterpret_cast<char*>(header.data()), header.size(), false);
+         const std::uint32_t length = (std::uint32_t(header[0]) << 24) | (std::uint32_t(header[1]) << 16) |
+                                     (std::uint32_t(header[2]) << 8) | header[3];
+         require(length <= max_frame_bytes, "Issuer reply exceeds size limit");
++        diagnostic_stage = "read-payload";
+         bytes.resize(length); transfer(bytes.data(), bytes.size(), false);
++        diagnostic_stage = "validate-reply";
+         v1::IssuerReply reply;
+         require(reply.ParseFromString(bytes) && reply.protocol_version() == 1 && reply.request_id() == sequence,
+                 "Invalid issuer reply identity");
+@@ -638,6 +665,8 @@
+         busy = true; deadline = Clock::now()+timeout;
+         try {
+             auto reply = exchange(std::move(request)); reply.set_request_id(caller_id); busy = false; return reply;
++        } catch (const std::exception& error) {
++            diagnostic(error.what()); busy = false; poison(); throw;
+         } catch (...) { busy = false; poison(); throw; }
+     }
+ };
+--- a/src/identity/participant_runtime.cpp
++++ b/src/identity/participant_runtime.cpp
+@@ -164,9 +164,12 @@
+         } catch (const std::invalid_argument&) {
+             std::lock_guard lock(mutex);
+             if (!stop.stop_requested()) fail_locked(core::INVALID_ARGUMENT, "Invalid authority participant context or command", current_request);
+-        } catch (const std::exception&) {
++        } catch (const std::exception& error) {
+             std::lock_guard lock(mutex);
+-            if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Authority participant channel failed; reconciliation is required", current_request);
++            if (!stop.stop_requested()) {
++                std::cerr << "participant diagnostic: " << error.what() << " request=" << current_request << '\n';
++                fail_locked(core::UNAVAILABLE, "Authority participant channel failed; reconciliation is required", current_request);
++            }
+         }
+     }
+     void run_private(std::stop_token stop, const v1::AuthorityParticipantRuntimeConfig& config,
+--- a/src/identity/tls_server.cpp
++++ b/src/identity/tls_server.cpp
+@@ -14,6 +14,7 @@
+ #include <netinet/in.h>
+ #include <poll.h>
+ #include <sstream>
++#include <iostream>
+ #include <stdexcept>
+ #include <sys/socket.h>
+ #include <sys/stat.h>
+@@ -40,16 +41,21 @@
+     std::optional<v1::IssuerRequest> waiting;
+     IssuerConnection connection;
+     std::size_t offset = 0;
++    int diagnostic_ssl_error = 0, diagnostic_errno = 0, diagnostic_peer_port = 0;
+     Peer(int fd, SSL_CTX* ctx, Milliseconds timeout)
+         : socket(fd), tls(SSL_new(ctx), SSL_free), deadline(Clock::now()+timeout) {
+         require(tls && SSL_set_fd(tls.get(), fd) == 1, "Cannot allocate issuer TLS connection");
+         SSL_set_accept_state(tls.get());
++        sockaddr_in peer{}; socklen_t size = sizeof(peer);
++        if (getpeername(fd, reinterpret_cast<sockaddr*>(&peer), &size) == 0 && peer.sin_family == AF_INET)
++            diagnostic_peer_port = ntohs(peer.sin_port);
+     }
+     bool retry(int result) {
+         // No OpenSSL call may intervene between I/O and SSL_get_error.
+         const auto error = SSL_get_error(tls.get(), result);
+         if (error == SSL_ERROR_WANT_READ) { wanted = POLLIN; return true; }
+         if (error == SSL_ERROR_WANT_WRITE) { wanted = POLLOUT; return true; }
++        diagnostic_ssl_error = error; diagnostic_errno = errno;
+         // SSL_free then close; do not call SSL_shutdown after fatal TLS errors.
+         return false;
+     }
+@@ -143,7 +149,13 @@
+         context = tls_detail::make_context(true, config.certificate_path(), config.private_key_path(), config.client_ca_path());
+     }
+     void serve(Issuer& issuer) {
++        auto diagnostic_previous = Clock::now();
++        std::int64_t diagnostic_max_gap = 0;
+         for (;;) {
++            const auto diagnostic_now = Clock::now();
++            const auto diagnostic_gap = std::chrono::duration_cast<Milliseconds>(diagnostic_now-diagnostic_previous).count();
++            diagnostic_max_gap = std::max(diagnostic_max_gap, diagnostic_gap);
++            diagnostic_previous = diagnostic_now;
+             std::vector<pollfd> fds{{STDIN_FILENO, POLLIN, 0}, {listener.value, POLLIN, 0}};
+             for (const auto& peer : peers) fds.push_back({peer->socket.value, peer->wanted, 0});
+             const int result = poll(fds.data(), fds.size(), 10);
+@@ -165,7 +177,19 @@
+                 const bool reading = peer.phase == Peer::Phase::header || peer.phase == Peer::Phase::payload;
+                 if (keep && (waiting || events || (reading && peer.wanted == POLLIN && SSL_pending(peer.tls.get()) > 0)))
+                     keep = peer.step(issuer, timeout, idle);
+-                if (!keep) peers.erase(peers.begin()+static_cast<std::ptrdiff_t>(i-1));
++                if (!keep) {
++                    const auto now = Clock::now();
++                    std::cerr << "issuer-server diagnostic: close phase=" << static_cast<int>(peer.phase)
++                        << " peer_port=" << peer.diagnostic_peer_port << " events=" << events
++                        << " wanted=" << peer.wanted << " offset=" << peer.offset
++                        << " payload_size=" << peer.payload.size() << " ssl_error=" << peer.diagnostic_ssl_error
++                        << " errno=" << peer.diagnostic_errno << " peers=" << peers.size()
++                        << " late_ms=" << std::chrono::duration_cast<Milliseconds>(now-peer.deadline).count()
++                        << " loop_gap_ms=" << diagnostic_gap << " max_loop_gap_ms=" << diagnostic_max_gap
++                        << " time_ms=" << std::chrono::duration_cast<Milliseconds>(now.time_since_epoch()).count()
++                        << " pending=" << SSL_pending(peer.tls.get()) << " buffered=" << SSL_has_pending(peer.tls.get()) << '\n';
++                    peers.erase(peers.begin()+static_cast<std::ptrdiff_t>(i-1));
++                }
+             }
+             if (fds[1].revents & POLLIN) {
+                 const int fd = accept4(listener.value, nullptr, nullptr, SOCK_NONBLOCK | SOCK_CLOEXEC);
+@@ -173,7 +197,10 @@
+                     if (errno == EINTR || errno == EAGAIN || errno == ECONNABORTED) continue;
+                     throw std::runtime_error("Cannot accept issuer TLS peer");
+                 }
+-                if (peers.size() >= limit) { close(fd); continue; }
++                if (peers.size() >= limit) {
++                    std::cerr << "issuer-server diagnostic: admission-limit peers=" << peers.size() << " limit=" << limit << '\n';
++                    close(fd); continue;
++                }
+                 peers.push_back(std::make_unique<Peer>(fd, context.get(), timeout));
+             }
+         }

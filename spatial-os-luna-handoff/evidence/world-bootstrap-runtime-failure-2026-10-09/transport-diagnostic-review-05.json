@@ -1,0 +1,31 @@
+{
+  "reviewer": "primary agent",
+  "status": "building",
+  "source_files": 294,
+  "changed_files": [
+    "src/identity/issuer_client.cpp",
+    "src/identity/participant_runtime.cpp",
+    "src/identity/tls_server.cpp"
+  ],
+  "tests_and_schemas_unchanged": true,
+  "deadlines_and_authorization_unchanged": true,
+  "production_changed": false,
+  "controls": [
+    "Pause only the fixture-owned issuer; expect a client deadline and fail-closed world.",
+    "Stop only the fixture-owned issuer; expect a TLS close and fail-closed world.",
+    "Send an incomplete frame; expect server header expiry with one byte consumed."
+  ],
+  "limitations": [
+    "Logging can affect timing.",
+    "Control faults do not establish the cause of earlier failures.",
+    "No test, retry, deadline, or authorization relaxation is included."
+  ],
+  "remote_pids": {
+    "sb16": 1460060,
+    "sb16-2": 1255950
+  },
+  "references": [
+    "https://docs.openssl.org/3.0/man3/SSL_pending/"
+  ],
+  "source_review": "TLS error values are captured before diagnostic OpenSSL calls. No payload or credential is logged."
+}
