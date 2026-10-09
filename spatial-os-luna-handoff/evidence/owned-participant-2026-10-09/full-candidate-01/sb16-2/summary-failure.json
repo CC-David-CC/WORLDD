@@ -1,0 +1,14 @@
+{
+  "host": "sb16-2",
+  "source_files": 274,
+  "locked_files": 41,
+  "profile": "runtime-sanitize",
+  "core_checks": 1339,
+  "core_failed": 2,
+  "core_passed": 1337,
+  "core_skipped": 0,
+  "core_suites": 87,
+  "harness_checks": 51,
+  "P10": "unrun after core failure",
+  "interpretation": "World startup transport failures. Preserve them separately from later diagnostics. No overall sanitizer pass."
+}

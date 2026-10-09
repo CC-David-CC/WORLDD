@@ -1,0 +1,44 @@
+{
+  "status": "Primary-agent static review complete; Linux build and runtime qualification pending.",
+  "source_files": 279,
+  "new_tests": [
+    "test_production_supervisor_is_available_for_owned_authority_execution",
+    "test_real_child_activates_releases_and_exits_without_manual_pumping",
+    "test_revocation_requires_child_acknowledgement_with_automatic_delivery",
+    "test_management_cannot_inject_participant_commands_or_repeat_start",
+    "test_explicit_stop_preserves_unresolved_issuer_generation",
+    "test_management_loss_stops_owned_child_and_records_cleanup",
+    "test_child_death_is_failure_with_checked_cleanup",
+    "test_nonzero_exit_after_release_is_not_successful_completion",
+    "test_excessive_management_frame_stops_owned_execution",
+    "test_termination_signal_stops_owned_child_and_records_cleanup",
+    "test_existing_child_configuration_is_preserved_and_prevents_execution",
+    "test_privileged_descriptor_mapping_is_rejected_before_ownership",
+    "test_privileged_descriptor_alias_is_rejected_before_ownership",
+    "test_reopened_journal_cannot_replay_execution"
+  ],
+  "changed_files": [
+    "CMakeLists.txt",
+    "proto/spatial/supervisor/v1/launch.proto",
+    "src/supervisor/launch.cpp",
+    "src/supervisor/launch.hpp",
+    "src/supervisor/main.cpp",
+    "src/supervisor/process_scope.cpp",
+    "src/supervisor/process_scope.hpp",
+    "tests/native/test_authority_supervisor.py"
+  ],
+  "existing_tests_unchanged": true,
+  "locked_files_unchanged": 41,
+  "patch_reconstruction": "All 279 hashes match after applying candidate patch to frozen relay source.",
+  "native_handoff": "Pending: worldd/workspaced still need supervised launch and native credentials.",
+  "checks": [
+    "Private configuration and direct-parent management peer validation.",
+    "No child execution before exact durable approval and exclusive configuration persistence.",
+    "Reject privileged descriptor numbers and inode aliases before creating ownership.",
+    "Automatic bounded relay; private management only inspects or stops.",
+    "Successful completion requires explicit release and retained direct-child exit status zero.",
+    "Cleanup records local effects without claiming issuer generation retirement."
+  ],
+  "integrated": false,
+  "qualified": false
+}

@@ -1,0 +1,6 @@
+test_grants_do_not_make_workspace_available_implicitly (__main__.WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.229s
+
+OK

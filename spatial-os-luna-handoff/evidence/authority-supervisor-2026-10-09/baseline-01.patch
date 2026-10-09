@@ -1,0 +1,57 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -232,6 +232,17 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(workspace-bootstrap-owner-idle PROPERTIES TIMEOUT 60
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME authority-supervisor COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-supervisor-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_supervisor.py"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(authority-supervisor PROPERTIES TIMEOUT 120)
+     add_test(NAME authority-participant-relay COMMAND systemd-run --user --wait --pipe --collect
+         --unit=spatial-participant-relay-${build_hash} --property=Delegate=yes
+         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -43,6 +43,19 @@
+   uint64 supervision_revision = 3;
+   optional uint64 previous_generation = 4;
+ }
++// Private local supervisor configuration. No actor receives this interface.
++message AuthoritySupervisorConfig {
++  uint32 protocol_version = 1;
++  string journal_directory = 2;
++  string delegated_cgroup = 3;
++  AuthorityLaunchBinding binding = 4;
++  AuthorityParticipantAttach participant = 5;
++  AuthorityLaunchAuthorize authorization = 6;
++  AuthorityProcessLaunch launch = 7;
++  string child_participant_config = 8;
++  uint32 participant_target_fd = 9;
++  repeated uint32 inherited_source_fds = 10;
++}
+ message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
+ message AuthorityLaunchQuery {}
+ message AuthorityLaunchRequest {
+--- /dev/null
++++ b/tests/native/test_authority_supervisor.py
+@@ -0,0 +1,12 @@
++"""The production supervisor launches and pumps a real participant child."""
++import unittest
++import test_authority_owned_participant as owned
++
++class AuthoritySupervisorTests(owned.OwnedParticipantTests):
++    def test_production_supervisor_is_available_for_owned_authority_execution(self):
++        self.assertTrue(owned.existing.PROBE.with_name('spatial-authority-supervisor').is_file(),
++            'Missing production authority supervisor; a manually ticked test probe does not provide its event loop')
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(AuthoritySupervisorTests(n) for n in AuthoritySupervisorTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

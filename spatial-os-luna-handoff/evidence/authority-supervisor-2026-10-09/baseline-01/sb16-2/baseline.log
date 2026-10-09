@@ -1,0 +1,50 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 4
+    Start 4: authority-supervisor
+
+4: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-supervisor-08f07bbcdcea0d72baf63ee4a6a42faebec8840c39df3abdb729678a1ced9332" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/server" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/source/tests/native/test_authority_supervisor.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/spatial-issuer-client"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build
+4: Test timeout computed to be: 120
+4: Running as unit: spatial-supervisor-08f07bbcdcea0d72baf63ee4a6a42faebec8840c39df3abdb729678a1ced9332.service; invocation ID: 7bc3228b46b649acb927a018064f0a00
+4: test_production_supervisor_is_available_for_owned_authority_execution (__main__.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution) ... FAIL
+4: 
+4: ======================================================================
+4: FAIL: test_production_supervisor_is_available_for_owned_authority_execution (__main__.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution)
+4: ----------------------------------------------------------------------
+4: Traceback (most recent call last):
+4:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/source/tests/native/test_authority_supervisor.py", line 7, in test_production_supervisor_is_available_for_owned_authority_execution
+4:     self.assertTrue(owned.existing.PROBE.with_name('spatial-authority-supervisor').is_file(),
+4: AssertionError: False is not true : Missing production authority supervisor; a manually ticked test probe does not provide its event loop
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 1 test in 0.351s
+4: 
+4: FAILED (failures=1)
+4: Finished with result: exit-code
+4: Main processes terminated with: code=exited/status=1
+4: Service runtime: 520ms
+4: CPU time consumed: 365ms
+4: Memory peak: 1.5M
+4: Memory swap peak: 0B
+1/1 Test #4: authority-supervisor .............***Failed    0.54 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.54 sec
+
+The following tests FAILED:
+	  4 - authority-supervisor (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-baseline-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

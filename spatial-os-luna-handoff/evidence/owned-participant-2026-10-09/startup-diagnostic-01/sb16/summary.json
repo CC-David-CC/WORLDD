@@ -1,0 +1,7 @@
+{
+  "host": "sb16",
+  "checks": 15,
+  "failed": 0,
+  "unchanged_source_files": 274,
+  "interpretation": "Diagnostic repeats only. Original full sanitizer failures remain unresolved; timing cause is unproven."
+}

@@ -1,0 +1,22 @@
+{
+  "id": "identity.authority_supervisor",
+  "phase": "M02",
+  "status": "in_progress",
+  "parent": "identity.supervisor_recovery",
+  "contract": "docs/AUTHORITY_SUPERVISOR_RUNTIME.txt",
+  "evidence": "evidence/authority-supervisor-2026-10-09",
+  "candidate": 1,
+  "source_files": 279,
+  "new_tests": 14,
+  "baseline": "Both hosts confirmed the missing executable. Both builds and 51 harness checks passed.",
+  "review": "Primary-agent static review and complete patch reconstruction passed. Existing tests and 41 locked files are unchanged.",
+  "qualification": "Not started. Wait for the running full relay qualification to finish before additional builds.",
+  "integrated": false,
+  "remaining": [
+    "Run both-host Debug and runtime sanitizer qualification.",
+    "Resolve every implementation or fixture failure without weakening assertions.",
+    "Run cumulative qualification.",
+    "Wire worldd and workspaced with native credential handoff.",
+    "Implement fencing, checked recovery, and issuer retirement."
+  ]
+}

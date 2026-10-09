@@ -1,0 +1,6 @@
+test_challenge_and_failed_proof_do_not_materialize_grants (__main__.WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.682s
+
+OK

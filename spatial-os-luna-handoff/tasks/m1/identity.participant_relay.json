@@ -10,10 +10,11 @@
   "integrated": false,
   "evidence": "evidence/participant-relay-2026-10-09",
   "remaining": [
-    "Complete both-host focused and cumulative qualification.",
+    "Complete both-host cumulative qualification.",
     "Wire worldd and workspaced.",
     "Implement fencing and checked recovery."
   ],
   "Debug": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips.",
-  "next": "Finish runtime sanitizers, then run the prepared cumulative continuation. Wire the production supervisor event loop to worldd and workspaced."
+  "next": "Full cumulative continuation is running. Implement the production supervisor event loop, then wire worldd and workspaced.",
+  "runtime_sanitizers": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips."
 }

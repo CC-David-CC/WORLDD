@@ -1,0 +1,9 @@
+{
+  "host": "sb16",
+  "source_files": 278,
+  "locked_files": 41,
+  "harness_passed": 51,
+  "expected_baseline_failures": 1,
+  "acceptance_pass": false,
+  "interpretation": "Missing executable confirmed. Runtime behavior remains unimplemented and untested."
+}

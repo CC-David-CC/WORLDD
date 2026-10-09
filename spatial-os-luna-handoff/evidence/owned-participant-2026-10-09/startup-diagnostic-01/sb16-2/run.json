@@ -1,0 +1,217 @@
+{
+  "host": "sb16-2",
+  "results": [
+    {
+      "name": "0-WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 3.472675711993361
+    },
+    {
+      "name": "0-WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 3.9747356150182895
+    },
+    {
+      "name": "0-WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 2.9012575740052853
+    },
+    {
+      "name": "1-WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 3.468012982979417
+    },
+    {
+      "name": "1-WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 4.127404290018603
+    },
+    {
+      "name": "1-WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 2.9419329010124784
+    },
+    {
+      "name": "2-WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 3.570131889980985
+    },
+    {
+      "name": "2-WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 4.072597299993504
+    },
+    {
+      "name": "2-WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 2.9628597389964852
+    },
+    {
+      "name": "3-WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 3.4585720699978992
+    },
+    {
+      "name": "3-WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 4.022160441003507
+    },
+    {
+      "name": "3-WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 2.9659201159956865
+    },
+    {
+      "name": "4-WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 3.3721088340098504
+    },
+    {
+      "name": "4-WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 4.262827742990339
+    },
+    {
+      "name": "4-WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/source/tests/core/test_world_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-owned-participant-02/runtime-sanitize/build/worldd",
+        "WorldAuthorityTests.test_grant_cannot_cross_world_identity",
+        "-v"
+      ],
+      "exit_code": 0,
+      "seconds": 2.8622359250148293
+    }
+  ],
+  "source_files": 274,
+  "production_or_tests_changed": false
+}

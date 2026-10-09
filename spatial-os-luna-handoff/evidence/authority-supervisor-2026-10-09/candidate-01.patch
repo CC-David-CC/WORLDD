@@ -1,0 +1,593 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -156,6 +156,8 @@
+ add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
+ target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope SQLite::SQLite3)
+ add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
++add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
++target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch)
+ target_link_libraries(spatial-authority-launch-probe PRIVATE spatial-authority-launch)
+ add_dependencies(spatial-authority-launch-probe launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
+ add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
+@@ -232,6 +234,17 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(workspace-bootstrap-owner-idle PROPERTIES TIMEOUT 60
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME authority-supervisor COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-supervisor-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_supervisor.py"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(authority-supervisor PROPERTIES TIMEOUT 120)
+     add_test(NAME authority-participant-relay COMMAND systemd-run --user --wait --pipe --collect
+         --unit=spatial-participant-relay-${build_hash} --property=Delegate=yes
+         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -43,6 +43,19 @@
+   uint64 supervision_revision = 3;
+   optional uint64 previous_generation = 4;
+ }
++// Private local supervisor configuration. No actor receives this interface.
++message AuthoritySupervisorConfig {
++  uint32 protocol_version = 1;
++  string journal_directory = 2;
++  string delegated_cgroup = 3;
++  AuthorityLaunchBinding binding = 4;
++  AuthorityParticipantAttach participant = 5;
++  AuthorityLaunchAuthorize authorization = 6;
++  AuthorityProcessLaunch launch = 7;
++  string child_participant_config = 8;
++  uint32 participant_target_fd = 9;
++  repeated uint32 inherited_source_fds = 10;
++}
+ message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
+ message AuthorityLaunchQuery {}
+ message AuthorityLaunchRequest {
+--- a/src/supervisor/launch.cpp
++++ b/src/supervisor/launch.cpp
+@@ -125,6 +125,7 @@
+     std::optional<identity::v1::AuthorityAuthenticationResult> authenticated;
+     bool attached = false, stopping = false, started = false;
+     bool relay_prepared = false, relay_terminal = false, relay_finished = false, relay_failed = false;
++    bool relay_released = false;
+     std::uint32_t relay_target = 0;
+     File relay_child;
+     std::unique_ptr<identity::ParticipantStream> relay;
+@@ -406,6 +407,7 @@
+                 impl_->relay_request.reset();
+             }
+             impl_->relay->send(update->SerializeAsString());
++            if (update->has_released()) impl_->relay_released = true;
+             if (update->has_released() || (update->has_error() && impl_->participant->failed())) impl_->relay_terminal = true;
+         }
+         impl_->relay->flush();
+@@ -427,6 +429,14 @@
+         impl_->relay_failed = true; impl_->relay.reset(); impl_->participant.reset(); impl_->bootstrap.clear();
+         throw;
+     }
++}
++bool AuthorityLaunch::child_completed() const {
++    require(impl_->started && impl_->process && !impl_->stopping, "No running owned child");
++    if (!impl_->process->state().direct_child_exited()) return false;
++    require(impl_->relay_finished && impl_->relay_released && !impl_->relay_failed,
++        "Authority child exited without completed release");
++    require(impl_->process->exited_successfully(), "Authority child failed after release");
++    return true;
+ }
+ AuthorityLaunch::~AuthorityLaunch() {
+     // Destructors still stop owned effects. Only a successful explicit stop persists receipts.
+--- a/src/supervisor/launch.hpp
++++ b/src/supervisor/launch.hpp
+@@ -27,6 +27,8 @@
+     identity::v1::AuthorityParticipantRuntimeConfig prepare_channel(std::uint32_t target_fd);
+     // The supervisor event loop pumps this channel. Failure requires checked cleanup.
+     void pump_channel();
++    // True only after an explicit release and exit of the retained direct child.
++    bool child_completed() const;
+     v1::AuthorityLaunchRecord inspect() const;
+     v1::AuthorityLaunchRecord stop();
+ private:
+--- /dev/null
++++ b/src/supervisor/main.cpp
+@@ -0,0 +1,184 @@
++#include "supervisor/launch.hpp"
++#include "identity/participant_stream.hpp"
++#include "identity/tls_support.hpp"
++#include <google/protobuf/text_format.h>
++#include <charconv>
++#include <chrono>
++#include <climits>
++#include <csignal>
++#include <iostream>
++#include <poll.h>
++#include <set>
++
++namespace {
++namespace pb = spatial::supervisor::v1;
++using Clock = std::chrono::steady_clock;
++using File = spatial::identity::tls_detail::Fd;
++volatile std::sig_atomic_t interrupted = 0;
++void terminate(int signal) { interrupted = signal; }
++void require(bool okay, const char* message) {
++    if (!okay) throw std::runtime_error(message);
++}
++void tick() { poll(nullptr, 0, 5); }
++void parent_alive(int fd) {
++    pollfd event{fd, static_cast<short>(POLLIN | POLLRDHUP), 0};
++    int result;
++    do { result = poll(&event, 1, 0); } while (result < 0 && errno == EINTR);
++    require(result >= 0 && !(event.revents & (POLLERR | POLLHUP | POLLRDHUP | POLLNVAL)),
++        "Supervisor management parent disconnected");
++}
++int descriptor(const char* text) {
++    int fd = -1;
++    const std::string value(text);
++    const auto result = std::from_chars(value.data(), value.data()+value.size(), fd);
++    require(result.ec == std::errc{} && result.ptr == value.data()+value.size() && fd >= 3 &&
++        fcntl(fd, F_GETFD) >= 0, "Expected an open inherited descriptor");
++    return fd;
++}
++bool absolute(const std::string& text) {
++    return !text.empty() && text.find('\0') == std::string::npos && std::filesystem::path(text).is_absolute();
++}
++pb::AuthoritySupervisorConfig configuration(const char* path, int native, int management) {
++    pb::AuthoritySupervisorConfig value;
++    require(google::protobuf::TextFormat::ParseFromString(spatial::identity::tls_detail::load_config(path), &value),
++        "Malformed supervisor configuration");
++    spatial::validate_message(value);
++    require(value.protocol_version() == 1 && value.binding().supervised() &&
++        value.has_participant() && value.has_authorization() && value.has_launch() &&
++        absolute(value.journal_directory()) && absolute(value.delegated_cgroup()) &&
++        absolute(value.child_participant_config()) && absolute(value.launch().executable()) &&
++        value.participant_target_fd() >= 3 && value.participant_target_fd() <= 255 &&
++        value.inherited_source_fds_size() < 16 &&
++        value.inherited_source_fds_size() == value.launch().inherited_fds_size(),
++        "Invalid supervisor configuration");
++    std::set<std::uint32_t> targets{value.participant_target_fd()}, sources;
++    struct stat native_info{}, management_info{};
++    require(fstat(native, &native_info) == 0 && fstat(management, &management_info) == 0,
++        "Cannot identify privileged descriptors");
++    for (int i = 0; i < value.inherited_source_fds_size(); ++i) {
++        const auto source = value.inherited_source_fds(i), target = value.launch().inherited_fds(i);
++        struct stat source_info{};
++        require(source >= 3 && source <= INT_MAX && static_cast<int>(source) != native &&
++            static_cast<int>(source) != management && sources.insert(source).second &&
++            fcntl(static_cast<int>(source), F_GETFD) >= 0 &&
++            target >= 3 && target <= 255 && targets.insert(target).second,
++            "Invalid or privileged child descriptor mapping");
++        require(fstat(static_cast<int>(source), &source_info) == 0 &&
++            !(source_info.st_dev == native_info.st_dev && source_info.st_ino == native_info.st_ino) &&
++            !(source_info.st_dev == management_info.st_dev && source_info.st_ino == management_info.st_ino),
++            "Child descriptor aliases privileged supervisor input");
++    }
++    return value;
++}
++void write_child_config(const std::filesystem::path& path,
++                        const spatial::identity::v1::AuthorityParticipantRuntimeConfig& config) {
++    require(!path.filename().empty() && path.filename() != "." && path.filename() != "..",
++        "Child configuration requires a filename");
++    File directory(open(path.parent_path().c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
++    struct stat info{};
++    require(directory.value >= 0 && fstat(directory.value, &info) == 0 &&
++        info.st_uid == geteuid() && !(info.st_mode & 0077), "Child configuration requires an owned private directory");
++    File file(openat(directory.value, path.filename().c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0600));
++    require(file.value >= 0, "Child configuration already exists or cannot be created");
++    std::string bytes;
++    require(google::protobuf::TextFormat::PrintToString(config, &bytes), "Cannot encode child configuration");
++    std::size_t written = 0;
++    while (written < bytes.size()) {
++        const auto count = write(file.value, bytes.data()+written, bytes.size()-written);
++        if (count < 0 && errno == EINTR) continue;
++        require(count > 0, "Cannot persist child configuration");
++        written += static_cast<std::size_t>(count);
++    }
++    require(fsync(file.value) == 0 && fsync(directory.value) == 0, "Child configuration durability uncertain");
++}
++void view(spatial::identity::ParticipantStream& channel, const pb::AuthorityLaunchRecord& record,
++          std::uint64_t request = 0) {
++    pb::AuthorityLaunchReply reply;
++    reply.set_protocol_version(1); reply.set_request_id(request);
++    *reply.mutable_view()->mutable_record() = record;
++    channel.send(reply.SerializeAsString());
++}
++void drain(spatial::identity::ParticipantStream& channel) {
++    while (channel.pending_output()) { channel.flush(); if (channel.pending_output()) tick(); }
++}
++}
++
++int main(int argc, char** argv) {
++    std::unique_ptr<spatial::supervisor::AuthorityLaunch> launch;
++    std::unique_ptr<spatial::identity::ParticipantStream> management;
++    std::signal(SIGPIPE, SIG_IGN);
++    std::signal(SIGTERM, terminate); std::signal(SIGINT, terminate);
++    try {
++        require(argc == 4, "Expected supervisor configuration, sealed native descriptor, and management descriptor");
++        const int native = descriptor(argv[2]), control = descriptor(argv[3]);
++        require(native != control, "Native and management descriptors must differ");
++        auto config = configuration(argv[1], native, control);
++        management = std::make_unique<spatial::identity::ParticipantStream>(control, getppid());
++        File native_config(native);
++        parent_alive(control);
++        launch = std::make_unique<spatial::supervisor::AuthorityLaunch>(config.journal_directory());
++        launch->prepare(config.delegated_cgroup(), config.binding(), native);
++        native_config.reset();
++        launch->attach(config.participant());
++        bool authenticated = false, baseline = false;
++        const auto deadline = Clock::now()+std::chrono::seconds(10);
++        while (!baseline) {
++            require(!interrupted && Clock::now() < deadline, "Supervisor participant startup interrupted or timed out");
++            parent_alive(control);
++            if (auto update = launch->poll_participant()) {
++                if (update->has_authenticated() && !authenticated) authenticated = true;
++                else if (authenticated && update->has_revocations() && update->revocations().initial()) baseline = true;
++                else throw std::runtime_error("Supervisor participant startup failed");
++            } else tick();
++        }
++        require(!interrupted, "Supervisor startup interrupted");
++        parent_alive(control);
++        launch->authorize(config.authorization());
++        auto child_config = launch->prepare_channel(config.participant_target_fd());
++        write_child_config(config.child_participant_config(), child_config);
++        require(!interrupted, "Supervisor startup interrupted");
++        parent_alive(control);
++        std::vector<int> inherited(config.inherited_source_fds().begin(), config.inherited_source_fds().end());
++        view(*management, launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited));
++        for (;;) {
++            require(!interrupted, "Supervisor termination requested");
++            // Inspect the private parent channel before accepting more child commands.
++            if (auto bytes = management->receive()) {
++                pb::AuthorityLaunchRequest request;
++                pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
++                bool stop = false;
++                try {
++                    require(request.ParseFromString(*bytes), "Malformed supervisor request");
++                    reply.set_request_id(request.request_id()); spatial::validate_message(request);
++                    require(request.protocol_version() == 1, "Unsupported supervisor request version");
++                    require(request.has_inspect() || request.has_stop(), "Supervisor supports only inspect and stop");
++                    stop = request.has_stop();
++                } catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
++                if (!reply.has_error()) {
++                    // Cleanup errors are fatal and cannot resume child routing.
++                    *reply.mutable_view()->mutable_record() = stop ? launch->stop() : launch->inspect();
++                }
++                management->send(reply.SerializeAsString());
++                if (stop) { drain(*management); return 0; }
++            }
++            launch->pump_channel();
++            if (launch->child_completed()) {
++                view(*management, launch->stop()); drain(*management); return 0;
++            }
++            management->flush(); tick();
++        }
++    } catch (const std::exception& error) {
++        std::cerr << "authority supervisor: " << error.what() << '\n';
++        if (launch && launch->inspect().revision()) {
++            try { launch->stop(); }
++            catch (const std::exception& cleanup) { std::cerr << "authority supervisor cleanup unresolved: " << cleanup.what() << '\n'; }
++        }
++        if (management) {
++            try {
++                pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
++                reply.mutable_error()->set_message(error.what()); management->send(reply.SerializeAsString()); drain(*management);
++            } catch (...) { /* The durable journal retains the cleanup result when delivery fails. */ }
++        }
++        return 2;
++    }
++}
+--- a/src/supervisor/process_scope.cpp
++++ b/src/supervisor/process_scope.cpp
+@@ -206,6 +206,16 @@
+     result.set_populated(!removed_ && populated()); result.set_started(started_);
+     result.set_direct_child_exited(started_ && child_exited()); return result;
+ }
++bool ProcessScope::exited_successfully() const {
++    valid(started_ && child_ > 0 && !reaped_, "No retained child exit status");
++    siginfo_t info{};
++    int result;
++    // The direct child remains unreaped and its pidfd remains owned until stop().
++    do { result = waitid(P_PID, static_cast<id_t>(child_), &info, WEXITED | WNOHANG | WNOWAIT); }
++    while (result < 0 && errno == EINTR);
++    check(result == 0, "Cannot inspect retained child exit status");
++    return info.si_pid == child_ && info.si_code == CLD_EXITED && info.si_status == 0;
++}
+ v1::ProcessScopeStopped ProcessScope::stop() {
+     if (!removed_) {
+         if (scope_ >= 0) control(scope_, "cgroup.kill", "1\n");
+--- a/src/supervisor/process_scope.hpp
++++ b/src/supervisor/process_scope.hpp
+@@ -20,6 +20,7 @@
+     ProcessScope(const ProcessScope&) = delete;
+     ProcessScope& operator=(const ProcessScope&) = delete;
+     v1::ProcessScopeState state() const;
++    bool exited_successfully() const;
+     v1::ProcessScopeStopped stop();
+ private:
+     ProcessScope() = default;
+--- /dev/null
++++ b/tests/native/test_authority_supervisor.py
+@@ -0,0 +1,279 @@
++"""The production supervisor launches and pumps a real participant child."""
++import unittest
++import fcntl
++import os
++from pathlib import Path
++import select
++import signal
++import socket
++import struct
++import subprocess
++import time
++from google.protobuf import text_format
++from harness.wire import frame
++import issuer_pb2 as identity
++import grants_pb2 as grants
++import launch_pb2 as pb
++import native_scope_pb2 as native_pb
++import process_scope_pb2 as process_pb
++import security_pb2 as security
++import test_authority_participant_relay as relay
++import test_authority_owned_participant as owned
++
++class AuthoritySupervisorTests(owned.OwnedParticipantTests):
++    revoke = relay.ParticipantRelayTests.revoke
++    barrier = relay.ParticipantRelayTests.barrier
++
++    def config(self):
++        self.child_config = self.root / 'supervised-child.textproto'
++        domains = []
++        for domain in self.issuer.registration.participant.domains:
++            domains += ['world' if domain.kind == grants.WORLD else 'workspace', domain.id]
++        return pb.AuthoritySupervisorConfig(protocol_version=1,
++            journal_directory=str(self.journal), delegated_cgroup=str(self.cgroup), binding=self.binding,
++            participant=pb.AuthorityParticipantAttach(runtime_config=str(self.runtime_config()),
++                domains=self.issuer.registration.participant.domains),
++            authorization=pb.AuthorityLaunchAuthorize(issuer_client_config=str(self.issuer.config_file()),
++                private_key_path=str(self.issuer.supervisor_key), supervision_revision=1, previous_generation=0),
++            launch=process_pb.AuthorityProcessLaunch(executable=str(owned.existing.PROBE.with_name('spatial-participant-runtime-probe')),
++                arguments=[str(self.child_config), *domains]),
++            child_participant_config=str(self.child_config), participant_target_fd=37)
++
++    def supervisor_process(self, config=None, start_server=True, invalid_mapping=False):
++        if start_server:
++            self.start()
++        if config is None:
++            config = self.config()
++        native = native_pb.NativeScopeConfig(protocol_version=1, display_number=self.display,
++            supervisor_cookie=self.cookie, server_id=self.supervisor.inspect().server_id,
++            server_pid=self.server.pid, server_uid=os.getuid(), launch_id=os.urandom(32), role=security.BROKER)
++        fd = os.memfd_create('supervisor-runtime-test', os.MFD_CLOEXEC | os.MFD_ALLOW_SEALING)
++        os.write(fd, native.SerializeToString())
++        fcntl.fcntl(fd, fcntl.F_ADD_SEALS, fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
++        parent, child = socket.socketpair()
++        alias = os.dup(fd) if invalid_mapping == 'alias' else None
++        if invalid_mapping:
++            config.inherited_source_fds.append(fd if alias is None else alias)
++            config.launch.inherited_fds.append(38)
++        path = self.root / ('supervisor-' + str(time.monotonic_ns()))
++        path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
++        logpath = path.with_suffix('.log'); log = logpath.open('wb')
++        try:
++            proc = subprocess.Popen([str(owned.existing.PROBE.with_name('spatial-authority-supervisor')),
++                str(path), str(fd), str(child.fileno())], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
++                stderr=log, pass_fds=(fd, child.fileno()) + (() if alias is None else (alias,)))
++        finally:
++            os.close(fd); child.close()
++            if alias is not None:
++                os.close(alias)
++        def cleanup():
++            parent.close()
++            if proc.poll() is None:
++                try:
++                    proc.wait(timeout=8)
++                except subprocess.TimeoutExpired:
++                    proc.kill(); proc.wait(timeout=3)
++            proc.stdin.close(); proc.stdout.close(); log.close()
++            text = logpath.read_text(errors='replace')
++            for marker in ('AddressSanitizer', 'LeakSanitizer', 'runtime error:'):
++                self.assertNotIn(marker, text)
++        self.addCleanup(cleanup)
++        self.child_input = proc.stdin
++        return proc, parent
++
++    def message(self, stream, message_type):
++        deadline = time.monotonic() + 15
++        def exact(size):
++            data = b''
++            while len(data) < size:
++                remaining = deadline - time.monotonic()
++                self.assertGreater(remaining, 0, 'Supervisor reply deadline')
++                self.assertTrue(select.select([stream], [], [], remaining)[0], 'Supervisor reply deadline')
++                chunk = os.read(stream.fileno(), size-len(data))
++                self.assertTrue(chunk, 'Supervisor or child closed reply channel')
++                data += chunk
++            return data
++        size = struct.unpack('!I', exact(4))[0]
++        self.assertLessEqual(size, 1048576)
++        reply = message_type.FromString(exact(size))
++        self.assertEqual(reply.protocol_version, 1)
++        return reply
++
++    def control(self, channel, **operation):
++        channel.sendall(frame(pb.AuthorityLaunchRequest(protocol_version=1, request_id=77, **operation)))
++        reply = self.message(channel, pb.AuthorityLaunchReply)
++        self.assertEqual(reply.request_id, 77)
++        return reply
++
++    def command(self, request_id=1, **operation):
++        self.child_input.write(frame(identity.ParticipantCommand(request_id=request_id, **operation)))
++        self.child_input.flush()
++
++    def child_update(self, proc, field):
++        reply = self.message(proc.stdout, identity.ParticipantUpdate)
++        self.assertTrue(reply.HasField(field), reply)
++        return reply
++
++    def running(self, config=None):
++        proc, channel = self.supervisor_process(config)
++        initial = self.message(channel, pb.AuthorityLaunchReply)
++        self.assertTrue(initial.HasField('view'), initial)
++        self.assertEqual(initial.request_id, 0)
++        self.assertEqual(initial.view.record.stage, pb.START_ATTEMPTED)
++        self.assertEqual(initial.view.record, self.read_record())
++        self.auth = self.child_update(proc, 'authenticated').authenticated
++        batch = self.child_update(proc, 'revocations').revocations
++        self.assertTrue(batch.initial)
++        pids = (self.cgroup / initial.view.record.process.scope_name / 'cgroup.procs').read_text().split()
++        self.assertEqual(len(pids), 1); self.authority_pid = int(pids[0])
++        status = Path(f'/proc/{self.authority_pid}/status').read_text()
++        self.assertEqual(int(next(line.split()[1] for line in status.splitlines() if line.startswith('PPid:'))), proc.pid)
++        return proc, channel
++
++    def activate_child(self, proc):
++        self.command(1, activate=identity.AuthorityActivate(synchronized_revision=0))
++        result = self.child_update(proc, 'activated')
++        self.assertEqual(result.request_id, 1)
++        return result.activated
++
++    def checked_cleanup(self):
++        record = self.read_record()
++        self.assertEqual(record.stage, pb.OWNED_SCOPES_STOPPED)
++        self.assertEqual(record.process_stopped.identity, record.process)
++        self.assertEqual(record.native_stopped.identity, record.native)
++        self.assertFalse((self.cgroup / record.process.scope_name).exists())
++        return record
++
++    def test_production_supervisor_is_available_for_owned_authority_execution(self):
++        self.assertTrue(owned.existing.PROBE.with_name('spatial-authority-supervisor').is_file(),
++            'Missing production authority supervisor; a manually ticked test probe does not provide its event loop')
++
++    def test_real_child_activates_releases_and_exits_without_manual_pumping(self):
++        proc, channel = self.running()
++        state = self.activate_child(proc)
++        self.assertEqual(state.connection_binding, self.auth.connection_binding)
++        self.assertEqual(self.read_record().authorization.request.service, self.auth)
++        child = text_format.Parse(self.child_config.read_text(), identity.AuthorityParticipantRuntimeConfig())
++        self.assertEqual(child.supervisor_channel_fd, 37)
++        self.assertEqual(child.service_incarnation, self.binding.service_incarnation)
++        self.assertEqual(child.private_key_path, ''); self.assertEqual(child.issuer_client_config, '')
++        self.assertEqual(self.child_config.stat().st_mode & 0o777, 0o600)
++        self.command(2, release=identity.AuthorityRelease(generation=state.generation, applied_revision=0))
++        self.assertEqual(self.child_update(proc, 'released').request_id, 2)
++        final = self.message(channel, pb.AuthorityLaunchReply)
++        self.assertEqual(final.view.record.stage, pb.OWNED_SCOPES_STOPPED)
++        self.assertEqual(proc.wait(timeout=5), 0)
++        self.assertEqual(self.checked_cleanup(), final.view.record)
++
++    def test_revocation_requires_child_acknowledgement_with_automatic_delivery(self):
++        proc, channel = self.running(); state = self.activate_child(proc)
++        self.revoke(); self.assertEqual(self.child_update(proc, 'revocations').revocations.through_revision, 1)
++        self.assertEqual(self.barrier().pending_count, 1)
++        inspected = self.control(channel, inspect=pb.AuthorityLaunchQuery())
++        self.assertEqual(inspected.view.record.stage, pb.START_ATTEMPTED)
++        self.assertEqual(self.barrier().pending_count, 1)
++        self.command(2, applied=identity.AuthorityApplied(generation=state.generation, from_revision=0, through_revision=1))
++        self.assertEqual(self.child_update(proc, 'applied').applied.applied_revision, 1)
++        self.assertEqual(self.barrier().pending_count, 0)
++        self.command(3, release=identity.AuthorityRelease(generation=state.generation, applied_revision=1))
++        self.child_update(proc, 'released'); self.message(channel, pb.AuthorityLaunchReply)
++        self.assertEqual(proc.wait(timeout=5), 0); self.checked_cleanup()
++
++    def test_management_cannot_inject_participant_commands_or_repeat_start(self):
++        proc, channel = self.running()
++        for operation in (
++            dict(participant_command=identity.ParticipantCommand(activate=identity.AuthorityActivate(synchronized_revision=0))),
++            dict(start=process_pb.AuthorityProcessLaunch(executable='/usr/bin/true')),
++            dict(pump_channel=pb.AuthorityLaunchQuery()),
++        ):
++            self.assertTrue(self.control(channel, **operation).HasField('error'))
++        self.assertEqual(self.activation_rows(), [])
++        self.assertEqual(self.control(channel, inspect=pb.AuthorityLaunchQuery()).view.record.stage, pb.START_ATTEMPTED)
++        self.assertEqual(self.control(channel, stop=pb.AuthorityLaunchQuery()).view.record.stage, pb.OWNED_SCOPES_STOPPED)
++        self.assertEqual(proc.wait(timeout=5), 0); self.checked_cleanup()
++
++    def test_explicit_stop_preserves_unresolved_issuer_generation(self):
++        proc, channel = self.running(); self.activate_child(proc)
++        self.revoke(); self.child_update(proc, 'revocations')
++        before = self.activation_rows(); self.assertEqual(self.barrier().pending_count, 1)
++        self.assertEqual(self.control(channel, stop=pb.AuthorityLaunchQuery()).view.record.stage, pb.OWNED_SCOPES_STOPPED)
++        self.assertEqual(proc.wait(timeout=5), 0); self.checked_cleanup()
++        self.assertEqual(self.activation_rows(), before); self.assertEqual(self.barrier().pending_count, 1)
++
++    def test_management_loss_stops_owned_child_and_records_cleanup(self):
++        proc, channel = self.running(); self.activate_child(proc)
++        before = self.activation_rows(); channel.close()
++        self.assertEqual(proc.wait(timeout=8), 2); self.checked_cleanup()
++        self.assertEqual(self.activation_rows(), before)
++
++    def test_child_death_is_failure_with_checked_cleanup(self):
++        proc, channel = self.running(); self.activate_child(proc)
++        before = self.activation_rows(); os.kill(self.authority_pid, signal.SIGKILL)
++        self.assertTrue(self.message(channel, pb.AuthorityLaunchReply).HasField('error'))
++        self.assertEqual(proc.wait(timeout=5), 2); self.checked_cleanup()
++        self.assertEqual(self.activation_rows(), before)
++
++    def test_nonzero_exit_after_release_is_not_successful_completion(self):
++        # Independent byte relay. The real issuer still validates every command.
++        config = self.config()
++        code = ('import os,select,socket\ns=socket.socket(fileno=37)\n'
++                'while True:\n'
++                ' ready,_,_=select.select([0,s],[],[],3)\n'
++                ' for source in ready:\n'
++                '  data=os.read(0,65536) if source==0 else s.recv(65536)\n'
++                '  if not data:raise SystemExit(44)\n'
++                '  if source==0:s.sendall(data)\n'
++                '  else:os.write(1,data)\n')
++        config.launch.CopyFrom(process_pb.AuthorityProcessLaunch(executable='/usr/bin/python3', arguments=['-c', code]))
++        proc, channel = self.running(config); state = self.activate_child(proc)
++        self.command(2, release=identity.AuthorityRelease(generation=state.generation, applied_revision=0))
++        self.child_update(proc, 'released')
++        error = self.message(channel, pb.AuthorityLaunchReply)
++        self.assertTrue(error.HasField('error')); self.assertIn('failed after release', error.error.message)
++        self.assertEqual(proc.wait(timeout=5), 2); self.checked_cleanup()
++
++    def test_excessive_management_frame_stops_owned_execution(self):
++        proc, channel = self.running()
++        channel.sendall(struct.pack('!I', 1048577))
++        self.assertTrue(self.message(channel, pb.AuthorityLaunchReply).HasField('error'))
++        self.assertEqual(proc.wait(timeout=5), 2); self.checked_cleanup()
++
++    def test_termination_signal_stops_owned_child_and_records_cleanup(self):
++        proc, channel = self.running(); proc.send_signal(signal.SIGTERM)
++        self.assertTrue(self.message(channel, pb.AuthorityLaunchReply).HasField('error'))
++        self.assertEqual(proc.wait(timeout=5), 2); self.checked_cleanup()
++
++    def test_existing_child_configuration_is_preserved_and_prevents_execution(self):
++        config = self.config(); self.child_config.write_text('preserve this file\n')
++        proc, channel = self.supervisor_process(config)
++        reply = self.message(channel, pb.AuthorityLaunchReply)
++        self.assertTrue(reply.HasField('error')); self.assertIn('already exists', reply.error.message)
++        self.assertEqual(proc.wait(timeout=5), 2); self.checked_cleanup()
++        self.assertEqual(self.child_config.read_text(), 'preserve this file\n')
++        self.assertEqual(self.activation_rows(), [])
++
++    def test_privileged_descriptor_mapping_is_rejected_before_ownership(self):
++        proc, _ = self.supervisor_process(invalid_mapping=True)
++        self.assertEqual(proc.wait(timeout=5), 2)
++        self.assertFalse((self.journal / 'launch.db').exists())
++        self.assertFalse(self.child_config.exists()); self.assertEqual(self.activation_rows(), [])
++
++    def test_privileged_descriptor_alias_is_rejected_before_ownership(self):
++        proc, _ = self.supervisor_process(invalid_mapping='alias')
++        self.assertEqual(proc.wait(timeout=5), 2)
++        self.assertFalse((self.journal / 'launch.db').exists())
++        self.assertFalse(self.child_config.exists()); self.assertEqual(self.activation_rows(), [])
++
++    def test_reopened_journal_cannot_replay_execution(self):
++        proc, channel = self.running()
++        self.control(channel, stop=pb.AuthorityLaunchQuery()); self.assertEqual(proc.wait(timeout=5), 0)
++        before = self.checked_cleanup(); child_before = self.child_config.read_bytes()
++        other, channel2 = self.supervisor_process(start_server=False)
++        error = self.message(channel2, pb.AuthorityLaunchReply)
++        self.assertTrue(error.HasField('error')); self.assertIn('Launch already exists', error.error.message)
++        self.assertEqual(other.wait(timeout=5), 2); self.assertEqual(self.read_record(), before)
++        self.assertEqual(self.child_config.read_bytes(), child_before); self.assertEqual(self.activation_rows(), [])
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(AuthoritySupervisorTests(n) for n in AuthoritySupervisorTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

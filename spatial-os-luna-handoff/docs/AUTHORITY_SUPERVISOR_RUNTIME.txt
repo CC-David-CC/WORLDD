@@ -1,0 +1,75 @@
+Production authority supervisor
+Status: isolated implementation candidate01. Linux qualification is pending.
+Both hosts confirmed the missing-executable baseline.
+The candidate adds fourteen tests. These tests have not run yet.
+Production integration is pending.
+
+Invariant
+
+A production supervisor owns one authority launch and pumps its participant channel without test-issued ticks.
+
+Configuration
+
+Add AuthoritySupervisorConfig to supervisor/launch.proto.
+Use protocol_version 1.
+Configure a private journal directory and delegated cgroup directory.
+Supply the exact supervised launch binding, participant attachment, and supervisor authorization.
+Supply the authority executable and arguments through AuthorityProcessLaunch.
+Supply an absolute child participant configuration path and reserved participant descriptor.
+Provide inherited source descriptors in the same order as launch.inherited_fds.
+Keep configuration files private. Do not commit credentials or runtime configuration.
+
+The command accepts the configuration path, sealed native-scope descriptor, and private management descriptor.
+The native configuration remains a sealed inherited file.
+Validate management peer credentials against the direct parent and effective UID.
+Never pass the management descriptor, native supervisor input, or supervisor secrets to the child.
+Reject descriptor aliases of native input and management input.
+Preserve the existing ProcessScope descriptor checks and startup gate.
+
+Startup
+
+Validate configuration before creating external ownership.
+Prepare the process and native scopes.
+Attach the participant worker and consume its authenticated identity and initial baseline.
+Require initialization to finish within ten seconds.
+Obtain and persist supervisor authorization for that retained service connection.
+Prepare the private child channel.
+Create the child configuration as a private regular file with exclusive creation.
+Persist its contents and parent directory before child execution.
+Never overwrite an existing configuration.
+Start the authority only through the owned launch.
+Publish its START_ATTEMPTED record after successful exec.
+This record does not claim that world or workspace startup has completed.
+
+Event loop
+
+Pump the participant relay automatically.
+Use the existing bounded private framed transport for management.
+Management messages reuse AuthorityLaunchRequest and AuthorityLaunchReply.
+Permit only inspect and stop operations.
+Reject unsupported operations without granting actor or execution authority.
+Preserve request correlation.
+A successful explicit stop reports checked process and native cleanup receipts.
+Normal child completion also performs checked cleanup.
+Successful completion requires explicit participant release and a zero exit status from the retained direct child.
+Transport failure, child failure, or termination signals stop the owned effects.
+Never infer issuer retirement from local cleanup.
+
+Recovery limits
+
+Preserve the launch journal and unresolved issuer obligations.
+Do not replay a previous start.
+Do not reconstruct live process or native ownership from a reopened journal.
+Keep the generated child configuration for inspection.
+It contains identity and a descriptor number, never signing keys or TLS credentials.
+A replacement launch uses a new explicit configuration path.
+
+Qualification
+
+First reproduce the missing production executable on both hosts.
+Then launch the real ParticipantRuntime child through the production supervisor.
+Verify activation, explicit acknowledgement, release, and automatic relay pumping.
+Verify that inspect works while the child is idle.
+Verify exclusive child configuration creation, invalid descriptors, management loss, and stale journal refusal.
+Require both-host Debug and runtime ASan/UBSan before integration.
+Worldd, workspaced, native credential handoff, fencing, and checked recovery remain separate required integration work.

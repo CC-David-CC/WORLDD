@@ -1,0 +1,6 @@
+test_grant_cannot_cross_world_identity (__main__.WorldAuthorityTests.test_grant_cannot_cross_world_identity) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.743s
+
+OK

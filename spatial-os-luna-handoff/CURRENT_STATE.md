@@ -1,5 +1,35 @@
 # Implementation status
 
+## 2026-10-09: Relay focused matrix passes; broader startup failures remain unresolved
+
+Relay candidate01 passed focused Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 366 checks across 23 suites and 51 harness checks.
+No case failed or skipped. All 277 source hashes and 41 locked hashes match.
+Full cumulative continuation now runs on the same binaries, without overlapping project builds.
+No cumulative relay result is claimed yet.
+
+Owned participant candidate01 passed full Debug on both hosts.
+Its full sanitizer run failed one startup check on sb16 and two on sb16-2.
+The 1339-check core totals were 1338 passed and one failed, then 1337 passed and two failed.
+Runtime P10 was unrun after these failures. No overall sanitizer pass is claimed.
+Retained service logs show startup transport failures, including an issuer deadline timeout.
+The affected logs contain no ASan or UBSan memory report.
+Each of the three affected methods then passed five unchanged repetitions on each host.
+These 30 diagnostic passes do not establish a cause or replace the original failed qualification.
+Production code, fixture deadlines, and assertions remained unchanged.
+Read evidence/owned-participant-2026-10-09/full-candidate-01 and startup-diagnostic-01 there.
+
+Both hosts confirmed the missing production supervisor executable.
+The baseline builds and 51 harness checks passed; its one new test failed as expected.
+The baseline proves a missing executable only. Supervisor behavior remains unqualified.
+Isolated supervisor candidate01 now implements startup, automatic relay pumping, and checked shutdown.
+Its fourteen new tests cover real issuer transitions, revocation acknowledgement, shutdown, and restart refusal.
+The candidate also rejects privileged descriptor aliases and nonzero child exit after release.
+All 279 hashes reconstruct from the reviewed patch. Existing tests and 41 locked files remain unchanged.
+Linux build and runtime tests have not started. Their driver requires completed relay qualification first.
+Read docs/AUTHORITY_SUPERVISOR_RUNTIME.txt and evidence/authority-supervisor-2026-10-09.
+No new candidate source is integrated. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Private child channel passes both profiles; supervisor relay enters qualification
 
 Private child-channel candidate02 passed focused Debug and runtime ASan/UBSan on both hosts.
