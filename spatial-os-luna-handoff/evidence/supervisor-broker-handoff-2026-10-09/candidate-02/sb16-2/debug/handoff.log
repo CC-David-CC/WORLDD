@@ -1,0 +1,39 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 6
+    Start 6: authority-broker-handoff
+
+6: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-broker-handoff-a2b609d29f7e6454232558ae383f17a12d9962967ae5ae751a4a6c9d68ae6fed" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/server" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source/tests/native/test_supervisor_broker_handoff.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-issuer-client"
+6: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build
+6: Test timeout computed to be: 120
+6: Running as unit: spatial-broker-handoff-a2b609d29f7e6454232558ae383f17a12d9962967ae5ae751a4a6c9d68ae6fed.service; invocation ID: b196481c8fcd411097b2f0aa84066979
+6: test_supervised_real_broker_receives_native_configuration (__main__.BrokerHandoffTests.test_supervised_real_broker_receives_native_configuration) ... ok
+6: 
+6: ----------------------------------------------------------------------
+6: Ran 1 test in 1.068s
+6: 
+6: OK
+6: Finished with result: success
+6: Main processes terminated with: code=exited/status=0
+6: Service runtime: 1.261s
+6: CPU time consumed: 701ms
+6: Memory peak: 1.5M
+6: Memory swap peak: 0B
+1/1 Test #6: authority-broker-handoff .........   Passed    1.28 sec
+
+The following tests passed:
+	authority-broker-handoff
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   1.29 sec

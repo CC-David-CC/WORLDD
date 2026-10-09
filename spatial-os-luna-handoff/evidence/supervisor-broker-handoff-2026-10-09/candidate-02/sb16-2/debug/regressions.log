@@ -1,0 +1,47 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 7
+    Start 7: authority-broker-handoff-regressions
+
+7: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-broker-handoff-regressions-a2b609d29f7e6454232558ae383f17a12d9962967ae5ae751a4a6c9d68ae6fed" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/server" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source/tests/native/test_supervisor_broker_handoff_regressions.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-issuer-client"
+7: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build
+7: Test timeout computed to be: 180
+7: Running as unit: spatial-broker-handoff-regressions-a2b609d29f7e6454232558ae383f17a12d9962967ae5ae751a4a6c9d68ae6fed.service; invocation ID: 270c5a5b59b14a5ab3620d434a48d5fd
+7: test_privileged_observer_detects_open_and_closed_fd_on_non_dumpable_process (__main__.BrokerHandoffRegressionTests.test_privileged_observer_detects_open_and_closed_fd_on_non_dumpable_process) ... ok
+7: test_owned_broker_launches_confined_native_application_and_stop_closes_only_its_scope (__main__.BrokerHandoffRegressionTests.test_owned_broker_launches_confined_native_application_and_stop_closes_only_its_scope) ... ok
+7: test_broker_death_preserves_issuer_state_and_revokes_native_descendants (__main__.BrokerHandoffRegressionTests.test_broker_death_preserves_issuer_state_and_revokes_native_descendants) ... ok
+7: test_invalid_native_targets_fail_before_scope_ownership (__main__.BrokerHandoffRegressionTests.test_invalid_native_targets_fail_before_scope_ownership) ... ok
+7: test_native_target_cannot_replace_an_explicit_descriptor (__main__.BrokerHandoffRegressionTests.test_native_target_cannot_replace_an_explicit_descriptor) ... ok
+7: test_descriptor_capacity_reserves_both_generated_descriptors (__main__.BrokerHandoffRegressionTests.test_descriptor_capacity_reserves_both_generated_descriptors) ... ok
+7: test_exact_descriptor_capacity_launches_real_broker (__main__.BrokerHandoffRegressionTests.test_exact_descriptor_capacity_launches_real_broker) ... ok
+7: test_compositor_scope_cannot_supply_a_broker_credential (__main__.BrokerHandoffRegressionTests.test_compositor_scope_cannot_supply_a_broker_credential) ... ok
+7: test_failed_broker_exec_records_checked_native_cleanup_without_activation (__main__.BrokerHandoffRegressionTests.test_failed_broker_exec_records_checked_native_cleanup_without_activation) ... ok
+7: 
+7: ----------------------------------------------------------------------
+7: Ran 9 tests in 8.531s
+7: 
+7: OK
+7: Finished with result: success
+7: Main processes terminated with: code=exited/status=0
+7: Service runtime: 8.673s
+7: CPU time consumed: 5.177s
+7: Memory peak: 1.5M
+7: Memory swap peak: 0B
+1/1 Test #7: authority-broker-handoff-regressions ...   Passed    8.70 sec
+
+The following tests passed:
+	authority-broker-handoff-regressions
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   8.70 sec

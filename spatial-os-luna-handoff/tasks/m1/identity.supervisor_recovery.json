@@ -69,5 +69,6 @@
     "primary_review": "evidence/authority-supervisor-2026-10-09/integration-primary-review-02.json",
     "evidence": "evidence/authority-supervisor-2026-10-09/full-candidate-02",
     "remaining": "Broker and world native handoff, fencing, verified recovery, and issuer retirement remain required."
-  }
+  },
+  "supervised_broker_participation_task": "tasks/m1/identity.supervised_broker_participation.json"
 }

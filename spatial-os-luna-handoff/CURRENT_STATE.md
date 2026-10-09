@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-09: Broker focused qualification passes on both hosts
+
+Broker handoff candidate02 passed focused Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 112 checks across 11 suites and 51 harness checks, without failures or skips.
+Both full cumulative qualification drivers remain active on the same frozen source and binaries.
+Primary review covers the exact five changed files. The guarded integration patch is prepared, not applied.
+Production remains the 281-file supervisor increment at 534a94c.
+The broker candidate contains 283 files and preserves all 41 locks and all existing test files.
+Read evidence/supervisor-broker-handoff-2026-10-09/integration-primary-review-02.json.
+
+Four issuer-backed supervised broker integration checks are prepared and primary-reviewed.
+They cover real activation, authorized native application launch, missing-principal denial, and graceful release.
+They also cover actor revocation and broker death with a visible unretired issuer obligation.
+The revocation witness requires native EOF when the barrier completes, without an additional grace period.
+Both-host queues wait for exact full broker qualification drivers before these new tests execute.
+All four integration checks remain unrun.
+Read docs/SUPERVISED_BROKER_PARTICIPATION.txt and tasks/m1/identity.supervised_broker_participation.json.
+M02 and all broader Spatial-M1 qualification requirements remain incomplete.
+
+
 ## 2026-10-09: Supervisor adopted on both hosts; broker focused sanitizers pass on sb16
 
 Commit 534a94c integrates the fully qualified supervisor increment.
