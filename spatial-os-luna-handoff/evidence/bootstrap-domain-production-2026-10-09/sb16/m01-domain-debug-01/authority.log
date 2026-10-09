@@ -1,0 +1,123 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 4
+    Start 4: authority-store
+
+4: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-authority-probe"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+4: Environment variables: 
+4:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+4: Test timeout computed to be: 60
+4: test_administration_delegation_requires_explicit_permission (__main__.AuthorityTests.test_administration_delegation_requires_explicit_permission) ... ok
+4: test_administration_does_not_imply_other_rights_or_delegation (__main__.AuthorityTests.test_administration_does_not_imply_other_rights_or_delegation) ... ok
+4: test_bounded_scopes (__main__.AuthorityTests.test_bounded_scopes) ... ok
+4: test_changed_parent_policy_is_detected (__main__.AuthorityTests.test_changed_parent_policy_is_detected) ... ok
+4: test_child_cannot_retain_parent_depth (__main__.AuthorityTests.test_child_cannot_retain_parent_depth) ... ok
+4: test_corrupt_parent_chain_fails_closed (__main__.AuthorityTests.test_corrupt_parent_chain_fails_closed) ... ok
+4: test_database_has_real_durable_parent_and_scope_records (__main__.AuthorityTests.test_database_has_real_durable_parent_and_scope_records) ... ok
+4: test_delegable_right_requires_held_right (__main__.AuthorityTests.test_delegable_right_requires_held_right) ... ok
+4: test_delegable_subset_is_explicit (__main__.AuthorityTests.test_delegable_subset_is_explicit) ... ok
+4: test_domain_kind_and_identity_do_not_alias (__main__.AuthorityTests.test_domain_kind_and_identity_do_not_alias) ... ok
+4: test_empty_store_denies_and_root_is_explicit (__main__.AuthorityTests.test_empty_store_denies_and_root_is_explicit) ... ok
+4: test_failed_database_commit_rolls_back_revision_and_grant (__main__.AuthorityTests.test_failed_database_commit_rolls_back_revision_and_grant) ... ok
+4: test_generated_chains_attenuate_and_do_not_union (__main__.AuthorityTests.test_generated_chains_attenuate_and_do_not_union) ... ok
+4: test_grandchild_cannot_recover_removed_right (__main__.AuthorityTests.test_grandchild_cannot_recover_removed_right) ... ok
+4: test_held_right_is_not_implicitly_delegable (__main__.AuthorityTests.test_held_right_is_not_implicitly_delegable) ... ok
+4: test_inactive_ancestor_blocks_descendants (__main__.AuthorityTests.test_inactive_ancestor_blocks_descendants) ... ok
+4: test_inactive_subject_cannot_act_or_receive_delegation (__main__.AuthorityTests.test_inactive_subject_cannot_act_or_receive_delegation) ... ok
+4: test_independent_grants_survive_parent_revocation (__main__.AuthorityTests.test_independent_grants_survive_parent_revocation) ... ok
+4: test_issuer_can_revoke_child_and_subject_can_relinquish (__main__.AuthorityTests.test_issuer_can_revoke_child_and_subject_can_relinquish) ... ok
+4: test_missing_parent_is_not_an_implicit_root (__main__.AuthorityTests.test_missing_parent_is_not_an_implicit_root) ... ok
+4: test_missing_parent_record_is_storage_failure (__main__.AuthorityTests.test_missing_parent_record_is_storage_failure) ... ok
+4: test_parent_and_issuer_are_derived (__main__.AuthorityTests.test_parent_and_issuer_are_derived) ... ok
+4: test_parent_revocation_invalidates_all_descendants (__main__.AuthorityTests.test_parent_revocation_invalidates_all_descendants) ... ok
+4: test_private_database_and_directory_are_required (__main__.AuthorityTests.test_private_database_and_directory_are_required) ... ok
+4: test_process_death_preserves_committed_grants (__main__.AuthorityTests.test_process_death_preserves_committed_grants) ... ok
+4: test_records_and_decisions_survive_restart (__main__.AuthorityTests.test_records_and_decisions_survive_restart) ... ok
+4: test_revision_conflict_preserves_records (__main__.AuthorityTests.test_revision_conflict_preserves_records) ... ok
+4: test_rights_widening_fails (__main__.AuthorityTests.test_rights_widening_fails) ... ok
+4: test_same_actor_bytes_from_another_issuer_are_not_identity (__main__.AuthorityTests.test_same_actor_bytes_from_another_issuer_are_not_identity) ... ok
+4: test_scope_is_component_wise (__main__.AuthorityTests.test_scope_is_component_wise) ... ok
+4: test_scope_widening_and_sibling_delegation_fail (__main__.AuthorityTests.test_scope_widening_and_sibling_delegation_fail) ... ok
+4: test_scoped_administrator_cannot_revoke_outside_scope (__main__.AuthorityTests.test_scoped_administrator_cannot_revoke_outside_scope) ... ok
+4: test_sibling_rights_cannot_be_combined_for_delegation (__main__.AuthorityTests.test_sibling_rights_cannot_be_combined_for_delegation) ... ok
+4: test_symlink_and_hardlink_databases_are_rejected (__main__.AuthorityTests.test_symlink_and_hardlink_databases_are_rejected) ... ok
+4: test_unknown_database_schema_requires_explicit_migration (__main__.AuthorityTests.test_unknown_database_schema_requires_explicit_migration) ... ok
+4: test_unknown_duplicate_and_unspecified_rights_fail (__main__.AuthorityTests.test_unknown_duplicate_and_unspecified_rights_fail) ... ok
+4: test_unknown_fields_and_invalid_actor_are_rejected (__main__.AuthorityTests.test_unknown_fields_and_invalid_actor_are_rejected) ... ok
+4: test_unrelated_actor_cannot_revoke (__main__.AuthorityTests.test_unrelated_actor_cannot_revoke) ... ok
+4: test_workspace_rights_remain_independent (__main__.AuthorityTests.test_workspace_rights_remain_independent) ... ok
+4: test_world_cannot_grant_workspace_execution (__main__.AuthorityTests.test_world_cannot_grant_workspace_execution) ... ok
+4: test_wrong_domain_and_second_authority_cannot_open_store (__main__.AuthorityTests.test_wrong_domain_and_second_authority_cannot_open_store) ... ok
+4: test_wrong_subject_cannot_delegate (__main__.AuthorityTests.test_wrong_subject_cannot_delegate) ... ok
+4: test_zero_depth_and_excess_depth_are_invalid (__main__.AuthorityTests.test_zero_depth_and_excess_depth_are_invalid) ... ok
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 43 tests in 5.657s
+4: 
+4: OK
+1/2 Test #4: authority-store ..................   Passed    5.73 sec
+test 5
+    Start 5: authority-bootstrap
+
+5: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_authority_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-authority-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-authority-migrate"
+5: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+5: Environment variables: 
+5:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+5: Test timeout computed to be: 90
+5: test_administration_without_delegation_cannot_bind (__main__.BootstrapAuthorityTests.test_administration_without_delegation_cannot_bind) ... ok
+5: test_binding_does_not_grant_until_authorized_materialization (__main__.BootstrapAuthorityTests.test_binding_does_not_grant_until_authorized_materialization) ... ok
+5: test_binding_limit_preserves_existing_bindings_and_revision (__main__.BootstrapAuthorityTests.test_binding_limit_preserves_existing_bindings_and_revision) ... ok
+5: test_binding_requires_parent_holder_and_current_ancestry (__main__.BootstrapAuthorityTests.test_binding_requires_parent_holder_and_current_ancestry) ... ok
+5: test_binding_revision_conflict_does_not_change_store (__main__.BootstrapAuthorityTests.test_binding_revision_conflict_does_not_change_store) ... ok
+5: test_binding_revocation_stops_new_grants_without_revoking_existing_grants (__main__.BootstrapAuthorityTests.test_binding_revocation_stops_new_grants_without_revoking_existing_grants) ... ok
+5: test_binding_write_failure_preserves_revision_and_records (__main__.BootstrapAuthorityTests.test_binding_write_failure_preserves_revision_and_records) ... ok
+5: test_checked_selector_and_terms_must_match_binding (__main__.BootstrapAuthorityTests.test_checked_selector_and_terms_must_match_binding) ... ok
+5: test_corrupt_binding_cannot_materialize_or_disclose_a_valid_binding (__main__.BootstrapAuthorityTests.test_corrupt_binding_cannot_materialize_or_disclose_a_valid_binding) ... ok
+5: test_different_actors_get_distinct_grants (__main__.BootstrapAuthorityTests.test_different_actors_get_distinct_grants) ... ok
+5: test_domain_administration_can_stop_a_binding_without_gaining_its_rights (__main__.BootstrapAuthorityTests.test_domain_administration_can_stop_a_binding_without_gaining_its_rights) ... ok
+5: test_duplicate_binding_cannot_select_another_parent (__main__.BootstrapAuthorityTests.test_duplicate_binding_cannot_select_another_parent) ... ok
+5: test_exact_retry_and_restart_preserve_grant_and_revision (__main__.BootstrapAuthorityTests.test_exact_retry_and_restart_preserve_grant_and_revision) ... ok
+5: test_explicit_v1_migration_preserves_grants_revocations_and_domain (__main__.BootstrapAuthorityTests.test_explicit_v1_migration_preserves_grants_revocations_and_domain) ... ok
+5: test_failed_migration_rolls_back_schema_changes (__main__.BootstrapAuthorityTests.test_failed_migration_rolls_back_schema_changes) ... ok
+5: test_grant_capacity_cannot_be_bypassed_by_materialization (__main__.BootstrapAuthorityTests.test_grant_capacity_cannot_be_bypassed_by_materialization) ... ok
+5: test_invalid_selectors_and_recipient_bearing_templates_are_rejected (__main__.BootstrapAuthorityTests.test_invalid_selectors_and_recipient_bearing_templates_are_rejected) ... ok
+5: test_migration_tool_refuses_live_store_lock (__main__.BootstrapAuthorityTests.test_migration_tool_refuses_live_store_lock) ... ok
+5: test_migration_tool_requires_explicit_valid_arguments (__main__.BootstrapAuthorityTests.test_migration_tool_requires_explicit_valid_arguments) ... ok
+5: test_migration_wrong_domain_preserves_legacy_schema (__main__.BootstrapAuthorityTests.test_migration_wrong_domain_preserves_legacy_schema) ... ok
+5: test_missing_binding_parent_is_storage_failure (__main__.BootstrapAuthorityTests.test_missing_binding_parent_is_storage_failure) ... ok
+5: test_missing_receipt_target_is_storage_failure_not_reissuance (__main__.BootstrapAuthorityTests.test_missing_receipt_target_is_storage_failure_not_reissuance) ... ok
+5: test_new_profile_revision_cannot_replace_existing_receipt (__main__.BootstrapAuthorityTests.test_new_profile_revision_cannot_replace_existing_receipt) ... ok
+5: test_parent_revocation_preserves_independent_grant (__main__.BootstrapAuthorityTests.test_parent_revocation_preserves_independent_grant) ... ok
+5: test_preparation_collects_all_parent_identities_before_first_grant (__main__.BootstrapAuthorityTests.test_preparation_collects_all_parent_identities_before_first_grant) ... ok
+5: test_receipt_write_failure_rolls_back_grant_and_revision (__main__.BootstrapAuthorityTests.test_receipt_write_failure_rolls_back_grant_and_revision) ... ok
+5: test_recipient_must_belong_to_the_selected_issuer (__main__.BootstrapAuthorityTests.test_recipient_must_belong_to_the_selected_issuer) ... ok
+5: test_retry_cannot_revive_revoked_grant (__main__.BootstrapAuthorityTests.test_retry_cannot_revive_revoked_grant) ... ok
+5: test_revoked_recipient_or_parent_cannot_receive_new_grant (__main__.BootstrapAuthorityTests.test_revoked_recipient_or_parent_cannot_receive_new_grant) ... ok
+5: test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) ... ok
+5: test_unrelated_actor_cannot_revoke_binding (__main__.BootstrapAuthorityTests.test_unrelated_actor_cannot_revoke_binding) ... ok
+5: test_workspace_binding_preserves_filesystem_scope_and_parent_revocation (__main__.BootstrapAuthorityTests.test_workspace_binding_preserves_filesystem_scope_and_parent_revocation) ... ok
+5: 
+5: ----------------------------------------------------------------------
+5: Ran 32 tests in 27.122s
+5: 
+5: OK
+2/2 Test #5: authority-bootstrap ..............   Passed   27.20 sec
+
+The following tests passed:
+	authority-store
+	authority-bootstrap
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  32.93 sec

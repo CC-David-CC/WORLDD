@@ -24,7 +24,7 @@ def actor(letter, issuer=b'i'):
 A, B, C = actor(b'a'), actor(b'b'), actor(b'c')
 
 
-class AuthorityTests(unittest.TestCase):
+class AuthorityFixture(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='spatial-authority-')
         self.addCleanup(self.temp.cleanup)
@@ -109,6 +109,8 @@ class AuthorityTests(unittest.TestCase):
         self.revision = reply.record.revoked_revision
         return reply.record
 
+
+class AuthorityTests(AuthorityFixture):
     def test_empty_store_denies_and_root_is_explicit(self):
         self.assertFalse(self.allowed(A))
         root = self.root()

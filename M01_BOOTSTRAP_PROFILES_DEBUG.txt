@@ -122,3 +122,42 @@ The isolated domain candidate also passed its 43 existing and 32 new checks unde
 Its schema audit preserved 13 messages, 49 fields, and 23 enum values.
 All 43 existing authority test bodies remain unchanged.
 The issuer increment is ready for integration. Domain delivery and full Spatial-M1 remain incomplete.
+
+2026-10-09 issuer integrated and domain production runs started:
+Issuer commit 9e21cdf8b6747fc50998bd2c95c5d4eb0fcba94f is pushed to box-git.
+Both hosts fast-forwarded successfully. All 212 issuer source hashes still matched.
+Preserved sb16 stash: 60b2be2530d880a8ce2527bbf594b3d9d4c8195e.
+Preserved sb16-2 stash: 18ab1b1c63825cfaa250a7ec9f15cae39b88a6f3.
+Earlier stashes remain preserved too.
+
+Nine reviewed domain implementation, schema, build, and test files are now applied to production.
+Both hosts matched all 214 source hashes before qualification.
+The production matrices run Debug and runtime ASan/UBSan sequentially per host and concurrently across hosts.
+Each profile requires both authority suites, the other 48 core suites, 51 harness checks, and 151 P10 cases.
+The expected complete core count is 973 checks across 50 suites. This is not a reported pass yet.
+The native server remains the normal patched build; native-server GLX sanitizer qualification remains separate.
+Reports are local/m01-domain-debug-01 and local/m01-domain-runtime-sanitize-01 on each host.
+Authenticated adapters and real world/workspace grant effects remain pending.
+
+Both production Debug builds now passed configure/build, 51 harness checks, and all 75 authority checks.
+The other 48 core suites are running. Full Debug and runtime sanitizer results remain pending.
+Production review: spatial-os-luna-handoff/evidence/bootstrap-domain-production-2026-10-09/review.txt.
+
+2026-10-09 domain store production qualification complete:
+Both hosts passed Debug and runtime ASan/UBSan with 973 core checks across 50 suites.
+Each profile also passed 51 harness checks and all 151 P10 cases, without failures or skips.
+Collectors checked that both core partitions equal all configured suites. All 214 source hashes matched.
+The primary agent reviewed every changed production, schema, build, and test file before integration.
+No operator state has been migrated. Native-server GLX sanitizer qualification remains separate and unqualified.
+
+The isolated world adapter passed 15 authenticated bootstrap cases on sb16.
+Six additional cases passed with actual issuer requests and revocation events.
+The first added-test attempt used the wrong database filename and an overly narrow parent-revocation error expectation.
+The corrected witness reads authority.db in read-only mode and still requires zero receipts after each revocation race.
+Parent revocation may deny delegation with FORBIDDEN while the recipient remains authenticated.
+Credential revocation must still produce UNAUTHORIZED or UNAVAILABLE and create no receipt.
+The original failed attempt remains in evidence/bootstrap-adapters-2026-10-09.
+The six final cases also verify independent surviving grants and partial profile results without duplicate grants.
+Broader world adapter regressions and sanitizer checks remain running in an isolated source tree.
+The workspace adapter remains unimplemented. Its five failing baseline cases remain preserved.
+M01, M02, and complete Spatial-M1 remain incomplete.

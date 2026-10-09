@@ -1,0 +1,17 @@
+{
+  "scope": "isolated world draft; real issuer and revocation relay",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-02/test_world_bootstrap_races.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/worldd"
+  ],
+  "exit_code": 0,
+  "test_sha256": "bd9570057095d489c1eaf5adb3280d448a19c6d027d88ec094c8c480888cede0",
+  "binaries": {
+    "identityd": "a61df8fa2bc3c0c46eeec55eeac8faa6c48c4df6aea3d03a68f18c798af3085e",
+    "spatial-issuer-client": "7bcb99d43ece60816d30d8956ed1bf407f7f43979db92955b120820d63970e2f",
+    "worldd": "2a34adeff80d685ef4e231f14adf24350dc35ea081706725e20dbfb2174ea2a8"
+  }
+}

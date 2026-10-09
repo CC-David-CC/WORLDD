@@ -1,0 +1,48 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: world-bootstrap
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_world_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/worldd"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source
+1: Test timeout computed to be: 120
+1: test_administration_cannot_bind_without_explicit_delegation (__main__.WorldBootstrapTests.test_administration_cannot_bind_without_explicit_delegation) ... ok
+1: test_anonymous_channels_cannot_administer_or_apply_bootstrap (__main__.WorldBootstrapTests.test_anonymous_channels_cannot_administer_or_apply_bootstrap) ... ok
+1: test_binding_requires_authenticated_parent_holder (__main__.WorldBootstrapTests.test_binding_requires_authenticated_parent_holder) ... ok
+1: test_bound_profile_admits_private_actor_and_routes_real_navigation (__main__.WorldBootstrapTests.test_bound_profile_admits_private_actor_and_routes_real_navigation) ... ok
+1: test_challenge_and_failed_proof_do_not_materialize_grants (__main__.WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants) ... ok
+1: test_checked_template_cannot_bind_to_another_world (__main__.WorldBootstrapTests.test_checked_template_cannot_bind_to_another_world) ... ok
+1: test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants (__main__.WorldBootstrapTests.test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants) ... ok
+1: test_failed_binding_consumes_actor_sequence (__main__.WorldBootstrapTests.test_failed_binding_consumes_actor_sequence) ... ok
+1: test_new_profile_revision_cannot_replace_existing_grant (__main__.WorldBootstrapTests.test_new_profile_revision_cannot_replace_existing_grant) ... ok
+1: test_parent_revocation_prevents_reconnect_from_restoring_access (__main__.WorldBootstrapTests.test_parent_revocation_prevents_reconnect_from_restoring_access) ... ok
+1: test_public_entry_reports_unbound_template_without_action_authority (__main__.WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority) ... ok
+1: test_reconnect_and_explicit_retry_return_same_durable_grant (__main__.WorldBootstrapTests.test_reconnect_and_explicit_retry_return_same_durable_grant) ... ok
+1: test_second_credential_cannot_revive_revoked_bootstrap_grant (__main__.WorldBootstrapTests.test_second_credential_cannot_revive_revoked_bootstrap_grant) ... ok
+1: test_server_restart_retains_binding_and_receipt (__main__.WorldBootstrapTests.test_server_restart_retains_binding_and_receipt) ... ok
+1: test_signed_profile_without_domain_binding_cannot_create_admission (__main__.WorldBootstrapTests.test_signed_profile_without_domain_binding_cannot_create_admission) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 15 tests in 22.574s
+1: 
+1: OK
+1/1 Test #1: world-bootstrap ..................   Passed   22.72 sec
+
+The following tests passed:
+	world-bootstrap
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  22.72 sec

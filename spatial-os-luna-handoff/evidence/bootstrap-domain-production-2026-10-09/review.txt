@@ -1,0 +1,46 @@
+Domain bootstrap store production review, 2026-10-09
+Base commit: 9e21cdf8b6747fc50998bd2c95c5d4eb0fcba94f.
+Status: complete Debug and runtime sanitizer qualification passed on both hosts; reviewed for integration.
+
+Reviewed files:
+- grants.proto adds exact template selectors and persistent binding records. Existing field numbers remain unchanged.
+- grants_probe.proto adds fixture-only forwarding operations. It does not create an actor authentication service.
+- store.hpp adds binding, preparation, materialization, revocation, and explicit migration interfaces.
+- store.cpp preserves ordinary grant validation, attenuation, parent chains, and existing record limits.
+- store.cpp requires parent ownership for binding creation. Administration alone cannot confer delegation.
+- store.cpp records immutable accepted terms and exact issuer/profile/revision/template identity.
+- store.cpp commits each receipt and delegated grant together. Failed receipt insertion rolls back both.
+- store.cpp rejects replacement receipts, missing targets, corrupt bindings, and exhausted capacity.
+- store.cpp returns existing revoked grants on exact retry. Ordinary authorization still checks their active ancestry.
+- migrate_main.cpp provides explicit private-store migration. It rejects live locks and wrong domain identities.
+- authority_probe.cpp forwards fixture operations to the real store. It retains the fixture-only identity checker.
+- test_authority.py extracts reusable setup while preserving all 43 existing test method bodies.
+- test_authority_bootstrap.py checks 32 binding, receipt, migration, capacity, and corruption cases.
+- CMakeLists.txt adds the production migration binary and the new test suite.
+
+Prior isolated evidence:
+Sb16 passed all 43 existing and 32 new checks in Debug and runtime ASan/UBSan.
+The schema audit preserved 13 messages, 49 fields, and 23 enum values.
+The original missing-interface baseline and the incorrect test enum attempt remain preserved.
+See evidence/bootstrap-domain-2026-10-09.
+
+Production qualification:
+Both hosts matched 214 source hashes before building.
+Both hosts passed complete Debug and runtime ASan/UBSan profiles.
+Each profile passed 973 core checks across 50 suites, 51 harness checks, and all 151 P10 cases.
+The collector verified both core partitions against every configured CTest suite.
+No final profile failed or skipped a case. All 214 source hashes still matched.
+The partitioned runner executes each core suite once per profile.
+It does not exclude a suite from qualification or alter a test assertion.
+
+Remaining work:
+Authenticated world/workspace adapters must fetch the exact profile through the checked issuer client.
+They must derive the recipient from a current registered credential and match the authenticated actor.
+Binding administration must use the same actor channel and ordinary parent delegation authority.
+Refresh parent ancestry identities before materialization. Service revocation during external I/O.
+Report absent bindings, unavailable domains, and failed application explicitly.
+Test private-world admission, workspace operations, reconnects, second credentials, and independent surviving grants.
+Do not create or select a workspace or cabinet merely because a profile mentions it.
+No complete bootstrap delivery, M01, M02, or Spatial-M1 result is claimed.
+No operator authority database or host login configuration changed.
+Native-server GLX sanitizer qualification remains separate and unqualified.

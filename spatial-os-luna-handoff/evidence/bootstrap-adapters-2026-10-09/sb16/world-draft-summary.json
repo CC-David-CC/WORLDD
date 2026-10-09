@@ -1,0 +1,15 @@
+{
+  "world_cases": 15,
+  "additional_cases": 6,
+  "failed_final": 0,
+  "skipped_final": 0,
+  "host": "sb16",
+  "build": "isolated Debug",
+  "source_files": 216,
+  "preserved_failure": "First six-case attempt failed on an incorrect database filename and overly narrow parent-revocation error expectation.",
+  "limits": [
+    "Workspace adapter unimplemented",
+    "Full regression and sanitizer profiles pending",
+    "No production integration"
+  ]
+}

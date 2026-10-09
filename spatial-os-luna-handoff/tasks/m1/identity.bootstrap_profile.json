@@ -4,7 +4,7 @@
   "profile": "tasks/spatial-m1.json",
   "contract": "docs/BOOTSTRAP_PROFILES.md",
   "status": "in_progress",
-  "current_step": "domain_store_integration",
+  "current_step": "authenticated_domain_delivery",
   "invariant": "Enrollment pins an owner-selected immutable profile; only explicitly authorized domain delegation can turn its templates into durable grants.",
   "production_roots": [
     "proto/spatial/identity/v1/issuer.proto",
@@ -35,18 +35,18 @@
     "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
     "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
   ],
-  "current_test_scope": "Issuer publication, enrollment, migration, and checked retrieval passed full qualification on both hosts. Isolated domain-store candidate passed 43 existing and 32 new checks in Debug and runtime sanitizers on sb16. Authenticated domain delivery remains required.",
+  "current_test_scope": "Issuer and domain store qualified in complete Debug and runtime sanitizer profiles on both hosts. Domain profiles passed 973 core checks, 51 harness checks, and 151 P10 cases. Isolated world adapter passed 21 focused sb16 checks; broader qualification is running. Workspace adapter remains unimplemented.",
   "remaining_steps": [
-    "Integrate reviewed issuer increment and preserve qualified host edits",
-    "Integrate and qualify explicit world/workspace parent bindings and durable receipts on both hosts",
-    "Authenticated profile lookup, recipient matching, and revocation during external I/O",
-    "Real world admission and workspace action counterexamples, reconnects, and second credentials"
+    "Implement and qualify authenticated world/workspace profile lookup and delivery through existing actor channels",
+    "Validate credential and parent revocation during external I/O, and checked broker response context",
+    "Complete real workspace action counterexamples, reconnects, second credentials, and partial-profile recovery"
   ],
   "preceding_gate": "P10",
   "base_commit": "76c29bd897a0fffa0d3dce2a2c968ed87bf8aefb",
   "limitations": [
-    "The domain-store candidate remains isolated from production.",
-    "No authenticated nonempty domain grant delivery is qualified yet.",
-    "Profile storage alone does not complete M01 or M02."
-  ]
+    "Isolated world adapter has focused evidence only; it is not integrated into production.",
+    "Workspace bootstrap delivery remains unimplemented; five baseline tests document the gap.",
+    "Profile and domain storage alone do not complete M01, M02, or Spatial-M1."
+  ],
+  "issuer_commit": "9e21cdf8b6747fc50998bd2c95c5d4eb0fcba94f"
 }

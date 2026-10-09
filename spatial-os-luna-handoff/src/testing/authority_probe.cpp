@@ -13,10 +13,10 @@ int main(int argc, char** argv) {
     try {
         signal(SIGPIPE, SIG_IGN); umask(0077);
         if (argc != 5 || (std::string(argv[2]) != "1" && std::string(argv[2]) != "2") ||
-                (std::string(argv[4]) != "open" && std::string(argv[4]) != "initialize"))
-            throw std::invalid_argument("Expected private directory, domain kind, identity, and open or initialize");
+                (std::string(argv[4]) != "open" && std::string(argv[4]) != "initialize" && std::string(argv[4]) != "migrate"))
+            throw std::invalid_argument("Expected private directory, domain kind, identity, and open, initialize, or migrate");
         pb::Domain domain; domain.set_kind(std::string(argv[2]) == "1" ? pb::WORLD : pb::WORKSPACE); domain.set_id(argv[3]);
-        spatial::authority::Store store(argv[1], domain, std::string(argv[4]) == "initialize");
+        spatial::authority::Store store(argv[1], domain, std::string(argv[4]) == "initialize", std::string(argv[4]) == "migrate");
         std::string bytes;
         while (spatial::read_frame(std::cin, bytes)) {
             test::ProbeRequest request; test::ProbeReply reply; reply.set_protocol_version(1);
@@ -30,7 +30,22 @@ int main(int argc, char** argv) {
                     return true;
                 };
                 const auto expected = [](bool present) { if (!present) throw std::invalid_argument("Expected revision is required"); };
-                if (request.has_install()) {
+                if (request.has_bootstrap_bind()) {
+                    const auto& q = request.bootstrap_bind(); expected(q.has_expected_revision());
+                    *reply.mutable_binding() = store.bind_bootstrap(q.caller(), q.selector(), q.parent_id(), q.terms(), q.expected_revision(), identity);
+                } else if (request.has_bootstrap_apply()) {
+                    const auto& q = request.bootstrap_apply();
+                    *reply.mutable_record() = store.materialize_bootstrap(q.binding_id(), q.recipient(), q.selector(), q.terms(), identity);
+                } else if (request.has_bootstrap_revoke()) {
+                    const auto& q = request.bootstrap_revoke(); expected(q.has_expected_revision());
+                    *reply.mutable_binding() = store.revoke_bootstrap(q.caller(), q.binding_id(), q.expected_revision(), identity);
+                } else if (request.has_bootstrap_get()) {
+                    *reply.mutable_binding() = store.bootstrap_binding(request.bootstrap_get());
+                } else if (request.has_bootstrap_subjects()) {
+                    const auto& q = request.bootstrap_subjects();
+                    for (const auto& subject : store.bootstrap_subjects({q.binding_ids().begin(), q.binding_ids().end()}, q.recipient()))
+                        *reply.mutable_subjects()->add_actors() = subject;
+                } else if (request.has_install()) {
                     expected(request.install().has_expected_revision());
                     *reply.mutable_record() = store.install_root(request.install().terms(), request.install().expected_revision());
                 } else if (request.has_delegate()) {

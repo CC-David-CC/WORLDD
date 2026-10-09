@@ -59,9 +59,10 @@ Report pending or failed domain application explicitly. Do not invent successful
 An unavailable or unconfigured domain grants nothing.
 Profile updates must not silently replace existing permissions.
 
-## Domain transaction design for the next implementation step
+## Domain transaction contract
 
-This section specifies pending implementation. It does not claim working grant delivery.
+The store implementation is under production qualification. Authenticated domain adapters remain pending.
+Store methods alone do not establish working grant delivery.
 
 Keep accepted bindings and materialization receipts in the domain authority database.
 A binding identifies the issuer, exact profile revision, template identifier, and parent grant.
@@ -142,5 +143,28 @@ No final profile failed or skipped a case. Both final 212-file source audits pas
 The separate native fixture correction is committed at 388d500. Original failed reports remain preserved.
 An isolated domain-store candidate passed 43 existing and 32 new tests in Debug and runtime sanitizers on sb16.
 It includes the production migration command. It does not yet connect authenticated world or workspace actions.
-Candidate production integration and sb16-2 qualification remain pending.
+Issuer integration completed at 9e21cdf on both hosts, with matching source hashes.
+The domain store passed complete Debug and runtime sanitizer qualification on both hosts.
+Each profile passed 973 core checks across 50 suites, 51 harness checks, and 151 P10 cases.
+No final profile failed or skipped a case. All 214 tested source hashes match.
+Authenticated world delivery has 21 passing isolated sb16 checks. Broader qualification remains pending.
+Workspace delivery remains unimplemented. Neither adapter is integrated into production.
 These results do not complete bootstrap delivery, M01, M02, or Spatial-M1.
+
+## Explicit domain storage migration
+
+The domain store uses authority schema version two.
+Version two adds accepted bootstrap bindings and durable grant receipts.
+Normal startup refuses version one until an explicit migration succeeds.
+Migration preserves domain identity, authority revision, existing grants, and revocations.
+Failed migration rolls back its schema changes. Repeating a completed migration is safe.
+
+Stop the world or workspace authority that owns the store.
+Back up its complete private authority directory outside Git.
+Preserve private ownership and permissions on the backup.
+Run `spatial-authority-migrate --state-dir /absolute/private/authority --domain-kind world --domain-id WORLD_ID` for a world.
+Use `--domain-kind workspace --domain-id WORKSPACE_ID` for a workspace store.
+The command refuses a live store lock or a mismatched domain identity.
+For rollback, stop the authority and restore its complete backup with the matching old binary.
+Do not run the old binary against the migrated store.
+These tests migrate temporary fixtures only. No operator authority directory has been migrated.

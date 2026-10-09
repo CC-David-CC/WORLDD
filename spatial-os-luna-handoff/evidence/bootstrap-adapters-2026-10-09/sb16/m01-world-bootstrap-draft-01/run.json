@@ -1,0 +1,53 @@
+{
+  "scope": "isolated world bootstrap candidate; workspace adapter remains explicitly unimplemented",
+  "source_files": 216,
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build",
+        "--parallel",
+        "2",
+        "--target",
+        "worldd",
+        "identityd",
+        "spatial-issuer-client",
+        "python-protobuf",
+        "security-python-protobuf",
+        "key-python-protobuf",
+        "issuer-python-protobuf",
+        "world-session-python-protobuf",
+        "grants-python-protobuf"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "world-bootstrap",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/build",
+        "-V",
+        "-R",
+        "^world-bootstrap$"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

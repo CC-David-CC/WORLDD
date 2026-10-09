@@ -1,0 +1,110 @@
+test_application_does_not_make_workspace_available (__main__.WorkspaceBootstrapTests.test_application_does_not_make_workspace_available) ... FAIL
+test_explicit_application_enables_confined_real_file_write (__main__.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write) ... FAIL
+test_read_only_bootstrap_does_not_authorize_writable_application (__main__.WorkspaceBootstrapTests.test_read_only_bootstrap_does_not_authorize_writable_application) ... FAIL
+test_retry_preserves_receipt_and_parent_revocation_denies_execution (__main__.WorkspaceBootstrapTests.test_retry_preserves_receipt_and_parent_revocation_denies_execution) ... FAIL
+test_unknown_workspace_never_redirects_application_to_current_world (__main__.WorkspaceBootstrapTests.test_unknown_workspace_never_redirects_application_to_current_world) ... FAIL
+
+======================================================================
+FAIL: test_application_does_not_make_workspace_available (__main__.WorkspaceBootstrapTests.test_application_does_not_make_workspace_available)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 78, in test_application_does_not_make_workspace_available
+    world,_,_=self.ready_workspace();peer=world.peers[1]
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 55, in ready_workspace
+    world=self.workspace();self.publish(rights=rights);binding=self.binding(world)
+                                                               ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_explicit_application_enables_confined_real_file_write (__main__.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 63, in test_explicit_application_enables_confined_real_file_write
+    world,binding,actor=self.ready_workspace();peer=world.peers[1]
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 55, in ready_workspace
+    world=self.workspace();self.publish(rights=rights);binding=self.binding(world)
+                                                               ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_read_only_bootstrap_does_not_authorize_writable_application (__main__.WorkspaceBootstrapTests.test_read_only_bootstrap_does_not_authorize_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 99, in test_read_only_bootstrap_does_not_authorize_writable_application
+    world,_,_=self.ready_workspace(rights=[grant.WORKSPACE_ACCESS,grant.FILE_BROWSE,grant.FILE_READ,grant.PROCESS_EXECUTE])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 55, in ready_workspace
+    world=self.workspace();self.publish(rights=rights);binding=self.binding(world)
+                                                               ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_retry_preserves_receipt_and_parent_revocation_denies_execution (__main__.WorkspaceBootstrapTests.test_retry_preserves_receipt_and_parent_revocation_denies_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 87, in test_retry_preserves_receipt_and_parent_revocation_denies_execution
+    world,binding,_=self.ready_workspace();peer=world.peers[1]
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 55, in ready_workspace
+    world=self.workspace();self.publish(rights=rights);binding=self.binding(world)
+                                                               ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_unknown_workspace_never_redirects_application_to_current_world (__main__.WorkspaceBootstrapTests.test_unknown_workspace_never_redirects_application_to_current_world)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 107, in test_unknown_workspace_never_redirects_application_to_current_world
+    world,_,_=self.ready_workspace();peer=world.peers[1]
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_workspace_bootstrap.py", line 55, in ready_workspace
+    world=self.workspace();self.publish(rights=rights);binding=self.binding(world)
+                                                               ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 8.400s
+
+FAILED (failures=5)

@@ -16,11 +16,11 @@ All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qua
 Existing components provide partial implementation where CURRENT_STATE.md records their evidence.
 The mandatory profile is tasks/spatial-m1.json.
 
-The latest qualified increment adds immutable issuer bootstrap profiles and checked exact-version retrieval.
+The latest qualified increment adds persistent domain bootstrap bindings, receipts, and explicit storage migration.
 Both hosts passed complete Debug and runtime ASan/UBSan qualification on 2026-10-09.
-Each profile passed 941 core checks across 49 suites, 51 harness checks, and all 151 P10 cases.
+Each profile passed 973 core checks across 50 suites, 51 harness checks, and all 151 P10 cases.
 No final profile failed or skipped a case.
-See evidence/bootstrap-profiles-2026-10-09 for source pins, commands, failures, and final results.
+See evidence/bootstrap-domain-production-2026-10-09 for source pins, commands, and final results.
 The original P00-P10 baseline and walkthrough evidence remain in evidence/walkthroughs-2026-10-07.
 
 Qualified components now include actor identity, persistent grants, confined execution, and several native X isolation boundaries.

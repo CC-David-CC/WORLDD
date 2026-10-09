@@ -1,5 +1,41 @@
 # Implementation status
 
+## 2026-10-09: Domain bootstrap store qualified on both hosts
+
+The reviewed domain store passed complete production qualification on both hosts.
+Bindings require parent ownership and explicit delegation rights. They do not create root grants.
+Materialization records the delegated grant and durable receipt in one authority-store transaction.
+Retries return the original grant. Changed profiles or parents cannot replace an existing receipt.
+Parent revocation invalidates dependent grants. Independent grants remain valid.
+The explicit spatial-authority-migrate command upgrades authority schema one to two.
+Normal startup refuses old schemas. No operator state has been migrated.
+
+Both hosts passed complete Debug and runtime ASan/UBSan qualification.
+Each profile passed 973 core checks across 50 suites, 51 harness checks, and 151 P10 cases.
+No final profile failed or skipped a case. All 214 source hashes matched.
+See evidence/bootstrap-domain-production-2026-10-09 for commands, source pins, and complete reports.
+Each profile runs the two authority suites first, then all remaining core suites and P10.
+This partition avoids duplicate tests. Both partitions are required for a complete result.
+The isolated sb16 candidate already passed 43 existing and 32 new checks in Debug and runtime sanitizers.
+The additive schema audit preserved 13 messages, 49 fields, and 23 enum values.
+All 43 existing authority test bodies remain unchanged.
+
+Issuer integration is complete at 9e21cdf and pushed to box-git.
+Both hosts fast-forwarded to that commit with their original qualified edits preserved in stashes.
+The 212 issuer source hashes still matched after integration.
+See each host's integration.json in evidence/bootstrap-profiles-2026-10-09.
+
+Authenticated world/workspace bindings, checked credential/profile resolution, and live grant delivery remain required.
+Neither the store nor its fixture probe authenticates an actor.
+An isolated sb16 world adapter passed 15 authenticated login cases and six additional counterexamples.
+The additional cases cover revocation during real issuer waits, independent grants, and partial profile results.
+The first six-case attempt had fixture errors. The original failed log remains preserved.
+The world adapter remains outside production. Broader regressions and runtime sanitizer checks are running.
+The five workspace adapter baseline cases remain failing because that adapter is unimplemented.
+See evidence/bootstrap-adapters-2026-10-09. These focused results do not qualify complete domain delivery.
+The next implementation must use the existing authenticated actor path and checked issuer transport.
+M01, M02, and full Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Versioned issuer bootstrap profiles qualified
 
 Issuer owners can publish immutable enrollment profiles through signed operations.

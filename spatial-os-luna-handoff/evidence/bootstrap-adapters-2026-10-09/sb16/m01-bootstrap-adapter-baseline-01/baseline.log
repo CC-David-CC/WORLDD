@@ -1,0 +1,282 @@
+test_administration_cannot_bind_without_explicit_delegation (__main__.WorldBootstrapTests.test_administration_cannot_bind_without_explicit_delegation) ... FAIL
+test_anonymous_channels_cannot_administer_or_apply_bootstrap (__main__.WorldBootstrapTests.test_anonymous_channels_cannot_administer_or_apply_bootstrap) ... FAIL
+test_binding_requires_authenticated_parent_holder (__main__.WorldBootstrapTests.test_binding_requires_authenticated_parent_holder) ... FAIL
+test_bound_profile_admits_private_actor_and_routes_real_navigation (__main__.WorldBootstrapTests.test_bound_profile_admits_private_actor_and_routes_real_navigation) ... FAIL
+test_challenge_and_failed_proof_do_not_materialize_grants (__main__.WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants) ... FAIL
+test_checked_template_cannot_bind_to_another_world (__main__.WorldBootstrapTests.test_checked_template_cannot_bind_to_another_world) ... FAIL
+test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants (__main__.WorldBootstrapTests.test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants) ... FAIL
+test_failed_binding_consumes_actor_sequence (__main__.WorldBootstrapTests.test_failed_binding_consumes_actor_sequence) ... FAIL
+test_new_profile_revision_cannot_replace_existing_grant (__main__.WorldBootstrapTests.test_new_profile_revision_cannot_replace_existing_grant) ... FAIL
+test_parent_revocation_prevents_reconnect_from_restoring_access (__main__.WorldBootstrapTests.test_parent_revocation_prevents_reconnect_from_restoring_access) ... FAIL
+test_public_entry_reports_unbound_template_without_action_authority (__main__.WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority) ... FAIL
+test_reconnect_and_explicit_retry_return_same_durable_grant (__main__.WorldBootstrapTests.test_reconnect_and_explicit_retry_return_same_durable_grant) ... FAIL
+test_second_credential_cannot_revive_revoked_bootstrap_grant (__main__.WorldBootstrapTests.test_second_credential_cannot_revive_revoked_bootstrap_grant) ... FAIL
+test_server_restart_retains_binding_and_receipt (__main__.WorldBootstrapTests.test_server_restart_retains_binding_and_receipt) ... FAIL
+test_signed_profile_without_domain_binding_cannot_create_admission (__main__.WorldBootstrapTests.test_signed_profile_without_domain_binding_cannot_create_admission) ... FAIL
+
+======================================================================
+FAIL: test_administration_cannot_bind_without_explicit_delegation (__main__.WorldBootstrapTests.test_administration_cannot_bind_without_explicit_delegation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 120, in test_administration_cannot_bind_without_explicit_delegation
+    self.denied(self.bind(world.peers[0],self.root_grant(world.peers[0])),core.FORBIDDEN)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_anonymous_channels_cannot_administer_or_apply_bootstrap (__main__.WorldBootstrapTests.test_anonymous_channels_cannot_administer_or_apply_bootstrap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 129, in test_anonymous_channels_cannot_administer_or_apply_bootstrap
+    self.denied(peer.call(bootstrap_bind=session.WorldBootstrapBind(seq=1,selector=self.selector(),
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 12 : protocol_version: 1
+request_id: 1
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_binding_requires_authenticated_parent_holder (__main__.WorldBootstrapTests.test_binding_requires_authenticated_parent_holder)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 115, in test_binding_requires_authenticated_parent_holder
+    self.denied(self.bind(peer,self.root_grant(world.peers[0])),core.FORBIDDEN)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 4
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_bound_profile_admits_private_actor_and_routes_real_navigation (__main__.WorldBootstrapTests.test_bound_profile_admits_private_actor_and_routes_real_navigation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 85, in test_bound_profile_admits_private_actor_and_routes_real_navigation
+    world,binding,enrollment=self.ready_bootstrap();peer=world.peers[1]
+                             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 65, in ready_bootstrap
+    world=self.scoped_world(admission);self.publish();binding=self.binding(world)
+                                                              ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_challenge_and_failed_proof_do_not_materialize_grants (__main__.WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 134, in test_challenge_and_failed_proof_do_not_materialize_grants
+    world,binding,actor=self.ready_bootstrap();peer=world.peers[1]
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 65, in ready_bootstrap
+    world=self.scoped_world(admission);self.publish();binding=self.binding(world)
+                                                              ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_checked_template_cannot_bind_to_another_world (__main__.WorldBootstrapTests.test_checked_template_cannot_bind_to_another_world)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 223, in test_checked_template_cannot_bind_to_another_world
+    self.denied(self.bind(world.peers[0],self.root_grant(world.peers[0])),core.FORBIDDEN)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants (__main__.WorldBootstrapTests.test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 193, in test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants
+    world,binding,actor=self.ready_bootstrap();peer=world.peers[1]
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 65, in ready_bootstrap
+    world=self.scoped_world(admission);self.publish();binding=self.binding(world)
+                                                              ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_failed_binding_consumes_actor_sequence (__main__.WorldBootstrapTests.test_failed_binding_consumes_actor_sequence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 124, in test_failed_binding_consumes_actor_sequence
+    self.denied(self.bind(peer,self.root_grant(peer),self.selector(template='missing')),core.NOT_FOUND)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 6 : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_new_profile_revision_cannot_replace_existing_grant (__main__.WorldBootstrapTests.test_new_profile_revision_cannot_replace_existing_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 180, in test_new_profile_revision_cannot_replace_existing_grant
+    world,_,actor=self.ready_bootstrap(session.REGISTERED_ACTORS);peer=world.peers[1]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 65, in ready_bootstrap
+    world=self.scoped_world(admission);self.publish();binding=self.binding(world)
+                                                              ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_parent_revocation_prevents_reconnect_from_restoring_access (__main__.WorldBootstrapTests.test_parent_revocation_prevents_reconnect_from_restoring_access)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 169, in test_parent_revocation_prevents_reconnect_from_restoring_access
+    world,_,actor=self.ready_bootstrap();peer=world.peers[1]
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 65, in ready_bootstrap
+    world=self.scoped_world(admission);self.publish();binding=self.binding(world)
+                                                              ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_public_entry_reports_unbound_template_without_action_authority (__main__.WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 107, in test_public_entry_reports_unbound_template_without_action_authority
+    self.assertEqual(self.check_report(reply.bootstrap_attempt,world).error.code,core.NOT_FOUND)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 74, in check_report
+    self.assertEqual(report.issuer_id,self.info.issuer_id)
+AssertionError: b'' != b'\xf1\x07\x8a\x0cp\x1fjD\x96\x17c\xc1\x7fd[56 chars]x11V'
+
+======================================================================
+FAIL: test_reconnect_and_explicit_retry_return_same_durable_grant (__main__.WorldBootstrapTests.test_reconnect_and_explicit_retry_return_same_durable_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 146, in test_reconnect_and_explicit_retry_return_same_durable_grant
+    world,_,actor=self.ready_bootstrap();peer=world.peers[1]
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 65, in ready_bootstrap
+    world=self.scoped_world(admission);self.publish();binding=self.binding(world)
+                                                              ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_second_credential_cannot_revive_revoked_bootstrap_grant (__main__.WorldBootstrapTests.test_second_credential_cannot_revive_revoked_bootstrap_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 208, in test_second_credential_cannot_revive_revoked_bootstrap_grant
+    world,_,actor=self.ready_bootstrap(session.REGISTERED_ACTORS);peer=world.peers[1]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 65, in ready_bootstrap
+    world=self.scoped_world(admission);self.publish();binding=self.binding(world)
+                                                              ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_server_restart_retains_binding_and_receipt (__main__.WorldBootstrapTests.test_server_restart_retains_binding_and_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 159, in test_server_restart_retains_binding_and_receipt
+    world,_,actor=self.ready_bootstrap();reply=self.authenticate_bootstrap(world.peers[1],actor)
+                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 65, in ready_bootstrap
+    world=self.scoped_world(admission);self.publish();binding=self.binding(world)
+                                                              ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 57, in binding
+    self.assertTrue(result.HasField('binding'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_signed_profile_without_domain_binding_cannot_create_admission (__main__.WorldBootstrapTests.test_signed_profile_without_domain_binding_cannot_create_admission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 100, in test_signed_profile_without_domain_binding_cannot_create_admission
+    result=self.check_report(reply.bootstrap_attempt,world)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py", line 74, in check_report
+    self.assertEqual(report.issuer_id,self.info.issuer_id)
+AssertionError: b'' != b'\xa7\x8d\xc0;\xac\x8aDAP+U\xb8\x98\xd1\x9[42 chars]x89G'
+
+----------------------------------------------------------------------
+Ran 15 tests in 15.521s
+
+FAILED (failures=15)

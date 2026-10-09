@@ -136,6 +136,8 @@ target_link_libraries(spatial-issuer-watch PRIVATE spatial-issuer-watch-lib)
 add_library(spatial-issuer STATIC src/identity/issuer.cpp src/identity/protocol.cpp src/identity/tls_server.cpp)
 add_library(spatial-authority STATIC src/authority/store.cpp)
 target_link_libraries(spatial-authority PUBLIC spatial-scene SQLite::SQLite3 OpenSSL::Crypto)
+add_executable(spatial-authority-migrate src/authority/migrate_main.cpp)
+target_link_libraries(spatial-authority-migrate PRIVATE spatial-authority)
 add_library(spatial-bootstrap STATIC src/identity/bootstrap.cpp)
 target_link_libraries(spatial-bootstrap PUBLIC spatial-authority)
 target_link_libraries(spatial-issuer-client-lib PUBLIC spatial-bootstrap)
@@ -198,6 +200,11 @@ if(BUILD_TESTING)
     add_test(NAME authority-store COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority.py" $<TARGET_FILE:spatial-authority-probe>)
     set_tests_properties(authority-store PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME authority-bootstrap COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_bootstrap.py"
+        $<TARGET_FILE:spatial-authority-probe> $<TARGET_FILE:spatial-authority-migrate>)
+    set_tests_properties(authority-bootstrap PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME workspace-authority COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_authority.py" $<TARGET_FILE:identityd>

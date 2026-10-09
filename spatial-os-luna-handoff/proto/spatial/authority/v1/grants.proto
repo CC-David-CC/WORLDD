@@ -58,3 +58,20 @@ message GrantPage {
   repeated GrantRecord grants = 2;
   bytes next_after = 3; // Empty means no next page.
 }
+
+// Exact issuer templates accepted under explicit domain delegation.
+message BootstrapSelector {
+  bytes issuer_id = 1;
+  string profile_id = 2;
+  uint64 profile_revision = 3;
+  string template_id = 4;
+}
+message BootstrapBinding {
+  bytes id = 1;
+  BootstrapSelector selector = 2;
+  bytes parent_id = 3;
+  ActorRef authorizer = 4;
+  GrantTerms terms = 5; // Subject absent. The authenticated recipient is assigned during materialization.
+  uint64 created_revision = 6;
+  uint64 revoked_revision = 7;
+}

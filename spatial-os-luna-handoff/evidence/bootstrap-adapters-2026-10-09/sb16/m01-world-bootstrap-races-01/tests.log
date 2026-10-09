@@ -1,0 +1,82 @@
+test_credential_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_binding_ancestry_read_creates_no_receipt) ... FAIL
+test_credential_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt) ... FAIL
+test_independent_grant_survives_bootstrap_parent_revocation (__main__.WorldBootstrapRaceTests.test_independent_grant_survives_bootstrap_parent_revocation) ... FAIL
+test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt) ... FAIL
+test_parent_actor_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_profile_read_creates_no_receipt) ... FAIL
+test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry (__main__.WorldBootstrapRaceTests.test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry) ... FAIL
+
+======================================================================
+FAIL: test_credential_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_binding_ancestry_read_creates_no_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 96, in test_credential_revoked_during_binding_ancestry_read_creates_no_receipt
+    self.revoked_during('actor_status',occurrence=2)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 87, in revoked_during
+    self.assertEqual(self.receipt_count(world),0)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 63, in receipt_count
+    self.assertEqual(len(databases),1,databases)
+AssertionError: 0 != 1 : []
+
+======================================================================
+FAIL: test_credential_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 90, in test_credential_revoked_during_profile_read_creates_no_receipt
+    self.revoked_during('profile_read')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 87, in revoked_during
+    self.assertEqual(self.receipt_count(world),0)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 63, in receipt_count
+    self.assertEqual(len(databases),1,databases)
+AssertionError: 0 != 1 : []
+
+======================================================================
+FAIL: test_independent_grant_survives_bootstrap_parent_revocation (__main__.WorldBootstrapRaceTests.test_independent_grant_survives_bootstrap_parent_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 140, in test_independent_grant_survives_bootstrap_parent_revocation
+    self.assertEqual(self.receipt_count(world),1)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 63, in receipt_count
+    self.assertEqual(len(databases),1,databases)
+AssertionError: 0 != 1 : []
+
+======================================================================
+FAIL: test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 99, in test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt
+    self.revoked_during('actor_status',parent=True,occurrence=2)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 87, in revoked_during
+    self.assertEqual(self.receipt_count(world),0)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 63, in receipt_count
+    self.assertEqual(len(databases),1,databases)
+AssertionError: 0 != 1 : []
+
+======================================================================
+FAIL: test_parent_actor_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_profile_read_creates_no_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 93, in test_parent_actor_revoked_during_profile_read_creates_no_receipt
+    self.revoked_during('profile_read',parent=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 84, in revoked_during
+    self.assertIn(reply.error.code,(core.UNAUTHORIZED,core.UNAVAILABLE))
+AssertionError: 13 not found in (12, 26)
+
+======================================================================
+FAIL: test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry (__main__.WorldBootstrapRaceTests.test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 119, in test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry
+    self.assertEqual(self.receipt_count(world),1)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-races-01/test_world_bootstrap_races.py", line 63, in receipt_count
+    self.assertEqual(len(databases),1,databases)
+AssertionError: 0 != 1 : []
+
+----------------------------------------------------------------------
+Ran 6 tests in 10.612s
+
+FAILED (failures=6)

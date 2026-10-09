@@ -1,0 +1,16 @@
+{
+  "m01-bootstrap-adapter-baseline-01": {
+    "executed": 15,
+    "passed": 0,
+    "failed": 15,
+    "test_exit_code": 1,
+    "reason": "bootstrap actor operations or application reports are absent"
+  },
+  "m01-workspace-bootstrap-baseline-01": {
+    "executed": 5,
+    "passed": 0,
+    "failed": 5,
+    "test_exit_code": 1,
+    "reason": "bootstrap actor operations or application reports are absent"
+  }
+}

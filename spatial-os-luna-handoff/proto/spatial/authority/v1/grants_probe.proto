@@ -32,6 +32,11 @@ message ProbeRequest {
     Revoke revoke = 12;
     Check check = 13;
     bytes get = 14;
+    BootstrapBind bootstrap_bind = 15;
+    BootstrapApply bootstrap_apply = 16;
+    BootstrapRevoke bootstrap_revoke = 17;
+    spatial.authority.v1.BootstrapSelector bootstrap_get = 18;
+    BootstrapSubjects bootstrap_subjects = 19;
   }
 }
 message ProbeReply {
@@ -41,5 +46,32 @@ message ProbeReply {
     spatial.core.v1.Error error = 10;
     spatial.authority.v1.GrantRecord record = 11;
     spatial.authority.v1.Decision decision = 12;
+    spatial.authority.v1.BootstrapBinding binding = 13;
+    ActorList subjects = 14;
   }
 }
+
+// Fixture operations. These never authenticate a production actor.
+message BootstrapBind {
+  spatial.authority.v1.ActorRef caller = 1;
+  spatial.authority.v1.BootstrapSelector selector = 2;
+  bytes parent_id = 3;
+  spatial.authority.v1.GrantTerms terms = 4;
+  optional uint64 expected_revision = 5;
+}
+message BootstrapApply {
+  bytes binding_id = 1;
+  spatial.authority.v1.ActorRef recipient = 2;
+  spatial.authority.v1.BootstrapSelector selector = 3;
+  spatial.authority.v1.GrantTerms terms = 4;
+}
+message BootstrapRevoke {
+  spatial.authority.v1.ActorRef caller = 1;
+  bytes binding_id = 2;
+  optional uint64 expected_revision = 3;
+}
+message BootstrapSubjects {
+  repeated bytes binding_ids = 1;
+  spatial.authority.v1.ActorRef recipient = 2;
+}
+message ActorList { repeated spatial.authority.v1.ActorRef actors = 1; }

@@ -1,0 +1,46 @@
+{
+  "scope": "proposed adapter API against existing real issuer and worldd; production inputs unchanged",
+  "generator": [
+    "protoc",
+    "--python_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/python",
+    "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs",
+    "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+    "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/security/v1",
+    "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1",
+    "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/authority/v1",
+    "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/workspace/v1",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/grants.proto",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/world_session.proto",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/broker.proto",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1/core.proto",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/security/v1/security.proto",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/key.proto"
+  ],
+  "generator_exit_code": 0,
+  "test_exit_code": 1,
+  "inputs": {
+    "test_identity_issuer.py": "7d3d8e26dea2579f7bad9ddcdff6ec8a6fb0d9bfe477bbbd366e59f70224dbf0",
+    "test_world_authority.py": "2fb77331e04ced24bfa6aa7cc8c25314cd3ac7088d218c2d5f7a0f4b5da044e8",
+    "broker.proto": "284a5ab0f65d45b1ca4a8ecc760804b443ad6df80150645e41f361c7faafd235",
+    "test_issuer_client.py": "59fce7e6a02d034fba87d99e4b7a09bb8707660ac5ae61abca0038e072771b26",
+    "test_identity_enrollment.py": "453f4abc91b462793300a3c786c436d40d01bb15d981924fb01d15ab452a7a61",
+    "test_identity_tls.py": "e61cfed6f8b199a510d46161c130ebfc3a88b3396e8d3a87355ee4026466f147",
+    "grants.proto": "9f7e61b9390d4d16c4a9535f8db5a1d494b2e4ee6fb7c4debcd71143835e4ef8",
+    "test_world_bootstrap.py": "d33e5fb63834ca126751d3242f2879bcc7b1df90cac0bae89b27e3824c47f3ee",
+    "world_session.proto": "96f7735e924018b5e596bf1f2810a5db69e87f396e94c5ab3eb58b0faaa75682",
+    "test_world_identity.py": "b41f9b48d751077b39cce938e6a5f0cb22aa157e04c3b3e77295a21a3735c642"
+  },
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-adapter-baseline-01/inputs/test_world_bootstrap.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd"
+  ],
+  "binaries": {
+    "identityd": "97fcabe16997e0ed6098491aad1d18126bf0ca3138a1345f17316be8c5c90fb5",
+    "spatial-issuer-client": "42dfdbef307caab54ca8c77f3388f947b31d84b286df419affd7c0acc07ad906",
+    "worldd": "f153234a6f015b1d331060a4494ede07cf838202196c0c83282f9cc84987784a"
+  }
+}
