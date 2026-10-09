@@ -1,5 +1,39 @@
 # Implementation status
 
+## 2026-10-09: Versioned issuer bootstrap profiles qualified
+
+Issuer owners can publish immutable enrollment profiles through signed operations.
+Manual and automatic issuance pin the exact selected revision in signed credentials.
+Automatic issuance rejects administrative templates. Failed issuance rolls back partial records.
+Publication uses compare-and-swap revisions. Updating the selected profile invalidates stale manual approvals.
+Checked TLS retrieval requires the exact profile identity, revision, issuer, structure, and bounds.
+Explicit schema-four migration preserves existing issuer state. Operator state remains unchanged.
+
+Both hosts passed complete corrected Debug and runtime ASan/UBSan qualification.
+Each profile passed 941 core checks across 49 suites, 51 harness checks, and 151 P10 cases.
+No final profile failed or skipped a case. Both final 212-file source audits passed.
+The descriptor audit preserved 37 existing issuer messages, 154 fields, and 17 enum values.
+The primary agent reviewed each changed file without local-model review.
+See evidence/bootstrap-profiles-2026-10-09, docs/BOOTSTRAP_PROFILES.md, and the root M01_BOOTSTRAP_PROFILES_DEBUG.txt.
+
+The first sb16 Debug attempt failed during native display startup, before its isolation assertion.
+The separate fixture correction is committed as 388d500 and pushed to box-git.
+It waits for a complete bounded display-number notice. Both hosts passed all 14 native suites.
+No XLibre source, locked assertion, or independent witness changed. Original failures remain preserved.
+See evidence/native-display-ready-2026-10-09.
+
+Domain bindings, durable materialization, and authenticated world/workspace effects remain required.
+An isolated candidate built and linked on sb16. It passed 43 existing and 32 new authority tests.
+Both Debug and runtime ASan/UBSan focused profiles passed those checks.
+The schema audit preserved 13 old messages, 49 fields, and 23 enum values.
+All 43 existing authority test bodies remain unchanged.
+The initial candidate test error used FILE_WRITE instead of the existing FILE_EDIT enum.
+That failed attempt and the corrected runs remain in evidence/bootstrap-domain-2026-10-09.
+The candidate remains outside production under local/bootstrap-domain-draft.
+Production integration, sb16-2 candidate qualification, and authenticated adapters remain pending.
+Profile storage alone grants no world or workspace authority.
+M01, M02, full Spatial-M1, and native-server GLX sanitizer qualification remain incomplete.
+
 ## 2026-10-09: Authenticated actor pixels checked
 
 Actors can now request bounded RGB8 images through the authenticated protobuf observation path.

@@ -1,0 +1,73 @@
+{
+  "host": "sb16",
+  "base_commit": "76c29bd897a0fffa0d3dce2a2c968ed87bf8aefb",
+  "old_issuer_sha256": "9ef9799a92a7a331f431167d7762dba6b0d1c4e96cae8ad37741f24197a5287f",
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF",
+        "-DSPATIAL_INPUT_TESTS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "baseline",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build",
+        "-V",
+        "-R",
+        "^identity-bootstrap$"
+      ],
+      "exit_code": 8
+    },
+    {
+      "name": "compatibility",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "build",
+        "-V",
+        "-R",
+        "^(identity-(issuer|enrollment|revocation)|authority-store)$"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "harness",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/harness",
+        "-t",
+        ".",
+        "-q"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

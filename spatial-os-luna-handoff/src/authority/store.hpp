@@ -6,6 +6,9 @@
 #include <vector>
 
 namespace spatial::authority {
+// Validate scope, rights, and delegation independently of the recipient.
+// This checks syntax only. It does not authorize a grant.
+void validate_permissions(const v1::GrantTerms&);
 // Callers must supply authenticated identities and a current identity checker.
 // This library does not authenticate caller-supplied protobuf actor references.
 using IdentityCheck = std::function<bool(const v1::ActorRef&)>;

@@ -1,0 +1,34 @@
+[0/2] Re-checking globbed directories...
+[1/33] Generating python/security_pb2.py
+[2/33] Generating python/grants_pb2.py
+[3/33] Generating python/core_pb2.py
+[4/33] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[5/33] Running cpp protocol buffer compiler on proto/spatial/identity/v1/key.proto
+[6/33] Running cpp protocol buffer compiler on proto/spatial/identity/v1/issuer.proto
+[7/33] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[8/33] Running cpp protocol buffer compiler on proto/spatial/identity/v1/world_session.proto
+[9/33] Running cpp protocol buffer compiler on proto/spatial/authority/v1/grants.proto
+[10/33] Running cpp protocol buffer compiler on proto/spatial/security/v1/security.proto
+[11/33] Generating python/grants_probe_pb2.py
+[12/33] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[13/33] Building CXX object CMakeFiles/spatial-protobuf.dir/key.pb.cc.o
+[14/33] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[15/33] Building CXX object CMakeFiles/spatial-protobuf.dir/issuer.pb.cc.o
+[16/33] Building CXX object CMakeFiles/spatial-protobuf.dir/world_session.pb.cc.o
+[17/33] Building CXX object CMakeFiles/spatial-protobuf.dir/grants.pb.cc.o
+[18/33] Building CXX object CMakeFiles/spatial-protobuf.dir/security.pb.cc.o
+[19/33] Linking CXX static library libspatial-protobuf.a
+[20/33] Building CXX object CMakeFiles/spatial-scene.dir/src/core/geometry.cpp.o
+[21/33] Building CXX object CMakeFiles/spatial-scene.dir/src/core/collision.cpp.o
+[22/33] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[23/33] Building CXX object CMakeFiles/spatial-scene.dir/src/core/navigation.cpp.o
+[24/33] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[25/33] Linking CXX static library libspatial-scene.a
+[26/33] Building CXX object CMakeFiles/spatial-authority.dir/src/authority/store.cpp.o
+[27/33] Linking CXX static library libspatial-authority.a
+[28/33] Running cpp protocol buffer compiler on proto/spatial/authority/v1/grants_probe.proto
+[29/33] Building CXX object CMakeFiles/spatial-authority-migrate.dir/src/authority/migrate_main.cpp.o
+[30/33] Linking CXX executable spatial-authority-migrate
+[31/33] Building CXX object CMakeFiles/spatial-authority-probe.dir/src/testing/authority_probe.cpp.o
+[32/33] Building CXX object CMakeFiles/spatial-authority-probe.dir/grants_probe.pb.cc.o
+[33/33] Linking CXX executable spatial-authority-probe

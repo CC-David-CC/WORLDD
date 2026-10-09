@@ -1,0 +1,403 @@
+test_administration_without_delegation_cannot_bind (__main__.BootstrapAuthorityTests.test_administration_without_delegation_cannot_bind) ... FAIL
+test_binding_does_not_grant_until_authorized_materialization (__main__.BootstrapAuthorityTests.test_binding_does_not_grant_until_authorized_materialization) ... FAIL
+test_binding_requires_parent_holder_and_current_ancestry (__main__.BootstrapAuthorityTests.test_binding_requires_parent_holder_and_current_ancestry) ... FAIL
+test_binding_revision_conflict_does_not_change_store (__main__.BootstrapAuthorityTests.test_binding_revision_conflict_does_not_change_store) ... FAIL
+test_checked_selector_and_terms_must_match_binding (__main__.BootstrapAuthorityTests.test_checked_selector_and_terms_must_match_binding) ... FAIL
+test_different_actors_get_distinct_grants (__main__.BootstrapAuthorityTests.test_different_actors_get_distinct_grants) ... FAIL
+test_exact_retry_and_restart_preserve_grant_and_revision (__main__.BootstrapAuthorityTests.test_exact_retry_and_restart_preserve_grant_and_revision) ... FAIL
+test_new_profile_revision_cannot_replace_existing_receipt (__main__.BootstrapAuthorityTests.test_new_profile_revision_cannot_replace_existing_receipt) ... FAIL
+test_parent_revocation_preserves_independent_grant (__main__.BootstrapAuthorityTests.test_parent_revocation_preserves_independent_grant) ... FAIL
+test_receipt_write_failure_rolls_back_grant_and_revision (__main__.BootstrapAuthorityTests.test_receipt_write_failure_rolls_back_grant_and_revision) ... FAIL
+test_retry_cannot_revive_revoked_grant (__main__.BootstrapAuthorityTests.test_retry_cannot_revive_revoked_grant) ... FAIL
+test_revoked_recipient_or_parent_cannot_receive_new_grant (__main__.BootstrapAuthorityTests.test_revoked_recipient_or_parent_cannot_receive_new_grant) ... FAIL
+test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) ... 
+  test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) (terms=scope {
+  domain {
+    kind: WORLD
+    id: "world-one"
+  }
+}
+rights: WORLD_NAVIGATE
+) ... FAIL
+  test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) (terms=scope {
+  domain {
+    kind: WORLD
+    id: "world-one"
+  }
+  components: "room-two"
+}
+rights: WORLD_NAVIGATE
+) ... FAIL
+  test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) (terms=scope {
+  domain {
+    kind: WORLD
+    id: "world-one"
+  }
+  components: "room-one"
+}
+rights: WORLD_OBSERVE
+) ... FAIL
+  test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) (terms=scope {
+  domain {
+    kind: WORLD
+    id: "world-one"
+  }
+  components: "room-one"
+}
+rights: WORLD_NAVIGATE
+delegation_depth: 1
+) ... FAIL
+test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) ... FAIL
+
+======================================================================
+FAIL: test_administration_without_delegation_cannot_bind (__main__.BootstrapAuthorityTests.test_administration_without_delegation_cannot_bind)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 76, in test_administration_without_delegation_cannot_bind
+    self.denied(self.bind(parent))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority.py", line 104, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_binding_does_not_grant_until_authorized_materialization (__main__.BootstrapAuthorityTests.test_binding_does_not_grant_until_authorized_materialization)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 54, in test_binding_does_not_grant_until_authorized_materialization
+    parent = self.root(); binding = self.binding(parent)
+                                    ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_binding_requires_parent_holder_and_current_ancestry (__main__.BootstrapAuthorityTests.test_binding_requires_parent_holder_and_current_ancestry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 68, in test_binding_requires_parent_holder_and_current_ancestry
+    self.denied(self.bind(parent, caller=C))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority.py", line 104, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_binding_revision_conflict_does_not_change_store (__main__.BootstrapAuthorityTests.test_binding_revision_conflict_does_not_change_store)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 96, in test_binding_revision_conflict_does_not_change_store
+    self.denied(self.call('bootstrap_bind', request), core.REVISION_CONFLICT)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority.py", line 104, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 8 : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_checked_selector_and_terms_must_match_binding (__main__.BootstrapAuthorityTests.test_checked_selector_and_terms_must_match_binding)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 133, in test_checked_selector_and_terms_must_match_binding
+    binding = self.binding()
+              ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_different_actors_get_distinct_grants (__main__.BootstrapAuthorityTests.test_different_actors_get_distinct_grants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 125, in test_different_actors_get_distinct_grants
+    binding = self.binding(); first = self.applied(binding)
+              ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_exact_retry_and_restart_preserve_grant_and_revision (__main__.BootstrapAuthorityTests.test_exact_retry_and_restart_preserve_grant_and_revision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 101, in test_exact_retry_and_restart_preserve_grant_and_revision
+    binding = self.binding(); original = self.applied(binding); revision = self.revision
+              ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_new_profile_revision_cannot_replace_existing_receipt (__main__.BootstrapAuthorityTests.test_new_profile_revision_cannot_replace_existing_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 118, in test_new_profile_revision_cannot_replace_existing_receipt
+    parent = self.root(); first = self.binding(parent); original = self.applied(first)
+                                  ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_parent_revocation_preserves_independent_grant (__main__.BootstrapAuthorityTests.test_parent_revocation_preserves_independent_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 160, in test_parent_revocation_preserves_independent_grant
+    first_parent = self.root(); binding = self.binding(first_parent)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_receipt_write_failure_rolls_back_grant_and_revision (__main__.BootstrapAuthorityTests.test_receipt_write_failure_rolls_back_grant_and_revision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 150, in test_receipt_write_failure_rolls_back_grant_and_revision
+    binding = self.binding(); before = self.revision
+              ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_retry_cannot_revive_revoked_grant (__main__.BootstrapAuthorityTests.test_retry_cannot_revive_revoked_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 110, in test_retry_cannot_revive_revoked_grant
+    binding = self.binding(); grant = self.applied(binding)
+              ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_revoked_recipient_or_parent_cannot_receive_new_grant (__main__.BootstrapAuthorityTests.test_revoked_recipient_or_parent_cannot_receive_new_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 141, in test_revoked_recipient_or_parent_cannot_receive_new_grant
+    binding = self.binding()
+              ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) (terms=scope {
+  domain {
+    kind: WORLD
+    id: "world-one"
+  }
+}
+rights: WORLD_NAVIGATE
+)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 86, in test_template_cannot_widen_scope_rights_or_delegation_depth
+    with self.subTest(terms=terms): self.denied(self.bind(parent, terms=terms))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority.py", line 104, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) (terms=scope {
+  domain {
+    kind: WORLD
+    id: "world-one"
+  }
+  components: "room-two"
+}
+rights: WORLD_NAVIGATE
+)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 86, in test_template_cannot_widen_scope_rights_or_delegation_depth
+    with self.subTest(terms=terms): self.denied(self.bind(parent, terms=terms))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority.py", line 104, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) (terms=scope {
+  domain {
+    kind: WORLD
+    id: "world-one"
+  }
+  components: "room-one"
+}
+rights: WORLD_OBSERVE
+)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 86, in test_template_cannot_widen_scope_rights_or_delegation_depth
+    with self.subTest(terms=terms): self.denied(self.bind(parent, terms=terms))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority.py", line 104, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth) (terms=scope {
+  domain {
+    kind: WORLD
+    id: "world-one"
+  }
+  components: "room-one"
+}
+rights: WORLD_NAVIGATE
+delegation_depth: 1
+)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 86, in test_template_cannot_widen_scope_rights_or_delegation_depth
+    with self.subTest(terms=terms): self.denied(self.bind(parent, terms=terms))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority.py", line 104, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_template_cannot_widen_scope_rights_or_delegation_depth (__main__.BootstrapAuthorityTests.test_template_cannot_widen_scope_rights_or_delegation_depth)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 87, in test_template_cannot_widen_scope_rights_or_delegation_depth
+    binding = self.binding(parent, terms=self.template(scope=self.scope(b'room-one',b'object')))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py", line 33, in binding
+    self.assertEqual(result.WhichOneof('outcome'), 'binding', result)
+AssertionError: 'error' != 'binding'
+- error
++ binding
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.969s
+
+FAILED (failures=17)

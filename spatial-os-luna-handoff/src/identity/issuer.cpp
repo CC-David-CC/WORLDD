@@ -1,4 +1,5 @@
 #include "identity/issuer.hpp"
+#include "identity/bootstrap.hpp"
 #include "identity/keys.hpp"
 #include "world/store.hpp"
 #include <openssl/rand.h>
@@ -78,6 +79,13 @@ void validate_reference(const v1::IdentityReference& target) {
 void validate_operation(const v1::IssuerOperation& operation) {
     validate_message(operation);
     if (operation.has_policy_read()) return;
+    if (operation.has_profile_read()) { validate_bootstrap_read(operation.profile_read(), false); return; }
+    if (operation.has_profile_put()) {
+        const auto& request = operation.profile_put();
+        require(request.has_profile() && request.has_expected_revision() && request.expected_revision() <= INT64_MAX,
+                "Bootstrap profile and expected revision are required");
+        validate_bootstrap_profile(request.profile()); return;
+    }
     if (operation.has_identity_read()) { validate_reference(operation.identity_read()); return; }
     if (operation.has_identity_revoke()) {
         const auto& request = operation.identity_revoke();
@@ -129,6 +137,10 @@ void create_security_schema(sqlite3* db) {
             "revision INTEGER NOT NULL UNIQUE CHECK(revision>0),reason BLOB NOT NULL,PRIMARY KEY(kind,target_id));"
             "PRAGMA user_version=3");
 }
+void create_bootstrap_schema(sqlite3* db) {
+    sql(db, "CREATE TABLE bootstrap_profile(id BLOB NOT NULL,revision INTEGER NOT NULL CHECK(revision>0),"
+            "profile BLOB NOT NULL,PRIMARY KEY(id,revision)); PRAGMA user_version=4");
+}
 } // namespace
 
 struct Issuer::Impl {
@@ -179,12 +191,12 @@ struct Issuer::Impl {
         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
-        sqlite3_int64 schema = 3;
+        sqlite3_int64 schema = 4;
         if (!owner) {
             Query version(db.get(), "PRAGMA user_version"); version.step();
             Query application(db.get(), "PRAGMA application_id"); application.step();
             schema = version.integer(0);
-            storage((schema == 3 || ((schema == 1 || schema == 2) && migrate)) && application.integer(0) == application_id,
+            storage((schema == 4 || ((schema >= 1 && schema <= 3) && migrate)) && application.integer(0) == application_id,
                     "Unknown issuer schema; explicit migration is required");
         }
         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
@@ -201,7 +213,7 @@ struct Issuer::Impl {
             Query insert(db.get(), "INSERT INTO issuer VALUES(1,?,?,?,1,?)");
             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
             insert.blob(4, policy.SerializeAsString()); insert.step();
-            create_enrollment_schema(db.get()); create_security_schema(db.get()); tx.commit();
+            create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get()); tx.commit();
             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
         }
         { Query integrity(db.get(), "PRAGMA quick_check");
@@ -212,11 +224,57 @@ struct Issuer::Impl {
         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
                 "Issuer key does not match its durable identity");
         policy();
-        if (schema < 3) {
+        if (schema < 4) {
             Transaction migration(db.get());
             if (schema == 1) create_enrollment_schema(db.get());
-            create_security_schema(db.get()); migration.commit();
+            if (schema < 3) create_security_schema(db.get());
+            create_bootstrap_schema(db.get()); migration.commit();
         }
+    }
+
+    v1::BootstrapProfileState profile(const v1::BootstrapProfileRead& request) {
+        v1::BootstrapProfileState result; result.set_issuer_id(identity.issuer_id());
+        if (request.id() == "empty-v1") {
+            if (request.has_revision() && request.revision() != 1)
+                throw WorldError(wire::NOT_FOUND, "Bootstrap profile revision is unavailable");
+            result.mutable_profile()->set_id("empty-v1"); result.set_revision(1); return result;
+        }
+        Query row(db.get(), request.has_revision() ?
+            "SELECT revision,profile FROM bootstrap_profile WHERE id=? AND revision=?" :
+            "SELECT revision,profile FROM bootstrap_profile WHERE id=? ORDER BY revision DESC LIMIT 1");
+        row.blob(1, request.id());
+        if (request.has_revision()) row.integer(2, request.revision());
+        if (row.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Bootstrap profile revision is unavailable");
+        const auto bytes = row.blob(1);
+        storage(row.integer(0) > 0 && bytes.size() <= 32768 && result.mutable_profile()->ParseFromString(bytes),
+                "Bootstrap profile storage is invalid");
+        try { validate_bootstrap_profile(result.profile()); }
+        catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Bootstrap profile is corrupt"); }
+        storage(result.profile().id() == request.id(), "Bootstrap profile identity is corrupt");
+        result.set_revision(static_cast<std::uint64_t>(row.integer(0))); return result;
+    }
+
+    v1::BootstrapProfileState put_profile(const v1::BootstrapProfilePut& request) {
+        if (request.profile().id() == "empty-v1") throw WorldError(wire::FORBIDDEN, "The empty bootstrap profile is immutable");
+        Transaction transaction(db.get());
+        std::uint64_t revision = 0;
+        v1::BootstrapProfileRead read; read.set_id(request.profile().id());
+        try { revision = profile(read).revision(); }
+        catch (const WorldError& error) { if (error.code != wire::NOT_FOUND) throw; }
+        if (revision != request.expected_revision()) throw WorldError(wire::REVISION_CONFLICT, "Bootstrap profile revision changed");
+        storage(revision < INT64_MAX, "Bootstrap profile revision limit reached");
+        Query insert(db.get(), "INSERT INTO bootstrap_profile(id,revision,profile) VALUES(?,?,?)");
+        insert.blob(1, request.profile().id()); insert.integer(2, revision+1);
+        insert.blob(3, request.profile().SerializeAsString()); insert.step();
+        const auto current = policy();
+        if (current.policy().bootstrap_profile() == request.profile().id()) {
+            storage(current.revision() < INT64_MAX, "Issuer policy revision limit reached");
+            sql(db.get(), "UPDATE issuer SET revision=revision+1 WHERE singleton=1");
+            storage(sqlite3_changes(db.get()) == 1, "Issuer policy update did not change one record");
+        }
+        v1::BootstrapProfileState result; *result.mutable_profile() = request.profile();
+        result.set_revision(revision+1); result.set_issuer_id(identity.issuer_id());
+        transaction.commit(); return result;
     }
 
     v1::PolicyState policy() {
@@ -357,10 +415,13 @@ struct Issuer::Impl {
         } else storage(query.blob(3).empty(), "Unapproved enrollment has a credential");
         return result;
     }
-    void issue(const v1::EnrollmentRecord& record, const v1::PolicyState& policy, const std::string& target) {
-        // This immutable profile grants no capabilities. Unknown profiles never imply grants.
-        if (policy.policy().bootstrap_profile() != "empty-v1")
-            throw WorldError(wire::NOT_FOUND, "Configured bootstrap profile is unavailable");
+    void issue(const v1::EnrollmentRecord& record, const v1::PolicyState& policy, const std::string& target,
+               bool automatic = false) {
+        // Resolve inside the enrollment transaction. Templates do not install domain grants.
+        v1::BootstrapProfileRead read; read.set_id(policy.policy().bootstrap_profile());
+        const auto selected = profile(read);
+        if (automatic && bootstrap_has_administration(selected.profile()))
+            throw WorldError(wire::FORBIDDEN, "Automatic enrollment cannot issue administration templates");
         auto actor = target;
         if (actor.empty()) {
             actor = random_id();
@@ -375,7 +436,7 @@ struct Issuer::Impl {
         v1::ActorCredential claims; claims.set_protocol_version(1); claims.set_issuer_id(identity.issuer_id());
         claims.set_actor_id(actor); claims.set_credential_id(random_id()); claims.set_public_key(record.intent().public_key());
         claims.set_kind(record.intent().kind()); claims.set_enrollment_id(record.enrollment_id());
-        claims.set_bootstrap_profile("empty-v1"); claims.set_bootstrap_profile_revision(1);
+        claims.set_bootstrap_profile(selected.profile().id()); claims.set_bootstrap_profile_revision(selected.revision());
         claims.set_policy_revision(policy.revision()); claims.set_audience("spatial/actor-credential/v1");
         v1::SignedCredential signed_credential;
         signed_credential.mutable_content()->set_purpose(v1::ISSUER_CREDENTIAL);
@@ -421,7 +482,7 @@ struct Issuer::Impl {
         const auto id = random_id();
         Query insert(db.get(), "INSERT INTO enrollment(id,public_key,intent,status) VALUES(?,?,?,1)");
         insert.blob(1, id); insert.blob(2, intent.public_key()); insert.blob(3, intent.SerializeAsString()); insert.step();
-        if (current.policy().mode() == v1::APPROVE_ALWAYS) issue(enrollment(id), current, {});
+        if (current.policy().mode() == v1::APPROVE_ALWAYS) issue(enrollment(id), current, {}, true);
         const auto result = enrollment(id); transaction.commit(); return result;
     }
 };
@@ -461,6 +522,9 @@ v1::RevocationBatch Issuer::revocations(const v1::RevocationRead& request) {
 v1::IssuerInfo Issuer::info() {
     auto result = impl_->identity; result.set_policy_revision(impl_->policy().revision()); return result;
 }
+v1::BootstrapProfileState Issuer::profile_read(const v1::BootstrapProfileRead& request) {
+    validate_bootstrap_read(request, true); return impl_->profile(request);
+}
 v1::ChallengeReply Issuer::challenge(const v1::IssuerOperation& operation) {
     validate_operation(operation);
     const auto nonce = impl_->nonce();
@@ -481,6 +545,8 @@ v1::AdminResult Issuer::execute(const v1::IssuerExecute& request) {
     v1::AdminResult result;
     if (pending.operation.has_policy_read()) *result.mutable_policy() = impl_->policy();
     else if (pending.operation.has_policy_set()) *result.mutable_policy() = impl_->set_policy(pending.operation.policy_set());
+    else if (pending.operation.has_profile_read()) *result.mutable_profile() = impl_->profile(pending.operation.profile_read());
+    else if (pending.operation.has_profile_put()) *result.mutable_profile() = impl_->put_profile(pending.operation.profile_put());
     else if (pending.operation.has_enrollment_read())
         *result.mutable_enrollment() = impl_->enrollment(pending.operation.enrollment_read().enrollment_id());
     else if (pending.operation.has_enrollment_decision()) *result.mutable_enrollment() = impl_->decide(pending.operation.enrollment_decision());

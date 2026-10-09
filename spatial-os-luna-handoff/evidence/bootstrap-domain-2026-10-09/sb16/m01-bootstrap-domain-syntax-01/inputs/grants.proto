@@ -1,0 +1,77 @@
+syntax = "proto3";
+package spatial.authority.v1;
+
+// These records belong to a trusted authority store. They are not bearer tokens.
+message ActorRef { bytes issuer_id = 1; bytes actor_id = 2; }
+enum DomainKind { DOMAIN_UNSPECIFIED = 0; WORLD = 1; WORKSPACE = 2; }
+message Domain { DomainKind kind = 1; string id = 2; }
+message Scope {
+  Domain domain = 1;
+  // Opaque object identities, compared component by component. Never OS paths.
+  repeated bytes components = 2;
+}
+enum Right {
+  RIGHT_UNSPECIFIED = 0;
+  WORLD_ENTER = 1;
+  WORLD_NAVIGATE = 2;
+  WORLD_OBSERVE = 3;
+  WORLD_MANIPULATE = 4;
+  WORKSPACE_ACCESS = 10;
+  FILE_BROWSE = 11;
+  FILE_READ = 12;
+  FILE_CREATE = 13;
+  FILE_EDIT = 14;
+  FILE_RENAME = 15;
+  FILE_MOVE = 16;
+  FILE_COPY = 17;
+  FILE_TRASH = 18;
+  FILE_RESTORE = 19;
+  FILE_PERMANENT_DELETE = 20;
+  APPLICATION_OBSERVE = 21;
+  APPLICATION_CONTROL = 22;
+  PROCESS_EXECUTE = 23;
+  POLICY_ADMINISTER = 30;
+}
+message GrantTerms {
+  ActorRef subject = 1;
+  Scope scope = 2;
+  repeated Right rights = 3;
+  repeated Right delegable_rights = 4;
+  uint32 delegation_depth = 5; // 0..32. Zero requires no delegable rights.
+}
+message GrantRecord {
+  uint32 protocol_version = 1;
+  bytes id = 2;
+  bytes parent_id = 3; // Empty only for an explicitly installed root.
+  ActorRef issuer = 4; // Absent only for an explicitly installed root.
+  GrantTerms terms = 5;
+  uint64 created_revision = 6;
+  uint64 revoked_revision = 7; // Zero means this record has not been revoked.
+}
+message Decision {
+  bool allowed = 1;
+  uint64 revision = 2;
+  bytes grant_id = 3; // One complete valid chain. Never a union of sibling chains.
+}
+message GrantPage {
+  uint64 revision = 1;
+  repeated GrantRecord grants = 2;
+  bytes next_after = 3; // Empty means no next page.
+}
+
+// Proposed additions to spatial.authority.v1. Not installed in production yet.
+message BootstrapSelector {
+  bytes issuer_id = 1;
+  string profile_id = 2;
+  uint64 profile_revision = 3;
+  string template_id = 4;
+}
+message BootstrapBinding {
+  bytes id = 1;
+  BootstrapSelector selector = 2;
+  bytes parent_id = 3;
+  ActorRef authorizer = 4;
+  GrantTerms terms = 5; // Subject absent. The authenticated recipient is assigned during materialization.
+  uint64 created_revision = 6;
+  uint64 revoked_revision = 7;
+}

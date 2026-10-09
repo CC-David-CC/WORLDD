@@ -1,0 +1,52 @@
+{
+  "id": "identity.bootstrap_profile",
+  "phase": "M01",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/BOOTSTRAP_PROFILES.md",
+  "status": "in_progress",
+  "current_step": "domain_store_integration",
+  "invariant": "Enrollment pins an owner-selected immutable profile; only explicitly authorized domain delegation can turn its templates into durable grants.",
+  "production_roots": [
+    "proto/spatial/identity/v1/issuer.proto",
+    "src/identity/issuer.cpp",
+    "src/identity/protocol.cpp",
+    "src/identity/issuer_client.cpp",
+    "src/authority/store.cpp",
+    "src/world/authority.cpp",
+    "src/workspace/authority.cpp"
+  ],
+  "test_ids": [
+    "BootstrapTests.test_builtin_empty_profile_is_readable_and_immutable",
+    "BootstrapTests.test_owner_publishes_world_and_workspace_templates_without_subjects",
+    "BootstrapTests.test_profile_publication_requires_owner_proof_and_consumes_nonce",
+    "BootstrapTests.test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap",
+    "BootstrapTests.test_manual_approval_pins_the_profile_in_an_independently_verified_credential",
+    "BootstrapTests.test_automatic_enrollment_uses_the_same_nonempty_profile",
+    "BootstrapTests.test_active_profile_update_invalidates_pending_manual_approval",
+    "BootstrapTests.test_later_profile_updates_do_not_rewrite_recovered_credentials",
+    "BootstrapTests.test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state",
+    "BootstrapTests.test_manual_administration_template_still_requires_explicit_owner_approval",
+    "BootstrapTests.test_malformed_templates_are_rejected_before_publication",
+    "BootstrapTests.test_profile_size_and_unknown_fields_are_rejected",
+    "BootstrapTests.test_service_reads_require_exact_valid_revisions",
+    "BootstrapTests.test_failed_profile_publication_preserves_history_and_active_policy_revision",
+    "BootstrapTests.test_failed_credential_write_rolls_back_nonempty_profile_issuance",
+    "BootstrapTests.test_corrupt_profile_blocks_reads_and_issuance",
+    "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
+    "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
+  ],
+  "current_test_scope": "Issuer publication, enrollment, migration, and checked retrieval passed full qualification on both hosts. Isolated domain-store candidate passed 43 existing and 32 new checks in Debug and runtime sanitizers on sb16. Authenticated domain delivery remains required.",
+  "remaining_steps": [
+    "Integrate reviewed issuer increment and preserve qualified host edits",
+    "Integrate and qualify explicit world/workspace parent bindings and durable receipts on both hosts",
+    "Authenticated profile lookup, recipient matching, and revocation during external I/O",
+    "Real world admission and workspace action counterexamples, reconnects, and second credentials"
+  ],
+  "preceding_gate": "P10",
+  "base_commit": "76c29bd897a0fffa0d3dce2a2c968ed87bf8aefb",
+  "limitations": [
+    "The domain-store candidate remains isolated from production.",
+    "No authenticated nonempty domain grant delivery is qualified yet.",
+    "Profile storage alone does not complete M01 or M02."
+  ]
+}

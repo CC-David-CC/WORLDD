@@ -1,0 +1,81 @@
+{
+  "host": "sb16",
+  "scope": "candidate C++ syntax only; no linking or execution",
+  "results": [
+    {
+      "name": "generate",
+      "command": [
+        "protoc",
+        "--cpp_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/generated",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/inputs",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/security/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/inputs/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/inputs/grants_probe.proto"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "store",
+      "command": [
+        "c++",
+        "-std=c++20",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-fsyntax-only",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/include",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/generated",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/src",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/inputs/store.cpp"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "authority_probe",
+      "command": [
+        "c++",
+        "-std=c++20",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-fsyntax-only",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/include",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/generated",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/src",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/inputs/authority_probe.cpp"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "authority_migrate",
+      "command": [
+        "c++",
+        "-std=c++20",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-fsyntax-only",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/include",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/generated",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/src",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-syntax-01/inputs/authority_migrate.cpp"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "inputs": {
+    "authority_migrate.cpp": "5a6ffdfe65fed1f12cfdca13b0f9f8fb2502f83df03ea528d856ee29e3965f22",
+    "authority_probe.cpp": "a299d6859ce69faf099426e255ea4fdf4614fe72ff6e7cce670a744fd7f4c001",
+    "grants.proto": "e93e5babdfeb3f3382a552f2f26fa2e31d917e8611b5c3f746388c3007db937f",
+    "grants_probe.proto": "0a220b5330d20feed0dc244fd37f772422bf4ee1b07b1bc5e2e034f394cb90de",
+    "store.cpp": "5d42bff93daac7b063306b207f316887db8cd81057e4647965fcf564a5a2a450",
+    "store.hpp": "024db12d7f76780527cee3a4ca0a986fb18e47f6015a8e69da694b68e36e4cbd"
+  }
+}

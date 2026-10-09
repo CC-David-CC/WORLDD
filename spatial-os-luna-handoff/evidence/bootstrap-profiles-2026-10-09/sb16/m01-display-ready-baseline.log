@@ -1,0 +1,29 @@
+test_digits_in_separate_writes (__main__.DisplayReadyTests.test_digits_in_separate_writes) ... FAIL
+test_eof_does_not_invent_a_complete_notice (__main__.DisplayReadyTests.test_eof_does_not_invent_a_complete_notice) ... ok
+test_newline_in_separate_write (__main__.DisplayReadyTests.test_newline_in_separate_write) ... FAIL
+test_unterminated_notice_is_bounded (__main__.DisplayReadyTests.test_unterminated_notice_is_bounded) ... ok
+
+======================================================================
+FAIL: test_digits_in_separate_writes (__main__.DisplayReadyTests.test_digits_in_separate_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_display_ready.py", line 33, in test_digits_in_separate_writes
+    self.fragmented(b'1', b'23\n')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_display_ready.py", line 26, in fragmented
+    self.assertEqual(data, initial+remainder)
+AssertionError: b'1' != b'123\n'
+
+======================================================================
+FAIL: test_newline_in_separate_write (__main__.DisplayReadyTests.test_newline_in_separate_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_display_ready.py", line 30, in test_newline_in_separate_write
+    self.fragmented(b'123', b'\n')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/native/test_display_ready.py", line 26, in fragmented
+    self.assertEqual(data, initial+remainder)
+AssertionError: b'123' != b'123\n'
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.084s
+
+FAILED (failures=2)

@@ -1,0 +1,57 @@
+Primary review of the issuer bootstrap increment
+Base commit: 76c29bd897a0fffa0d3dce2a2c968ed87bf8aefb
+Status: final corrected Debug and runtime sanitizer qualification passed on both hosts.
+
+Reviewed production files:
+- issuer.proto: additive fields and messages. Existing credential encoding remains intact.
+- CMakeLists.txt: generates imported grant bindings, links shared validation, and adds the bootstrap suite.
+- authority/store.hpp and store.cpp: extract permission syntax checks without removing subject or ancestry checks.
+- identity/bootstrap.hpp and bootstrap.cpp: bounded profiles, distinct templates, absent subjects, shared grant rules.
+- identity/issuer.hpp and issuer.cpp: owner-authenticated publication, immutable revisions, transactional policy invalidation.
+- identity/issuer.cpp: explicit schema-four migration and shared manual/automatic enrollment resolution.
+- identity/protocol.cpp: capability advertisement and typed profile outcomes.
+- identity/issuer_client.cpp: pinned issuer, exact query context, validated templates, failed-channel behavior.
+
+Reviewed tests:
+- test_identity_bootstrap.py: real issuer, independent OpenSSL signatures, storage faults, immutable history, and migration.
+- test_identity_enrollment.py: optional expected-profile arguments preserve existing defaults and signature assertions.
+- test_identity_enrollment.py and test_identity_revocation.py: historical fixtures remove the new table explicitly.
+- test_identity_revocation.py: current schema assertion advances to four. Preservation assertions remain intact.
+- test_issuer_client.py: real TLS publication/retrieval, independent fault peers, local rejection, and failed-channel behavior.
+
+Authorization review:
+Profile publication never inserts a domain grant or a domain root.
+Enrollment intents cannot select profile terms or recipient authority.
+Issuance resolves a profile inside the enrollment transaction.
+Only automatic issuance rejects administrative templates; explicit owner approval remains separate.
+A profile update cannot rewrite an existing credential.
+The service query requires an exact positive revision.
+Malformed profile replies disable the client channel.
+Invalid caller queries are rejected before I/O and preserve the channel.
+
+Evidence available before complete qualification:
+Both hosts: bootstrap baseline two passed and 16 failed; existing compatibility and harness checks passed.
+Both hosts: 18 bootstrap cases passed after implementation.
+sb16 client baseline: one passed and three failed before profile support.
+Both hosts: 28 issuer-client cases passed after implementation, including four new cases.
+Both hosts: matching 210-file runtime/test/build-input snapshot.
+Both hosts: all 37 previous issuer messages, 154 fields, and 17 enum values preserved.
+
+Limits:
+Both-host full qualification passed. The issuer increment is ready for integration.
+Domain binding, grant receipts, and real world/workspace effects remain pending.
+No complete M01, M02, Spatial-M1, or native-server GLX sanitizer result is claimed.
+No operator issuer state, login configuration, or XLibre code changed.
+The primary agent performed this review without a local model or delegated agent.
+
+Final sb16 evidence collected on 2026-10-09:
+Both corrected -02 profiles passed 941 core checks across 49 suites, 51 harness checks, and 151 P10 cases.
+Neither profile failed or skipped a case.
+The final 212-file source audit matched. Windows source matched the same normalized hashes during evidence import.
+The original failed -01 report remains separate. It was not overwritten or relabeled.
+Sb16-2 corrected Debug passed. Its sanitizer core process remains active.
+
+Final both-host checkpoint:
+Both corrected -02 matrices passed 941 core checks, 51 harness checks, and 151 P10 cases per profile.
+No final case failed or skipped. Both 212-file audits matched.
+Original failures remain separate. No native-server GLX sanitizer or complete bootstrap delivery is claimed.

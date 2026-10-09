@@ -85,7 +85,13 @@ bool subset(const google::protobuf::RepeatedField<int>& child, const google::pro
 }
 void terms(const pb::GrantTerms& value) {
     validate_message(value); require(value.has_subject() && value.has_scope(), "Grant subject and scope are required");
-    actor(value.subject()); scope(value.scope());
+    actor(value.subject()); validate_permissions(value);
+}
+} // namespace
+
+void validate_permissions(const v1::GrantTerms& value) {
+    validate_message(value); require(value.has_scope(), "Grant scope is required");
+    scope(value.scope());
     require(value.delegation_depth() <= 32, "Delegation depth exceeds 32");
     for (const auto* rights : {&value.rights(), &value.delegable_rights()}) {
         std::set<int> seen;
@@ -95,6 +101,7 @@ void terms(const pb::GrantTerms& value) {
     require(subset(value.delegable_rights(), value.rights()), "Delegable rights must be held rights");
     require(value.delegation_depth() || value.delegable_rights().empty(), "Zero depth cannot delegate rights");
 }
+namespace {
 bool narrows(const pb::GrantTerms& child, const pb::GrantTerms& parent) {
     return contains(parent.scope(), child.scope()) && child.delegation_depth() < parent.delegation_depth() &&
         subset(child.rights(), parent.delegable_rights()) && subset(child.delegable_rights(), parent.delegable_rights());

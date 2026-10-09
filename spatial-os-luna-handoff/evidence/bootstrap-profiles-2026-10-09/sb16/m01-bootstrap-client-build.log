@@ -1,0 +1,23 @@
+[0/2] Re-checking globbed directories...
+[1/2] Re-running CMake...
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+[0/2] Re-checking globbed directories...
+[1/17] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[2/17] Linking CXX static library libspatial-issuer.a
+[3/17] Linking CXX executable identityd
+[4/17] Building CXX object CMakeFiles/spatial-issuer-client-lib.dir/src/identity/issuer_client.cpp.o
+[5/17] Linking CXX static library libspatial-issuer-client-lib.a
+[6/17] Linking CXX executable spatial-issuer-client
+[7/17] Linking CXX executable spatial-issuer-watch
+[8/17] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[9/17] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[10/17] Linking CXX static library libspatial-core.a
+[11/17] Linking CXX executable workspaced
+[12/17] Linking CXX executable spatial-render-observation-probe
+[13/17] Linking CXX executable worldd
+[14/17] Linking CXX executable spatial-broker-control-client-probe
+[15/17] Linking CXX executable spatial-test-host
+[16/17] Linking CXX executable spatial-issuer-client-probe
+[17/17] Linking CXX executable spatial-issuer-watch-probe

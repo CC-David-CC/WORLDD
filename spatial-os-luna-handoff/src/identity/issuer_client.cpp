@@ -1,4 +1,5 @@
 #include "identity/issuer_client.hpp"
+#include "identity/bootstrap.hpp"
 #include "identity/tls_support.hpp"
 #include "core/protocol.hpp"
 #include <google/protobuf/text_format.h>
@@ -37,7 +38,8 @@ bool dns_name(const std::string& name) {
 bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& reply) {
     return (request.has_hello() && reply.has_hello()) || (request.has_info() && reply.has_info()) ||
         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin()) && reply.has_challenge()) ||
-        (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status())) ||
+        (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile())) ||
+        (request.has_profile_read() && reply.has_profile()) ||
         (request.has_enrollment_complete() && reply.has_enrollment()) ||
         (request.has_authentication_complete() && reply.has_authentication()) ||
         (request.has_credential_check() && reply.has_identity_status()) ||
@@ -204,6 +206,19 @@ struct IssuerClient::Impl {
                     "Issuer identity does not match configured pins");
             if (reply.has_revocations()) check_revocations(request.revocations(), reply.revocations(), config.issuer_id());
             if (reply.has_actor_status()) check_actor_status(request.actor_status(), reply.actor_status(), config.issuer_id());
+            if (reply.has_profile()) {
+                const auto& state = reply.profile();
+                require(state.has_profile() && state.issuer_id() == config.issuer_id() &&
+                        state.revision() > 0 && state.revision() <= INT64_MAX, "Invalid bootstrap profile response context");
+                // Invalid peer data must poison the channel, not appear as a caller error.
+                try { validate_bootstrap_profile(state.profile()); }
+                catch (const std::invalid_argument&) { throw std::runtime_error("Invalid bootstrap profile response"); }
+                if (request.has_profile_read())
+                    require(state.profile().id() == request.profile_read().id() &&
+                            state.revision() == request.profile_read().revision(), "Substituted bootstrap profile revision");
+                if (state.profile().id() == "empty-v1")
+                    require(state.revision() == 1 && state.profile().grants_size() == 0, "Invalid immutable empty profile");
+            }
         }
         return reply;
     }
@@ -211,6 +226,7 @@ struct IssuerClient::Impl {
         require(!broken, "Issuer client is disabled after failure");
         if (busy) throw std::logic_error("Issuer client does not permit reentrant calls");
         validate_message(request);
+        if (request.has_profile_read()) validate_bootstrap_read(request.profile_read(), true);
         const auto caller_id = request.request_id();
         require(sequence < std::numeric_limits<std::uint64_t>::max(), "Issuer request sequence exhausted");
         request.set_request_id(sequence+1);

@@ -199,7 +199,7 @@ class RevocationTests(EnrollmentFixture):
         self.client.close();secret=(self.state/'issuer.pem').read_bytes();policy=self.snapshot()
         with sqlite3.connect(self.state/'identity.db') as db:
             before=db.execute('SELECT * FROM credential').fetchall()
-            db.executescript('DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
+            db.executescript('DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
         command=[str(BINARY),'--state-dir',str(self.state)]
         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
@@ -207,7 +207,7 @@ class RevocationTests(EnrollmentFixture):
         self.assertEqual(result.returncode,0,result.stderr)
         with sqlite3.connect(self.state/'identity.db') as db:
             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(),before)
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],3)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],4)
         self.assertEqual(self.snapshot(),policy);self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
         self.client=self.start();self.assertTrue(self.authenticate().authentication.identity.active)
 

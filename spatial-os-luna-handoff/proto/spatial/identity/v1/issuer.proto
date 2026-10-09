@@ -2,6 +2,16 @@ syntax = "proto3";
 package spatial.identity.v1;
 import "core.proto";
 import "key.proto";
+import "grants.proto";
+
+// Templates request domain authority. They are not grants or bearer capabilities.
+// The subject must be absent. A domain derives it from an authenticated enrollment.
+message BootstrapGrantTemplate { string id = 1; spatial.authority.v1.GrantTerms terms = 2; }
+message BootstrapProfile { string id = 1; repeated BootstrapGrantTemplate grants = 2; }
+message BootstrapProfileState { BootstrapProfile profile = 1; uint64 revision = 2; bytes issuer_id = 3; }
+message BootstrapProfilePut { BootstrapProfile profile = 1; optional uint64 expected_revision = 2; }
+// Service reads require an exact positive revision. Signed owner reads may request the latest.
+message BootstrapProfileRead { string id = 1; optional uint64 revision = 2; }
 
 enum EnrollmentMode { ENROLLMENT_MODE_UNSPECIFIED = 0; MANUAL = 1; APPROVE_ALWAYS = 2; }
 message EnrollmentPolicy {
@@ -19,6 +29,8 @@ message IssuerOperation {
     EnrollmentDecision enrollment_decision = 4;
     IdentityReference identity_read = 5;
     IdentityRevoke identity_revoke = 6;
+    BootstrapProfileRead profile_read = 7;
+    BootstrapProfilePut profile_put = 8;
   }
 }
 enum ActorKind { ACTOR_KIND_UNSPECIFIED = 0; HUMAN = 1; AGENT = 2; }
@@ -113,7 +125,7 @@ message AuthenticationResult {
   bytes channel_binding = 3;
 }
 message AdminResult {
-  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; }
+  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; }
 }
 message IssuerInfoRequest {}
 // Trusted supervisor configuration. Paths are absolute and remain outside Git.
@@ -183,6 +195,7 @@ message IssuerRequest {
     SignedCredential credential_check = 18;
     RevocationRead revocations = 19;
     ActorStatusRead actor_status = 20;
+    BootstrapProfileRead profile_read = 21;
   }
 }
 message IssuerReply {
@@ -199,5 +212,6 @@ message IssuerReply {
     AuthenticationResult authentication = 17;
     RevocationBatch revocations = 18;
     ActorStatusBatch actor_status = 19;
+    BootstrapProfileState profile = 20;
   }
 }

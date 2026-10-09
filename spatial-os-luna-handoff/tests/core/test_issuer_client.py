@@ -12,6 +12,7 @@ import unittest
 from google.protobuf import text_format
 import core_pb2 as core
 import issuer_pb2 as pb
+import grants_pb2 as grants
 from harness.wire import frame
 from test_identity_tls import TlsFixture
 from test_identity_issuer import Connection
@@ -127,6 +128,72 @@ class ClientFixture(TlsFixture):
 
 
 class ClientTests(ClientFixture):
+    def test_bootstrap_profile_publication_and_exact_read_reach_real_issuer(self):
+        self.ready(); client = self.client()
+        profile = pb.BootstrapProfile(id='starter')
+        template = profile.grants.add(id='entry')
+        template.terms.scope.domain.CopyFrom(grants.Domain(kind=grants.WORLD, id='park'))
+        template.terms.rights.append(grants.WORLD_ENTER)
+        operation = pb.IssuerOperation(profile_put=pb.BootstrapProfilePut(profile=profile, expected_revision=0))
+        published = self.execute(client, self.challenge(client, operation))
+        self.assertEqual(published.WhichOneof('outcome'), 'profile')
+        self.assertEqual(published.profile.profile, profile)
+        result = client.call(profile_read=pb.BootstrapProfileRead(id='starter', revision=1))
+        self.assertEqual(result.profile, published.profile)
+        self.assertEqual(result.profile.issuer_id, self.info.issuer_id)
+        self.assertEqual(result.profile.revision, 1)
+
+    def test_bootstrap_valid_fragmented_reply_and_error_keep_client_usable(self):
+        def respond(peer, request, reply):
+            if request.profile_read.id == 'starter':
+                reply.profile.CopyFrom(pb.BootstrapProfileState(issuer_id=self.info.issuer_id,
+                    revision=7, profile=pb.BootstrapProfile(id='starter')))
+            data = frame(reply)
+            for part in (data[:2], data[2:9], data[9:]): peer.stream.sendall(part)
+        peer = FaultPeer(self, response=respond); client = self.client(peer.port)
+        self.denied(client.call(profile_read=pb.BootstrapProfileRead(id='missing', revision=1)), core.FORBIDDEN)
+        result = client.call(profile_read=pb.BootstrapProfileRead(id='starter', revision=7))
+        self.assertEqual(result.profile.profile.id, 'starter'); self.assertEqual(result.profile.revision, 7)
+        self.assertEqual(len(peer.requests), 4)
+
+    def test_bootstrap_invalid_local_revision_does_not_send_or_poison(self):
+        peer = FaultPeer(self); client = self.client(peer.port)
+        for request in (pb.BootstrapProfileRead(id='starter'), pb.BootstrapProfileRead(id='starter', revision=0),
+                        pb.BootstrapProfileRead(id='starter', revision=2**63), pb.BootstrapProfileRead(id='', revision=1)):
+            self.denied(client.call(profile_read=request), core.INVALID_ARGUMENT)
+        self.assertEqual(client.call(info=pb.IssuerInfoRequest()).info, self.info)
+        self.assertEqual([r.WhichOneof('operation') for r in peer.requests], ['hello','info','info'])
+
+    def test_bootstrap_substituted_or_malformed_reply_poisons_client(self):
+        for mode in ('issuer','profile','revision','zero','overflow','missing','subject','domain','duplicate','oversized','unknown'):
+            with self.subTest(mode=mode):
+                def respond(peer, request, reply):
+                    state = pb.BootstrapProfileState(issuer_id=self.info.issuer_id, revision=1,
+                        profile=pb.BootstrapProfile(id='starter'))
+                    template = state.profile.grants.add(id='entry')
+                    template.terms.scope.domain.CopyFrom(grants.Domain(kind=grants.WORLD, id='park'))
+                    template.terms.rights.append(grants.WORLD_ENTER)
+                    if mode == 'issuer': state.issuer_id=b'x'*32
+                    elif mode == 'profile': state.profile.id='other'
+                    elif mode == 'revision': state.revision=2
+                    elif mode == 'zero': state.revision=0
+                    elif mode == 'overflow': state.revision=2**63
+                    elif mode == 'missing': state.ClearField('profile')
+                    elif mode == 'subject': template.terms.subject.CopyFrom(grants.ActorRef(issuer_id=b'i'*32, actor_id=b'a'*32))
+                    elif mode == 'domain': template.terms.rights.append(grants.FILE_READ)
+                    elif mode == 'duplicate': state.profile.grants.add().CopyFrom(template)
+                    elif mode == 'oversized':
+                        for i in range(5):
+                            item = state.profile.grants.add(id=str(i), terms=template.terms)
+                            item.terms.scope.components.extend([b'x'*256]*32)
+                    elif mode == 'unknown': state.ParseFromString(state.SerializeToString()+b'\xf8\x07\x01')
+                    reply.profile.CopyFrom(state); peer.stream.sendall(frame(reply))
+                peer = FaultPeer(self, response=respond); client = self.client(peer.port)
+                request = pb.IssuerRequest(protocol_version=1, profile_read=pb.BootstrapProfileRead(id='starter', revision=1))
+                output, _ = client.proc.communicate(frame(request)*2, timeout=3)
+                self.assertEqual(client.proc.returncode, 2); self.assertEqual(output, b'')
+                self.assertEqual(len(peer.requests), 3); self.assertEqual(peer.connections, 1)
+
     def test_client_reaches_real_issuer_and_preserves_caller_request_ids(self):
         self.ready(); client = self.client()
         for request_id in (0, 18446744073709551615, 1):

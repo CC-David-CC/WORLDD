@@ -1,0 +1,18 @@
+{
+  "build": {
+    "identityd": "b7424d54f069ce24cad2860d7bede286189d2b42ec11f73bfc422af4cecd4d9b",
+    "spatial-issuer-client": "d6f8fafd7a6c8d011142844209a4954276817844053f57deeee289fd4da95c9f",
+    "worldd": "d8bb93c02179b46e5d11b299407d7f4441b9c6b85410662ebb03751b7b243dba",
+    "workspaced": "ccb7368b15c93b36b402b3c69db97c6a374254091415b34e21a46b83fd8041a4",
+    "spatialwm": "dd9178973fcd7ace376a224b5fea09bef9479ba4231db56d0a825697e72e0897",
+    "spatial-test-host": "377c82abad338e06d8631956c0f79d6d0d1c7bea748751c131abae958825f70b"
+  },
+  "build-sanitize": {
+    "identityd": "80b3b1e3157072cfaf826565850dc13a32ecd35c7f7187b80de980c29894b9f0",
+    "spatial-issuer-client": "6237390f66f41922d556375960b26000788475797e139db9195958e12a8d631e",
+    "worldd": "301cbad4dde9e223bfc9683de239f60c690dd43c9fde813d1c1c381ee89caef6",
+    "workspaced": "b8b43263eaaa170488cc195e0034c528a88149a3c23dbaf8c546d5cee2fd1645",
+    "spatialwm": "2f7abb3c05689f19a99dd7b34e2057f0f511bfd480d6208fd2226adaed6cefb0",
+    "spatial-test-host": "1c0e7756a786abf339748b6fef1b8c611edff23012fd9deaac4b8cf1e89ad102"
+  }
+}

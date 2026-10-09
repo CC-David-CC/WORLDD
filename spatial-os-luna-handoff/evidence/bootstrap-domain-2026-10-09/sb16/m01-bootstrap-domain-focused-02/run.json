@@ -1,0 +1,18 @@
+{
+  "scope": "isolated candidate; corrected nonexistent FILE_WRITE enum to production FILE_EDIT",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-focused-02/test_authority_bootstrap.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-build-01/build/spatial-authority-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-build-01/build/spatial-authority-migrate"
+  ],
+  "exit_code": 0,
+  "inputs": {
+    "test_authority.py": "6335637c27755a41a303cafff60a0fd475da99e87bc0456bc047d77f3a337144",
+    "test_authority_bootstrap.py": "d75db84bef6288e745c0ae6fd12bf4683dedd9a5059c79f6024e4d96f468da1c"
+  },
+  "binaries": {
+    "spatial-authority-probe": "b3d8c4082ecdb0dd36333dbe29990310966811b296352f5e57c0be870564ec84",
+    "spatial-authority-migrate": "66bb39bd1d1b4e853a2a0008a0a049e01443a01668ad473c67db54e81524984a"
+  }
+}

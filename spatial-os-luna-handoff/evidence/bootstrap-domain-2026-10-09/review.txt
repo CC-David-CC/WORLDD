@@ -1,0 +1,37 @@
+Isolated domain-store candidate review, 2026-10-09
+
+This candidate remains outside the production source tree.
+The initial 13 interface cases failed against the old probe because it lacks the proposed operations.
+The separate candidate then built and linked on sb16 through the normal CMake targets.
+All 43 existing authority cases passed.
+The new suite initially passed 27 cases and raised one error for a nonexistent test enum.
+Correcting FILE_WRITE to the existing FILE_EDIT permission yielded 28 passing cases against the same binaries.
+An expanded suite passed all 32 cases against those binaries.
+It covers the 1024-binding limit, the 4096-grant limit, malformed stored bindings, and missing parents.
+Both attempts are preserved. No production permission or assertion was removed to correct the enum.
+
+Primary review:
+- Bindings require the authenticated parent holder and ordinary scope, rights, and depth attenuation.
+- Issuer templates cannot create domain roots.
+- A binding records immutable issuer, exact profile revision, template, parent, and checked terms.
+- Revoking a binding stops new materialization. Existing grants retain their own ancestry.
+- Receipts exclude credential and connection identity. Profile revision cannot bypass an existing receipt.
+- Grant and receipt insertion share a domain transaction. Receipt failure rolls back the grant and revision.
+- Exact retries return the original grant, including revocation. They do not authorize actions.
+- Missing or mismatched receipt targets fail instead of creating replacement grants.
+- Parent revocation invalidates dependent grants. Independent grants remain active.
+- The explicit schema-one-to-two migration preserves authority identity, grants, revocations, and revision.
+- Production migration refuses live stores and wrong domains. Failed migration rolls back schema changes.
+- Fixture probe operations forward to the store. They do not authenticate actors or replace runtime endpoints.
+
+Scope limits:
+These are focused Debug and runtime ASan/UBSan checks on sb16 only.
+Capacity and stored-binding corruption boundaries passed the expanded Debug suite.
+Both profiles passed all 43 existing and 32 new checks.
+The schema audit preserved 13 messages, 49 fields, and 23 enum values.
+All 43 existing authority test bodies remain unchanged.
+Sb16-2 candidate qualification remains unrun.
+World and workspace adapters must fetch checked issuer profiles and verify the registered credential.
+They must refresh parent identities and recheck revocation during external service waits.
+Real admission and file-action tests, reconnects, second credentials, and explicit application outcomes remain required.
+No complete bootstrap delivery, M01, M02, or Spatial-M1 result is claimed.

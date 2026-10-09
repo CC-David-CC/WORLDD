@@ -1,0 +1,69 @@
+syntax = "proto3";
+package spatial.authority.testing;
+import "core.proto";
+import "grants.proto";
+
+// Test-only adapter for the production store. No authentication is simulated.
+// The driver supplies fixture principals and calls the same C++ store methods.
+message Install { spatial.authority.v1.GrantTerms terms = 1; optional uint64 expected_revision = 2; }
+message Delegate {
+  spatial.authority.v1.ActorRef caller = 1;
+  bytes parent_id = 2;
+  spatial.authority.v1.GrantTerms terms = 3;
+  optional uint64 expected_revision = 4;
+}
+message Revoke {
+  spatial.authority.v1.ActorRef caller = 1;
+  bytes id = 2;
+  optional uint64 expected_revision = 3;
+}
+message Check {
+  spatial.authority.v1.ActorRef caller = 1;
+  spatial.authority.v1.Scope scope = 2;
+  spatial.authority.v1.Right right = 3;
+}
+message ProbeRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  repeated spatial.authority.v1.ActorRef inactive_actors = 3;
+  oneof operation {
+    Install install = 10;
+    Delegate delegate = 11;
+    Revoke revoke = 12;
+    Check check = 13;
+    bytes get = 14;
+    BootstrapBind bootstrap_bind = 15;
+    BootstrapApply bootstrap_apply = 16;
+    BootstrapRevoke bootstrap_revoke = 17;
+  }
+}
+message ProbeReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    spatial.core.v1.Error error = 10;
+    spatial.authority.v1.GrantRecord record = 11;
+    spatial.authority.v1.Decision decision = 12;
+    spatial.authority.v1.BootstrapBinding binding = 13;
+  }
+}
+
+// Proposed fixture operations. These never authenticate a production actor.
+message BootstrapBind {
+  spatial.authority.v1.ActorRef caller = 1;
+  spatial.authority.v1.BootstrapSelector selector = 2;
+  bytes parent_id = 3;
+  spatial.authority.v1.GrantTerms terms = 4;
+  optional uint64 expected_revision = 5;
+}
+message BootstrapApply {
+  bytes binding_id = 1;
+  spatial.authority.v1.ActorRef recipient = 2;
+  spatial.authority.v1.BootstrapSelector selector = 3;
+  spatial.authority.v1.GrantTerms terms = 4;
+}
+message BootstrapRevoke {
+  spatial.authority.v1.ActorRef caller = 1;
+  bytes binding_id = 2;
+  optional uint64 expected_revision = 3;
+}

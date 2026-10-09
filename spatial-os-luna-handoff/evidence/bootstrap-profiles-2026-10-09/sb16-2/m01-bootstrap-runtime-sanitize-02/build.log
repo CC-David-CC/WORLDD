@@ -1,0 +1,12 @@
+[0/2] Re-checking globbed directories...
+[1/11] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[2/11] Linking CXX static library libspatial-issuer.a
+[3/11] Linking CXX executable identityd
+[4/11] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[5/11] Linking CXX static library libspatial-core.a
+[6/11] Linking CXX executable worldd
+[7/11] Linking CXX executable spatial-render-observation-probe
+[8/11] Linking CXX executable spatial-broker-control-client-probe
+[9/11] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[10/11] Linking CXX executable workspaced
+[11/11] Linking CXX executable spatial-test-host

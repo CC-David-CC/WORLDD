@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "preserved": {
+    "messages": 13,
+    "fields": 49,
+    "enum_values": 23
+  },
+  "unchanged_authority_test_methods": 43,
+  "commands": [
+    {
+      "command": [
+        "protoc",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-audit-01/before.descriptor",
+        "--include_imports",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/security/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/authority/v1/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/authority/v1/grants_probe.proto"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "protoc",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-audit-01/candidate.descriptor",
+        "--include_imports",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-sanitize-01/source/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-sanitize-01/source/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-sanitize-01/source/proto/spatial/security/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-sanitize-01/source/proto/spatial/authority/v1/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-sanitize-01/source/proto/spatial/authority/v1/grants_probe.proto"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

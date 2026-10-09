@@ -1,0 +1,124 @@
+Enrollment bootstrap grants, started 2026-10-09
+Base commit: 76c29bd897a0fffa0d3dce2a2c968ed87bf8aefb.
+
+The preceding actor-pixel component passed both host/build profiles.
+Each profile passed 914 core checks, 51 harness checks, and 151 P10 acceptance cases.
+Both hosts have matching clean source at the recorded base.
+
+Before this increment, the issuer resolved only empty-v1, revision one, with zero grants.
+Domain grant stores already implement explicit roots, delegation, attenuation, and parent revocation.
+The bootstrap implementation must connect these existing boundaries without giving the issuer arbitrary domain authority.
+The contract is spatial-os-luna-handoff/docs/BOOTSTRAP_PROFILES.md.
+
+First implement immutable issuer profiles and shared enrollment resolution.
+Domain authorization, idempotent materialization, and live action checks remain mandatory later steps in this component.
+Do not report nonempty bootstrap grants complete from profile storage alone.
+
+The initial issuer database version was three. The implementation explicitly migrates it to version four.
+Historical migration fixtures must represent their original schemas after the new table exists.
+Preserve their data and authentication assertions while updating the current-version expectation.
+No locked acceptance assertion or independent native witness will be weakened.
+
+The primary agent reviews this work without a local model.
+
+2026-10-09 implementation checkpoint:
+Both baseline jobs terminated. Each ran 18 bootstrap tests: two passed and 16 failed.
+Existing identity, authority, and harness checks passed on both hosts before production changes.
+Baseline evidence remains in local/m01-bootstrap-baseline-01 on each host.
+
+The issuer now stores immutable profile revisions and pins their identity in signed credentials.
+Automatic enrollment rejects administrative templates without partial durable issuance.
+Shared permission validation preserves the existing authority-store checks.
+Schema four adds profile history. Historical fixtures explicitly remove it before testing old migrations.
+The preservation and authentication assertions remain intact.
+
+Both hosts passed all 18 new issuer tests and existing compatibility tests.
+Both hosts passed the 28-test issuer-client suite, including four new profile checks.
+The client baseline on sb16 had three failures in four tests before client support was added.
+The malformed-response test passed initially because the client rejected every profile response.
+Positive and negative response cases now pass together.
+
+Both hosts passed a 210-file source audit.
+The descriptor audit preserved 37 old messages, 154 old fields, and 17 old enum values.
+Full Debug and runtime ASan/UBSan runs are active.
+Their reports are local/m01-bootstrap-debug-01 and local/m01-bootstrap-runtime-sanitize-01.
+Native-server GLX sanitizer coverage remains separate and unqualified.
+No nonempty domain grant delivery or full Spatial-M1 qualification is claimed.
+
+2026-10-09 first full qualification failure:
+sb16 Debug completed 48 suites. One suite failed: native-resource-isolation.
+The owned-window destruction case failed before its assertion, while starting Xvfb.
+The native server reported: Cannot write display number to fd 6.
+The client then found no X11 socket.
+
+Inspection of the pinned server's os/connection.c, lines 205-210, showed two writes.
+It writes the display digits, then the newline, then closes the descriptor.
+The fixture read once and closed its pipe after receiving only digits.
+That could break the server's second write and terminate the server.
+
+A separate pipe regression reproduced both split-digit and split-newline failures.
+Baseline: two passed and two failed. Evidence: local/m01-display-ready-baseline.log on sb16.
+The fixture now reads through newline with one five-second deadline and a 64-byte bound.
+Its ready assertion requires a complete decimal line.
+All existing isolation assertions and native protocol requests remain unchanged.
+No XLibre source or independent native C witness changed.
+Five focused reader tests now pass on sb16, including EOF, bounds, and deadline checks.
+All native suites are being checked before a new complete qualification run.
+The original failed run remains intact. It must never be reported as passed.
+The first sb16-2 job remains active with its original source snapshot.
+
+2026-10-09 corrected Debug checkpoint and domain baseline:
+The corrected sb16 Debug core run passed 941 checks across all 49 suites.
+Its 151-case P10 gate also passed. The runtime sanitizer profile is running.
+
+Thirteen proposed domain-binding cases ran against the existing Debug authority probe on sb16.
+They used isolated generated Python schemas and a copied fixture under local/m01-bootstrap-domain-baseline-01.
+No production source, installed binding, current test module, or running qualification input changed.
+All 13 cases failed because the probe rejects the proposed bootstrap operations as unknown protobuf fields.
+The log contains 17 assertion failures because one case has several subtests.
+This proves the interface is absent. It does not test a domain implementation or establish grant delivery.
+
+After the test process finished, the recording script tried to hash the generated __pycache__ directory.
+The recording script failed. The test subprocess exit code was not saved.
+Metadata was recovered from the retained unittest output without rerunning the tests.
+The recovered report records a null test exit code and the recording failure explicitly.
+Evidence is in spatial-os-luna-handoff/evidence/bootstrap-domain-2026-10-09/sb16.
+
+2026-10-09 final sb16 qualification and isolated domain checks:
+Both corrected sb16 profiles passed 941 core checks across 49 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. The 212-file source audit and Windows source comparison passed.
+The corrected sb16-2 Debug profile passed. Its runtime sanitizer core run remains active.
+
+The domain candidate compiled and linked in a separate sb16 source directory.
+It did not replace either host's ongoing qualification source or build directory.
+All 43 existing authority-store tests passed.
+The first new suite passed 27 cases and had one test error.
+The workspace test used FILE_WRITE, which does not exist in the grant schema.
+The correct existing permission is FILE_EDIT. Only that identifier changed for the corrected run.
+All 28 new cases then passed against the same candidate binaries.
+These cases use the production migration CLI for real private stores.
+They include live-store lock refusal, wrong-domain migration refusal, rollback, retry, and parent revocation.
+The initial and corrected logs, source hashes, commands, and candidate inputs are preserved.
+Candidate sanitizer qualification and authenticated domain integration remain pending.
+No M01 or complete Spatial-M1 result is claimed.
+
+2026-10-09 fixture integration and domain boundary checkpoint:
+The native fixture correction is committed separately as 388d500 and pushed to box-git.
+Its evidence includes the original failure, the reader baseline, and both hosts' passing native suites.
+Qualification source trees on the hosts remain unchanged until their active jobs finish.
+The issuer implementation remains uncommitted pending the final sb16-2 sanitizer matrix.
+
+The expanded domain suite passed 32 cases on sb16 against the same candidate binaries.
+Additional cases cover 1024 binding records, 4096 grant records, corrupt bindings, and missing parents.
+Their exact tests, commands, binary hashes, and logs are in m01-bootstrap-domain-focused-03 evidence.
+An isolated sb16 sanitizer build has started with the corrected 32-case suite and the 43 existing authority cases.
+No domain production integration or complete feature result is claimed.
+
+2026-10-09 issuer qualification complete:
+Both corrected host matrices finished successfully.
+Each Debug and runtime sanitizer profile passed 941 core checks, 51 harness checks, and 151 P10 cases.
+Both 212-file source audits matched. Final profiles failed or skipped no cases.
+The isolated domain candidate also passed its 43 existing and 32 new checks under runtime sanitizers on sb16.
+Its schema audit preserved 13 messages, 49 fields, and 23 enum values.
+All 43 existing authority test bodies remain unchanged.
+The issuer increment is ready for integration. Domain delivery and full Spatial-M1 remain incomplete.

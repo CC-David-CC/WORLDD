@@ -18,6 +18,7 @@ public:
     v1::IssuerInfo info();
     v1::ChallengeReply challenge(const v1::IssuerOperation& operation);
     v1::AdminResult execute(const v1::IssuerExecute& request);
+    v1::BootstrapProfileState profile_read(const v1::BootstrapProfileRead& request);
     v1::ChallengeReply enrollment_begin(const v1::EnrollmentIntent& intent);
     v1::EnrollmentRecord enrollment_complete(const v1::EnrollmentComplete& request);
     v1::IdentityStatus credential_check(const v1::SignedCredential& credential);

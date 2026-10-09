@@ -1,0 +1,22 @@
+{
+  "debug": {
+    "core_suites": 49,
+    "core_checks": 941,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime-sanitize": {
+    "core_suites": 49,
+    "core_checks": 941,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "native-server-sanitize": {
+    "status": "unrun",
+    "reason": "Native-server GLX cleanup remains unqualified; runtime sanitizer results do not replace it."
+  }
+}

@@ -1,0 +1,351 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 8
+    Start 8: identity-bootstrap
+
+8: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd"
+8: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+8: Environment variables: 
+8:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+8: Test timeout computed to be: 90
+8: test_active_profile_update_invalidates_pending_manual_approval (__main__.BootstrapTests.test_active_profile_update_invalidates_pending_manual_approval) ... FAIL
+8: test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state (__main__.BootstrapTests.test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state) ... FAIL
+8: test_automatic_enrollment_uses_the_same_nonempty_profile (__main__.BootstrapTests.test_automatic_enrollment_uses_the_same_nonempty_profile) ... FAIL
+8: test_builtin_empty_profile_is_readable_and_immutable (__main__.BootstrapTests.test_builtin_empty_profile_is_readable_and_immutable) ... FAIL
+8: test_corrupt_profile_blocks_reads_and_issuance (__main__.BootstrapTests.test_corrupt_profile_blocks_reads_and_issuance) ... FAIL
+8: test_explicit_v3_migration_preserves_credentials_and_is_repeatable (__main__.BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable) ... FAIL
+8: test_failed_credential_write_rolls_back_nonempty_profile_issuance (__main__.BootstrapTests.test_failed_credential_write_rolls_back_nonempty_profile_issuance) ... FAIL
+8: test_failed_profile_publication_preserves_history_and_active_policy_revision (__main__.BootstrapTests.test_failed_profile_publication_preserves_history_and_active_policy_revision) ... FAIL
+8: test_later_profile_updates_do_not_rewrite_recovered_credentials (__main__.BootstrapTests.test_later_profile_updates_do_not_rewrite_recovered_credentials) ... FAIL
+8: test_malformed_templates_are_rejected_before_publication (__main__.BootstrapTests.test_malformed_templates_are_rejected_before_publication) ... ok
+8: test_manual_administration_template_still_requires_explicit_owner_approval (__main__.BootstrapTests.test_manual_administration_template_still_requires_explicit_owner_approval) ... FAIL
+8: test_manual_approval_pins_the_profile_in_an_independently_verified_credential (__main__.BootstrapTests.test_manual_approval_pins_the_profile_in_an_independently_verified_credential) ... FAIL
+8: test_owner_publishes_world_and_workspace_templates_without_subjects (__main__.BootstrapTests.test_owner_publishes_world_and_workspace_templates_without_subjects) ... FAIL
+8: test_profile_publication_requires_owner_proof_and_consumes_nonce (__main__.BootstrapTests.test_profile_publication_requires_owner_proof_and_consumes_nonce) ... FAIL
+8: test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap (__main__.BootstrapTests.test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap) ... FAIL
+8: test_profile_size_and_unknown_fields_are_rejected (__main__.BootstrapTests.test_profile_size_and_unknown_fields_are_rejected) ... ok
+8: test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile (__main__.BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile) ... FAIL
+8: test_service_reads_require_exact_valid_revisions (__main__.BootstrapTests.test_service_reads_require_exact_valid_revisions) ... FAIL
+8: 
+8: ======================================================================
+8: FAIL: test_active_profile_update_invalidates_pending_manual_approval (__main__.BootstrapTests.test_active_profile_update_invalidates_pending_manual_approval)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 101, in test_active_profile_update_invalidates_pending_manual_approval
+8:     self.publish(); revision = self.select(); pending = self.enroll(self.client)
+8:     ^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state (__main__.BootstrapTests.test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 122, in test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state
+8:     self.publish(self.profile(rights=(grants.POLICY_ADMINISTER,)))
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_automatic_enrollment_uses_the_same_nonempty_profile (__main__.BootstrapTests.test_automatic_enrollment_uses_the_same_nonempty_profile)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 93, in test_automatic_enrollment_uses_the_same_nonempty_profile
+8:     self.publish(); revision = self.select(mode=pb.APPROVE_ALWAYS)
+8:     ^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_builtin_empty_profile_is_readable_and_immutable (__main__.BootstrapTests.test_builtin_empty_profile_is_readable_and_immutable)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 45, in test_builtin_empty_profile_is_readable_and_immutable
+8:     state = self.read('empty-v1')
+8:             ^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 32, in read
+8:     self.assertTrue(reply.HasField('profile'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: UNKNOWN_METHOD
+8:   message: "No recognized issuer operation"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_corrupt_profile_blocks_reads_and_issuance (__main__.BootstrapTests.test_corrupt_profile_blocks_reads_and_issuance)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 196, in test_corrupt_profile_blocks_reads_and_issuance
+8:     self.publish(); self.select(mode=pb.APPROVE_ALWAYS)
+8:     ^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_explicit_v3_migration_preserves_credentials_and_is_repeatable (__main__.BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 223, in test_explicit_v3_migration_preserves_credentials_and_is_repeatable
+8:     self.assertNotEqual(old.returncode, 0); self.assertIn(b'migration', old.stderr.lower())
+8:     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8: AssertionError: 0 == 0
+8: 
+8: ======================================================================
+8: FAIL: test_failed_credential_write_rolls_back_nonempty_profile_issuance (__main__.BootstrapTests.test_failed_credential_write_rolls_back_nonempty_profile_issuance)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 186, in test_failed_credential_write_rolls_back_nonempty_profile_issuance
+8:     self.publish(); revision = self.select(); pending = self.enroll(self.client)
+8:     ^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_failed_profile_publication_preserves_history_and_active_policy_revision (__main__.BootstrapTests.test_failed_profile_publication_preserves_history_and_active_policy_revision)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 177, in test_failed_profile_publication_preserves_history_and_active_policy_revision
+8:     first = self.publish(); revision = self.select()
+8:             ^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_later_profile_updates_do_not_rewrite_recovered_credentials (__main__.BootstrapTests.test_later_profile_updates_do_not_rewrite_recovered_credentials)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 113, in test_later_profile_updates_do_not_rewrite_recovered_credentials
+8:     first = self.publish(); self.select(mode=pb.APPROVE_ALWAYS)
+8:             ^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_manual_administration_template_still_requires_explicit_owner_approval (__main__.BootstrapTests.test_manual_administration_template_still_requires_explicit_owner_approval)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 128, in test_manual_administration_template_still_requires_explicit_owner_approval
+8:     self.publish(self.profile(rights=(grants.POLICY_ADMINISTER,)))
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_manual_approval_pins_the_profile_in_an_independently_verified_credential (__main__.BootstrapTests.test_manual_approval_pins_the_profile_in_an_independently_verified_credential)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 85, in test_manual_approval_pins_the_profile_in_an_independently_verified_credential
+8:     self.publish(); revision = self.select()
+8:     ^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_owner_publishes_world_and_workspace_templates_without_subjects (__main__.BootstrapTests.test_owner_publishes_world_and_workspace_templates_without_subjects)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 57, in test_owner_publishes_world_and_workspace_templates_without_subjects
+8:     state = self.publish(profile)
+8:             ^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_profile_publication_requires_owner_proof_and_consumes_nonce (__main__.BootstrapTests.test_profile_publication_requires_owner_proof_and_consumes_nonce)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 66, in test_profile_publication_requires_owner_proof_and_consumes_nonce
+8:     challenge = self.challenge(self.client, operation)
+8:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap (__main__.BootstrapTests.test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 73, in test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap
+8:     first = self.publish()
+8:             ^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile (__main__.BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 206, in test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile
+8:     self.publish(); revision = self.select()
+8:     ^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 26, in publish
+8:     reply = self.execute(self.client, self.challenge(self.client, operation))
+8:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 117, in challenge
+8:     self.assertTrue(reply.HasField('challenge'), reply)
+8: AssertionError: False is not true : protocol_version: 1
+8: request_id: 6
+8: error {
+8:   code: INVALID_ARGUMENT
+8:   message: "Issuer operation is required"
+8: }
+8: 
+8: 
+8: ======================================================================
+8: FAIL: test_service_reads_require_exact_valid_revisions (__main__.BootstrapTests.test_service_reads_require_exact_valid_revisions)
+8: ----------------------------------------------------------------------
+8: Traceback (most recent call last):
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_bootstrap.py", line 172, in test_service_reads_require_exact_valid_revisions
+8:     self.denied(self.client.call(profile_read=request), core.INVALID_ARGUMENT)
+8:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+8:     self.assertEqual(reply.error.code, code, reply)
+8: AssertionError: 2 != 1 : protocol_version: 1
+8: request_id: 2
+8: error {
+8:   code: UNKNOWN_METHOD
+8:   message: "No recognized issuer operation"
+8: }
+8: 
+8: 
+8: ----------------------------------------------------------------------
+8: Ran 18 tests in 1.550s
+8: 
+8: FAILED (failures=16)
+1/1 Test #8: identity-bootstrap ...............***Failed    1.63 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   1.63 sec
+
+The following tests FAILED:
+	  8 - identity-bootstrap (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

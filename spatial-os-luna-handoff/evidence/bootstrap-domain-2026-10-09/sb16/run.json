@@ -1,0 +1,24 @@
+{
+  "host": "sb16",
+  "fixture_only": true,
+  "production_sources_changed": false,
+  "test": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-domain-baseline-01/inputs/test_authority_bootstrap.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-authority-probe"
+  ],
+  "test_exit_code": null,
+  "runner_exit_code": 1,
+  "executed_cases": 13,
+  "failed_cases": 13,
+  "assertion_failures": 17,
+  "missing_behavior": "Production probe rejects proposed bootstrap operations as unknown protobuf fields",
+  "recording_error": "The runner tried to hash __pycache__ after the tests finished. Its test exit code was not saved. Counts come from the retained unittest log.",
+  "binary_sha256": "06c3e9dd5c9cd5baff4e7139cd86a08fabbb0f267dbc1e0c569fb90471a510b7",
+  "inputs": {
+    "grants.proto": "e93e5babdfeb3f3382a552f2f26fa2e31d917e8611b5c3f746388c3007db937f",
+    "grants_probe.proto": "43ebf2cd2ec6e0ac1ea10fb6d79527792ad7468bb23da21a820dd8acd92be600",
+    "test_authority.py": "9e381389cb934e4e4c52e279bde5a5ad5807f5c16210951108f99c3f5364b08f",
+    "test_authority_bootstrap.py": "0f1b2890782b08cf7bbf1d8616900e23f834e087c48e127b871ab52942faddff"
+  }
+}

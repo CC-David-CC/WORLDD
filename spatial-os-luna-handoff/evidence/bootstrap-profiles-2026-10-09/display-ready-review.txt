@@ -1,0 +1,32 @@
+Native fixture startup correction
+
+Observed failure: sb16, local/m01-bootstrap-debug-01/core.log, native-resource-isolation.
+The owned-window destruction case failed during server startup.
+It did not reach its resource-isolation assertion.
+The server reported a failed display-number pipe write.
+
+The pinned XLibre server uses separate writes for digits and newline in os/connection.c:205-210.
+The old Python fixture read once and closed the pipe without requiring newline.
+It could accept a partial notice and terminate the server through the broken pipe.
+
+Invariant: keep the display-number pipe open until one complete bounded notice arrives, EOF occurs, or its original deadline expires.
+The ready condition requires decimal digits followed by newline.
+Use the original five-second startup budget and a maximum of 64 bytes.
+An EOF, partial notice, or timeout cannot invent readiness.
+
+The shared reader was extracted from the old fixture without changing its initial behavior.
+Two fragmented-write cases failed against that old behavior.
+EOF and byte-limit cases passed.
+The corrected reader passed those four cases and an additional deadline case.
+
+Primary review:
+No resource-isolation assertion, expected X response, actor identity, or security right changes.
+No locked acceptance file or independent native C witness changes.
+No XLibre source or server binary changes.
+The new complete-line assertion is stricter than the old digits-only check.
+The helper is test infrastructure. It provides no alternate runtime or authority implementation.
+Retain this correction as a separately reviewed commit when qualification permits integration.
+
+Both hosts passed all 14 native suites after the correction, with zero failed suites.
+Both hosts passed the matching 212-file source audit.
+Final qualification remains pending at this checkpoint.

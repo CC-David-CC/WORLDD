@@ -43,7 +43,7 @@ class EnrollmentFixture(IssuerFixture):
         operation = pb.IssuerOperation(enrollment_read=pb.EnrollmentRead(enrollment_id=record.enrollment_id))
         return self.execute(client, self.challenge(client, operation))
 
-    def claims(self, record, info):
+    def claims(self, record, info, profile='empty-v1', profile_revision=1):
         self.assertEqual(record.status, pb.APPROVED)
         signed = record.credential
         self.assertEqual(signed.content.purpose, keys.ISSUER_CREDENTIAL)
@@ -59,7 +59,7 @@ class EnrollmentFixture(IssuerFixture):
         self.assertEqual(claims.enrollment_id,record.enrollment_id)
         self.assertEqual(claims.public_key,record.intent.public_key); self.assertEqual(claims.kind,record.intent.kind)
         self.assertEqual(claims.audience,'spatial/actor-credential/v1')
-        self.assertEqual(claims.bootstrap_profile,'empty-v1'); self.assertEqual(claims.bootstrap_profile_revision,1)
+        self.assertEqual(claims.bootstrap_profile,profile); self.assertEqual(claims.bootstrap_profile_revision,profile_revision)
         self.assertEqual(len(claims.actor_id),32); self.assertEqual(len(claims.credential_id),32)
         return claims
 
@@ -246,7 +246,7 @@ class EnrollmentTests(EnrollmentFixture):
     def test_explicit_schema_migration_preserves_issuer_key_owner_and_policy(self):
         info=self.init();before=self.snapshot();secret=(self.state/'issuer.pem').read_bytes()
         with sqlite3.connect(self.state/'identity.db') as db:
-            db.executescript('DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
+            db.executescript('DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
                              'DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
         command=[str(BINARY),'--state-dir',str(self.state)]
         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)

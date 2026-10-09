@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "source_files": 212,
+  "preserved": {
+    "messages": 37,
+    "fields": 154,
+    "enum_values": 17
+  }
+}
