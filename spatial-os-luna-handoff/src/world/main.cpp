@@ -1,6 +1,7 @@
 #include "world/server.hpp"
 #include "world/authority.hpp"
 #include "world/identity_sessions.hpp"
+#include "world/actor_tls.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
 #include "platform/broker.hpp"
@@ -13,11 +14,11 @@
 #include <string_view>
 
 int main(int argc, char** argv) {
-    std::filesystem::path state, config, identity_config, authority_seed;
+    std::filesystem::path state, config, identity_config, authority_seed, actor_tls_config;
     std::vector<int> actor_channels;
     std::string display;
     bool fixture_clock = false, fixture_faults = false, migration = false;
-    int broker_fd = -1, broker_pid = -1;
+    int broker_fd = -1, broker_pid = -1, actor_listener = -1;
     try {
         signal(SIGPIPE, SIG_IGN);
         for (int i = 1; i < argc; ++i) {
@@ -30,6 +31,13 @@ int main(int argc, char** argv) {
             else if (argument == "--display" && display.empty() && i + 1 < argc) display = argv[++i];
             else if (argument == "--init-authority" && authority_seed.empty() && i + 1 < argc) authority_seed = argv[++i];
             else if (argument == "--identity-config" && identity_config.empty() && i + 1 < argc) identity_config = argv[++i];
+            else if (argument == "--actor-tls-config" && actor_tls_config.empty() && i + 1 < argc) actor_tls_config = argv[++i];
+            else if (argument == "--actor-listen-fd" && actor_listener == -1 && i + 1 < argc) {
+                const std::string_view number(argv[++i]);
+                const auto parsed = std::from_chars(number.data(), number.data()+number.size(), actor_listener);
+                if (parsed.ec != std::errc{} || parsed.ptr != number.data()+number.size() || actor_listener <= STDERR_FILENO)
+                    throw std::invalid_argument("Invalid actor listener descriptor");
+            }
             else if (argument == "--actor-fd" && i + 1 < argc) {
                 int fd = -1; const std::string_view number(argv[++i]);
                 const auto parsed = std::from_chars(number.data(), number.data()+number.size(), fd);
@@ -48,10 +56,16 @@ int main(int argc, char** argv) {
             else throw std::invalid_argument("Unknown or incomplete worldd argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("State directory must be absolute");
-        if (identity_config.empty() != actor_channels.empty()) throw std::invalid_argument("World identity config and actor channels are required together");
+        if ((actor_listener == -1) != actor_tls_config.empty()) throw std::invalid_argument("Actor TLS listener and configuration are required together");
+        if (identity_config.empty() != (actor_channels.empty() && actor_listener == -1))
+            throw std::invalid_argument("World identity configuration and actor transport are required together");
+        if (actor_listener >= 0) {
+            if (actor_listener == broker_fd) throw std::invalid_argument("Actor listener cannot share the broker descriptor");
+            spatial::prepare_actor_listener(actor_listener);
+        }
         std::set<int> unique_channels;
         for (const auto fd : actor_channels) {
-            if (!unique_channels.insert(fd).second || fd == broker_fd) throw std::invalid_argument("Duplicate actor or broker channel");
+            if (!unique_channels.insert(fd).second || fd == broker_fd || fd == actor_listener) throw std::invalid_argument("Duplicate actor or broker channel");
             spatial::prepare_actor_channel(fd);
         }
         if (!authority_seed.empty()) {
@@ -81,7 +95,7 @@ int main(int argc, char** argv) {
             std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display);
         spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get());
         std::unique_ptr<spatial::IdentitySessions> sessions;
-        if (!identity_config.empty()) sessions = std::make_unique<spatial::IdentitySessions>(identity_config, actor_channels, world, actors, broker.get());
+        if (!identity_config.empty()) sessions = std::make_unique<spatial::IdentitySessions>(identity_config, actor_channels, world, actors, broker.get(), actor_listener, actor_tls_config);
         spatial::serve(world, actors, renderer.get(), &surfaces, broker.get(), sessions.get());
         return 0;
     } catch (const std::exception& error) {

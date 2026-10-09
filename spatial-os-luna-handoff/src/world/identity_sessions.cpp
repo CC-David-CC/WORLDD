@@ -1,5 +1,6 @@
 #include "world/identity_sessions.hpp"
 #include "world/authority.hpp"
+#include "world/actor_tls.hpp"
 #include "platform/broker.hpp"
 #include "identity/issuer_client.hpp"
 #include "identity/issuer_watch.hpp"
@@ -44,6 +45,7 @@ struct Pending {
 };
 struct Channel {
     identity::tls_detail::Fd fd;
+    std::unique_ptr<ActorTlsPeer> tls;
     std::string input, output, token;
     std::size_t sent = 0;
     bool needs_observation = false;
@@ -53,6 +55,13 @@ struct Channel {
     pb::SignedCredential credential;
     pb::ActorCredential claims;
     explicit Channel(int descriptor) : fd(descriptor) {}
+    void close_transport() { tls.reset(); fd.reset(); }
+    int transport_read() {
+        const bool empty = input.empty();
+        const auto result = tls->read(input);
+        if (empty && !input.empty()) input_started = Clock::now();
+        return result;
+    }
 };
 }
 
@@ -82,6 +91,7 @@ struct IdentitySessions::Impl {
     pb::IssuerInfo issuer;
     std::unique_ptr<WorldAuthority> authority;
     std::uint64_t observed_revision = 0;
+    std::unique_ptr<ActorTlsListener> listener;
     std::vector<std::unique_ptr<Channel>> channels;
     std::set<std::string> admitted;
     std::map<std::string, std::set<std::string>> grants;
@@ -89,9 +99,13 @@ struct IdentitySessions::Impl {
     Clock::time_point last_exchange = Clock::now();
     bool ready = false, broken = false, ticking = false;
 
-    Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine, BrokerClient* execution)
+    Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine, BrokerClient* execution, int listener_fd, const std::filesystem::path& tls_config)
         : world(store), actors(engine), broker(execution) {
-        require(!descriptors.empty() && descriptors.size() <= 32, "World requires between one and 32 actor channels");
+        require((!descriptors.empty() || listener_fd >= 0) && descriptors.size() <= 32, "World requires actor transport");
+        if (listener_fd >= 0) {
+            listener = std::make_unique<ActorTlsListener>(listener_fd, tls_config);
+            require(descriptors.size() <= listener->limit(), "Local channels exceed the total actor connection limit");
+        }
         require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &config),
                 "Invalid world identity configuration");
         validate_message(config);
@@ -124,7 +138,7 @@ struct IdentitySessions::Impl {
     void disconnect(Channel& channel) {
         const auto token = std::move(channel.token); channel.token.clear();
         channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.completing.reset(); channel.needs_observation = false;
-        if (!channel.output.empty()) { channel.output.clear(); channel.fd.reset(); }
+        if (!channel.output.empty()) { channel.output.clear(); channel.close_transport(); }
         if (!token.empty()) {
             try { actors.close(token); }
             catch (const std::exception&) { throw CancellationFailure("Cannot confirm native actor cancellation"); }
@@ -145,13 +159,17 @@ struct IdentitySessions::Impl {
             const int result = poll(&fd, 1, 0);
             if (result < 0 && errno == EINTR) continue;
             bool lost = result < 0 || (fd.revents & (POLLERR | POLLHUP | POLLNVAL));
-            if (!lost && (fd.revents & POLLIN)) {
+            if (!lost && !channel->tls && (fd.revents & POLLIN)) {
                 char byte;
                 const auto count = recv(channel->fd.value, &byte, 1, MSG_PEEK | MSG_DONTWAIT);
                 lost = !count || (count < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR);
             }
+            if (!lost && channel->tls) {
+                lost = channel->tls->expired(!channel->token.empty());
+                if (!lost && channel->tls->ready() && channel->output.empty()) lost = channel->transport_read() < 0;
+            }
             if (lost) {
-                disconnect(*channel); channel->fd.reset(); channel->input.clear(); channel->output.clear();
+                disconnect(*channel); channel->close_transport(); channel->input.clear(); channel->output.clear();
             }
         }
         if (watcher->failed()) { fail(); return; }
@@ -405,7 +423,7 @@ struct IdentitySessions::Impl {
                 if (allowed != grants.end()) for (const auto& grant : allowed->second) open.add_grants(grant);
                 Actors::Authority check;
                 if (authority) check = [this, actor](const auto& right, const auto& scope) { return authority->allowed(actor, right, scope); };
-                const auto opened = actors.open(open, true, std::move(check), actor);
+                const auto opened = actors.open(open, true, std::move(check), actor, !channel.tls);
                 channel.token = opened.token(); channel.credential = pending->begin.credential(); channel.claims = pending->claims;
                 auto* value = reply.mutable_opened(); value->set_actor_id(opened.id()); value->set_world_id(world.info().world_id());
                 *value->mutable_identity() = status;
@@ -552,25 +570,45 @@ struct IdentitySessions::Impl {
         }
         for (auto& owned : channels) {
             auto& channel = *owned; if (channel.fd.value < 0) continue;
-            auto drop = [&] { disconnect(channel); channel.fd.reset(); channel.input.clear(); channel.output.clear(); };
+            auto drop = [&] { disconnect(channel); channel.close_transport(); channel.input.clear(); channel.output.clear(); };
             const auto now = Clock::now();
-            if ((!channel.input.empty() && now-channel.input_started > std::chrono::seconds(10)) ||
-                    (!channel.output.empty() && now-channel.output_started > std::chrono::seconds(10))) { drop(); continue; }
+            const auto timeout = channel.tls ? channel.tls->timeout() : std::chrono::milliseconds(10000);
+            if ((!channel.input.empty() && now-channel.input_started > timeout) ||
+                    (!channel.output.empty() && now-channel.output_started > timeout)) { drop(); continue; }
+            if (channel.tls) {
+                if (channel.tls->expired(!channel.token.empty())) { drop(); continue; }
+                const auto handshake = channel.tls->handshake();
+                if (handshake < 0) { drop(); continue; }
+                if (!handshake) continue;
+                if (channel.tls->read_needs_write()) {
+                    if (channel.transport_read() < 0) { drop(); continue; }
+                    if (channel.tls->read_needs_write()) continue;
+                }
+            }
             pollfd fd{channel.fd.value, static_cast<short>(channel.output.empty() ? POLLIN : POLLOUT), 0};
             const int count = poll(&fd, 1, 0);
             if (count < 0 && errno == EINTR) continue;
             if (count < 0 || (fd.revents & (POLLERR | POLLHUP | POLLNVAL))) { drop(); continue; }
-            if (!channel.output.empty() && (fd.revents & POLLOUT)) {
+            if (!channel.output.empty() && (channel.tls || (fd.revents & POLLOUT))) {
                 if (authority && channel.needs_observation && !authority->allowed(principal(channel.claims), "observe")) { drop(); continue; }
                 if (channel.needs_observation) {
                     try { if (!actors.application_observation_valid(channel.token)) { drop(); continue; } }
                     catch (const WorldError&) { drop(); continue; }
                 }
-                const auto written = write(channel.fd.value, channel.output.data()+channel.sent, channel.output.size()-channel.sent);
-                if (written < 0 && errno != EAGAIN && errno != EINTR) { drop(); continue; }
-                if (written > 0) { channel.sent += static_cast<std::size_t>(written); if (channel.sent == channel.output.size()) { channel.output.clear(); channel.needs_observation = false; } }
+                if (channel.tls) {
+                    if (channel.tls->write(channel.output, channel.sent) < 0) { drop(); continue; }
+                } else {
+                    const auto written = write(channel.fd.value, channel.output.data()+channel.sent, channel.output.size()-channel.sent);
+                    if (written < 0 && errno != EAGAIN && errno != EINTR) { drop(); continue; }
+                    if (written > 0) channel.sent += static_cast<std::size_t>(written);
+                }
+                if (channel.sent == channel.output.size()) { channel.output.clear(); channel.needs_observation = false; }
             }
-            if (channel.output.empty() && (fd.revents & POLLIN)) {
+            if (channel.tls && channel.output.empty()) {
+                if (channel.transport_read() < 0) { drop(); continue; }
+                if (channel.tls->read_needs_write()) continue;
+            }
+            if (!channel.tls && channel.output.empty() && (fd.revents & POLLIN)) {
                 std::array<char, 65536> bytes{};
                 const auto received = read(channel.fd.value, bytes.data(), std::min(bytes.size(), max_frame_bytes+4-channel.input.size()));
                 if (!received || (received < 0 && errno != EAGAIN && errno != EINTR)) { drop(); continue; }
@@ -590,10 +628,21 @@ struct IdentitySessions::Impl {
             std::ostringstream output; write_frame(output, reply); channel.output = output.str(); channel.sent = 0;
             channel.output_started = Clock::now();
         }
+        std::erase_if(channels, [](const auto& channel) { return channel->fd.value < 0; });
+        if (listener && !broken) {
+            const auto fd = listener->accept();
+            if (fd >= 0) {
+                auto channel = std::make_unique<Channel>(fd);
+                if (channels.size() < listener->limit()) {
+                    channel->tls = listener->peer(fd); channels.push_back(std::move(channel));
+                }
+            }
+        }
     }
 };
-IdentitySessions::IdentitySessions(const std::filesystem::path& config, const std::vector<int>& channels, WorldStore& world, Actors& actors, BrokerClient* broker)
-    : impl_(std::make_unique<Impl>(config, channels, world, actors, broker)) {}
+IdentitySessions::IdentitySessions(const std::filesystem::path& config, const std::vector<int>& channels, WorldStore& world, Actors& actors, BrokerClient* broker,
+    int listener, const std::filesystem::path& tls_configuration)
+    : impl_(std::make_unique<Impl>(config, channels, world, actors, broker, listener, tls_configuration)) {}
 IdentitySessions::~IdentitySessions() {
     for (auto& channel : impl_->channels) { try { impl_->disconnect(*channel); } catch (const std::exception&) {} }
 }

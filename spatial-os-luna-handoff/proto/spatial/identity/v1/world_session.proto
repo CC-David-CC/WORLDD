@@ -16,6 +16,16 @@ message WorldIdentityConfig {
   // Explicit persistent policy. Cannot be combined with static actor lists.
   string authority_directory = 6;
 }
+// TLS connection permission is separate from signed actor identity and world admission.
+message WorldActorTlsConfig {
+  uint32 protocol_version = 1;
+  string certificate_path = 2;
+  string private_key_path = 3;
+  string client_ca_path = 4;
+  optional uint32 io_timeout_ms = 5;
+  optional uint32 idle_timeout_ms = 6; // Unauthenticated channels only.
+  optional uint32 connection_limit = 7; // Includes inherited local channels.
+}
 message WorldAuthoritySeed {
   uint32 protocol_version = 1;
   string authority_directory = 2;

@@ -1,0 +1,8 @@
+{
+  "source_files": 233,
+  "locked_files": 41,
+  "both_host_profiles": "passed",
+  "cross_host_both_directions": "passed",
+  "credential_exclusions": "passed",
+  "staged_files": 47
+}

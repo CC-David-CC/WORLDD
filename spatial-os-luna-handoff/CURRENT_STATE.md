@@ -1,5 +1,35 @@
 # Implementation status
 
+## 2026-10-09: Remote actor transport qualified and integrated
+
+The world daemon now accepts explicitly configured actor connections through mutual TLS 1.3.
+Signed actor proof, world admission, and scoped authority remain separate from transport access.
+Local and remote actors use the same protobuf messages and production actor handlers.
+The trusted management pipe stays private.
+Remote observations omit live application pixels and metadata. Remote application input remains outside M1 scope.
+
+Both hosts passed complete Debug and runtime ASan/UBSan qualification for candidate 02.
+Each profile passed 1,089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
+No final profile failed or skipped a case.
+Each core total includes 46 remote checks across seven suites.
+Direct cross-host TLS scenarios passed with each host acting as world authority in turn.
+The scenarios used independent actor identities, real motion and inspection, and durable checkpoints.
+
+All 233 integrated source hashes match both qualified host manifests.
+The schema audit preserves 227 messages, 849 fields, and 111 enum values.
+All 80 existing test files and 41 locked files remain unchanged.
+Primary review corrected TLS read-retry deadline handling before qualification.
+The original retry counterexamples and fixture failures remain preserved.
+Commit and host adoption follow this guarded source integration.
+
+The remote actor transport component is complete. Full M01, M02, and M05 remain incomplete.
+Distributed cancellation acknowledgement is the next required component.
+A real delayed-notification diagnostic confirms that issuer commit alone is not cancellation completion.
+See tasks/m1/identity.revocation_barrier.json and evidence/revocation-barrier-2026-10-09.
+Physical devices, native-server GLX sanitizers, GPU performance, and complete Spatial-M1 remain unqualified.
+No operator authority database or normal login session changed.
+See evidence/world-remote-2026-10-09/candidate-02 for all four complete profiles and source pins.
+
 ## 2026-10-09: Remote actor candidate 02 passes both-host Debug and cross-host checks
 
 Candidate 02 remains outside production while both runtime sanitizer profiles run.

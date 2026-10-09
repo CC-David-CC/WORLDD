@@ -112,7 +112,7 @@ std::string Actors::selected_workspace(const Actor& actor) {
     return selected;
 }
 wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool require_observation_grant, Authority authority,
-                                  std::optional<spatial::authority::v1::ActorRef> principal) {
+                                  std::optional<spatial::authority::v1::ActorRef> principal, bool local_application_output) {
     require(request.grants_size() <= 64, "Too many grants");
     const std::set<std::string> allowed{"navigate", "interact", "observe", "world.write", "git.write", "process.launch"};
     std::set<std::string> grants;
@@ -141,6 +141,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
     actor.application_input = false;
     actor.require_observation_grant = require_observation_grant;
+    actor.local_application_output = local_application_output;
     actor.axes.fill(0); actor.expires = now_;
     actor.aim.Clear();
     sessions_.emplace(token, actor.entity.id());
@@ -239,6 +240,7 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     case wire::ActorActionRequest::kPointer:
     case wire::ActorActionRequest::kKey:
     case wire::ActorActionRequest::kScroll:
+        if (!actor.local_application_output) throw WorldError(wire::UNIMPLEMENTED, "Remote application input is not supported");
         if (!actor.principal && !granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
         try { route_input(actor, request); }
         catch (...) {
@@ -531,7 +533,7 @@ wire::RenderScene Actors::scene(const std::string& token) {
         if (holder != object_leases_.end()) *entity.mutable_pose() = actors_.at(holder->second).object->preview;
     }
     auto result = panel_scene(snapshot, actor.entity, config_.render());
-    if (surfaces_) {
+    if (surfaces_ && actor.local_application_output) {
         surfaces_->append(result, actor.entity.room());
         std::vector<ObservedApplication> applications;
         std::set<std::string> diagnostic;

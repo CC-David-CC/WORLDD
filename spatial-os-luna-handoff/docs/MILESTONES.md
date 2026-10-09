@@ -30,10 +30,11 @@ Control loss cancels native input without terminating independently authorized a
 These component results do not establish complete milestone qualification.
 
 Authenticated bootstrap grant delivery is qualified, committed, and adopted on both hosts at d4b025e.
-Remote actor candidate 02 passed complete Debug qualification on both hosts.
-Each host passed 1,089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
-No Debug case failed or skipped. Direct cross-host actor scenarios passed in both directions.
-Both runtime sanitizer profiles remain active. The remote candidate is not integrated yet.
+Remote actor transport is qualified and integrated from candidate 02.
+Both hosts passed complete Debug and runtime ASan/UBSan profiles.
+Each profile passed 1,089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. Direct cross-host actor scenarios passed in both directions.
+Distributed cancellation acknowledgement remains required. A real delayed-event diagnostic reproduces the gap.
 Shared worlds, world transitions, complete cabinet actions, application restoration, and model tasks remain required.
 Physical devices, native GPU output, timing, and soak evidence remain mandatory.
 Native-server GLX sanitizer cleanup remains unqualified.

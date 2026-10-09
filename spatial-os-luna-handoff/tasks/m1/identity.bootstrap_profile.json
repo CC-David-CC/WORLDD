@@ -40,8 +40,8 @@
   "preceding_gate": "P10",
   "base_commit": "76c29bd897a0fffa0d3dce2a2c968ed87bf8aefb",
   "limitations": [
-    "This completes authenticated enrollment delivery, not the M01 identity milestone.",
-    "Remote authenticated world transport and distributed revocation acknowledgement remain required.",
+    "This completes authenticated enrollment delivery, not the full M01 identity milestone.",
+    "Remote authenticated world transport is separately qualified and integrated. Distributed revocation acknowledgement remains required.",
     "M01, M02, native-server GLX sanitizers, and Spatial-M1 remain incomplete."
   ],
   "issuer_commit": "9e21cdf8b6747fc50998bd2c95c5d4eb0fcba94f",

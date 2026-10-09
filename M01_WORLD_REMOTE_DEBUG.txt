@@ -1,11 +1,10 @@
 Remote actor transport status, 2026-10-09
 
-Candidate 02 remains isolated. The production remote actor listener is not integrated yet.
-Both hosts passed complete Debug qualification:
+Candidate 02 is qualified and integrated. Commit and host adoption follow this integration.
+Both hosts passed complete Debug and runtime ASan/UBSan qualification. Each profile passed:
 1,089 core checks across 62 suites, including 46 remote checks.
 51 harness checks and 151 P10 acceptance cases.
-No case failed or skipped.
-Both hosts are running the existing runtime ASan/UBSan qualification jobs.
+No final profile failed or skipped.
 
 Cross-host TLS tests passed in both directions.
 Each host ran the authoritative world while a distinct actor connected from the other host.
@@ -27,7 +26,7 @@ The first certificate fixture and first cross-host result-copy failures remain p
 Neither failed attempt counts as a pass.
 
 Remaining:
-Complete and audit both runtime sanitizer profiles before production integration.
+Complete the reviewed commit and verify both hosts adopt the exact qualified source.
 Implement and qualify distributed revocation acknowledgement.
 Complete shared-world, transition, cabinet, restoration, and real-model requirements.
 Complete physical input, native GPU, performance, and native-session soak evidence.

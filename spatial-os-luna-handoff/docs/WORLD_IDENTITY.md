@@ -1,8 +1,8 @@
-# Authenticated local world sessions
+# Authenticated world sessions
 
 This component connects issuer credentials to the production world actor engine.
-It supplies local actor channels, fresh authentication, and live credential revocation handling.
-World networking, delegated grants, and full workspace and application authority remain separate required milestones.
+It supplies local and remote actor channels, fresh authentication, and credential revocation handling.
+Full shared-world workflows, distributed cancellation acknowledgement, and complete workspace authority remain required milestones.
 
 ## Invariant
 
@@ -25,7 +25,7 @@ See [unix(7)](https://man7.org/linux/man-pages/man7/unix.7.html) and [socketpair
 Kernel socket possession protects the local transport. Actor signatures independently establish actor identity.
 Descriptors receive close-on-exec before the compositor starts.
 Do not expose the management pipe through a network relay.
-Remote actor transport remains required for shared-world networking.
+Remote actor transport uses the explicit TLS listener described below.
 
 Configure at most 32 actor channels.
 Each channel has one active actor and at most one pending authentication challenge.
@@ -49,6 +49,43 @@ These initial action grants use the existing baseline actor vocabulary.
 They do not establish application or workspace isolation.
 Qualify interaction and observation only in a dedicated test world with authorized fixture applications.
 M02, M03, M04, M08, and M09 must complete their authority boundaries before full Spatial-M1 use.
+
+## Remote actor channels
+
+The supervisor supplies an inherited listening TCP socket through `--actor-listen-fd FD`.
+It also supplies `--actor-tls-config ABSOLUTE_FILE` and the existing `--identity-config ABSOLUTE_FILE`.
+The TLS listener may coexist with inherited local actor channels.
+The listener cannot share a descriptor with an actor channel or the workspace broker.
+Do not expose the trusted stdin/stdout management channel.
+
+Use an owned WorldActorTlsConfig textproto file with protocol_version 1.
+Specify absolute certificate_path, private_key_path, and client_ca_path values.
+Keep each material file in an owned private directory.
+The loader rejects unsafe ownership, symlink files, and certificates writable by other users.
+It rejects private keys accessible by group or other users.
+TLS 1.3 authenticates both transport peers.
+Clients must verify the configured server identity and trust chain.
+A valid transport certificate supplies no actor identity, world admission, or workspace grant.
+Actors still complete the signed proof exchange below.
+
+The optional io_timeout_ms accepts 50 through 60000 milliseconds. Its default is 5000.
+The optional idle_timeout_ms accepts 50 through 300000 milliseconds. Its default is 60000.
+The idle timeout applies only before actor authentication.
+Authenticated idle actors remain connected without a periodic actor request.
+The optional connection_limit accepts one through 128 connections. Its default is 32.
+The total includes inherited local actor channels. Local inherited channels remain limited to 32.
+Handshake, partial-frame, pending-write, and TLS read-retry deadlines remain bounded.
+Repeated retries do not refresh a pending read-retry deadline.
+The protobuf payload limit remains one MiB.
+Slow or broken peers lose only their affected actor channel unless shared authority itself fails.
+
+Remote channels use the existing WorldSessionRequest and WorldSessionReply messages.
+They enter the same actor engine and authorization checks as local channels.
+World entry does not create or select a workspace.
+Remote geometry observation omits live application surfaces, pixels, and application metadata.
+Remote application key, pointer, and scroll actions return UNIMPLEMENTED.
+An authorized local reconnection restores local application observation through the normal checks.
+M1 does not require remote live application streaming or remote application input.
 
 ## Fresh authentication
 
@@ -113,3 +150,14 @@ It covers admission separation, proof replay, channel and world binding, real ac
 Native witnesses check held-key and held-button release without another actor request.
 The full P00-P10 gate remains required in Debug and ASan/UBSan on both hosts.
 Physical controls, visible native sessions, distributed world admission, and full Spatial-M1 remain pending.
+
+## Remote transport qualification
+
+Candidate 02 passed complete Debug and runtime ASan/UBSan profiles on sb16 and sb16-2.
+Each profile passed 1,089 core checks, 51 harness checks, and all 151 P10 cases.
+The seven remote suites include 46 checks. No final case failed or skipped.
+Direct LAN scenarios passed with each host acting as authority for actors on both hosts.
+See evidence/world-remote-2026-10-09/candidate-02 and the crosshost-02 and crosshost-03 records.
+Run the focused suites with `ctest --test-dir BUILD -V -R '^world-remote($|-)'`.
+Use the qualified private XLibre server through SPATIAL_TEST_XSERVER for native witnesses.
+Focused results do not replace the complete profile or physical hardware acceptance.

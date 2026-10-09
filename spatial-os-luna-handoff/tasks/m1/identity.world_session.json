@@ -1,7 +1,7 @@
 {
   "id": "identity.world_session",
   "phase": "M01",
-  "status": "in_progress",
+  "status": "complete",
   "scope": "Protected remote actor channels for the authoritative world runtime",
   "profile": "tasks/spatial-m1.json",
   "contract": "docs/WORLD_IDENTITY.md",
@@ -21,12 +21,10 @@
     "src/world/actors.hpp"
   ],
   "current_evidence": [
-    "Production remains at qualified local actor transport; remote candidate 02 is isolated.",
-    "Both hosts passed complete Debug:1089 core checks/62 suites,51 harness,151 P10;zero failed/skipped.",
-    "Direct cross-host TLS actor scenarios passed with each host as authority; distinct identities and a real checkpoint.",
-    "All46 remote cases passed on both hosts, including five retry and twelve configuration cases.",
-    "Both source audits match233 files;80 existing tests and41 locked files remain unchanged.",
-    "Three injected retry deadline failures reproduced against draft01; candidate02 passes all five retry probes."
+    "Both hosts passed complete Debug and runtime ASan/UBSan:1089 core/62 suites,51 harness,151 P10 per profile;zero failed/skipped.",
+    "Both direct cross-host TLS actor scenarios passed with distinct identities, actual movement, and durable world checkpoints.",
+    "All233 integrated source hashes match both host manifests. All80 existing test files and41 locked files remain unchanged.",
+    "46 remote checks cover functional access, transport security, lifecycle, native observation, delayed issuer races, listener configuration, and TLS retry deadlines."
   ],
   "required_evidence": [
     "Explicit protected listener configuration; no network access to trusted management operations",
@@ -50,18 +48,19 @@
     "Record interface changes before implementation. Keep locked acceptance assertions unchanged."
   ],
   "limitations": [
-    "Complete runtime sanitizer profiles remain active on both hosts. Production integration awaits both results.",
-    "Cross-host transport tests do not complete shared-world persistence, world transitions, or M01.",
-    "Issuer revocation acknowledgement still does not prove a distributed cancellation barrier.",
-    "Retry counterexamples use controlled OpenSSL fault injection after real TLS; they are not a reproduced network exploit."
+    "Remote transport completion does not complete M01, M02, M05, world transitions, or Spatial-M1.",
+    "Issuer commit replies do not prove distributed cancellation completion. The separate barrier requirement remains open.",
+    "Native application witnesses use the qualified private XLibre software display. Physical GPU and native-server GLX sanitizer qualification remain separate.",
+    "Remote live application streaming and remote application input remain outside M1 scope."
   ],
   "next_components": [
     "identity.revocation_barrier",
     "M05",
     "M06"
   ],
-  "current_step": "both_host_debug_passed_runtime_sanitizers_active",
+  "current_step": "qualified_and_integrated_commit_and_host_adoption_pending",
   "baseline_evidence": "evidence/world-remote-2026-10-09/baseline-01/sb16",
   "focused_evidence": "evidence/world-remote-2026-10-09/draft-review-01.txt",
-  "candidate_evidence": "evidence/world-remote-2026-10-09/candidate-review-02.txt"
+  "candidate_evidence": "evidence/world-remote-2026-10-09/candidate-review-02.txt",
+  "final_evidence": "evidence/world-remote-2026-10-09/candidate-02"
 }
