@@ -20,7 +20,7 @@
     "Implement fencing, checked recovery, and issuer retirement."
   ],
   "native_scope_review": "Ownership loss confirmed on both hosts in both profiles. The isolated correction passed all three ownership checks on both hosts in Debug and runtime sanitizers.",
-  "cumulative": "Full Debug passed on both hosts. Full runtime sanitizer qualification is active on both hosts. No source integrated.",
+  "cumulative": "Full Debug passed on both hosts. Full runtime sanitizer qualification passed on sb16 and remains active on sb16-2. Each completed profile passed 1383 core checks, 51 harness checks, and 151 P10 cases; zero failures or skips. No source integrated.",
   "broker_handoff_task": "tasks/m1/identity.supervisor_broker_handoff.json",
   "integration_test_audit": "evidence/authority-supervisor-2026-10-09/integration-test-audit-02.json",
   "integration_preparation": "The guarded 77-file patch reconstructs all 281 candidate hashes. Primary review is complete. Full qualification remains incomplete; --apply is unrun. Post-integration stage audit and host-adoption scripts are prepared and syntax checked, but unrun."

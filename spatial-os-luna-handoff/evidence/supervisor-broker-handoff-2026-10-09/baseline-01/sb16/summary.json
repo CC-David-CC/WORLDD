@@ -1,0 +1,16 @@
+{
+  "host": "sb16",
+  "source_files": 281,
+  "production_changed": false,
+  "acceptance_pass": false,
+  "profiles": {
+    "debug": {
+      "expected_missing_handoff_failures": 1,
+      "acceptance_pass": false
+    },
+    "runtime-sanitize": {
+      "expected_missing_handoff_failures": 1,
+      "acceptance_pass": false
+    }
+  }
+}

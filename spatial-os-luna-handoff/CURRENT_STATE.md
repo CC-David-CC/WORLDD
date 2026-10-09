@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-09: sb16 full supervisor passes; broker observer correction starts
+
+Supervisor candidate02 passed full Debug and runtime ASan/UBSan on sb16.
+Each profile passed 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. Both-host full Debug already passed.
+The sb16-2 full sanitizer worker remains active. No supervisor production files are integrated yet.
+
+The unchanged-source broker baseline confirmed the missing handoff on sb16 in both profiles.
+Broker handoff candidate01 then passed Debug build, 51 harness checks, and real broker startup.
+Six regression methods passed. Two stopped on an observer PermissionError before application actions.
+NativeLaunch disables unprivileged process inspection with PR_SET_DUMPABLE=0.
+The existing 102 focused checks and runtime sanitizer profile remained unrun for candidate01.
+Read evidence/supervisor-broker-handoff-2026-10-09/observer-failure-01.txt and preserved raw logs.
+
+Broker candidate02 retains identical production code and all 41 locked files.
+One test file adds a privileged read-only descriptor observer and an open/closed descriptor control.
+The observer requires a live pidfd across inspection and treats inspection errors as failures.
+Candidate02 qualification is active on sb16. Its nine regression methods remain unverified until execution finishes.
+The sb16-2 baseline and original candidate01 remain queued behind its exact supervisor worker.
+M02 and Spatial-M1 remain incomplete. Fencing, recovery, and full broker participation remain required.
+
+
 ## 2026-10-09: Primary cumulative supervisor review is complete
 
 The primary agent reviewed all 77 changed files in supervisor candidate02.

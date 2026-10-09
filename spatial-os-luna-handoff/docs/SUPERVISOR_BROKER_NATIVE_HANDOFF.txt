@@ -1,5 +1,5 @@
 Supervisor broker native handoff
-Status: baseline prepared. Runtime reproduction and implementation are pending.
+Status: sb16 baseline confirmed. Isolated implementation and observer correction are in qualification.
 
 Invariant
 
@@ -65,6 +65,9 @@ Reject a compositor scope before creating journal ownership.
 Use the diagnostic: Broker handoff requires a broker native scope.
 The boundary test permits fourteen explicit descriptors plus the two generated descriptors.
 A fifteenth explicit descriptor must fail before ownership.
-All eight tests remain unrun. Static syntax checks do not establish runtime correctness.
-The existing unchanged-source baseline remains unchanged and queued.
+Candidate01 ran all eight on sb16 Debug: six passed and two stopped on observer PermissionError.
+The unchanged-source baseline confirmed the missing handoff on sb16 in both profiles.
+Candidate02 preserves production code and corrects the observer, with one additional control test.
+Read evidence/supervisor-broker-handoff-2026-10-09/observer-failure-01.txt.
+Both-host qualification remains required.
 Complete issuer-backed broker participation remains separate required work.

@@ -1,0 +1,25 @@
+{
+  "reviewer": "primary agent",
+  "candidate": 1,
+  "files": {
+    "CMakeLists.txt": "a028052217241501ac08511759fc2daa550b46b2e478aadc28b450686d6dd09b",
+    "proto/spatial/supervisor/v1/launch.proto": "f4661f306dd807b6374943ba25a5e692488888939d3d2c1725bf303a6219b6cd",
+    "src/supervisor/main.cpp": "d0c532ae97f9ad815be63c8824ad7d20e20e9b81726237edadef08a419b81f61",
+    "tests/native/test_supervisor_broker_handoff.py": "b4f68ee6e1a98593fa12a041a3ee8b8ca5d39130661d0bc67386baf351f8f6f2",
+    "tests/native/test_supervisor_broker_handoff_regressions.py": "07e3ac0a5d57bdb2266e785642f17c0f6285ac807adaa4d4bff3f14bde3c83f4"
+  },
+  "source_files": 283,
+  "new_checks": 9,
+  "status": "reviewed_unqualified",
+  "baseline": "sb16 Debug and runtime sanitizer each reproduce the missing field against unchanged candidate02. sb16-2 baseline remains queued.",
+  "findings": [
+    "The optional field reserves both generated descriptors and rejects target collisions before ownership.",
+    "The private input is fully sealed and bounded. The BROKER role check occurs before creating the journal.",
+    "AuthorityLaunch validates live native server pins before the handoff is built. The child configuration uses only the newly issued broker credential.",
+    "Binary protobuf remains in a fully sealed memfd. The temporary descriptor closes after exec or failure. Management replies and journals contain no credential cookies.",
+    "Existing configurations omit the optional field and follow the previous launch path.",
+    "All existing tests and 41 locked files remain unchanged. The two new suites contain one preserved baseline test and eight prepared correction methods."
+  ],
+  "unresolved_static_defects": [],
+  "runtime_results": "Unrun. Compilation and execution remain required on both authorized hosts."
+}

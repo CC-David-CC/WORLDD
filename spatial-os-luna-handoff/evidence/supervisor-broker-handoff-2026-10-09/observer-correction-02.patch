@@ -1,0 +1,59 @@
+--- candidate01/tests/native/test_supervisor_broker_handoff_regressions.py
++++ candidate02/tests/native/test_supervisor_broker_handoff_regressions.py
+@@ -1,4 +1,5 @@
+ """Prepared correction tests. Run only after the unchanged-source handoff baseline."""
++import json
+ import os
+ from pathlib import Path
+ import select
+@@ -69,11 +70,48 @@
+         members = (self.cgroup / initial.view.record.process.scope_name / 'cgroup.procs').read_text().split()
+         self.assertEqual(len(members), 1)
+         child_pid = int(members[0])
+-        # NativeLaunch consumes the sealed configuration descriptor during startup.
+-        self.assertFalse(Path(f'/proc/{child_pid}/fd/38').exists())
+         pin = os.pidfd_open(child_pid)
+         self.addCleanup(os.close, pin)
++        # NativeLaunch consumes this descriptor and disables unprivileged inspection.
++        self.assertNotIn(38, self.observed_descriptors(child_pid, pin))
+         return proc, channel, initial.view.record, child_pid, pin
++
++    def observed_descriptors(self, pid, pin):
++        # The pidfd must remain live across observation. PID reuse cannot pass.
++        self.assertEqual(select.select([pin], [], [], 0)[0], [])
++        observer = subprocess.run(
++            ['sudo', '-n', 'python3', '-c',
++             'import json, os, sys; '
++             'print(json.dumps(sorted(int(fd) for fd in os.listdir("/proc/" + str(int(sys.argv[1])) + "/fd"))))',
++             str(pid)], capture_output=True, text=True, timeout=5, check=True)
++        self.assertEqual(select.select([pin], [], [], 0)[0], [])
++        descriptors = json.loads(observer.stdout)
++        self.assertTrue({0, 1, 2}.issubset(descriptors), descriptors)
++        return descriptors
++
++    def test_privileged_observer_detects_open_and_closed_fd_on_non_dumpable_process(self):
++        code = (
++            'import ctypes, os, sys; '
++            'fd = os.open("/dev/null", os.O_RDONLY); os.dup2(fd, 38); '
++            'assert ctypes.CDLL(None).prctl(4, 0, 0, 0, 0) == 0; '
++            'print("open", flush=True); sys.stdin.readline(); '
++            'os.close(38); print("closed", flush=True); sys.stdin.readline()')
++        child = subprocess.Popen(['python3', '-c', code], stdin=subprocess.PIPE,
++                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
++        def cleanup():
++            if child.poll() is None:
++                child.kill()
++            child.communicate(timeout=5)
++        self.addCleanup(cleanup)
++        pin = os.pidfd_open(child.pid)
++        self.addCleanup(os.close, pin)
++        self.assertTrue(select.select([child.stdout], [], [], 5)[0])
++        self.assertEqual(child.stdout.readline().strip(), 'open')
++        self.assertIn(38, self.observed_descriptors(child.pid, pin))
++        child.stdin.write('close\n'); child.stdin.flush()
++        self.assertTrue(select.select([child.stdout], [], [], 5)[0])
++        self.assertEqual(child.stdout.readline().strip(), 'closed')
++        self.assertNotIn(38, self.observed_descriptors(child.pid, pin))
+ 
+     def create_application(self):
+         repository = GitRepo(self.root)

@@ -1,0 +1,24 @@
+Broker handoff observer failure, candidate01, sb16
+
+The Debug build, 51 harness checks, and real broker startup test passed.
+The eight regression methods ran. Six passed. Two stopped with PermissionError.
+Both errors occurred while checking /proc/PID/fd/38 before application actions.
+The existing 102 focused checks and runtime sanitizer profile remained unrun.
+
+NativeLaunch sets PR_SET_DUMPABLE to zero before loading the broker credential.
+An unprivileged observer cannot inspect that process's descriptor table.
+This is a test-observer defect. The application behavior remains unverified.
+Do not interpret inaccessible descriptors as closed descriptors.
+
+Candidate02 changes one test file. Production files remain identical to candidate01.
+A privileged read-only observer lists descriptor numbers for the exact child.
+The test checks the retained pidfd before and after observation.
+It requires standard descriptors to exist and descriptor 38 to be absent.
+Permission errors and observer failures still fail the test.
+A new control checks an open descriptor and its actual closure on a non-dumpable process.
+No acceptance lock or existing production assertion was weakened.
+
+Candidate01 failure logs and manifests remain in candidate-01/sb16.
+Candidate02 is frozen separately. Its runtime qualification has started on sb16.
+The queued candidate01 on sb16-2 remains unchanged.
+Complete broker participant activation and recovery remain required.
