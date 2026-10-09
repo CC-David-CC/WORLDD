@@ -1,0 +1,23 @@
+{
+  "prerequisite": {
+    "harness_checks": 51,
+    "P10_cases": 151
+  },
+  "schema-qualification": {
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "core_suites": 3,
+    "core_checks": 35
+  },
+  "descriptor_audit": {
+    "existing_fields": 488,
+    "existing_enum_values": 74,
+    "existing_messages": 136,
+    "acceptance_ids": 151,
+    "status": "passed"
+  },
+  "tested_inputs": {
+    "proto/spatial/core/v1/core.proto": "82b7260a8ccb486d0e3e35884570886f57d659645b63782fd0ecbebdaf651cb8",
+    "acceptance.lock.json": "c97729d51e4900e9998b96ff22bfd35b01124f00c573b069957de7909de0d9ee"
+  }
+}

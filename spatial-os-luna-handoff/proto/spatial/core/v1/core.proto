@@ -132,9 +132,11 @@ message RenderCommand {
   RendererSyncRequest sync = 7;
   RendererInputCommand input = 8;
   bool observe = 9; // Read visibility from an isolated target; never present this view.
+  bool include_pixels = 10; // Include bounded RGB8 data only with observe.
 }
 message VisibilitySample { uint32 index = 1; Pixel pixel = 2; uint64 pixels = 3; }
-message RenderVisibility { uint64 frame_id = 1; uint64 world_revision = 2; repeated VisibilitySample visible = 3; }
+message PixelImage { uint32 width = 1; uint32 height = 2; bytes rgb8 = 3; } // Top-left, packed RGB8.
+message RenderVisibility { uint64 frame_id = 1; uint64 world_revision = 2; repeated VisibilitySample visible = 3; PixelImage image = 4; }
 message RendererReady { string gl_version = 1; string gl_renderer = 2; }
 message RenderResult {
   uint32 protocol_version = 1;
@@ -151,7 +153,7 @@ message ActorStopRequest {}
 message ActorPointerRequest { optional uint32 button = 1; optional bool pressed = 2; }
 message ActorKeyRequest { optional string keysym = 1; optional bool pressed = 2; }
 message ActorScrollRequest { optional sint32 steps_y = 1; }
-message ActorObserveRequest { optional uint32 width = 1; optional uint32 height = 2; }
+message ActorObserveRequest { optional uint32 width = 1; optional uint32 height = 2; bool include_pixels = 4; }
 message ObjectGrabRequest { string id = 1; }
 message ObjectMoveRequest { Pose pose = 1; }
 message ObjectReleaseRequest { optional bool commit = 1; }
@@ -362,6 +364,7 @@ message ActorObservation {
   string actor = 1; string room = 2; Pose pose = 3; uint64 world_revision = 4;
   repeated ObservedRepresentation visible = 5;
   PixelExtent viewport = 6; uint64 frame_id = 7;
+  PixelImage image = 8; // Present only when pixels were explicitly requested.
 }
 message RepositoryReply { string id = 1; string path = 2; string source = 3; }
 message WorktreeReply { string id = 1; string repo = 2; string branch = 3; string path = 4; string head = 5; }

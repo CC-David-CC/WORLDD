@@ -1,5 +1,15 @@
 # Implementation status
 
+## 2026-10-08: Actor pixel schema recorded
+
+Migration 0.16.0 adds explicit bounded RGB8 image fields to actor and compositor observation messages.
+It preserves all existing fields, assertions, oracles, and independent witnesses.
+Both hosts passed the descriptor audit: 488 fields, 74 enum values, 136 messages, and 151 acceptance identifiers.
+Both hosts passed the schema-only Debug build, 35 focused core checks, 51 harness checks, and 151 P10 cases.
+No cases failed or skipped in these schema qualification profiles.
+See docs/ACTOR_PIXELS_MIGRATION.md and evidence/actor-pixels-schema-2026-10-08.
+The schema alone does not implement pixel delivery. M10 and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Authenticated native application control checked
 
 Worldd now acquires production broker reservations before authenticated native application input.

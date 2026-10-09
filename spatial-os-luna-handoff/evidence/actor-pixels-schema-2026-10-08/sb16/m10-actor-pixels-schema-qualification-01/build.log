@@ -1,0 +1,86 @@
+[0/2] Re-checking globbed directories...
+[1/85] Generating python/broker_pb2.py
+[2/85] Generating python/core_pb2.py
+[3/85] Generating python/key_pb2.py
+[4/85] Generating python/issuer_pb2.py
+[5/85] Generating python/world_session_pb2.py
+[6/85] Generating python/grants_probe_pb2.py
+[7/85] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[8/85] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[9/85] Building CXX object CMakeFiles/spatial-protobuf.dir/key.pb.cc.o
+[10/85] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[11/85] Building CXX object CMakeFiles/spatial-protobuf.dir/issuer.pb.cc.o
+[12/85] Building CXX object CMakeFiles/spatial-protobuf.dir/world_session.pb.cc.o
+[13/85] Linking CXX static library libspatial-protobuf.a
+[14/85] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[15/85] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[16/85] Linking CXX static library libspatial-scene.a
+[17/85] Building CXX object CMakeFiles/spatial-identity.dir/src/identity/keys.cpp.o
+[18/85] Linking CXX static library libspatial-identity.a
+[19/85] Building CXX object CMakeFiles/spatial-key.dir/src/identity/key_main.cpp.o
+[20/85] Linking CXX executable spatial-key
+[21/85] Building CXX object CMakeFiles/spatial-issuer-client-lib.dir/src/identity/issuer_client.cpp.o
+[22/85] Linking CXX static library libspatial-issuer-client-lib.a
+[23/85] Building CXX object CMakeFiles/spatial-issuer-client.dir/src/identity/client_main.cpp.o
+[24/85] Linking CXX executable spatial-issuer-client
+[25/85] Building CXX object CMakeFiles/spatial-issuer-watch-lib.dir/src/identity/issuer_watch.cpp.o
+[26/85] Linking CXX static library libspatial-issuer-watch-lib.a
+[27/85] Building CXX object CMakeFiles/spatial-issuer-watch.dir/src/identity/watch_main.cpp.o
+[28/85] Linking CXX executable spatial-issuer-watch
+[29/85] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/issuer.cpp.o
+[30/85] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[31/85] Building CXX object CMakeFiles/spatial-authority.dir/src/authority/store.cpp.o
+[32/85] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/tls_server.cpp.o
+[33/85] Linking CXX static library libspatial-authority.a
+[34/85] Linking CXX static library libspatial-issuer.a
+[35/85] Building CXX object CMakeFiles/spatial-native-input.dir/src/x11/input.cpp.o
+[36/85] Linking CXX static library libspatial-native-input.a
+[37/85] Building CXX object CMakeFiles/identityd.dir/src/identity/issuer_main.cpp.o
+[38/85] Linking CXX executable identityd
+[39/85] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[40/85] Building CXX object CMakeFiles/spatial-core.dir/src/world/store.cpp.o
+[41/85] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[42/85] Building CXX object CMakeFiles/spatial-core.dir/src/world/actors.cpp.o
+[43/85] Building CXX object CMakeFiles/spatial-core.dir/src/world/surfaces.cpp.o
+[44/85] Building CXX object CMakeFiles/spatial-core.dir/src/platform/render_worker.cpp.o
+[45/85] Building CXX object CMakeFiles/spatial-core.dir/src/platform/broker.cpp.o
+[46/85] Building CXX object CMakeFiles/spatialwm.dir/src/render/main.cpp.o
+[47/85] Linking CXX static library libspatial-core.a
+[48/85] Building CXX object CMakeFiles/spatialwm.dir/src/x11/surfaces.cpp.o
+[49/85] Building CXX object CMakeFiles/spatialwm.dir/src/render/renderer.cpp.o
+[50/85] Building CXX object CMakeFiles/spatialwm.dir/src/x11/input_router.cpp.o
+[51/85] Building CXX object CMakeFiles/spatial-app-init.dir/src/workspace/app_init.cpp.o
+[52/85] Linking CXX executable spatial-app-init
+[53/85] Linking CXX executable spatialwm
+[54/85] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[55/85] Building CXX object CMakeFiles/worldd.dir/src/world/main.cpp.o
+[56/85] Building CXX object CMakeFiles/worldd.dir/src/world/server.cpp.o
+[57/85] Building CXX object CMakeFiles/worldd.dir/src/world/identity_sessions.cpp.o
+[58/85] Building CXX object CMakeFiles/worldd.dir/src/world/authority.cpp.o
+[59/85] Linking CXX executable worldd
+[60/85] Building CXX object CMakeFiles/workspaced.dir/src/workspace/git_command.cpp.o
+[61/85] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[62/85] Building CXX object CMakeFiles/workspaced.dir/src/workspace/status.cpp.o
+[63/85] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[64/85] Building CXX object CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o
+[65/85] Building CXX object CMakeFiles/workspaced.dir/src/workspace/native_launch.cpp.o
+[66/85] Building CXX object CMakeFiles/workspaced.dir/src/workspace/control.cpp.o
+[67/85] Linking CXX executable workspaced
+[68/85] Building CXX object CMakeFiles/spatial-broker-control-client-probe.dir/src/testing/broker_control_client_probe.cpp.o
+[69/85] Linking CXX executable spatial-broker-control-client-probe
+[70/85] Building CXX object CMakeFiles/native-launch-checkpoint-probe.dir/src/testing/native_launch_checkpoint_probe.cpp.o
+[71/85] Building CXX object CMakeFiles/spatial-test-host.dir/src/platform/worker.cpp.o
+[72/85] Linking CXX executable spatial-test-host
+[73/85] Building CXX object CMakeFiles/spatial-authority-probe.dir/src/testing/authority_probe.cpp.o
+[74/85] Building CXX object CMakeFiles/native-launch-checkpoint-probe.dir/src/workspace/native_launch.cpp.o
+[75/85] Linking CXX executable native-launch-checkpoint-probe
+[76/85] Building CXX object CMakeFiles/spatial-authority-probe.dir/grants_probe.pb.cc.o
+[77/85] Linking CXX executable spatial-authority-probe
+[78/85] Building CXX object CMakeFiles/spatial-issuer-client-probe.dir/src/testing/issuer_client_probe.cpp.o
+[79/85] Linking CXX executable spatial-issuer-client-probe
+[80/85] Building CXX object CMakeFiles/spatial-input-bridge.dir/tests/native/input_bridge.cpp.o
+[81/85] Linking CXX executable spatial-input-bridge
+[82/85] Building CXX object CMakeFiles/spatial-issuer-watch-probe.dir/src/testing/issuer_watch_probe.cpp.o
+[83/85] Linking CXX executable spatial-issuer-watch-probe
+[84/85] Building CXX object CMakeFiles/spatial-git-job-probe.dir/src/workspace/git_command.cpp.o
+[85/85] Linking CXX executable spatial-git-job-probe

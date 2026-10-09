@@ -1,0 +1,44 @@
+{
+  "migration": "0.16.0",
+  "predecessor_commit": "047d0075685d6a9a0bb9e3be710175dda5b1952c",
+  "predecessor_lock_sha256": "2aab998275dd1c98723c5200ae9d262ca1c054aabee99c370bba325f99db8b69",
+  "changed_locked_files": {
+    "proto/spatial/core/v1/core.proto": {
+      "before": "f035d055f1d9a12c4d2d32830e48dba5ddb74c883e36c4b46d571efd833ae513",
+      "after": "82b7260a8ccb486d0e3e35884570886f57d659645b63782fd0ecbebdaf651cb8"
+    }
+  },
+  "added_locked_files": {},
+  "acceptance_test_ids_unchanged": true,
+  "acceptance_count": 151,
+  "assertions_changed": false,
+  "oracles_changed": false,
+  "review": "Primary agent; David waived local-model review.",
+  "descriptor_audit": {
+    "status": "passed",
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "existing_fields": 488,
+    "existing_enum_values": 74,
+    "existing_messages": 136,
+    "acceptance_ids": 151
+  },
+  "qualification": {
+    "schema": "passed",
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "build": "Debug",
+    "core_checks_per_host": 35,
+    "core_suites": 3,
+    "harness_checks_per_host": 51,
+    "P10_cases_per_host": 151,
+    "failed": 0,
+    "skipped": 0,
+    "production_pixel_delivery": "unimplemented",
+    "evidence": "evidence/actor-pixels-schema-2026-10-08"
+  }
+}
