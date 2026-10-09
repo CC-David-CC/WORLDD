@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Primary cumulative supervisor review is complete
+
+The primary agent reviewed all 77 changed files in supervisor candidate02.
+All 281 frozen candidate hashes still match. The review found no new unresolved candidate defect.
+Read evidence/authority-supervisor-2026-10-09/integration-primary-review-02.json and its partial review records.
+This approves the bounded increment only after all four full qualification profiles pass.
+It does not complete M02, recovery, or Spatial-M1.
+
+Full Debug passed on both hosts: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases each.
+No case failed or skipped. Full runtime sanitizer qualification remains active on both hosts.
+Read evidence/authority-supervisor-2026-10-09/full-candidate-02 for the collected Debug reports.
+The stage audit and host-adoption scripts are prepared and syntax checked, but unrun.
+Host adoption refuses active qualification or broker baseline workers.
+Adoption checks exact source and binary hashes, then fast-forwards Git without restarting sessions or migrating databases.
+No production source is integrated.
+
 ## 2026-10-09: Supervisor full Debug qualification passes on sb16
 
 Supervisor candidate02 passed full Debug qualification on sb16.

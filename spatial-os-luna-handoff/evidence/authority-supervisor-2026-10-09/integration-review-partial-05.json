@@ -1,0 +1,27 @@
+{
+  "reviewer": "primary agent",
+  "scope": "Final review batch for cumulative supervisor candidate02. Runtime qualification is a separate integration prerequisite.",
+  "files": {
+    "src/supervisor/launch.cpp": "d278605d1e267f7c2c8c5005d64efb031aafcc199cdbaa9dbb18fbefa39ef2a8",
+    "src/supervisor/main.cpp": "21d3c6790e4e22142b8fcca4cabcaf8962ebf6c8d69ed168f4aa89763bd13955",
+    "src/supervisor/process_scope.cpp": "90d644201ad851df51e168d3c4160622f2db76f0ad890b120231b24932ce8700",
+    "tests/core/test_launch_authorization.py": "dd3eb583f537640ca7857413c18753e2e002e012b708c6445056cdc17e586a7b",
+    "tests/core/test_supervisor_registry.py": "7e3998d91a3f063b2ebb2a7eda656cc7846e1282f16fb0faa210dc8e6b65f0f5",
+    "tests/native/test_authority_launch.py": "db5e98a424dbcf3f5184c3d1e63d5d32d28d3300ff5f91eb8e1a637a0fc55489",
+    "tests/native/test_authority_native_scope.py": "3bdace11a967d90c3f368c968e7ae3cc7b99fcb1f5886f3d418a39ed0c2e4cab",
+    "tests/native/test_authority_owned_participant.py": "cefcbf99d38ce36a98feb99861e241644e0381052f48ddeab888f24cbb50633c",
+    "tests/native/test_authority_participant_relay.py": "ee76917ffcfaa43ff4127e19d38b50343f7a3c5f2b232bca8c439dc33ca23663",
+    "tests/native/test_authority_supervisor.py": "a73f17f38e78a2c69433ec00f009703577256059d543fb640f7647b72f1855ad"
+  },
+  "findings": [
+    "Owner, supervisor, service, and actor keys retain separate roles. Launch approval binds the actual service connection, incarnation, registration, prior generation, and launch identity.",
+    "Tests use actual issuer transactions and faults to verify approval replay, rotation, concurrent proof handling, explicit migration, rollback, and denied replacement.",
+    "The journal records intent before native issuance and start before execution. Reopened records cannot reconstruct live handles or authorize replay.",
+    "ProcessScope gates child execution until cgroup membership is established, retains the direct child through a pidfd, closes unselected descriptors on exec, and confirms both empty scope and reaping before its stop receipt.",
+    "Native cleanup tests distinguish a valid cleanup reply from timeout, native server exit, or a missing grant. Independent clients and real key/button events witness effects.",
+    "The production supervisor exposes only inspect and stop to its authenticated direct parent. The child channel alone forwards participation commands.",
+    "Normal completion requires release delivery and successful direct-child exit. Child failure, signal, management loss, and malformed frames enter checked cleanup.",
+    "Local scope cleanup does not claim issuer retirement. That remains an explicit later integration requirement."
+  ],
+  "new_defects": []
+}

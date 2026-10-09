@@ -9,8 +9,8 @@
   "source_files": 281,
   "new_tests": 17,
   "baseline": "Both hosts confirmed the missing executable. Both builds and 51 harness checks passed.",
-  "review": "Static existing-test audit and exact patch reconstruction passed. All 41 locked files remain unchanged. Six existing test assertion lists changed explicitly; see the audit. Full cumulative primary review remains incomplete.",
-  "qualification": "Both hosts passed focused Debug and runtime sanitizers: 383 checks across 25 suites and 51 harness checks per profile. sb16 also passed full Debug: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases; zero failures or skips. Other full profiles remain unfinished.",
+  "review": "Primary cumulative review of all 77 changed files is recorded in integration-primary-review-02.json. Exact candidate hashes match all 281 files. All 41 locked files remain unchanged. Six existing assertion lists changed explicitly as documented. Complete four-profile qualification remains required before integration.",
+  "qualification": "Both hosts passed focused Debug and runtime sanitizers: 383 checks across 25 suites and 51 harness checks per profile. Both also passed full Debug: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases per host; zero failures or skips.",
   "integrated": false,
   "remaining": [
     "Run both-host Debug and runtime sanitizer qualification.",
@@ -20,8 +20,8 @@
     "Implement fencing, checked recovery, and issuer retirement."
   ],
   "native_scope_review": "Ownership loss confirmed on both hosts in both profiles. The isolated correction passed all three ownership checks on both hosts in Debug and runtime sanitizers.",
-  "cumulative": "sb16 full Debug passed. sb16 full runtime sanitizer and sb16-2 full Debug are active. sb16-2 full runtime sanitizer remains queued.",
+  "cumulative": "Full Debug passed on both hosts. Full runtime sanitizer qualification is active on both hosts. No source integrated.",
   "broker_handoff_task": "tasks/m1/identity.supervisor_broker_handoff.json",
   "integration_test_audit": "evidence/authority-supervisor-2026-10-09/integration-test-audit-02.json",
-  "integration_preparation": "77-file cumulative patch reconstructs all 281 candidate hashes. local/integrate-authority-supervisor-02.py prepared only; applying requires complete four-profile results and exact primary review."
+  "integration_preparation": "The guarded 77-file patch reconstructs all 281 candidate hashes. Primary review is complete. Full qualification remains incomplete; --apply is unrun. Post-integration stage audit and host-adoption scripts are prepared and syntax checked, but unrun."
 }
