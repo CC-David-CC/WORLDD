@@ -1,0 +1,25 @@
+{
+  "status": "Proposed, not applied or tested.",
+  "base": "authority-supervisor-candidate-01",
+  "files": {
+    "src/workspace/native_launch.cpp": {
+      "before": "5c79de2945fec668313e9290944c2157750e013a176d53d0ae3a1cf05a119beb",
+      "proposed_after": "4b786947d13c65939723a929b35700c73a87cfbed5029e5d8e107cdbcce2a351"
+    },
+    "src/supervisor/native_scope.hpp": {
+      "before": "f5483eda336ed2681d7258353553ba74e4cae9e8bd3befa1a805f06ab17be3b1",
+      "proposed_after": "97edf8a6c2ed1622a7857a92f7e84db94da89160a83346fc7ce4727e29e21635"
+    },
+    "src/workspace/native_launch.hpp": {
+      "before": "e15b2f098262143acdd5b746c90d21fe26cc48eec7e950f01e38771bbbdb7346",
+      "proposed_after": "f304c349d15ce390967d0e57c725aacaa3646cd90de139eb844d9ef42098a199"
+    },
+    "src/testing/native_scope_probe.cpp": {
+      "before": "c2c6e178899abef3efb8f9de1478af72fa66f0b6291981dd47dde36f482433c9",
+      "proposed_after": "506c863362c837b118a261a7a51ae4da39d45749a4f1037599338fbaf23d60fe"
+    }
+  },
+  "production_changed": false,
+  "prerequisite": "Preserve exact ownership-loss baseline before applying this correction.",
+  "patch_reconstruction": "All four proposed hashes verified in a disposable copy. Candidate source remains unchanged."
+}

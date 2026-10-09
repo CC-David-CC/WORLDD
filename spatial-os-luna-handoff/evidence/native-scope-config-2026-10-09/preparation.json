@@ -2,11 +2,19 @@
   "status": "Witness prepared, not built or run.",
   "production_changed": false,
   "files": {
-    "native-scope-config-witness.cpp": "721ede0d5435d0a50e0b25431bb4937a3920bb0199a6311e429df430870e87f0",
-    "test_native_scope_config_ownership.py": "d5b08da2cdf7190c92d4256d74988f3bc329ee6464e7c4f557e9a642b7b63bba",
-    "diagnose-native-scope-config-01.py": "5062275ceadf0dc4260537756dd087322eb39a5eed5fe43c64a703a4d9d27e30",
-    "query-native-scope-build-01.py": "c0efeb13b9787bd7e3a8889ba9e038c98eb01603b899ac92b175c1c068474fc0"
+    "native-scope-config-witness.cpp": "c4ff343c7199a0cf81704ba2994ac217d74404cf9737c3861316f7910a2500e2",
+    "test_native_scope_config_ownership.py": "39323ca49f8abf300ddd77a4558cf3648e467069d66a04f2eac85c22da3d5627",
+    "diagnose-native-scope-config-01.py": "f0da425b6128b225296fe914bc183fad73a17b91ad0e3799abb89799274ca73b",
+    "query-native-scope-build-01.py": "c0efeb13b9787bd7e3a8889ba9e038c98eb01603b899ac92b175c1c068474fc0",
+    "collect-native-scope-config-baseline-01.py": "ef1f960a4724325d5f53496630afdc586534b455b61b1fd2c0cb9441835f2ec6",
+    "prepare-native-scope-config-fix-01.py": "00e92e982163af214a44ad136bcc68d3469df02eba5799ccee5039bec603af02",
+    "after-relay-native-config-01.py": "c0af6ea19d84ebbcb0f7515440930acd79a09d59a111c355e4aeb62e67bbb36b"
   },
   "reason": "Static borrowed/consumed descriptor mismatch in NativeScope caller chain.",
-  "next": "Run after complete relay matrix; require the exact ownership failure, not an unrelated fixture error."
+  "next": "Run after complete relay matrix; require the exact ownership failure, not an unrelated fixture error.",
+  "checks_per_profile": 3,
+  "expected_scope_failures_per_profile": 2,
+  "expected_consuming_adapter_passes_per_profile": 1,
+  "proposed_patch": "proposed-fix-01.patch; not applied",
+  "execution": "Queued behind exact relay pidfds:sb16 PID805845, sb16-2 PID609248. Witness builds have not started."
 }

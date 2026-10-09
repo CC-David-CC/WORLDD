@@ -42,10 +42,13 @@ Close that descriptor from the caller.
 Open an unrelated descriptor that can reuse the number.
 Stop and destroy NativeScope.
 Require the unrelated descriptor to remain open.
+Also reject an unsealed configuration and require NativeScope to preserve the caller's descriptor.
+Use NativeLaunch rejection as a control. Its consuming interface must still close the descriptor.
 
 The prepared witness links the frozen production native-launch object and libraries.
 It does not replace the native server or its credential protocol.
 Its baseline must fail specifically because configuration ownership was lost.
+Expect two NativeScope failures and one passing NativeLaunch control in each profile.
 Other startup, compile, transport, or cleanup errors do not confirm this defect.
 Run Debug and runtime sanitizers on both sb16 and sb16-2.
 Wait for the current full relay qualification before compiling this witness.
@@ -58,3 +61,13 @@ Test: local/test_native_scope_config_ownership.py
 Driver: local/diagnose-native-scope-config-01.py
 Expected output: local/native-scope-config-baseline-01 on each host.
 No witness build or runtime result exists yet.
+The witness is queued behind each host's exact running relay process through a pidfd.
+The queued driver does not restart or replace the relay run.
+It preserves the baseline and collects its logs before exiting.
+
+The proposed four-file patch is evidence/native-scope-config-2026-10-09/proposed-fix-01.patch.
+Patch reconstruction passed in a disposable copy. The running sources remain unchanged.
+The correction driver is local/prepare-authority-supervisor-02.py.
+It requires both-host baseline logs before applying the correction to a new isolated candidate.
+The candidate will retain all fourteen supervisor tests and add three ownership checks.
+The correction driver has not run.

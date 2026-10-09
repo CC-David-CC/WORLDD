@@ -1,0 +1,52 @@
+--- a/src/workspace/native_launch.cpp
++++ b/src/workspace/native_launch.cpp
+@@ -37,7 +37,7 @@
+ void pad(std::string& bytes) { while (bytes.size() % 4) bytes += '\0'; }
+ 
+ std::string sealed_configuration(int fd) {
+-    Fd input{fd}; struct stat info{};
++    struct stat info{};
+     constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
+     require(fd >= 3 && fstat(fd, &info) == 0 && S_ISREG(info.st_mode) && info.st_size > 0 && info.st_size <= 4096,
+             "Native launch configuration requires a bounded inherited file");
+@@ -53,6 +53,7 @@
+     return data;
+ }
+ workspace::v1::NativeLaunchConfig configuration(int fd) {
++    Fd input{fd}; // NativeLaunch consumes its inherited configuration; the reader only borrows it.
+     const auto data = sealed_configuration(fd);
+     workspace::v1::NativeLaunchConfig result;
+     require(result.ParseFromString(data), "Malformed native launch configuration");
+--- a/src/supervisor/native_scope.hpp
++++ b/src/supervisor/native_scope.hpp
+@@ -7,6 +7,7 @@
+ // A stopped receipt proves native revocation, not process or issuer cleanup.
+ class NativeScope final {
+ public:
++    // Borrows the sealed descriptor. The caller retains ownership on success and failure.
+     explicit NativeScope(int sealed_config_fd);
+     ~NativeScope();
+     NativeScope(const NativeScope&) = delete;
+--- a/src/workspace/native_launch.hpp
++++ b/src/workspace/native_launch.hpp
+@@ -25,6 +25,7 @@
+ // The owner outlives every application credential. A broken channel fails closed.
+ class NativeLaunch {
+ public:
++    // Consumes sealed_config_fd while reading its configuration.
+     explicit NativeLaunch(int sealed_config_fd);
+     ~NativeLaunch();
+     NativeLaunch(const NativeLaunch&) = delete;
+--- a/src/testing/native_scope_probe.cpp
++++ b/src/testing/native_scope_probe.cpp
+@@ -11,7 +11,9 @@
+     std::uint64_t sequence = 0;
+     try {
+         if (argc != 2) throw std::invalid_argument("Expected sealed native configuration descriptor");
+-        scope = std::make_unique<spatial::supervisor::NativeScope>(std::stoi(argv[1]));
++        const int config_fd = std::stoi(argv[1]);
++        scope = std::make_unique<spatial::supervisor::NativeScope>(config_fd);
++        close(config_fd);
+         pb::NativeScopeReply ready; ready.set_protocol_version(1); *ready.mutable_ready() = scope->ready();
+         spatial::write_frame(std::cout, ready);
+         std::string bytes;

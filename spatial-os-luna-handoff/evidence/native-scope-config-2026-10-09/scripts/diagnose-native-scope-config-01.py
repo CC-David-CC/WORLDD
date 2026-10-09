@@ -74,8 +74,10 @@ for profile in ('debug', 'runtime-sanitize'):
             assert run.returncode == 0, (folder / (name + '.log')).read_text()
         else:
             log = (folder / 'test.log').read_text()
-            assert run.returncode == 1 and 'Ran 1 test in ' in log and 'FAILED (failures=1)' in log, log
+            assert run.returncode == 1 and 'Ran 3 tests in ' in log and 'FAILED (failures=2)' in log, log
             assert 'FAIL: NativeScope consumed or replaced the caller-owned configuration descriptor' in log, log
+            assert 'FAIL: NativeScope consumed the caller-owned rejected configuration descriptor' in log, log
+            assert 'PASS: NativeLaunch rejection retains its consuming interface' in log, log
             print(host, profile, 'descriptor ownership defect reproduced against unchanged native production object', flush=True)
     for name, digest in inputs.items():
         assert hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() == digest
