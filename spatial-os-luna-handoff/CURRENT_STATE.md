@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-09: Supervisor focused qualification passes all four host profiles
+
+Supervisor candidate02 passed focused Debug and runtime ASan/UBSan on sb16 and sb16-2.
+Each profile passed 383 checks across 25 suites and 51 harness checks.
+No case failed or skipped. All 281 source hashes and 41 locked hashes matched.
+Both hosts are running full cumulative qualification on those same binaries.
+The broker handoff baseline remains queued behind each exact full driver.
+
+A static integration audit compared all 1378 existing test methods with the integrated 242-file source.
+All existing methods remain present. Assertion lists are identical in 1372 methods.
+Four methods update the expected issuer schema from 6 to 8.
+Two methods retain their three-second denial deadline through a shared helper.
+That helper requires explicit protocol denial and has a live-credential counterexample.
+These are static method counts, not additional executed test results.
+The audit does not prove fixture equivalence or replace production review and runtime qualification.
+Read evidence/authority-supervisor-2026-10-09/integration-test-audit-02.json.
+
+No new production source is integrated. M02 and full Spatial-M1 remain incomplete.
+
+
 ## 2026-10-09: Supervisor focused Debug passes both hosts; sb16 sanitizer focus passes
 
 Corrected supervisor candidate02 passed focused Debug on both hosts.

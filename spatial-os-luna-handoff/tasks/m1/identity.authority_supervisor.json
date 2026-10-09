@@ -10,7 +10,7 @@
   "new_tests": 17,
   "baseline": "Both hosts confirmed the missing executable. Both builds and 51 harness checks passed.",
   "review": "Primary-agent static review and complete patch reconstruction passed. Existing tests and 41 locked files are unchanged.",
-  "qualification": "Both hosts passed focused Debug. sb16 also passed focused runtime sanitizers. Each passed 383 checks across 25 suites and 51 harness checks. Full sb16 qualification is active. sb16-2 runtime qualification continues.",
+  "qualification": "Both hosts passed focused Debug and runtime sanitizers. Each profile passed 383 checks across 25 suites and 51 harness checks. Full qualification is active on both hosts.",
   "integrated": false,
   "remaining": [
     "Run both-host Debug and runtime sanitizer qualification.",
@@ -21,5 +21,6 @@
   ],
   "native_scope_review": "Ownership loss confirmed by independent witness on both hosts in Debug and runtime sanitizers. Four-file correction applied only to isolated candidate02; three correction checks passed sb16 Debug.",
   "cumulative": "Prepared target: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases per profile. Full supervisor qualification remains pending.",
-  "broker_handoff_task": "tasks/m1/identity.supervisor_broker_handoff.json"
+  "broker_handoff_task": "tasks/m1/identity.supervisor_broker_handoff.json",
+  "integration_test_audit": "evidence/authority-supervisor-2026-10-09/integration-test-audit-02.json"
 }

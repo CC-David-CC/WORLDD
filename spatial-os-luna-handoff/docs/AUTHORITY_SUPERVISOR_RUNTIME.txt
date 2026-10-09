@@ -1,6 +1,7 @@
 Production authority supervisor
-Status: isolated candidate02. Focused Debug passed on both hosts.
-sb16 focused runtime sanitizers also passed. Remaining qualification is active.
+Status: isolated candidate02. Focused Debug and runtime sanitizers passed on both hosts.
+Each profile passed 383 checks across 25 suites and 51 harness checks.
+Full cumulative qualification is active on both hosts.
 Both hosts confirmed the missing-executable baseline.
 Candidate02 has fourteen supervisor tests and three native descriptor ownership checks.
 The ownership baseline confirmed the defect on both hosts in both profiles.
