@@ -12,7 +12,7 @@
     "tests/native/test_authority_owned_participant.py"
   ],
   "review": "Primary agent reviewed retained worker identity, schema1 and schema2 validation, exact signed request construction, durable approval before exec, failed-exec command denial, worker failure, checked stop, and restart without reconstructed handles.",
-  "tests": "Eleven new Debug checks and51harness passed both hosts. Output01 passed328 checks across20suites; native scope import failed before its11checks. Output02 builds all targets and runs unchanged source and assertions.",
+  "tests": "Corrected output02 passed339 Debug checks across21suites and51harness on both hosts, with0failures and0skips. Runtime sanitizer builds are running. Original output01 native-input dependency failure remains preserved.",
   "remaining": "Private inherited child channel, production world/broker integration, fencing, checked recovery and retirement.",
   "integrated": false
 }

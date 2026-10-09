@@ -1,5 +1,5 @@
 Supervisor-owned participant connection
-Status: isolated candidate01. Eleven new Debug checks passed on both hosts. Full qualification is pending.
+Status: isolated candidate01 passed 339 focused Debug checks on both hosts. Sanitizer qualification is running.
 
 Invariant
 
@@ -84,5 +84,6 @@ Candidate01 passed eleven new Debug checks and 51 harness checks on both hosts.
 The first regression command omitted native-input build dependencies.
 Twenty suites passed 328 checks. The native scope suite could not import its binding; eleven checks remained unrun.
 Output02 builds all targets with native input enabled and supplies the independent xprobe path.
-Source and assertions are unchanged. Corrected qualification is running on both hosts.
+Source and assertions are unchanged. Both corrected Debug runs passed 339 checks across 21 suites and 51 harness checks.
+No corrected Debug case failed or skipped. Runtime sanitizer and full qualification remain pending.
 All 274 source hashes and 41 locked hashes match. Existing protobuf declarations remain unchanged.

@@ -19,7 +19,9 @@ Output01 passed 328 checks across twenty suites on each host.
 One existing native suite could not import input_pb2 because the build command omitted native-input dependencies.
 Its eleven checks remained unrun. The original command, failure, and source remain preserved.
 Corrected output02 builds every target and supplies the independent native input witness.
-Both corrected runs are active. They use the same 274 source files and unchanged test assertions.
+Both corrected Debug runs passed 339 checks across 21 suites and 51 harness checks.
+No corrected Debug case failed or skipped. Runtime sanitizer qualification continues.
+They use the same 274 source files and unchanged test assertions.
 All 41 locked hashes remain unchanged. Descriptor review confirms additive protobuf changes only.
 Read docs/AUTHORITY_OWNED_PARTICIPANT.txt and evidence/owned-participant-2026-10-09.
 

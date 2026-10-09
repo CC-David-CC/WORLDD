@@ -10,10 +10,11 @@
   "integrated": false,
   "evidence": "evidence/owned-participant-2026-10-09",
   "baseline": "Both hosts reproduced missing start protection and unsupported attachment. Independent children confirmed execution in exact owned cgroups without approval.",
-  "focused": "Eleven new Debug checks passed on both hosts. Output01 passed328checks20suites51harness; native input binding was missing and11checks unrun. Corrected output02 builds all targets; qualification running.",
+  "focused": "Corrected output02 passed339 Debug checks across21suites and51harness on both hosts. No failures or skips. Runtime sanitizer qualification running.",
   "remaining": [
     "Complete both focused profiles and full qualification on both hosts.",
     "Connect worldd and workspaced through a private inherited participant channel.",
     "Implement fencing, checked recovery reconciliation, and exact generation retirement."
-  ]
+  ],
+  "setup_failure": "Original output01 passed328checks20suites; native-input dependencies were absent, so11checks remained unrun. Original failure preserved; output02 builds all targets without source or assertion changes."
 }
