@@ -1,0 +1,11 @@
+{
+  "spatial-os-luna-handoff/CMakeLists.txt": "ed9dbb5d63890bc26b43e16c8595f336715d2843e8b0841d35ce92e9e6816175",
+  "spatial-os-luna-handoff/src/core/scene.cpp": "ef139703c88d3cb54e8a3fa88d772a8915f4245d11e0c9bd87deee2af66df3cd",
+  "spatial-os-luna-handoff/src/core/scene.hpp": "e1603f828e63cb3a2d800f5253d1b520ebadb26668954f60636deeb719e86121",
+  "spatial-os-luna-handoff/src/platform/render_worker.cpp": "1156c46b698d2bfc71cea117a7f398d7f4838844db9fe5e4cd8686a45b374c7c",
+  "spatial-os-luna-handoff/src/platform/render_worker.hpp": "ee987f9aada609f8089cc83beb9537131de3a089d1bc2b4b27ce02a81f7f5e28",
+  "spatial-os-luna-handoff/src/render/main.cpp": "f34cc3a0b604b21652878bdec1d910c32e370012ede0fbee5a0327f0f7e14f29",
+  "spatial-os-luna-handoff/src/render/renderer.cpp": "5649e2e419c7380502f927c3e427b9c76a3273989b9a70bb983525295a984fc0",
+  "spatial-os-luna-handoff/src/world/actors.cpp": "0f3824b6d0b3b1a5d8c3a8829ef2a672a687d095cb9c6b7f9761a431d1fbd333",
+  "spatial-os-luna-handoff/tests/core/test_actor_pixels.py": "59490ca6ae7ce3327f907bfaf392f23f616df9d120fef0ab54e76c8e93b96195"
+}

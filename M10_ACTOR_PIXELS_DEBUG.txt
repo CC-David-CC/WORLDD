@@ -1,0 +1,66 @@
+Authenticated actor pixels
+Base: 047d0075685d6a9a0bb9e3be710175dda5b1952c
+
+The preceding native application-control increment passed both host/build profiles.
+Each profile passed 891 core checks, 51 harness checks, and 151 P10 acceptance cases.
+Both hosts have clean matching source at the recorded base.
+The controller can push to box-git. Direct host Git pulls still require host-key setup.
+Verified Git bundles over existing SSH connections provide the current synchronization path.
+
+Current gap: ActorObservation contains metadata only.
+The production compositor already renders an isolated observation target.
+The next increment will return real RGB8 data from that same target through protobuf.
+See spatial-os-luna-handoff/docs/ACTOR_PIXELS_MIGRATION.md for the explicit additive contract.
+
+An existing unknown-field regression uses ActorObserveRequest tag 3.
+The new include_pixels flag uses tag 4 so that rejection check remains unchanged.
+No locked acceptance assertion or independent native witness is being changed.
+The primary agent reviews this work without a local model.
+
+At the initial checkpoint, schema migration and production pixel delivery were incomplete.
+Native-server GLX sanitizer, physical devices, native timing, and full Spatial-M1 qualification remain incomplete.
+
+Schema-only qualification passed on both hosts: 35 focused core, 51 harness, and 151 P10 cases.
+The descriptor audit preserved 488 fields, 74 enum values, 136 messages, and 151 acceptance identifiers.
+The first pixel baseline completed on both hosts: 3 passed, 11 failed, no setup errors.
+Failures show missing requested images and missing pixel-specific viewport bounds.
+Evidence remains in local/m10-actor-pixels-baseline-01 on each host.
+The baseline worldd SHA256 is bfc532528b93a2a795d0f91604947cc18c2b076bca79fcd2b280a301974ee70a.
+No production pixel implementation has been applied yet.
+
+Schema migration 71386ba45d9f55368e5b1bb53913bbf30bcdce27 is pushed to box-git and synced to both hosts.
+Both hosts retained schema stash 50a02cba7f967c1a6b558f77529cf769641010e4.
+The first production draft passed 13 of 14 native pixel tests on both hosts.
+The remaining case failed setup because its occluding panel omitted the required label.
+The fixture correction preserves all pixel and authority assertions.
+Nine new checked-compositor protocol cases cover malformed image replies and request bounds.
+Production qualification remains incomplete.
+
+Focused-02 passed all 45 checks on both hosts.
+They include 14 native pixel, 9 checked-client, 13 existing rendering, and 9 existing observation checks.
+All 11 changed inputs and all 460 broader source-tree files match both hosts.
+The primary agent reviewed every changed file.
+Full Debug and runtime sanitizer qualification-01 is now running on both hosts.
+The production draft is not committed or fully qualified yet.
+Keep native-server GLX sanitizer status explicitly unrun.
+
+2026-10-09 continuation checkpoint:
+Both Debug core runs passed all 47 suites.
+Sb16 also passed all 151 Debug P10 cases and its runtime sanitizer build and 51 harness checks.
+Sb16-2 is running Debug P10. Both qualification processes remain live.
+No full runtime sanitizer result is claimed yet. Evidence import is prepared in local/import-actor-pixels-evidence.py.
+Production and test inputs remain unchanged while qualification runs.
+
+Both hosts have completed Debug qualification: 914 core checks across 47 suites, 51 harness checks, and 151 P10 cases.
+Both runtime sanitizer builds and harness checks passed. Runtime core tests are still running.
+Prepared source integration preserves the tested draft in a scoped stash and verifies the committed source manifest.
+No production integration has run yet.
+
+Final qualification, 2026-10-09:
+Both hosts passed complete Debug and runtime ASan/UBSan qualification.
+Each profile passed 914 core checks across 47 suites, 51 harness checks, and all 151 P10 cases.
+No final profile failed or skipped a case.
+Both collectors rechecked all 460 tested source hashes.
+Evidence is in spatial-os-luna-handoff/evidence/actor-pixels-2026-10-08.
+The separate Git transport repair now permits direct origin access on both hosts.
+Native-server GLX sanitizer coverage and full M1 qualification remain incomplete.

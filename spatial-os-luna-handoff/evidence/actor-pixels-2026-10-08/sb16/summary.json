@@ -1,0 +1,27 @@
+{
+  "debug": {
+    "core_suites": 47,
+    "core_checks": 914,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime-sanitize": {
+    "core_suites": 47,
+    "core_checks": 914,
+    "harness_checks": 51,
+    "acceptance_checks": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "focused": {
+    "checks": 45,
+    "failed": 0,
+    "skipped": 0
+  },
+  "native-server-sanitize": {
+    "status": "unrun",
+    "reason": "These tests require GLX. Existing instrumented GLX cleanup remains unqualified."
+  }
+}

@@ -1,5 +1,40 @@
 # Implementation status
 
+## 2026-10-09: Authenticated actor pixels checked
+
+Actors can now request bounded RGB8 images through the authenticated protobuf observation path.
+The compositor returns real pixels and metadata from the same filtered frame.
+Images use top-left row order and exact packed byte lengths.
+Metadata-only requests retain their previous behavior and viewport limits.
+The checked compositor client rejects malformed, missing, unsolicited, or mismatched images.
+Worldd rechecks authority after rendering and before each queued write.
+Revocation stops further queued export without terminating independently authorized applications.
+Observation grants no selection, control, or execution authority.
+
+Both hosts passed 14 real native pixel checks and nine adversarial checked-client tests.
+The focused run also passed 22 existing rendering and observation checks.
+Both hosts passed complete Debug and runtime ASan/UBSan qualification.
+Each profile passed 914 core checks across 47 suites, 51 harness checks, and all 151 P10 cases.
+No final profile failed or skipped a case.
+The 460-file tested source snapshots matched both hosts.
+The primary agent reviewed each changed file without local-model review.
+
+The baseline exposed missing images and missing pixel-specific bounds on both hosts.
+The first implementation run exposed a missing required label in the occlusion fixture.
+The corrected fixture preserves every pixel and authority assertion.
+The schema migration remains separate at 71386ba45d9f55368e5b1bb53913bbf30bcdce27.
+No locked acceptance assertion, oracle, independent witness, or XLibre source changed in the implementation increment.
+See docs/ACTOR_PIXELS.md and evidence/actor-pixels-2026-10-08.
+The root M10_ACTOR_PIXELS_DEBUG.txt preserves the failure history and remaining limits.
+
+Native-server GLX sanitizer coverage remains unrun for this component.
+Physical devices, native GPU timing, shared-world transport, cabinets, restoration, and model tasks remain incomplete.
+M10 and full Spatial-M1 qualification remain incomplete.
+
+Both hosts also gained verified, repository-scoped direct box-git access during the test wait.
+That separate change did not modify the runtime source under test.
+See evidence/git-transport-2026-10-09 for seven checks per host and exact recovery commands.
+
 ## 2026-10-08: Actor pixel schema recorded
 
 Migration 0.16.0 adds explicit bounded RGB8 image fields to actor and compositor observation messages.

@@ -1,0 +1,68 @@
+Primary-agent review: authenticated actor pixels
+Schema base: 71386ba45d9f55368e5b1bb53913bbf30bcdce27
+No local-model review was used.
+
+src/core/scene.cpp and scene.hpp:
+- Preserve the existing general viewport checks.
+- Bound pixel-request area with 64-bit multiplication before allocation.
+- Retain larger metadata-only viewports.
+
+src/platform/render_worker.cpp and render_worker.hpp:
+- Forward an explicit pixel flag while preserving the metadata-only default.
+- Keep request correlation, frame ordering, world revision, and visibility checks.
+- Require image presence exactly when requested.
+- Require matching dimensions and exact packed RGB8 length.
+- Reject malformed nested fields through the existing strict protobuf validation.
+
+src/render/main.cpp and renderer.cpp:
+- Permit pixels only for isolated observation commands.
+- Read the live color attachment from the same completed frame as visibility metadata.
+- Set byte packing explicitly and reverse bottom-up GL rows into top-left order.
+- Keep observation targets separate from the presented target.
+- Create no actor capture file or exported filesystem path.
+- Bound the complete private observation reply before writing it.
+- Preserve typed RESOURCE_EXHAUSTED errors when a combined reply is too large.
+
+src/world/actors.cpp:
+- Check pixel dimensions before native synchronization or rendering.
+- Reuse the existing authority-filtered scene and post-render authority check.
+- Copy only the checked image into the matching actor observation.
+- Preserve the complete public reply-size bound.
+- Reuse the unchanged per-write observation-authority check in IdentitySessions.
+- Do not grant workspace selection, input control, or execution authority from observation.
+
+src/testing/render_observation_probe.cpp:
+- Forward one typed fixture request through the production RenderWorker.
+- Do not duplicate compositor validation or implement another renderer.
+- Identify its external peer as a protocol fixture.
+
+tests/core/test_render_observation_client.py:
+- Supply independent malformed private replies to the production checked client.
+- Check valid pixels, metadata-only replies, missing and unsolicited images, dimensions, byte lengths, and unknown fields.
+- Prove oversized pixel requests are rejected before transmission to the compositor.
+
+tests/core/test_actor_pixels.py:
+- Use real signed actor sessions, persistent grants, confined C clients, and the production native renderer.
+- Verify actual native colors, top-left row order, odd row strides, live repaint, and matching visibility samples.
+- Verify application scope, missing workspace access, revocation, room filtering, occlusion, resize, and unmap.
+- Check default dimensions and absence of new capture files or input authority.
+- Preserve metadata-only viewport behavior.
+- Force a small private send buffer and verify revocation truncates an unfinished pixel reply.
+- Preserve the initial production failures and the separate missing-label fixture failure.
+
+CMakeLists.txt:
+- Register the native pixel suite and checked-client suite with generated protobuf bindings and bounded timeouts.
+- Link the thin client probe to the same production library.
+
+Documentation and task records:
+- Record the explicit schema migration and its separate passing evidence.
+- Distinguish native pixel execution from adversarial transport fixtures.
+- Keep native-server GLX sanitizer, physical devices, providers, and full M1 qualification incomplete.
+
+All 45 focused checks passed on both hosts.
+The eleven reviewed inputs match Windows, sb16, and sb16-2.
+Both hosts passed complete Debug and runtime ASan/UBSan qualification.
+Each profile passed 914 core checks across 47 suites, 51 harness checks, and all 151 P10 cases.
+No final profile failed or skipped a case.
+The 460-file tested source snapshots match both hosts.
+Final documentation updates do not change the eleven tested implementation inputs.

@@ -6,6 +6,7 @@ namespace spatial {
 Pose scene_pose(const wire::Pose& value);
 void validate_render_config(const wire::RenderConfig& config);
 void validate_render_extent(std::uint32_t width, std::uint32_t height);
+void validate_observation_extent(std::uint32_t width, std::uint32_t height, bool include_pixels);
 wire::RenderScene panel_scene(const wire::WorldSnapshotReply& world, const wire::Entity& actor,
                               const wire::RenderConfig& config);
 wire::AimReply pick_scene(const wire::RenderScene& scene, const wire::Vec3& direction);

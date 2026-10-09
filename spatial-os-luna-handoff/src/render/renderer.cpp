@@ -8,6 +8,7 @@
 #include <GL/glxext.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/Xcomposite.h>
+#include <algorithm>
 #include <array>
 #include <cerrno>
 #include <cmath>
@@ -246,10 +247,13 @@ wire::RenderVisibility Renderer::observe(const wire::RenderCommand& command) {
     wire::RenderVisibility result;
     const auto frame = draw_scene(command, &result);
     result.set_frame_id(frame.frame_id()); result.set_world_revision(frame.world_revision());
+    if (result.ByteSizeLong() > max_frame_bytes - 128)
+        throw WorldError(wire::RESOURCE_EXHAUSTED, "Compositor observation exceeds message limit");
     return result;
 }
 wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::RenderVisibility* visibility) {
-    validate_render_extent(command.width(), command.height());
+    if (visibility) validate_observation_extent(command.width(), command.height(), command.include_pixels());
+    else validate_render_extent(command.width(), command.height());
     if (!command.has_scene()) throw std::invalid_argument("Missing render scene");
     const auto panels = scene_panels(command.scene());
     auto& r = *impl_;
@@ -341,6 +345,18 @@ wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::
             sample.set_pixels(sample.pixels() + 1);
         }
         for (const auto& sample : samples) if (sample.pixels()) *visibility->add_visible() = sample;
+        if (command.include_pixels()) {
+            glReadBuffer(GL_COLOR_ATTACHMENT0);
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
+            const std::size_t stride = std::size_t(target.width) * 3;
+            std::vector<char> pixels(stride * target.height);
+            glReadPixels(0, 0, target.width, target.height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data()); check_gl();
+            auto* image = visibility->mutable_image();
+            image->set_width(target.width); image->set_height(target.height);
+            auto* rgb = image->mutable_rgb8(); rgb->resize(pixels.size());
+            for (unsigned y = 0; y < target.height; ++y)
+                std::copy_n(pixels.data() + (target.height - 1 - y) * stride, stride, rgb->data() + y * stride);
+        }
     }
     wire::FrameReply result;
     result.set_frame_id(++r.frame_id); result.set_world_revision(command.scene().world_revision());

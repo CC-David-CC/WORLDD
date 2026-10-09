@@ -1,0 +1,123 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start  1: render-observation-client
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_render_observation_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-render-observation-probe"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+1: Test timeout computed to be: 60
+1: test_changed_or_zero_image_dimensions_are_rejected (__main__.RenderObservationClientTests.test_changed_or_zero_image_dimensions_are_rejected) ... ok
+1: test_excessive_pixel_request_is_not_sent_to_compositor (__main__.RenderObservationClientTests.test_excessive_pixel_request_is_not_sent_to_compositor) ... ok
+1: test_extra_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_extra_rgb_data_is_rejected) ... ok
+1: test_metadata_only_reply_has_no_image (__main__.RenderObservationClientTests.test_metadata_only_reply_has_no_image) ... ok
+1: test_missing_requested_image_is_rejected (__main__.RenderObservationClientTests.test_missing_requested_image_is_rejected) ... ok
+1: test_truncated_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_truncated_rgb_data_is_rejected) ... ok
+1: test_unknown_image_field_is_rejected (__main__.RenderObservationClientTests.test_unknown_image_field_is_rejected) ... ok
+1: test_unsolicited_image_is_rejected (__main__.RenderObservationClientTests.test_unsolicited_image_is_rejected) ... ok
+1: test_valid_pixels_use_checked_frame_and_exact_dimensions (__main__.RenderObservationClientTests.test_valid_pixels_use_checked_frame_and_exact_dimensions) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 9 tests in 0.484s
+1: 
+1: OK
+1/4 Test  #1: render-observation-client ........   Passed    0.55 sec
+test 13
+    Start 13: render-runtime
+
+13: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_render.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+13: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+13: Environment variables: 
+13:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+13: Test timeout computed to be: 90
+13: test_compositor_is_owned_separate_process_and_death_closes_session (__main__.RenderRuntimeTests.test_compositor_is_owned_separate_process_and_death_closes_session) ... ok
+13: test_configuration_controls_fov_background_and_clipping (__main__.RenderRuntimeTests.test_configuration_controls_fov_background_and_clipping) ... ok
+13: test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick) ... ok
+13: test_existing_wm_is_not_replaced (__main__.RenderRuntimeTests.test_existing_wm_is_not_replaced) ... ok
+13: test_graceful_shutdown_releases_graphics_without_sanitizer_errors (__main__.RenderRuntimeTests.test_graceful_shutdown_releases_graphics_without_sanitizer_errors) ... ok
+13: test_half_open_panel_edges_match_pixel_center_rays (__main__.RenderRuntimeTests.test_half_open_panel_edges_match_pixel_center_rays) ... ok
+13: test_inclusive_clip_planes_and_quad_crossing_camera_plane (__main__.RenderRuntimeTests.test_inclusive_clip_planes_and_quad_crossing_camera_plane) ... ok
+13: test_invalid_dimensions_tokens_and_aim_do_not_mutate_world (__main__.RenderRuntimeTests.test_invalid_dimensions_tokens_and_aim_do_not_mutate_world) ... ok
+13: test_no_explicit_display_does_not_adopt_environment_display (__main__.RenderRuntimeTests.test_no_explicit_display_does_not_adopt_environment_display) ... ok
+13: test_parent_death_reaps_graphics_and_releases_display (__main__.RenderRuntimeTests.test_parent_death_reaps_graphics_and_releases_display) ... ok
+13: test_real_clock_expires_while_renderer_is_stopped (__main__.RenderRuntimeTests.test_real_clock_expires_while_renderer_is_stopped) ... ok
+13: test_rotated_translated_camera_matches_aim (__main__.RenderRuntimeTests.test_rotated_translated_camera_matches_aim) ... ok
+13: test_visible_drawable_matches_randomized_capture_and_resize (__main__.RenderRuntimeTests.test_visible_drawable_matches_randomized_capture_and_resize) ... ok
+13: 
+13: ----------------------------------------------------------------------
+13: Ran 13 tests in 3.128s
+13: 
+13: OK
+2/4 Test #13: render-runtime ...................   Passed    3.32 sec
+test 15
+    Start 15: actor-observation
+
+15: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_observation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-xprobe"
+15: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+15: Environment variables: 
+15:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+15: Test timeout computed to be: 90
+15: test_coplanar_tie_uses_render_order (__main__.ObservationTests.test_coplanar_tie_uses_render_order) ... ok
+15: test_native_surface_is_hidden_by_world_geometry (__main__.ObservationTests.test_native_surface_is_hidden_by_world_geometry) ... ok
+15: test_native_surface_visibility_generation_and_action_agree (__main__.ObservationTests.test_native_surface_visibility_generation_and_action_agree) ... ok
+15: test_observation_does_not_grant_control_or_refresh_motion (__main__.ObservationTests.test_observation_does_not_grant_control_or_refresh_motion) ... ok
+15: test_observation_keeps_other_actor_presentation_even_after_expose (__main__.ObservationTests.test_observation_keeps_other_actor_presentation_even_after_expose) ... ok
+15: test_partial_and_union_occlusion_use_all_visible_pixels (__main__.ObservationTests.test_partial_and_union_occlusion_use_all_visible_pixels) ... ok
+15: test_room_frustum_facing_and_clip_filter_match_pixels (__main__.ObservationTests.test_room_frustum_facing_and_clip_filter_match_pixels) ... ok
+15: test_rotated_camera_non_square_views_and_thin_sliver (__main__.ObservationTests.test_rotated_camera_non_square_views_and_thin_sliver) ... ok
+15: test_session_sequence_and_viewport_validation_preserve_state (__main__.ObservationTests.test_session_sequence_and_viewport_validation_preserve_state) ... ok
+15: 
+15: ----------------------------------------------------------------------
+15: Ran 9 tests in 2.367s
+15: 
+15: OK
+3/4 Test #15: actor-observation ................   Passed    2.57 sec
+test 21
+    Start 21: actor-pixels
+
+21: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+21: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+21: Environment variables: 
+21:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+21: Test timeout computed to be: 240
+21: test_authorized_pixels_have_native_quadrants_and_top_left_rows (__main__.ActorPixelTests.test_authorized_pixels_have_native_quadrants_and_top_left_rows) ... ok
+21: test_ungranted_application_pixels_match_empty_world (__main__.ActorPixelTests.test_ungranted_application_pixels_match_empty_world) ... ok
+21: test_observation_grant_without_workspace_access_has_no_application_pixels (__main__.ActorPixelTests.test_observation_grant_without_workspace_access_has_no_application_pixels) ... ok
+21: test_live_paint_changes_the_next_pixel_observation (__main__.ActorPixelTests.test_live_paint_changes_the_next_pixel_observation) ... ok
+21: test_revoked_pixels_disappear_without_terminating_application (__main__.ActorPixelTests.test_revoked_pixels_disappear_without_terminating_application) ... ok
+21: test_other_application_scope_does_not_export_its_pixels (__main__.ActorPixelTests.test_other_application_scope_does_not_export_its_pixels) ... ok
+21: test_resize_and_unmap_update_image_and_surface_metadata (__main__.ActorPixelTests.test_resize_and_unmap_update_image_and_surface_metadata) ... ok
+21: test_other_room_and_occluded_application_pixels_are_absent (__main__.ActorPixelTests.test_other_room_and_occluded_application_pixels_are_absent) ... ok
+21: test_default_pixel_viewport_has_no_capture_file_or_input_authority (__main__.ActorPixelTests.test_default_pixel_viewport_has_no_capture_file_or_input_authority) ... ok
+21: test_metadata_only_requests_have_no_image_and_keep_larger_viewports (__main__.ActorPixelTests.test_metadata_only_requests_have_no_image_and_keep_larger_viewports) ... ok
+21: test_excessive_pixel_viewport_is_rejected_without_changing_world (__main__.ActorPixelTests.test_excessive_pixel_viewport_is_rejected_without_changing_world) ... ok
+21: test_revocation_before_post_render_check_returns_no_pixels (__main__.ActorPixelTests.test_revocation_before_post_render_check_returns_no_pixels) ... ok
+21: test_revocation_before_first_queued_write_exports_no_pixel_reply (__main__.ActorPixelTests.test_revocation_before_first_queued_write_exports_no_pixel_reply) ... ok
+21: test_revocation_stops_a_partially_written_pixel_reply (__main__.ActorPixelTests.test_revocation_stops_a_partially_written_pixel_reply) ... ok
+21: 
+21: ----------------------------------------------------------------------
+21: Ran 14 tests in 51.666s
+21: 
+21: OK
+4/4 Test #21: actor-pixels .....................   Passed   51.80 sec
+
+The following tests passed:
+	render-observation-client
+	render-runtime
+	actor-observation
+	actor-pixels
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =  58.26 sec

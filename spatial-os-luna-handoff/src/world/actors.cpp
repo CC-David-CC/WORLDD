@@ -553,7 +553,7 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
     require(request.has_width() == request.has_height(), "Observation requires both viewport dimensions");
     const unsigned width = request.has_width() ? request.width() : 512;
     const unsigned height = request.has_height() ? request.height() : 512;
-    validate_render_extent(width, height);
+    validate_observation_extent(width, height, request.include_pixels());
     if (!renderer_) throw WorldError(wire::UNIMPLEMENTED, "Observation requires the compositor");
     refresh_native();
     const auto view = scene(actor.token);
@@ -562,10 +562,11 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
     *result.mutable_pose() = view.camera(); result.set_world_revision(view.world_revision());
     result.mutable_viewport()->set_width(width); result.mutable_viewport()->set_height(height);
     // Copy camera context before compositor I/O. The scheduler may move actors while waiting.
-    const auto visibility = renderer_->observe(view, width, height);
+    const auto visibility = renderer_->observe(view, width, height, request.include_pixels());
     if (!application_observation_valid(actor.token))
         throw WorldError(wire::FORBIDDEN, "Application observation authority changed");
     result.set_frame_id(visibility.frame_id());
+    if (visibility.has_image()) *result.mutable_image() = visibility.image();
     const double focal = static_cast<float>(1 / std::tan(view.config().vertical_fov() / 2));
     const auto geometry = scene_panels(view);
     std::map<std::string, wire::ObservedRepresentation> visible;

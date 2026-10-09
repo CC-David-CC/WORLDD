@@ -115,14 +115,22 @@ wire::NativeSnapshot RenderWorker::synchronize() {
     if (!reply.has_snapshot()) throw std::runtime_error("Missing native surface snapshot");
     return reply.snapshot();
 }
-wire::RenderVisibility RenderWorker::observe(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height) {
-    validate_render_extent(width, height);
+wire::RenderVisibility RenderWorker::observe(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height, bool include_pixels) {
+    validate_observation_extent(width, height, include_pixels);
     wire::RenderCommand command;
     *command.mutable_scene() = scene;
     command.set_width(width); command.set_height(height); command.set_observe(true);
+    command.set_include_pixels(include_pixels);
     const auto reply = exchange(command);
     if (!reply.has_visibility() || reply.visibility().world_revision() != scene.world_revision() ||
         reply.visibility().frame_id() <= frame_id_) throw std::runtime_error("Compositor observation identity mismatch");
+    if (reply.visibility().has_image() != include_pixels)
+        throw std::runtime_error("Compositor observation image presence mismatch");
+    if (include_pixels) {
+        const auto& image = reply.visibility().image();
+        if (image.width() != width || image.height() != height || image.rgb8().size() != std::uint64_t(width) * height * 3)
+            throw std::runtime_error("Invalid compositor observation image");
+    }
     const auto count = scene_panels(scene).size();
     unsigned previous = 0;
     std::uint64_t total = 0;

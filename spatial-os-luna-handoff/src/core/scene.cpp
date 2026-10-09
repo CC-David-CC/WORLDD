@@ -35,6 +35,11 @@ void validate_render_extent(std::uint32_t width, std::uint32_t height) {
     require(width > 0 && height > 0 && width <= 4096 && height <= 4096 &&
             std::uint64_t(width) * height <= 8 * 1024 * 1024, "Invalid or excessive frame dimensions");
 }
+void validate_observation_extent(std::uint32_t width, std::uint32_t height, bool include_pixels) {
+    validate_render_extent(width, height);
+    require(!include_pixels || std::uint64_t(width) * height <= 262144,
+            "Pixel observation exceeds viewport limit");
+}
 wire::RenderScene panel_scene(const wire::WorldSnapshotReply& world, const wire::Entity& actor,
                               const wire::RenderConfig& config) {
     wire::RenderScene result;

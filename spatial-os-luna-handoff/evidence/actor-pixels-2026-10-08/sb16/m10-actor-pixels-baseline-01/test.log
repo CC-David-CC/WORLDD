@@ -1,0 +1,159 @@
+test_authorized_pixels_have_native_quadrants_and_top_left_rows (__main__.ActorPixelTests.test_authorized_pixels_have_native_quadrants_and_top_left_rows) ... FAIL
+test_ungranted_application_pixels_match_empty_world (__main__.ActorPixelTests.test_ungranted_application_pixels_match_empty_world) ... FAIL
+test_observation_grant_without_workspace_access_has_no_application_pixels (__main__.ActorPixelTests.test_observation_grant_without_workspace_access_has_no_application_pixels) ... FAIL
+test_live_paint_changes_the_next_pixel_observation (__main__.ActorPixelTests.test_live_paint_changes_the_next_pixel_observation) ... FAIL
+test_revoked_pixels_disappear_without_terminating_application (__main__.ActorPixelTests.test_revoked_pixels_disappear_without_terminating_application) ... FAIL
+test_other_application_scope_does_not_export_its_pixels (__main__.ActorPixelTests.test_other_application_scope_does_not_export_its_pixels) ... FAIL
+test_resize_and_unmap_update_image_and_surface_metadata (__main__.ActorPixelTests.test_resize_and_unmap_update_image_and_surface_metadata) ... FAIL
+test_other_room_and_occluded_application_pixels_are_absent (__main__.ActorPixelTests.test_other_room_and_occluded_application_pixels_are_absent) ... FAIL
+test_default_pixel_viewport_has_no_capture_file_or_input_authority (__main__.ActorPixelTests.test_default_pixel_viewport_has_no_capture_file_or_input_authority) ... FAIL
+test_metadata_only_requests_have_no_image_and_keep_larger_viewports (__main__.ActorPixelTests.test_metadata_only_requests_have_no_image_and_keep_larger_viewports) ... ok
+test_excessive_pixel_viewport_is_rejected_without_changing_world (__main__.ActorPixelTests.test_excessive_pixel_viewport_is_rejected_without_changing_world) ... FAIL
+test_revocation_before_post_render_check_returns_no_pixels (__main__.ActorPixelTests.test_revocation_before_post_render_check_returns_no_pixels) ... ok
+test_revocation_before_first_queued_write_exports_no_pixel_reply (__main__.ActorPixelTests.test_revocation_before_first_queued_write_exports_no_pixel_reply) ... ok
+test_revocation_stops_a_partially_written_pixel_reply (__main__.ActorPixelTests.test_revocation_stops_a_partially_written_pixel_reply) ... FAIL
+
+======================================================================
+FAIL: test_authorized_pixels_have_native_quadrants_and_top_left_rows (__main__.ActorPixelTests.test_authorized_pixels_have_native_quadrants_and_top_left_rows)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 50, in test_authorized_pixels_have_native_quadrants_and_top_left_rows
+    value = self.pixels()
+            ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+======================================================================
+FAIL: test_ungranted_application_pixels_match_empty_world (__main__.ActorPixelTests.test_ungranted_application_pixels_match_empty_world)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 59, in test_ungranted_application_pixels_match_empty_world
+    empty = self.pixels()
+            ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+======================================================================
+FAIL: test_observation_grant_without_workspace_access_has_no_application_pixels (__main__.ActorPixelTests.test_observation_grant_without_workspace_access_has_no_application_pixels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 69, in test_observation_grant_without_workspace_access_has_no_application_pixels
+    empty = self.pixels()
+            ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+======================================================================
+FAIL: test_live_paint_changes_the_next_pixel_observation (__main__.ActorPixelTests.test_live_paint_changes_the_next_pixel_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 76, in test_live_paint_changes_the_next_pixel_observation
+    first = self.pixels()
+            ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+======================================================================
+FAIL: test_revoked_pixels_disappear_without_terminating_application (__main__.ActorPixelTests.test_revoked_pixels_disappear_without_terminating_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 88, in test_revoked_pixels_disappear_without_terminating_application
+    empty = self.pixels()
+            ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+======================================================================
+FAIL: test_other_application_scope_does_not_export_its_pixels (__main__.ActorPixelTests.test_other_application_scope_does_not_export_its_pixels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 106, in test_other_application_scope_does_not_export_its_pixels
+    value = self.pixels()
+            ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+======================================================================
+FAIL: test_resize_and_unmap_update_image_and_surface_metadata (__main__.ActorPixelTests.test_resize_and_unmap_update_image_and_surface_metadata)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 114, in test_resize_and_unmap_update_image_and_surface_metadata
+    self.pixels()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+======================================================================
+FAIL: test_other_room_and_occluded_application_pixels_are_absent (__main__.ActorPixelTests.test_other_room_and_occluded_application_pixels_are_absent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 124, in test_other_room_and_occluded_application_pixels_are_absent
+    self.pixels()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+======================================================================
+FAIL: test_default_pixel_viewport_has_no_capture_file_or_input_authority (__main__.ActorPixelTests.test_default_pixel_viewport_has_no_capture_file_or_input_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 139, in test_default_pixel_viewport_has_no_capture_file_or_input_authority
+    value = self.pixels(width=None)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+======================================================================
+FAIL: test_excessive_pixel_viewport_is_rejected_without_changing_world (__main__.ActorPixelTests.test_excessive_pixel_viewport_is_rejected_without_changing_world)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 158, in test_excessive_pixel_viewport_is_rejected_without_changing_world
+    self.denied(self.viewer.act(observe=core.ActorObserveRequest(width=width, height=height, include_pixels=True)), core.INVALID_ARGUMENT)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 0 != 1 : protocol_version: 1
+request_id: 3
+action {
+  accepted: true
+  observation {
+    actor: "identity:0bd0b87d60c467e6eae6f0f6dd6a1d8e3505cdc8b4f88c70c1cf2829fa7d491b:31611e8c0c8efca9041076338b47c2c61b517af9418ae0b82fd1fb2cfbffbd03"
+    room: "entry-53b74936727c46526c482025ce3cb742"
+    pose {
+      position {
+      }
+      orientation {
+        w: 1.0
+      }
+    }
+    world_revision: 5
+    viewport {
+      width: 513
+      height: 512
+    }
+    frame_id: 1
+  }
+}
+
+
+======================================================================
+FAIL: test_revocation_stops_a_partially_written_pixel_reply (__main__.ActorPixelTests.test_revocation_stops_a_partially_written_pixel_reply)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 189, in test_revocation_stops_a_partially_written_pixel_reply
+    self.pixels()  # Establish real pixel support before testing a partial export.
+    ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 31, in pixels
+    self.assertTrue(value.HasField('image'), 'Requested real pixel image is missing')
+AssertionError: False is not true : Requested real pixel image is missing
+
+----------------------------------------------------------------------
+Ran 14 tests in 37.550s
+
+FAILED (failures=11)

@@ -1,0 +1,67 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 20
+    Start 20: actor-pixels
+
+20: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+20: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build
+20: Environment variables: 
+20:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff
+20: Test timeout computed to be: 240
+20: test_authorized_pixels_have_native_quadrants_and_top_left_rows (__main__.ActorPixelTests.test_authorized_pixels_have_native_quadrants_and_top_left_rows) ... ok
+20: test_ungranted_application_pixels_match_empty_world (__main__.ActorPixelTests.test_ungranted_application_pixels_match_empty_world) ... ok
+20: test_observation_grant_without_workspace_access_has_no_application_pixels (__main__.ActorPixelTests.test_observation_grant_without_workspace_access_has_no_application_pixels) ... ok
+20: test_live_paint_changes_the_next_pixel_observation (__main__.ActorPixelTests.test_live_paint_changes_the_next_pixel_observation) ... ok
+20: test_revoked_pixels_disappear_without_terminating_application (__main__.ActorPixelTests.test_revoked_pixels_disappear_without_terminating_application) ... ok
+20: test_other_application_scope_does_not_export_its_pixels (__main__.ActorPixelTests.test_other_application_scope_does_not_export_its_pixels) ... ok
+20: test_resize_and_unmap_update_image_and_surface_metadata (__main__.ActorPixelTests.test_resize_and_unmap_update_image_and_surface_metadata) ... ok
+20: test_other_room_and_occluded_application_pixels_are_absent (__main__.ActorPixelTests.test_other_room_and_occluded_application_pixels_are_absent) ... FAIL
+20: test_default_pixel_viewport_has_no_capture_file_or_input_authority (__main__.ActorPixelTests.test_default_pixel_viewport_has_no_capture_file_or_input_authority) ... ok
+20: test_metadata_only_requests_have_no_image_and_keep_larger_viewports (__main__.ActorPixelTests.test_metadata_only_requests_have_no_image_and_keep_larger_viewports) ... ok
+20: test_excessive_pixel_viewport_is_rejected_without_changing_world (__main__.ActorPixelTests.test_excessive_pixel_viewport_is_rejected_without_changing_world) ... ok
+20: test_revocation_before_post_render_check_returns_no_pixels (__main__.ActorPixelTests.test_revocation_before_post_render_check_returns_no_pixels) ... ok
+20: test_revocation_before_first_queued_write_exports_no_pixel_reply (__main__.ActorPixelTests.test_revocation_before_first_queued_write_exports_no_pixel_reply) ... ok
+20: test_revocation_stops_a_partially_written_pixel_reply (__main__.ActorPixelTests.test_revocation_stops_a_partially_written_pixel_reply) ... ok
+20: 
+20: ======================================================================
+20: FAIL: test_other_room_and_occluded_application_pixels_are_absent (__main__.ActorPixelTests.test_other_room_and_occluded_application_pixels_are_absent)
+20: ----------------------------------------------------------------------
+20: Traceback (most recent call last):
+20:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_actor_pixels.py", line 130, in test_other_room_and_occluded_application_pixels_are_absent
+20:     self.world_process.management('world.create', entity=dict(id='pixel-cover', kind='panel', room=self.world_info['entry_room'],
+20:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 71, in management
+20:     if reply.HasField('error'): raise AssertionError(reply)
+20:                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+20: AssertionError: protocol_version: 1
+20: request_id: 11
+20: error {
+20:   code: INVALID_ARGUMENT
+20:   message: "Missing entity label"
+20: }
+20: 
+20: 
+20: ----------------------------------------------------------------------
+20: Ran 14 tests in 50.535s
+20: 
+20: FAILED (failures=1)
+1/1 Test #20: actor-pixels .....................***Failed   50.68 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  50.68 sec
+
+The following tests FAILED:
+	 20 - actor-pixels (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

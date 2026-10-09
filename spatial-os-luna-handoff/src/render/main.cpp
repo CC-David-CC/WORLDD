@@ -39,6 +39,8 @@ int main(int argc, char** argv) {
                     throw std::invalid_argument("Invalid compositor command sequence or operation");
                 if (command.observe() && (!command.has_scene() || command.capture()))
                     throw std::invalid_argument("Invalid compositor observation command");
+                if (command.include_pixels() && !command.observe())
+                    throw std::invalid_argument("Pixel image requires compositor observation");
                 sequence=command.request_id();
                 spatial::wire::RenderResult reply;
                 reply.set_protocol_version(1); reply.set_request_id(command.request_id());

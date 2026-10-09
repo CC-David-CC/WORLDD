@@ -1,0 +1,14 @@
+{
+  "build": {
+    "worldd": "fdc60835a9fe4b64bbdb6032617d5f420730c9bf9a884c4da12091e65e5ab7f9",
+    "spatialwm": "dd9178973fcd7ace376a224b5fea09bef9479ba4231db56d0a825697e72e0897",
+    "workspaced": "9a193537349018808a4d6ee59168b38ceaa74355b73561864fc56f9d66581dec",
+    "spatial-render-observation-probe": "d0225d2a2c27da05d7a406d4ef6e3c17bc20f47cd67201cb3cda21aac7672555"
+  },
+  "build-sanitize": {
+    "worldd": "cddc79383f73b271a33f40d4236914460beeee2cc2ab6b56c7d49e203078a443",
+    "spatialwm": "2f7abb3c05689f19a99dd7b34e2057f0f511bfd480d6208fd2226adaed6cefb0",
+    "workspaced": "ea7db55881c395387d91576d8eff0081ca01c3fdd3d1b7b561e55ba637908cb6",
+    "spatial-render-observation-probe": "24589968758378c6248ceae5415271e10c0cc8282a075df9c33a528d027a22bb"
+  }
+}

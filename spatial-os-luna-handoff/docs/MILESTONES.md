@@ -16,24 +16,24 @@ All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qua
 Existing components provide partial implementation where CURRENT_STATE.md records their evidence.
 The mandatory profile is tasks/spatial-m1.json.
 
-The latest qualified increment adds authenticated native application control through production broker reservations.
-Both hosts passed complete Debug and runtime ASan/UBSan qualification on 2026-10-08.
-Each profile passed 891 core checks across 45 suites, 51 harness checks, and all 151 P10 cases.
-No final profile skipped a case.
-See evidence/world-application-control-2026-10-08 for source pins, commands, failures, and final results.
+The latest qualified increment adds real filtered pixels to authenticated actor observations.
+Both hosts passed complete Debug and runtime ASan/UBSan qualification on 2026-10-09.
+Each profile passed 914 core checks across 47 suites, 51 harness checks, and all 151 P10 cases.
+No final profile failed or skipped a case.
+See evidence/actor-pixels-2026-10-08 for source pins, commands, failures, and final results.
 The original P00-P10 baseline and walkthrough evidence remain in evidence/walkthroughs-2026-10-07.
 
 Qualified components now include actor identity, persistent grants, confined execution, and several native X isolation boundaries.
-Worldd enforces broker-authorized application metadata and input through authenticated local actor channels.
+Worldd enforces broker-authorized application metadata, real pixels, and input through authenticated local actor channels.
 Control loss cancels native input without terminating independently authorized application execution.
 These component results do not establish complete milestone qualification.
 
-Filtered actor pixels, nonempty enrollment bootstrap profiles, and remote authenticated actor transport remain required.
+Nonempty enrollment bootstrap profiles and remote authenticated actor transport remain required.
 Shared worlds, world transitions, complete cabinet actions, application restoration, and model tasks remain required.
 Physical devices, native GPU output, timing, and soak evidence remain mandatory.
 Native-server GLX sanitizer cleanup remains unqualified.
 Read the newest CURRENT_STATE.md section before using historical entries as current implementation facts.
-Next: real pixels through the authenticated, authority-filtered actor observation path.
+Next: close the remaining enrollment and authenticated world-transport gaps before shared-world qualification.
 
 ## Ordered implementation
 
