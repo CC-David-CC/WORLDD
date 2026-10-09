@@ -9,6 +9,7 @@ enum SignaturePurpose {
   ACTOR_AUTHENTICATION = 2;
   ISSUER_ADMINISTRATION = 3;
   ISSUER_CREDENTIAL = 4;
+  AUTHORITY_PARTICIPATION = 5;
 }
 message SignRequest {
   SignaturePurpose purpose = 1;

@@ -1,0 +1,63 @@
+{
+  "host": "sb16",
+  "results": [
+    {
+      "name": "runtime-sanitize-baseline",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_relay_idle_baseline.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-runtime-sanitize-03/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-runtime-sanitize-03/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-runtime-sanitize-03/build/worldd",
+        "WorkspaceAuthorityTests.test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "binaries": {
+        "identityd": "9c8060bf28e401d32799106f17f4939bdf222d13ebd95aaefc6f3720a557e6d5",
+        "spatial-issuer-client": "6f9574760b7e0181a11fcd0b0e0fb4e07a2854653a6715f1a64388063dd11645",
+        "worldd": "840b55faa3b0ec0610a761c543c9879ff13e9b2e716bf2064cadbf47e8a6d176",
+        "workspaced": "992a2fa7e8919608df68c2883bd7fcd3243d8459605a29103d9b3e0571998f82"
+      },
+      "test_sha256": "0a6d17b15bd206a6c70946beb808d7f87eb378b584f8268eb2e3f3522d571ba3"
+    },
+    {
+      "name": "debug-fixed",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_relay_fixed.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-debug-03/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-debug-03/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-debug-03/build/worldd"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "binaries": {
+        "identityd": "f4ef38614e721848ffbab7323493fc92640f7e5f5171083a8b4051a2c7c70abd",
+        "spatial-issuer-client": "82ac7018e19e43e26fb697ed579296906adffa92cbd2d1be1926b4426c032201",
+        "worldd": "df977620f06337354d2bcafb95b9d3850f2488d1956afcf224a452cf90d63fca",
+        "workspaced": "510ddd8769a67f111e88eed671a53e98a5627126e9c7488722d89e0cec91047e"
+      },
+      "test_sha256": "38e5f6f1e1c5622e9addedd9fe24253a2a33e4913c3a423b6525090bb4bc3ae5"
+    },
+    {
+      "name": "runtime-sanitize-fixed",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_relay_fixed.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-runtime-sanitize-03/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-runtime-sanitize-03/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-runtime-sanitize-03/build/worldd"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "binaries": {
+        "identityd": "9c8060bf28e401d32799106f17f4939bdf222d13ebd95aaefc6f3720a557e6d5",
+        "spatial-issuer-client": "6f9574760b7e0181a11fcd0b0e0fb4e07a2854653a6715f1a64388063dd11645",
+        "worldd": "840b55faa3b0ec0610a761c543c9879ff13e9b2e716bf2064cadbf47e8a6d176",
+        "workspaced": "992a2fa7e8919608df68c2883bd7fcd3243d8459605a29103d9b3e0571998f82"
+      },
+      "test_sha256": "38e5f6f1e1c5622e9addedd9fe24253a2a33e4913c3a423b6525090bb4bc3ae5"
+    }
+  ]
+}

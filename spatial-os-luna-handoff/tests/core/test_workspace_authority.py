@@ -298,6 +298,12 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.until(lambda:self.gone(pids),bool); self.assertFalse((self.project/'done').exists())
 
     def test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh(self):
+        self.retry_revoked_process_after_idle(0)
+
+    def test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout(self):
+        self.retry_revoked_process_after_idle(self.config.idle_timeout_ms / 1000 + .2)
+
+    def retry_revoked_process_after_idle(self, idle_seconds):
         self.enroll_second(); self.owner_peer = self.connect()
         relay = world_authority.RelayingIssuer(self,lambda:self.revoke(kind=issuer.ACTOR_TARGET))
         read = [grant.WORKSPACE_ACCESS,grant.FILE_READ,grant.FILE_BROWSE,grant.PROCESS_EXECUTE]
@@ -306,7 +312,12 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertTrue(self.authenticate_second(peer).HasField('opened')); process = self.running(world,peer)
         with sqlite3.connect(self.execution/'execution.db') as database:
             payload, = database.execute('SELECT payload FROM processes WHERE id=?',(process.process_id,)).fetchone()
-        request = broker.LaunchRequest.FromString(payload); pids = self.descendants(); world.close()
+        request = broker.LaunchRequest.FromString(payload); pids = self.descendants()
+        if idle_seconds: time.sleep(idle_seconds)
+        world.close()
+        # Setup and sanitizer teardown can exceed the issuer's owner idle timeout.
+        # Authenticate the revocation on a fresh connection before arming the relay.
+        self.owner_peer = self.connect()
         relay.armed.set(); result = self.broker.request(launch=request)
         self.denied(result,core.UNAVAILABLE); self.assertTrue(relay.delivered.is_set())
         self.until(lambda:self.gone(pids),bool); self.assertFalse((self.project/'done').exists())

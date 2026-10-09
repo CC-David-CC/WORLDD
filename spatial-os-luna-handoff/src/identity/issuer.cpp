@@ -171,6 +171,8 @@ struct Issuer::Impl {
         Clock::time_point expires;
         v1::AuthenticationBegin authentication;
         v1::IdentityStatus authenticated_identity;
+        v1::AuthorityAuthenticationBegin authority{};
+        std::string connection_binding{};
     };
     File directory, lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
@@ -728,6 +730,61 @@ v1::AuthenticationResult Issuer::authentication_complete(const v1::Authenticatio
     if (!current.active()) throw WorldError(wire::UNAUTHORIZED, "Actor or credential was revoked before authentication");
     v1::AuthenticationResult result; *result.mutable_identity() = current;
     result.set_audience(pending.authentication.audience()); result.set_channel_binding(pending.authentication.channel_binding());
+    return result;
+}
+v1::ChallengeReply Issuer::authority_authentication_begin(const v1::AuthorityAuthenticationBegin& request,
+                                                        IssuerConnection& connection) {
+    validate_message(request);
+    require(request.participant_id().size() == 32 && request.registered_revision() > 0 &&
+            request.registered_revision() <= INT64_MAX && request.service_incarnation().size() == 32,
+            "Service proof requires participant identity, registration revision, and process incarnation");
+    if (connection.binding.size() != 32)
+        throw WorldError(wire::FORBIDDEN, "Service proof requires a server connection identity");
+    if (connection.authority) throw WorldError(wire::BUSY, "This connection already has a service identity");
+    Transaction transaction(impl_->db.get());
+    Query registered(impl_->db.get(), "SELECT registered_revision FROM authority_participant WHERE id=?");
+    registered.blob(1, request.participant_id());
+    if (registered.step() != SQLITE_ROW || registered.integer(0) <= 0 ||
+            static_cast<std::uint64_t>(registered.integer(0)) != request.registered_revision())
+        throw WorldError(wire::UNAUTHORIZED, "Service registration is unavailable");
+    const auto record = impl_->participant_record(request.participant_id(), impl_->registry_revision());
+    transaction.commit();
+    const auto nonce = impl_->nonce();
+    v1::AuthorityAuthenticationChallenge payload;
+    payload.set_protocol_version(1); payload.set_issuer_id(impl_->identity.issuer_id());
+    payload.set_issuer_incarnation(impl_->incarnation); payload.set_nonce(nonce);
+    *payload.mutable_request() = request; payload.set_connection_binding(connection.binding);
+    payload.set_lifetime_ms(static_cast<std::uint32_t>(impl_->lifetime.count()));
+    payload.set_audience("identityd/authority-participation/v1");
+    v1::ChallengeReply result; result.set_nonce(nonce);
+    result.mutable_signing_request()->set_purpose(v1::AUTHORITY_PARTICIPATION);
+    result.mutable_signing_request()->set_payload(payload.SerializeAsString());
+    impl_->pending.emplace(nonce, Impl::Pending{{}, {}, result.signing_request(), record.participant().public_key(),
+        Clock::now() + impl_->lifetime, {}, {}, request, connection.binding});
+    return result;
+}
+v1::AuthorityAuthenticationResult Issuer::authority_authentication_complete(const v1::AuthorityAuthenticationComplete& request,
+                                                                          IssuerConnection& connection) {
+    validate_message(request);
+    require(request.nonce().size() == 32 && request.has_proof(), "Service nonce and proof are required");
+    if (connection.binding.size() != 32)
+        throw WorldError(wire::FORBIDDEN, "Service proof requires a server connection identity");
+    const auto pending = impl_->consume(request.nonce(), request.proof(), v1::AUTHORITY_PARTICIPATION);
+    if (pending.connection_binding != connection.binding)
+        throw WorldError(wire::UNAUTHORIZED, "Service proof belongs to another connection");
+    if (connection.authority) throw WorldError(wire::BUSY, "This connection already has a service identity");
+    Transaction transaction(impl_->db.get());
+    const auto record = impl_->participant_record(pending.authority.participant_id(), impl_->registry_revision());
+    storage(record.registered_revision() == pending.authority.registered_revision() &&
+            record.participant().public_key() == pending.expected_key, "Service registration changed during proof");
+    v1::AuthorityAuthenticationResult result;
+    result.set_issuer_id(impl_->identity.issuer_id()); result.set_issuer_incarnation(impl_->incarnation);
+    *result.mutable_registration() = record;
+    result.set_service_incarnation(pending.authority.service_incarnation());
+    result.set_connection_binding(connection.binding); result.set_security_revision(impl_->security_revision());
+    transaction.commit();
+    // This connection-local proof is not execution activation or cancellation completion.
+    connection.authority = result;
     return result;
 }
 } // namespace spatial::identity

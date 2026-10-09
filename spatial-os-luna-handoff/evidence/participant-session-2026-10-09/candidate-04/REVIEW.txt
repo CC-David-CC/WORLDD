@@ -1,0 +1,28 @@
+Service participation proof: integration review
+
+Integrate the qualified service-session candidate03 with one reviewed core-fixture correction.
+All production C++ and protobuf inputs are byte-identical to the qualified candidate03.
+Twelve files change from the integrated registry baseline. The final manifest contains 238 inputs.
+The corrected workspace test opens its owner connection immediately before the delayed revocation.
+All existing scenario assertions remain. One new case deliberately exceeds the owner's idle timeout.
+No locked acceptance file changes. The audit independently checks all 41 locked hashes.
+
+Both hosts completed Debug and runtime ASan/UBSan qualification.
+Each final profile covers 1153 core checks in 66 suites,51 harness checks, and 151 P10 cases.
+The final core count substitutes 20 corrected workspace checks for the prior 19 checks.
+All other core cases retain their original complete run evidence.
+The original sb16-2 sanitizer workspace failure remains in original-core.log.
+It is superseded only for this suite by the full corrected 20-case run against the same binary hashes.
+The separate sb16-2 sanitizer P10 completion records its actual command and source pin.
+Do not describe the original failing run as passed.
+
+The source review checks server-created connection binding and immutable registered key proof.
+The dispatcher rejects service proof without real TLS context.
+The client binds the result to its requested identity, revision, incarnation, issuer, connection, and submitted proof.
+Proof contexts are consumed before completion I/O, including typed denials.
+Malformed replies close the checked channel. There is no implicit reconnect or request replay.
+Existing server/client counterexamples and all 32 service-specific checks remain archived in candidate03.
+
+This component authenticates services. It does not activate worlds or acknowledge cancellation.
+The barrier and runtime-worker candidates remain isolated. M02 and Spatial-M1 remain incomplete.
+No database migration or runtime restart is part of this adoption.

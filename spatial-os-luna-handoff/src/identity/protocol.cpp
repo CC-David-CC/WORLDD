@@ -3,7 +3,7 @@
 #include "build_id.hpp"
 
 namespace spatial::identity {
-v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer) {
+v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer, IssuerConnection* connection) {
     v1::IssuerReply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     try {
         spatial::validate_message(request);
@@ -19,6 +19,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             result->add_capabilities("identity.actor-status/v1");
             result->add_capabilities("identity.bootstrap-profile/v1");
             result->add_capabilities("identity.authority-registry/v1");
+            result->add_capabilities("identity.authority-participation-proof/v1");
         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
         else if (request.has_execute()) {
@@ -37,6 +38,13 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
         else if (request.has_authentication_begin()) *reply.mutable_challenge() = issuer.authentication_begin(request.authentication_begin());
         else if (request.has_authentication_complete()) *reply.mutable_authentication() = issuer.authentication_complete(request.authentication_complete());
         else if (request.has_revocations()) *reply.mutable_revocations() = issuer.revocations(request.revocations());
+        else if (request.has_authority_authentication_begin() || request.has_authority_authentication_complete()) {
+            if (!connection || connection->binding.size() != 32)
+                throw spatial::WorldError(spatial::wire::FORBIDDEN, "Service identity proof requires a TLS connection context");
+            if (request.has_authority_authentication_begin())
+                *reply.mutable_challenge() = issuer.authority_authentication_begin(request.authority_authentication_begin(), *connection);
+            else *reply.mutable_authority_authentication() = issuer.authority_authentication_complete(request.authority_authentication_complete(), *connection);
+        }
         else throw spatial::WorldError(spatial::wire::UNKNOWN_METHOD, "No recognized issuer operation");
     } catch (const spatial::WorldError& error) {
         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
@@ -48,10 +56,10 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
     return reply;
 }
 
-v1::IssuerReply handle_issuer_frame(std::string_view bytes, Issuer& issuer) {
+v1::IssuerReply handle_issuer_frame(std::string_view bytes, Issuer& issuer, IssuerConnection* connection) {
     v1::IssuerRequest request;
     if (bytes.size() <= max_frame_bytes && request.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())))
-        return dispatch_issuer(request, issuer);
+        return dispatch_issuer(request, issuer, connection);
     v1::IssuerReply reply; reply.set_protocol_version(1);
     reply.mutable_error()->set_code(wire::INVALID_ARGUMENT);
     reply.mutable_error()->set_message("Malformed issuer protobuf payload");

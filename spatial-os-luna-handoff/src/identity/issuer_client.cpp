@@ -1,6 +1,7 @@
 #include "identity/issuer_client.hpp"
 #include "identity/bootstrap.hpp"
 #include "identity/participants.hpp"
+#include "identity/keys.hpp"
 #include "identity/tls_support.hpp"
 #include "core/protocol.hpp"
 #include <google/protobuf/text_format.h>
@@ -13,6 +14,8 @@
 #include <chrono>
 #include <csignal>
 #include <limits>
+#include <map>
+#include <optional>
 #include <poll.h>
 #include <set>
 #include <sstream>
@@ -38,12 +41,14 @@ bool dns_name(const std::string& name) {
 }
 bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& reply) {
     return (request.has_hello() && reply.has_hello()) || (request.has_info() && reply.has_info()) ||
-        ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin()) && reply.has_challenge()) ||
+        ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin() ||
+            request.has_authority_authentication_begin()) && reply.has_challenge()) ||
         (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
             reply.has_participant() || reply.has_registry())) ||
         (request.has_profile_read() && reply.has_profile()) ||
         (request.has_enrollment_complete() && reply.has_enrollment()) ||
         (request.has_authentication_complete() && reply.has_authentication()) ||
+        (request.has_authority_authentication_complete() && reply.has_authority_authentication()) ||
         (request.has_credential_check() && reply.has_identity_status()) ||
         (request.has_revocations() && reply.has_revocations()) ||
         (request.has_actor_status() && reply.has_actor_status());
@@ -105,6 +110,74 @@ struct IssuerClient::Impl {
     Clock::time_point deadline;
     std::uint64_t sequence = 0;
     bool broken = false, busy = false;
+    struct ServiceChallenge {
+        v1::SignRequest signing_request;
+        v1::AuthorityAuthenticationChallenge context;
+        Clock::time_point expires;
+    };
+    std::map<std::string, ServiceChallenge> service_challenges;
+    std::string service_binding, issuer_incarnation;
+    bool service_authenticated = false;
+
+    void remember_service_challenge(const v1::AuthorityAuthenticationBegin& request,
+                                    const v1::ChallengeReply& reply, Clock::time_point sent) {
+        require(!service_authenticated && reply.nonce().size() == 32 && reply.has_signing_request() &&
+                reply.signing_request().purpose() == v1::AUTHORITY_PARTICIPATION &&
+                reply.signing_request().has_payload(), "Invalid service challenge envelope");
+        ServiceChallenge pending;
+        pending.signing_request = reply.signing_request();
+        auto& value = pending.context;
+        require(value.ParseFromString(reply.signing_request().payload()), "Invalid service challenge payload");
+        try { validate_message(value); }
+        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid service challenge fields"); }
+        require(value.protocol_version() == 1 && value.issuer_id() == config.issuer_id() &&
+                value.issuer_incarnation().size() == 32 && value.nonce() == reply.nonce() &&
+                value.has_request() && request.participant_id().size() == 32 &&
+                request.registered_revision() > 0 && request.registered_revision() <= INT64_MAX &&
+                request.service_incarnation().size() == 32 &&
+                value.request().participant_id() == request.participant_id() &&
+                value.request().registered_revision() == request.registered_revision() &&
+                value.request().service_incarnation() == request.service_incarnation() &&
+                value.connection_binding().size() == 32 && value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 &&
+                value.audience() == "identityd/authority-participation/v1", "Invalid service challenge context");
+        require((service_binding.empty() || service_binding == value.connection_binding()) &&
+                (issuer_incarnation.empty() || issuer_incarnation == value.issuer_incarnation()),
+                "Service challenge changed connection context");
+        require(!service_challenges.contains(reply.nonce()), "Duplicate service challenge nonce");
+        std::erase_if(service_challenges, [](const auto& entry) { return entry.second.expires <= Clock::now(); });
+        require(service_challenges.size() < 256, "Too many service challenges");
+        // Count network time against the advertised lifetime, never extend it on receipt.
+        pending.expires = sent + std::chrono::milliseconds(value.lifetime_ms());
+        require(Clock::now() < pending.expires, "Service challenge expired in transit");
+        service_binding = value.connection_binding(); issuer_incarnation = value.issuer_incarnation();
+        service_challenges.emplace(reply.nonce(), std::move(pending));
+    }
+    void check_service_result(const v1::AuthorityAuthenticationComplete& request,
+                              const v1::AuthorityAuthenticationResult& result,
+                              const std::optional<ServiceChallenge>& pending) {
+        require(!service_authenticated && pending.has_value() && Clock::now() < pending->expires,
+                "Unrequested or expired service authentication success");
+        const auto& expected = pending->context;
+        require(result.has_registration() && result.issuer_id() == config.issuer_id() &&
+                result.issuer_incarnation() == expected.issuer_incarnation() &&
+                result.connection_binding() == expected.connection_binding() &&
+                result.service_incarnation() == expected.request().service_incarnation() &&
+                result.security_revision() <= INT64_MAX, "Invalid service authentication context");
+        const auto& registration = result.registration();
+        try {
+            validate_participant_record(registration, config.issuer_id());
+            require(registration.participant().id() == expected.request().participant_id() &&
+                    registration.registered_revision() == expected.request().registered_revision(),
+                    "Substituted service registration");
+            v1::VerifyRequest verification;
+            *verification.mutable_content() = pending->signing_request;
+            *verification.mutable_proof() = request.proof();
+            verification.set_expected_public_key(registration.participant().public_key());
+            require(verify(verification), "Service authentication accepted an invalid proof");
+        } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid service authentication result"); }
+        service_authenticated = true;
+        service_challenges.clear();
+    }
 
     explicit Impl(const std::filesystem::path& path, std::function<void()> callback) : tick(std::move(callback)) {
         struct sigaction action{};
@@ -185,6 +258,13 @@ struct IssuerClient::Impl {
         }
     }
     v1::IssuerReply exchange(v1::IssuerRequest request) {
+        std::optional<ServiceChallenge> service_pending;
+        if (request.has_authority_authentication_complete()) {
+            // Consume before I/O. A typed denial must not leave a reusable proof context.
+            auto node = service_challenges.extract(request.authority_authentication_complete().nonce());
+            if (!node.empty()) service_pending = std::move(node.mapped());
+        }
+        const auto sent = Clock::now();
         require(sequence < std::numeric_limits<std::uint64_t>::max(), "Issuer request sequence exhausted");
         request.set_request_id(++sequence);
         std::ostringstream output; write_frame(output, request); auto bytes = output.str();
@@ -202,6 +282,10 @@ struct IssuerClient::Impl {
         if (reply.has_error()) require(reply.error().code() != 0, "Issuer error lacks a valid code");
         else {
             require(outcome_matches(request, reply), "Issuer reply has the wrong outcome");
+            if (request.has_authority_authentication_begin())
+                remember_service_challenge(request.authority_authentication_begin(), reply.challenge(), sent);
+            if (request.has_authority_authentication_complete())
+                check_service_result(request.authority_authentication_complete(), reply.authority_authentication(), service_pending);
             if (reply.has_hello()) check_hello(reply.hello());
             if (reply.has_info()) require(reply.info().issuer_id() == config.issuer_id() &&
                     reply.info().public_key() == config.issuer_public_key() && reply.info().policy_revision() > 0,

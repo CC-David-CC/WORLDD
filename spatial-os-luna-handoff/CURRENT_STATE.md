@@ -1,5 +1,17 @@
 # Implementation status
 
+## 2026-10-09: Service participation proof qualified and integrated
+
+The issuer now binds registered service-key proof to its actual TLS connection.
+The checked client validates the complete challenge and result context.
+The integrated source also includes the reviewed owner-idle fixture correction.
+Both hosts qualify 1153 core checks,51 harness checks, and 151 P10 cases in each Debug and runtime sanitizer profile.
+The final core count uses the full corrected 20-case workspace suite. The original failed run remains archived.
+All 238 source hashes and 41 locked files are verified. No operator state or running session changes.
+Commit and host adoption remain pending.
+The barrier and participation worker remain isolated. Service proof alone does not satisfy M02 cancellation.
+See evidence/participant-session-2026-10-09/candidate-04.
+
 ## 2026-10-09: Workspace revocation fixture uses an expired owner connection
 
 The sb16-2 service-session sanitizer run finished with one workspace-authority test failure.
@@ -36,7 +48,7 @@ Acknowledgements must also wait for native input, deferred leases, observations,
 The exact worker and integration contract is recorded in docs/AUTHORITY_PARTICIPANT_RUNTIME.txt.
 The reproduction and binary hashes are in evidence/revocation-barrier-2026-10-09/runtime-participation-gap-01.
 This diagnostic is not a passed cancellation requirement. M02 and Spatial-M1 remain incomplete.
-Service-session Debug and runtime ASan/UBSan profiles passed on sb16: 1,152 core, 51 harness, and 151 P10 checks each.
+Service-session Debug and runtime ASan/UBSan profiles passed on sb16: 1, 152 core, 51 harness, and 151 P10 checks each.
 No case failed or skipped. All 238 source hashes match. sb16-2 sanitizer qualification remains live.
 Full barrier qualification has started on sb16. No production source or operator state changed.
 
@@ -55,7 +67,7 @@ Full barrier qualification is prepared. It will not overlap the preceding native
 This barrier candidate is not integrated. Actual world and broker effect wiring remains required.
 
 The preceding service-session candidate passed complete Debug on both hosts.
-Each passed 1,152 core checks across 66 suites, 51 harness checks, and 151 P10 cases without failure or skips.
+Each passed 1, 152 core checks across 66 suites, 51 harness checks, and 151 P10 cases without failure or skips.
 Both runtime sanitizer profiles remain live. Integration is prepared but gated on their final evidence.
 No production source or operator state changed. M02 and Spatial-M1 remain incomplete.
 See evidence/participant-barrier-2026-10-09/client-candidate-04 and evidence/participant-session-2026-10-09/candidate-03.
@@ -76,7 +88,7 @@ All 87 other existing test files are unchanged. Four migration fixtures have exp
 All 239 candidate source hashes are pinned.
 
 Checked-client support and full qualification remain pending. This draft is not integrated.
-The separate service-session candidate passed complete Debug on sb16: 1,152 core, 51 harness, and 151 P10 checks.
+The separate service-session candidate passed complete Debug on sb16: 1, 152 core, 51 harness, and 151 P10 checks.
 No case failed or skipped. Its sb16 sanitizer and sb16-2 qualification remain running.
 World/broker effect acknowledgements and supervisor fencing remain required.
 These issuer tests do not prove native input release, process cancellation, or full distributed cancellation.
@@ -111,7 +123,7 @@ The checked TLS client validates registry records and pages.
 Existing issuer databases require explicit schema-5 migration.
 
 Both hosts passed complete Debug and runtime ASan/UBSan qualification for candidate 02.
-Each profile passed 1,120 core checks across 64 suites, 51 harness checks, and 151 P10 cases.
+Each profile passed 1, 120 core checks across 64 suites, 51 harness checks, and 151 P10 cases.
 No final case failed or skipped. All 236 integrated source hashes match both host manifests.
 The schema audit preserves 248 messages, 946 fields, and 122 enum values.
 All 41 locked files and 84 existing test files remain unchanged.
@@ -156,7 +168,7 @@ Candidate 02 fixes that check and strengthens rollback, binary-ID pagination, an
 The failed counterexample and two earlier fixture failures remain preserved.
 
 Candidate 02 passed all 31 new checks and 51 harness checks on both hosts in Debug.
-Both hosts completed Debug: 1,120 core checks across 64 suites, 51 harness checks, and 151 P10 cases each.
+Both hosts completed Debug: 1, 120 core checks across 64 suites, 51 harness checks, and 151 P10 cases each.
 No Debug case failed or skipped. Both runtime sanitizer profiles are running.
 Both schema audits preserve 248 messages, 946 fields, and 122 enum values across all proto files.
 Both audits preserve 41 locked files and 84 existing test files.
@@ -176,7 +188,7 @@ The trusted management pipe stays private.
 Remote observations omit live application pixels and metadata. Remote application input remains outside M1 scope.
 
 Both hosts passed complete Debug and runtime ASan/UBSan qualification for candidate 02.
-Each profile passed 1,089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
+Each profile passed 1, 089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
 No final profile failed or skipped a case.
 Each core total includes 46 remote checks across seven suites.
 Direct cross-host TLS scenarios passed with each host acting as world authority in turn.
@@ -201,7 +213,7 @@ See evidence/world-remote-2026-10-09/candidate-02 for all four complete profiles
 ## 2026-10-09: Remote actor candidate 02 passes both-host Debug and cross-host checks
 
 Candidate 02 remains outside production while both runtime sanitizer profiles run.
-Both hosts passed complete Debug: 1,089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
+Both hosts passed complete Debug: 1, 089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
 No Debug case failed or skipped. Both hosts passed all 46 remote cases across seven suites.
 Direct LAN TLS scenarios passed with each host acting as world authority in turn.
 Each scenario used distinct authenticated actors, real movement, inspection, and a durable world checkpoint.
@@ -237,7 +249,7 @@ Both host adoption audits matched all 223 qualified source hashes.
 The authenticated enrollment-delivery component is complete. This does not complete the M01 identity milestone.
 
 Both hosts passed complete Debug and runtime ASan/UBSan qualification for candidate 04.
-Each profile passed 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
+Each profile passed 1, 037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
 No final profile failed or skipped a case.
 Each exact binary set also passed six new process-witness checks and twelve unchanged process tests.
 The twelve repeated process tests are not additional unique checks.
@@ -290,7 +302,7 @@ Workspace application does not create availability, selection, or geometry.
 The candidate passed real confined writes, read-only mounts, restart recovery, and receipt retry cases on sb16.
 It also passed credential and parent revocation tests during real issuer waits.
 Both hosts passed candidate 03 Debug builds, 51 harness checks, and all 63 checks across five adapter suites.
-Candidate 03 passed complete sb16-2 Debug: 1,036 core checks, 51 harness checks, and 151 P10 cases.
+Candidate 03 passed complete sb16-2 Debug: 1, 036 core checks, 51 harness checks, and 151 P10 cases.
 Its sb16 Debug run failed one process witness on ProcessLookupError during /proc inspection.
 That run did not reach P10 or runtime sanitizer checks. The original failure remains preserved.
 The corrected witness passed six new checks and all twelve real process tests on both hosts.
@@ -306,10 +318,10 @@ Two added tests exposed a real process-lifetime defect during bootstrap credenti
 The corrected candidate rejects that operation without terminating independently authorized processes.
 A further test reproduced the same defect in ordinary workspace access.
 Candidate 04 extends that correction. Its sb16 focused Debug run passed 52 workspace/broker checks and ten race checks.
-Its sb16 complete Debug and runtime sanitizer profiles each passed 1,037 core checks across 55 suites.
+Its sb16 complete Debug and runtime sanitizer profiles each passed 1, 037 core checks across 55 suites.
 Each profile also passed 51 harness checks and 151 P10 cases. No case failed or skipped.
 The corrected process witness then passed six new checks and twelve unchanged process cases against both exact binary sets.
-The sb16-2 candidate 04 complete Debug profile passed 1,037 core checks, 51 harness checks, and 151 P10 cases.
+The sb16-2 candidate 04 complete Debug profile passed 1, 037 core checks, 51 harness checks, and 151 P10 cases.
 No case failed or skipped. Its runtime sanitizer profile and corrected-witness follow-up remain pending.
 Candidate 04 still includes the original process witness. Active source trees remain immutable.
 Integration must preserve the separately qualified b2ab006 witness correction.

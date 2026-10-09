@@ -5,6 +5,7 @@
 #include <google/protobuf/text_format.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+#include <openssl/rand.h>
 #include <algorithm>
 #include <array>
 #include <cerrno>
@@ -37,6 +38,7 @@ struct Peer {
     std::array<unsigned char, 4> header{};
     std::string payload, output;
     std::optional<v1::IssuerRequest> waiting;
+    IssuerConnection connection;
     std::size_t offset = 0;
     Peer(int fd, SSL_CTX* ctx, Milliseconds timeout)
         : socket(fd), tls(SSL_new(ctx), SSL_free), deadline(Clock::now()+timeout) {
@@ -58,7 +60,7 @@ struct Peer {
         phase = Phase::reply; wanted = POLLOUT; deadline = Clock::now()+timeout;
     }
     void respond(Issuer& issuer, Milliseconds timeout) {
-        const auto reply = handle_issuer_frame(payload, issuer);
+        const auto reply = handle_issuer_frame(payload, issuer, &connection);
         v1::IssuerRequest request;
         if (reply.has_revocations() && request.ParseFromString(payload) && request.revocations().has_after_revision() &&
                 request.revocations().wait_ms() && reply.revocations().events_size() == 0) {
@@ -73,11 +75,14 @@ struct Peer {
             } catch (const std::exception&) {
                 // The shared dispatcher turns storage failure into a typed response.
             }
-            send(dispatch_issuer(*waiting, issuer), timeout); waiting.reset(); return true;
+            send(dispatch_issuer(*waiting, issuer, &connection), timeout); waiting.reset(); return true;
         }
         if (phase == Phase::handshake) {
             ERR_clear_error(); const int result = SSL_accept(tls.get());
             if (result != 1) return retry(result);
+            connection.binding.resize(32);
+            require(RAND_bytes(reinterpret_cast<unsigned char*>(connection.binding.data()), connection.binding.size()) == 1,
+                    "Cannot allocate issuer TLS connection identity");
             phase = Phase::header; wanted = POLLIN; deadline = Clock::now()+idle; return true;
         }
         std::size_t count = 0;

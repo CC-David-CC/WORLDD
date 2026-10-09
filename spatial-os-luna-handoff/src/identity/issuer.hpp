@@ -7,6 +7,12 @@
 #include <string>
 
 namespace spatial::identity {
+// Created by the TLS server. This context is never decoded from a wire request.
+// Identity proof alone does not activate execution or acknowledge cancellation.
+struct IssuerConnection {
+    std::string binding;
+    std::optional<v1::AuthorityAuthenticationResult> authority;
+};
 class Issuer {
 public:
     // Initialization is an explicit local owner operation, never a wire request.
@@ -27,6 +33,10 @@ public:
     v1::AuthenticationResult authentication_complete(const v1::AuthenticationComplete& request);
     v1::RevocationBatch revocations(const v1::RevocationRead& request);
     std::uint64_t security_revision();
+    v1::ChallengeReply authority_authentication_begin(const v1::AuthorityAuthenticationBegin& request,
+                                                     IssuerConnection& connection);
+    v1::AuthorityAuthenticationResult authority_authentication_complete(const v1::AuthorityAuthenticationComplete& request,
+                                                                      IssuerConnection& connection);
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

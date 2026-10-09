@@ -36,6 +36,32 @@ message AuthorityRegistryPage {
   bytes next_after = 4;
 }
 
+// Service identity proof on the server-derived TLS connection. This does not activate execution.
+message AuthorityAuthenticationBegin {
+  bytes participant_id = 1;
+  uint64 registered_revision = 2;
+  bytes service_incarnation = 3;
+}
+message AuthorityAuthenticationChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes issuer_incarnation = 3;
+  bytes nonce = 4;
+  AuthorityAuthenticationBegin request = 5;
+  bytes connection_binding = 6;
+  uint32 lifetime_ms = 7;
+  string audience = 8;
+}
+message AuthorityAuthenticationComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthorityAuthenticationResult {
+  bytes issuer_id = 1;
+  bytes issuer_incarnation = 2;
+  AuthorityParticipantRecord registration = 3;
+  bytes service_incarnation = 4;
+  bytes connection_binding = 5;
+  uint64 security_revision = 6;
+}
+
 enum EnrollmentMode { ENROLLMENT_MODE_UNSPECIFIED = 0; MANUAL = 1; APPROVE_ALWAYS = 2; }
 message EnrollmentPolicy {
   EnrollmentMode mode = 1;
@@ -221,6 +247,8 @@ message IssuerRequest {
     RevocationRead revocations = 19;
     ActorStatusRead actor_status = 20;
     BootstrapProfileRead profile_read = 21;
+    AuthorityAuthenticationBegin authority_authentication_begin = 22;
+    AuthorityAuthenticationComplete authority_authentication_complete = 23;
   }
 }
 message IssuerReply {
@@ -240,5 +268,6 @@ message IssuerReply {
     BootstrapProfileState profile = 20;
     AuthorityParticipantRecord participant = 21;
     AuthorityRegistryPage registry = 22;
+    AuthorityAuthenticationResult authority_authentication = 23;
   }
 }
