@@ -257,3 +257,9 @@ The guarded integration matched all 223 hashes against both host manifests befor
 It retained the separately qualified b2ab006 process-witness correction.
 Commit, box-git push, and clean host adoption remain next.
 Remote actor transport remains isolated. See M01_WORLD_REMOTE_DEBUG.txt for its focused evidence and remaining work.
+
+2026-10-09 component completion:
+Commit d4b025e3705fabad151c97e60de010187a85ed7e is pushed to box-git.
+Both hosts fast-forwarded with clean worktrees and matched all 223 qualified source hashes.
+Authenticated enrollment delivery is complete as a component.
+M01, M02, and Spatial-M1 remain unfinished. Remote transport is the next active component.

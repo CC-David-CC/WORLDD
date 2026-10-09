@@ -62,13 +62,18 @@ Evidence and limits:
 sb16 Debug passed 5 functional, 13 security, 6 lifecycle, and 3 native cases.
 It also passed 68 existing local identity, authority, and bootstrap checks.
 No case failed or skipped in those final runs.
-Runtime sanitizer focused qualification is running separately.
+The same source passed 109 focused runtime ASan/UBSan checks.
+These include all 95 Debug checks and fourteen existing native pixel regressions.
+Two additional delayed-issuer cases passed against both exact Debug and sanitizer binaries.
+They verify credential revocation and disconnect during real profile replies prevent grant creation.
+They independently check the committed receipt store and continued operation of another valid actor.
+Final focused totals are 97 Debug checks and 111 runtime sanitizer checks, without failures or skips.
 Full cumulative qualification, second-host qualification, and actual cross-host transport remain pending.
-Revocation during a delayed issuer reply needs a remote-specific counterexample.
+Remote-specific delayed issuer revocation and disconnect counterexamples now pass.
 The distributed revocation acknowledgement barrier remains a separate required component.
 Native-server GLX sanitizer qualification is not established by these runtime checks.
 
 Review follow-up before integration:
 Audit deadlines when SSL_read requests a write retry. Do not let that retry bypass a frame deadline.
-Test malformed listener configuration and preservation of independent actors during delayed issuer responses.
+Test malformed listener configuration. Preserve the delayed-issuer cases in the final candidate.
 Use the final candidate's generated protobuf descriptor for an additive-schema audit.

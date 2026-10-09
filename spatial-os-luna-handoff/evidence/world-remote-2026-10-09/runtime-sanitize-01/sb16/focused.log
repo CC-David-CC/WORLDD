@@ -1,0 +1,197 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start  1: world-remote
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/tests/core/test_world_remote.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/worldd"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source
+1: Test timeout computed to be: 180
+1: test_remote_authentication_proof_is_bound_to_its_channel (__main__.RemoteWorldTests.test_remote_authentication_proof_is_bound_to_its_channel) ... ok
+1: test_remote_channel_cannot_execute_trusted_management_request (__main__.RemoteWorldTests.test_remote_channel_cannot_execute_trusted_management_request) ... ok
+1: test_remote_private_admission_remains_separate_from_valid_identity (__main__.RemoteWorldTests.test_remote_private_admission_remains_separate_from_valid_identity) ... ok
+1: test_remote_proof_uses_persistent_world_authority_and_real_actor (__main__.RemoteWorldTests.test_remote_proof_uses_persistent_world_authority_and_real_actor) ... ok
+1: test_tls_identity_alone_does_not_authenticate_an_actor (__main__.RemoteWorldTests.test_tls_identity_alone_does_not_authenticate_an_actor) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 5 tests in 7.599s
+1: 
+1: OK
+1/6 Test  #1: world-remote .....................   Passed    7.69 sec
+test 4
+    Start  4: world-bootstrap-races
+
+4: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/tests/core/test_world_bootstrap_races.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/worldd"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build
+4: Environment variables: 
+4:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source
+4: Test timeout computed to be: 120
+4: test_credential_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+4: test_credential_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt) ... ok
+4: test_independent_grant_survives_bootstrap_parent_revocation (__main__.WorldBootstrapRaceTests.test_independent_grant_survives_bootstrap_parent_revocation) ... ok
+4: test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+4: test_parent_actor_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_profile_read_creates_no_receipt) ... ok
+4: test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry (__main__.WorldBootstrapRaceTests.test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry) ... ok
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 6 tests in 12.735s
+4: 
+4: OK
+2/6 Test  #4: world-bootstrap-races ............   Passed   12.83 sec
+test 6
+    Start  6: world-bootstrap
+
+6: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/tests/core/test_world_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/worldd"
+6: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build
+6: Environment variables: 
+6:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source
+6: Test timeout computed to be: 120
+6: test_administration_cannot_bind_without_explicit_delegation (__main__.WorldBootstrapTests.test_administration_cannot_bind_without_explicit_delegation) ... ok
+6: test_anonymous_channels_cannot_administer_or_apply_bootstrap (__main__.WorldBootstrapTests.test_anonymous_channels_cannot_administer_or_apply_bootstrap) ... ok
+6: test_binding_requires_authenticated_parent_holder (__main__.WorldBootstrapTests.test_binding_requires_authenticated_parent_holder) ... ok
+6: test_bound_profile_admits_private_actor_and_routes_real_navigation (__main__.WorldBootstrapTests.test_bound_profile_admits_private_actor_and_routes_real_navigation) ... ok
+6: test_challenge_and_failed_proof_do_not_materialize_grants (__main__.WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants) ... ok
+6: test_checked_template_cannot_bind_to_another_world (__main__.WorldBootstrapTests.test_checked_template_cannot_bind_to_another_world) ... ok
+6: test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants (__main__.WorldBootstrapTests.test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants) ... ok
+6: test_failed_binding_consumes_actor_sequence (__main__.WorldBootstrapTests.test_failed_binding_consumes_actor_sequence) ... ok
+6: test_new_profile_revision_cannot_replace_existing_grant (__main__.WorldBootstrapTests.test_new_profile_revision_cannot_replace_existing_grant) ... ok
+6: test_parent_revocation_prevents_reconnect_from_restoring_access (__main__.WorldBootstrapTests.test_parent_revocation_prevents_reconnect_from_restoring_access) ... ok
+6: test_public_entry_reports_unbound_template_without_action_authority (__main__.WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority) ... ok
+6: test_reconnect_and_explicit_retry_return_same_durable_grant (__main__.WorldBootstrapTests.test_reconnect_and_explicit_retry_return_same_durable_grant) ... ok
+6: test_second_credential_cannot_revive_revoked_bootstrap_grant (__main__.WorldBootstrapTests.test_second_credential_cannot_revive_revoked_bootstrap_grant) ... ok
+6: test_server_restart_retains_binding_and_receipt (__main__.WorldBootstrapTests.test_server_restart_retains_binding_and_receipt) ... ok
+6: test_signed_profile_without_domain_binding_cannot_create_admission (__main__.WorldBootstrapTests.test_signed_profile_without_domain_binding_cannot_create_admission) ... ok
+6: 
+6: ----------------------------------------------------------------------
+6: Ran 15 tests in 27.500s
+6: 
+6: OK
+3/6 Test  #6: world-bootstrap ..................   Passed   27.59 sec
+test 30
+    Start 30: actor-pixels
+
+30: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/tests/core/test_actor_pixels.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-security-auth"
+30: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build
+30: Environment variables: 
+30:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source
+30: Test timeout computed to be: 240
+30: test_authorized_pixels_have_native_quadrants_and_top_left_rows (__main__.ActorPixelTests.test_authorized_pixels_have_native_quadrants_and_top_left_rows) ... ok
+30: test_ungranted_application_pixels_match_empty_world (__main__.ActorPixelTests.test_ungranted_application_pixels_match_empty_world) ... ok
+30: test_observation_grant_without_workspace_access_has_no_application_pixels (__main__.ActorPixelTests.test_observation_grant_without_workspace_access_has_no_application_pixels) ... ok
+30: test_live_paint_changes_the_next_pixel_observation (__main__.ActorPixelTests.test_live_paint_changes_the_next_pixel_observation) ... ok
+30: test_revoked_pixels_disappear_without_terminating_application (__main__.ActorPixelTests.test_revoked_pixels_disappear_without_terminating_application) ... ok
+30: test_other_application_scope_does_not_export_its_pixels (__main__.ActorPixelTests.test_other_application_scope_does_not_export_its_pixels) ... ok
+30: test_resize_and_unmap_update_image_and_surface_metadata (__main__.ActorPixelTests.test_resize_and_unmap_update_image_and_surface_metadata) ... ok
+30: test_other_room_and_occluded_application_pixels_are_absent (__main__.ActorPixelTests.test_other_room_and_occluded_application_pixels_are_absent) ... ok
+30: test_default_pixel_viewport_has_no_capture_file_or_input_authority (__main__.ActorPixelTests.test_default_pixel_viewport_has_no_capture_file_or_input_authority) ... ok
+30: test_metadata_only_requests_have_no_image_and_keep_larger_viewports (__main__.ActorPixelTests.test_metadata_only_requests_have_no_image_and_keep_larger_viewports) ... ok
+30: test_excessive_pixel_viewport_is_rejected_without_changing_world (__main__.ActorPixelTests.test_excessive_pixel_viewport_is_rejected_without_changing_world) ... ok
+30: test_revocation_before_post_render_check_returns_no_pixels (__main__.ActorPixelTests.test_revocation_before_post_render_check_returns_no_pixels) ... ok
+30: test_revocation_before_first_queued_write_exports_no_pixel_reply (__main__.ActorPixelTests.test_revocation_before_first_queued_write_exports_no_pixel_reply) ... ok
+30: test_revocation_stops_a_partially_written_pixel_reply (__main__.ActorPixelTests.test_revocation_stops_a_partially_written_pixel_reply) ... ok
+30: 
+30: ----------------------------------------------------------------------
+30: Ran 14 tests in 54.061s
+30: 
+30: OK
+4/6 Test #30: actor-pixels .....................   Passed   54.19 sec
+test 44
+    Start 44: world-identity
+
+44: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/tests/core/test_world_identity.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/worldd"
+44: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build
+44: Environment variables: 
+44:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source
+44:  SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-xprobe
+44: Test timeout computed to be: 120
+44: test_actor_channel_does_not_expose_management (__main__.WorldIdentityTests.test_actor_channel_does_not_expose_management) ... ok
+44: test_actor_revocation_releases_native_input (__main__.WorldIdentityTests.test_actor_revocation_releases_native_input) ... ok
+44: test_anonymous_channel_cannot_act_or_inspect (__main__.WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect) ... ok
+44: test_caller_token_cannot_select_another_actor (__main__.WorldIdentityTests.test_caller_token_cannot_select_another_actor) ... ok
+44: test_credential_revocation_preserves_another_credential_for_actor (__main__.WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor) ... ok
+44: test_credential_revocation_releases_native_input_without_another_actor_request (__main__.WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request) ... ok
+44: test_current_status_blocks_actions_after_committed_revocation (__main__.WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation) ... ok
+44: test_disconnect_releases_real_native_input_and_keeps_application (__main__.WorldIdentityTests.test_disconnect_releases_real_native_input_and_keeps_application) ... ok
+44: test_excessive_frame_closes_actor_channel_and_releases_input (__main__.WorldIdentityTests.test_excessive_frame_closes_actor_channel_and_releases_input) ... ok
+44: test_idle_session_keeps_issuer_checks_available (__main__.WorldIdentityTests.test_idle_session_keeps_issuer_checks_available) ... ok
+44: test_issuer_failure_cancels_live_control_and_does_not_kill_application (__main__.WorldIdentityTests.test_issuer_failure_cancels_live_control_and_does_not_kill_application) ... ok
+44: test_private_world_requires_separate_admission (__main__.WorldIdentityTests.test_private_world_requires_separate_admission) ... ok
+44: test_proof_is_bound_to_its_channel (__main__.WorldIdentityTests.test_proof_is_bound_to_its_channel) ... ok
+44: test_public_admission_does_not_grant_action_authority (__main__.WorldIdentityTests.test_public_admission_does_not_grant_action_authority) ... ok
+44: test_revocation_between_challenge_and_completion_prevents_entry (__main__.WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry) ... ok
+44: test_revoked_credential_cannot_enter (__main__.WorldIdentityTests.test_revoked_credential_cannot_enter) ... ok
+44: test_session_reconnect_restores_saved_room_and_pose (__main__.WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose) ... ok
+44: test_world_audience_and_random_binding_are_checked (__main__.WorldIdentityTests.test_world_audience_and_random_binding_are_checked) ... ok
+44: test_world_session_derives_identity_and_uses_real_actor (__main__.WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor) ... ok
+44: test_wrong_key_and_replayed_completion_fail (__main__.WorldIdentityTests.test_wrong_key_and_replayed_completion_fail) ... ok
+44: 
+44: ----------------------------------------------------------------------
+44: Ran 20 tests in 22.653s
+44: 
+44: OK
+5/6 Test #44: world-identity ...................   Passed   22.84 sec
+test 45
+    Start 45: world-authority
+
+45: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/tools/with_test_display.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/tests/core/test_world_authority.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/worldd"
+45: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build
+45: Environment variables: 
+45:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source
+45:  SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-xprobe
+45: Test timeout computed to be: 180
+45: test_administration_and_held_rights_do_not_imply_delegation (__main__.WorldAuthorityTests.test_administration_and_held_rights_do_not_imply_delegation) ... ok
+45: test_ancestor_credential_revocation_preserves_delegated_actor_rights (__main__.WorldAuthorityTests.test_ancestor_credential_revocation_preserves_delegated_actor_rights) ... ok
+45: test_credential_revocation_during_ancestor_preparation_prevents_entry (__main__.WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry) ... ok
+45: test_delegation_uses_authenticated_principal (__main__.WorldAuthorityTests.test_delegation_uses_authenticated_principal) ... ok
+45: test_explicit_seed_and_real_actor_navigation (__main__.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation) ... ok
+45: test_grant_cannot_cross_world_identity (__main__.WorldAuthorityTests.test_grant_cannot_cross_world_identity) ... ok
+45: test_grant_listing_is_subject_filtered_and_paginated (__main__.WorldAuthorityTests.test_grant_listing_is_subject_filtered_and_paginated) ... ok
+45: test_grants_survive_world_restart (__main__.WorldAuthorityTests.test_grants_survive_world_restart) ... ok
+45: test_independent_navigation_grant_survives_revocation (__main__.WorldAuthorityTests.test_independent_navigation_grant_survives_revocation) ... ok
+45: test_invalid_delegation_consumes_actor_sequence (__main__.WorldAuthorityTests.test_invalid_delegation_consumes_actor_sequence) ... ok
+45: test_malformed_recipient_consumes_sequence_without_disconnect (__main__.WorldAuthorityTests.test_malformed_recipient_consumes_sequence_without_disconnect) ... ok
+45: test_missing_authority_store_does_not_initialize_implicitly (__main__.WorldAuthorityTests.test_missing_authority_store_does_not_initialize_implicitly) ... ok
+45: test_object_scope_and_visibility_are_enforced_in_actor_engine (__main__.WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine) ... ok
+45: test_observation_revocation_cancels_object_lease (__main__.WorldAuthorityTests.test_observation_revocation_cancels_object_lease) ... ok
+45: test_persistent_config_rejects_static_authority_and_wrong_world (__main__.WorldAuthorityTests.test_persistent_config_rejects_static_authority_and_wrong_world) ... ok
+45: test_private_admission_requires_persistent_enter_grant (__main__.WorldAuthorityTests.test_private_admission_requires_persistent_enter_grant) ... ok
+45: test_private_admission_revocation_closes_only_affected_session (__main__.WorldAuthorityTests.test_private_admission_revocation_closes_only_affected_session) ... ok
+45: test_public_admission_does_not_create_action_grants (__main__.WorldAuthorityTests.test_public_admission_does_not_create_action_grants) ... ok
+45: test_revocation_cancels_object_draft_and_releases_lease (__main__.WorldAuthorityTests.test_revocation_cancels_object_draft_and_releases_lease) ... ok
+45: test_revocation_stops_motion_without_a_recipient_request (__main__.WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request) ... ok
+45: test_revoked_ancestor_without_world_session_stops_descendant (__main__.WorldAuthorityTests.test_revoked_ancestor_without_world_session_stops_descendant) ... ok
+45: test_seed_validation_installs_no_partial_root_grants (__main__.WorldAuthorityTests.test_seed_validation_installs_no_partial_root_grants) ... ok
+45: test_stale_revision_changes_no_grants_and_consumes_sequence (__main__.WorldAuthorityTests.test_stale_revision_changes_no_grants_and_consumes_sequence) ... ok
+45: test_unauthenticated_channels_cannot_list_or_change_grants (__main__.WorldAuthorityTests.test_unauthenticated_channels_cannot_list_or_change_grants) ... ok
+45: test_unknown_and_foreign_recipients_receive_no_grant (__main__.WorldAuthorityTests.test_unknown_and_foreign_recipients_receive_no_grant) ... ok
+45: test_world_administration_does_not_mint_workspace_authority (__main__.WorldAuthorityTests.test_world_administration_does_not_mint_workspace_authority) ... ok
+45: test_world_observation_omits_native_application_surfaces (__main__.WorldAuthorityTests.test_world_observation_omits_native_application_surfaces) ... ok
+45: 
+45: ----------------------------------------------------------------------
+45: Ran 27 tests in 43.539s
+45: 
+45: OK
+6/6 Test #45: world-authority ..................   Passed   43.74 sec
+
+The following tests passed:
+	world-remote
+	world-bootstrap-races
+	world-bootstrap
+	actor-pixels
+	world-identity
+	world-authority
+
+100% tests passed, 0 tests failed out of 6
+
+Total Test time (real) = 168.89 sec

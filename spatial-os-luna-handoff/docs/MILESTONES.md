@@ -29,14 +29,15 @@ Worldd enforces broker-authorized application metadata, real pixels, and input t
 Control loss cancels native input without terminating independently authorized application execution.
 These component results do not establish complete milestone qualification.
 
-Authenticated bootstrap grant delivery is qualified and integrated locally. Commit and host adoption remain pending.
-Remote authenticated actor transport remains an isolated draft with 95 passing focused Debug checks.
+Authenticated bootstrap grant delivery is qualified, committed, and adopted on both hosts at d4b025e.
+Remote authenticated actor transport remains an isolated draft with 97 passing focused Debug checks.
+It also passed 111 focused runtime sanitizer checks on sb16.
 Full remote qualification and cross-host evidence remain required.
 Shared worlds, world transitions, complete cabinet actions, application restoration, and model tasks remain required.
 Physical devices, native GPU output, timing, and soak evidence remain mandatory.
 Native-server GLX sanitizer cleanup remains unqualified.
 Read the newest CURRENT_STATE.md section before using historical entries as current implementation facts.
-Next: close the remaining enrollment and authenticated world-transport gaps before shared-world qualification.
+Next: finish authenticated world transport and distributed revocation checks before shared-world qualification.
 
 ## Ordered implementation
 

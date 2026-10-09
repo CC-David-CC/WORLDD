@@ -1,6 +1,6 @@
 # Authenticated bootstrap delivery
 
-Status: both-host qualification passed. Reviewed source is integrated locally; commit and host adoption remain pending.
+Status: qualified, integrated, and pushed to box-git as d4b025e. Both hosts adopted the qualified source.
 This contract extends BOOTSTRAP_PROFILES.md without changing locked acceptance assertions.
 
 ## World delivery
@@ -86,6 +86,7 @@ No final case failed or skipped.
 The corrected witness passed six new checks and twelve unchanged process cases against each exact binary set.
 Those twelve reruns do not add new unique cases.
 All 223 integrated source hashes match both hosts' qualified manifests.
+Both host adoption audits matched all 223 hashes after the clean fast-forward.
 Integration preserves the separately qualified b2ab006 process-witness correction.
 M01, M02, native-server GLX sanitizer qualification, and complete Spatial-M1 remain unfinished.
 

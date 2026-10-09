@@ -1,6 +1,6 @@
 Authenticated world and workspace bootstrap delivery: primary review
 Status: candidate 04 passed both-host qualification and the guarded local source integration.
-Commit and host adoption remain pending. Historical qualification stages remain below.
+Commit d4b025e is pushed to box-git and adopted on both hosts. Historical stages remain below.
 The primary agent performed review. No local model or delegated agent supplied execution evidence.
 
 Files reviewed:
@@ -90,3 +90,5 @@ Eighteen source, schema, build, and test files changed. The corrected witness re
 All 41 locked files and all twelve original process-test bodies remain unchanged.
 The final diff matches the previously reviewed and qualified source exactly.
 Remote transport remains a separate isolated draft. It is not part of this production integration.
+Both clean host fast-forwards matched all 223 qualified source hashes.
+See sb16/adoption-04.json and sb16-2/adoption-04.json.

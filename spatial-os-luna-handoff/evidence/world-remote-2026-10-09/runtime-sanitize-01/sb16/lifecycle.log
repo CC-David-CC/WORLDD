@@ -1,0 +1,11 @@
+test_stalled_handshake_expires_and_does_not_block_valid_actor (__main__.RemoteLifecycleTests.test_stalled_handshake_expires_and_does_not_block_valid_actor) ... ok
+test_connection_limit_rejects_excess_and_recovers_after_close (__main__.RemoteLifecycleTests.test_connection_limit_rejects_excess_and_recovers_after_close) ... ok
+test_disconnect_stops_real_motion_before_motion_expiry (__main__.RemoteLifecycleTests.test_disconnect_stops_real_motion_before_motion_expiry) ... ok
+test_credential_revocation_cancels_idle_remote_actor (__main__.RemoteLifecycleTests.test_credential_revocation_cancels_idle_remote_actor) ... ok
+test_replayed_proof_cannot_reopen_closed_session (__main__.RemoteLifecycleTests.test_replayed_proof_cannot_reopen_closed_session) ... ok
+test_restart_preserves_checkpoint_and_rejects_old_challenge (__main__.RemoteLifecycleTests.test_restart_preserves_checkpoint_and_rejects_old_challenge) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 12.190s
+
+OK

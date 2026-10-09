@@ -1,0 +1,85 @@
+{
+  "host": "sb16",
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DSPATIAL_SANITIZERS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "focused",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build",
+        "-V",
+        "-R",
+        "^(world-remote|world-identity|world-authority|world-bootstrap|world-bootstrap-races|actor-pixels)$"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "security",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/test_world_remote_security.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/worldd"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "lifecycle",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/test_world_remote_lifecycle.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/worldd"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "native",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/test_world_remote_native.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-runtime-sanitize-01/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "source_files": 226,
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+}

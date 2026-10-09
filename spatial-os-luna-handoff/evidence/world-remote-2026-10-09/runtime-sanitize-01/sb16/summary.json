@@ -1,0 +1,19 @@
+{
+  "host": "sb16",
+  "profile": "runtime ASan/UBSan",
+  "source_files": 226,
+  "focused_tests": 109,
+  "new_remote_tests": 27,
+  "existing_tests": 82,
+  "failed": 0,
+  "skipped": 0,
+  "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+  "binaries": {
+    "identityd": "fa62ef8760db8ea3928262333bb259c29d9b0df779072f633763e6b8b6a636c9",
+    "spatial-issuer-client": "f9ebfa10d75ac3621e6ce6a9c2811667240396173bd901ee74a2e82e444b2543",
+    "worldd": "d309ce6730159e533a004766169bd3a9ea887b1fbda97f9b057ac5cf9070ba3e",
+    "spatialwm": "03f8d016879296ba38069234731ff4b0db5c9911ce0ebe00ba8da25467b99dab"
+  },
+  "limits": "Focused only. Full cumulative, second-host, and cross-host qualification remain pending."
+}

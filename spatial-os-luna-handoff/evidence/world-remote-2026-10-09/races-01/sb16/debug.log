@@ -1,0 +1,7 @@
+test_remote_credential_revocation_during_profile_reply_creates_no_grant (__main__.RemoteRaceTests.test_remote_credential_revocation_during_profile_reply_creates_no_grant) ... ok
+test_remote_disconnect_during_profile_reply_creates_no_grant (__main__.RemoteRaceTests.test_remote_disconnect_during_profile_reply_creates_no_grant) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 4.256s
+
+OK

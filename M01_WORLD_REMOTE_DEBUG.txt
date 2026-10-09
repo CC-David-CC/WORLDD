@@ -12,16 +12,20 @@ Passed on sb16 in Debug:
 68 existing local identity, authority, and enrollment regressions.
 Total: 95 focused checks. None failed or skipped.
 
-Running:
-Focused runtime ASan/UBSan qualification of the same frozen source.
-The separate sb16-2 enrollment candidate 04 full sanitizer qualification continues.
+Additional completed checks:
+The same source passed 109 focused runtime ASan/UBSan checks.
+This includes the same 95 checks and fourteen existing native pixel regressions.
+Two delayed-issuer cancellation cases then passed in both Debug and runtime sanitizers.
+The final focused totals are 97 Debug checks and 111 runtime sanitizer checks.
+No final case failed or skipped. No test process remains running from these batches.
+Enrollment candidate 04 is separately qualified, committed as d4b025e, and adopted on both hosts.
 
 Not demonstrated yet:
 Remote transport between physical hosts.
 Full remote candidate Debug and sanitizer qualification on both hosts.
-Remote revocation during a delayed issuer reply.
 Distributed revocation acknowledgement and cancellation barrier.
 Malformed listener configuration rejection cases.
+TLS read-to-write retry deadline review and its counterexamples.
 Native-server GLX sanitizer qualification.
 Complete Spatial-M1, physical input, performance, and native-session soak requirements.
 

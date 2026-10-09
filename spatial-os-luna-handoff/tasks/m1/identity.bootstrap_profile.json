@@ -3,8 +3,8 @@
   "phase": "M01",
   "profile": "tasks/spatial-m1.json",
   "contract": "docs/BOOTSTRAP_PROFILES.md",
-  "status": "in_progress",
-  "current_step": "qualified_local_integration",
+  "status": "complete",
+  "current_step": "integrated_and_adopted",
   "invariant": "Enrollment pins an owner-selected immutable profile; only explicitly authorized domain delegation can turn its templates into durable grants.",
   "production_roots": [
     "proto/spatial/identity/v1/issuer.proto",
@@ -36,17 +36,22 @@
     "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
   ],
   "current_test_scope": "Both hosts passed complete candidate 04 Debug and runtime sanitizer: 1037 core checks/55 suites, 51 harness, 151 P10 per profile, zero failed/skipped. Each exact binary set also passed six new witness checks and twelve unchanged process tests.",
-  "remaining_steps": [
-    "Commit reviewed source and evidence to box-git",
-    "Adopt and verify all 223 qualified source hashes on both hosts",
-    "Record component completion; retain M01 and M02 as incomplete milestones"
-  ],
+  "remaining_steps": [],
   "preceding_gate": "P10",
   "base_commit": "76c29bd897a0fffa0d3dce2a2c968ed87bf8aefb",
   "limitations": [
-    "Reviewed source is integrated locally; commit and host adoption remain pending.",
-    "Remote authenticated world transport and the distributed revocation barrier remain required.",
+    "This completes authenticated enrollment delivery, not the M01 identity milestone.",
+    "Remote authenticated world transport and distributed revocation acknowledgement remain required.",
     "M01, M02, native-server GLX sanitizers, and Spatial-M1 remain incomplete."
   ],
-  "issuer_commit": "9e21cdf8b6747fc50998bd2c95c5d4eb0fcba94f"
+  "issuer_commit": "9e21cdf8b6747fc50998bd2c95c5d4eb0fcba94f",
+  "integration_commit": "d4b025e3705fabad151c97e60de010187a85ed7e",
+  "next_components": [
+    "identity.world_session",
+    "identity.revocation_barrier"
+  ],
+  "adoption_evidence": [
+    "evidence/bootstrap-workspace-adapters-2026-10-09/sb16/adoption-04.json",
+    "evidence/bootstrap-workspace-adapters-2026-10-09/sb16-2/adoption-04.json"
+  ]
 }

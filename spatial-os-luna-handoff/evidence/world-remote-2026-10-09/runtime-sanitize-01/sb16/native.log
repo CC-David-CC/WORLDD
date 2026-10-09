@@ -1,0 +1,8 @@
+test_remote_geometry_omits_authorized_live_application_pixels_and_metadata (__main__.RemoteNativeTests.test_remote_geometry_omits_authorized_live_application_pixels_and_metadata) ... ok
+test_same_actor_restores_local_application_observation_after_remote_session (__main__.RemoteNativeTests.test_same_actor_restores_local_application_observation_after_remote_session) ... ok
+test_stalled_large_reply_closes_remote_channel_and_preserves_local_actor (__main__.RemoteNativeTests.test_stalled_large_reply_closes_remote_channel_and_preserves_local_actor) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 14.585s
+
+OK

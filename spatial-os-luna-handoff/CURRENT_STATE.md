@@ -5,7 +5,9 @@
 The world and workspace adapters now use signed enrollment profiles to create explicitly delegated grants.
 The guarded integration applied eighteen reviewed files and preserved the corrected process witness.
 All 223 integrated source hashes match both hosts' qualified source manifests.
-Commit, box-git push, and host adoption remain the next steps.
+Commit d4b025e is pushed to box-git. Both hosts adopted it with clean worktrees.
+Both host adoption audits matched all 223 qualified source hashes.
+The authenticated enrollment-delivery component is complete. This does not complete the M01 identity milestone.
 
 Both hosts passed complete Debug and runtime ASan/UBSan qualification for candidate 04.
 Each profile passed 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
@@ -37,9 +39,13 @@ Restart preserves checkpointed actor context and rejects an old authentication c
 The draft also passed 68 existing local identity, authority, and bootstrap checks.
 These 95 focused Debug checks had no failures or skips.
 
-The same frozen source built with runtime ASan/UBSan. Focused sanitizer tests are running.
+The same frozen source passed 109 focused runtime ASan/UBSan checks.
+This includes the same 95 checks and fourteen existing native pixel regressions.
+Two further delayed-issuer cases passed in Debug and runtime sanitizers.
+Credential revocation and disconnect prevent grant creation while an independent actor remains usable.
+The final focused totals are 97 Debug checks and 111 runtime sanitizer checks, without failures or skips.
 Full cumulative qualification, second-host remote qualification, and physical cross-host transport remain pending.
-Additional configuration and delayed-issuer counterexamples remain required.
+Additional configuration counterexamples remain required.
 The primary review also requests an audit of deadlines during TLS read-to-write retries.
 No active qualification source was changed.
 See evidence/world-remote-2026-10-09 and the root M01_WORLD_REMOTE_DEBUG.txt.
