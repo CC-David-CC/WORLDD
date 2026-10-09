@@ -35,3 +35,8 @@ Inspected dependency source
 https://raw.githubusercontent.com/containers/bubblewrap/v0.9.0/bubblewrap.c
 Bubblewrap's block-fd wait precedes the sandbox command. Its monitor and namespace leader have separate lifetimes.
 The project pins the existing namespace leader. It does not change Bubblewrap or install a different helper.
+
+Full Debug qualification update
+Candidate02 passed 1192 core checks, 51 harness checks, and 151 P10 cases on both hosts.
+All 242 source hashes and 41 locked hashes match. No Debug check failed or skipped.
+Both full runtime sanitizer matrices remain active. The correction remains isolated.

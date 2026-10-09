@@ -1,5 +1,30 @@
 # Implementation status
 
+## 2026-10-09: Broker participation passes first process and native reservation checks
+
+The unchanged broker reproduced the zero-participant revocation gap in three tests.
+The issuer reported complete while a real application kept writing and its descendant pidfds remained live.
+Both baseline failures and the earlier fixture setup error remain preserved.
+
+An isolated broker now activates before protected work and acknowledges only from the outer dispatch loop.
+Acknowledgement waits for checked process cleanup, reconciled authority, and revoked control-reservation release.
+Clean shutdown stops jobs and releases its generation. Unresolved cleanup or control retains issuer obligations.
+Credential revocation preserves independently authorized actor-owned execution.
+
+Candidate01 passed six broker, six world, fourteen worker, and six process checks in sb16 Debug.
+Candidate02 adds native reservation tests without changing production code.
+Its two native checks and repeated six broker checks passed on sb16 using the candidate01 binaries.
+Fresh Debug and runtime ASan/UBSan focused qualification is running on both hosts.
+All 250 candidate hashes match. The existing 41 locked files remain unchanged.
+See evidence/workspace-participant-2026-10-09 and tasks/m1/identity.workspace_participant.json.
+
+The separate process correction passed its full Debug matrix on both hosts.
+Each host passed 1192 core checks, 51 harness checks, and 151 P10 cases.
+Its full runtime sanitizer matrices remain live. No correction is integrated yet.
+Broad world/broker fixture migration, delayed-reply witnesses, supervisor fencing, and remote participation remain pending.
+M02 and Spatial-M1 remain incomplete. No operator database or native session changed.
+
+
 ## 2026-10-09: Process cancellation failures reproduced; correction under qualification
 
 The unchanged ApplicationProcess cleanup failed three independent checks on sb16.

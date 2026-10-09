@@ -1,0 +1,38 @@
+Workspace participant draft, 2026-10-09
+
+Invariant: acknowledge issuer revocation only after process and control effects settle.
+Baseline02 uses unchanged world-candidate02 broker binaries and real issuer services.
+Three required assertions failed. The broker served without participation and never activated.
+The issuer reported complete with zero participants while an independently witnessed application kept writing.
+Baseline01 failed fixture setup because a helper method shadowed the inherited issuer launch method.
+Baseline02 renames that helper. Both logs and test sources remain preserved.
+
+Candidate01 combines world03 and checked process02, then adds workspace participation.
+The patch in this directory is relative to that combined source, not integrated main.
+The source manifest pins all 249 files. All 41 acceptance lock hashes remain unchanged.
+No existing test assertion changes. Only WorkspaceAuthorityConfig field4 is added by this patch.
+
+The primary agent reviewed all ten changed or added files.
+Authority-enabled brokers require a registered service before protected work.
+The service must match the query issuer and every configured workspace domain.
+Only the outer broker loop acknowledges after dispatch, process reconciliation, and revoked lease release.
+Callbacks may cancel authority but cannot acknowledge. A newly consumed actor event blocks settlement until reconciliation.
+Credential revocation does not terminate independently authorized actor-owned processes.
+Revocation during protected dispatch invalidates its late reply. Confirmed control-release replies remain deliverable.
+Clean shutdown stops jobs, requires no leases, and explicitly releases the generation.
+Failed cleanup or transport loss preserves unresolved issuer obligations.
+
+Six new checks cover mandatory configuration, activation, real descendant exit, credential independence, restart, and crash.
+Candidate01 passed six new broker, six world, fourteen worker, and six process checks in Debug on sb16.
+Native lease settlement, delayed replies, wrong-domain witnesses, broad fixture migration, both-host qualification,
+and supervisor fencing remain required. This draft is not integrated and does not complete M02.
+
+Candidate02 adds two native broker reservation tests and a shared fixture adapter.
+Production source and schemas are byte-identical to candidate01.
+Both native checks and the six workspace checks passed on candidate01 binaries on sb16.
+The native server is the pinned diagnostic XLibre Xvfb. These tests do not certify physical devices or GPU scanout.
+Independent pidfds prove the application exited while the control reservation still blocks issuer completion.
+Trusted release allows completion. Shutdown without release returns an error and leaves the generation pending.
+All 250 source hashes match. The native server binary hash and broker binary hashes are recorded.
+Fresh Debug and runtime sanitizer focused qualification is now running on both hosts.
+Broader fixture migration, delayed replies, domain mismatch coverage, full regression, and fencing remain pending.

@@ -1,0 +1,61 @@
+test_authority_broker_requires_participant_configuration (__main__.WorkspaceParticipantTests.test_authority_broker_requires_participant_configuration) ... FAIL
+test_broker_activates_before_protected_work_and_cleanly_releases (__main__.WorkspaceParticipantTests.test_broker_activates_before_protected_work_and_cleanly_releases) ... FAIL
+test_completion_waits_for_real_detached_process_exit (__main__.WorkspaceParticipantTests.test_completion_waits_for_real_detached_process_exit) ... FAIL
+
+======================================================================
+FAIL: test_authority_broker_requires_participant_configuration (__main__.WorkspaceParticipantTests.test_authority_broker_requires_participant_configuration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_02.py", line 104, in test_authority_broker_requires_participant_configuration
+    try:code=item.proc.wait(timeout=1)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['local/m02-participant-world-draft-02/debug/build/workspaced', '--state-dir', '/tmp/spatial-issuer-e9r0s7y1/execution', '--authority-config', '/tmp/spatial-issuer-e9r0s7y1/broker.textproto']' timed out after 1 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_02.py", line 105, in test_authority_broker_requires_participant_configuration
+    except subprocess.TimeoutExpired:self.fail('Authority broker remained available without participation')
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Authority broker remained available without participation
+
+======================================================================
+FAIL: test_broker_activates_before_protected_work_and_cleanly_releases (__main__.WorkspaceParticipantTests.test_broker_activates_before_protected_work_and_cleanly_releases)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_02.py", line 108, in test_broker_activates_before_protected_work_and_cleanly_releases
+    item=self.start_broker();item.call('system.hello');self.assertEqual(self.activations(),[(1,0,1)])
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != [(1, 0, 1)]
+
+Second list contains 1 additional elements.
+First extra element 0:
+(1, 0, 1)
+
+- []
++ [(1, 0, 1)]
+
+======================================================================
+FAIL: test_completion_waits_for_real_detached_process_exit (__main__.WorkspaceParticipantTests.test_completion_waits_for_real_detached_process_exit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_02.py", line 115, in test_completion_waits_for_real_detached_process_exit
+    self.assertEqual((pending.participant_count,pending.pending_count,pending.complete),(1,1,False))
+AssertionError: Tuples differ: (0, 0, True) != (1, 1, False)
+
+First differing element 0:
+0
+1
+
+- (0, 0, True)
++ (1, 1, False)
+
+----------------------------------------------------------------------
+Ran 3 tests in 5.395s
+
+FAILED (failures=3)

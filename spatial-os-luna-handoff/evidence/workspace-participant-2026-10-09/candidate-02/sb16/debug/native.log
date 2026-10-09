@@ -1,0 +1,7 @@
+test_process_exit_does_not_acknowledge_unreleased_control (__main__.WorkspaceParticipantNativeTests.test_process_exit_does_not_acknowledge_unreleased_control) ... ok
+test_shutdown_with_unreleased_control_preserves_obligation (__main__.WorkspaceParticipantNativeTests.test_shutdown_with_unreleased_control_preserves_obligation) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 4.631s
+
+OK

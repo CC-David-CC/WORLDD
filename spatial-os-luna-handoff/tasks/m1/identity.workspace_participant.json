@@ -1,0 +1,36 @@
+{
+  "id": "identity.workspace_participant",
+  "phase": "M02",
+  "status": "in_progress",
+  "parent": "identity.revocation_barrier",
+  "invariant": "Acknowledge issuer revocation only after broker process and control effects settle.",
+  "candidate": 2,
+  "source_files": 250,
+  "integrated": false,
+  "source": "local/participant-workspace-draft-01",
+  "contract": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt",
+  "evidence": "evidence/workspace-participant-2026-10-09",
+  "baseline": {
+    "host": "sb16",
+    "failed": 3,
+    "passed": 0
+  },
+  "focused_Debug": {
+    "host": "sb16",
+    "broker": 6,
+    "native_broker": 2,
+    "world": 6,
+    "worker": 14,
+    "process": 6,
+    "failed": 0,
+    "skipped": 0
+  },
+  "current_step": "both_host_focused_Debug_and_runtime_sanitizer_qualification",
+  "remaining": [
+    "Complete both-host focused profiles.",
+    "Test exact-domain rejection and revocation during delayed replies.",
+    "Migrate existing world and broker fixtures to registered service identities.",
+    "Complete full Debug and runtime sanitizer qualification on both hosts.",
+    "Verify remote obligations and supervisor fencing before M02 completion."
+  ]
+}

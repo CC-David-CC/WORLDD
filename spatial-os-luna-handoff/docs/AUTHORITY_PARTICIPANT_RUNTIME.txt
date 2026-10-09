@@ -170,3 +170,14 @@ Both-host focused world result
 Candidate03 passed six world, two native cancellation, and fourteen worker checks in each profile on both hosts.
 Each host passed Debug and runtime ASan/UBSan. Source and lock hashes match.
 The world implementation remains isolated pending broader fixture migration and qualification.
+
+Broker integration checkpoint, 2026-10-09
+WorkspaceAuthorityConfig field4 is implemented in the isolated broker draft.
+Activation verifies the configured issuer and exact workspace domains before protected activity.
+The outer loop settles only after dispatch, process reconciliation, and revoked reservation release.
+Newly consumed actor events prevent acknowledgement until their process effects are reconciled.
+Protected replies are invalidated when revocation occurs during dispatch. Confirmed control-release replies remain deliverable.
+Clean shutdown records interrupted jobs as uncertain, requires no reservations, and explicitly releases its generation.
+Native broker witnesses confirm that process exit alone does not clear an unreleased control reservation.
+Candidate01 and candidate02 focused Debug results are recorded in evidence/workspace-participant-2026-10-09.
+Both-host Debug and runtime sanitizer focused qualification is running. Integration and full M02 remain pending.

@@ -1,0 +1,19 @@
+{
+  "host": "sb16",
+  "integrated": false,
+  "failed": 0,
+  "skipped": 0,
+  "candidate01": {
+    "source_files": 249,
+    "workspace_checks": 6,
+    "world_checks": 6,
+    "worker_checks": 14,
+    "process_checks": 6
+  },
+  "candidate02": {
+    "source_files": 250,
+    "workspace_checks": 6,
+    "native_broker_checks": 2,
+    "production_binaries": "unchanged candidate01"
+  }
+}

@@ -1,0 +1,426 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -165,7 +165,7 @@
+ target_link_libraries(spatial-app-init PRIVATE spatial-scene)
+ add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp)
+ target_include_directories(workspaced PRIVATE src)
+-target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
++target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
+ add_dependencies(workspaced spatial-app-init)
+ add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)
+ target_link_libraries(spatial-test-host PRIVATE spatial-core)
+@@ -180,6 +180,11 @@
+     add_test(NAME process-termination COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_process_termination.py" $<TARGET_FILE:spatial-process-termination-probe>)
+     set_tests_properties(process-termination PROPERTIES TIMEOUT 90
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME workspace-participant COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant.py"
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
++    set_tests_properties(workspace-participant PROPERTIES TIMEOUT 180
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME world-participant COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_participant.py" $<TARGET_FILE:identityd>
+--- a/proto/spatial/workspace/v1/broker.proto
++++ b/proto/spatial/workspace/v1/broker.proto
+@@ -16,6 +16,7 @@
+ 
+ message WorkspaceAuthorityBinding { string workspace = 1; string authority_directory = 2; }
+ message WorkspaceAuthorityConfig {
++  string participant_runtime_config = 4;
+   uint32 protocol_version = 1;
+   string issuer_client_config = 2;
+   repeated WorkspaceAuthorityBinding bindings = 3;
+--- a/src/workspace/authority.cpp
++++ b/src/workspace/authority.cpp
+@@ -2,7 +2,7 @@
+ #include "workspace/store.hpp"
+ #include "authority/store.hpp"
+ #include "identity/issuer_client.hpp"
+-#include "identity/issuer_watch.hpp"
++#include "identity/participant_runtime.hpp"
+ #include "identity/tls_support.hpp"
+ #include "identity/bootstrap.hpp"
+ #include "identity/keys.hpp"
+@@ -43,7 +43,7 @@
+ struct WorkspaceAuthority::Impl {
+     std::map<std::string, std::unique_ptr<authority::Store>> stores;
+     std::unique_ptr<identity::IssuerClient> client;
+-    std::unique_ptr<identity::IssuerWatcher> watcher;
++    std::unique_ptr<identity::ParticipantRuntime> participant;
+     std::string issuer, issuer_key;
+     std::optional<std::string> bootstrap_credential;
+     bool bootstrap_revoked = false;
+@@ -51,7 +51,10 @@
+     std::set<std::string> revoked;
+     std::map<std::tuple<std::string, std::string, int, std::vector<std::string>>, bool> decisions;
+     std::uint64_t observed_revision = 0;
+-    bool ready = false, broken = false, changed = true;
++    std::optional<std::uint64_t> consumed_revision;
++    std::uint64_t acknowledged_revision = 0, generation = 0, command_sequence = 0, cancellation_sequence = 0;
++    id::ParticipantCommand::OperationCase pending_operation = id::ParticipantCommand::OPERATION_NOT_SET;
++    bool ready = false, broken = false, changed = true, closing = false, released = false;
+     Clock::time_point last_exchange = Clock::now();
+     std::function<void()> observer = [] {};
+ 
+@@ -60,7 +63,10 @@
+         require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &config), "Invalid workspace authority configuration");
+         validate_message(config);
+         require(config.protocol_version() == 1 && config.bindings_size() > 0 && config.bindings_size() <= 64, "Configure one to 64 workspace authorities");
++        require(!config.participant_runtime_config().empty(), "Workspace participant configuration is required");
++        std::vector<a::Domain> domains;
+         for (const auto& binding : config.bindings()) {
++            domains.push_back(domain(binding.workspace()));
+             require(!stores.contains(binding.workspace()), "Duplicate workspace authority binding");
+             execution.workspace_get(binding.workspace());
+             stores.emplace(binding.workspace(), std::make_unique<authority::Store>(binding.authority_directory(), domain(binding.workspace()), false));
+@@ -70,22 +76,48 @@
+         const auto reply = client->call(request);
+         require(reply.has_info(), "Workspace issuer is unavailable"); issuer = reply.info().issuer_id();
+         issuer_key = reply.info().public_key();
+-        watcher = std::make_unique<identity::IssuerWatcher>(config.issuer_client_config());
++        participant = std::make_unique<identity::ParticipantRuntime>(config.participant_runtime_config(), domains);
+         client->set_tick([this] { tick(); });
+         const auto deadline = Clock::now()+client->timeout()+std::chrono::milliseconds(100);
+-        while (!ready && !broken && Clock::now() < deadline) { tick(); std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
+-        require(ready && !broken, "Workspace revocation baseline is unavailable");
++        // Construction has no owned jobs or control reservations to cancel.
++        while (!ready && !broken && Clock::now() < deadline) {
++            tick(); changed = false; settle(true); std::this_thread::sleep_for(std::chrono::milliseconds(1));
++        }
++        require(ready && !broken, "Workspace participation is unavailable");
+     }
+     void invalidate() { decisions.clear(); changed = true; }
+-    void fail() { broken = true; active.clear(); invalidate(); }
++    void fail() { broken = true; ++cancellation_sequence; active.clear(); invalidate(); }
+     void tick() {
+-        if (broken || !watcher) { observer(); return; }
+-        if (watcher->failed()) { fail(); observer(); return; }
+-        while (const auto update = watcher->poll()) {
+-            if (update->has_error() || update->batch().issuer_id() != issuer) { fail(); observer(); return; }
+-            const auto& batch = update->batch(); observed_revision = std::max(observed_revision, batch.head_revision());
+-            if (batch.initial()) ready = true;
++        if (broken || !participant) { observer(); return; }
++        if (participant->failed()) { fail(); observer(); return; }
++        while (auto update = participant->poll()) {
++            if (update->has_authenticated()) {
++                if (update->authenticated().issuer_id() != issuer) { fail(); observer(); return; }
++                continue;
++            }
++            if (!update->has_revocations()) {
++                if (pending_operation == id::ParticipantCommand::OPERATION_NOT_SET || update->request_id() != command_sequence) {
++                    fail(); observer(); return;
++                }
++                const auto expected = pending_operation; pending_operation = id::ParticipantCommand::OPERATION_NOT_SET;
++                if (update->has_error()) {
++                    if (expected == id::ParticipantCommand::kActivate && update->error().code() == wire::REVISION_CONFLICT) continue;
++                    fail(); observer(); return;
++                }
++                if (expected == id::ParticipantCommand::kActivate && update->has_activated()) {
++                    generation = update->activated().generation(); acknowledged_revision = update->activated().applied_revision(); ready = true;
++                } else if (expected == id::ParticipantCommand::kApplied && update->has_applied()) {
++                    acknowledged_revision = update->applied().applied_revision();
++                } else if (expected == id::ParticipantCommand::kRelease && update->has_released()) released = true;
++                else { fail(); observer(); return; }
++                continue;
++            }
++            const auto& batch = update->revocations();
++            if (batch.issuer_id() != issuer) { fail(); observer(); return; }
++            observed_revision = std::max(observed_revision, batch.head_revision());
++            consumed_revision = batch.through_revision();
+             for (const auto& event : batch.events()) {
++                ++cancellation_sequence;
+                 if (bootstrap_credential && event.target().kind() == id::CREDENTIAL_TARGET &&
+                         event.target().id() == *bootstrap_credential) bootstrap_revoked = true;
+                 if (event.target().kind() == id::ACTOR_TARGET) {
+@@ -94,6 +126,34 @@
+             }
+         }
+         observer();
++    }
++    void settle(bool effects_settled) {
++        // Called only after dispatch, process reconciliation, and control cancellation.
++        // A wait callback can consume another revision after reconciliation. changed blocks that acknowledgement.
++        if (!effects_settled || changed || broken || released || !consumed_revision ||
++                pending_operation != id::ParticipantCommand::OPERATION_NOT_SET) return;
++        id::ParticipantCommand command;
++        if (!ready) {
++            if (*consumed_revision < observed_revision) return;
++            command.mutable_activate()->set_synchronized_revision(*consumed_revision);
++        } else if (acknowledged_revision < *consumed_revision) {
++            auto* applied = command.mutable_applied(); applied->set_generation(generation);
++            applied->set_from_revision(acknowledged_revision); applied->set_through_revision(acknowledged_revision+1);
++        } else if (closing && *consumed_revision >= observed_revision) {
++            command.mutable_release()->set_generation(generation);
++            command.mutable_release()->set_applied_revision(acknowledged_revision);
++        } else return;
++        require(command_sequence < UINT64_MAX, "Workspace participant sequence exhausted");
++        command.set_request_id(++command_sequence); pending_operation = command.operation_case();
++        participant->submit(std::move(command));
++    }
++    void shutdown(const std::function<void()>& reconcile) {
++        closing = true;
++        const auto deadline = Clock::now()+std::max(client->timeout()*2, std::chrono::milliseconds(2000));
++        while (!released && !broken && Clock::now() < deadline) {
++            tick(); reconcile(); settle(true); std::this_thread::sleep_for(std::chrono::milliseconds(1));
++        }
++        if (!released) throw std::runtime_error("Workspace participant release remains unresolved");
+     }
+     id::IssuerReply exchange(id::IssuerRequest request) {
+         if (broken) throw WorldError(wire::UNAVAILABLE, "Workspace identity service is disabled");
+@@ -120,7 +180,7 @@
+     }
+     bool identity_active(const a::ActorRef& actor) const {
+         const auto found = active.find(actor.actor_id());
+-        return !broken && actor.issuer_id() == issuer && !revoked.contains(actor.actor_id()) && found != active.end() && found->second;
++        return ready && !broken && !closing && actor.issuer_id() == issuer && !revoked.contains(actor.actor_id()) && found != active.end() && found->second;
+     }
+     void prepare(const std::string& workspace, const a::ActorRef& actor, const a::ActorRef* extra = nullptr) {
+         principal(actor);
+@@ -333,6 +393,9 @@
+     impl_->bootstrap_live(request.principal()); return report;
+ }
+ void WorkspaceAuthority::tick() { impl_->tick(); }
++void WorkspaceAuthority::settle(bool effects_settled) { impl_->settle(effects_settled); }
++void WorkspaceAuthority::shutdown(const std::function<void()>& reconcile) { impl_->shutdown(reconcile); }
++std::uint64_t WorkspaceAuthority::cancellation_sequence() const { return impl_->cancellation_sequence; }
+ void WorkspaceAuthority::keepalive() {
+     if (!impl_->broken && Clock::now()-impl_->last_exchange >= std::chrono::seconds(1)) {
+         id::IssuerRequest request; request.mutable_info();
+--- a/src/workspace/authority.hpp
++++ b/src/workspace/authority.hpp
+@@ -23,6 +23,9 @@
+     authority::v1::BootstrapBinding revoke_bootstrap(const workspace::v1::BootstrapRevokeRequest&);
+     authority::v1::BootstrapReport apply_bootstrap(const workspace::v1::BootstrapApplyRequest&);
+     void tick();
++    void settle(bool effects_settled);
++    void shutdown(const std::function<void()>& reconcile);
++    std::uint64_t cancellation_sequence() const;
+     void keepalive();
+     bool consume_changes();
+     void set_observer(std::function<void()> observer);
+--- a/src/workspace/main.cpp
++++ b/src/workspace/main.cpp
+@@ -199,19 +199,32 @@
+                 if (length > spatial::max_frame_bytes) throw std::runtime_error("Excessive workspace frame");
+                 if (input.size() >= length+4) {
+                     spatial::workspace::v1::Request request; spatial::workspace::v1::Reply reply;
++                    const auto cancellation = authority ? authority->cancellation_sequence() : 0;
+                     if (!request.ParseFromArray(input.data()+4, static_cast<int>(length))) {
+                         reply.set_protocol_version(1); reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
+                         reply.mutable_error()->set_message("Malformed broker protobuf payload");
+                     } else reply = dispatch_broker(request, store, authority.get(), controls);
+                     enforce();
++                    if (authority && cancellation != authority->cancellation_sequence() &&
++                            !request.has_management() && !request.has_control_release()) {
++                        reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
++                        reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
++                        reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
++                    }
+                     input.erase(0, length+4); input_started = Clock::now();
+                     enqueue(reply);
+                 }
+             }
+             if (eof && output.empty()) {
+                 if (!input.empty()) throw std::runtime_error("Truncated workspace frame");
++                store.stop_all();
++                if (authority) {
++                    if (!controls.empty()) throw std::runtime_error("Workspace control release remains unresolved");
++                    authority->shutdown(enforce);
++                }
+                 return 0;
+             }
++            if (authority) authority->settle(output.empty() && controls.cancellation_settled());
+             pollfd fds[2]{{!eof && output.empty() ? STDIN_FILENO : -1, POLLIN, 0},
+                           {STDOUT_FILENO, static_cast<short>(output.empty() ? 0 : POLLOUT), 0}};
+             const int ready = poll(fds, 2, 10);
+--- a/src/workspace/control.cpp
++++ b/src/workspace/control.cpp
+@@ -54,6 +54,13 @@
+     groups_.erase(found->second.lease.application().SerializeAsString()); leases_.erase(found);
+     pb::ApplicationControlReleased result; result.set_id(request.id()); return result;
+ }
++bool ControlLeases::cancellation_settled() const {
++    for (const auto& [id, reservation] : leases_) {
++        (void)id;
++        if (reservation.revoked) return false;
++    }
++    return true;
++}
+ void ControlLeases::tick() {
+     for (auto& [id, reservation] : leases_) {
+         (void)id;
+--- a/src/workspace/control.hpp
++++ b/src/workspace/control.hpp
+@@ -14,6 +14,8 @@
+     workspace::v1::ApplicationControlReleased release(const workspace::v1::ApplicationControlRelease&);
+     // Uses already prepared issuer state. Performs no issuer exchange or process reaping.
+     void tick();
++    bool cancellation_settled() const;
++    bool empty() const { return leases_.empty(); }
+ private:
+     struct Reservation { Lease lease; bool revoked = false; };
+     ExecutionStore& store_;
+--- a/src/workspace/store.cpp
++++ b/src/workspace/store.cpp
+@@ -793,6 +793,11 @@
+     wire::ProcessWaitReply out; out.set_exit_code(*result); return out;
+ }
+ void ExecutionStore::set_native_launch(NativeLaunch* native) { impl_->native = native; }
++void ExecutionStore::stop_all() {
++    // Checked destruction cannot return after unconfirmed process termination.
++    impl_->jobs.clear();
++    Query q(impl_->db.get(), "UPDATE processes SET state='uncertain' WHERE state='running'"); q.step();
++}
+ void ExecutionStore::reap() {
+     // Completion is a process lifecycle event, not an actor's wait request.
+     std::vector<std::string> running;
+--- a/src/workspace/store.hpp
++++ b/src/workspace/store.hpp
+@@ -30,6 +30,7 @@
+     void set_native_launch(NativeLaunch* native);
+     void reconcile_authority();
+     void reap();
++    void stop_all();
+     wire::ProcessLaunchReply launch(const workspace::v1::LaunchRequest& request);
+     wire::ProcessWaitReply wait(const wire::ProcessWaitRequest& request);
+ private:
+--- /dev/null
++++ b/tests/core/test_workspace_participant.py
+@@ -0,0 +1,136 @@
++"""Broker participation uses real issuer obligations and confined process witnesses."""
++import os
++from pathlib import Path
++import select
++import socket
++import sqlite3
++import subprocess
++import time
++import unittest
++from google.protobuf import text_format
++import broker_pb2 as broker
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as issuer
++from harness.git_fixture import GitRepo
++from test_world_identity import WorldIdentityFixture
++from test_world_participant import HeldRevocationRelay
++import test_workspace_authority as workspace
++
++RUN = """from pathlib import Path
++import subprocess,time
++subprocess.Popen(['/usr/bin/python3','-c','import time; time.sleep(60)'],start_new_session=True)
++while True:
++    Path('/project/heartbeat').write_text(str(time.monotonic_ns()))
++    time.sleep(.01)
++"""
++
++class BrokerProcess(workspace.BrokerProcess):
++    def close(self):
++        if self.stream.fileno()<0:return
++        if self.proc.poll() is None:
++            try:self.stream.shutdown(socket.SHUT_WR)
++            except OSError:pass
++            try:self.proc.wait(timeout=6)
++            except subprocess.TimeoutExpired:self.proc.kill();self.proc.wait(timeout=3);raise
++        self.stream.close();self.log.close()
++
++class WorkspaceParticipantFixture(WorldIdentityFixture):
++    principal=workspace.WorkspaceAuthorityTests.principal
++    workspace_terms=workspace.WorkspaceAuthorityTests.workspace_terms
++    descendants=workspace.WorkspaceAuthorityTests.descendants
++    def setUp(self):
++        super().setUp();self.brokers=[]
++        self.addCleanup(lambda:[item.close() for item in reversed(self.brokers)])
++        self.execution=self.root/'execution';first=BrokerProcess(self,self.execution)
++        repo=GitRepo(self.root)
++        first.call('git.repo.import',id='repo',path=str(repo.path))
++        tree=first.call('git.worktree.create',repo='repo',id='tree',branch='app',start='main',operation_id='tree')
++        self.project=Path(tree['path']);first.call('workspace.create',id='one',worktree='tree',policy=workspace.POLICY)
++        first.close();self.assertEqual(first.proc.returncode,0)
++        self.directory=self.root/'authority';self.directory.mkdir(mode=0o700)
++        seed=broker.WorkspaceAuthoritySeed(protocol_version=1,workspace='one',authority_directory=str(self.directory),roots=[self.workspace_terms()])
++        path=self.write('seed',seed)
++        result=subprocess.run([str(workspace.BROKER),'--state-dir',str(self.execution),'--init-authority',str(path)],capture_output=True,timeout=8)
++        self.assertEqual(result.returncode,0,result.stderr)
++        self.signer,public=self.key('broker-service')
++        self.definition=issuer.AuthorityParticipant(id=b'b'*32,public_key=public,domains=[grants.Domain(kind=grants.WORKSPACE,id='one')])
++        peer=self.connect()
++        try:
++            op=issuer.IssuerOperation(participant_register=issuer.AuthorityParticipantRegister(participant=self.definition,expected_registry_revision=0))
++            result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('participant'),result)
++        finally:peer.close()
++    def write(self,name,message):
++        path=self.root/(name+'.textproto');path.write_text(text_format.MessageToString(message),encoding='utf-8');path.chmod(0o600);return path
++    def start_broker(self,relay=None,participate=True):
++        query=self.root/'query.textproto';query.write_bytes(self.config_file().read_bytes());query.chmod(0o600)
++        service=self.root/'service.textproto';service.write_bytes(self.config_file(endpoint_port=relay.port if relay else None,io_timeout_ms=3000).read_bytes());service.chmod(0o600)
++        participant=self.write('participant',issuer.AuthorityParticipantRuntimeConfig(protocol_version=1,
++            issuer_client_config=str(service),private_key_path=str(self.signer),participant_id=self.definition.id,registered_revision=1))
++        config=broker.WorkspaceAuthorityConfig(protocol_version=1,issuer_client_config=str(query),
++            bindings=[broker.WorkspaceAuthorityBinding(workspace='one',authority_directory=str(self.directory))])
++        # Old binaries have no participant field. This permits an unchanged-source counterexample.
++        if participate and 'participant_runtime_config' in config.DESCRIPTOR.fields_by_name:config.participant_runtime_config=str(participant)
++        elif relay:config.issuer_client_config=str(service)
++        self.broker=BrokerProcess(self,self.execution,self.write('broker',config));return self.broker
++    def activations(self):
++        with sqlite3.connect(self.state/'identity.db') as db:return db.execute('SELECT generation,applied_revision,active FROM authority_activation ORDER BY generation').fetchall()
++    def barrier(self):
++        peer=self.connect()
++        try:
++            op=issuer.IssuerOperation(barrier_read=issuer.AuthorityBarrierRead(revision=1))
++            result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('authority_barrier'),result);return result.authority_barrier
++        finally:peer.close()
++    def revoke_now(self,kind=issuer.ACTOR_TARGET):
++        self.owner_peer=self.connect()
++        try:self.revoke(kind=kind)
++        finally:self.owner_peer.close()
++    def launch_application(self):
++        principal=self.principal();actor='identity:'+principal.issuer_id.hex()+':'+principal.actor_id.hex()
++        result=self.broker.request(launch=broker.LaunchRequest(workspace='one',actor=actor,principal=principal,
++            command=core.ProcessLaunchRequest(operation_id='run',profile='development',argv=['/usr/bin/python3','-c',RUN])))
++        self.assertTrue(result.HasField('launched'),result)
++        self.until(lambda:(self.project/'heartbeat').exists(),bool)
++        pids=self.until(self.descendants,lambda value:len(value)>=5)
++        poll=select.poll()
++        for pid in pids:
++            fd=os.pidfd_open(pid);self.addCleanup(os.close,fd);poll.register(fd,select.POLLIN)
++        self.assertEqual(poll.poll(0),[])
++        return poll,len(pids)
++
++class WorkspaceParticipantTests(WorkspaceParticipantFixture):
++    def test_authority_broker_requires_participant_configuration(self):
++        item=self.start_broker(participate=False)
++        try:code=item.proc.wait(timeout=1)
++        except subprocess.TimeoutExpired:self.fail('Authority broker remained available without participation')
++        self.assertEqual(code,2);self.assertIn('participant configuration is required',Path(item.log.name).read_text())
++    def test_broker_activates_before_protected_work_and_cleanly_releases(self):
++        item=self.start_broker();item.call('system.hello');self.assertEqual(self.activations(),[(1,0,1)])
++        item.close();self.assertEqual(item.proc.returncode,0);self.assertEqual(self.activations(),[(1,0,0)])
++    def test_completion_waits_for_real_detached_process_exit(self):
++        relay=HeldRevocationRelay(self);item=self.start_broker(relay);item.call('system.hello');poll,count=self.launch_application()
++        self.revoke_now();self.assertTrue(relay.held.wait(.3));self.assertFalse(relay.delivered.is_set())
++        pending=self.barrier();before=(self.project/'heartbeat').read_text();time.sleep(.08)
++        after=(self.project/'heartbeat').read_text();self.assertNotEqual(before,after);self.assertEqual(poll.poll(0),[])
++        self.assertEqual((pending.participant_count,pending.pending_count,pending.complete),(1,1,False))
++        relay.release.set();self.assertTrue(relay.delivered.wait(.3))
++        completed=self.until(self.barrier,lambda value:value.complete);self.assertEqual(completed.participant_count,1)
++        self.assertEqual(len(poll.poll(0)),count,'Issuer completion preceded independently witnessed process exit')
++        item.close();self.assertEqual(item.proc.returncode,0);self.assertEqual(self.activations(),[(1,1,0)])
++    def test_credential_revocation_preserves_actor_owned_execution(self):
++        item=self.start_broker();item.call('system.hello');poll,count=self.launch_application();self.revoke_now(issuer.CREDENTIAL_TARGET)
++        completed=self.until(self.barrier,lambda value:value.complete);self.assertEqual(completed.participant_count,1)
++        self.assertEqual(poll.poll(0),[]);before=(self.project/'heartbeat').read_text();time.sleep(.08)
++        self.assertNotEqual(before,(self.project/'heartbeat').read_text())
++        item.close();self.assertEqual(item.proc.returncode,0);self.assertEqual(len(poll.poll(0)),count)
++        self.assertEqual(self.activations(),[(1,1,0)])
++    def test_clean_restart_uses_new_generation(self):
++        item=self.start_broker();item.call('system.hello');item.close();self.assertEqual(item.proc.returncode,0)
++        item=self.start_broker();item.call('system.hello');self.assertEqual(self.activations(),[(1,0,0),(2,0,1)])
++    def test_crash_retains_obligation_and_blocks_replacement(self):
++        item=self.start_broker();item.call('system.hello');item.proc.kill();item.proc.wait(timeout=2);item.close()
++        self.revoke_now();pending=self.barrier();self.assertEqual((pending.participant_count,pending.pending_count),(1,1))
++        replacement=self.start_broker();self.assertEqual(replacement.proc.wait(timeout=4),2)
++        self.assertFalse(self.barrier().complete);self.assertEqual(self.activations(),[(1,0,1)])
++
++if __name__=='__main__':unittest.main(verbosity=2)

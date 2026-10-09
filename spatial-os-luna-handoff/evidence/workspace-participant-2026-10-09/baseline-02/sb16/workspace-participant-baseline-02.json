@@ -1,0 +1,19 @@
+{
+  "host": "sb16",
+  "passed": 0,
+  "failed": 3,
+  "errors": 0,
+  "source_files": 246,
+  "source_manifest": "participant-world-candidate-02.json",
+  "command": "PYTHONPATH=local/m02-participant-world-draft-02/debug/build/python:local/m02-participant-world-draft-02/source:local/m02-participant-world-draft-02/source/tests/core python3 local/test_workspace_participant_baseline_02.py local/m02-participant-world-draft-02/debug/build/identityd local/m02-participant-world-draft-02/debug/build/spatial-issuer-client local/m02-participant-world-draft-02/debug/build/worldd WorkspaceParticipantTests.test_authority_broker_requires_participant_configuration WorkspaceParticipantTests.test_broker_activates_before_protected_work_and_cleanly_releases WorkspaceParticipantTests.test_completion_waits_for_real_detached_process_exit",
+  "binaries": {
+    "workspaced": "646aa649aa53fd48cdd6dcdca3db2cabd49feb3e0383c54f1ed04760cbfcb49e",
+    "identityd": "123eff4fe1e3df77a64f13ef19968c63a1d1deecc5c4b31eba3d34be173db8c5",
+    "spatial-issuer-client": "a224fbd896d2f8383a063608118ef8bdae8a67b2c0b53ea215dc94f4fb7127f1",
+    "spatial-app-init": "577a47f40578e3a585a2ef03e2efebfa84c221c4bc863c783a061fd4e0b8b38e"
+  },
+  "files": {
+    "workspace-participant-baseline-02.log": "c7f942935a4d0ec2598daacfd5ce9c1f83009518d37d2768c31376d7fc52e4af",
+    "test_workspace_participant_baseline_02.py": "b03f3207963a1de04dd96edd882f4399be0f447b58e9423dbda5bfa796b8d785"
+  }
+}

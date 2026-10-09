@@ -1,0 +1,71 @@
+test_authority_broker_requires_participant_configuration (__main__.WorkspaceParticipantTests.test_authority_broker_requires_participant_configuration) ... ERROR
+test_broker_activates_before_protected_work_and_cleanly_releases (__main__.WorkspaceParticipantTests.test_broker_activates_before_protected_work_and_cleanly_releases) ... ERROR
+test_completion_waits_for_real_detached_process_exit (__main__.WorkspaceParticipantTests.test_completion_waits_for_real_detached_process_exit) ... ERROR
+
+======================================================================
+ERROR: test_authority_broker_requires_participant_configuration (__main__.WorkspaceParticipantTests.test_authority_broker_requires_participant_configuration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_01.py", line 43, in setUp
+    super().setUp();self.brokers=[]
+    ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/source/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/source/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_01.py", line 89, in launch
+    principal=self.principal();actor='identity:'+principal.issuer_id.hex()+':'+principal.actor_id.hex()
+              ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/source/tests/core/test_world_authority.py", line 91, in principal
+    claims = claims or self.identity
+                       ^^^^^^^^^^^^^
+AttributeError: 'WorkspaceParticipantTests' object has no attribute 'identity'
+
+======================================================================
+ERROR: test_broker_activates_before_protected_work_and_cleanly_releases (__main__.WorkspaceParticipantTests.test_broker_activates_before_protected_work_and_cleanly_releases)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_01.py", line 43, in setUp
+    super().setUp();self.brokers=[]
+    ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/source/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/source/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_01.py", line 89, in launch
+    principal=self.principal();actor='identity:'+principal.issuer_id.hex()+':'+principal.actor_id.hex()
+              ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/source/tests/core/test_world_authority.py", line 91, in principal
+    claims = claims or self.identity
+                       ^^^^^^^^^^^^^
+AttributeError: 'WorkspaceParticipantTests' object has no attribute 'identity'
+
+======================================================================
+ERROR: test_completion_waits_for_real_detached_process_exit (__main__.WorkspaceParticipantTests.test_completion_waits_for_real_detached_process_exit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_01.py", line 43, in setUp
+    super().setUp();self.brokers=[]
+    ^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/source/tests/core/test_world_identity.py", line 88, in setUp
+    self.owner_peer=self.ready()
+                    ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/source/tests/core/test_identity_tls.py", line 113, in ready
+    proc = self.launch(); deadline = time.monotonic()+3
+           ^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_participant_baseline_01.py", line 89, in launch
+    principal=self.principal();actor='identity:'+principal.issuer_id.hex()+':'+principal.actor_id.hex()
+              ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/source/tests/core/test_world_authority.py", line 91, in principal
+    claims = claims or self.identity
+                       ^^^^^^^^^^^^^
+AttributeError: 'WorkspaceParticipantTests' object has no attribute 'identity'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.332s
+
+FAILED (errors=3)

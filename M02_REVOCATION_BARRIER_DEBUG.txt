@@ -83,3 +83,12 @@ Process correction verification
 Both hosts passed four new cleanup checks and 51 related checks in each Debug and runtime sanitizer profile.
 The extended candidate passes six cleanup checks and 51 harness checks in sb16 Debug.
 Full candidate02 qualification is running on both hosts. The correction remains isolated pending that qualification.
+
+Broker participation, 2026-10-09
+The broker also reproduced completion with zero participants while an actual application continued writing.
+The isolated correction now activates before protected work and waits for process and control settlement.
+Six broker and two native reservation checks pass in sb16 Debug. Existing world, worker, and cleanup focused checks pass.
+Native checks use diagnostic XLibre Xvfb, not an operator session or physical input qualification.
+Both-host focused Debug and runtime sanitizer checks are running. Full regression and supervisor fencing remain pending.
+Evidence: spatial-os-luna-handoff/evidence/workspace-participant-2026-10-09
+The separate process correction passed full Debug on both hosts. Its full sanitizer jobs remain live.

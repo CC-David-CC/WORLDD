@@ -1,0 +1,38 @@
+{
+  "host": "sb16",
+  "results": [
+    {
+      "name": "native",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-02/source/tests/core/test_workspace_participant_native.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/debug/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/debug/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "workspace",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-02/source/tests/core/test_workspace_participant.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/debug/build/worldd"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "binaries": {
+    "workspaced": "fa8186cfa06f5895cedfcfc8967b4d0e22f01218ffbc401f09a4adf22ea74a8d",
+    "identityd": "76b210422a765231984803a115b74e30b3e6233bc9e57488bc70d8721a05df3f",
+    "spatial-issuer-client": "6d4de06006587fe38713e679ca11440fce2508b0063098864b74a2a80108df4c",
+    "spatial-security-auth": "872c4cbfd25fa72c1cddb30f2ed8fd95aad2a7754f052f26a19ecfefda6517f2"
+  }
+}
