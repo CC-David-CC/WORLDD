@@ -1,0 +1,616 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -15,7 +15,7 @@
+ find_package(OpenGL REQUIRED)
+ find_package(GLEW REQUIRED)
+ configure_file(config/conformance.textproto runtime.textproto COPYONLY)
+-set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
++set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
+ protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
+ protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
+ protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
+@@ -26,7 +26,16 @@
+ protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
+ protobuf_generate_cpp(grants_proto_sources grants_proto_headers proto/spatial/authority/v1/grants.proto)
+ protobuf_generate_cpp(scope_proto_sources scope_proto_headers proto/spatial/supervisor/v1/process_scope.proto)
++protobuf_generate_cpp(launch_proto_sources launch_proto_headers proto/spatial/supervisor/v1/launch.proto)
+ file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
++add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py"
++    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
++        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/launch.proto
++    DEPENDS proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
++        proto/spatial/supervisor/v1/native_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
++add_custom_target(launch-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py")
+ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/process_scope_pb2.py"
+     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+@@ -141,6 +150,11 @@
+ add_library(spatial-identity STATIC src/identity/keys.cpp)
+ add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp ${scope_proto_sources} ${scope_proto_headers})
+ target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
++add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
++target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope SQLite::SQLite3)
++add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
++target_link_libraries(spatial-authority-launch-probe PRIVATE spatial-authority-launch)
++add_dependencies(spatial-authority-launch-probe launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf)
+ add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
+ target_link_libraries(spatial-process-scope-probe PRIVATE spatial-process-scope)
+ add_dependencies(spatial-process-scope-probe scope-python-protobuf python-protobuf security-python-protobuf)
+@@ -214,6 +228,16 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(workspace-bootstrap-owner-idle PROPERTIES TIMEOUT 60
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME authority-launch-coordinator COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-coordinator-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_launch.py"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>)
++    set_tests_properties(authority-launch-coordinator PROPERTIES TIMEOUT 120)
+     add_test(NAME authority-prepared-launch COMMAND systemd-run --user --wait --pipe --collect
+         --unit=spatial-prepared-${build_hash} --property=Delegate=yes
+         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+--- /dev/null
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -0,0 +1,55 @@
++syntax = "proto3";
++package spatial.supervisor.v1;
++import "process_scope.proto";
++import "native_scope.proto";
++
++// Private supervisor context. Recording this does not authorize issuer activation.
++message AuthorityLaunchBinding {
++  bytes issuer_id = 1;
++  bytes participant_id = 2;
++  uint64 registered_revision = 3;
++  bytes service_incarnation = 4;
++}
++enum AuthorityLaunchStage {
++  LAUNCH_STAGE_UNSPECIFIED = 0;
++  PREPARING = 1;
++  PREPARED = 2;
++  START_ATTEMPTED = 3;
++  CLEANUP_PENDING = 4;
++  OWNED_SCOPES_STOPPED = 5;
++}
++// Contains identities and checked receipts, never cookies or private keys.
++message AuthorityLaunchRecord {
++  uint32 schema_version = 1;
++  uint64 revision = 2;
++  AuthorityLaunchBinding binding = 3;
++  ProcessScopeIdentity process = 4;
++  NativeScopeIdentity native = 5;
++  AuthorityLaunchStage stage = 6;
++  ProcessScopeStopped process_stopped = 7;
++  NativeScopeStopped native_stopped = 8;
++}
++message AuthorityLaunchQuery {}
++message AuthorityLaunchRequest {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof operation {
++    AuthorityLaunchBinding prepare = 10;
++    AuthorityProcessLaunch start = 11;
++    AuthorityLaunchQuery inspect = 12;
++    AuthorityLaunchQuery stop = 13;
++  }
++}
++message AuthorityLaunchView {
++  AuthorityLaunchRecord record = 1;
++  NativeScopeReady ready = 2; // Only during live preparation. Never persisted.
++}
++message AuthorityLaunchError { string message = 1; }
++message AuthorityLaunchReply {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof outcome {
++    AuthorityLaunchView view = 10;
++    AuthorityLaunchError error = 11;
++  }
++}
+--- /dev/null
++++ b/src/supervisor/launch.cpp
+@@ -0,0 +1,225 @@
++#include "supervisor/launch.hpp"
++#include "supervisor/native_scope.hpp"
++#include "supervisor/process_scope.hpp"
++#include "core/protocol.hpp"
++#include <cerrno>
++#include <fcntl.h>
++#include <iostream>
++#include <sqlite3.h>
++#include <stdexcept>
++#include <sys/file.h>
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++namespace spatial::supervisor {
++namespace {
++struct File {
++    int fd = -1;
++    ~File() { if (fd >= 0) close(fd); }
++};
++void require(bool okay, const char* message) {
++    if (!okay) throw std::runtime_error(message);
++}
++void sql(sqlite3* db, const char* text) {
++    require(sqlite3_exec(db, text, nullptr, nullptr, nullptr) == SQLITE_OK, "Launch journal transaction failed");
++}
++struct Query {
++    sqlite3_stmt* statement = nullptr;
++    Query(sqlite3* db, const char* text) {
++        require(sqlite3_prepare_v2(db, text, -1, &statement, nullptr) == SQLITE_OK, "Launch journal query failed");
++    }
++    ~Query() { sqlite3_finalize(statement); }
++    int step() {
++        const int code = sqlite3_step(statement);
++        require(code == SQLITE_ROW || code == SQLITE_DONE, "Launch journal operation failed");
++        return code;
++    }
++    std::string bytes(int column) const {
++        const auto* value = static_cast<const char*>(sqlite3_column_blob(statement, column));
++        const int size = sqlite3_column_bytes(statement, column);
++        return size ? std::string(value, static_cast<std::size_t>(size)) : std::string();
++    }
++};
++bool private_file(int directory, const char* name, bool required) {
++    struct stat info{};
++    if (fstatat(directory, name, &info, AT_SYMLINK_NOFOLLOW) < 0) {
++        require(!required && errno == ENOENT, "Cannot inspect launch journal file");
++        return false;
++    }
++    require(S_ISREG(info.st_mode) && info.st_uid == geteuid() && !(info.st_mode & 0077) && info.st_nlink == 1,
++            "Launch journal files must be private owned regular files");
++    return true;
++}
++v1::NativeScopeConfig configuration(int fd) {
++    constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
++    struct stat info{};
++    const int actual = fcntl(fd, F_GET_SEALS);
++    require(actual >= 0 && (actual & seals) == seals && fstat(fd, &info) == 0 && info.st_size > 0 && info.st_size <= 65536,
++            "Expected sealed native configuration");
++    std::string bytes(static_cast<std::size_t>(info.st_size), '\0');
++    require(pread(fd, bytes.data(), bytes.size(), 0) == static_cast<ssize_t>(bytes.size()), "Cannot read native configuration");
++    v1::NativeScopeConfig value;
++    require(value.ParseFromString(bytes), "Malformed native configuration");
++    validate_message(value);
++    require(value.protocol_version() == 1 && value.has_display_number() && value.display_number() <= 65535 &&
++        value.supervisor_cookie().size() == 32 && value.server_id().size() == 32 && value.has_server_pid() &&
++        value.server_pid() > 0 && value.has_server_uid() && value.launch_id().size() == 32 &&
++        (value.role() == security::v1::BROKER || value.role() == security::v1::COMPOSITOR), "Invalid native configuration");
++    return value;
++}
++void validate_record(const v1::AuthorityLaunchRecord& value) {
++    validate_message(value);
++    const auto& binding = value.binding();
++    const auto& process = value.process();
++    const auto& native = value.native();
++    require(value.schema_version() == 1 && value.revision() > 0 && binding.issuer_id().size() == 32 &&
++        binding.participant_id().size() == 32 && binding.registered_revision() > 0 && binding.service_incarnation().size() == 32 &&
++        process.launch_id().size() == 32 && process.boot_id().size() == 36 && process.device() && process.inode() &&
++        !process.scope_name().empty() && native.launch_id() == process.launch_id() && native.server_id().size() == 32 &&
++        (native.role() == security::v1::BROKER || native.role() == security::v1::COMPOSITOR) &&
++        value.stage() >= v1::PREPARING && value.stage() <= v1::OWNED_SCOPES_STOPPED,
++        "Invalid durable launch record");
++    require(native.credential_id().size() == 32 ||
++        (native.credential_id().empty() && (value.stage() == v1::PREPARING || value.stage() == v1::CLEANUP_PENDING)),
++        "Missing durable native identity");
++    require(!value.has_process_stopped() || (value.stage() >= v1::CLEANUP_PENDING &&
++        value.process_stopped().identity().SerializeAsString() == process.SerializeAsString()), "Invalid process cleanup record");
++    require(!value.has_native_stopped() || (value.stage() >= v1::CLEANUP_PENDING && native.credential_id().size() == 32 &&
++        value.native_stopped().identity().SerializeAsString() == native.SerializeAsString()), "Invalid native cleanup record");
++    require(value.stage() != v1::OWNED_SCOPES_STOPPED || (value.has_process_stopped() && value.has_native_stopped()),
++        "Incomplete owned scope cleanup");
++}
++}
++
++struct AuthorityLaunch::Impl {
++    File directory, lock;
++    std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
++    v1::AuthorityLaunchRecord record;
++    std::unique_ptr<ProcessScope> process;
++    std::unique_ptr<NativeScope> native;
++    explicit Impl(const std::filesystem::path& path) {
++        require(path.is_absolute(), "Launch directory must be absolute");
++        directory.fd = open(path.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
++        struct stat info{};
++        require(directory.fd >= 0 && fstat(directory.fd, &info) == 0 && info.st_uid == geteuid() && !(info.st_mode & 0077),
++                "Launch directory must exist and be private and owned");
++        lock.fd = openat(directory.fd, "launch.lock", O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK, 0600);
++        private_file(directory.fd, "launch.lock", true);
++        require(lock.fd >= 0 && flock(lock.fd, LOCK_EX | LOCK_NB) == 0, "Launch directory is already owned");
++        const bool existing = private_file(directory.fd, "launch.db", false);
++        if (!existing) {
++            for (const auto& item : std::filesystem::directory_iterator(path))
++                require(item.path().filename() == "launch.lock", "New launch journal requires an empty directory");
++            File created;
++            created.fd = openat(directory.fd, "launch.db", O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0600);
++            require(created.fd >= 0, "Cannot create launch journal");
++        }
++        for (const auto* name : {"launch.db-journal", "launch.db-wal", "launch.db-shm"}) private_file(directory.fd, name, false);
++        sqlite3* opened = nullptr;
++        const int result = sqlite3_open_v2((path/"launch.db").c_str(), &opened,
++            SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
++        db.reset(opened);
++        require(result == SQLITE_OK, "Cannot open launch journal");
++        require(sqlite3_busy_timeout(db.get(), 2000) == SQLITE_OK, "Cannot set launch journal deadline");
++        if (existing) {
++            Query version(db.get(), "PRAGMA user_version"), application(db.get(), "PRAGMA application_id");
++            require(version.step() == SQLITE_ROW && sqlite3_column_int(version.statement, 0) == 1 &&
++                application.step() == SQLITE_ROW && sqlite3_column_int(application.statement, 0) == 1397771340,
++                "Unknown launch schema; preserve journal for explicit migration");
++        }
++        sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA synchronous=EXTRA");
++        { Query mode(db.get(), "PRAGMA journal_mode=DELETE");
++          require(mode.step() == SQLITE_ROW && mode.bytes(0) == "delete", "Required launch journal mode unavailable"); }
++        if (!existing) {
++            sql(db.get(), "BEGIN IMMEDIATE; CREATE TABLE launch(singleton INTEGER PRIMARY KEY CHECK(singleton=1),"
++                "record BLOB NOT NULL); PRAGMA user_version=1; PRAGMA application_id=1397771340; COMMIT");
++            require(fsync(directory.fd) == 0, "Launch journal directory durability uncertain");
++        }
++        { Query check(db.get(), "PRAGMA quick_check");
++          require(check.step() == SQLITE_ROW && check.bytes(0) == "ok", "Launch journal integrity failure"); }
++        Query row(db.get(), "SELECT record FROM launch WHERE singleton=1");
++        if (row.step() == SQLITE_ROW) {
++            const auto bytes = row.bytes(0);
++            require(bytes.size() <= 65536 && record.ParseFromString(bytes), "Malformed durable launch record");
++            validate_record(record);
++        }
++    }
++    void persist(v1::AuthorityLaunchRecord next) {
++        require(record.revision() < UINT64_MAX, "Launch journal revision exhausted");
++        next.set_revision(record.revision()+1);
++        validate_record(next);
++        const auto bytes = next.SerializeAsString();
++        sql(db.get(), "BEGIN IMMEDIATE");
++        try {
++            Query put(db.get(), "INSERT INTO launch VALUES(1,?) ON CONFLICT(singleton) DO UPDATE SET record=excluded.record");
++            require(sqlite3_bind_blob(put.statement, 1, bytes.data(), static_cast<int>(bytes.size()), SQLITE_TRANSIENT) == SQLITE_OK,
++                    "Cannot bind launch record");
++            require(put.step() == SQLITE_DONE, "Cannot persist launch record");
++            sql(db.get(), "COMMIT");
++        } catch (...) { sqlite3_exec(db.get(), "ROLLBACK", nullptr, nullptr, nullptr); throw; }
++        record = std::move(next);
++    }
++};
++
++AuthorityLaunch::AuthorityLaunch(const std::filesystem::path& directory) : impl_(std::make_unique<Impl>(directory)) {}
++v1::AuthorityLaunchRecord AuthorityLaunch::inspect() const { return impl_->record; }
++v1::AuthorityLaunchView AuthorityLaunch::prepare(const std::filesystem::path& root,
++    const v1::AuthorityLaunchBinding& binding, int fd) {
++    require(!impl_->record.revision() && !impl_->process, "Launch already exists; recovery cannot authorize replacement");
++    validate_message(binding);
++    require(binding.issuer_id().size() == 32 && binding.participant_id().size() == 32 &&
++        binding.registered_revision() > 0 && binding.service_incarnation().size() == 32, "Invalid launch binding");
++    auto config = configuration(fd);
++    impl_->process = ProcessScope::prepare(root);
++    v1::AuthorityLaunchRecord initial;
++    initial.set_schema_version(1); *initial.mutable_binding() = binding;
++    *initial.mutable_process() = impl_->process->state().identity();
++    auto* native = initial.mutable_native();
++    native->set_launch_id(initial.process().launch_id()); native->set_server_id(config.server_id()); native->set_role(config.role());
++    initial.set_stage(v1::PREPARING);
++    impl_->persist(initial); // Durable intent precedes the native external effect.
++    config.set_launch_id(initial.process().launch_id());
++    const auto bytes = config.SerializeAsString();
++    File sealed;
++    sealed.fd = memfd_create("authority-native-launch", MFD_CLOEXEC | MFD_ALLOW_SEALING);
++    require(sealed.fd >= 0 && write(sealed.fd, bytes.data(), bytes.size()) == static_cast<ssize_t>(bytes.size()) &&
++        fcntl(sealed.fd, F_ADD_SEALS, F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL) == 0,
++        "Cannot prepare sealed native launch");
++    impl_->native = std::make_unique<NativeScope>(sealed.fd);
++    auto ready = impl_->native->ready();
++    auto next = impl_->record; *next.mutable_native() = ready.identity(); next.set_stage(v1::PREPARED);
++    impl_->persist(next);
++    v1::AuthorityLaunchView result; *result.mutable_record() = impl_->record; *result.mutable_ready() = ready;
++    return result;
++}
++v1::AuthorityLaunchRecord AuthorityLaunch::start(const v1::AuthorityProcessLaunch& request,
++    const std::array<int, 3>& streams, const std::vector<int>& inherited) {
++    require(impl_->record.stage() == v1::PREPARED && impl_->process && impl_->native, "No live prepared launch ownership");
++    auto next = impl_->record; next.set_stage(v1::START_ATTEMPTED);
++    impl_->persist(next); // A crash after this point must never replay execution.
++    impl_->process->start(request, streams, inherited);
++    return impl_->record;
++}
++v1::AuthorityLaunchRecord AuthorityLaunch::stop() {
++    if (impl_->record.stage() == v1::OWNED_SCOPES_STOPPED) return impl_->record;
++    require(impl_->record.revision() && impl_->process && impl_->native, "Live ownership is unavailable; cleanup remains unresolved");
++    if (impl_->record.stage() != v1::CLEANUP_PENDING) {
++        auto next = impl_->record; next.set_stage(v1::CLEANUP_PENDING); impl_->persist(next);
++    }
++    if (!impl_->record.has_process_stopped()) {
++        auto next = impl_->record; *next.mutable_process_stopped() = impl_->process->stop(); impl_->persist(next);
++    }
++    if (!impl_->record.has_native_stopped()) {
++        auto next = impl_->record; *next.mutable_native_stopped() = impl_->native->stop(); impl_->persist(next);
++    }
++    auto next = impl_->record; next.set_stage(v1::OWNED_SCOPES_STOPPED); impl_->persist(next);
++    return impl_->record;
++}
++AuthorityLaunch::~AuthorityLaunch() {
++    // Destructors still stop owned effects. Only a successful explicit stop persists receipts.
++    // Preserve the record on partial preparation or any journal/cleanup failure.
++    impl_->process.reset();
++    impl_->native.reset();
++}
++}
+--- /dev/null
++++ b/src/supervisor/launch.hpp
+@@ -0,0 +1,27 @@
++#pragma once
++#include "launch.pb.h"
++#include <array>
++#include <filesystem>
++#include <memory>
++#include <vector>
++
++namespace spatial::supervisor {
++// Owns one launch record and its live kernel/native handles.
++// Reopening an unresolved record does not reconstruct handles or permit execution.
++class AuthorityLaunch final {
++public:
++    explicit AuthorityLaunch(const std::filesystem::path& private_directory);
++    ~AuthorityLaunch();
++    AuthorityLaunch(const AuthorityLaunch&) = delete;
++    AuthorityLaunch& operator=(const AuthorityLaunch&) = delete;
++    v1::AuthorityLaunchView prepare(const std::filesystem::path& delegated_root,
++        const v1::AuthorityLaunchBinding& binding, int sealed_native_config);
++    v1::AuthorityLaunchRecord start(const v1::AuthorityProcessLaunch& launch,
++        const std::array<int, 3>& streams, const std::vector<int>& inherited = {});
++    v1::AuthorityLaunchRecord inspect() const;
++    v1::AuthorityLaunchRecord stop();
++private:
++    struct Impl;
++    std::unique_ptr<Impl> impl_;
++};
++}
+--- /dev/null
++++ b/src/testing/authority_launch_probe.cpp
+@@ -0,0 +1,38 @@
++#include "supervisor/launch.hpp"
++#include "core/protocol.hpp"
++#include <csignal>
++#include <fcntl.h>
++#include <iostream>
++#include <unistd.h>
++
++int main(int argc, char** argv) {
++    namespace pb = spatial::supervisor::v1;
++    std::signal(SIGPIPE, SIG_IGN);
++    try {
++        if (argc != 4) throw std::runtime_error("Expected journal directory, delegated root, and sealed native config");
++        spatial::supervisor::AuthorityLaunch launch(argv[1]);
++        const int config = std::stoi(argv[3]);
++        const int empty = open("/dev/null", O_RDWR | O_CLOEXEC);
++        if (empty < 0) throw std::runtime_error("Cannot open child streams");
++        std::string bytes;
++        while (spatial::read_frame(std::cin, bytes)) {
++            pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
++            try {
++                pb::AuthorityLaunchRequest request;
++                if (!request.ParseFromString(bytes)) throw std::runtime_error("Malformed launch request");
++                reply.set_request_id(request.request_id()); spatial::validate_message(request);
++                if (request.protocol_version() != 1) throw std::runtime_error("Unsupported launch version");
++                if (request.has_prepare()) *reply.mutable_view() = launch.prepare(argv[2], request.prepare(), config);
++                else if (request.has_start()) *reply.mutable_view()->mutable_record() = launch.start(request.start(), {empty,empty,empty});
++                else if (request.has_inspect()) *reply.mutable_view()->mutable_record() = launch.inspect();
++                else if (request.has_stop()) *reply.mutable_view()->mutable_record() = launch.stop();
++                else throw std::runtime_error("Unknown launch operation");
++            } catch (const std::exception& error) {
++                reply.mutable_error()->set_message(error.what());
++            }
++            spatial::write_frame(std::cout, reply);
++        }
++        close(empty);
++        return 0;
++    } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 2; }
++}
+--- /dev/null
++++ b/tests/native/test_authority_launch.py
+@@ -0,0 +1,199 @@
++"""A real child and native clients independently witness durable coordinated ownership."""
++import fcntl
++import os
++from pathlib import Path
++import select
++import signal
++import sqlite3
++import struct
++import subprocess
++import sys
++import time
++import unittest
++import launch_pb2 as pb
++import native_scope_pb2 as native_pb
++import process_scope_pb2 as process_pb
++import security_pb2 as security
++from harness.wire import frame
++
++PROBE=Path(sys.argv.pop(1)).resolve()
++import test_security_identity as native
++RELATIVE=Path('/proc/self/cgroup').read_text().strip().split('::',1)[1]
++CGROUP=Path('/sys/fs/cgroup')/RELATIVE.lstrip('/')
++assert RELATIVE!='/' and CGROUP.stat().st_uid==os.getuid()
++
++class AuthorityLaunchTests(native.SecurityIdentityTests):
++    def setUp(self):
++        super().setUp()
++        self.cgroup=CGROUP/('launch-'+self.root.name);self.cgroup.mkdir()
++        self.addCleanup(self.cleanup_cgroups)
++        self.journal=self.root/'journal';self.journal.mkdir(mode=0o700)
++        self.binding=pb.AuthorityLaunchBinding(issuer_id=os.urandom(32),participant_id=os.urandom(32),
++            registered_revision=7,service_incarnation=os.urandom(32))
++
++    def cleanup_cgroups(self):
++        for path in self.cgroup.iterdir():
++            if not path.is_dir():continue
++            (path/'cgroup.kill').chmod(0o600);(path/'cgroup.kill').write_text('1\n')
++            limit=time.monotonic()+3
++            while 'populated 1' in (path/'cgroup.events').read_text():
++                self.assertLess(time.monotonic(),limit);time.sleep(.005)
++            path.rmdir()
++        self.cgroup.rmdir()
++
++    def probe(self, start_server=True):
++        if start_server:self.start()
++        config=native_pb.NativeScopeConfig(protocol_version=1,display_number=self.display,supervisor_cookie=self.cookie,
++            server_id=self.supervisor.inspect().server_id,server_pid=self.server.pid,server_uid=os.getuid(),
++            launch_id=os.urandom(32),role=security.BROKER)
++        fd=os.memfd_create('coordinator-test',os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING)
++        os.write(fd,config.SerializeToString())
++        fcntl.fcntl(fd,fcntl.F_ADD_SEALS,fcntl.F_SEAL_WRITE|fcntl.F_SEAL_GROW|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_SEAL)
++        path=self.root/('coordinator-'+str(time.monotonic_ns())+'.log');log=path.open('wb')
++        try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
++            stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log,pass_fds=(fd,))
++        finally:os.close(fd)
++        def cleanup():
++            if proc.poll() is None:
++                proc.stdin.close()
++                try:proc.wait(timeout=5)
++                except subprocess.TimeoutExpired:proc.kill();proc.wait(timeout=3)
++            if not proc.stdin.closed:proc.stdin.close()
++            proc.stdout.close();log.close()
++            text=path.read_text(errors='replace')
++            for marker in ('AddressSanitizer','LeakSanitizer','runtime error:'):self.assertNotIn(marker,text)
++        self.addCleanup(cleanup)
++        return proc
++
++    def send(self,proc,**op):
++        proc.stdin.write(frame(pb.AuthorityLaunchRequest(protocol_version=1,request_id=55,**op)));proc.stdin.flush()
++
++    def reply(self,proc):
++        def exact(size):
++            data=b''
++            while len(data)<size:
++                self.assertTrue(select.select([proc.stdout],[],[],5)[0],'Coordinator reply deadline')
++                part=os.read(proc.stdout.fileno(),size-len(data));self.assertTrue(part,'Coordinator closed its reply channel');data+=part
++            return data
++        size=struct.unpack('!I',exact(4))[0];self.assertLessEqual(size,1048576)
++        value=pb.AuthorityLaunchReply.FromString(exact(size));self.assertEqual(value.protocol_version,1);self.assertEqual(value.request_id,55)
++        return value
++
++    def call(self,proc,**op):self.send(proc,**op);return self.reply(proc)
++
++    def read_record(self):
++        with sqlite3.connect('file:'+str(self.journal/'launch.db')+'?mode=ro',uri=True) as db:
++            value=db.execute('SELECT record FROM launch WHERE singleton=1').fetchone()
++        return pb.AuthorityLaunchRecord.FromString(value[0]) if value else pb.AuthorityLaunchRecord()
++
++    def prepared(self,proc):
++        reply=self.call(proc,prepare=self.binding);self.assertTrue(reply.HasField('view'),reply)
++        record=reply.view.record;self.assertEqual(record,self.read_record());self.assertEqual(record.stage,pb.PREPARED)
++        self.assertEqual(record.binding,self.binding);self.assertEqual(record.process.launch_id,record.native.launch_id)
++        self.assertEqual(record.native.credential_id,reply.view.ready.credential.id)
++        self.assertEqual((self.cgroup/record.process.scope_name/'cgroup.procs').read_text(),'')
++        return reply.view
++
++    def run_child(self,proc,code):
++        return self.call(proc,start=process_pb.AuthorityProcessLaunch(executable='/usr/bin/python3',arguments=['-c',code]))
++
++    def wait_file(self,path):
++        limit=time.monotonic()+4
++        while not path.exists():self.assertLess(time.monotonic(),limit);time.sleep(.005)
++
++    def stopped(self,proc):
++        reply=self.call(proc,stop=pb.AuthorityLaunchQuery());self.assertTrue(reply.HasField('view'),reply)
++        record=reply.view.record;self.assertEqual(record.stage,pb.OWNED_SCOPES_STOPPED)
++        self.assertEqual(record,self.read_record());self.assertEqual(record.process_stopped.identity,record.process)
++        self.assertEqual(record.native_stopped.identity,record.native);return record
++
++    def test_child_reads_exact_durable_start_before_execution(self):
++        proc=self.probe();view=self.prepared(proc);observed=self.root/'observed'
++        code=('import pathlib,sqlite3,time\n'
++            f'db=sqlite3.connect("file:"+{str(self.journal/"launch.db")!r}+"?mode=ro",uri=True)\n'
++            'data=db.execute("SELECT record FROM launch WHERE singleton=1").fetchone()[0]\n'
++            f'p=pathlib.Path({str(observed)!r});t=p.with_suffix(".tmp");t.write_bytes(data);t.replace(p);time.sleep(30)')
++        reply=self.run_child(proc,code);self.assertTrue(reply.HasField('view'),reply);self.wait_file(observed)
++        record=pb.AuthorityLaunchRecord.FromString(observed.read_bytes());self.assertEqual(record,reply.view.record)
++        self.assertEqual(record.stage,pb.START_ATTEMPTED);self.assertEqual(record.process,view.record.process)
++        self.stopped(proc)
++
++    def test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants(self):
++        proc=self.probe();view=self.prepared(proc);broker=self.connect(view.ready.credential.cookie)
++        app=broker.issue();client=self.connect(app.cookie)
++        independent=self.supervisor.issue(workspace=b'other',application=b'other');survivor=self.connect(independent.cookie)
++        ready=self.root/'ready';reply=self.run_child(proc,f'import os,pathlib,time\nif os.fork()==0:\n os.setsid();pathlib.Path({str(ready)!r}).touch()\ntime.sleep(30)')
++        self.assertTrue(reply.HasField('view'),reply);self.wait_file(ready)
++        pids=[int(p) for p in (self.cgroup/view.record.process.scope_name/'cgroup.procs').read_text().split()]
++        self.assertEqual(len(pids),2);pins=[os.pidfd_open(p) for p in pids]
++        for fd in pins:self.addCleanup(os.close,fd)
++        self.stopped(proc);self.assertEqual(len(select.select(pins,[],[],0)[0]),2)
++        self.assert_closed(broker);self.assert_closed(client);self.assertEqual(survivor.inspect().credential_id,independent.id)
++
++    def test_paused_native_server_keeps_durable_cleanup_pending(self):
++        proc=self.probe();self.prepared(proc)
++        self.assertTrue(self.run_child(proc,'import time;time.sleep(30)').HasField('view'))
++        os.kill(self.server.pid,signal.SIGSTOP)
++        try:
++            self.send(proc,stop=pb.AuthorityLaunchQuery())
++            self.assertFalse(select.select([proc.stdout],[],[],.15)[0])
++            record=self.read_record();self.assertEqual(record.stage,pb.CLEANUP_PENDING)
++            self.assertTrue(record.HasField('process_stopped'));self.assertFalse(record.HasField('native_stopped'))
++        finally:os.kill(self.server.pid,signal.SIGCONT)
++        reply=self.reply(proc);self.assertEqual(reply.view.record.stage,pb.OWNED_SCOPES_STOPPED)
++
++    def test_failed_journal_commit_prevents_execution(self):
++        proc=self.probe();self.prepared(proc)
++        with sqlite3.connect(self.journal/'launch.db') as db:
++            db.execute("CREATE TRIGGER deny_update BEFORE UPDATE ON launch BEGIN SELECT RAISE(ABORT,'injected durability failure'); END")
++        ready=self.root/'unexpected'
++        reply=self.run_child(proc,f'import pathlib;pathlib.Path({str(ready)!r}).touch()')
++        self.assertTrue(reply.HasField('error'),reply);self.assertFalse(ready.exists())
++        self.assertEqual(self.read_record().stage,pb.PREPARED)
++        with sqlite3.connect(self.journal/'launch.db') as db:db.execute('DROP TRIGGER deny_update')
++        self.stopped(proc)
++
++    def test_failed_exec_retains_start_attempt_and_cannot_retry(self):
++        proc=self.probe();self.prepared(proc)
++        reply=self.call(proc,start=process_pb.AuthorityProcessLaunch(executable='/missing-authority-executable'))
++        self.assertTrue(reply.HasField('error'),reply);self.assertEqual(self.read_record().stage,pb.START_ATTEMPTED)
++        self.assertTrue(self.run_child(proc,'pass').HasField('error'));self.stopped(proc)
++
++    def test_supervisor_crash_preserves_unresolved_record_and_denies_replacement(self):
++        proc=self.probe();view=self.prepared(proc);ready=self.root/'ready'
++        self.assertTrue(self.run_child(proc,f'import pathlib,time;pathlib.Path({str(ready)!r}).touch();time.sleep(30)').HasField('view'))
++        self.wait_file(ready);before=self.read_record();proc.kill();proc.wait(timeout=3)
++        reopened=self.probe(start_server=False)
++        self.assertEqual(self.call(reopened,inspect=pb.AuthorityLaunchQuery()).view.record,before)
++        self.assertTrue(self.call(reopened,prepare=self.binding).HasField('error'))
++        self.assertTrue(self.run_child(reopened,'pass').HasField('error'))
++        self.assertTrue(self.call(reopened,stop=pb.AuthorityLaunchQuery()).HasField('error'))
++        self.assertEqual(self.read_record(),before)
++        # The witness cleans only its own grant. This is not a supervisor recovery receipt.
++        self.supervisor.call(revoke=security.Revoke(credential_id=view.record.native.credential_id))
++
++    def test_stopped_receipt_survives_restart_without_repeating_effects(self):
++        proc=self.probe();self.prepared(proc);record=self.stopped(proc)
++        proc.stdin.close();self.assertEqual(proc.wait(timeout=5),0)
++        reopened=self.probe(start_server=False);self.assertEqual(self.stopped(reopened),record)
++        self.assertTrue(self.call(reopened,prepare=self.binding).HasField('error'))
++
++    def test_journal_excludes_native_secrets(self):
++        proc=self.probe();view=self.prepared(proc);self.stopped(proc)
++        for path in self.journal.iterdir():
++            data=path.read_bytes();self.assertNotIn(self.cookie,data);self.assertNotIn(view.ready.credential.cookie,data)
++            self.assertEqual(path.stat().st_mode & 0o077,0)
++
++    def test_second_coordinator_cannot_open_owned_journal(self):
++        proc=self.probe();self.prepared(proc);other=self.probe(start_server=False)
++        self.assertNotEqual(other.wait(timeout=3),0);self.stopped(proc)
++
++    def test_unknown_schema_is_rejected_without_mutation(self):
++        proc=self.probe();self.prepared(proc);self.stopped(proc);proc.stdin.close();self.assertEqual(proc.wait(timeout=5),0)
++        with sqlite3.connect(self.journal/'launch.db') as db:db.execute('PRAGMA user_version=99')
++        before=(self.journal/'launch.db').read_bytes();other=self.probe(start_server=False)
++        self.assertNotEqual(other.wait(timeout=3),0);self.assertEqual((self.journal/'launch.db').read_bytes(),before)
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(AuthorityLaunchTests(n) for n in AuthorityLaunchTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

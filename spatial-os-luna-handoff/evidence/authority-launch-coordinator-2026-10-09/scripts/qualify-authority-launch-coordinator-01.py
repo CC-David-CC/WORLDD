@@ -1,0 +1,28 @@
+import hashlib,json,os,pathlib,socket,subprocess,tarfile
+r=pathlib.Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff')
+host=socket.gethostname().split('.')[0];assert host in ('sb16','sb16-2')
+out=r/'local/m02-authority-launch-coordinator-01';source=out/'source';source.mkdir(parents=True)
+with tarfile.open(r/'local/authority-launch-coordinator-candidate-01.tar') as a:a.extractall(source,filter='data')
+manifest=json.loads((r/'local/authority-launch-coordinator-candidate-01.json').read_text())['files']
+def audit():
+    for files in [manifest,json.loads((source/'acceptance.lock.json').read_text())['files']]:
+        for n,h in files.items():assert hashlib.sha256((source/n).read_bytes()).hexdigest()==h,n
+audit()
+server=json.loads((r/'local/m04-surface-identity-build-01/run.json').read_text())['binaries']['Xvfb']
+assert hashlib.sha256(pathlib.Path(server['path']).read_bytes()).hexdigest()==server['sha256']
+for profile,sanitize in [('debug','OFF'),('runtime-sanitize','ON')]:
+    target=out/profile;target.mkdir();build=target/'build'
+    env=dict(os.environ,PYTHONPATH=str(build/'python')+':'+str(source),SPATIAL_TEST_XSERVER=server['path'],SPATIAL_SECURITY_EVIDENCE=str(target/'server'))
+    commands=[('configure',['cmake','-S',str(source),'-B',str(build),'-G','Ninja','-DCMAKE_BUILD_TYPE=Debug','-DSPATIAL_SANITIZERS='+sanitize]),
+        ('build',['cmake','--build',str(build),'--target','spatial-authority-launch-probe','spatial-security-auth','spatial-process-scope-probe','--parallel','2']),
+        ('harness',['python3','-m','unittest','discover','-s','tests/harness','-t','.','-q']),
+        ('focused',['ctest','--test-dir',str(build),'-V','-R','^authority-(launch-coordinator|prepared-launch|process-scope)$'])]
+    results=[]
+    for name,command in commands:
+        with (target/(name+'.log')).open('wb') as log:p=subprocess.run(command,cwd=source,env=env,stdout=log,stderr=subprocess.STDOUT)
+        results.append(dict(name=name,command=command,exit_code=p.returncode))
+        (target/'run.json').write_text(json.dumps(dict(host=host,results=results,server=server,source_files=len(manifest)),indent=2)+'\n')
+        print(host,profile,name,p.returncode,flush=True)
+        if p.returncode:print((target/(name+'.log')).read_text()[-18000:],flush=True);raise SystemExit(p.returncode)
+    audit()
+print(host,'coordinator focused qualification complete',flush=True)

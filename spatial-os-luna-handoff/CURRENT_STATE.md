@@ -1,5 +1,28 @@
 # Implementation status
 
+## 2026-10-09: Participant corrections complete both full profiles
+
+Combined participant candidate09 passed full Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 1239 core checks across 79 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. All 255 source hashes and 41 locked hashes match.
+Final reports are in evidence/m02-corrections-2026-10-09/candidate-09.
+The source remains isolated. These passes do not complete supervisor recovery or M02.
+
+The new authority launch coordinator records ownership before native issuance and execution.
+Candidate01 passed 28 focused checks and 51 harness checks per profile on both hosts.
+An additional partial-commit regression then found a retained native identity gap on both hosts.
+Candidate02 records that identity from its retained live scope before checked cleanup.
+Candidate02 passed the partial-commit regression but failed one new cgroup inventory assertion on both hosts.
+The assertion counted standard cgroup control files as child scopes. Candidate03 checks child directories and member processes.
+All fourteen coordinator checks passed against unchanged candidate02 production on both hosts.
+Candidate03 passed 43 focused Debug checks across four suites and 51 harness checks on both hosts.
+All 270 source hashes and 41 locked hashes match. No focused case failed or skipped.
+Its remaining full Debug and runtime sanitizer qualification continues on both hosts.
+The expected full matrix is 1282 core checks, 51 harness checks, and 151 P10 cases per profile.
+Expected totals are not completed results.
+Read docs/AUTHORITY_LAUNCH_COORDINATOR.txt for scope, state transitions, and restart limitations.
+No coordinator source is integrated. Full supervisor recovery remains pending.
+
 ## 2026-10-09: Prepared authority launch passes both focused profiles
 
 The isolated prepared-launch candidate01 passed eighteen focused checks on both hosts in Debug and runtime ASan/UBSan.

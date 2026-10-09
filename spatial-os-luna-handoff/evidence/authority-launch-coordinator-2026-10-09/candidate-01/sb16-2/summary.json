@@ -1,0 +1,24 @@
+{
+  "host": "sb16-2",
+  "candidate": 1,
+  "source_files": 270,
+  "locked_files": 41,
+  "integrated": false,
+  "limitation": "Additional failed prepared-commit regression excludes candidate01 from integration",
+  "debug": {
+    "focused_checks": 28,
+    "suites": 3,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "coordinator_binary_sha256": "7cd15cc205403bccf30ab6cef0ec6eb82fb426835af6eb5cda51ce3a6fedbac2"
+  },
+  "runtime-sanitize": {
+    "focused_checks": 28,
+    "suites": 3,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "coordinator_binary_sha256": "1b00b2c8dea800b1f73a62e8640967da4f248642683aa02e78789a4e8f1e208d"
+  }
+}

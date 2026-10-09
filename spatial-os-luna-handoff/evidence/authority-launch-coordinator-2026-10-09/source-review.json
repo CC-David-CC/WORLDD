@@ -1,0 +1,19 @@
+{
+  "base_source_files": 265,
+  "candidate": 3,
+  "source_files": 270,
+  "changed_files": [
+    "CMakeLists.txt",
+    "proto/spatial/supervisor/v1/launch.proto",
+    "src/supervisor/launch.cpp",
+    "src/supervisor/launch.hpp",
+    "src/testing/authority_launch_probe.cpp",
+    "tests/native/test_authority_launch.py"
+  ],
+  "existing_tests_unchanged": true,
+  "process_and_native_scope_sources_unchanged": true,
+  "locked_files": 41,
+  "integrated": false,
+  "candidate03_production_identical_to_candidate02": true,
+  "candidate03_fixture_change": "Exclude standard cgroup control files from child-directory inventory; also require empty cgroup.procs."
+}

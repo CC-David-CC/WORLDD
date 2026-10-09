@@ -1,0 +1,70 @@
+Primary review: durable launch coordinator
+
+The isolated source extends the qualified prepared-launch candidate with one coordinator.
+Six files change: CMake, launch.proto, launch.hpp, launch.cpp, the thin probe, and one new test file.
+All previous production scope implementations and existing tests remain byte-identical.
+All 41 locked acceptance files remain unchanged.
+
+Production review
+
+The launch owns its private directory lock, SQLite journal, process scope, and native scope.
+The journal uses explicit schema and application identifiers, DELETE journaling, and synchronous EXTRA.
+Private-file checks reject links, public modes, and foreign ownership.
+Unknown schemas remain untouched and require explicit future migration.
+No cookies, private keys, or descriptor contents occur in the persisted protobuf type.
+
+Preparation validates binding and sealed native configuration before creating an external scope.
+The process scope remains empty until its existing checked start operation.
+The PREPARING transaction precedes native credential issuance.
+The PREPARED transaction binds the returned native identity to the exact process launch.
+The START_ATTEMPTED transaction precedes execution and prevents automatic replay after failure.
+The child still uses the checked process scope's descriptor selection and startup gate.
+
+Cleanup first commits CLEANUP_PENDING.
+Process and native receipts come only from retained production ownership objects.
+Each receipt is checked against the stored identity before persistence.
+OWNED_SCOPES_STOPPED requires both receipts.
+This state does not certify broker reservation release or issuer retirement.
+An unopened or reconstructed journal cannot replace missing live ownership handles.
+Restart preserves unresolved records and denies replacement execution.
+Only already committed stopped receipts can be returned without repeating external effects.
+Destructor cleanup deliberately leaves ambiguous journal state unresolved.
+
+Observed failures and corrections
+
+The predecessor releases a real child without a durable launch record.
+Both hosts independently reproduced that missing coordinator feature.
+This does not contradict the earlier process-scope contract.
+
+Candidate01 passed 28 focused checks and 51 harness checks in both profiles on both hosts.
+The later partial prepared-commit regression failed on both hosts.
+The native grant existed, but its identity update had failed to commit.
+The original cleanup tried to persist a receipt against the still-empty credential identity.
+Candidate02 records that identity from the retained live NativeScope before cleanup intent.
+It never reconstructs it from a caller claim or an untrusted report.
+The new regression passes on both hosts.
+
+Candidate02 then failed one newly added fixture assertion on both hosts.
+The assertion incorrectly required a cgroup directory to contain no files.
+Kernel control files are always present there.
+Candidate03 checks for no child directories and an empty cgroup.procs instead.
+The error reply and empty journal assertions remain unchanged.
+All fourteen coordinator checks pass against unchanged candidate02 production on both hosts.
+No existing test or locked assertion changed.
+
+Candidate02 executed 43 focused checks: 42 passed, one failed, zero skipped, per host.
+Its remaining Debug core, P10, and runtime sanitizer profiles are unrun.
+Candidate01's passes do not override its separately reproduced partial-commit defect.
+All failures, source manifests, commands, patches, and the corrected fixture diagnostic are preserved.
+
+Qualification limits
+
+Candidate03 passed 43 focused Debug checks across four suites and 51 harness checks on both hosts.
+All 270 source hashes and 41 locked hashes match. No focused case failed or skipped.
+Its remaining full qualification is running on both allowed hosts.
+Expected totals are 1282 core checks across 83 suites, 51 harness checks, and 151 P10 cases per profile.
+Those totals are not completed results.
+No coordinator source is integrated into main.
+Authenticated supervisor launch authorization and preassigned service incarnation remain pending.
+Restart reconciliation and external broker reservation cleanup remain pending.
+Full supervisor recovery, M02, and Spatial-M1 remain incomplete.

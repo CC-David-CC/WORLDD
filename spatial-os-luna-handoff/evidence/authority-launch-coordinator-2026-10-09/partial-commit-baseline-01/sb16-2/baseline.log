@@ -1,0 +1,30 @@
+Running as unit: spatial-partial-baseline-01.service; invocation ID: 52770e8aaf40435aabfd1ad71f700d16
+test_failed_prepared_commit_can_stop_retained_native_scope (__main__.AuthorityLaunchTests.test_failed_prepared_commit_can_stop_retained_native_scope) ... FAIL
+
+======================================================================
+FAIL: test_failed_prepared_commit_can_stop_retained_native_scope (__main__.AuthorityLaunchTests.test_failed_prepared_commit_can_stop_retained_native_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-authority-launch-partial-baseline-01.py", line 171, in test_failed_prepared_commit_can_stop_retained_native_scope
+    stopped=self.stopped(proc);self.assertEqual(len(stopped.native.credential_id),32)
+            ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-authority-launch-partial-baseline-01.py", line 105, in stopped
+    reply=self.call(proc,stop=pb.AuthorityLaunchQuery());self.assertTrue(reply.HasField('view'),reply)
+                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : protocol_version: 1
+request_id: 55
+error {
+  message: "Invalid native cleanup record"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.200s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 296ms
+CPU time consumed: 190ms
+Memory peak: 1.5M
+Memory swap peak: 0B

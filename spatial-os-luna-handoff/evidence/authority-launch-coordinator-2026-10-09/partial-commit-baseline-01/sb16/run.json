@@ -1,0 +1,20 @@
+{
+  "host": "sb16",
+  "command": [
+    "systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--unit=spatial-partial-baseline-01",
+    "--property=Delegate=yes",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-01/source:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-01/source/tests/native",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-authority-launch-partial-baseline-01.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-01/debug/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-01/debug/build/spatial-security-auth"
+  ],
+  "exit_code": 1,
+  "test_sha256": "7f8a2151bd1358efbdc725660964004502d8f73495b72b420537427a5ce9ddc1"
+}

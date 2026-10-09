@@ -1,0 +1,20 @@
+{
+  "host": "sb16",
+  "candidate02": {
+    "debug_focused_checks": 43,
+    "passed": 42,
+    "failed": 1,
+    "skipped": 0,
+    "full_core": "unrun",
+    "P10": "unrun",
+    "runtime_sanitize": "unrun"
+  },
+  "fixture03": {
+    "checks": 14,
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "production_inputs": "identical to candidate02",
+    "test_sha256": "db5e98a424dbcf3f5184c3d1e63d5d32d28d3300ff5f91eb8e1a637a0fc55489"
+  }
+}

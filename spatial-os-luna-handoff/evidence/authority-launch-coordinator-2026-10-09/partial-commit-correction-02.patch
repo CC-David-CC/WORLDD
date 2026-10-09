@@ -1,0 +1,55 @@
+--- a/src/supervisor/launch.cpp
++++ b/src/supervisor/launch.cpp
+@@ -205,7 +205,11 @@
+     if (impl_->record.stage() == v1::OWNED_SCOPES_STOPPED) return impl_->record;
+     require(impl_->record.revision() && impl_->process && impl_->native, "Live ownership is unavailable; cleanup remains unresolved");
+     if (impl_->record.stage() != v1::CLEANUP_PENDING) {
+-        auto next = impl_->record; next.set_stage(v1::CLEANUP_PENDING); impl_->persist(next);
++        auto next = impl_->record;
++        // Native issuance can succeed before its prepared-record commit fails.
++        // Recover identity only from this retained live ownership object.
++        if (next.native().credential_id().empty()) *next.mutable_native() = impl_->native->ready().identity();
++        next.set_stage(v1::CLEANUP_PENDING); impl_->persist(next);
+     }
+     if (!impl_->record.has_process_stopped()) {
+         auto next = impl_->record; *next.mutable_process_stopped() = impl_->process->stop(); impl_->persist(next);
+--- a/tests/native/test_authority_launch.py
++++ b/tests/native/test_authority_launch.py
+@@ -159,6 +159,37 @@
+         self.assertTrue(reply.HasField('error'),reply);self.assertEqual(self.read_record().stage,pb.START_ATTEMPTED)
+         self.assertTrue(self.run_child(proc,'pass').HasField('error'));self.stopped(proc)
+ 
++    def test_failed_prepared_commit_can_stop_retained_native_scope(self):
++        proc=self.probe()
++        self.assertFalse(self.call(proc,inspect=pb.AuthorityLaunchQuery()).view.record.revision)
++        with sqlite3.connect(self.journal/'launch.db') as db:
++            db.execute("CREATE TRIGGER deny_prepared BEFORE UPDATE ON launch BEGIN SELECT RAISE(ABORT,'injected prepared commit failure'); END")
++        reply=self.call(proc,prepare=self.binding);self.assertTrue(reply.HasField('error'),reply)
++        record=self.read_record();self.assertEqual(record.stage,pb.PREPARING)
++        self.assertFalse(record.native.credential_id)
++        with sqlite3.connect(self.journal/'launch.db') as db:db.execute('DROP TRIGGER deny_prepared')
++        stopped=self.stopped(proc);self.assertEqual(len(stopped.native.credential_id),32)
++        self.assertEqual(stopped.process,record.process)
++
++    def test_missing_native_grant_never_commits_stopped_record(self):
++        proc=self.probe();view=self.prepared(proc)
++        result=self.supervisor.call(revoke=security.Revoke(credential_id=view.record.native.credential_id))
++        self.assertEqual(result.code,security.OK)
++        reply=self.call(proc,stop=pb.AuthorityLaunchQuery());self.assertTrue(reply.HasField('error'),reply)
++        record=self.read_record();self.assertEqual(record.stage,pb.CLEANUP_PENDING)
++        self.assertTrue(record.HasField('process_stopped'));self.assertFalse(record.HasField('native_stopped'))
++        proc.stdin.close();self.assertNotEqual(proc.wait(timeout=5),0)
++
++    def test_invalid_binding_cannot_create_an_external_scope(self):
++        proc=self.probe();self.binding.service_incarnation=b'wrong'
++        reply=self.call(proc,prepare=self.binding);self.assertTrue(reply.HasField('error'),reply)
++        self.assertFalse(self.read_record().revision);self.assertFalse(list(self.cgroup.iterdir()))
++
++    def test_stopping_prepared_launch_prevents_later_execution(self):
++        proc=self.probe();self.prepared(proc);self.stopped(proc);unexpected=self.root/'unexpected'
++        reply=self.run_child(proc,f'import pathlib;pathlib.Path({str(unexpected)!r}).touch()')
++        self.assertTrue(reply.HasField('error'),reply);self.assertFalse(unexpected.exists())
++
+     def test_supervisor_crash_preserves_unresolved_record_and_denies_replacement(self):
+         proc=self.probe();view=self.prepared(proc);ready=self.root/'ready'
+         self.assertTrue(self.run_child(proc,f'import pathlib,time;pathlib.Path({str(ready)!r}).touch();time.sleep(30)').HasField('view'))

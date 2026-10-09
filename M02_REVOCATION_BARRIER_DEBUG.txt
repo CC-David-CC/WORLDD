@@ -165,3 +165,16 @@ The historical native-control failure is still not causally explained by the new
 2026-10-09: Native supervisor scope candidate02 now passes both Debug and runtime ASan/UBSan:54 focused native checks and51 harness checks per profile on both hosts. Combined participant09 full Debug also passes both hosts:1239 core,51 harness,151 P10. Its full sanitizers continue. Historical candidate07 completed both full profiles on both hosts:1233 core,51 harness,151 P10 each. Combined process and native ownership candidate01 (264 files) started full qualification on both hosts. No source integration or full M02 completion is claimed.
 
 2026-10-09: Prepared authority launch candidate01 passes18 focused checks and51 harness checks in Debug and runtime ASan/UBSan on both hosts. Real children verify cgroup membership and explicitly inherited descriptor contents. The previous launcher failed two new prepare/start checks as expected. Evidence: spatial-os-luna-handoff/evidence/authority-prepared-launch-2026-10-09. This does not implement durable launch journaling or issuer retirement. Full combined qualification continues; no prepared-launch source is integrated.
+
+2026-10-09: Durable launch coordinator
+Participant candidate09 completed both full profiles on both hosts:1239 core,51 harness,151 P10 each.
+Launch coordinator candidate01 passed28focused+51harness perprofile perhost.
+An additional partial prepared-commit test failed on both hosts. Candidate02 corrects retained identity recording.
+Candidate02 full qualification runs in sessions28002/29111. Older combined scopes remain60992/35462.
+No coordinator source is integrated. Journal restart cannot reconstruct lost ownership or clear issuer obligations.
+See spatial-os-luna-handoff/docs/AUTHORITY_LAUNCH_COORDINATOR.txt and evidence/authority-launch-coordinator-2026-10-09.
+
+Candidate02 stopped after one fixture failure on both hosts: cgroup control files counted as child scopes.
+Candidate03 checks child directories and cgroup.procs. All14 checks pass against unchanged candidate02 binaries.
+New full coordinator qualification sessions: sb16=65657, sb16-2=59785. Candidate02 sessions28002/29111 are terminal failures.
+The original logs and explicit fixture correction are preserved. No failed run is reported as passing.

@@ -1,0 +1,14 @@
+{
+  "command": "python local/audit-authority-launch-coordinator-03.py",
+  "exit_code": 0,
+  "reconstructed_candidates": [
+    1,
+    2,
+    3
+  ],
+  "source_files": 270,
+  "existing_tests_unchanged": true,
+  "scope_implementations_unchanged": true,
+  "participant09_full_both_profiles": "passed",
+  "coordinator03_full": "pending"
+}

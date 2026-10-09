@@ -1,0 +1,33 @@
+{
+  "host": "sb16-2",
+  "candidate": 3,
+  "output": 3,
+  "mode": "focused",
+  "source_files": 270,
+  "locked_files": 41,
+  "integrated": false,
+  "debug": {
+    "core_checks": 43,
+    "core_suites": 4,
+    "parts": {
+      "focused": {
+        "authority-native-scope": 11,
+        "authority-launch-coordinator": 14,
+        "authority-prepared-launch": 8,
+        "authority-process-scope": 10
+      }
+    },
+    "harness_checks": 51,
+    "P10_cases": "uncollected",
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "e3d8cc8a872eaa2a168bc35734b0ef81cfbcada3c94cbae632f1694e1ebe40f2",
+      "workspaced": "9cdc82bce000df2d1cd50a252db8c8290f63ed072748bc76dd23d370be2e32d7",
+      "identityd": "c4d57dec37f2555f092c4164d699e11d6f09c5480321bfc4243220a21d1ef9ca",
+      "spatialwm": "33065657b47992bd3b810d6c9206c0b6aec3d0f413b856edc7a977456de8a5fe",
+      "spatial-app-init": "2339b3acb938948a84690f1d9b7d3bc65355ed4ff7aa8e807c40a0b88120845c",
+      "spatial-test-host": "cb1d693d68eaa8e81af5c55c4d1b0300c96f6b4f97c0ce341c2b3c3c923ecdd9"
+    }
+  }
+}

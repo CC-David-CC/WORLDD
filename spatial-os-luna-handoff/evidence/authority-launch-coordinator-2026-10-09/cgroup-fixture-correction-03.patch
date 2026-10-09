@@ -1,0 +1,13 @@
+--- a/tests/native/test_authority_launch.py
++++ b/tests/native/test_authority_launch.py
+@@ -183,7 +183,9 @@
+     def test_invalid_binding_cannot_create_an_external_scope(self):
+         proc=self.probe();self.binding.service_incarnation=b'wrong'
+         reply=self.call(proc,prepare=self.binding);self.assertTrue(reply.HasField('error'),reply)
+-        self.assertFalse(self.read_record().revision);self.assertFalse(list(self.cgroup.iterdir()))
++        self.assertFalse(self.read_record().revision)
++        self.assertFalse([path for path in self.cgroup.iterdir() if path.is_dir()])
++        self.assertEqual((self.cgroup/'cgroup.procs').read_text(),'')
+ 
+     def test_stopping_prepared_launch_prevents_later_execution(self):
+         proc=self.probe();self.prepared(proc);self.stopped(proc);unexpected=self.root/'unexpected'

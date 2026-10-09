@@ -1,0 +1,97 @@
+Durable authority launch ownership
+Status: isolated candidate03. Full qualification is running. Source is not integrated.
+
+Invariant
+
+Persist exact launch ownership before releasing authority execution.
+Persist checked process and native cleanup receipts before reporting those scopes stopped.
+An unresolved record cannot authorize execution after supervisor restart.
+
+Private production boundary
+
+AuthorityLaunch owns one private journal directory and one launch.
+The directory belongs to the trusted supervisor and stays outside workspace mounts.
+An exclusive lock prevents two coordinators from owning that directory.
+The process scope and native scope retain their existing kernel and server checks.
+The coordinator does not accept caller-supplied cleanup receipts.
+It does not expose an actor execution API.
+
+The private binding contains issuer ID, participant ID, registration revision, and service incarnation.
+Recording that binding does not authenticate it or authorize issuer activation.
+The later authenticated issuer supervision protocol must validate the binding.
+The service must receive the same preassigned incarnation before activation.
+That service integration remains pending.
+
+Preparation records the process boot identity, cgroup device, inode, name, and random launch ID.
+It also records native server identity and requested authority role before requesting a native credential.
+The returned native credential ID completes the prepared record.
+Native cookies, private keys, environment variables, and inherited descriptor contents are not journal fields.
+The credential remains available only through the live private preparation reply.
+
+State transitions
+
+PREPARING records intent before native issuance.
+PREPARED records the returned native identity while execution remains stopped.
+START_ATTEMPTED commits before the existing process scope releases execution.
+This state records an attempt. It does not prove service readiness or issuer activation.
+Failed exec cannot retry through that launch.
+CLEANUP_PENDING commits before explicit cleanup.
+Checked process termination and checked native revocation each receive a separate durable receipt.
+OWNED_SCOPES_STOPPED requires both receipts for the recorded identities.
+
+The stopped state covers these owned scopes only.
+It does not prove external broker reservation release or complete issuer retirement.
+Those effects require their own checked production boundaries.
+No state clears issuer obligations.
+
+Persistence and restart
+
+The new launch.db uses SQLite schema version 1 and application ID 1397771340.
+The journal uses DELETE mode and synchronous EXTRA.
+Initialization requires an empty private directory, except its ownership lock.
+Directory synchronization follows initial schema creation.
+Existing databases require the exact supported application and schema versions.
+Unknown versions require explicit future migration. They are not silently reset.
+Do not migrate operator databases during development.
+
+The single record contains versioned Protocol Buffers.
+Every transition increments its revision in a transaction.
+Read validation rejects malformed records and mismatched cleanup identities.
+Secrets are excluded from the schema.
+
+Restart can inspect a retained record and return an already committed stopped result.
+It cannot reconstruct live ownership from process names, PIDs, or record contents alone.
+Pending records reject prepare, start, and unverified cleanup.
+A native issuance with an unknown result remains unresolved.
+Destructor cleanup does not fabricate a durable receipt.
+Retain ambiguous records for later authenticated recovery.
+
+Qualification
+
+The predecessor baseline releases a real child without a durable launch record.
+The child independently observes this missing boundary on both allowed hosts.
+This is a missing coordinator feature, not a failure of the process-scope primitive's stated contract.
+
+New checks use real cgroups, child processes, SQLite readers, and native clients.
+They check pre-exec durability, descendant exit, selective native revocation, and blocked native cleanup.
+They also check journal write failure, failed exec, supervisor crash, restart, secret exclusion, and exclusive ownership.
+No locked acceptance file or existing test body changes.
+
+Full supervisor recovery and Spatial-M1 remain incomplete.
+
+Review corrections
+
+Candidate01 passed its original focused profiles on both hosts.
+A new partial-commit check then failed on both hosts.
+Native issuance succeeded before the prepared-record transaction failed.
+Candidate02 recovers the credential identity only from its retained live NativeScope before persisting cleanup intent.
+The exact new regression passed on both hosts.
+
+Candidate02 also found an incorrect new fixture assertion.
+The cgroup inventory included standard kernel control files.
+Candidate03 requires no child directories and no member processes.
+All fourteen coordinator checks passed with that fixture against unchanged candidate02 production on both hosts.
+Candidate03 changes no production input. Full qualification remains pending.
+
+Candidate03 fresh builds passed 43 focused Debug checks and 51 harness checks on each host.
+All source and locked hashes match. Full Debug and runtime sanitizer results remain pending.

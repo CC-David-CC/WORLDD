@@ -67,7 +67,10 @@ Remaining qualification
 Candidate08's 111 focused checks and candidate09's 43 native checks passed both profiles on both hosts.
 All four configurations have zero failures and zero skips. The final summaries retain exact counts.
 Candidate09 completed full Debug on both hosts: 1239 core checks, 51 harness checks, and 151 P10 cases each.
-Its complete sanitizer matrix is running on both hosts in output10 before source integration.
+Its complete sanitizer matrix also passed on both hosts in output10.
+Each profile passed 1239 core checks across 79 suites, 51 harness checks, and 151 P10 cases.
+All 255 source hashes and 41 locked hashes match. No final case failed or skipped.
+The candidate remains isolated while supervisor integration proceeds.
 Historical candidate07 completed both profiles on both hosts: 1233 core checks, 51 harness checks, and 151 P10 cases each.
 Those historical passes do not override the separately reproduced world ordering defect or qualify newer source.
 Retain all earlier failures and exact source manifests.
