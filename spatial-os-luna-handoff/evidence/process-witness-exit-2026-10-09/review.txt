@@ -1,0 +1,33 @@
+Process exit witness correction, 2026-10-09
+
+Observed failure:
+sb16 candidate 03 Debug failed workspace-processes after eleven other cases passed.
+The manager-loss case raised ProcessLookupError while reading /proc/PID/stat.
+The process disappeared during the read. This prevented the witness from checking the remaining processes.
+See sb16/original-matrix/core.log for the complete failure.
+Candidate 03 did not reach P10 or runtime sanitizer qualification on sb16.
+
+Invariant:
+A missing process is gone. Other read errors must not count as process exit.
+The witness must still reject any remaining live process.
+
+Correction:
+The gone helper now handles ProcessLookupError and FileNotFoundError.
+No timeout, exit condition, production implementation, or locked acceptance file changes.
+All twelve original ProcessTests bodies remain AST-identical.
+Six new witness checks cover ESRCH, ENOENT, a remaining live process, process states, other errors, and malformed data.
+Mocked reads test the witness only. Real process tests remain mandatory.
+
+Both hosts:
+The old helper failed the ESRCH regression and passed the other five witness checks.
+The corrected helper passed all six witness checks and all twelve real process tests.
+These runs used the existing candidate 03 Debug executables in isolated fixture files.
+The full candidate 04 qualification source trees remain unchanged.
+
+Primary review:
+Reviewed the one exception-handler change and every new witness assertion.
+PermissionError, generic I/O errors, and malformed stat content still propagate.
+A vanished first process cannot hide a live second process.
+Only Z and X process states count as dead when a readable stat record exists.
+No application replay, confinement, revocation, or recovery assertion was weakened.
+This focused result qualifies a fixture correction, not complete Spatial-M1 or either adapter candidate.

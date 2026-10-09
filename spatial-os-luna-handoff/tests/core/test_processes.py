@@ -45,7 +45,7 @@ class ProcessTests(WorkspaceTests):
     def gone(pids):
         for pid in pids:
             try: state = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[0]
-            except FileNotFoundError: continue
+            except (FileNotFoundError, ProcessLookupError): continue
             if state not in ('Z', 'X'): return False
         return True
 
@@ -184,7 +184,42 @@ Path('/state/home/settings').write_text('own state');Path('/tmp/temporary').writ
         self.start(); self.assertEqual(self.call('workspace.get', id='one')['worktree'], self.work['id'])
 
 
+class ProcessWitnessTests(unittest.TestCase):
+    def read_results(self, results, pids):
+        from unittest.mock import patch
+        with patch.object(Path, 'read_text', side_effect=results):
+            return ProcessTests.gone(pids)
+
+    def test_process_exit_during_stat_read_is_gone(self):
+        import errno
+        self.assertTrue(self.read_results([ProcessLookupError(errno.ESRCH, 'No such process')], [123]))
+
+    def test_missing_stat_path_is_gone(self):
+        self.assertTrue(self.read_results([FileNotFoundError()], [123]))
+
+    def test_missing_process_does_not_hide_a_live_process(self):
+        self.assertFalse(self.read_results([FileNotFoundError(), '124 (live) S 1'], [123,124]))
+
+    def test_only_dead_process_states_are_gone(self):
+        for state in ('Z','X'):
+            self.assertTrue(self.read_results(['123 (name with ) parentheses) '+state+' 1'], [123]))
+        for state in ('R','S','D','T','t','I'):
+            self.assertFalse(self.read_results(['123 (live) '+state+' 1'], [123]))
+
+    def test_unrelated_read_errors_are_not_process_exit(self):
+        import errno
+        for error in (PermissionError(errno.EACCES, 'denied'), OSError(errno.EIO, 'I/O error')):
+            with self.assertRaises(type(error)):
+                self.read_results([error], [123])
+
+    def test_malformed_stat_is_not_process_exit(self):
+        for value in ('','123 (name)'):
+            with self.assertRaises(IndexError):
+                self.read_results([value], [123])
+
+
 if __name__ == '__main__':
     # Reuse fixtures, without rerunning the separate workspace suite here.
     suite = unittest.TestSuite(ProcessTests(name) for name in ProcessTests.__dict__ if name.startswith('test_'))
+    suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(ProcessWitnessTests))
     raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

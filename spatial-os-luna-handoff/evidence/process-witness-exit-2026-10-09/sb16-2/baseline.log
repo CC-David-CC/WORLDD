@@ -1,0 +1,34 @@
+test_malformed_stat_is_not_process_exit (__main__.ProcessWitnessTests.test_malformed_stat_is_not_process_exit) ... ok
+test_missing_process_does_not_hide_a_live_process (__main__.ProcessWitnessTests.test_missing_process_does_not_hide_a_live_process) ... ok
+test_missing_stat_path_is_gone (__main__.ProcessWitnessTests.test_missing_stat_path_is_gone) ... ok
+test_only_dead_process_states_are_gone (__main__.ProcessWitnessTests.test_only_dead_process_states_are_gone) ... ok
+test_process_exit_during_stat_read_is_gone (__main__.ProcessWitnessTests.test_process_exit_during_stat_read_is_gone) ... ERROR
+test_unrelated_read_errors_are_not_process_exit (__main__.ProcessWitnessTests.test_unrelated_read_errors_are_not_process_exit) ... ok
+
+======================================================================
+ERROR: test_process_exit_during_stat_read_is_gone (__main__.ProcessWitnessTests.test_process_exit_during_stat_read_is_gone)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/process-witness-draft/baseline.py", line 195, in test_process_exit_during_stat_read_is_gone
+    self.assertTrue(self.read_results([ProcessLookupError(errno.ESRCH, 'No such process')], [123]))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/process-witness-draft/baseline.py", line 191, in read_results
+    return ProcessTests.gone(pids)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/process-witness-draft/baseline.py", line 47, in gone
+    try: state = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[0]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1134, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1138, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1197, in _execute_mock_call
+    raise result
+ProcessLookupError: [Errno 3] No such process
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.029s
+
+FAILED (errors=1)
