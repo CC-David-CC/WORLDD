@@ -1,0 +1,47 @@
+Workspace revocation fixture: expired owner connection
+
+Invariant
+The test must commit a genuine actor revocation during the broker status refresh.
+Its separate owner connection must be live when it requests the revocation.
+Keep the expected denial, event-delivery, process-death, and no-side-effect assertions.
+
+Observed failure
+The sb16-2 service-session candidate03 runtime sanitizer core run failed one test.
+The failure was test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh.
+The broker returned UNAVAILABLE. The relay had not delivered a revocation event.
+The raw full-run failure remains under participant-session evidence.
+Five immediate diagnostic repetitions passed. This does not invalidate the original failure.
+
+Reproduction
+A diagnostic inserted 2.2 seconds of idle time after the real application started.
+It used unchanged candidate03 runtime sanitizer binaries and checked all source hashes.
+The exact original assertion failed again.
+The relay trace recorded EOFError from self.revoke(), before forwarding actor_status.
+The owner TLS connection had been created before workspace and world setup.
+The issuer fixture has a 3000 ms idle timeout. Setup consumed part of that period.
+Production correctly closed the idle connection. No revocation was committed in this diagnostic.
+The relay then closed its broker connection, producing the unrelated UNAVAILABLE result.
+This explains the reproduced failure mechanism. The original run had no trace to prove its exact timing.
+
+Proposed correction
+Open a fresh owner connection after setup and world teardown, immediately before arming the relay.
+Retain separate owner authentication. Do not change production timeouts or retry failed mutations.
+Extract the existing scenario into one fixture helper without changing its assertions.
+Add a case that waits longer than the configured owner idle timeout before the race.
+The old connection must expire. The new connection must commit the real revocation successfully.
+The delayed case fails against the old setup and must pass with the correction.
+
+Review scope
+Only tests/core/test_workspace_authority.py changes in the proposed source.
+No locked acceptance file, oracle, production source, or protocol changes.
+All frozen qualification inputs remain unchanged.
+The integration receipts must record this explicit core fixture correction.
+A narrow passing rerun does not erase the failed full profile.
+Both-host Debug and sanitizer validation and complete qualification evidence remain required.
+
+Status
+sb16-2 delayed baseline failed the expected event-delivery assertion.
+Both corrected workspace suites passed all 20 checks on sb16-2.
+Both corrected workspace suites also passed all 20 checks on sb16.
+Both deliberate delayed baselines failed the exact expected assertion.
+Do not integrate until final results are checked.

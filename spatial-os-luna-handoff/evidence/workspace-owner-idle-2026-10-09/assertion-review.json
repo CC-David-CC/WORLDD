@@ -1,0 +1,10 @@
+{
+  "unchanged_existing_methods": 35,
+  "extracted_test": "test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh",
+  "preserved_assertions": true,
+  "added_delayed_case": true,
+  "sb16_2_Debug": 20,
+  "sb16_2_runtime_sanitizer": 20,
+  "failed_baseline": 1,
+  "sb16": "20 Debug and20runtime ASan/UBSan checks passed"
+}

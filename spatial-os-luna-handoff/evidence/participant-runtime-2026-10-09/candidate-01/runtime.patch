@@ -1,0 +1,279 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -132,6 +132,8 @@
+ target_link_libraries(spatial-issuer-client-lib PUBLIC spatial-identity-tls)
+ add_executable(spatial-issuer-client src/identity/client_main.cpp)
+ target_link_libraries(spatial-issuer-client PRIVATE spatial-issuer-client-lib)
++add_library(spatial-participant-runtime-lib STATIC src/identity/participant_runtime.cpp)
++target_link_libraries(spatial-participant-runtime-lib PUBLIC spatial-issuer-client-lib Threads::Threads)
+ add_library(spatial-issuer-watch-lib STATIC src/identity/issuer_watch.cpp)
+ target_link_libraries(spatial-issuer-watch-lib PUBLIC spatial-issuer-client-lib Threads::Threads)
+ add_executable(spatial-issuer-watch src/identity/watch_main.cpp)
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -317,3 +317,32 @@
+     AuthorityBarrierStatus authority_barrier = 25;
+   }
+ }
++
++// Trusted authority component queues. These messages grant no actor access.
++message AuthorityParticipantRuntimeConfig {
++  uint32 protocol_version = 1;
++  string issuer_client_config = 2;
++  string private_key_path = 3;
++  bytes participant_id = 4;
++  uint64 registered_revision = 5;
++}
++message ParticipantCommand {
++  uint64 request_id = 1;
++  oneof operation {
++    AuthorityActivate activate = 10;
++    AuthorityApplied applied = 11;
++    AuthorityRelease release = 12;
++  }
++}
++message ParticipantUpdate {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof outcome {
++    AuthorityAuthenticationResult authenticated = 10;
++    RevocationBatch revocations = 11;
++    AuthorityActivationState activated = 12;
++    AuthorityActivationState applied = 13;
++    AuthorityActivationState released = 14;
++    spatial.core.v1.Error error = 15;
++  }
++}
+--- /dev/null
++++ b/src/identity/participant_runtime.cpp
+@@ -0,0 +1,201 @@
++#include "identity/participant_runtime.hpp"
++#include "identity/issuer_client.hpp"
++#include "identity/keys.hpp"
++#include "identity/participants.hpp"
++#include "identity/tls_support.hpp"
++#include <google/protobuf/text_format.h>
++#include <openssl/rand.h>
++#include <algorithm>
++#include <deque>
++#include <mutex>
++#include <set>
++#include <thread>
++
++namespace spatial::identity {
++namespace {
++namespace core = spatial::core::v1;
++using participant_detail::require;
++using Domains = std::set<std::pair<int, std::string>>;
++Domains domain_set(const v1::AuthorityParticipant& participant) {
++    Domains result;
++    for (const auto& domain : participant.domains()) result.insert(participant_detail::domain_key(domain));
++    return result;
++}
++}
++struct ParticipantRuntime::Impl {
++    mutable std::mutex mutex;
++    std::deque<v1::ParticipantCommand> commands;
++    std::deque<v1::ParticipantUpdate> updates;
++    std::set<std::uint64_t> pending;
++    std::optional<std::uint64_t> delivered_revision;
++    bool broken = false, closed = false, releasing = false;
++    // Destruction requests stop and joins before destroying shared state.
++    std::jthread worker;
++
++    void fail_locked(core::ErrorCode code, const std::string& message, std::uint64_t request = 0) {
++        if (broken) return;
++        broken = true; commands.clear(); updates.clear(); pending.clear();
++        auto& update = updates.emplace_back(); update.set_protocol_version(1); update.set_request_id(request);
++        update.mutable_error()->set_code(code); update.mutable_error()->set_message(message);
++    }
++    bool publish(v1::ParticipantUpdate update) {
++        std::lock_guard lock(mutex);
++        if (broken) return false;
++        if (updates.size() >= 256) {
++            fail_locked(core::RESOURCE_EXHAUSTED, "Authority participant consumer fell behind"); return false;
++        }
++        update.set_protocol_version(1); updates.push_back(std::move(update)); return true;
++    }
++    void check_stop(std::stop_token stop) {
++        std::lock_guard lock(mutex);
++        if (stop.stop_requested() || broken) throw std::runtime_error("Authority participant stopped");
++    }
++    bool reply_error(const v1::IssuerReply& reply, std::uint64_t request = 0) {
++        if (!reply.has_error()) return false;
++        std::lock_guard lock(mutex); fail_locked(reply.error().code(), reply.error().message(), request); return true;
++    }
++    void run(std::stop_token stop, const v1::AuthorityParticipantRuntimeConfig& config, const Domains& expected) {
++        std::uint64_t current_request = 0;
++        try {
++            auto key = KeyPair::load(config.private_key_path());
++            IssuerClient client(config.issuer_client_config(), [this, stop] { check_stop(stop); });
++            v1::IssuerRequest begin; begin.set_protocol_version(1);
++            auto* auth = begin.mutable_authority_authentication_begin();
++            auth->set_participant_id(config.participant_id()); auth->set_registered_revision(config.registered_revision());
++            std::string incarnation(32, '\0');
++            require(RAND_bytes(reinterpret_cast<unsigned char*>(incarnation.data()), 32) == 1, "Service incarnation generation failed");
++            auth->set_service_incarnation(incarnation);
++            auto reply = client.call(std::move(begin)); if (reply_error(reply)) return;
++            v1::IssuerRequest complete; complete.set_protocol_version(1);
++            auto* proof = complete.mutable_authority_authentication_complete();
++            proof->set_nonce(reply.challenge().nonce()); *proof->mutable_proof() = key.sign(reply.challenge().signing_request());
++            reply = client.call(std::move(complete)); if (reply_error(reply)) return;
++            const auto& identity = reply.authority_authentication();
++            const auto& registration = identity.registration();
++            require(registration.participant().id() == config.participant_id() &&
++                    registration.registered_revision() == config.registered_revision() &&
++                    registration.participant().public_key() == key.public_key() &&
++                    domain_set(registration.participant()) == expected, "Registered authority domains or identity do not match runtime");
++            v1::ParticipantUpdate update; *update.mutable_authenticated() = identity;
++            if (!publish(std::move(update))) return;
++
++            std::optional<std::uint64_t> cursor;
++            std::optional<v1::AuthorityActivationState> active;
++            const auto wait = static_cast<std::uint32_t>(std::min<std::int64_t>(100, client.timeout().count()/2));
++            bool backlog = false;
++            while (!stop.stop_requested()) {
++                check_stop(stop);
++                std::optional<v1::ParticipantCommand> command;
++                std::optional<std::uint64_t> delivered;
++                bool queued = false;
++                {
++                    std::lock_guard lock(mutex); delivered = delivered_revision;
++                    // Publish the initial feed before accepting mutations.
++                    if (cursor && !commands.empty()) { command = std::move(commands.front()); commands.pop_front(); }
++                    queued = !commands.empty();
++                }
++                if (command) {
++                    current_request = command->request_id();
++                    v1::IssuerRequest request; request.set_protocol_version(1);
++                    if (command->has_activate()) {
++                        require(!active && delivered && command->activate().has_synchronized_revision() &&
++                                command->activate().synchronized_revision() == *delivered,
++                                "Activation requires the consumed synchronized revision");
++                        *request.mutable_authority_activate() = command->activate();
++                    } else if (command->has_applied()) {
++                        const auto& applied = command->applied();
++                        require(active && active->active() && delivered && applied.generation() == active->generation() &&
++                                applied.has_from_revision() && applied.has_through_revision() &&
++                                applied.from_revision() == active->applied_revision() && applied.from_revision() < INT64_MAX &&
++                                applied.through_revision() == applied.from_revision()+1 && applied.through_revision() <= *delivered,
++                                "Acknowledgement requires one contiguous consumed revision and the active generation");
++                        *request.mutable_authority_applied() = applied;
++                    } else {
++                        const auto& release = command->release();
++                        require(active && active->active() && release.generation() == active->generation() &&
++                                release.has_applied_revision() && release.applied_revision() == active->applied_revision(),
++                                "Release requires the active acknowledged generation");
++                        *request.mutable_authority_release() = release;
++                    }
++                    reply = client.call(std::move(request));
++                    update.Clear(); update.set_request_id(command->request_id());
++                    if (reply.has_error() && command->has_activate() && reply.error().code() == core::REVISION_CONFLICT) {
++                        // Fetch new events; the consumer must synchronize and explicitly request activation again.
++                        *update.mutable_error() = reply.error();
++                    } else {
++                        if (reply_error(reply, command->request_id())) return;
++                        active = reply.authority_activation();
++                        if (command->has_activate()) *update.mutable_activated() = *active;
++                        else if (command->has_applied()) *update.mutable_applied() = *active;
++                        else {
++                            *update.mutable_released() = *active;
++                            { std::lock_guard lock(mutex); closed = true; }
++                            publish(std::move(update)); return;
++                        }
++                    }
++                    if (!publish(std::move(update))) return;
++                    current_request = 0;
++                }
++                v1::IssuerRequest request; request.set_protocol_version(1);
++                auto* read = request.mutable_revocations();
++                if (cursor) read->set_after_revision(*cursor);
++                read->set_wait_ms(!cursor || backlog || queued ? 0 : wait);
++                reply = client.call(std::move(request)); if (reply_error(reply)) return;
++                auto batch = std::move(*reply.mutable_revocations());
++                const bool initial = !cursor; cursor = batch.through_revision(); backlog = *cursor < batch.head_revision();
++                if (initial || batch.events_size()) {
++                    update.Clear(); *update.mutable_revocations() = std::move(batch);
++                    if (!publish(std::move(update))) return;
++                }
++            }
++        } catch (const std::invalid_argument&) {
++            std::lock_guard lock(mutex);
++            if (!stop.stop_requested()) fail_locked(core::INVALID_ARGUMENT, "Invalid authority participant context or command", current_request);
++        } catch (const std::exception&) {
++            std::lock_guard lock(mutex);
++            if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Authority participant channel failed; reconciliation is required", current_request);
++        }
++    }
++    Impl(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains) {
++        v1::AuthorityParticipantRuntimeConfig config;
++        require(google::protobuf::TextFormat::ParseFromString(tls_detail::load_config(path), &config),
++                "Invalid authority participant runtime configuration");
++        validate_message(config);
++        require(config.protocol_version() == 1 && config.participant_id().size() == 32 &&
++                config.registered_revision() > 0 && config.registered_revision() <= INT64_MAX &&
++                std::filesystem::path(config.issuer_client_config()).is_absolute() &&
++                std::filesystem::path(config.private_key_path()).is_absolute(), "Invalid authority participant configuration");
++        v1::AuthorityParticipant expected; expected.set_id(config.participant_id()); expected.set_public_key(std::string(32, '\0'));
++        for (const auto& domain : domains) *expected.add_domains() = domain;
++        validate_participant(expected);
++        worker = std::jthread([this, config, domains = domain_set(expected)](std::stop_token stop) { run(stop, config, domains); });
++    }
++};
++ParticipantRuntime::ParticipantRuntime(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains)
++    : impl_(std::make_unique<Impl>(path, domains)) {}
++ParticipantRuntime::~ParticipantRuntime() = default;
++void ParticipantRuntime::submit(v1::ParticipantCommand command) {
++    validate_message(command);
++    require(command.operation_case() != v1::ParticipantCommand::OPERATION_NOT_SET, "Participant command requires an operation");
++    std::lock_guard lock(impl_->mutex);
++    if (impl_->broken || impl_->closed || impl_->releasing) throw std::runtime_error("Authority participant channel is unavailable");
++    require(!impl_->pending.contains(command.request_id()), "Participant command request ID is already pending");
++    if (impl_->pending.size() >= 128) {
++        impl_->fail_locked(core::RESOURCE_EXHAUSTED, "Authority participant command queue overflow"); return;
++    }
++    if (command.has_release()) {
++        require(impl_->pending.empty(), "Consume all command results before requesting release");
++        impl_->releasing = true;
++    }
++    impl_->pending.insert(command.request_id()); impl_->commands.push_back(std::move(command));
++}
++std::optional<v1::ParticipantUpdate> ParticipantRuntime::poll() {
++    std::lock_guard lock(impl_->mutex);
++    if (impl_->updates.empty()) return {};
++    auto update = std::move(impl_->updates.front()); impl_->updates.pop_front();
++    if (update.has_revocations()) impl_->delivered_revision = update.revocations().through_revision();
++    else if (!update.has_authenticated()) impl_->pending.erase(update.request_id());
++    return update;
++}
++bool ParticipantRuntime::failed() const { std::lock_guard lock(impl_->mutex); return impl_->broken; }
++}
+--- /dev/null
++++ b/src/identity/participant_runtime.hpp
+@@ -0,0 +1,26 @@
++#pragma once
++#include "issuer.pb.h"
++#include <filesystem>
++#include <memory>
++#include <optional>
++#include <vector>
++
++namespace spatial::identity {
++// The authority thread consumes events, settles effects, then explicitly acknowledges.
++// poll() and submit() never wait for network I/O. Failure is permanent.
++// The calling process must ignore SIGPIPE before construction.
++class ParticipantRuntime {
++public:
++    ParticipantRuntime(const std::filesystem::path& config,
++                       const std::vector<authority::v1::Domain>& expected_domains);
++    ~ParticipantRuntime();
++    ParticipantRuntime(const ParticipantRuntime&) = delete;
++    ParticipantRuntime& operator=(const ParticipantRuntime&) = delete;
++    void submit(v1::ParticipantCommand command);
++    std::optional<v1::ParticipantUpdate> poll();
++    bool failed() const;
++private:
++    struct Impl;
++    std::unique_ptr<Impl> impl_;
++};
++}

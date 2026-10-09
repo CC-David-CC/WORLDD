@@ -1,0 +1,475 @@
+{"t": 5.566899199038744e-05, "thread": 130576148709504, "event": "iteration", "number": 0}
+{"t": 1.7057732819812372, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 1.7058529039786663, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 1.7624389249831438, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 1.7626312729844358, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 1.7671248779806774, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 1.7671684899833053, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 1.7678816999832634, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 1.7680021499982104, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 1.7683963069866877, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 1.7684394649986643, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 1.7690366289753001, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 1.7691515129990876, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 1.784504223993281, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 1.784577119979076, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 1.8260774289956316, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 1.826642356987577, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 1.8280332759895828, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 1.8281844169832766, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 1.8303264299756847, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 1.8307793929998297, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 1.8319500969955698, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 1.8321046450000722, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 1.8348624240024947, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 1.8352755949890707, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 1.8367817419930361, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 1.8369637959985994, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 1.8406525339814834, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 1.9555579759762622, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 2.2001181759987958, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.2002775209839456, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.2006687599932775, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.200710245000664, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.543257094977889, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 2.5435104880016297, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 2.557169042993337, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.557818071974907, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.5583409129758365, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.5587232839898206, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.5590838259959128, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.5592402079782914, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.625774629996158, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.6259772649791557, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.6396456380025484, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.6402355229947716, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.8937493419798557, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.8939516579848714, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.9076860809873324, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.908268720988417, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 2.929537194984732, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.929995575977955, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.9310045129968785, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 2.9311595109757036, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.0149032149929553, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.015148213977227, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.0288888229988515, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.029516626993427, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.0593913329939824, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.059572178986855, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.073238130979007, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.073839432996465, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.099373980978271, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.0994616139796562, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.11128163599642, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.1115646479884163, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.2999189809779637, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.3004384039959405, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.3017167459765915, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.301874101976864, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.3859640339796897, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 3.4503708859847393, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 3.450459350977326, "thread": 130576148709504, "event": "broker_request", "operation": ["launch"]}
+{"t": 3.453089064976666, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.453147791995434, "thread": 130576098141888, "event": "relay_line", "line": 64, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.5073038109985646, "thread": 130576098141888, "event": "relay_line", "line": 65, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.5077777639962733, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.508283657982247, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.5098112499981653, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.50996557000326, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.588877464993857, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.6029485939943697, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.6036780729773454, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.630927955993684, "thread": 130576148709504, "event": "broker_reply", "outcome": "error", "error_code": 26, "error_message": "Launch outcome is unavailable; side effects will not be replayed"}
+{"t": 3.6331334949936718, "thread": 130576098141888, "event": "relay_exception", "line": 60, "type": "EOFError", "message": ""}
+{"t": 3.6333099089970347, "thread": 130576098141888, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 3.882957756984979, "thread": 130576089749184, "event": "relay_exception", "line": 68, "type": "EOFError", "message": "Issuer TLS stream closed"}
+{"t": 3.883221013995353, "thread": 130576089749184, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 3.884451205987716, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 3.8846425239753444, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 3.884728336997796, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 3.884811223979341, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 3.9495264749857597, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 3.9495961329957936, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 3.949617235979531, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 3.9496387580002192, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 4.022480760992039, "thread": 130576148709504, "event": "iteration", "number": 1}
+{"t": 5.785471276991302, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 5.785533026995836, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 5.841726806975203, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 5.841906769986963, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 5.846614034002414, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 5.84665747298277, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 5.847322946996428, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 5.847449186985614, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 5.847825270000612, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 5.8478649710014, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 5.848478967993287, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 5.84859355998924, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 5.865452069992898, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 5.865531846997328, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 5.914009290980175, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 5.914585990976775, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 5.9158439509919845, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 5.915997952979524, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 5.918278078985168, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 5.918742393987486, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 5.919833545980509, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 5.919986489985604, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 5.922906391992001, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 5.923321499984013, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 5.924686661979649, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 5.924843638000311, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 5.928790762991412, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 6.0435275429917965, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 6.297108535974985, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 6.297321224992629, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 6.2978226769773755, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 6.297885079984553, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 6.6535316619847436, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 6.653742597991368, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 6.655698426999152, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 6.656113609002205, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 6.656761848978931, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 6.65728317698813, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 6.6577349769941065, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 6.6579277599812485, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 6.72403553899494, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 6.724234013992827, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 6.737977336975746, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 6.738635378977051, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 6.982755898992764, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 6.982954658975359, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 6.996719005983323, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 6.9973053360008635, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.02844542398816, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.02867012398201, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.029183653998189, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.029252444976009, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.103534474998014, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.103732999996282, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.117281093989732, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.117925362981623, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.146636151999701, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.146752814995125, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.159121846983908, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.159433378983522, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.1737644739914685, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.1738311469962355, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.185559493984329, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.185824298998341, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.395744576002471, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.3962349009816535, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.397619675990427, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.397777209000196, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.4658200289995875, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 7.5303202319773845, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 7.53043880299083, "thread": 130576148709504, "event": "broker_request", "operation": ["launch"]}
+{"t": 7.534444053977495, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.534537302999524, "thread": 130576106534592, "event": "relay_line", "line": 64, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.5961206310021225, "thread": 130576106534592, "event": "relay_line", "line": 65, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.596620084979804, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.59714572498342, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.598674015986035, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.5988268310029525, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.677692895988002, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.6917112969968, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.692424621985992, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.720001882000361, "thread": 130576148709504, "event": "broker_reply", "outcome": "error", "error_code": 26, "error_message": "Launch outcome is unavailable; side effects will not be replayed"}
+{"t": 7.721861372992862, "thread": 130576106534592, "event": "relay_exception", "line": 60, "type": "EOFError", "message": ""}
+{"t": 7.722039293003036, "thread": 130576106534592, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 7.96691887799534, "thread": 130576098141888, "event": "relay_exception", "line": 68, "type": "EOFError", "message": "Issuer TLS stream closed"}
+{"t": 7.9671778319752775, "thread": 130576098141888, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 7.968254665000131, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 7.968482116993982, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 7.968575924984179, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 7.968656170996837, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 8.033418694976717, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 8.033530914981384, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 8.033569306979189, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 8.033605379983783, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 8.103569182974752, "thread": 130576148709504, "event": "iteration", "number": 2}
+{"t": 9.7951980419748, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 9.795255390985403, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 9.85025008500088, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 9.850453484978061, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 9.855095840990543, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 9.855143936001696, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 9.855847867002012, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 9.855975546000991, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 9.856397930998355, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 9.856444450997515, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 9.857077433989616, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 9.857199313002639, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 9.873537851002766, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 9.873629061999964, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 9.921239113988122, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 9.921877446002327, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 9.923138990998268, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 9.923282313975506, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 9.9255453950027, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 9.925994176999666, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 9.927065275987843, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 9.92720716400072, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 9.929987096984405, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 9.930455340974731, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 9.931829509994714, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 9.931975124985911, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 9.93581688098493, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 10.05053581399261, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 10.301165147975553, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 10.301431885978673, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 10.301832587982062, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 10.301876623998396, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 10.64185307000298, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 10.642066183994757, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 10.655780693981797, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 10.656462827988435, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 10.656936547980877, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 10.657457217981573, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 10.657629277993692, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 10.658012221974786, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 10.724629587988602, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 10.724828549980884, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 10.738459043990588, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 10.739052021992393, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 10.98698344497825, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 10.98718497599475, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.000915432989132, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.001557990995934, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.02276010697824, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.023190759995487, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.024194150988478, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.024349475977942, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.10807160299737, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.108269589982228, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.121831136988476, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.122461008984828, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.150913472985849, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.151006400003098, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.163228546996834, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.163546690979274, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.17806636999012, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.178148249979131, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.18939046599553, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.189579492987832, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.388110414991388, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.388671787979547, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.389996337995399, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.390143741999054, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.472145863983314, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 11.536532411992084, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 11.536627000983572, "thread": 130576148709504, "event": "broker_request", "operation": ["launch"]}
+{"t": 11.540137385978596, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.54022076597903, "thread": 130576089749184, "event": "relay_line", "line": 64, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.605994603974978, "thread": 130576089749184, "event": "relay_line", "line": 65, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.606475961976685, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.606997239985503, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.608527522999793, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.608682552992832, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.68778644700069, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.701912952994462, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.70266655398882, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.732406199997058, "thread": 130576148709504, "event": "broker_reply", "outcome": "error", "error_code": 26, "error_message": "Launch outcome is unavailable; side effects will not be replayed"}
+{"t": 11.734244512976147, "thread": 130576089749184, "event": "relay_exception", "line": 60, "type": "EOFError", "message": ""}
+{"t": 11.734452139993664, "thread": 130576089749184, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 11.97984386299504, "thread": 130576106534592, "event": "relay_exception", "line": 68, "type": "EOFError", "message": "Issuer TLS stream closed"}
+{"t": 11.980141285981517, "thread": 130576106534592, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 11.981196701002773, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 11.981410462001804, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 11.981507119984599, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 11.981586292997235, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 12.046314056991832, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 12.046451269998215, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 12.046493328001816, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 12.046528815000784, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 12.116130684997188, "thread": 130576148709504, "event": "iteration", "number": 3}
+{"t": 13.946235037990846, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 13.94629502799944, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 14.001504251995357, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 14.001684315997409, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 14.006338983977912, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 14.006388576992322, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 14.007054819987388, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 14.007180091983173, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 14.007584870996652, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 14.007630818989128, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 14.008274119987618, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 14.00840985198738, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 14.024832781986333, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 14.024910544976592, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 14.07196755197947, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 14.072533055994427, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 14.073701613990124, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 14.073858489980921, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 14.076125327992486, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 14.076614055986283, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 14.077702743001282, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 14.077859696000814, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 14.08082499698503, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.081243492983049, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.082681248983135, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.082838443981018, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.086590844002785, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 14.201430035987869, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 14.447394137998344, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.447639647987671, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.448068525001872, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.448112769983709, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.799156598979607, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 14.799390904983738, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 14.80113897297997, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.80160551899462, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.802595894987462, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.802753611002117, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 14.805475289991591, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 14.805976659990847, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 14.872823970974423, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 14.873020109982463, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 14.886557528981939, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 14.887174775998574, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.134812626987696, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.135010584985139, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.148627795977518, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.149218185979407, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.159950081986608, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.160413576988503, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.161405159975402, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.161573780991603, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.256046672002412, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.256243944982998, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.269804991985438, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.270441499975277, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.299546385998838, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.299721749994205, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.31388350398629, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.314488848001929, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.338836836977862, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.338922962982906, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.35056034498848, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.350828151975293, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.529548705002526, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.530015765980352, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.539023880992318, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.539213925978402, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.656376456987346, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 15.720399358979193, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 15.720506256999215, "thread": 130576148709504, "event": "broker_request", "operation": ["launch"]}
+{"t": 15.724635911989026, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.724741409998387, "thread": 130576098141888, "event": "relay_line", "line": 64, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.792550394980935, "thread": 130576098141888, "event": "relay_line", "line": 65, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.793137920001755, "thread": 130576089749184, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.793734778999351, "thread": 130576089749184, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.795331104978686, "thread": 130576089749184, "event": "relay_line", "line": 63, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.795534410979599, "thread": 130576089749184, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 15.874443729000632, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.888968198996736, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.889770184992813, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 15.921946263988502, "thread": 130576148709504, "event": "broker_reply", "outcome": "error", "error_code": 26, "error_message": "Launch outcome is unavailable; side effects will not be replayed"}
+{"t": 15.92391095898347, "thread": 130576098141888, "event": "relay_exception", "line": 60, "type": "EOFError", "message": ""}
+{"t": 15.924101411976153, "thread": 130576098141888, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 16.161304249981185, "thread": 130576089749184, "event": "relay_exception", "line": 68, "type": "EOFError", "message": "Issuer TLS stream closed"}
+{"t": 16.161632795992773, "thread": 130576089749184, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 16.162702464993345, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 16.16287428297801, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 16.16295400398667, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 16.163029231975088, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 16.227614520001225, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 16.22768309697858, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 16.22772073399392, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 16.22774400599883, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 16.264533668989316, "thread": 130576148709504, "event": "iteration", "number": 4}
+{"t": 17.999268502986524, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 17.999327339988668, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 18.055621535982937, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 18.055811637983425, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 18.060670562001178, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 18.060718071996234, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 18.061415006988682, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 18.06154160699225, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 18.06193672498921, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 18.06197914099903, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 18.06262355198851, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 18.062747235002462, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 18.079414977983106, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 18.079497989994707, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "hello", "outcome": null}
+{"t": 18.127994554990437, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 18.12855623199721, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "hello", "outcome": "hello"}
+{"t": 18.129854706989136, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 18.130008612992242, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "info", "outcome": "hello"}
+{"t": 18.13227918499615, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 18.13274014199851, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "info", "outcome": "info"}
+{"t": 18.133819367998512, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 18.133975384000223, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "info"}
+{"t": 18.136881130980328, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.137305876996834, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.13877873099409, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.138963873003377, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.142393739981344, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 18.257220261002658, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 18.507328176987357, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.507593400980113, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.50809168399428, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.508136874996126, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.859854925976833, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 18.860062302002916, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "info"}
+{"t": 18.86193773098057, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.862355290999403, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.86332379997475, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.86350900999969, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 18.866098832979333, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 18.86663706897525, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 18.933564350998495, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 18.933760943997186, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 18.947302565997234, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 18.947916783974506, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.196550837979885, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.196747989975847, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.210199327993905, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.210815730999457, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.221815127995797, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.222273289982695, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.223283853993053, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.223475476988824, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.319592540996382, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.319790027977433, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.333537086989963, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.33412665099604, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.3621116860013, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.362198719987646, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.374541277997196, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.37483191897627, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.38915900400025, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.389225943974452, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.401009862980573, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.401270720001776, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.590405095979804, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.59088448798866, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.592183114000363, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.59233897298691, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.690943153982516, "thread": 130576148709504, "event": "world_close_begin", "exited": false}
+{"t": 19.75560673198197, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 19.75570288900053, "thread": 130576148709504, "event": "broker_request", "operation": ["launch"]}
+{"t": 19.759682157979114, "thread": 130576106534592, "event": "relay_line", "line": 63, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.759774902981007, "thread": 130576106534592, "event": "relay_line", "line": 64, "armed": true, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.825712984980782, "thread": 130576106534592, "event": "relay_line", "line": 65, "armed": false, "delivered": false, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.826172881992534, "thread": 130576098141888, "event": "relay_line", "line": 69, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.826728465995984, "thread": 130576098141888, "event": "relay_line", "line": 70, "armed": false, "delivered": false, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.8282702259894, "thread": 130576098141888, "event": "relay_line", "line": 63, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.828451121982653, "thread": 130576098141888, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 19.907410375977634, "thread": 130576106534592, "event": "relay_line", "line": 68, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.921806269994704, "thread": 130576106534592, "event": "relay_line", "line": 69, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.92254490798223, "thread": 130576106534592, "event": "relay_line", "line": 70, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 19.95227621900267, "thread": 130576148709504, "event": "broker_reply", "outcome": "error", "error_code": 26, "error_message": "Launch outcome is unavailable; side effects will not be replayed"}
+{"t": 19.95412622098229, "thread": 130576106534592, "event": "relay_exception", "line": 60, "type": "EOFError", "message": ""}
+{"t": 19.954305628984002, "thread": 130576106534592, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "actor_status", "outcome": "actor_status"}
+{"t": 20.192621381982462, "thread": 130576098141888, "event": "relay_exception", "line": 68, "type": "EOFError", "message": "Issuer TLS stream closed"}
+{"t": 20.192885582975578, "thread": 130576098141888, "event": "relay_line", "line": 74, "armed": false, "delivered": true, "operation": "revocations", "outcome": "revocations"}
+{"t": 20.193931939982576, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 20.194105687987758, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 20.19418715298525, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 20.19426181097515, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 20.259033004986122, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 20.259123065974563, "thread": 130576148709504, "event": "world_close_end"}
+{"t": 20.259151562990155, "thread": 130576148709504, "event": "world_close_begin", "exited": true}
+{"t": 20.259179129992845, "thread": 130576148709504, "event": "world_close_end"}

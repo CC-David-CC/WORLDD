@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-09: Workspace revocation fixture uses an expired owner connection
+
+The sb16-2 service-session sanitizer run finished with one workspace-authority test failure.
+The expected denial occurred, but the relay did not observe a genuine revocation event.
+Five immediate diagnostic repetitions passed. A deliberate idle delay reproduced the exact failure.
+The trace shows the owner connection closed before the test could request revocation.
+The fixture opens that connection before setup, which can exceed its 3000 ms idle timeout.
+
+The proposed correction opens a fresh owner connection immediately before arming the race.
+It preserves every existing assertion and adds a delayed setup regression.
+The delayed baseline fails. All 20 corrected workspace checks pass on sb16-2 in Debug and runtime ASan/UBSan.
+All 20 corrected checks also pass on sb16 in both profiles. The correction is not integrated.
+Frozen sources and the failed full-run evidence remain unchanged.
+See evidence/workspace-owner-idle-2026-10-09.
+
+An isolated participant runtime worker draft now exists. Its first Debug build passed on sb16-2.
+It is not tested, integrated, or connected to worlds and brokers. M02 remains incomplete.
+The barrier candidate passed full Debug on sb16: 1185 core, 51 harness, and 151 P10 checks, without failures or skips.
+Its sb16 sanitizer profile is running. The sb16-2 full barrier matrix has started.
+The remaining sb16-2 service-session sanitizer P10 run passed all 151 cases.
+A reviewed composite qualification receipt is still needed before integrating the corrected fixture and service candidate.
+
 ## 2026-10-09: Real runtime diagnostic confirms mandatory participation gap
 
 The current world runtime admits actors without an activated issuer service generation.

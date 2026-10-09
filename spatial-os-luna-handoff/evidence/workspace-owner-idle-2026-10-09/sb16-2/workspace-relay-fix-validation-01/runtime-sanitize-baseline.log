@@ -1,0 +1,17 @@
+test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout (__main__.WorkspaceAuthorityTests.test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout) ... FAIL
+
+======================================================================
+FAIL: test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout (__main__.WorkspaceAuthorityTests.test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_relay_idle_baseline.py", line 304, in test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout
+    self.retry_revoked_process_after_idle(self.config.idle_timeout_ms / 1000 + .2)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_workspace_relay_idle_baseline.py", line 319, in retry_revoked_process_after_idle
+    self.denied(result,core.UNAVAILABLE); self.assertTrue(relay.delivered.is_set())
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 1 test in 7.197s
+
+FAILED (failures=1)

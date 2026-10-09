@@ -1,0 +1,30 @@
+test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh (test_workspace_authority.WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.022s
+
+OK
+test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh (test_workspace_authority.WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.081s
+
+OK
+test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh (test_workspace_authority.WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.012s
+
+OK
+test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh (test_workspace_authority.WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.148s
+
+OK
+test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh (test_workspace_authority.WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.064s
+
+OK

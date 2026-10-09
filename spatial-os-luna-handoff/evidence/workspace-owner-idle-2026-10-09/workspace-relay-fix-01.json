@@ -1,0 +1,9 @@
+{
+  "base": "participant-session-candidate-03.json",
+  "changes": {
+    "tests/core/test_workspace_authority.py": {
+      "before": "555a29013a2f618b2af97e2b88e6f5d6ee5621295026a379d441caf09a53275e",
+      "after": "38e5f6f1e1c5622e9addedd9fe24253a2a33e4913c3a423b6525090bb4bc3ae5"
+    }
+  }
+}

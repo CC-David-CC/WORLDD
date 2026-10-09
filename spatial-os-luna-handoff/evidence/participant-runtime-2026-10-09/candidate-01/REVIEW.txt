@@ -1,0 +1,35 @@
+Authority participant worker draft01
+
+Scope
+Four files change from barrier candidate04. The frozen candidate contains 242 source inputs.
+Add three versioned protobuf messages for trusted runtime configuration, commands, and updates.
+Add ParticipantRuntime and its CMake library target.
+No world or broker behavior changes. No operator configuration changes.
+
+Primary review
+The worker owns one checked IssuerClient and a distinct registered service key.
+It generates a fresh service incarnation with RAND_bytes.
+Authentication must return the exact registered key, identity, revision, and expected authority domains.
+Main-thread queue calls do not wait for network operations.
+The worker publishes its initial feed before accepting activation.
+Activation uses the revision actually consumed by the authority thread.
+Application acknowledgements require one contiguous consumed event and the active generation.
+The authority must still settle actual effects before submitting these commands.
+Activation revision conflicts require an explicit new command after synchronization.
+Other errors, queue overflow, and transport failures disable the instance permanently.
+There is no automatic reconnect or mutation replay.
+Release requires all preceding command responses consumed and blocks later submissions.
+Destruction requests stop and joins without pretending to release issuer obligations.
+Failure replies preserve the current command ID when a command fails local context validation.
+
+Validation
+The initial Debug configure and build passed on sb16-2.
+The runtime library, real issuer, checked client, and protobuf bindings built successfully.
+No runtime behavior test has executed. No sanitizer qualification exists for this component yet.
+The library is not integrated or linked into worldd or workspaced.
+
+Next
+Add a thin framed-protobuf test probe linked to this production library.
+Test actual TLS authentication, domain mismatch, activation conflict, delivered-revision limits, release, overflow, and transport loss.
+Then connect world and broker cancellation settlement to the worker.
+Preserve the existing zero-participant runtime counterexample until actual integration defeats it.
