@@ -1,0 +1,29 @@
+{
+  "source_files": 237,
+  "binary_source": "participant-session-candidate-01.json",
+  "tested_source": "participant-session-candidate-02.json",
+  "identityd_sha256": "c861f4859563f5580f4532eb0d8f2873eda6baaf84393390d0a4a085ad9621a1",
+  "results": [
+    {
+      "name": "sessions",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_participant_session_corrected_02.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build/identityd"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "regression",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build",
+        "-V",
+        "-R",
+        "^(identity-participants|identity-participant-client|identity-keys|identity-issuer|identity-tls)$"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

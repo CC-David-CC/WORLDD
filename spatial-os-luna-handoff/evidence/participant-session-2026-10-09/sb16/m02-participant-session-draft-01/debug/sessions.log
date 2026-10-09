@@ -1,0 +1,65 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: identity-participant-session
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/source/tests/core/test_identity_participant_session.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build/identityd"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/source
+1: Test timeout computed to be: 120
+1: test_actor_owner_and_transport_keys_do_not_prove_registered_service (__main__.ParticipantSessionTests.test_actor_owner_and_transport_keys_do_not_prove_registered_service) ... ok
+1: test_altered_challenge_binding_is_not_an_authority_proof (__main__.ParticipantSessionTests.test_altered_challenge_binding_is_not_an_authority_proof) ... ok
+1: test_altered_service_incarnation_or_audience_is_rejected (__main__.ParticipantSessionTests.test_altered_service_incarnation_or_audience_is_rejected) ... ok
+1: test_authenticated_connection_cannot_switch_service_identity (__main__.ParticipantSessionTests.test_authenticated_connection_cannot_switch_service_identity) ... ok
+1: test_completed_proof_cannot_replay (__main__.ParticipantSessionTests.test_completed_proof_cannot_replay) ... ok
+1: test_completion_reports_revocation_committed_after_challenge (__main__.ParticipantSessionTests.test_completion_reports_revocation_committed_after_challenge) ... ERROR
+1: test_disconnect_requires_fresh_connection_proof (__main__.ParticipantSessionTests.test_disconnect_requires_fresh_connection_proof) ... ok
+1: test_earlier_pending_challenge_cannot_replace_authenticated_context (__main__.ParticipantSessionTests.test_earlier_pending_challenge_cannot_replace_authenticated_context) ... ok
+1: test_invalid_signature_consumes_nonce (__main__.ParticipantSessionTests.test_invalid_signature_consumes_nonce) ... ok
+1: test_malformed_begin_and_unknown_fields_fail_before_challenge (__main__.ParticipantSessionTests.test_malformed_begin_and_unknown_fields_fail_before_challenge) ... ok
+1: test_management_pipe_cannot_create_service_session (__main__.ParticipantSessionTests.test_management_pipe_cannot_create_service_session) ... ok
+1: test_new_connection_requires_its_own_proof (__main__.ParticipantSessionTests.test_new_connection_requires_its_own_proof) ... ok
+1: test_proof_from_one_connection_cannot_authenticate_another (__main__.ParticipantSessionTests.test_proof_from_one_connection_cannot_authenticate_another) ... ok
+1: test_registered_service_proof_binds_issuer_process_and_tls_connection (__main__.ParticipantSessionTests.test_registered_service_proof_binds_issuer_process_and_tls_connection) ... ok
+1: test_restart_rejects_old_proof_and_changes_issuer_incarnation (__main__.ParticipantSessionTests.test_restart_rejects_old_proof_and_changes_issuer_incarnation) ... ok
+1: test_unknown_participant_and_wrong_registration_revision_fail (__main__.ParticipantSessionTests.test_unknown_participant_and_wrong_registration_revision_fail) ... ok
+1: test_wrong_signature_purpose_cannot_complete_or_replay (__main__.ParticipantSessionTests.test_wrong_signature_purpose_cannot_complete_or_replay) ... ok
+1: 
+1: ======================================================================
+1: ERROR: test_completion_reports_revocation_committed_after_challenge (__main__.ParticipantSessionTests.test_completion_reports_revocation_committed_after_challenge)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/source/tests/core/test_identity_participant_session.py", line 160, in test_completion_reports_revocation_committed_after_challenge
+1:     actor=self.decide(self.peer,self.enroll(self.peer)).enrollment;claims=self.claims(actor,self.info)
+1:                                 ^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/source/tests/core/test_identity_enrollment.py", line 32, in enroll
+1:     reply = self.finish(client, self.begin(client, intent), key, public)
+1:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: TypeError: ParticipantSessionTests.finish() takes from 2 to 4 positional arguments but 5 were given
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 17 tests in 5.142s
+1: 
+1: FAILED (errors=1)
+1/1 Test #1: identity-participant-session .....***Failed    5.26 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   5.26 sec
+
+The following tests FAILED:
+	  1 - identity-participant-session (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

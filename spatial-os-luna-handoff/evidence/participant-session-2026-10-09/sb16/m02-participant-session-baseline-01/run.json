@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-baseline-01/source/tests/core/test_identity_participant_session.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-debug-02/build/identityd",
+    "ParticipantSessionTests.test_registered_service_proof_binds_issuer_process_and_tls_connection",
+    "ParticipantSessionTests.test_proof_from_one_connection_cannot_authenticate_another",
+    "ParticipantSessionTests.test_management_pipe_cannot_create_service_session"
+  ],
+  "exit_code": 1,
+  "tests_requested": [
+    "test_registered_service_proof_binds_issuer_process_and_tls_connection",
+    "test_proof_from_one_connection_cannot_authenticate_another",
+    "test_management_pipe_cannot_create_service_session"
+  ],
+  "source_files": 237,
+  "registry_candidate_identityd_sha256": "592713275779dbcb5d124e23cc8e1c997acf84d9c4d21d58e4b0ad39f6c99196"
+}

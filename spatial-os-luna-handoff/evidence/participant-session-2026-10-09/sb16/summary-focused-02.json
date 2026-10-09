@@ -1,0 +1,12 @@
+{
+  "host": "sb16",
+  "profile": "Debug",
+  "new_checks": 20,
+  "regression_checks": 88,
+  "regression_suites": 5,
+  "failed": 0,
+  "skipped": 0,
+  "source_files": 237,
+  "identityd_sha256": "c861f4859563f5580f4532eb0d8f2873eda6baaf84393390d0a4a085ad9621a1",
+  "scope": "server proof only; checked-client and full qualification pending"
+}

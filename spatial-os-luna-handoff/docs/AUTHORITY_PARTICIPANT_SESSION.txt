@@ -1,6 +1,7 @@
 Authority participant sessions: next component design
-Status: design reviewed against current source. Implementation and tests are pending.
-Dependency: qualify and integrate identity.participant_registry first.
+Status: isolated server draft passes focused Debug tests. Checked-client support and full qualification remain pending.
+Integration dependency: qualify and integrate identity.participant_registry first.
+Independent baseline tests may run while that frozen registry candidate is under qualification.
 This document does not claim an active execution authority or completed cancellation barrier.
 
 Invariant
@@ -113,3 +114,9 @@ Capture a failing baseline before implementation.
 Qualify complete Debug and runtime sanitizer profiles on both hosts before integration.
 Record all further contract changes explicitly.
 Distributed cancellation remains incomplete until durable activation, obligations, effects, and acknowledgements all pass.
+
+Focused evidence, 2026-10-09
+The server draft passed 20 service-session checks and 88 related regression checks on sb16 in Debug.
+The three baseline failures and the corrected fixture-helper error remain preserved.
+No production source, operator database, or active registry qualification source changed.
+See evidence/participant-session-2026-10-09.

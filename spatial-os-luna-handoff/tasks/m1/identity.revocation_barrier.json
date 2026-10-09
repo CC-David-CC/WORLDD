@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "participant_registry_candidate_02_qualification",
+  "current_step": "registry_sanitizer_qualification_and_isolated_service_session_client",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -43,7 +43,8 @@
   ],
   "implementation_plan": "docs/REVOCATION_BARRIER_PLAN.txt",
   "component_tasks": [
-    "tasks/m1/identity.participant_registry.json"
+    "tasks/m1/identity.participant_registry.json",
+    "tasks/m1/identity.participant_session.json"
   ],
   "next_component_design": "docs/AUTHORITY_PARTICIPANT_SESSION.txt"
 }

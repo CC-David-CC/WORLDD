@@ -1,0 +1,487 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -170,6 +170,10 @@
+ include(CTest)
+ if(BUILD_TESTING)
+     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
++    add_test(NAME identity-participant-session COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_session.py" $<TARGET_FILE:identityd>)
++    set_tests_properties(identity-participant-session PROPERTIES TIMEOUT 120
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-participants COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participants.py" $<TARGET_FILE:identityd>)
+     set_tests_properties(identity-participants PROPERTIES TIMEOUT 120
+--- /dev/null
++++ b/tests/core/test_identity_participant_session.py
+@@ -0,0 +1,213 @@
++"""Registered service proof on actual TLS connections; no execution activation."""
++import sqlite3
++import socket
++import subprocess
++import time
++import unittest
++from google.protobuf import text_format
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as pb
++import key_pb2 as keys
++from test_identity_tls import TlsFixture
++from test_identity_issuer import BINARY
++
++
++class ParticipantSessionTests(TlsFixture):
++    def launch(self, address='127.0.0.1'):
++        if not hasattr(self, 'challenge_ttl'):
++            return super().launch(address)
++        self.config_path.write_text(text_format.MessageToString(self.config));self.config_path.chmod(0o600)
++        listener=socket.socket();listener.bind((address,0));listener.listen(8)
++        self.port=listener.getsockname()[1]
++        log=(self.root/f'tls-{len(self.daemons)}.log').open('wb')
++        try:
++            proc=subprocess.Popen([str(BINARY),'--state-dir',str(self.state),
++                '--listen-fd',str(listener.fileno()),'--tls-config',str(self.config_path),
++                '--challenge-ttl-ms',str(self.challenge_ttl)],pass_fds=(listener.fileno(),),
++                stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log)
++        finally:
++            listener.close()
++        self.daemons.append((proc,log));return proc
++
++    def setUp(self):
++        super().setUp()
++        self.peer = self.ready()
++        self.signer, self.public = self.key('registered-authority')
++        self.registration = self.register()
++
++    def register(self, identity=b'p'*32, public=None, domain='park', revision=0):
++        value = pb.AuthorityParticipant(id=identity, public_key=public or self.public,
++            domains=[grants.Domain(kind=grants.WORLD, id=domain)])
++        operation = pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(
++            participant=value, expected_registry_revision=revision))
++        reply = self.execute(self.peer, self.challenge(self.peer, operation))
++        self.assertTrue(reply.HasField('participant'), reply)
++        return reply.participant
++
++    def request(self, identity=b'p'*32, revision=1, incarnation=b'i'*32):
++        return pb.AuthorityAuthenticationBegin(participant_id=identity,
++            registered_revision=revision, service_incarnation=incarnation)
++
++    def service_begin(self, peer=None, request=None):
++        reply = (peer or self.peer).call(authority_authentication_begin=request or self.request())
++        self.assertTrue(reply.HasField('challenge'), reply)
++        return reply.challenge
++
++    def service_finish(self, challenge, peer=None, proof=None):
++        return (peer or self.peer).call(authority_authentication_complete=pb.AuthorityAuthenticationComplete(
++            nonce=challenge.nonce, proof=proof or self.proof(challenge, self.signer, self.public)))
++
++    def payload(self, challenge):
++        return pb.AuthorityAuthenticationChallenge.FromString(challenge.signing_request.payload)
++
++    def snapshot_all(self):
++        with sqlite3.connect(self.state/'identity.db') as db:
++            names=[r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")]
++            return {name:db.execute('SELECT * FROM '+name).fetchall() for name in names}
++
++    def test_registered_service_proof_binds_issuer_process_and_tls_connection(self):
++        before=self.snapshot_all();challenge=self.service_begin();payload=self.payload(challenge)
++        self.assertEqual(challenge.signing_request.purpose,keys.AUTHORITY_PARTICIPATION)
++        self.assertEqual(payload.protocol_version,1);self.assertEqual(payload.issuer_id,self.info.issuer_id)
++        self.assertEqual(payload.nonce,challenge.nonce);self.assertEqual(payload.request,self.request())
++        self.assertEqual(len(payload.issuer_incarnation),32);self.assertEqual(len(payload.connection_binding),32)
++        self.assertGreaterEqual(payload.lifetime_ms,50);self.assertLessEqual(payload.lifetime_ms,60000)
++        self.assertEqual(payload.audience,'identityd/authority-participation/v1')
++        result=self.service_finish(challenge);self.assertTrue(result.HasField('authority_authentication'),result)
++        result=result.authority_authentication
++        self.assertEqual(result.issuer_id,self.info.issuer_id)
++        self.assertEqual(result.issuer_incarnation,payload.issuer_incarnation)
++        self.assertEqual(result.registration,self.registration)
++        self.assertEqual(result.connection_binding,payload.connection_binding)
++        self.assertEqual(result.service_incarnation,self.request().service_incarnation)
++        self.assertEqual(result.security_revision,0)
++        self.assertEqual(self.snapshot_all(),before);self.assertEqual(self.counts(),(0,0,0))
++
++    def test_proof_from_one_connection_cannot_authenticate_another(self):
++        challenge=self.service_begin();proof=self.proof(challenge,self.signer,self.public);other=self.connect()
++        self.denied(self.service_finish(challenge,other,proof))
++        self.denied(self.service_finish(challenge,self.peer,proof))
++        fresh=self.service_begin(other)
++        self.assertNotEqual(self.payload(challenge).connection_binding,self.payload(fresh).connection_binding)
++        self.assertTrue(self.service_finish(fresh,other).HasField('authority_authentication'))
++
++    def test_management_pipe_cannot_create_service_session(self):
++        self.peer.close();self.stop_daemons();pipe=self.start()
++        self.denied(pipe.call(authority_authentication_begin=self.request()),core.FORBIDDEN)
++        self.denied(pipe.call(authority_authentication_complete=pb.AuthorityAuthenticationComplete(
++            nonce=b'n'*32,proof=keys.KeyProof(purpose=keys.AUTHORITY_PARTICIPATION,
++                public_key=self.public,signature=b's'*64))),core.FORBIDDEN)
++
++    def test_actor_owner_and_transport_keys_do_not_prove_registered_service(self):
++        transport_public=self.openssl('pkey','-in',self.service_key,'-pubout','-outform','DER')[12:]
++        for key,public in ((self.actor_key,self.actor_public),(self.owner,self.owner_public),
++                           (self.service_key,transport_public)):
++            with self.subTest(public=public.hex()):
++                challenge=self.service_begin();self.denied(self.service_finish(challenge,proof=self.proof(challenge,key,public)))
++                self.denied(self.service_finish(challenge))
++
++    def test_wrong_signature_purpose_cannot_complete_or_replay(self):
++        for purpose in (keys.ACTOR_AUTHENTICATION,keys.ISSUER_ADMINISTRATION,keys.ENROLLMENT_PROOF):
++            challenge=self.service_begin()
++            self.denied(self.service_finish(challenge,proof=self.proof(challenge,self.signer,self.public,purpose=purpose)))
++            self.denied(self.service_finish(challenge))
++
++    def test_invalid_signature_consumes_nonce(self):
++        challenge=self.service_begin();proof=self.proof(challenge,self.signer,self.public)
++        proof.signature=bytes([proof.signature[0]^1])+proof.signature[1:]
++        self.denied(self.service_finish(challenge,proof=proof));self.denied(self.service_finish(challenge))
++
++    def test_completed_proof_cannot_replay(self):
++        challenge=self.service_begin();proof=self.proof(challenge,self.signer,self.public)
++        self.assertTrue(self.service_finish(challenge,proof=proof).HasField('authority_authentication'))
++        self.denied(self.service_finish(challenge,proof=proof))
++
++    def test_unknown_participant_and_wrong_registration_revision_fail(self):
++        for request in (self.request(identity=b'x'*32),self.request(revision=2)):
++            self.denied(self.peer.call(authority_authentication_begin=request))
++
++    def test_malformed_begin_and_unknown_fields_fail_before_challenge(self):
++        examples=[self.request(identity=b''),self.request(identity=b'x'),self.request(revision=0),
++            self.request(revision=2**63),self.request(incarnation=b''),self.request(incarnation=b'x')]
++        unknown=self.request();unknown.ParseFromString(unknown.SerializeToString()+b'\xf8\x07\x01');examples.append(unknown)
++        for request in examples:self.denied(self.peer.call(authority_authentication_begin=request),core.INVALID_ARGUMENT)
++        self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
++
++    def test_altered_challenge_binding_is_not_an_authority_proof(self):
++        for field in ('issuer_id','issuer_incarnation','connection_binding','nonce'):
++            challenge=self.service_begin();payload=self.payload(challenge);setattr(payload,field,b'x'*32)
++            proof=self.proof(challenge,self.signer,self.public,payload=payload.SerializeToString())
++            self.denied(self.service_finish(challenge,proof=proof))
++
++    def test_altered_service_incarnation_or_audience_is_rejected(self):
++        for field in ('incarnation','audience'):
++            challenge=self.service_begin();payload=self.payload(challenge)
++            if field=='incarnation':payload.request.service_incarnation=b'x'*32
++            else:payload.audience='world/actor'
++            self.denied(self.service_finish(challenge,proof=self.proof(challenge,self.signer,self.public,payload=payload.SerializeToString())))
++
++    def test_disconnect_requires_fresh_connection_proof(self):
++        challenge=self.service_begin();proof=self.proof(challenge,self.signer,self.public);self.peer.close()
++        other=self.connect();self.denied(self.service_finish(challenge,other,proof))
++        self.assertTrue(self.service_finish(self.service_begin(other),other).HasField('authority_authentication'))
++
++    def test_restart_rejects_old_proof_and_changes_issuer_incarnation(self):
++        challenge=self.service_begin();proof=self.proof(challenge,self.signer,self.public)
++        self.peer.close();self.stop_daemons();self.peer=self.ready()
++        self.denied(self.service_finish(challenge,proof=proof));fresh=self.service_begin()
++        self.assertNotEqual(self.payload(fresh).issuer_incarnation,self.payload(challenge).issuer_incarnation)
++        self.assertTrue(self.service_finish(fresh).HasField('authority_authentication'))
++
++    def test_authenticated_connection_cannot_switch_service_identity(self):
++        self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
++        _,public=self.key('another-service');self.register(b'q'*32,public,'home',1)
++        self.denied(self.peer.call(authority_authentication_begin=self.request(b'q'*32,2)),core.BUSY)
++
++    def test_earlier_pending_challenge_cannot_replace_authenticated_context(self):
++        first=self.service_begin();second=self.service_begin(request=self.request(incarnation=b'j'*32))
++        self.assertTrue(self.service_finish(first).HasField('authority_authentication'))
++        self.denied(self.service_finish(second),core.BUSY)
++        self.denied(self.service_finish(second))
++
++    def test_new_connection_requires_its_own_proof(self):
++        first=self.service_begin();self.assertTrue(self.service_finish(first).HasField('authority_authentication'))
++        other=self.connect();self.denied(self.service_finish(first,other))
++        second=self.service_begin(other)
++        self.assertNotEqual(self.payload(first).connection_binding,self.payload(second).connection_binding)
++        self.assertTrue(self.service_finish(second,other).HasField('authority_authentication'))
++
++    def test_completion_reports_revocation_committed_after_challenge(self):
++        actor=self.decide(self.peer,self.enroll(self.peer)).enrollment;claims=self.claims(actor,self.info)
++        challenge=self.service_begin()
++        operation=pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(
++            target=pb.IdentityReference(kind=pb.CREDENTIAL_TARGET,id=claims.credential_id),
++            expected_security_revision=0,reason='service proof race'))
++        revoked=self.execute(self.peer,self.challenge(self.peer,operation));self.assertFalse(revoked.identity_status.active)
++        result=self.service_finish(challenge);self.assertTrue(result.HasField('authority_authentication'),result)
++        self.assertEqual(result.authority_authentication.security_revision,1)
++
++    def test_expired_service_proof_is_rejected_and_fresh_proof_succeeds(self):
++        self.peer.close();self.stop_daemons();self.challenge_ttl=200;self.peer=self.ready()
++        challenge=self.service_begin();proof=self.proof(challenge,self.signer,self.public)
++        self.assertEqual(self.payload(challenge).lifetime_ms,200)
++        time.sleep(.25)
++        self.denied(self.service_finish(challenge,proof=proof))
++        self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
++
++    def test_fresh_challenges_keep_connection_binding_and_change_nonce(self):
++        first=self.service_begin();second=self.service_begin()
++        self.assertNotEqual(first.nonce,second.nonce)
++        self.assertEqual(self.payload(first).connection_binding,self.payload(second).connection_binding)
++        self.assertEqual(self.payload(first).issuer_incarnation,self.payload(second).issuer_incarnation)
++
++    def test_pending_service_challenges_are_bounded(self):
++        challenges=[self.service_begin() for _ in range(256)]
++        self.assertEqual(len({c.nonce for c in challenges}),256)
++        self.denied(self.peer.call(authority_authentication_begin=self.request()),core.BUSY)
++        wrong=self.proof(challenges[0],self.actor_key,self.actor_public)
++        self.denied(self.service_finish(challenges[0],proof=wrong))
++        self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
++
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- a/src/identity/issuer.cpp
++++ b/src/identity/issuer.cpp
+@@ -171,6 +171,8 @@
+         Clock::time_point expires;
+         v1::AuthenticationBegin authentication;
+         v1::IdentityStatus authenticated_identity;
++        v1::AuthorityAuthenticationBegin authority{};
++        std::string connection_binding{};
+     };
+     File directory, lock;
+     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
+@@ -730,4 +732,59 @@
+     result.set_audience(pending.authentication.audience()); result.set_channel_binding(pending.authentication.channel_binding());
+     return result;
+ }
++v1::ChallengeReply Issuer::authority_authentication_begin(const v1::AuthorityAuthenticationBegin& request,
++                                                        IssuerConnection& connection) {
++    validate_message(request);
++    require(request.participant_id().size() == 32 && request.registered_revision() > 0 &&
++            request.registered_revision() <= INT64_MAX && request.service_incarnation().size() == 32,
++            "Service proof requires participant identity, registration revision, and process incarnation");
++    if (connection.binding.size() != 32)
++        throw WorldError(wire::FORBIDDEN, "Service proof requires a server connection identity");
++    if (connection.authority) throw WorldError(wire::BUSY, "This connection already has a service identity");
++    Transaction transaction(impl_->db.get());
++    Query registered(impl_->db.get(), "SELECT registered_revision FROM authority_participant WHERE id=?");
++    registered.blob(1, request.participant_id());
++    if (registered.step() != SQLITE_ROW || registered.integer(0) <= 0 ||
++            static_cast<std::uint64_t>(registered.integer(0)) != request.registered_revision())
++        throw WorldError(wire::UNAUTHORIZED, "Service registration is unavailable");
++    const auto record = impl_->participant_record(request.participant_id(), impl_->registry_revision());
++    transaction.commit();
++    const auto nonce = impl_->nonce();
++    v1::AuthorityAuthenticationChallenge payload;
++    payload.set_protocol_version(1); payload.set_issuer_id(impl_->identity.issuer_id());
++    payload.set_issuer_incarnation(impl_->incarnation); payload.set_nonce(nonce);
++    *payload.mutable_request() = request; payload.set_connection_binding(connection.binding);
++    payload.set_lifetime_ms(static_cast<std::uint32_t>(impl_->lifetime.count()));
++    payload.set_audience("identityd/authority-participation/v1");
++    v1::ChallengeReply result; result.set_nonce(nonce);
++    result.mutable_signing_request()->set_purpose(v1::AUTHORITY_PARTICIPATION);
++    result.mutable_signing_request()->set_payload(payload.SerializeAsString());
++    impl_->pending.emplace(nonce, Impl::Pending{{}, {}, result.signing_request(), record.participant().public_key(),
++        Clock::now() + impl_->lifetime, {}, {}, request, connection.binding});
++    return result;
++}
++v1::AuthorityAuthenticationResult Issuer::authority_authentication_complete(const v1::AuthorityAuthenticationComplete& request,
++                                                                          IssuerConnection& connection) {
++    validate_message(request);
++    require(request.nonce().size() == 32 && request.has_proof(), "Service nonce and proof are required");
++    if (connection.binding.size() != 32)
++        throw WorldError(wire::FORBIDDEN, "Service proof requires a server connection identity");
++    const auto pending = impl_->consume(request.nonce(), request.proof(), v1::AUTHORITY_PARTICIPATION);
++    if (pending.connection_binding != connection.binding)
++        throw WorldError(wire::UNAUTHORIZED, "Service proof belongs to another connection");
++    if (connection.authority) throw WorldError(wire::BUSY, "This connection already has a service identity");
++    Transaction transaction(impl_->db.get());
++    const auto record = impl_->participant_record(pending.authority.participant_id(), impl_->registry_revision());
++    storage(record.registered_revision() == pending.authority.registered_revision() &&
++            record.participant().public_key() == pending.expected_key, "Service registration changed during proof");
++    v1::AuthorityAuthenticationResult result;
++    result.set_issuer_id(impl_->identity.issuer_id()); result.set_issuer_incarnation(impl_->incarnation);
++    *result.mutable_registration() = record;
++    result.set_service_incarnation(pending.authority.service_incarnation());
++    result.set_connection_binding(connection.binding); result.set_security_revision(impl_->security_revision());
++    transaction.commit();
++    // This connection-local proof is not execution activation or cancellation completion.
++    connection.authority = result;
++    return result;
++}
+ } // namespace spatial::identity
+--- a/src/identity/issuer.hpp
++++ b/src/identity/issuer.hpp
+@@ -7,6 +7,12 @@
+ #include <string>
+ 
+ namespace spatial::identity {
++// Created by the TLS server. This context is never decoded from a wire request.
++// Identity proof alone does not activate execution or acknowledge cancellation.
++struct IssuerConnection {
++    std::string binding;
++    std::optional<v1::AuthorityAuthenticationResult> authority;
++};
+ class Issuer {
+ public:
+     // Initialization is an explicit local owner operation, never a wire request.
+@@ -27,6 +33,10 @@
+     v1::AuthenticationResult authentication_complete(const v1::AuthenticationComplete& request);
+     v1::RevocationBatch revocations(const v1::RevocationRead& request);
+     std::uint64_t security_revision();
++    v1::ChallengeReply authority_authentication_begin(const v1::AuthorityAuthenticationBegin& request,
++                                                     IssuerConnection& connection);
++    v1::AuthorityAuthenticationResult authority_authentication_complete(const v1::AuthorityAuthenticationComplete& request,
++                                                                      IssuerConnection& connection);
+ private:
+     struct Impl;
+     std::unique_ptr<Impl> impl_;
+--- a/src/identity/protocol.cpp
++++ b/src/identity/protocol.cpp
+@@ -3,7 +3,7 @@
+ #include "build_id.hpp"
+ 
+ namespace spatial::identity {
+-v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer) {
++v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer, IssuerConnection* connection) {
+     v1::IssuerReply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+     try {
+         spatial::validate_message(request);
+@@ -19,6 +19,7 @@
+             result->add_capabilities("identity.actor-status/v1");
+             result->add_capabilities("identity.bootstrap-profile/v1");
+             result->add_capabilities("identity.authority-registry/v1");
++            result->add_capabilities("identity.authority-participation-proof/v1");
+         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
+         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
+         else if (request.has_execute()) {
+@@ -37,6 +38,13 @@
+         else if (request.has_authentication_begin()) *reply.mutable_challenge() = issuer.authentication_begin(request.authentication_begin());
+         else if (request.has_authentication_complete()) *reply.mutable_authentication() = issuer.authentication_complete(request.authentication_complete());
+         else if (request.has_revocations()) *reply.mutable_revocations() = issuer.revocations(request.revocations());
++        else if (request.has_authority_authentication_begin() || request.has_authority_authentication_complete()) {
++            if (!connection || connection->binding.size() != 32)
++                throw spatial::WorldError(spatial::wire::FORBIDDEN, "Service identity proof requires a TLS connection context");
++            if (request.has_authority_authentication_begin())
++                *reply.mutable_challenge() = issuer.authority_authentication_begin(request.authority_authentication_begin(), *connection);
++            else *reply.mutable_authority_authentication() = issuer.authority_authentication_complete(request.authority_authentication_complete(), *connection);
++        }
+         else throw spatial::WorldError(spatial::wire::UNKNOWN_METHOD, "No recognized issuer operation");
+     } catch (const spatial::WorldError& error) {
+         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
+@@ -48,10 +56,10 @@
+     return reply;
+ }
+ 
+-v1::IssuerReply handle_issuer_frame(std::string_view bytes, Issuer& issuer) {
++v1::IssuerReply handle_issuer_frame(std::string_view bytes, Issuer& issuer, IssuerConnection* connection) {
+     v1::IssuerRequest request;
+     if (bytes.size() <= max_frame_bytes && request.ParseFromArray(bytes.data(), static_cast<int>(bytes.size())))
+-        return dispatch_issuer(request, issuer);
++        return dispatch_issuer(request, issuer, connection);
+     v1::IssuerReply reply; reply.set_protocol_version(1);
+     reply.mutable_error()->set_code(wire::INVALID_ARGUMENT);
+     reply.mutable_error()->set_message("Malformed issuer protobuf payload");
+--- a/src/identity/protocol.hpp
++++ b/src/identity/protocol.hpp
+@@ -3,6 +3,6 @@
+ #include <string_view>
+ 
+ namespace spatial::identity {
+-v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer);
+-v1::IssuerReply handle_issuer_frame(std::string_view bytes, Issuer& issuer);
++v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer, IssuerConnection* connection = nullptr);
++v1::IssuerReply handle_issuer_frame(std::string_view bytes, Issuer& issuer, IssuerConnection* connection = nullptr);
+ }
+--- a/src/identity/tls_server.cpp
++++ b/src/identity/tls_server.cpp
+@@ -5,6 +5,7 @@
+ #include <google/protobuf/text_format.h>
+ #include <openssl/err.h>
+ #include <openssl/ssl.h>
++#include <openssl/rand.h>
+ #include <algorithm>
+ #include <array>
+ #include <cerrno>
+@@ -37,6 +38,7 @@
+     std::array<unsigned char, 4> header{};
+     std::string payload, output;
+     std::optional<v1::IssuerRequest> waiting;
++    IssuerConnection connection;
+     std::size_t offset = 0;
+     Peer(int fd, SSL_CTX* ctx, Milliseconds timeout)
+         : socket(fd), tls(SSL_new(ctx), SSL_free), deadline(Clock::now()+timeout) {
+@@ -58,7 +60,7 @@
+         phase = Phase::reply; wanted = POLLOUT; deadline = Clock::now()+timeout;
+     }
+     void respond(Issuer& issuer, Milliseconds timeout) {
+-        const auto reply = handle_issuer_frame(payload, issuer);
++        const auto reply = handle_issuer_frame(payload, issuer, &connection);
+         v1::IssuerRequest request;
+         if (reply.has_revocations() && request.ParseFromString(payload) && request.revocations().has_after_revision() &&
+                 request.revocations().wait_ms() && reply.revocations().events_size() == 0) {
+@@ -73,11 +75,14 @@
+             } catch (const std::exception&) {
+                 // The shared dispatcher turns storage failure into a typed response.
+             }
+-            send(dispatch_issuer(*waiting, issuer), timeout); waiting.reset(); return true;
++            send(dispatch_issuer(*waiting, issuer, &connection), timeout); waiting.reset(); return true;
+         }
+         if (phase == Phase::handshake) {
+             ERR_clear_error(); const int result = SSL_accept(tls.get());
+             if (result != 1) return retry(result);
++            connection.binding.resize(32);
++            require(RAND_bytes(reinterpret_cast<unsigned char*>(connection.binding.data()), connection.binding.size()) == 1,
++                    "Cannot allocate issuer TLS connection identity");
+             phase = Phase::header; wanted = POLLIN; deadline = Clock::now()+idle; return true;
+         }
+         std::size_t count = 0;
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -34,6 +34,32 @@
+   uint64 registry_revision = 2;
+   repeated AuthorityParticipantRecord participants = 3;
+   bytes next_after = 4;
++}
++
++// Service identity proof on the server-derived TLS connection. This does not activate execution.
++message AuthorityAuthenticationBegin {
++  bytes participant_id = 1;
++  uint64 registered_revision = 2;
++  bytes service_incarnation = 3;
++}
++message AuthorityAuthenticationChallenge {
++  uint32 protocol_version = 1;
++  bytes issuer_id = 2;
++  bytes issuer_incarnation = 3;
++  bytes nonce = 4;
++  AuthorityAuthenticationBegin request = 5;
++  bytes connection_binding = 6;
++  uint32 lifetime_ms = 7;
++  string audience = 8;
++}
++message AuthorityAuthenticationComplete { bytes nonce = 1; KeyProof proof = 2; }
++message AuthorityAuthenticationResult {
++  bytes issuer_id = 1;
++  bytes issuer_incarnation = 2;
++  AuthorityParticipantRecord registration = 3;
++  bytes service_incarnation = 4;
++  bytes connection_binding = 5;
++  uint64 security_revision = 6;
+ }
+ 
+ enum EnrollmentMode { ENROLLMENT_MODE_UNSPECIFIED = 0; MANUAL = 1; APPROVE_ALWAYS = 2; }
+@@ -221,6 +247,8 @@
+     RevocationRead revocations = 19;
+     ActorStatusRead actor_status = 20;
+     BootstrapProfileRead profile_read = 21;
++    AuthorityAuthenticationBegin authority_authentication_begin = 22;
++    AuthorityAuthenticationComplete authority_authentication_complete = 23;
+   }
+ }
+ message IssuerReply {
+@@ -240,5 +268,6 @@
+     BootstrapProfileState profile = 20;
+     AuthorityParticipantRecord participant = 21;
+     AuthorityRegistryPage registry = 22;
++    AuthorityAuthenticationResult authority_authentication = 23;
+   }
+ }
+--- a/proto/spatial/identity/v1/key.proto
++++ b/proto/spatial/identity/v1/key.proto
+@@ -9,6 +9,7 @@
+   ACTOR_AUTHENTICATION = 2;
+   ISSUER_ADMINISTRATION = 3;
+   ISSUER_CREDENTIAL = 4;
++  AUTHORITY_PARTICIPATION = 5;
+ }
+ message SignRequest {
+   SignaturePurpose purpose = 1;

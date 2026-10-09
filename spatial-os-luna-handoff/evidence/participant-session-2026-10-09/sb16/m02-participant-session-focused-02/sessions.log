@@ -1,0 +1,25 @@
+test_actor_owner_and_transport_keys_do_not_prove_registered_service (__main__.ParticipantSessionTests.test_actor_owner_and_transport_keys_do_not_prove_registered_service) ... ok
+test_altered_challenge_binding_is_not_an_authority_proof (__main__.ParticipantSessionTests.test_altered_challenge_binding_is_not_an_authority_proof) ... ok
+test_altered_service_incarnation_or_audience_is_rejected (__main__.ParticipantSessionTests.test_altered_service_incarnation_or_audience_is_rejected) ... ok
+test_authenticated_connection_cannot_switch_service_identity (__main__.ParticipantSessionTests.test_authenticated_connection_cannot_switch_service_identity) ... ok
+test_completed_proof_cannot_replay (__main__.ParticipantSessionTests.test_completed_proof_cannot_replay) ... ok
+test_completion_reports_revocation_committed_after_challenge (__main__.ParticipantSessionTests.test_completion_reports_revocation_committed_after_challenge) ... ok
+test_disconnect_requires_fresh_connection_proof (__main__.ParticipantSessionTests.test_disconnect_requires_fresh_connection_proof) ... ok
+test_earlier_pending_challenge_cannot_replace_authenticated_context (__main__.ParticipantSessionTests.test_earlier_pending_challenge_cannot_replace_authenticated_context) ... ok
+test_expired_service_proof_is_rejected_and_fresh_proof_succeeds (__main__.ParticipantSessionTests.test_expired_service_proof_is_rejected_and_fresh_proof_succeeds) ... ok
+test_fresh_challenges_keep_connection_binding_and_change_nonce (__main__.ParticipantSessionTests.test_fresh_challenges_keep_connection_binding_and_change_nonce) ... ok
+test_invalid_signature_consumes_nonce (__main__.ParticipantSessionTests.test_invalid_signature_consumes_nonce) ... ok
+test_malformed_begin_and_unknown_fields_fail_before_challenge (__main__.ParticipantSessionTests.test_malformed_begin_and_unknown_fields_fail_before_challenge) ... ok
+test_management_pipe_cannot_create_service_session (__main__.ParticipantSessionTests.test_management_pipe_cannot_create_service_session) ... ok
+test_new_connection_requires_its_own_proof (__main__.ParticipantSessionTests.test_new_connection_requires_its_own_proof) ... ok
+test_pending_service_challenges_are_bounded (__main__.ParticipantSessionTests.test_pending_service_challenges_are_bounded) ... ok
+test_proof_from_one_connection_cannot_authenticate_another (__main__.ParticipantSessionTests.test_proof_from_one_connection_cannot_authenticate_another) ... ok
+test_registered_service_proof_binds_issuer_process_and_tls_connection (__main__.ParticipantSessionTests.test_registered_service_proof_binds_issuer_process_and_tls_connection) ... ok
+test_restart_rejects_old_proof_and_changes_issuer_incarnation (__main__.ParticipantSessionTests.test_restart_rejects_old_proof_and_changes_issuer_incarnation) ... ok
+test_unknown_participant_and_wrong_registration_revision_fail (__main__.ParticipantSessionTests.test_unknown_participant_and_wrong_registration_revision_fail) ... ok
+test_wrong_signature_purpose_cannot_complete_or_replay (__main__.ParticipantSessionTests.test_wrong_signature_purpose_cannot_complete_or_replay) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 9.191s
+
+OK

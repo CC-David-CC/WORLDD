@@ -1,0 +1,58 @@
+test_registered_service_proof_binds_issuer_process_and_tls_connection (__main__.ParticipantSessionTests.test_registered_service_proof_binds_issuer_process_and_tls_connection) ... FAIL
+test_proof_from_one_connection_cannot_authenticate_another (__main__.ParticipantSessionTests.test_proof_from_one_connection_cannot_authenticate_another) ... FAIL
+test_management_pipe_cannot_create_service_session (__main__.ParticipantSessionTests.test_management_pipe_cannot_create_service_session) ... FAIL
+
+======================================================================
+FAIL: test_registered_service_proof_binds_issuer_process_and_tls_connection (__main__.ParticipantSessionTests.test_registered_service_proof_binds_issuer_process_and_tls_connection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-baseline-01/source/tests/core/test_identity_participant_session.py", line 49, in test_registered_service_proof_binds_issuer_process_and_tls_connection
+    before=self.snapshot_all();challenge=self.begin();payload=self.payload(challenge)
+                                         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-baseline-01/source/tests/core/test_identity_participant_session.py", line 33, in begin
+    self.assertTrue(reply.HasField('challenge'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 4
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_proof_from_one_connection_cannot_authenticate_another (__main__.ParticipantSessionTests.test_proof_from_one_connection_cannot_authenticate_another)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-baseline-01/source/tests/core/test_identity_participant_session.py", line 67, in test_proof_from_one_connection_cannot_authenticate_another
+    challenge=self.begin();proof=self.proof(challenge,self.signer,self.public);other=self.connect()
+              ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-baseline-01/source/tests/core/test_identity_participant_session.py", line 33, in begin
+    self.assertTrue(reply.HasField('challenge'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 4
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_management_pipe_cannot_create_service_session (__main__.ParticipantSessionTests.test_management_pipe_cannot_create_service_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-baseline-01/source/tests/core/test_identity_participant_session.py", line 76, in test_management_pipe_cannot_create_service_session
+    self.denied(pipe.call(authority_authentication_begin=self.request()),core.FORBIDDEN)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-baseline-01/source/tests/core/test_identity_issuer.py", line 138, in denied
+    self.assertEqual(reply.error.code, code, reply)
+AssertionError: 1 != 13 : protocol_version: 1
+request_id: 2
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.742s
+
+FAILED (failures=3)

@@ -16,12 +16,13 @@ All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qua
 Existing components provide partial implementation where CURRENT_STATE.md records their evidence.
 The mandatory profile is tasks/spatial-m1.json.
 
-The latest qualified increment adds authenticated enrollment delivery into world and workspace grants.
-Both hosts passed complete Debug and runtime ASan/UBSan qualification on 2026-10-09.
-Each profile passed 1,037 core checks across 55 suites, 51 harness checks, and all 151 P10 cases.
-Six additional process-witness checks passed against each exact binary set.
-No final profile failed or skipped a case.
-See evidence/bootstrap-workspace-adapters-2026-10-09 for source pins, commands, and final results.
+The latest fully qualified and integrated increment is authenticated remote actor transport.
+Both hosts passed Debug and runtime ASan/UBSan qualification for that increment.
+Each profile passed 1,089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
+See evidence/world-remote-2026-10-09 for exact sources, commands, and results.
+The service-registry candidate passed complete Debug on both hosts: 1,120 core, 51 harness, and 151 P10 checks each.
+Its complete two-host qualification and production integration remain pending.
+See evidence/participant-registry-2026-10-09 for the current candidate evidence.
 The original P00-P10 baseline and walkthrough evidence remain in evidence/walkthroughs-2026-10-07.
 
 Qualified components now include actor identity, persistent grants, confined execution, and several native X isolation boundaries.
@@ -39,7 +40,7 @@ Shared worlds, world transitions, complete cabinet actions, application restorat
 Physical devices, native GPU output, timing, and soak evidence remain mandatory.
 Native-server GLX sanitizer cleanup remains unqualified.
 Read the newest CURRENT_STATE.md section before using historical entries as current implementation facts.
-Next: finish authenticated world transport and distributed revocation checks before shared-world qualification.
+Next: finish distributed revocation, then qualify persistent shared worlds and world transitions.
 
 ## Ordered implementation
 

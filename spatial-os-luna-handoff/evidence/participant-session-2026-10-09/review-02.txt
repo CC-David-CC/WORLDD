@@ -1,0 +1,41 @@
+Service-session server review, 2026-10-09
+Status: isolated server draft. Checked-client support and complete qualification remain pending.
+Reviewer: primary agent. No local model or subagent review.
+Base: frozen registry candidate 02, with 236 source files.
+
+Invariant
+A registered service proves its own key on the same actual TLS connection that receives its authenticated context.
+This context does not activate execution or acknowledge any cancellation effect.
+
+Reviewed changes
+proto/spatial/identity/v1/key.proto adds purpose AUTHORITY_PARTICIPATION = 5.
+proto/spatial/identity/v1/issuer.proto adds four messages and two request fields plus one result field.
+src/identity/issuer.hpp defines a connection context and service proof operations.
+src/identity/issuer.cpp resolves the registered key, consumes bounded challenges, checks connection identity, and preserves durable state.
+Each proof binds the issuer, issuer incarnation, service incarnation, registration revision, nonce, and connection binding.
+The management pipe cannot supply a service TLS context.
+src/identity/protocol.hpp and protocol.cpp pass the server-owned context through the production dispatcher.
+src/identity/tls_server.cpp assigns fresh random binding bytes after a successful handshake.
+The binding remains with that Peer and disappears when the Peer is destroyed.
+CMakeLists.txt adds the service-session suite without changing existing suites.
+tests/core/test_identity_participant_session.py uses the real TLS issuer and independent OpenSSL signatures.
+Its explicit short-TTL launcher changes only the supported challenge-lifetime argument for the expiry case.
+
+Evidence
+The three baseline cases reached unsupported protobuf operations after real owner registration succeeded.
+Later service-proof and wrong-connection assertions were unrun on that baseline.
+The first draft built. Sixteen cases passed; one errored because a helper shadowed enrollment fixture methods.
+The corrected test uses service_begin and service_finish. It preserves the original assertions.
+The corrected suite adds expiry, stable connection binding with fresh nonces, and bounded challenge capacity.
+All 20 new cases and 88 related regression cases passed on sb16 in Debug.
+The focused runner verifies all 237 candidate-02 inputs against the frozen compiled source plus the corrected test file.
+Production C++ binaries are unchanged between candidate 01 and the corrected candidate-02 focused run.
+
+Remaining work
+Implement the production checked client's service challenge and result handling.
+Validate challenge audience, nonce, purpose, issuer pins, request contents, lifetime, and connection binding.
+Retain expected challenge context for completion. Reject inconsistent service results and poison malformed peer channels.
+Add independent malformed-response and real checked-client cases.
+Run the complete additive schema audit and both-host Debug/runtime sanitizer qualification.
+Keep registry integration separate from this newer service-session candidate.
+Durable activation, execution fencing, cancellation obligations, and acknowledgements remain unimplemented.

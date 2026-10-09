@@ -27,7 +27,7 @@
     "skipped": 0
   },
   "review_correction": "A real client counterexample confirmed duplicate registration revisions were accepted. Candidate 02 rejects them.",
-  "full_qualification": "running; no completion claim",
+  "full_qualification": "Both Debug profiles passed; runtime sanitizer profiles running",
   "integrated": false,
   "remaining": [
     "Finish candidate-02 full Debug and runtime sanitizer qualification on both hosts.",
@@ -49,5 +49,17 @@
     "failed": 0,
     "skipped": 0,
     "source_files": 236
+  },
+  "candidate_02_full_Debug": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "core_checks": 1120,
+    "core_suites": 64,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
   }
 }

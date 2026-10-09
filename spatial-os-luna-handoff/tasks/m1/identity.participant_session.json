@@ -1,0 +1,31 @@
+{
+  "id": "identity.participant_session",
+  "phase": "M02",
+  "status": "in_progress",
+  "current_step": "server_focused_Debug_passed_checked_client_next",
+  "parent": "identity.revocation_barrier",
+  "integration_dependency": "identity.participant_registry",
+  "contract": "docs/AUTHORITY_PARTICIPANT_SESSION.txt",
+  "evidence": "evidence/participant-session-2026-10-09",
+  "invariant": "A service proves its registered key on the actual TLS connection that receives its authenticated context.",
+  "isolated_source": "local/participant-session-draft-01",
+  "candidate": 2,
+  "source_files": 237,
+  "focused_Debug": {
+    "host": "sb16",
+    "new_checks": 20,
+    "regression_checks": 88,
+    "failed": 0,
+    "skipped": 0
+  },
+  "integrated": false,
+  "remaining": [
+    "Implement checked-client service-proof handling and strict response validation.",
+    "Add real checked-client and malformed-response tests.",
+    "Run schema preservation and full both-host Debug/runtime sanitizer profiles."
+  ],
+  "limitations": [
+    "A proof-only session does not activate execution or acknowledge cancellation.",
+    "Durable activation, fencing, obligations, and cancellation acknowledgements remain pending."
+  ]
+}

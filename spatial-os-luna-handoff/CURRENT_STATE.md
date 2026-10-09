@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Service-session server draft passes focused Debug checks
+
+An isolated draft binds registered service-key proof to the actual issuer TLS connection.
+It rejects wrong connections, actor/owner/transport keys, replayed proofs, altered challenges, and expired challenges.
+Service proof creates no actor credentials, grants, execution activation, or cancellation acknowledgement.
+The management pipe cannot supply the required TLS context.
+
+On sb16, 20 new checks and 88 related regression checks passed in Debug.
+Three baseline cases first confirmed that the registry candidate lacks these protocol operations.
+One first-draft test errored because a helper shadowed an enrollment fixture method.
+The corrected test preserved its assertions. All evidence remains archived.
+Checked-client support, malformed-response tests, complete schema audit, and full qualification remain pending.
+The older registry candidate continues its independent runtime sanitizer qualification on both hosts.
+No operator database or normal login session changed. Spatial-M1 remains incomplete.
+See evidence/participant-session-2026-10-09 and docs/AUTHORITY_PARTICIPANT_SESSION.txt.
+
 ## 2026-10-09: Authority participant registry candidate under qualification
 
 The service registry is implemented in an isolated candidate. Production has not adopted it.
@@ -14,7 +30,8 @@ Candidate 02 fixes that check and strengthens rollback, binary-ID pagination, an
 The failed counterexample and two earlier fixture failures remain preserved.
 
 Candidate 02 passed all 31 new checks and 51 harness checks on both hosts in Debug.
-The remaining full Debug and runtime sanitizer qualification is running on both hosts.
+Both hosts completed Debug: 1,120 core checks across 64 suites, 51 harness checks, and 151 P10 cases each.
+No Debug case failed or skipped. Both runtime sanitizer profiles are running.
 Both schema audits preserve 248 messages, 946 fields, and 122 enum values across all proto files.
 Both audits preserve 41 locked files and 84 existing test files.
 Three migration fixtures have explicit, reviewed changes for schema 5. Their preservation assertions remain intact.
@@ -2248,7 +2265,7 @@ The later P04 counterexample exposed and corrected a top-edge rasterization mism
 David authorized continuation without the local agent after its hardware failure.
 No login or desktop configuration changed during P04 implementation.
 
-## Remaining work
+## Historical remaining-work note (superseded by the dated entries above)
 
 P06 must supply genuine actor input identities and routing.
 Later phases add rooms, manipulation, workspace Git storage, process context, recovery, and complete actor workflows.
