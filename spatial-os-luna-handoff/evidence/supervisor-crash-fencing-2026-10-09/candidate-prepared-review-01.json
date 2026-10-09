@@ -1,0 +1,34 @@
+{
+  "reviewer": "primary agent",
+  "status": "frozen_unqualified",
+  "reviewed_files": [
+    "CMakeLists.txt",
+    "src/supervisor/launch.cpp",
+    "src/supervisor/launch.hpp",
+    "src/supervisor/main.cpp",
+    "tests/native/test_supervisor_crash_fencing.py"
+  ],
+  "source_files": 294,
+  "new_checks": 10,
+  "existing_tests_unchanged": true,
+  "locked_files_unchanged": 41,
+  "schema_sources_unchanged": true,
+  "expected_full": {
+    "core_checks": 1453,
+    "core_suites": 99,
+    "harness_checks": 51,
+    "P10_cases": 151
+  },
+  "decisions": [
+    "Fatal handler requests a fence before the existing cleanup; it preserves original failure exit2.",
+    "Explicit stop/fence paths suppress implicit fencing and avoid repeating an explicit failed operation.",
+    "Checked graceful release excludes automatic fencing; retained ownership is required.",
+    "Issuer failure and persistence failure still reach checked cleanup. Fence alone never retires obligations.",
+    "The issuer verifies the consumed generation. Local start-attempt state is only eligibility."
+  ],
+  "limits": [
+    "No dependent control cleanup receipt or issuer retirement.",
+    "No ownership reconstruction after supervisor death.",
+    "World bootstrap failure still prevents integration of the candidate chain."
+  ]
+}

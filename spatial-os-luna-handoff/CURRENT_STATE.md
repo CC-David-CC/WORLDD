@@ -1,5 +1,40 @@
 # Implementation status
 
+## 2026-10-09: Full supervisor Debug passes; automatic crash fencing enters qualification
+
+Both hosts passed supervisor fencing Debug: 1443 core checks, 51 harness checks, and 151 P10 cases.
+All 98 core suites passed. No check failed or skipped. Full runtime sanitizers continue.
+Read evidence/supervisor-fencing-2026-10-09/full-debug-review-01.json.
+
+Automatic crash fencing candidate01 now contains 294 source files and ten new checks.
+It requests the exact issuer fence on fatal service failure before existing checked cleanup.
+It preserves the original fatal error and skips checked graceful release and explicit shutdown paths.
+All existing tests, protobuf schemas, and 41 locked files remain unchanged.
+Both hosts started qualification with two compiler jobs each.
+This is unqualified candidate behavior. No production source is integrated.
+
+The original bootstrap failure remains unresolved. Both 30-suite prefix diagnostics continue.
+Production remains broker283. M02 and Spatial-M1 remain incomplete.
+
+## 2026-10-09: Bootstrap failure remains unresolved; automatic crash fencing gap reproduced
+
+Both hosts passed 40 isolated repetitions of the failing bootstrap method.
+Both hosts also passed eight complete bootstrap-suite repetitions, with 15 checks per repetition.
+These diagnostic passes do not replace the original failed qualification.
+The original startup failure remains unresolved. Production integration remains on hold.
+Both hosts now run the original 30-suite sequence through world-bootstrap with diagnostic-only binaries.
+No assertions, deadlines, retries, or authority behavior changed.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/diagnostic-results-review-03.json.
+
+Two new crash witnesses fail as expected on each host in Debug and runtime ASan/UBSan.
+The production supervisor performs checked cleanup after child death and management loss.
+It preserves pending issuer obligations but does not request the required automatic fence.
+Read docs/SUPERVISOR_CRASH_FENCING.txt and evidence/supervisor-crash-fencing-2026-10-09.
+Automatic crash fencing implementation remains pending.
+
+Issuer fencing full sanitizer runs and supervisor fencing cumulative runs remain active.
+Production remains broker283. No new candidate is integrated. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Supervisor fencing sanitizers pass; world qualification has one unresolved failure
 
 Both hosts passed 10 new supervisor fencing checks and 51 harness checks in both profiles.

@@ -1,0 +1,63 @@
+{
+  "host": "sb16-2",
+  "source_files": 293,
+  "production_changed": false,
+  "qualification": false,
+  "test_sha256": "7b934747f5fa285a12dc7ee76e3ce7f61535bf65ec7d3b4cab1764b09890d706",
+  "profiles": {
+    "debug": {
+      "command": [
+        "/usr/bin/systemd-run",
+        "--property=RuntimeMaxSec=150",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-crash-fencing-48dc9b642a764d6997d72cc133eddffa",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/supervisor-crash-fencing-baseline-01/debug/server",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_crash_fencing_baseline.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/debug/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/debug/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/debug/build/spatial-issuer-client"
+      ],
+      "exit_code": 1,
+      "expected_missing_feature": true,
+      "sanitizer_marker": false
+    },
+    "runtime-sanitize": {
+      "command": [
+        "/usr/bin/systemd-run",
+        "--property=RuntimeMaxSec=150",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-crash-fencing-bdc95c4db3714b3f9fd9b3c448f3bab6",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/supervisor-crash-fencing-baseline-01/runtime-sanitize/server",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_crash_fencing_baseline.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "exit_code": 1,
+      "expected_missing_feature": true,
+      "sanitizer_marker": false
+    }
+  }
+}

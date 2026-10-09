@@ -1,0 +1,32 @@
+{
+  "reviewer": "primary agent",
+  "profiles": {
+    "sb16/debug": {
+      "expected_missing_feature_failures": 2,
+      "test_log_sha256": "adb33a7d264dd64084ba9db610a157c035dc54a3b41b3cf6496b3d3f2ba87ffd"
+    },
+    "sb16/runtime-sanitize": {
+      "expected_missing_feature_failures": 2,
+      "test_log_sha256": "793739eca0b00566bb2fa9863f1d1af519f3b7044586b06fa798412b8dc511da"
+    },
+    "sb16-2/debug": {
+      "expected_missing_feature_failures": 2,
+      "test_log_sha256": "5df12aa433c732c867767662b387261ca37e8ffad9fa4e61f98b7db2a391a825"
+    },
+    "sb16-2/runtime-sanitize": {
+      "expected_missing_feature_failures": 2,
+      "test_log_sha256": "c2e9c6dc6f49ffb3c8ae73222cae7d4cec58c9259a0524a5afb6ac8a37c2649b"
+    }
+  },
+  "acceptance_pass": false,
+  "source_files": 293,
+  "production_changed": false,
+  "finding": "Child death and management loss complete checked local cleanup but do not persist an issuer fence.",
+  "preserved_before_failed_assertion": [
+    "Original nonzero supervisor failure status",
+    "Exact process and native cleanup receipts",
+    "Unchanged issuer activation history",
+    "One pending revocation obligation"
+  ],
+  "next_step": "Implement bounded automatic crash fencing with preserved error and cleanup behavior."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "identity.supervisor_crash_fencing",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "contract": "docs/SUPERVISOR_CRASH_FENCING.txt",
+  "evidence": "evidence/supervisor-crash-fencing-2026-10-09",
+  "production_changed": false,
+  "implementation": "Frozen candidate01; unintegrated and unqualified.",
+  "baseline": "Two expected missing-feature failures in each of four host/profile combinations.",
+  "review": "Primary agent. Existing tests and production sources unchanged.",
+  "remaining": [
+    "Complete focused and cumulative checks in both profiles on both hosts.",
+    "Resolve the original bootstrap qualification failure before integration.",
+    "Continue dependent control cleanup, issuer retirement, and cross-host cancellation."
+  ],
+  "candidate": {
+    "number": 1,
+    "source_files": 294,
+    "changed_files": 5,
+    "new_checks": 10,
+    "locked_files_unchanged": 41
+  },
+  "live_drivers": {
+    "sb16": 1403725,
+    "sb16_2": 1196184
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "reviewer": "primary agent",
+  "hosts": {
+    "sb16": {
+      "core_checks": 1443,
+      "core_suites": 98,
+      "harness_checks": 51,
+      "P10_cases": 151,
+      "failed": 0,
+      "skipped": 0
+    },
+    "sb16-2": {
+      "core_checks": 1443,
+      "core_suites": 98,
+      "harness_checks": 51,
+      "P10_cases": 151,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "production_changed": false,
+  "integrated": false,
+  "runtime_sanitizers": "running",
+  "integration_dependency": "Resolve the original world bootstrap failure."
+}

@@ -1,0 +1,151 @@
+{
+  "reviewer": "primary agent",
+  "diagnostic_only": true,
+  "qualification": false,
+  "hosts": {
+    "sb16": {
+      "diagnostic-01": {
+        "repetitions": 40,
+        "checks_per_repetition": 1,
+        "failed": 0,
+        "test_log_hashes": {
+          "diagnostic-01/sb16/repeat-01/test.log": "2306949aa6a21dbdba8b3f801b91b0fdb3124c9a7dd6fba1b9871f487f7c1d04",
+          "diagnostic-01/sb16/repeat-02/test.log": "ef488a599dbae4d394b1530fca043a92d7f96288e28e4f45eeff6c9b18293a63",
+          "diagnostic-01/sb16/repeat-03/test.log": "bd2a05e5e9a1f01006d57789c0993fad595b136fa2ad75618c82f9775102ee0f",
+          "diagnostic-01/sb16/repeat-04/test.log": "166b7792df437b341e3d598786ae0c9f303448295454267f57fb5f590d632047",
+          "diagnostic-01/sb16/repeat-05/test.log": "6980d68d34efd559106d73c44ffe80c40da8dbca3a2183de6a1cac6714f3a2cc",
+          "diagnostic-01/sb16/repeat-06/test.log": "c28cf3824b01b01daeb3c7ecdff57874a0e3cb79699f863fd48b441e1d30b848",
+          "diagnostic-01/sb16/repeat-07/test.log": "e7b6047cac0761d545b5c2d05beb2773168fbc75110825ee39da815345f422f4",
+          "diagnostic-01/sb16/repeat-08/test.log": "5a4ec52df889b2c1df162ecc323d6352ebaaecbe875509dafdb7d28a008afd73",
+          "diagnostic-01/sb16/repeat-09/test.log": "766805b0a380c15a892d2c7aaed747660adac0e27da2250da0969afd5d9cc17d",
+          "diagnostic-01/sb16/repeat-10/test.log": "295eb074e9e2b76de3c4cbd5b3e089d0d3b2d2c6068cc0f34ee47c178d904aab",
+          "diagnostic-01/sb16/repeat-11/test.log": "b8b8599c0a1c1b52557c9321856924a335fec80bc19fabfcf4c662e66a152877",
+          "diagnostic-01/sb16/repeat-12/test.log": "bd6ec3c75bf7a94bf6644a20abf2a52487eb7d3a83374f832dcbdbb0545f561a",
+          "diagnostic-01/sb16/repeat-13/test.log": "50b9598d0efd7e4b138ae4564c502576cb4ad145e291d0f8985a0541cff96494",
+          "diagnostic-01/sb16/repeat-14/test.log": "3262e48cff86aafbe920b19e466f727f6dc3cf5436a3311894e90611e1df1027",
+          "diagnostic-01/sb16/repeat-15/test.log": "ef28283b798c5c2a25e2af988ebbc27160cff28d5616a3a1f13a83c5e6cc4515",
+          "diagnostic-01/sb16/repeat-16/test.log": "8075a9f043299bdabe5697bea08f588fd9ca0e0fcad1e7d611908505b2ec0aeb",
+          "diagnostic-01/sb16/repeat-17/test.log": "e25ab58b25fa9a1e8c7250d420b9562c9c978a6b967195dfdb6ae969cfc6d72f",
+          "diagnostic-01/sb16/repeat-18/test.log": "ef42d0492693f35726bb0a60342ccaa59c3e2725b75a7c5359724b7c0fe60042",
+          "diagnostic-01/sb16/repeat-19/test.log": "3206c91e02fcf507dc14caa8e49defcebdc3bb4e1160c3338eb5c9bf52404eac",
+          "diagnostic-01/sb16/repeat-20/test.log": "93f56f0f7f94a8802e03792ecd49f340388766133ade318f94e5f138c9fab21f",
+          "diagnostic-01/sb16/repeat-21/test.log": "7e7bb75ce084c9f8108e9e6ae6c2cc21f3b744ad2a954266de0b6ee6ecafc9f5",
+          "diagnostic-01/sb16/repeat-22/test.log": "6857f92bee9c625e41b2723cc28ae5754aac55247575eec6cc2d573d3dde46e6",
+          "diagnostic-01/sb16/repeat-23/test.log": "d644d3b4f22ae561568cad917d07ffa0641a137832832967da83d5d5887d7c5f",
+          "diagnostic-01/sb16/repeat-24/test.log": "cbcacb2449652ae36e5136151f345ac0075c4f38d74aaefe4282027e1548ba9e",
+          "diagnostic-01/sb16/repeat-25/test.log": "029eab8b6ca189aaaf5b2b5860cb677e2aa0b0f61a3d9232c7b138b38c92b2ed",
+          "diagnostic-01/sb16/repeat-26/test.log": "c6462b8653e21fbbafeb71bf34d4f8c30d7440b5d2270d2e1bac94f6eb671082",
+          "diagnostic-01/sb16/repeat-27/test.log": "d63d65e7bac587ba5197578ae6fc0a8347393c9da0f573fc7ba53c06510391ed",
+          "diagnostic-01/sb16/repeat-28/test.log": "f65d5af4cdbe10a7109e5066d5224b13fa358d103a2b5f7105ec361305c78cb8",
+          "diagnostic-01/sb16/repeat-29/test.log": "c741fed0f0dd1c6821614adbb764eb9907a7f158a59924ddf93b536c2008db1c",
+          "diagnostic-01/sb16/repeat-30/test.log": "14ae0889670d65670604e02b88f4c683ef15702b4fe05b8a20a0e9be2e997c83",
+          "diagnostic-01/sb16/repeat-31/test.log": "32e0f647cf2b7732fc5bb77c08521b40c5709046ec7f40e984e602e03bc2900a",
+          "diagnostic-01/sb16/repeat-32/test.log": "435a78a2e704aa90504b109c1226c69a61a2d79d871cd1202d56d557bf96a292",
+          "diagnostic-01/sb16/repeat-33/test.log": "9b1ec3d547676b70aca8c8c4728c08d353c64beae49662020569b6a4183aa064",
+          "diagnostic-01/sb16/repeat-34/test.log": "48823cb8175fb1fdd2275fa316d4ee7392f6e545a2493ff7e32aa2d658457146",
+          "diagnostic-01/sb16/repeat-35/test.log": "cf768ed2dda9d49cb3470aced22b784abe9309811b0b62fa07aeb37c8305b4d6",
+          "diagnostic-01/sb16/repeat-36/test.log": "bd1ce8cc45a1c1b34e75e6091f363423258c11d65c958360dd8cdfabfd48b065",
+          "diagnostic-01/sb16/repeat-37/test.log": "c3155a0efec7eef45004af086fb913265b92360ea14433f991950f142bdc25a4",
+          "diagnostic-01/sb16/repeat-38/test.log": "2b3f38d60098624c4794b6605a6dcf734c0a6fdbb8f52447ff4404799bfe7a43",
+          "diagnostic-01/sb16/repeat-39/test.log": "6b572116c56a9b910080299eede823a1cac67e177d9987d2f85a95a3026ca0ce",
+          "diagnostic-01/sb16/repeat-40/test.log": "604ee541e2a32f86e27c8e37eba9b5d4f052bbb1a6f80cbd03243929f67f5c40"
+        }
+      },
+      "suite-diagnostic-02": {
+        "repetitions": 8,
+        "checks_per_repetition": 15,
+        "failed": 0,
+        "test_log_hashes": {
+          "suite-diagnostic-02/sb16/suite-01/test.log": "1366f6460bbb65d9991c2ba37f28b5c8d673f8a81a1c5f7f8ab37aaa334fe637",
+          "suite-diagnostic-02/sb16/suite-02/test.log": "1de77a428c4adb929943c16663605e4d74fad03bdebc598dd0cf9c0b8db421c1",
+          "suite-diagnostic-02/sb16/suite-03/test.log": "1ff273249bcb670d3e5c87bcff3e68359f795672515884d51eaa8f419fb414b0",
+          "suite-diagnostic-02/sb16/suite-04/test.log": "01b812159bb03c7c89cd342ea2ec842951cdc4fb5f383681bbae1f383f99e2cd",
+          "suite-diagnostic-02/sb16/suite-05/test.log": "ee42d54db8e5faf07d2b211af576af3d3bf2304a4e33ac9fc80f09e94cfddd5e",
+          "suite-diagnostic-02/sb16/suite-06/test.log": "75981356ab728c58894f1150ad9a071c4b9f56e6ebea4c72d3bd404e796aafd6",
+          "suite-diagnostic-02/sb16/suite-07/test.log": "76c127d7f77d2d438e00cf172106f8ea8de63c5b8f529dc7f6c3a63f55fd1837",
+          "suite-diagnostic-02/sb16/suite-08/test.log": "67fdd6b3118596724d2e0dbade06283efb467f84c2c79b847d7116583f00ef1f"
+        }
+      }
+    },
+    "sb16-2": {
+      "diagnostic-01": {
+        "repetitions": 40,
+        "checks_per_repetition": 1,
+        "failed": 0,
+        "test_log_hashes": {
+          "diagnostic-01/sb16-2/repeat-01/test.log": "22ab97db50f90126c316e93e20d03923ea4b96c40be82b735c0764a412965357",
+          "diagnostic-01/sb16-2/repeat-02/test.log": "435a78a2e704aa90504b109c1226c69a61a2d79d871cd1202d56d557bf96a292",
+          "diagnostic-01/sb16-2/repeat-03/test.log": "d4dc5d70b35b603140e3f4e61129b21f79e3f8ba88b8cddf52892170efd41054",
+          "diagnostic-01/sb16-2/repeat-04/test.log": "23e3d01f8437ddc0071ded77647f483370994b12d62249f87f686abce7399cf4",
+          "diagnostic-01/sb16-2/repeat-05/test.log": "de3869c9863c88cf2301d33175fa91478cb5ebe4a0d6cb57b2641c4778df14d5",
+          "diagnostic-01/sb16-2/repeat-06/test.log": "4aac25e56475f67090b9a044b0dcfa31e50dc96fe0d0d648110a6ae8e5d1e698",
+          "diagnostic-01/sb16-2/repeat-07/test.log": "c66c82d6e63ca143470f88d8959e4c570f23ed3d0033a9597b050dc2be8b8ae7",
+          "diagnostic-01/sb16-2/repeat-08/test.log": "2cebdc0b05649ab3da8c9811b2294789d812ade927d0f7230a66d48e6e9faee3",
+          "diagnostic-01/sb16-2/repeat-09/test.log": "8075a9f043299bdabe5697bea08f588fd9ca0e0fcad1e7d611908505b2ec0aeb",
+          "diagnostic-01/sb16-2/repeat-10/test.log": "7da67db3a206bd6ae5ee484a989f1bacd1dae6c8c26e31e6362362066350c7dd",
+          "diagnostic-01/sb16-2/repeat-11/test.log": "f7c72d19c0eb95784cfa8c74e41610d09e8b3de786bd3d8f08b6cad2b44a0072",
+          "diagnostic-01/sb16-2/repeat-12/test.log": "df7c2393d7f585eec666bea78bf31cd7327aa43f7e91228d6d94ee172c429dee",
+          "diagnostic-01/sb16-2/repeat-13/test.log": "aae1d3fb778fa3fa29f82835eadcb68a47716609c9204405e58118b365f87fde",
+          "diagnostic-01/sb16-2/repeat-14/test.log": "166d2861098f3b4fb194cb4ead2a3f684f90632066a034382efd6ad643e995c6",
+          "diagnostic-01/sb16-2/repeat-15/test.log": "f81e247dd5cd64a00ee4aa6b74b4d886b89603639404dba18cb8e2b0bd9428d3",
+          "diagnostic-01/sb16-2/repeat-16/test.log": "4b6bb43671743e9ce6ab140355850f7f9b477b9d943f8a7c62580dcf003a79bb",
+          "diagnostic-01/sb16-2/repeat-17/test.log": "ee6475c990f7a7e275f16eb32cc048563b2643dcf4b7f51742ff7b2e97a9c5ea",
+          "diagnostic-01/sb16-2/repeat-18/test.log": "4b6bb43671743e9ce6ab140355850f7f9b477b9d943f8a7c62580dcf003a79bb",
+          "diagnostic-01/sb16-2/repeat-19/test.log": "1093312fa8cc31fe17d345a8e9f5a194a480f245e53872d249363ee675456d83",
+          "diagnostic-01/sb16-2/repeat-20/test.log": "c722c65e5e67a5e77038bfcdac2a35b50ad923f4d04f553599ae5893ea81d234",
+          "diagnostic-01/sb16-2/repeat-21/test.log": "7aa2465a6a7ba0ff523b6ed5bb0327a1478ca074809692c24a5bc7e7c2f4b3e0",
+          "diagnostic-01/sb16-2/repeat-22/test.log": "b8c713ab9fbbac4299415814260b21ec078f3e285f7968b80df3878537b039c3",
+          "diagnostic-01/sb16-2/repeat-23/test.log": "5918a9b8db8561837aa75f709dec2c673286b7cad8266d19c497f30da709ce89",
+          "diagnostic-01/sb16-2/repeat-24/test.log": "32e0f647cf2b7732fc5bb77c08521b40c5709046ec7f40e984e602e03bc2900a",
+          "diagnostic-01/sb16-2/repeat-25/test.log": "9a576ccbd5b5c3cb94e2defbaec2d0731c941da5fee60f237cc669217058ff68",
+          "diagnostic-01/sb16-2/repeat-26/test.log": "a691dba16aa743d6d2335eedac9fc4f1391678164932a6f8a7954358fdc0eb6a",
+          "diagnostic-01/sb16-2/repeat-27/test.log": "c5e96b677bf41b6b37e2b08f08d62e4977dce2936b00fda564df3429454bdfb3",
+          "diagnostic-01/sb16-2/repeat-28/test.log": "a369d90ef7bd22b07f89bf9f742f78beb9dc4a1437f634d9b4aed66de08bb344",
+          "diagnostic-01/sb16-2/repeat-29/test.log": "0eff91735d717445cbc5eefc0f741a40280431217e6a06ec43b2cdcdce71e62e",
+          "diagnostic-01/sb16-2/repeat-30/test.log": "d35620559bd0fa5350c15792b5a7a6b1b0824fa318967495f56518ac787b8cce",
+          "diagnostic-01/sb16-2/repeat-31/test.log": "f3970457ecb1ca9a00585c28d7049ac4ee5f521b25e97ea77e17273b82be224f",
+          "diagnostic-01/sb16-2/repeat-32/test.log": "53217f84856654f92d54d10f2f9d44d348e73f57437c0f166a8acbb31968248e",
+          "diagnostic-01/sb16-2/repeat-33/test.log": "e410093431d0c18ad070fb18b969e35ec4df1980eb11547642fb5316b5c5b683",
+          "diagnostic-01/sb16-2/repeat-34/test.log": "c74466693fb559f6bf1fcab6bbb06a1fd74cc555d96efb09d623c40c640910df",
+          "diagnostic-01/sb16-2/repeat-35/test.log": "d7364c4e000924a99fcca30ef03b938916bc47672eb6a8a0b316030a612fbeef",
+          "diagnostic-01/sb16-2/repeat-36/test.log": "71bf6513779501107b725f188c6785e03f82187abb96d16da886fd9eeeeb67be",
+          "diagnostic-01/sb16-2/repeat-37/test.log": "cfc31c457fd98fcab6b1e0045b592a57811f16cce40a60314746e3ab6db11472",
+          "diagnostic-01/sb16-2/repeat-38/test.log": "04dafb6d37ae67e0019b9253309211442ebd7508469f1c7d7caa00fcb33d70eb",
+          "diagnostic-01/sb16-2/repeat-39/test.log": "67ba56933b92e9f665377cc136c6e660a5c26c8ad46db068b70c6d450d6b28f4",
+          "diagnostic-01/sb16-2/repeat-40/test.log": "d4fe59cc576dcad3ec278ee51b2280a01da011613bcdd5f775b07d5bdc2d465c"
+        }
+      },
+      "suite-diagnostic-02": {
+        "repetitions": 8,
+        "checks_per_repetition": 15,
+        "failed": 0,
+        "test_log_hashes": {
+          "suite-diagnostic-02/sb16-2/suite-01/test.log": "7a1438f98401f76c051d38e875b5605c98288b3a1073786e2084aebe8bcaf009",
+          "suite-diagnostic-02/sb16-2/suite-02/test.log": "2113dd69b57c2e07d632436fd593aa0b021f7a8981490e70f2cd1e1a6fabcec2",
+          "suite-diagnostic-02/sb16-2/suite-03/test.log": "a215358e3f37e221e538792ed9d1bacce9e15b56f5ca4ecd4744d276a2342036",
+          "suite-diagnostic-02/sb16-2/suite-04/test.log": "5cf09490f6629ac7b2c780f643014cd781e796e9f34720529a4fe5adf5daf18d",
+          "suite-diagnostic-02/sb16-2/suite-05/test.log": "6b1f82088776b0b80cea69453bdc0a4fb1e774e1c2251812d10a6bfd03d86e9d",
+          "suite-diagnostic-02/sb16-2/suite-06/test.log": "5ca04ee4798913122ac5054358843233234677b6ae2fe03410ef71df4347069a",
+          "suite-diagnostic-02/sb16-2/suite-07/test.log": "2477bac90b5a5cb5219d699241c1f1640e08d67f5507a8d10d73e1042525e143",
+          "suite-diagnostic-02/sb16-2/suite-08/test.log": "18421c736c88b815eb91bb54b4758f8d1676a7c030904d49187682809faf2be3"
+        }
+      }
+    }
+  },
+  "original_failure_unresolved": true,
+  "production_changed": false,
+  "conclusion": "Neither isolated repetition nor the original bootstrap suite order reproduced the failure.",
+  "next_diagnostic": "Original 30-suite prefix through world-bootstrap on unchanged diagnostic01 binaries.",
+  "prefix_remote_pids": {
+    "sb16": 1365963,
+    "sb16-2": 1153372
+  },
+  "source_review": [
+    "scoped_world closes its preliminary world before constructing the tested world.",
+    "The tested world retains one synchronous issuer client and one participant worker connection.",
+    "The fixture retains the owner connection. Registration uses a temporary connection closed in finally.",
+    "These paths do not establish connection-limit exhaustion. No runtime evidence proves that hypothesis.",
+    "The original code26/request0 diagnostic omits the underlying exception. Cause remains unknown.",
+    "No timeout, retry, assertion, or authority behavior changed in these diagnostic runs."
+  ]
+}
