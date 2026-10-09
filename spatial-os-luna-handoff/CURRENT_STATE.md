@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-09: Supervisor full Debug qualification passes on sb16
+
+Supervisor candidate02 passed full Debug qualification on sb16.
+The result contains 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. The collector verified 281 source hashes and 41 locked files.
+Raw logs and the report independently confirm the counts.
+Read evidence/authority-supervisor-2026-10-09/full-candidate-02/sb16/summary-debug.json.
+
+sb16 full runtime sanitizer qualification remains active.
+sb16-2 full Debug qualification remains active, with its sanitizer continuation queued.
+Both hosts already passed focused Debug and sanitizer qualification.
+The broker handoff baselines remain queued behind the exact full drivers.
+No additional production source is integrated. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Supervisor focused qualification passes all four host profiles
 
 Supervisor candidate02 passed focused Debug and runtime ASan/UBSan on sb16 and sb16-2.

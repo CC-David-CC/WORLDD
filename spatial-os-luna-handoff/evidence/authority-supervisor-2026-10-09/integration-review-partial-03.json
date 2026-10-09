@@ -1,0 +1,16 @@
+{
+  "reviewer": "primary agent",
+  "scope": "Partial cumulative review only; this is not integration approval.",
+  "files": {
+    "src/testing/native_scope_config_witness.cpp": "c4ff343c7199a0cf81704ba2994ac217d74404cf9737c3861316f7910a2500e2",
+    "tests/native/test_native_scope_config_ownership.py": "39323ca49f8abf300ddd77a4558cf3648e467069d66a04f2eac85c22da3d5627",
+    "src/supervisor/process_scope.hpp": "e5b20511a789aad8652637e7ab84152510e822122d41d266c69f96a37fdb87f3",
+    "proto/spatial/supervisor/v1/process_scope.proto": "a100b911d8a898c3d46fa683d6fc75b2719a7b684a3676cbb2081779549e9344"
+  },
+  "findings": [
+    "The independent ownership witness exercises successful NativeScope borrowing, rejected NativeScope borrowing, and the existing consuming NativeLaunch rejection interface.",
+    "The witness checks an unrelated descriptor survives cleanup. It does not force that descriptor to reuse the exact configuration number. The seal checks independently detect the confirmed premature close.",
+    "The process scope interface separates process cleanup from native cleanup and issuer retirement. Its schema uses typed protobuf requests and records process identity independently from a PID."
+  ],
+  "new_defects": []
+}
