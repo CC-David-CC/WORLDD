@@ -1,0 +1,9 @@
+{
+  "base_files": 242,
+  "reconstructed_files": 281,
+  "changed_files": 77,
+  "locked_files": 41,
+  "result": "All candidate hashes match after applying the cumulative patch to the integrated source in a disposable directory.",
+  "production_changed": false,
+  "integrated": false
+}

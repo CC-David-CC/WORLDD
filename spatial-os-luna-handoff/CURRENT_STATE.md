@@ -17,6 +17,12 @@ These are static method counts, not additional executed test results.
 The audit does not prove fixture equivalence or replace production review and runtime qualification.
 Read evidence/authority-supervisor-2026-10-09/integration-test-audit-02.json.
 
+The cumulative integration patch now reconstructs all 281 candidate hashes from the integrated 242-file source.
+It changes 77 files and preserves all 41 locked files.
+The prepared integration driver requires complete both-host qualification and an exact primary review record before applying.
+Only preparation and disposable reconstruction have run. No integration review completion is claimed.
+Read evidence/authority-supervisor-2026-10-09/integration-prepared-02.json and integration-reconstruction-02.json.
+
 No new production source is integrated. M02 and full Spatial-M1 remain incomplete.
 
 
