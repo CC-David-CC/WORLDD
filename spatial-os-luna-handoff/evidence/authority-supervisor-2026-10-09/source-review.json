@@ -40,5 +40,6 @@
     "Cleanup records local effects without claiming issuer generation retirement."
   ],
   "integrated": false,
-  "qualified": false
+  "qualified": false,
+  "native_scope_review": "Static descriptor ownership mismatch found in inherited coordinator code. Witness prepared but unrun. Resolve before candidate qualification and integration."
 }

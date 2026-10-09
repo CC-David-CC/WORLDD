@@ -16,5 +16,6 @@
   ],
   "Debug": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips.",
   "next": "Full cumulative continuation is running. Implement the production supervisor event loop, then wire worldd and workspaced.",
-  "runtime_sanitizers": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips."
+  "runtime_sanitizers": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips.",
+  "full_Debug": "Both hosts passed1366core/89suites,51harness,151P10; no failures or skips. Runtime full qualification remains active."
 }

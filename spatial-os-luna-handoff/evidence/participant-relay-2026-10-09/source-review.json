@@ -22,5 +22,6 @@
     "Complete both-host cumulative qualification. Preserve the earlier owned-participant startup failures separately.",
     "Wire worldd and workspaced through the supervisor event loop.",
     "Implement checked fencing, recovery, and generation retirement."
-  ]
+  ],
+  "full_Debug": "Both hosts passed1366core/89suites,51harness,151P10; no failures or skips. Runtime full qualification remains active."
 }

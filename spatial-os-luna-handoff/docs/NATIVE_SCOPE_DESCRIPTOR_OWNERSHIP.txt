@@ -1,0 +1,60 @@
+NativeScope configuration descriptor ownership
+Status: static defect identified. Runtime reproduction is pending.
+
+Observed source
+
+AuthorityLaunch::prepare owns its temporary sealed descriptor through a local File object.
+It passes sealed.fd to NativeScope without transferring ownership.
+NativeScope calls sealed_configuration in workspace/native_launch.cpp.
+That function closes the supplied descriptor through its local Fd object.
+NativeScope then opens its pinned socket path and server connection.
+The operating system can reuse the closed descriptor number for one of these objects.
+AuthorityLaunch's File destructor then closes the descriptor number again.
+NativeScope still retains that number as an owned descriptor.
+Later destruction can therefore close another descriptor that reused the same number.
+
+This is a caller/callee ownership mismatch.
+The existing tests do not establish that the caller's descriptor remains valid.
+Do not infer that this caused the earlier full-run startup failures.
+Those failures remain a separate unresolved diagnosis.
+
+Required invariant
+
+NativeScope borrows its sealed configuration descriptor.
+The caller retains and closes that descriptor exactly once.
+NativeScope owns only its separately opened native connection and socket-path descriptors.
+NativeLaunch keeps its existing consuming interface for the workspace executable.
+
+Proposed correction after reproduction
+
+Make the sealed configuration reader borrow its input descriptor.
+Move the consuming guard into the NativeLaunch configuration adapter.
+Document NativeScope's borrowed input in its public declaration.
+Close the inherited configuration explicitly in the native-scope test probe after construction.
+Keep AuthorityLaunch's existing local RAII guard.
+Do not change native credential issuance, revocation, or acceptance assertions.
+
+Independent regression
+
+Construct NativeScope against a disposable native server.
+Check that the caller's original descriptor still identifies the fully sealed file.
+Close that descriptor from the caller.
+Open an unrelated descriptor that can reuse the number.
+Stop and destroy NativeScope.
+Require the unrelated descriptor to remain open.
+
+The prepared witness links the frozen production native-launch object and libraries.
+It does not replace the native server or its credential protocol.
+Its baseline must fail specifically because configuration ownership was lost.
+Other startup, compile, transport, or cleanup errors do not confirm this defect.
+Run Debug and runtime sanitizers on both sb16 and sb16-2.
+Wait for the current full relay qualification before compiling this witness.
+Preserve the original frozen candidate and baseline failure.
+
+Paths
+
+Witness: local/native-scope-config-witness.cpp
+Test: local/test_native_scope_config_ownership.py
+Driver: local/diagnose-native-scope-config-01.py
+Expected output: local/native-scope-config-baseline-01 on each host.
+No witness build or runtime result exists yet.

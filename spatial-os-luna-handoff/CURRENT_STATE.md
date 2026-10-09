@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-09: Relay full Debug passes; native configuration ownership witness prepared
+
+Relay candidate01 completed full Debug on both sb16 and sb16-2.
+Each host passed 1366 core checks across 89 suites, 51 harness checks, and 151 P10 cases.
+No Debug case failed or skipped. All 277 source hashes and 41 locked hashes match.
+Full runtime sanitizer qualification remains active on the same binaries.
+Read evidence/participant-relay-2026-10-09/full-candidate-01.
+
+Native handoff review identified a descriptor ownership mismatch in the existing isolated coordinator.
+AuthorityLaunch retains a local configuration descriptor that NativeScope already consumes.
+The later caller close can affect a reused descriptor number.
+The prepared witness checks retained configuration ownership and unrelated descriptor survival.
+It will link unchanged frozen native objects after the current timed qualification finishes.
+No witness build or runtime reproduction is claimed yet.
+Read docs/NATIVE_SCOPE_DESCRIPTOR_OWNERSHIP.txt and evidence/native-scope-config-2026-10-09.
+
+Supervisor candidate01 qualification is held for this focused ownership diagnosis and correction.
+Its copied build driver has not run. No supervisor code is integrated.
+Do not attribute the earlier world startup failures to this ownership mismatch without evidence.
+M02, native handoff, checked recovery, and full Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Relay focused matrix passes; broader startup failures remain unresolved
 
 Relay candidate01 passed focused Debug and runtime ASan/UBSan on both hosts.

@@ -1,0 +1,12 @@
+{
+  "status": "Witness prepared, not built or run.",
+  "production_changed": false,
+  "files": {
+    "native-scope-config-witness.cpp": "721ede0d5435d0a50e0b25431bb4937a3920bb0199a6311e429df430870e87f0",
+    "test_native_scope_config_ownership.py": "d5b08da2cdf7190c92d4256d74988f3bc329ee6464e7c4f557e9a642b7b63bba",
+    "diagnose-native-scope-config-01.py": "5062275ceadf0dc4260537756dd087322eb39a5eed5fe43c64a703a4d9d27e30",
+    "query-native-scope-build-01.py": "c0efeb13b9787bd7e3a8889ba9e038c98eb01603b899ac92b175c1c068474fc0"
+  },
+  "reason": "Static borrowed/consumed descriptor mismatch in NativeScope caller chain.",
+  "next": "Run after complete relay matrix; require the exact ownership failure, not an unrelated fixture error."
+}

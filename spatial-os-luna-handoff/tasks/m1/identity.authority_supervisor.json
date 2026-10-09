@@ -10,7 +10,7 @@
   "new_tests": 14,
   "baseline": "Both hosts confirmed the missing executable. Both builds and 51 harness checks passed.",
   "review": "Primary-agent static review and complete patch reconstruction passed. Existing tests and 41 locked files are unchanged.",
-  "qualification": "Not started. Wait for the running full relay qualification to finish before additional builds.",
+  "qualification": "Not started. After full relay qualification ends, reproduce and correct native configuration ownership before supervisor builds.",
   "integrated": false,
   "remaining": [
     "Run both-host Debug and runtime sanitizer qualification.",
@@ -18,5 +18,6 @@
     "Run cumulative qualification.",
     "Wire worldd and workspaced with native credential handoff.",
     "Implement fencing, checked recovery, and issuer retirement."
-  ]
+  ],
+  "native_scope_review": "Static descriptor ownership mismatch found in inherited coordinator code. Witness prepared but unrun. Resolve before candidate qualification and integration."
 }

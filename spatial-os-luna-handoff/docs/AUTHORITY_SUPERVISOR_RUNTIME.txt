@@ -3,6 +3,8 @@ Status: isolated implementation candidate01. Linux qualification is pending.
 Both hosts confirmed the missing-executable baseline.
 The candidate adds fourteen tests. These tests have not run yet.
 Production integration is pending.
+Resolve the native configuration ownership mismatch before candidate qualification.
+Read NATIVE_SCOPE_DESCRIPTOR_OWNERSHIP.txt for the prepared, unrun witness.
 
 Invariant
 
