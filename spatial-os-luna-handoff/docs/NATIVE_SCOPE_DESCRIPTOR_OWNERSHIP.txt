@@ -1,7 +1,6 @@
 NativeScope configuration descriptor ownership
-Status: confirmed on sb16 in Debug and runtime ASan/UBSan.
-The sb16-2 baseline remains queued behind its full relay qualification.
-The correction is applied only to isolated supervisor candidate02. Qualification is active on sb16.
+Status: confirmed on both hosts in Debug and runtime ASan/UBSan.
+The correction is applied only to isolated supervisor candidate02. Focused Debug passed on sb16. Remaining qualification is active on both hosts.
 
 Observed source
 
@@ -62,9 +61,9 @@ Witness: local/native-scope-config-witness.cpp
 Test: local/test_native_scope_config_ownership.py
 Driver: local/diagnose-native-scope-config-01.py
 Expected output: local/native-scope-config-baseline-01 on each host.
-The sb16 baseline recorded two ownership failures and one passing control in each profile.
-Read evidence/native-scope-config-2026-10-09/baseline-01/sb16/summary.json.
-The sb16-2 witness is queued behind its exact running relay process through a pidfd.
+Each host baseline recorded two ownership failures and one passing control in each profile.
+Read evidence/native-scope-config-2026-10-09/baseline-01.
+Each witness waited for its exact relay process to exit through a pidfd.
 The queued driver does not restart or replace the relay run.
 It preserves the baseline and collects its logs before exiting.
 
@@ -77,3 +76,7 @@ This permits sb16 testing while sb16-2 finishes its unchanged run.
 Both hosts must still pass final qualification before integration.
 Candidate02 retains all fourteen supervisor tests and adds three ownership checks.
 The original candidates and failed baselines remain preserved.
+
+Candidate02 passed all three ownership checks on sb16 Debug.
+The complete focused result was 383 checks across 25 suites and 51 harness checks.
+No case failed or skipped. Remaining profiles and cumulative qualification are pending.

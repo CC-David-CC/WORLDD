@@ -1,5 +1,34 @@
 # Implementation status
 
+## 2026-10-09: Both-host relay qualification passes; corrected supervisor passes sb16 Debug
+
+Relay candidate01 passed full Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 1366 core checks across 89 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. All 277 source hashes and 41 locked files matched.
+The candidate remains isolated. Older failed qualification evidence remains preserved.
+
+Both hosts reproduced native configuration ownership loss against unchanged relay objects in both profiles.
+Each profile recorded two expected ownership failures and one passing consuming-interface control.
+Read evidence/native-scope-config-2026-10-09/baseline-01.
+
+Corrected supervisor candidate02 passed focused Debug on sb16.
+Its 383 checks include three ownership checks, fourteen supervisor checks, and 366 existing regression checks.
+All 25 suites and 51 harness checks passed without failures or skips.
+The schema audit confirms existing descriptors remain unchanged.
+sb16 is building the sanitizer profile. sb16-2 is building the same candidate's Debug profile.
+Read evidence/authority-supervisor-2026-10-09/candidate-02/sb16/summary-debug.json.
+
+Cumulative continuation is queued behind each exact qualifier process through a pidfd.
+It first verifies both focused profiles, source hashes, and schema preservation.
+It stops on failure. It neither changes source nor retries a failed test.
+The full target is 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases per profile.
+These are expected counts, not completed full supervisor results.
+
+Integrated production remains the 242-file increment at 94c6cb6.
+World and broker wiring, native credential handoff, fencing, and checked recovery remain required.
+M01, M02, and complete Spatial-M1 qualification remain unfinished.
+
+
 ## 2026-10-09: sb16 relay qualification passes; supervisor correction starts testing
 
 Relay candidate01 passed full Debug and runtime ASan/UBSan on sb16.

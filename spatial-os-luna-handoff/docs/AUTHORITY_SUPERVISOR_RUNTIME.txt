@@ -1,9 +1,9 @@
 Production authority supervisor
-Status: isolated candidate02. Linux qualification is active on sb16.
+Status: isolated candidate02. Focused Debug passed on sb16. Other profiles remain active.
 Both hosts confirmed the missing-executable baseline.
 Candidate02 has fourteen supervisor tests and three native descriptor ownership checks.
-The ownership baseline confirmed the defect on sb16 in both profiles.
-Read NATIVE_SCOPE_DESCRIPTOR_OWNERSHIP.txt for evidence and the second-host baseline status.
+The ownership baseline confirmed the defect on both hosts in both profiles.
+Read NATIVE_SCOPE_DESCRIPTOR_OWNERSHIP.txt for the baseline and corrected Debug evidence.
 Both-host Debug and runtime sanitizer qualification remains required.
 Production integration is pending.
 

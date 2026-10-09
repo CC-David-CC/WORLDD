@@ -1,0 +1,124 @@
+{
+  "host": "sb16-2",
+  "results": [
+    {
+      "profile": "debug",
+      "name": "compile",
+      "command": [
+        "/usr/bin/c++",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/source/src",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/debug/build",
+        "-g",
+        "-std=c++20",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-o",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-baseline-01/debug/witness.o",
+        "-c",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-witness.cpp"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "debug",
+      "name": "link",
+      "command": [
+        "/usr/bin/c++",
+        "-g",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-baseline-01/debug/witness.o",
+        "CMakeFiles/spatial-native-scope-probe.dir/src/workspace/native_launch.cpp.o",
+        "-o",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-baseline-01/debug/witness",
+        "libspatial-scene.a",
+        "libspatial-protobuf.a",
+        "/usr/lib/x86_64-linux-gnu/libprotobuf.so"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "debug",
+      "name": "test",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_native_scope_config_ownership.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-baseline-01/debug/witness",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/debug/build/spatial-security-auth"
+      ],
+      "exit_code": 1
+    },
+    {
+      "profile": "runtime-sanitize",
+      "name": "compile",
+      "command": [
+        "/usr/bin/c++",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/source/src",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/runtime-sanitize/build",
+        "-g",
+        "-std=c++20",
+        "-Wall",
+        "-Wextra",
+        "-Wpedantic",
+        "-Werror",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "-o",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-baseline-01/runtime-sanitize/witness.o",
+        "-c",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-witness.cpp"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "runtime-sanitize",
+      "name": "link",
+      "command": [
+        "/usr/bin/c++",
+        "-g",
+        "-fsanitize=address,undefined",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-baseline-01/runtime-sanitize/witness.o",
+        "CMakeFiles/spatial-native-scope-probe.dir/src/workspace/native_launch.cpp.o",
+        "-o",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-baseline-01/runtime-sanitize/witness",
+        "libspatial-scene.a",
+        "libspatial-protobuf.a",
+        "/usr/lib/x86_64-linux-gnu/libprotobuf.so"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "runtime-sanitize",
+      "name": "test",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_native_scope_config_ownership.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-config-baseline-01/runtime-sanitize/witness",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "linked_inputs": {
+    "debug": {
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/debug/build/CMakeFiles/spatial-native-scope-probe.dir/src/workspace/native_launch.cpp.o": "c4a559e7437650e1ec2e058279951e04a530c326393808c9072065417751262b",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/debug/build/libspatial-scene.a": "9eeb223b5b3b1e24cf8a4e248bff7dfd15e8b0d9e188f080b54ea059042631c7",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/debug/build/libspatial-protobuf.a": "7abc5be9c3d379fbff6bd88e1546133888519adcba13b56c568e1472b25f5eba",
+      "/usr/lib/x86_64-linux-gnu/libprotobuf.so": "7b55969fb776114e4a117ca251ff7861158939275a7c51578a11bf8d6405284e"
+    },
+    "runtime-sanitize": {
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/runtime-sanitize/build/CMakeFiles/spatial-native-scope-probe.dir/src/workspace/native_launch.cpp.o": "277574c41e0ac4678cae6ad61eed93307222a618e95b721a011215a095b0c7c4",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/runtime-sanitize/build/libspatial-scene.a": "cb2f7cc9d03a06c6ede53ecd374c44dbf1ff8d72cf8e35d50f589ec501c47d7f",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-01/runtime-sanitize/build/libspatial-protobuf.a": "d4c1c75446095647e8d0a47b4b1cc12037ca6942c1a961187af911657168ffd5",
+      "/usr/lib/x86_64-linux-gnu/libprotobuf.so": "7b55969fb776114e4a117ca251ff7861158939275a7c51578a11bf8d6405284e"
+    }
+  },
+  "source_files": 277,
+  "production_changed": false,
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  }
+}

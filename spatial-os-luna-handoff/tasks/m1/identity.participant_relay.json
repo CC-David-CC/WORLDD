@@ -10,13 +10,13 @@
   "integrated": false,
   "evidence": "evidence/participant-relay-2026-10-09",
   "remaining": [
-    "Complete both-host cumulative qualification.",
+    "Integrate the reviewed cumulative runtime after supervisor qualification.",
     "Wire worldd and workspaced.",
     "Implement fencing and checked recovery."
   ],
   "Debug": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips.",
-  "next": "Full cumulative continuation is running. Implement the production supervisor event loop, then wire worldd and workspaced.",
+  "next": "Qualify the corrected production supervisor, then wire worldd and workspaced.",
   "runtime_sanitizers": "Both hosts passed 366 focused checks across 23 suites and 51 harness checks; no failures or skips.",
-  "full_Debug": "Both hosts passed1366core/89suites,51harness,151P10; no failures or skips. Runtime full qualification remains active.",
-  "full_runtime_sanitizers": "sb16 passed1366core/89suites,51harness,151P10; no failures or skips. sb16-2 remains active."
+  "full_Debug": "Both hosts passed 1366 core checks across 89 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+  "full_runtime_sanitizers": "Both hosts passed 1366 core checks across 89 suites, 51 harness checks, and 151 P10 cases. No failures or skips."
 }
