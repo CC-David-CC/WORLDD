@@ -1,0 +1,10 @@
+{
+  "status": "Prepared, unrun. Requires completed full supervisor candidate02 qualification on each host.",
+  "source_files": 281,
+  "production_changed": false,
+  "files": {
+    "test_supervisor_broker_handoff.py": "b4f68ee6e1a98593fa12a041a3ee8b8ca5d39130661d0bc67386baf351f8f6f2",
+    "diagnose-supervisor-broker-handoff-01.py": "779b4d89685fdea72e84e6fb4c5b54e93d7772c5eadeb99676cbaf729f3f71b3"
+  },
+  "expected_result": "One explicit missing-field failure in each profile. Other failures do not prove the handoff gap."
+}

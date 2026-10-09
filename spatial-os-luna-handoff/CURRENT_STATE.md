@@ -1,5 +1,31 @@
 # Implementation status
 
+## 2026-10-09: Supervisor focused Debug passes both hosts; sb16 sanitizer focus passes
+
+Corrected supervisor candidate02 passed focused Debug on both hosts.
+sb16 also passed focused runtime ASan/UBSan.
+Each completed profile passed 383 checks across 25 suites and 51 harness checks.
+No case failed or skipped. All 281 source hashes and 41 locked files matched.
+Existing protobuf descriptors remained unchanged.
+Read evidence/authority-supervisor-2026-10-09/candidate-02.
+
+sb16 full cumulative qualification is active on the same binaries.
+sb16-2 runtime sanitizer qualification remains active. Its full continuation stays queued.
+No full supervisor pass or integration is claimed.
+
+The next bounded step is native broker credential handoff.
+The supervisor currently discards the credential returned by AuthorityLaunch::prepare.
+Workspaced already accepts sealed native configuration, but the supervisor does not supply it.
+A new independent startup test requests the proposed configuration field and starts real workspaced.
+Its diagnostic is queued behind each exact full-qualification driver.
+It requires completed qualification and unchanged source and binary hashes before testing.
+The baseline has not run. An expected missing-field failure will not count as acceptance success.
+Read docs/SUPERVISOR_BROKER_NATIVE_HANDOFF.txt and evidence/supervisor-broker-handoff-2026-10-09.
+
+The current integrated production source remains 94c6cb6 with 242 files.
+M01, M02, and complete Spatial-M1 qualification remain incomplete.
+
+
 ## 2026-10-09: Both-host relay qualification passes; corrected supervisor passes sb16 Debug
 
 Relay candidate01 passed full Debug and runtime ASan/UBSan on both hosts.

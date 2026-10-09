@@ -1,0 +1,17 @@
+{
+  "id": "identity.supervisor_broker_handoff",
+  "phase": "M02",
+  "parent": "identity.authority_supervisor",
+  "status": "in_progress",
+  "contract": "docs/SUPERVISOR_BROKER_NATIVE_HANDOFF.txt",
+  "evidence": "evidence/supervisor-broker-handoff-2026-10-09",
+  "baseline": "Prepared and queued after each exact full supervisor qualification driver. No runtime result yet.",
+  "production_changed": false,
+  "remaining": [
+    "Confirm missing handoff against unchanged real supervisor and broker binaries.",
+    "Implement sealed broker configuration derived from the retained native scope.",
+    "Verify real native application identity and selective cleanup.",
+    "Test both hosts in Debug and runtime sanitizers.",
+    "Complete broker participant and world/compositor integration."
+  ]
+}

@@ -1,0 +1,56 @@
+Supervisor broker native handoff
+Status: baseline prepared. Runtime reproduction and implementation are pending.
+
+Invariant
+
+The supervised broker receives only the native broker credential owned by its exact launch.
+The supervisor retains the parent credential and checked revocation ownership.
+
+Current gap
+
+AuthorityLaunch::prepare returns the new NativeScopeReady credential.
+The production supervisor discards that returned view.
+Workspaced already accepts a sealed NativeLaunchConfig through --native-security-fd.
+The supervisor does not create or pass that configuration.
+Existing supervisor tests launch a ParticipantRuntime probe. They do not prove native broker startup.
+
+Contract addition
+
+Add optional broker_native_target_fd to AuthoritySupervisorConfig with field number 11.
+Require a target from 3 through 255 when the field is present.
+Reject collisions with the participant target and caller-supplied descriptor targets before creating ownership.
+Reserve descriptor-table capacity for both generated descriptors.
+Require the native scope role to be BROKER for this handoff.
+
+Derive NativeLaunchConfig from the retained native scope's newly issued credential and verified server pins.
+Never substitute the supervisor cookie or a caller-selected broker credential.
+Serialize the configuration as binary protobuf in a fully sealed private memfd.
+Pass it through the existing checked ProcessScope descriptor mapping.
+Close the supervisor's temporary configuration descriptor after exec or failure.
+Keep credentials out of launch records, management replies, and files on disk.
+Preserve existing configurations that omit this optional field.
+
+Baseline
+
+The prepared test launches the production supervisor and real workspaced.
+It requests the new configuration field through the actual text parser.
+It supplies the broker's existing --native-security-fd argument.
+The test requires a real broker hello reply, then checked supervisor cleanup.
+An unknown-field diagnostic confirms that this handoff is absent in candidate02.
+Other failures require separate diagnosis.
+Run against unchanged candidate02 binaries after that host finishes its timed qualification.
+
+Correction evidence
+
+Require successful real broker startup and native application launch under the owned credential.
+Verify application identity with an independent native client.
+Reject invalid targets, descriptor collisions, and the compositor role.
+Verify cleanup after failed exec and broker death.
+Verify no supervisor cookie reaches the child, the journal, or management replies.
+Run Debug and runtime sanitizers on both hosts before integration.
+
+Scope
+
+This step provides the broker credential handoff.
+Complete broker participant configuration and world/compositor credential handoff remain separate required steps.
+The startup baseline does not establish broker participant activation, native application confinement, or completed M02 recovery.
