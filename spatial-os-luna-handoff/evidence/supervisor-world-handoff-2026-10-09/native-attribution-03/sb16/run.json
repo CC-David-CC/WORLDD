@@ -1,0 +1,38 @@
+{
+  "host": "sb16",
+  "source_files": 290,
+  "production_changed": false,
+  "test_sha256": "94857d10ac9c53229a57be2af33f4712cdfe07a59c0afd4ab1deb5de4bf6b370",
+  "binaries": {
+    "worldd": "8dcfbc483764fdaa3fa325d0ac7d862ccccb99a993cb443ace098f9823a0d2c7",
+    "spatialwm": "eeec15077cb1eb88fe792a566b96b41b3d0960c92b68585b28b6ac00c8bfe2ed",
+    "spatial-authority-supervisor": "8d132c9400eb67bad054d82458d11c0c1f4efcdac9695e03c2bcf096df17c575",
+    "identityd": "ca090f67b098de565e20b04459cb9ecd1748468b80dcb99eaa917cfcfe122e18"
+  },
+  "command": [
+    "/usr/bin/systemd-run",
+    "--property=RuntimeMaxSec=150",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--unit=spatial-world-reader-69ee8b561cef4fa1852c74bdd72840db",
+    "--property=Delegate=yes",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-native-attribution-03/server",
+    "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+    "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_world_handoff_regressions_03.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/spatial-issuer-client"
+  ],
+  "exit_code": 1,
+  "passed": false,
+  "expected_checks": 13,
+  "sanitizer_marker": false
+}

@@ -1,6 +1,5 @@
 Supervisor world and compositor native handoff
-Status: Candidate01 built on both hosts. A corrected witness passed twelve Debug checks on each host.
-Runtime sanitizer and full cumulative qualification remain unrun.
+Status: Thirteen focused Debug checks pass on both hosts. Candidate02 full qualification is active.
 
 Invariant
 
@@ -59,6 +58,12 @@ Candidate01 adds eleven correction tests. They do not alter the queued baseline 
 Two tests exposed the borrowed reader's failure to handle MappingNotify before a native reply.
 Preserve those failures. The corrected witness adds a twelfth test for its reply validation.
 It keeps the original connection and compares its complete identity after cleanup.
+Candidate02 also revokes the owned credential through an independent supervisor connection.
+Require the actual compositor to disconnect, release input, and preserve the independent application.
+Require CLEANUP_PENDING when the launch supervisor cannot obtain its own native cleanup receipt.
+Retain the checked process receipt. Do not fabricate a native receipt or change issuer obligations.
+This follows AUTHORITY_NATIVE_SCOPE.txt: NOT_FOUND is not a cleanup receipt.
+The original contradictory receipt assertion and both failures remain recorded under native-attribution-03.
 Each direct compositor denial test first requires successful startup with a valid sealed configuration.
 The descriptor witness tracks the memfd device and inode across live, pidfd-pinned processes.
 A retained parent descriptor provides a positive observation control.

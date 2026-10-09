@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-09: Owned compositor attribution passes; candidate02 full qualification starts
+
+An independent supervisor revoked the recorded native credential on both hosts.
+The actual compositor disconnected and the owned process scope stopped.
+The first new test incorrectly expected a native cleanup receipt after external revocation.
+That contradicts AUTHORITY_NATIVE_SCOPE.txt, which explicitly rejects NOT_FOUND as a receipt.
+The corrected check requires CLEANUP_PENDING, the checked process receipt, no native receipt, and unchanged issuer obligations.
+It also requires held-input release and the same independently authorized application connection to survive.
+All thirteen focused checks pass on both unchanged Debug binaries. Both original failures remain preserved.
+
+Candidate02 changes only the new world test file from candidate01. Production code remains identical between candidates.
+Both hosts now run focused Debug and runtime sanitizers, followed by full cumulative gates.
+The expected full profile is 1407 core checks across 95 suites, 51 harness checks, and 151 P10 cases.
+Both schema audits preserve all twelve existing protobuf descriptors, except the explicit additive field12.
+Read evidence/supervisor-world-handoff-2026-10-09/candidate-prepared-review-02.json.
+
+sb16 broker full qualification and integration diagnostics passed in both profiles.
+sb16-2 broker full sanitizers remain active. Neither candidate is integrated.
+Production remains the supervisor increment at 534a94c. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: World Debug witness corrected; sb16 broker sanitizer and integration pass
 
 World handoff candidate01 built on both hosts. Both passed 51 harness checks and the real startup test.

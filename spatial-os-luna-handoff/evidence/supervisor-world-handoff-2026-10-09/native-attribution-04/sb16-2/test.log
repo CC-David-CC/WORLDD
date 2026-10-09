@@ -1,0 +1,25 @@
+Running as unit: spatial-world-reader-65f77df71aae45d5a61881b34e7014c8.service; invocation ID: d1b18bd82d974608b311127b7e6325a9
+test_owned_world_renders_real_application_pixels_and_releases_held_input (__main__.WorldHandoffRegressionTests.test_owned_world_renders_real_application_pixels_and_releases_held_input) ... ok
+test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application (__main__.WorldHandoffRegressionTests.test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application) ... ok
+test_owned_native_credential_revocation_disconnects_compositor_and_preserves_cleanup_uncertainty (__main__.WorldHandoffRegressionTests.test_owned_native_credential_revocation_disconnects_compositor_and_preserves_cleanup_uncertainty) ... ok
+test_world_and_compositor_consume_the_native_configuration_descriptor (__main__.WorldHandoffRegressionTests.test_world_and_compositor_consume_the_native_configuration_descriptor) ... ok
+test_invalid_compositor_targets_fail_before_scope_ownership (__main__.WorldHandoffRegressionTests.test_invalid_compositor_targets_fail_before_scope_ownership) ... ok
+test_compositor_rejects_malformed_and_incomplete_native_configurations (__main__.WorldHandoffRegressionTests.test_compositor_rejects_malformed_and_incomplete_native_configurations) ... ok
+test_compositor_rejects_unsealed_native_configuration (__main__.WorldHandoffRegressionTests.test_compositor_rejects_unsealed_native_configuration) ... ok
+test_compositor_rejects_wrong_server_pins_and_native_roles (__main__.WorldHandoffRegressionTests.test_compositor_rejects_wrong_server_pins_and_native_roles) ... ok
+test_compositor_rejects_display_conflict (__main__.WorldHandoffRegressionTests.test_compositor_rejects_display_conflict) ... ok
+test_wrong_server_receives_no_authentication_bytes (__main__.WorldHandoffRegressionTests.test_wrong_server_receives_no_authentication_bytes) ... ok
+test_input_aware_reader_preserves_reply_validation (__main__.WorldHandoffRegressionTests.test_input_aware_reader_preserves_reply_validation) ... ok
+test_broker_and_compositor_handoffs_cannot_share_one_native_scope (__main__.WorldHandoffRegressionTests.test_broker_and_compositor_handoffs_cannot_share_one_native_scope) ... ok
+test_wrong_native_roles_fail_before_scope_ownership (__main__.WorldHandoffRegressionTests.test_wrong_native_roles_fail_before_scope_ownership) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 8.172s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 8.317s
+CPU time consumed: 5.162s
+Memory peak: 1.5M
+Memory swap peak: 0B
