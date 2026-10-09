@@ -1,0 +1,21 @@
+{
+  "reviewer": "primary agent",
+  "source_files": 292,
+  "locked_files": 41,
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "new_checks": 26,
+  "baseline_checks": 1,
+  "harness_checks": 51,
+  "failed": 0,
+  "skipped": 0,
+  "integrated": false,
+  "remaining": "Full cumulative qualification and final integration review.",
+  "additional_real_world_evidence": "evidence/supervised-world-fencing-2026-10-09/results-review-01.json"
+}

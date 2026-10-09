@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-09: Fencing sanitizers and real-world crash diagnostics pass
+
+Both hosts passed all 26 fencing checks, the baseline regression, and 51 harness checks in both profiles.
+Two additional real-world crash checks passed in Debug and runtime ASan/UBSan on each host.
+They verify exact supervisor fencing after checked process/native cleanup, rejection of service keys, and preserved pending obligations.
+Read evidence/authority-fencing-2026-10-09/focused-results-review-01.json.
+Read evidence/supervised-world-fencing-2026-10-09/results-review-01.json.
+
+These diagnostics sign the fence request outside the production supervisor.
+They do not prove automatic supervisor recovery or issuer retirement.
+The production launch journal still records its original unconsumed authorization, with generation zero.
+It does not yet persist the actual activation or a checked fence result.
+Production coordination must bind the exact consumed activation before accepting a cleanup receipt.
+Dependent application-control cleanup and issuer retirement remain required.
+
+Full world and fencing cumulative qualification remains active on both hosts.
+Both candidates remain unintegrated. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Fencing Debug passes; world integration guard prepared
 
 Both hosts passed 26 new fencing checks, the missing-feature regression, and 51 harness checks in Debug.

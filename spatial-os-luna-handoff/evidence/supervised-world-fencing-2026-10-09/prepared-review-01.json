@@ -1,0 +1,9 @@
+{
+  "reviewer": "primary agent",
+  "test_sha256": "e551e4d7031dfe8878663e711afa0fa30f2788cb604c2f63f83e6ceda658ccc8",
+  "checks": 2,
+  "source_files": 292,
+  "status": "prepared_unrun",
+  "scope": "Real owned world crash, checked native/process cleanup, exact fence authorization, denied service key and mismatched launch, preserved issuer obligation.",
+  "limitation": "The diagnostic signs the issuer request. The production supervisor still needs automatic fence, cleanup receipt, and retirement coordination."
+}

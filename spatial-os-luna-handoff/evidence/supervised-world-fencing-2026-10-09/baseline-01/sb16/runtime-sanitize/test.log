@@ -1,0 +1,14 @@
+Running as unit: spatial-supervised-world-3676cf7878274bb4a8543ab6b1feba18.service; invocation ID: 4944137bed5c4356b8caf8f215cdfbc4
+test_exact_crashed_world_can_be_fenced_without_retiring_its_obligation (__main__.SupervisedWorldFencingTests.test_exact_crashed_world_can_be_fenced_without_retiring_its_obligation) ... ok
+test_service_key_and_wrong_owned_launch_cannot_fence_crashed_world (__main__.SupervisedWorldFencingTests.test_service_key_and_wrong_owned_launch_cannot_fence_crashed_world) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 4.973s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 5.105s
+CPU time consumed: 2.045s
+Memory peak: 256.0K
+Memory swap peak: 0B

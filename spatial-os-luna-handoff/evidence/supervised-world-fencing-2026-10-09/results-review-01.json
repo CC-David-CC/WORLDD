@@ -1,0 +1,26 @@
+{
+  "reviewer": "primary agent",
+  "source_files": 292,
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "checks_per_profile": 2,
+  "failed": 0,
+  "skipped": 0,
+  "source_changed": false,
+  "integrated": false,
+  "scope": "Real owned world crash, checked native/process cleanup, exact fence authorization, denied service key and mismatched launch, preserved issuer obligation.",
+  "limitation": "The diagnostic signs the issuer request. The production supervisor still needs automatic fence, cleanup receipt, and retirement coordination.",
+  "remaining": [
+    "Complete cumulative world and fencing qualification.",
+    "Integrate reviewed source.",
+    "Connect the production supervisor to exact fencing and verified cleanup receipts.",
+    "Verify dependent control cleanup before issuer retirement.",
+    "Test replacement, recovery races, and cross-host cancellation."
+  ]
+}

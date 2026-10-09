@@ -1,0 +1,6 @@
+test_exact_active_supervised_launch_can_request_fencing (__main__.AuthorityFencingBaseline.test_exact_active_supervised_launch_can_request_fencing) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.662s
+
+OK

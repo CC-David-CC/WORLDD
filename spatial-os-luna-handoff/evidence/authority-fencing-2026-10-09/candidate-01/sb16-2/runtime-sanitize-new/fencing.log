@@ -1,0 +1,74 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 20
+    Start 20: identity-authority-fencing
+
+20: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source/tests/core/test_authority_fencing.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/spatial-issuer-client"
+20: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build
+20: Environment variables: 
+20:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source
+20: Test timeout computed to be: 180
+20: test_supervisor_fences_exact_active_launch_without_changing_acknowledgement_history (__main__.AuthorityFencingTests.test_supervisor_fences_exact_active_launch_without_changing_acknowledgement_history) ... ok
+20: test_owner_service_and_unknown_keys_cannot_fence (__main__.AuthorityFencingTests.test_owner_service_and_unknown_keys_cannot_fence) ... ok
+20: test_fence_proof_cannot_use_launch_signature_purpose (__main__.AuthorityFencingTests.test_fence_proof_cannot_use_launch_signature_purpose) ... ok
+20: test_fence_proof_cannot_cross_connections_and_consumes_nonce (__main__.AuthorityFencingTests.test_fence_proof_cannot_cross_connections_and_consumes_nonce) ... ok
+20: test_replayed_nonce_fails_but_fresh_identical_proof_returns_same_fence (__main__.AuthorityFencingTests.test_replayed_nonce_fails_but_fresh_identical_proof_returns_same_fence) ... ok
+20: test_mismatched_target_fields_do_not_create_fences (__main__.AuthorityFencingTests.test_mismatched_target_fields_do_not_create_fences) ... ok
+20: test_malformed_and_overflowed_target_fields_are_rejected (__main__.AuthorityFencingTests.test_malformed_and_overflowed_target_fields_are_rejected) ... ok
+20: test_release_between_challenge_and_completion_prevents_fencing (__main__.AuthorityFencingTests.test_release_between_challenge_and_completion_prevents_fencing) ... ok
+20: test_fenced_service_cannot_apply_or_release_and_barrier_stays_pending (__main__.AuthorityFencingTests.test_fenced_service_cannot_apply_or_release_and_barrier_stays_pending) ... ok
+20: test_previously_valid_acknowledgement_retry_is_rejected_after_fencing (__main__.AuthorityFencingTests.test_previously_valid_acknowledgement_retry_is_rejected_after_fencing) ... ok
+20: test_new_revocation_still_obligates_fenced_generation (__main__.AuthorityFencingTests.test_new_revocation_still_obligates_fenced_generation) ... ok
+20: test_concurrent_revocation_and_fencing_preserve_pending_obligation (__main__.AuthorityFencingTests.test_concurrent_revocation_and_fencing_preserve_pending_obligation) ... ok
+20: test_second_authenticated_service_socket_and_new_launch_cannot_bypass_fence (__main__.AuthorityFencingTests.test_second_authenticated_service_socket_and_new_launch_cannot_bypass_fence) ... ok
+20: test_failed_fence_insert_rolls_back_and_fresh_proof_can_retry (__main__.AuthorityFencingTests.test_failed_fence_insert_rolls_back_and_fresh_proof_can_retry) ... ok
+20: test_concurrent_identical_completions_return_one_fence (__main__.AuthorityFencingTests.test_concurrent_identical_completions_return_one_fence) ... ok
+20: test_restart_allows_fencing_original_active_generation (__main__.AuthorityFencingTests.test_restart_allows_fencing_original_active_generation) ... ok
+20: test_committed_fence_survives_restart_and_remains_pending (__main__.AuthorityFencingTests.test_committed_fence_survives_restart_and_remains_pending) ... ok
+20: test_restart_invalidates_outstanding_fence_challenge (__main__.AuthorityFencingTests.test_restart_invalidates_outstanding_fence_challenge) ... ok
+20: test_expired_fence_challenge_cannot_commit (__main__.AuthorityFencingTests.test_expired_fence_challenge_cannot_commit) ... ok
+20: test_inconsistent_persisted_fence_is_not_returned_as_success (__main__.AuthorityFencingTests.test_inconsistent_persisted_fence_is_not_returned_as_success) ... ok
+20: test_explicit_v8_migration_preserves_active_launch_and_issuer_key (__main__.AuthorityFencingTests.test_explicit_v8_migration_preserves_active_launch_and_issuer_key) ... ok
+20: test_failed_v8_migration_rolls_back (__main__.AuthorityFencingTests.test_failed_v8_migration_rolls_back) ... ok
+20: 
+20: ----------------------------------------------------------------------
+20: Ran 22 tests in 20.747s
+20: 
+20: OK
+1/2 Test #20: identity-authority-fencing ..........   Passed   20.86 sec
+test 21
+    Start 21: identity-authority-fencing-client
+
+21: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source/tests/core/test_authority_fencing_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/spatial-issuer-client"
+21: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build
+21: Environment variables: 
+21:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source
+21: Test timeout computed to be: 180
+21: test_client_rejects_substituted_fence_challenge (__main__.FencingClientTests.test_client_rejects_substituted_fence_challenge) ... ok
+21: test_client_rejects_substituted_fence_result_or_invalid_proof (__main__.FencingClientTests.test_client_rejects_substituted_fence_result_or_invalid_proof) ... ok
+21: test_typed_denial_consumes_client_fence_context (__main__.FencingClientTests.test_typed_denial_consumes_client_fence_context) ... ok
+21: test_client_rejects_unsolicited_fence_success (__main__.FencingClientTests.test_client_rejects_unsolicited_fence_success) ... ok
+21: 
+21: ----------------------------------------------------------------------
+21: Ran 4 tests in 8.463s
+21: 
+21: OK
+2/2 Test #21: identity-authority-fencing-client ...   Passed    8.58 sec
+
+The following tests passed:
+	identity-authority-fencing
+	identity-authority-fencing-client
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  29.44 sec

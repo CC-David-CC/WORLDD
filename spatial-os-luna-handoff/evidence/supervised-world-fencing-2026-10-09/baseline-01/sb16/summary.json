@@ -1,0 +1,65 @@
+{
+  "host": "sb16",
+  "source_files": 292,
+  "production_changed": false,
+  "test_sha256": "e551e4d7031dfe8878663e711afa0fa30f2788cb604c2f63f83e6ceda658ccc8",
+  "profiles": {
+    "debug": {
+      "command": [
+        "/usr/bin/systemd-run",
+        "--property=RuntimeMaxSec=150",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-supervised-world-67d2575c8a544b38b36e1d04eb93da25",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/supervised-world-fencing-baseline-01/debug/server",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervised_world_fencing.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/spatial-issuer-client"
+      ],
+      "exit_code": 0,
+      "ran": 2,
+      "passed": true,
+      "sanitizer_marker": false
+    },
+    "runtime-sanitize": {
+      "command": [
+        "/usr/bin/systemd-run",
+        "--property=RuntimeMaxSec=150",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-supervised-world-3676cf7878274bb4a8543ab6b1feba18",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/supervised-world-fencing-baseline-01/runtime-sanitize/server",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervised_world_fencing.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "exit_code": 0,
+      "ran": 2,
+      "passed": true,
+      "sanitizer_marker": false
+    }
+  },
+  "complete_M02": false
+}
