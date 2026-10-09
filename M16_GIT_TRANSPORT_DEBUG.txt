@@ -34,3 +34,8 @@ Direct origin access now works with repository-specific SSH keys and strict host
 No source checkout changed during this repair. No private key was copied or committed.
 Evidence and exact recovery commands: spatial-os-luna-handoff/evidence/git-transport-2026-10-09/README.txt.
 The authorization gate source and installation hashes are preserved beside that report.
+
+OpenSSH also learned the authenticated server's RSA and ECDSA host keys after login.
+All three server keys matched independent reads through the controller's trusted SSH route.
+The final-host-trust reports record the resulting known_hosts hashes.
+Recovery commands use those final per-host hashes.

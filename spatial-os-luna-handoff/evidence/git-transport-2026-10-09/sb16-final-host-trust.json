@@ -1,0 +1,19 @@
+{
+  "host": "sb16",
+  "known_hosts_final_sha256": "cc61c71634e1bd1fb2eaedc966fe161037b75d1336607eec4d83af23796fae16",
+  "reason": "OpenSSH UpdateHostKeys learned the authenticated server additional keys after login. All keys independently matched the controller authenticated SSH reference.",
+  "verified_keys": [
+    {
+      "type": "ecdsa-sha2-nistp256",
+      "fingerprint": "SHA256:NpXHtN3IrjWCnJuZSzvsGbUqLbx9TAupHAAZxs3wz+o"
+    },
+    {
+      "type": "ssh-ed25519",
+      "fingerprint": "SHA256:bvx5684zHcsZwOy//i6Gw3+6eXHyKX4OT1d7EpzdHhc"
+    },
+    {
+      "type": "ssh-rsa",
+      "fingerprint": "SHA256:t31MxWLcqnOpyaP/oEI5fnZ2UsyZmX1pzpQ9zbEM+8I"
+    }
+  ]
+}

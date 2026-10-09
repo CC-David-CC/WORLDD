@@ -11,6 +11,9 @@ Both hosts' independently observed keys matched that reference exactly.
 The verified fingerprint is SHA256:bvx5684zHcsZwOy//i6Gw3+6eXHyKX4OT1d7EpzdHhc.
 Each host appended this key to its own known_hosts after preserving a backup.
 The next repository probe failed authentication. These failures are retained in the trust reports.
+After successful login, OpenSSH UpdateHostKeys also learned the server's RSA and ECDSA keys.
+All three keys on each host independently matched public keys read through the controller's authenticated SSH route.
+The final-host-trust reports record their fingerprints and each final known_hosts hash.
 
 Each host then generated a separate Ed25519 key for this repository.
 Each private key stayed on its originating host at ~/.ssh/spacial_desktop_boxgit.
@@ -59,7 +62,13 @@ test "$(git config --local --get core.sshCommand)" = 'ssh -i /home/dflanag3/.ssh
 The original Git config backup remains at .git/config.before-spacial-boxgit-20261009.
 Restore the original known_hosts only if its current hash still matches this change:
 
-echo 'f4f22911f78c339ce92c2aa79d66e626a91df786a18c1e72aee4ed31821c4610  /home/dflanag3/.ssh/known_hosts' | sha256sum --check --status && cp -p -- /home/dflanag3/.ssh/known_hosts.before-spacial-box-git-20261009 /home/dflanag3/.ssh/known_hosts
+On sb16:
 
-If that hash differs, review later edits and remove only the verified box-git line.
+echo 'cc61c71634e1bd1fb2eaedc966fe161037b75d1336607eec4d83af23796fae16  /home/dflanag3/.ssh/known_hosts' | sha256sum --check --status && cp -p -- /home/dflanag3/.ssh/known_hosts.before-spacial-box-git-20261009 /home/dflanag3/.ssh/known_hosts
+
+On sb16-2:
+
+echo '29f62b6c83ae0aa934443d79ad01904e9a71a28988b710a29cbe0fba2932d8ea  /home/dflanag3/.ssh/known_hosts' | sha256sum --check --status && cp -p -- /home/dflanag3/.ssh/known_hosts.before-spacial-box-git-20261009 /home/dflanag3/.ssh/known_hosts
+
+If that hash differs, review later edits and remove only the verified box-git entries.
 No rollback command was executed during qualification.
