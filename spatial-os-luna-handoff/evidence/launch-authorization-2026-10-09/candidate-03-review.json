@@ -9,6 +9,6 @@
   "existing_test_bodies_unchanged": true,
   "patch_reconstruction": "passed",
   "review": "Each fixture client gets a closed, private, unique configuration snapshot before process launch. Prior rejection assertions and deadlines remain unchanged. A new regression checks independent contents and permissions.",
-  "qualification": "Both hosts passed285 focused Debug checks and51harness. Runtime sanitizer qualification is running. No source integrated.",
+  "qualification": "Both hosts passed285 focused checks across16suites and51harness in Debug and runtime ASan/UBSan. No failures or skips. Full qualification running; source not integrated.",
   "integrated": false
 }

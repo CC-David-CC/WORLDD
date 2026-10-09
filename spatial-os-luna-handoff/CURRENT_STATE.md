@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Exact launch authorization passes both focused profiles
+
+Candidate03 passed Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 285 focused checks across sixteen suites and 51 harness checks.
+No final case failed or skipped. All 273 source hashes and 41 locked hashes match.
+Descriptor comparison preserves every existing protobuf declaration.
+The unique configuration-file correction resolves the reproduced fixture race.
+All earlier assertions and production source remain unchanged by candidate03.
+Original failures and diagnostics remain preserved beside the final reports.
+
+Full authorization qualification has started on both hosts in output03.
+Its expected matrix is 1328 core checks across 86 suites, 51 harness checks, and 151 P10 cases per profile.
+Expected totals are not completed results.
+The supervisor must still connect approval to retained launch ownership and checked recovery.
+No authorization source is integrated. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Client fixture correction enters qualification; incarnation full matrix passes
 
 Service incarnation candidate01 completed full Debug and runtime ASan/UBSan on both hosts.

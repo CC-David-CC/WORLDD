@@ -11,14 +11,15 @@
   "baseline": "Both hosts built the additive schema and reproduced UNKNOWN_METHOD through the production issuer client.",
   "implementation": "Isolated schema8 authorization, distinct supervisor proof bound to exact target and TLS, atomic activation consumption, and checked production client.",
   "remaining": [
-    "Complete focused sanitizer and full qualification on both hosts.",
+    "Complete full qualification on both hosts.",
     "Connect signing to the coordinator retained production launch ownership.",
     "Implement fencing, checked external cleanup reconciliation, and exact generation retirement."
   ],
   "candidate": 3,
-  "focused": "Candidate03 passed 285 focused Debug checks across 16 suites and 51 harness checks on both hosts. No failures or skips. Runtime sanitizer qualification is running.",
+  "focused": "Candidate03 passed285 focused checks across16suites and51harness on both hosts in Debug and runtime ASan/UBSan. No failures or skips.",
   "candidate01": "Both hosts passed283 of284 Debug checks. One new concurrency fixture raced through shared signing files. Original failure preserved; candidate02 changes only proof preparation before concurrent requests.",
   "migration": "Six historical fixtures remove the schema8 table and update current-version assertions7to8; all other assertions and41locks preserved.",
   "candidate02": "Debug passed on both hosts. Sanitizer284+51 passed on sb16. On sb16-2,283of284 focused checks passed; shared fixture configuration overwrite reproduced on both hosts.",
-  "candidate03": "Only shared fixture config_file helper and one new regression changed. Unique private files prevent another client from changing a delayed reader endpoint. Existing test bodies and production unchanged."
+  "candidate03": "Only shared fixture config_file helper and one new regression changed. Unique private files prevent another client from changing a delayed reader endpoint. Existing test bodies and production unchanged.",
+  "full": "Output03 full qualification is running on both hosts. Expected1328core86suites51harness151P10 perprofile; no completed full result yet."
 }

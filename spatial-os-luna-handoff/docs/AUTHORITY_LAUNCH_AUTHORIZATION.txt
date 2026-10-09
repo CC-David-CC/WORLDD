@@ -144,7 +144,7 @@ On sb16-2, one sanitizer fixture failed before its required request reached the 
 Both hosts reproduced configuration overwrite by another fixture client.
 Candidate03 creates a private, unique configuration snapshot for each client.
 It adds one configuration regression. All existing test bodies and production code remain unchanged.
-Candidate03 passed 285 focused Debug checks and 51 harness checks on both hosts.
-No Debug case failed or skipped. Runtime sanitizer and full qualification remain pending.
+Candidate03 passed 285 focused checks and 51 harness checks on both hosts in Debug and runtime ASan/UBSan.
+No final case failed or skipped. Full qualification is running separately in output03.
 The original failure and diagnostic logs remain preserved.
 The coordinator signing bridge, fencing, external cleanup reconciliation, and retirement remain required before integration.
