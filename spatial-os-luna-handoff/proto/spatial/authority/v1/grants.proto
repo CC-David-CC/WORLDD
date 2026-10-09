@@ -1,5 +1,6 @@
 syntax = "proto3";
 package spatial.authority.v1;
+import "core.proto";
 
 // These records belong to a trusted authority store. They are not bearer tokens.
 message ActorRef { bytes issuer_id = 1; bytes actor_id = 2; }
@@ -74,4 +75,19 @@ message BootstrapBinding {
   GrantTerms terms = 5; // Subject absent. The authenticated recipient is assigned during materialization.
   uint64 created_revision = 6;
   uint64 revoked_revision = 7;
+}
+
+// A recorded grant is not proof of current effective authority.
+message BootstrapGrantResult {
+  string template_id = 1;
+  oneof outcome { GrantRecord grant = 2; spatial.core.v1.Error error = 3; }
+}
+message BootstrapReport {
+  bytes issuer_id = 1;
+  string profile_id = 2;
+  uint64 profile_revision = 3;
+  Domain domain = 4;
+  repeated BootstrapGrantResult results = 5;
+  // Whole-attempt failure. Results must be empty when this field is present.
+  spatial.core.v1.Error error = 6;
 }

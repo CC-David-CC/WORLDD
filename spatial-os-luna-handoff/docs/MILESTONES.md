@@ -16,11 +16,12 @@ All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qua
 Existing components provide partial implementation where CURRENT_STATE.md records their evidence.
 The mandatory profile is tasks/spatial-m1.json.
 
-The latest qualified increment adds persistent domain bootstrap bindings, receipts, and explicit storage migration.
+The latest qualified increment adds authenticated enrollment delivery into world and workspace grants.
 Both hosts passed complete Debug and runtime ASan/UBSan qualification on 2026-10-09.
-Each profile passed 973 core checks across 50 suites, 51 harness checks, and all 151 P10 cases.
+Each profile passed 1,037 core checks across 55 suites, 51 harness checks, and all 151 P10 cases.
+Six additional process-witness checks passed against each exact binary set.
 No final profile failed or skipped a case.
-See evidence/bootstrap-domain-production-2026-10-09 for source pins, commands, and final results.
+See evidence/bootstrap-workspace-adapters-2026-10-09 for source pins, commands, and final results.
 The original P00-P10 baseline and walkthrough evidence remain in evidence/walkthroughs-2026-10-07.
 
 Qualified components now include actor identity, persistent grants, confined execution, and several native X isolation boundaries.
@@ -28,7 +29,9 @@ Worldd enforces broker-authorized application metadata, real pixels, and input t
 Control loss cancels native input without terminating independently authorized application execution.
 These component results do not establish complete milestone qualification.
 
-Authenticated bootstrap grant delivery and remote authenticated actor transport remain required.
+Authenticated bootstrap grant delivery is qualified and integrated locally. Commit and host adoption remain pending.
+Remote authenticated actor transport remains an isolated draft with 95 passing focused Debug checks.
+Full remote qualification and cross-host evidence remain required.
 Shared worlds, world transitions, complete cabinet actions, application restoration, and model tasks remain required.
 Physical devices, native GPU output, timing, and soak evidence remain mandatory.
 Native-server GLX sanitizer cleanup remains unqualified.

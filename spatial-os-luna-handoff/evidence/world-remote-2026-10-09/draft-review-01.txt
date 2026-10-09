@@ -1,0 +1,74 @@
+Remote actor draft 01: primary-agent review
+
+Status: isolated draft. Production integration remains pending.
+The primary agent reviewed each changed file. No local model or subagent was used.
+All source pins refer to draft-01/source-manifest.json.
+
+src/world/actor_tls.hpp and src/world/actor_tls.cpp:
+The listener owns its descriptor and TLS context.
+Each channel owns its accepted descriptor. Its TLS peer borrows that descriptor.
+The private configuration loader and TLS 1.3 context are existing production components.
+Transport certificates permit connection. Signed actor proof remains separate.
+Reads have bounded buffers. Writes retain their buffer and length during OpenSSL retries.
+Read retries that need writes finish before another operation uses that TLS state.
+Handshake, unauthenticated idle, frame, and queued-response deadlines bound ordinary failure paths.
+Connection count includes local channels. Closed channels release their slots.
+
+src/world/identity_sessions.hpp and src/world/identity_sessions.cpp:
+The existing actor dispatch and authorization handlers serve both transports.
+Management requests retain their separate pipe and protobuf interface.
+The server derives transport mode. The actor cannot supply it.
+TLS state is destroyed before its descriptor closes.
+Watcher callbacks detect lost connections during component waits without dispatching new actions.
+New accepts and dead-channel removal occur after channel iteration.
+This preserves references held during issuer and broker callbacks.
+
+src/world/main.cpp:
+The new listener and TLS configuration arguments are required together.
+Identity configuration remains mandatory. Local descriptors remain supported.
+Descriptor reuse is rejected. Close-on-exec is set before worker launch.
+The explicit listener accepts IPv4 or IPv6 TCP. It does not add a management listener.
+
+src/world/actors.hpp and src/world/actors.cpp:
+Presentation mode is session state. It is not persisted as actor identity.
+Remote scenes omit live application surfaces. Shared world geometry remains visible.
+Remote application key, pointer, and scroll input return UNIMPLEMENTED.
+Local reconnection restores ordinary authorized application observation.
+
+proto/spatial/identity/v1/world_session.proto:
+WorldActorTlsConfig is an additive message. Existing actor requests stay unchanged.
+Configuration limits distinguish unauthenticated idle time from authenticated human inactivity.
+
+CMakeLists.txt:
+The world daemon builds the TLS adapter. Five new functional cases enter CTest.
+Supplemental security, lifecycle, and native tests currently run outside the frozen source tree.
+They must enter the final candidate before full qualification.
+
+tests/core/test_world_remote.py:
+Five cases use real issuer proofs, persistent grants, and the production world daemon.
+The failed baseline stopped at unsupported arguments. The draft now passes the later assertions.
+The client checks server trust and name. Its framed reader consumes buffered TLS plaintext.
+
+Additional reviewed tests:
+Thirteen security cases reject plaintext, invalid certificates, TLS 1.2, and malformed frames.
+They verify fragmentation, bounded partial reads, idle behavior, connection reuse, and input exclusion.
+Six lifecycle cases verify connection limits, handshake expiry, disconnect, revocation, replay, and restart.
+Motion cancellation is checked before the fixture's ten-second motion expiry.
+Three native cases use real confined applications and actual compositor pixel output.
+They verify remote surface exclusion, local reconnection, and cancellation of a stalled large reply.
+The stalled-write case requires an incomplete frame and a surviving local actor.
+
+Evidence and limits:
+sb16 Debug passed 5 functional, 13 security, 6 lifecycle, and 3 native cases.
+It also passed 68 existing local identity, authority, and bootstrap checks.
+No case failed or skipped in those final runs.
+Runtime sanitizer focused qualification is running separately.
+Full cumulative qualification, second-host qualification, and actual cross-host transport remain pending.
+Revocation during a delayed issuer reply needs a remote-specific counterexample.
+The distributed revocation acknowledgement barrier remains a separate required component.
+Native-server GLX sanitizer qualification is not established by these runtime checks.
+
+Review follow-up before integration:
+Audit deadlines when SSL_read requests a write retry. Do not let that retry bypass a frame deadline.
+Test malformed listener configuration and preservation of independent actors during delayed issuer responses.
+Use the final candidate's generated protobuf descriptor for an additive-schema audit.

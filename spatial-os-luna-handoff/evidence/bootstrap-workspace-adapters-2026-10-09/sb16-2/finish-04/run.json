@@ -1,0 +1,46 @@
+{
+  "host": "sb16-2",
+  "status": "passed",
+  "pid": 3068445,
+  "results": [
+    {
+      "name": "matrix-collector",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/collect-bootstrap-adapters-04.py",
+        "final"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "debug",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-finish-04/test_processes.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-debug-04/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-debug-04/build/workspaced",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-debug-04/build/worldd"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "runtime-sanitize",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-finish-04/test_processes.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-runtime-sanitize-04/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-runtime-sanitize-04/build/workspaced",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-runtime-sanitize-04/build/worldd"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "waiting_for": [
+    3031840
+  ],
+  "original_matrix_core_checks": 1037,
+  "additional_witness_checks": 6,
+  "rerun_original_process_checks": 12,
+  "original_test_bodies_unchanged": 12,
+  "production_integration": "pending"
+}

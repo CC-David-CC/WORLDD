@@ -1,5 +1,6 @@
 Authenticated world and workspace bootstrap delivery: primary review
-Status: reviewed isolated candidate 04; complete qualification and production integration remain pending.
+Status: candidate 04 passed both-host qualification and the guarded local source integration.
+Commit and host adoption remain pending. Historical qualification stages remain below.
 The primary agent performed review. No local model or delegated agent supplied execution evidence.
 
 Files reviewed:
@@ -79,3 +80,13 @@ Both hosts passed those six checks and all twelve real process tests.
 Candidate 04 active source trees remain unchanged; preserve b2ab006 during eventual integration.
 Complete candidate 04 Debug and runtime sanitizer matrices remain mandatory on both hosts.
 No native-server GLX sanitizer, physical device, full M01/M02, or Spatial-M1 completion is claimed.
+
+Final integration review:
+Both hosts passed complete candidate 04 Debug and runtime sanitizer matrices.
+Each profile passed 1,037 core checks, 51 harness checks, and 151 P10 cases without failures or skips.
+All four exact binary sets passed the corrected witness and twelve original process cases.
+The guarded integration compared all 223 source hashes against both host manifests before writing.
+Eighteen source, schema, build, and test files changed. The corrected witness remains intact.
+All 41 locked files and all twelve original process-test bodies remain unchanged.
+The final diff matches the previously reviewed and qualified source exactly.
+Remote transport remains a separate isolated draft. It is not part of this production integration.

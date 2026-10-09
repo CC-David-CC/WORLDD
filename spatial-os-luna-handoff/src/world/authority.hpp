@@ -18,6 +18,18 @@ public:
     authority::v1::GrantRecord delegate(const authority::v1::ActorRef&, const std::string& parent,
                                       const authority::v1::GrantTerms&, std::uint64_t revision);
     authority::v1::GrantRecord revoke(const authority::v1::ActorRef&, const std::string& id, std::uint64_t revision);
+    // The authenticated session resolves checked issuer templates before these calls.
+    authority::v1::BootstrapBinding bind_bootstrap(const authority::v1::ActorRef&,
+        const authority::v1::BootstrapSelector&, const std::string& parent,
+        const authority::v1::GrantTerms&, std::uint64_t revision);
+    authority::v1::BootstrapBinding bootstrap_binding(const authority::v1::BootstrapSelector&);
+    std::vector<authority::v1::ActorRef> bootstrap_subjects(const std::vector<std::string>&,
+        const authority::v1::ActorRef& recipient);
+    authority::v1::GrantRecord materialize_bootstrap(const std::string& binding,
+        const authority::v1::ActorRef& recipient, const authority::v1::BootstrapSelector&,
+        const authority::v1::GrantTerms& checked_template);
+    authority::v1::BootstrapBinding revoke_bootstrap(const authority::v1::ActorRef&,
+        const std::string& binding, std::uint64_t revision);
 private:
     bool active(const authority::v1::ActorRef&) const;
     authority::v1::Domain domain_;

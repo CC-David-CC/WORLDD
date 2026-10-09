@@ -46,6 +46,9 @@ public:
     authority::v1::GrantPage grants(const broker_wire::GrantListRequest&);
     authority::v1::GrantRecord delegate(const broker_wire::GrantDelegateRequest&);
     authority::v1::GrantRecord revoke(const broker_wire::GrantRevokeRequest&);
+    authority::v1::BootstrapBinding bind_bootstrap(const broker_wire::BootstrapBindRequest&);
+    authority::v1::BootstrapBinding revoke_bootstrap(const broker_wire::BootstrapRevokeRequest&);
+    authority::v1::BootstrapReport apply_bootstrap(const broker_wire::BootstrapApplyRequest&);
     void set_tick(std::function<void()> tick) { tick_ = std::move(tick); }
     void check_alive() const;
     pid_t pid() const { return pid_; }

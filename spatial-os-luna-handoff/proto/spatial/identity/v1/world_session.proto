@@ -34,6 +34,21 @@ message WorldGrantRevoke {
   optional uint64 seq = 1; bytes id = 2; optional uint64 expected_revision = 3;
   optional string workspace = 4;
 }
+message WorldBootstrapBind {
+  optional uint64 seq = 1;
+  spatial.authority.v1.BootstrapSelector selector = 2;
+  bytes parent_id = 3;
+  optional uint64 expected_revision = 4;
+  optional string workspace = 5;
+}
+message WorldBootstrapRevoke {
+  optional uint64 seq = 1;
+  bytes id = 2;
+  optional uint64 expected_revision = 3;
+  optional string workspace = 4;
+}
+// Applies only this authenticated actor's registered credential profile.
+message WorldBootstrapApply { optional uint64 seq = 1; optional string workspace = 2; }
 message WorldAuthenticationBegin {
   SignedCredential credential = 1;
   optional string room = 2;
@@ -56,11 +71,16 @@ message WorldSessionRequest {
     WorldGrantList grants = 15;
     WorldGrantDelegate delegate = 16;
     WorldGrantRevoke revoke = 17;
+    WorldBootstrapBind bootstrap_bind = 18;
+    WorldBootstrapRevoke bootstrap_revoke = 19;
+    WorldBootstrapApply bootstrap_apply = 20;
   }
 }
 message WorldSessionReply {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
+  // Only after proof completion. Admission failure can accompany an application report.
+  spatial.authority.v1.BootstrapReport bootstrap_attempt = 3;
   oneof outcome {
     spatial.core.v1.Error error = 10;
     ChallengeReply challenge = 11;
@@ -70,5 +90,7 @@ message WorldSessionReply {
     spatial.core.v1.ActorCloseReply closed = 15;
     spatial.authority.v1.GrantPage grants = 16;
     spatial.authority.v1.GrantRecord grant = 17;
+    spatial.authority.v1.BootstrapBinding binding = 18;
+    spatial.authority.v1.BootstrapReport bootstrap = 19;
   }
 }

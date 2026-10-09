@@ -4,6 +4,7 @@
 #include "identity/issuer_client.hpp"
 #include "identity/issuer_watch.hpp"
 #include "identity/keys.hpp"
+#include "identity/bootstrap.hpp"
 #include "identity/tls_support.hpp"
 #include "world_session.pb.h"
 #include <google/protobuf/text_format.h>
@@ -232,6 +233,11 @@ struct IdentitySessions::Impl {
         if (!authority) return;
         auto subjects = authority->subjects(actor);
         if (extra && extra->issuer_id().size() == 32 && extra->actor_id().size() == 32) subjects.push_back(*extra);
+        prepare_subjects(actor, subjects);
+    }
+    void prepare_subjects(const authority::v1::ActorRef& actor,
+                          const std::vector<authority::v1::ActorRef>& subjects) {
+        if (!authority) return;
         std::set<std::string> ids;
         for (const auto& subject : subjects)
             if (subject.issuer_id() == issuer.issuer_id()) ids.insert(subject.actor_id());
@@ -254,6 +260,83 @@ struct IdentitySessions::Impl {
         authority->update(states); sync_authority();
         const auto current_actor = std::find_if(states.begin(), states.end(), [&](const auto& value) { return value.actor_id() == actor.actor_id(); });
         if (current_actor == states.end() || !current_actor->active()) throw WorldError(wire::UNAUTHORIZED, "Actor identity is inactive");
+    }
+    pb::BootstrapProfileState bootstrap_profile(const pb::ActorCredential& claims) {
+        pb::BootstrapProfileRead query; query.set_id(claims.bootstrap_profile());
+        query.set_revision(claims.bootstrap_profile_revision());
+        identity::validate_bootstrap_read(query, true);
+        pb::IssuerRequest request; *request.mutable_profile_read() = query;
+        return exchange(std::move(request)).profile();
+    }
+    pb::BootstrapGrantTemplate bootstrap_template(const authority::v1::BootstrapSelector& selector) {
+        require(selector.issuer_id().size() == 32, "Bootstrap issuer identity is required");
+        if (selector.issuer_id() != issuer.issuer_id()) throw WorldError(wire::FORBIDDEN, "Bootstrap issuer is not configured");
+        require(!selector.template_id().empty() && selector.template_id().size() <= 128 &&
+            selector.template_id().find('\0') == std::string::npos, "Bootstrap template identity is invalid");
+        pb::ActorCredential claims; claims.set_bootstrap_profile(selector.profile_id());
+        claims.set_bootstrap_profile_revision(selector.profile_revision());
+        const auto profile = bootstrap_profile(claims);
+        for (const auto& item : profile.profile().grants()) if (item.id() == selector.template_id()) return item;
+        throw WorldError(wire::NOT_FOUND, "Bootstrap template is unavailable");
+    }
+    void bootstrap_live(Channel& channel, bool completing) {
+        tick();
+        if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
+        if (channel.fd.value < 0 || (completing ? !channel.completing : channel.token.empty()))
+            throw WorldError(wire::UNAUTHORIZED, "Bootstrap actor channel was revoked or disconnected");
+    }
+    void bootstrap_ready(Channel& channel, const pb::SignedCredential& credential,
+                         const pb::ActorCredential& claims, const std::vector<authority::v1::ActorRef>& subjects,
+                         bool completing) {
+        const auto status = current(credential, claims);
+        prepare_subjects(principal(claims), subjects);
+        bootstrap_live(channel, completing);
+        if (observed_revision != status.security_revision())
+            throw WorldError(wire::UNAVAILABLE, "Issuer security state changed during bootstrap preparation");
+    }
+    authority::v1::BootstrapReport apply_world_bootstrap(Channel& channel, pb::SignedCredential credential,
+                                                       pb::ActorCredential claims, bool completing) {
+        authority::v1::BootstrapReport report;
+        report.set_issuer_id(claims.issuer_id()); report.set_profile_id(claims.bootstrap_profile());
+        report.set_profile_revision(claims.bootstrap_profile_revision());
+        report.mutable_domain()->set_kind(authority::v1::WORLD); report.mutable_domain()->set_id(world.info().world_id());
+        // The issuer's built-in revision is immutable and contains no templates.
+        if (claims.bootstrap_profile() == "empty-v1") {
+            require(claims.bootstrap_profile_revision() == 1, "Invalid immutable empty profile revision");
+            bootstrap_live(channel, completing); return report;
+        }
+        if (!authority) {
+            report.mutable_error()->set_code(wire::UNAVAILABLE);
+            report.mutable_error()->set_message("Persistent world authority is not configured");
+            bootstrap_live(channel, completing); return report;
+        }
+        pb::BootstrapProfileState profile;
+        try { profile = bootstrap_profile(claims); }
+        catch (const WorldError& error) {
+            if (error.code != wire::NOT_FOUND) throw;
+            report.mutable_error()->set_code(error.code); report.mutable_error()->set_message(error.what());
+            bootstrap_live(channel, completing); return report;
+        }
+        const auto actor = principal(claims);
+        bootstrap_ready(channel, credential, claims, authority->subjects(actor), completing);
+        for (const auto& item : profile.profile().grants()) {
+            if (item.terms().scope().domain().kind() != authority::v1::WORLD ||
+                item.terms().scope().domain().id() != world.info().world_id()) continue;
+            auto* result = report.add_results(); result->set_template_id(item.id());
+            authority::v1::BootstrapSelector selector; selector.set_issuer_id(claims.issuer_id());
+            selector.set_profile_id(claims.bootstrap_profile()); selector.set_profile_revision(claims.bootstrap_profile_revision());
+            selector.set_template_id(item.id());
+            try {
+                const auto binding = authority->bootstrap_binding(selector);
+                bootstrap_ready(channel, credential, claims, authority->bootstrap_subjects({binding.id()}, actor), completing);
+                *result->mutable_grant() = authority->materialize_bootstrap(binding.id(), actor, selector, item.terms());
+            } catch (const WorldError& error) {
+                // Authentication or issuer failure aborts this request. Earlier receipts remain durable.
+                if (error.code == wire::UNAUTHORIZED || error.code == wire::UNAVAILABLE) throw;
+                result->mutable_error()->set_code(error.code); result->mutable_error()->set_message(error.what());
+            }
+        }
+        sync_authority(); bootstrap_live(channel, completing); return report;
     }
     pb::WorldSessionReply dispatch(Channel& channel, const std::string& bytes) {
         pb::WorldSessionReply reply; reply.set_protocol_version(1);
@@ -309,6 +392,7 @@ struct IdentitySessions::Impl {
                 }
                 const auto status = current(pending->begin.credential(), pending->claims);
                 const auto actor = principal(pending->claims);
+                *reply.mutable_bootstrap_attempt() = apply_world_bootstrap(channel, pending->begin.credential(), pending->claims, true);
                 prepare(actor);
                 if (!channel.completing) throw WorldError(wire::UNAUTHORIZED, "World authentication was revoked");
                 if (config.admission() == pb::EXPLICIT_ACTORS &&
@@ -325,14 +409,24 @@ struct IdentitySessions::Impl {
                 channel.token = opened.token(); channel.credential = pending->begin.credential(); channel.claims = pending->claims;
                 auto* value = reply.mutable_opened(); value->set_actor_id(opened.id()); value->set_world_id(world.info().world_id());
                 *value->mutable_identity() = status;
-            } else if (request.has_inspect() || request.has_action() || request.has_grants() || request.has_delegate() || request.has_revoke()) {
+            } else if (request.has_inspect() || request.has_action() || request.has_grants() || request.has_delegate() || request.has_revoke() ||
+                       request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "Channel has no authenticated actor");
                 const auto actor = principal(channel.claims);
                 try {
                     current(channel.credential, channel.claims);
                 } catch (const WorldError&) { disconnect(channel); throw; }
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "World session was revoked");
-                if (request.has_delegate()) {
+                if (request.has_bootstrap_bind()) {
+                    require(request.bootstrap_bind().has_seq(), "Actor sequence is required");
+                    actors.consume_sequence(channel.token, request.bootstrap_bind().seq());
+                } else if (request.has_bootstrap_revoke()) {
+                    require(request.bootstrap_revoke().has_seq(), "Actor sequence is required");
+                    actors.consume_sequence(channel.token, request.bootstrap_revoke().seq());
+                } else if (request.has_bootstrap_apply()) {
+                    require(request.bootstrap_apply().has_seq(), "Actor sequence is required");
+                    actors.consume_sequence(channel.token, request.bootstrap_apply().seq());
+                } else if (request.has_delegate()) {
                     require(request.delegate().has_seq(), "Actor sequence is required");
                     actors.consume_sequence(channel.token, request.delegate().seq());
                 } else if (request.has_revoke()) {
@@ -343,7 +437,55 @@ struct IdentitySessions::Impl {
                     prepare(actor, request.has_delegate() && !request.delegate().has_workspace() ? &request.delegate().terms().subject() : nullptr);
                 } catch (const WorldError&) { disconnect(channel); throw; }
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "World session was revoked");
-                if (request.has_inspect()) *reply.mutable_state() = actors.inspect(channel.token);
+                if (request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
+                    const bool workspace = request.has_bootstrap_bind() ? request.bootstrap_bind().has_workspace() :
+                        request.has_bootstrap_revoke() ? request.bootstrap_revoke().has_workspace() : request.bootstrap_apply().has_workspace();
+                    if (workspace) {
+                        if (!broker) throw WorldError(wire::UNAVAILABLE, "No workspace authority is connected");
+                        const auto selected = request.has_bootstrap_bind() ? request.bootstrap_bind().workspace() :
+                            request.has_bootstrap_revoke() ? request.bootstrap_revoke().workspace() : request.bootstrap_apply().workspace();
+                        require(!selected.empty() && selected.size() <= 256 && selected.find('\0') == std::string::npos,
+                            "Explicit workspace identity is required");
+                        if (request.has_bootstrap_bind()) {
+                            const auto& source = request.bootstrap_bind();
+                            require(source.has_expected_revision(), "Authority revision is required");
+                            broker_wire::BootstrapBindRequest operation; operation.set_workspace(selected);
+                            *operation.mutable_principal() = actor; *operation.mutable_credential() = channel.credential;
+                            *operation.mutable_selector() = source.selector(); operation.set_parent_id(source.parent_id());
+                            operation.set_expected_revision(source.expected_revision());
+                            *reply.mutable_binding() = broker->bind_bootstrap(operation);
+                        } else if (request.has_bootstrap_revoke()) {
+                            const auto& source = request.bootstrap_revoke();
+                            require(source.has_expected_revision(), "Authority revision is required");
+                            broker_wire::BootstrapRevokeRequest operation; operation.set_workspace(selected);
+                            *operation.mutable_principal() = actor; *operation.mutable_credential() = channel.credential;
+                            operation.set_id(source.id()); operation.set_expected_revision(source.expected_revision());
+                            *reply.mutable_binding() = broker->revoke_bootstrap(operation);
+                        } else {
+                            broker_wire::BootstrapApplyRequest operation; operation.set_workspace(selected);
+                            *operation.mutable_principal() = actor; *operation.mutable_credential() = channel.credential;
+                            *reply.mutable_bootstrap() = broker->apply_bootstrap(operation);
+                        }
+                        bootstrap_live(channel, false); return reply;
+                    }
+                    if (!authority) throw WorldError(wire::UNIMPLEMENTED, "Persistent world authority is not configured");
+                    // Copies remain valid if a watcher callback clears the channel during issuer I/O.
+                    const auto credential = channel.credential; const auto claims = channel.claims;
+                    if (request.has_bootstrap_bind()) {
+                        const auto& operation = request.bootstrap_bind();
+                        require(operation.has_expected_revision(), "Authority revision is required");
+                        const auto item = bootstrap_template(operation.selector());
+                        bootstrap_ready(channel, credential, claims, authority->subjects(actor), false);
+                        *reply.mutable_binding() = authority->bind_bootstrap(actor, operation.selector(), operation.parent_id(),
+                            item.terms(), operation.expected_revision());
+                    } else if (request.has_bootstrap_revoke()) {
+                        const auto& operation = request.bootstrap_revoke();
+                        require(operation.has_expected_revision(), "Authority revision is required");
+                        bootstrap_ready(channel, credential, claims, authority->subjects(actor), false);
+                        *reply.mutable_binding() = authority->revoke_bootstrap(actor, operation.id(), operation.expected_revision());
+                    } else *reply.mutable_bootstrap() = apply_world_bootstrap(channel, credential, claims, false);
+                    sync_authority();
+                } else if (request.has_inspect()) *reply.mutable_state() = actors.inspect(channel.token);
                 else if (request.has_grants() || request.has_delegate() || request.has_revoke()) {
                     const bool workspace = request.has_grants() ? request.grants().has_workspace() :
                         request.has_delegate() ? request.delegate().has_workspace() : request.revoke().has_workspace();

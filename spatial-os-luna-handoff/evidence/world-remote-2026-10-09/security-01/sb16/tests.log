@@ -1,0 +1,18 @@
+test_plaintext_is_rejected_without_disrupting_an_actor (__main__.RemoteSecurityTests.test_plaintext_is_rejected_without_disrupting_an_actor) ... ok
+test_missing_client_certificate_is_rejected (__main__.RemoteSecurityTests.test_missing_client_certificate_is_rejected) ... ok
+test_untrusted_client_certificate_is_rejected (__main__.RemoteSecurityTests.test_untrusted_client_certificate_is_rejected) ... ok
+test_server_name_mismatch_fails_verification (__main__.RemoteSecurityTests.test_server_name_mismatch_fails_verification) ... ok
+test_untrusted_server_fails_verification (__main__.RemoteSecurityTests.test_untrusted_server_fails_verification) ... ok
+test_tls12_cannot_reach_actor_dispatch (__main__.RemoteSecurityTests.test_tls12_cannot_reach_actor_dispatch) ... ok
+test_fragmented_frame_reaches_existing_actor (__main__.RemoteSecurityTests.test_fragmented_frame_reaches_existing_actor) ... ok
+test_excessive_frame_closes_only_its_remote_channel (__main__.RemoteSecurityTests.test_excessive_frame_closes_only_its_remote_channel) ... ok
+test_stalled_partial_frame_expires_without_harming_an_actor (__main__.RemoteSecurityTests.test_stalled_partial_frame_expires_without_harming_an_actor) ... ok
+test_malformed_protobuf_does_not_authenticate_and_connection_recovers (__main__.RemoteSecurityTests.test_malformed_protobuf_does_not_authenticate_and_connection_recovers) ... ok
+test_authenticated_idle_actor_survives_unauthenticated_timeout (__main__.RemoteSecurityTests.test_authenticated_idle_actor_survives_unauthenticated_timeout) ... ok
+test_closed_channels_release_slots_for_repeated_connections (__main__.RemoteSecurityTests.test_closed_channels_release_slots_for_repeated_connections) ... ok
+test_remote_actor_cannot_inject_application_keys (__main__.RemoteSecurityTests.test_remote_actor_cannot_inject_application_keys) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 21.349s
+
+OK

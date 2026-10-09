@@ -1,0 +1,18 @@
+{
+  "host": "sb16",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-native-01/test_world_remote_native.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/worldd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/spatial-security-auth"
+  ],
+  "exit_code": 0,
+  "test_sha256": "831e5d9591ab8a7e1521ebb464a93705d654be8ab2348d4c85060cc644173b47",
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "worldd_sha256": "a45f2dcd79fab07d47c09b241725faa49ea7dfb77240f9e56656eda349d3f433"
+}

@@ -1,0 +1,16 @@
+{
+  "host": "sb16",
+  "profile": "isolated Debug",
+  "source_files": 226,
+  "functional_tests": 5,
+  "security_tests": 13,
+  "local_regression_tests": 68,
+  "failed": 0,
+  "skipped": 0,
+  "binaries": {
+    "worldd": "a45f2dcd79fab07d47c09b241725faa49ea7dfb77240f9e56656eda349d3f433",
+    "identityd": "eae7a3bf9681d9d14c9ad131d1a7e56e106e3915c21d77e8bc03902af0ced3c3",
+    "spatial-issuer-client": "f464b535daa3e46638afc528492d157e8fb6ea51f0a7c3ff545d870e2b04f131"
+  },
+  "qualification": "focused only; no full matrix, second host, sanitizer, or cross-host qualification"
+}

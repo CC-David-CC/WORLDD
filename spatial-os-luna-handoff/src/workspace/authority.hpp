@@ -19,6 +19,9 @@ public:
     authority::v1::GrantPage list(const workspace::v1::GrantListRequest&);
     authority::v1::GrantRecord delegate(const workspace::v1::GrantDelegateRequest&);
     authority::v1::GrantRecord revoke(const workspace::v1::GrantRevokeRequest&);
+    authority::v1::BootstrapBinding bind_bootstrap(const workspace::v1::BootstrapBindRequest&);
+    authority::v1::BootstrapBinding revoke_bootstrap(const workspace::v1::BootstrapRevokeRequest&);
+    authority::v1::BootstrapReport apply_bootstrap(const workspace::v1::BootstrapApplyRequest&);
     void tick();
     void keepalive();
     bool consume_changes();

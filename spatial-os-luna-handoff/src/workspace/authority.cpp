@@ -4,6 +4,8 @@
 #include "identity/issuer_client.hpp"
 #include "identity/issuer_watch.hpp"
 #include "identity/tls_support.hpp"
+#include "identity/bootstrap.hpp"
+#include "identity/keys.hpp"
 #include "world/store.hpp"
 #include <google/protobuf/text_format.h>
 #include <algorithm>
@@ -42,7 +44,9 @@ struct WorkspaceAuthority::Impl {
     std::map<std::string, std::unique_ptr<authority::Store>> stores;
     std::unique_ptr<identity::IssuerClient> client;
     std::unique_ptr<identity::IssuerWatcher> watcher;
-    std::string issuer;
+    std::string issuer, issuer_key;
+    std::optional<std::string> bootstrap_credential;
+    bool bootstrap_revoked = false;
     std::map<std::string, bool> active;
     std::set<std::string> revoked;
     std::map<std::tuple<std::string, std::string, int, std::vector<std::string>>, bool> decisions;
@@ -65,6 +69,7 @@ struct WorkspaceAuthority::Impl {
         id::IssuerRequest request; request.set_protocol_version(1); request.mutable_info();
         const auto reply = client->call(request);
         require(reply.has_info(), "Workspace issuer is unavailable"); issuer = reply.info().issuer_id();
+        issuer_key = reply.info().public_key();
         watcher = std::make_unique<identity::IssuerWatcher>(config.issuer_client_config());
         client->set_tick([this] { tick(); });
         const auto deadline = Clock::now()+client->timeout()+std::chrono::milliseconds(100);
@@ -81,6 +86,8 @@ struct WorkspaceAuthority::Impl {
             const auto& batch = update->batch(); observed_revision = std::max(observed_revision, batch.head_revision());
             if (batch.initial()) ready = true;
             for (const auto& event : batch.events()) {
+                if (bootstrap_credential && event.target().kind() == id::CREDENTIAL_TARGET &&
+                        event.target().id() == *bootstrap_credential) bootstrap_revoked = true;
                 if (event.target().kind() == id::ACTOR_TARGET) {
                     revoked.insert(event.target().id()); active[event.target().id()] = false; invalidate();
                 }
@@ -95,6 +102,10 @@ struct WorkspaceAuthority::Impl {
         catch (const std::exception&) { fail(); throw WorldError(wire::UNAVAILABLE, "Workspace issuer connection failed"); }
         if (broken) throw WorldError(wire::UNAVAILABLE, "Workspace identity service is disabled");
         last_exchange = Clock::now();
+        // Revocation during a delayed reply cancels this operation, not actor-owned execution.
+        // Consume the checked reply first so the issuer transport remains synchronized.
+        if (bootstrap_credential && bootstrap_revoked)
+            throw WorldError(wire::UNAUTHORIZED, "Workspace bootstrap credential was revoked during issuer I/O");
         if (reply.has_error()) {
             const auto code = reply.error().code();
             if (code == wire::STORAGE_ERROR || code == wire::INTERNAL_ERROR || code == wire::UNAVAILABLE) fail();
@@ -116,6 +127,9 @@ struct WorkspaceAuthority::Impl {
         if (actor.issuer_id() != issuer) throw WorldError(wire::FORBIDDEN, "Workspace issuer does not match actor identity");
         auto subjects = store(workspace).subjects(actor);
         if (extra && extra->actor_id().size() == 32 && extra->issuer_id().size() == 32) subjects.push_back(*extra);
+        prepare_subjects(actor, subjects);
+    }
+    void prepare_subjects(const a::ActorRef& actor, const std::vector<a::ActorRef>& subjects) {
         std::set<std::string> ids;
         for (const auto& subject : subjects) if (subject.issuer_id() == issuer) ids.insert(subject.actor_id());
         std::vector<id::ActorState> states; std::optional<std::uint64_t> revision;
@@ -125,7 +139,9 @@ struct WorkspaceAuthority::Impl {
             while (next != ids.end() && query->actor_ids_size() < 128) query->add_actor_ids(*next++);
             const auto batch = exchange(std::move(request)).actor_status();
             if ((revision && *revision != batch.security_revision()) || batch.security_revision() < observed_revision) {
-                fail(); throw WorldError(wire::UNAVAILABLE, "Actor status changed during workspace authority preparation");
+                // A concurrent issuer update invalidates this snapshot, not unrelated execution.
+                // Watcher events still invalidate the affected actors and dependent grants.
+                throw WorldError(wire::UNAVAILABLE, "Actor status changed during workspace authority preparation");
             }
             revision = batch.security_revision(); states.insert(states.end(), batch.actors().begin(), batch.actors().end());
         }
@@ -136,6 +152,71 @@ struct WorkspaceAuthority::Impl {
         }
         invalidate();
         if (!identity_active(actor)) throw WorldError(wire::UNAUTHORIZED, "Workspace actor identity is inactive");
+    }
+    id::ActorCredential claims(const id::SignedCredential& credential, const a::ActorRef& actor) {
+        principal(actor); validate_message(credential);
+        id::VerifyRequest verification; verification.set_expected_public_key(issuer_key);
+        *verification.mutable_content() = credential.content(); *verification.mutable_proof() = credential.proof();
+        id::ActorCredential result;
+        require(credential.content().purpose() == id::ISSUER_CREDENTIAL && identity::verify(verification) &&
+            result.ParseFromString(credential.content().payload()), "Invalid workspace bootstrap credential signature");
+        validate_message(result);
+        require(result.protocol_version() == 1 && result.issuer_id() == issuer && result.issuer_id() == actor.issuer_id() &&
+            result.actor_id() == actor.actor_id() && result.credential_id().size() == 32 && result.public_key().size() == 32 &&
+            (result.kind() == id::HUMAN || result.kind() == id::AGENT), "Workspace bootstrap credential does not match principal");
+        return result;
+    }
+    struct BootstrapGuard {
+        Impl& owner;
+        id::ActorCredential claims;
+        BootstrapGuard(Impl& value, const id::SignedCredential& credential, const a::ActorRef& actor)
+            : owner(value), claims(value.claims(credential, actor)) {
+            require(!owner.bootstrap_credential, "Nested workspace bootstrap operation");
+            owner.bootstrap_credential = claims.credential_id(); owner.bootstrap_revoked = false;
+        }
+        ~BootstrapGuard() { owner.bootstrap_credential.reset(); owner.bootstrap_revoked = false; }
+    };
+    void bootstrap_live(const a::ActorRef& actor) {
+        tick();
+        if (broken) throw WorldError(wire::UNAVAILABLE, "Workspace identity service is disabled");
+        if (bootstrap_revoked || revoked.contains(actor.actor_id()))
+            throw WorldError(wire::UNAUTHORIZED, "Workspace bootstrap identity was revoked");
+    }
+    id::IdentityStatus current(const id::SignedCredential& credential, const id::ActorCredential& claims) {
+        id::IssuerRequest request; *request.mutable_credential_check() = credential;
+        const auto result = exchange(std::move(request)).identity_status();
+        if (result.issuer_id() != issuer || result.actor_id() != claims.actor_id() ||
+            result.credential_id() != claims.credential_id() || result.kind() != claims.kind() ||
+            result.security_revision() > INT64_MAX) {
+            fail(); throw WorldError(wire::UNAVAILABLE, "Workspace credential status has inconsistent identity context");
+        }
+        if (result.security_revision() < observed_revision)
+            throw WorldError(wire::UNAVAILABLE, "Issuer security state changed during workspace credential check");
+        observed_revision = result.security_revision();
+        if (!result.active() || result.actor_revoked() || result.credential_revoked())
+            throw WorldError(wire::UNAUTHORIZED, "Workspace bootstrap credential is revoked");
+        return result;
+    }
+    void bootstrap_ready(const id::SignedCredential& credential, const id::ActorCredential& claims,
+                         const a::ActorRef& actor, const std::vector<a::ActorRef>& subjects) {
+        const auto status = current(credential, claims);
+        prepare_subjects(actor, subjects); bootstrap_live(actor);
+        if (observed_revision != status.security_revision())
+            throw WorldError(wire::UNAVAILABLE, "Issuer security state changed during workspace bootstrap preparation");
+    }
+    id::BootstrapProfileState profile(const std::string& name, std::uint64_t revision) {
+        id::BootstrapProfileRead query; query.set_id(name); query.set_revision(revision);
+        identity::validate_bootstrap_read(query, true);
+        id::IssuerRequest request; *request.mutable_profile_read() = query;
+        return exchange(std::move(request)).profile();
+    }
+    id::BootstrapGrantTemplate bootstrap_template(const a::BootstrapSelector& selector) {
+        require(selector.issuer_id().size() == 32 && !selector.template_id().empty() && selector.template_id().size() <= 128 &&
+            selector.template_id().find('\0') == std::string::npos, "Bootstrap template identity is invalid");
+        if (selector.issuer_id() != issuer) throw WorldError(wire::FORBIDDEN, "Workspace bootstrap issuer is not configured");
+        const auto selected = profile(selector.profile_id(), selector.profile_revision());
+        for (const auto& item : selected.profile().grants()) if (item.id() == selector.template_id()) return item;
+        throw WorldError(wire::NOT_FOUND, "Workspace bootstrap template is unavailable");
     }
     bool allowed(const std::string& workspace, const a::ActorRef& actor, a::Right right,
                  const std::vector<std::string>& components = {}) {
@@ -197,6 +278,59 @@ a::GrantRecord WorkspaceAuthority::revoke(const pb::GrantRevokeRequest& request)
     const auto record = impl_->store(request.workspace()).revoke(request.principal(), request.id(), request.expected_revision(),
         [this](const auto& actor) { return impl_->identity_active(actor); });
     impl_->invalidate(); return record;
+}
+a::BootstrapBinding WorkspaceAuthority::bind_bootstrap(const pb::BootstrapBindRequest& request) {
+    require(request.has_expected_revision(), "Expected authority revision is required");
+    auto& store = impl_->store(request.workspace());
+    Impl::BootstrapGuard guard(*impl_, request.credential(), request.principal());
+    impl_->current(request.credential(), guard.claims);
+    const auto item = impl_->bootstrap_template(request.selector());
+    impl_->bootstrap_ready(request.credential(), guard.claims, request.principal(), store.subjects(request.principal()));
+    const auto result = store.bind_bootstrap(request.principal(), request.selector(), request.parent_id(), item.terms(),
+        request.expected_revision(), [this](const auto& actor) { return impl_->identity_active(actor); });
+    impl_->invalidate(); return result;
+}
+a::BootstrapBinding WorkspaceAuthority::revoke_bootstrap(const pb::BootstrapRevokeRequest& request) {
+    require(request.has_expected_revision(), "Expected authority revision is required");
+    auto& store = impl_->store(request.workspace());
+    Impl::BootstrapGuard guard(*impl_, request.credential(), request.principal());
+    impl_->bootstrap_ready(request.credential(), guard.claims, request.principal(), store.subjects(request.principal()));
+    const auto result = store.revoke_bootstrap(request.principal(), request.id(), request.expected_revision(),
+        [this](const auto& actor) { return impl_->identity_active(actor); });
+    impl_->invalidate(); return result;
+}
+a::BootstrapReport WorkspaceAuthority::apply_bootstrap(const pb::BootstrapApplyRequest& request) {
+    auto& store = impl_->store(request.workspace());
+    Impl::BootstrapGuard guard(*impl_, request.credential(), request.principal());
+    impl_->current(request.credential(), guard.claims);
+    a::BootstrapReport report; report.set_issuer_id(impl_->issuer); *report.mutable_domain() = domain(request.workspace());
+    report.set_profile_id(guard.claims.bootstrap_profile()); report.set_profile_revision(guard.claims.bootstrap_profile_revision());
+    id::BootstrapProfileState selected;
+    try { selected = impl_->profile(report.profile_id(), report.profile_revision()); }
+    catch (const WorldError& error) {
+        if (error.code != wire::NOT_FOUND) throw;
+        impl_->bootstrap_live(request.principal());
+        report.mutable_error()->set_code(error.code); report.mutable_error()->set_message(error.what()); return report;
+    }
+    impl_->bootstrap_ready(request.credential(), guard.claims, request.principal(), store.subjects(request.principal()));
+    for (const auto& item : selected.profile().grants()) {
+        if (item.terms().scope().domain().kind() != a::WORKSPACE || item.terms().scope().domain().id() != request.workspace()) continue;
+        auto* result = report.add_results(); result->set_template_id(item.id());
+        a::BootstrapSelector selector; selector.set_issuer_id(impl_->issuer); selector.set_profile_id(report.profile_id());
+        selector.set_profile_revision(report.profile_revision()); selector.set_template_id(item.id());
+        try {
+            const auto binding = store.bootstrap_binding(selector);
+            impl_->bootstrap_ready(request.credential(), guard.claims, request.principal(),
+                store.bootstrap_subjects({binding.id()}, request.principal()));
+            *result->mutable_grant() = store.materialize_bootstrap(binding.id(), request.principal(), selector, item.terms(),
+                [this](const auto& actor) { return impl_->identity_active(actor); });
+            impl_->invalidate();
+        } catch (const WorldError& error) {
+            if (error.code == wire::UNAUTHORIZED || error.code == wire::UNAVAILABLE) throw;
+            result->mutable_error()->set_code(error.code); result->mutable_error()->set_message(error.what());
+        }
+    }
+    impl_->bootstrap_live(request.principal()); return report;
 }
 void WorkspaceAuthority::tick() { impl_->tick(); }
 void WorkspaceAuthority::keepalive() {

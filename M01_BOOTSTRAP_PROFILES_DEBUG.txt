@@ -247,3 +247,13 @@ Collector verified 1,037 core checks across 55 suites, 51 harness checks, and 15
 No case failed or skipped. The 223 frozen source hashes match.
 The runtime sanitizer profile and final corrected-witness follow-up remain pending.
 The original qualification and follow-up handles remain active. No replacement run was started.
+
+2026-10-09 candidate 04 passed on both hosts; guarded local integration applied:
+Both complete Debug and runtime sanitizer profiles passed on sb16 and sb16-2.
+Each profile passed 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
+No final profile failed or skipped a case.
+Each exact binary set passed six new witness checks and twelve unchanged process cases.
+The guarded integration matched all 223 hashes against both host manifests before applying eighteen changed files.
+It retained the separately qualified b2ab006 process-witness correction.
+Commit, box-git push, and clean host adoption remain next.
+Remote actor transport remains isolated. See M01_WORLD_REMOTE_DEBUG.txt for its focused evidence and remaining work.

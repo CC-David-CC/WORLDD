@@ -1,0 +1,13 @@
+{
+  "host": "sb16",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-security-01/test_world_remote_security.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/worldd"
+  ],
+  "exit_code": 0,
+  "test_sha256": "a7b9ea6d8e9c11228a1905f07b75bf24820cd4c2226e47195814d0f61aa7f828",
+  "worldd_sha256": "a45f2dcd79fab07d47c09b241725faa49ea7dfb77240f9e56656eda349d3f433"
+}

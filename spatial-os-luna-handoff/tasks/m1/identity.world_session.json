@@ -14,15 +14,17 @@
     "src/world/main.cpp",
     "src/world/server.cpp",
     "src/identity/tls_support.cpp",
-    "proto/spatial/identity/v1/world_session.proto"
+    "proto/spatial/identity/v1/world_session.proto",
+    "src/world/actor_tls.cpp",
+    "src/world/actor_tls.hpp",
+    "src/world/actors.cpp",
+    "src/world/actors.hpp"
   ],
   "current_evidence": [
-    "prepare_actor_channel currently accepts only inherited unnamed AF_UNIX sockets.",
-    "worldd currently requires identity configuration and inherited actor descriptors together.",
-    "IdentitySessions currently requires one through 32 inherited actor channels.",
-    "The issuer already has a bounded TLS 1.3 listener and private TLS material loader.",
-    "No existing issuer listener qualifies remote world actor transport.",
-    "Five draft tests failed on qualified sb16 candidate 04 because worldd rejects the proposed remote-listener arguments. Later TLS and action assertions remain unrun."
+    "Production source still uses inherited local actor descriptors.",
+    "The isolated remote draft uses TLS 1.3 and the existing signed actor and protobuf handlers.",
+    "sb16 Debug passed 5 functional,13 security,6 lifecycle,3 native,and68 local regression checks; zero failed/skipped.",
+    "The same frozen draft built with runtime sanitizers; focused checks are running."
   ],
   "required_evidence": [
     "Explicit protected listener configuration; no network access to trusted management operations",
@@ -46,7 +48,8 @@
     "Record interface changes before implementation. Keep locked acceptance assertions unchanged."
   ],
   "limitations": [
-    "This task records a verified implementation gap. It has no passing remote-world evidence yet.",
+    "No remote draft production integration, full cumulative qualification, second-host qualification, or cross-host evidence yet.",
+    "Remote TLS read-to-write deadlines and delayed issuer cancellation need further review and tests.",
     "Transport qualification alone does not complete shared-world persistence, world transitions, or M01.",
     "Issuer revocation acknowledgement still does not prove a distributed cancellation barrier."
   ],
@@ -55,6 +58,7 @@
     "M05",
     "M06"
   ],
-  "current_step": "baseline_and_interface_review",
-  "baseline_evidence": "evidence/world-remote-2026-10-09/baseline-01/sb16"
+  "current_step": "isolated_implementation_focused_qualification",
+  "baseline_evidence": "evidence/world-remote-2026-10-09/baseline-01/sb16",
+  "focused_evidence": "evidence/world-remote-2026-10-09/draft-review-01.txt"
 }

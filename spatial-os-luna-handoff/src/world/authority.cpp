@@ -55,6 +55,31 @@ pb::GrantRecord WorldAuthority::revoke(const pb::ActorRef& actor, const std::str
     const auto result = store_.revoke(actor, id, revision, [this](const auto& subject) { return active(subject); });
     decisions_.clear(); return result;
 }
+pb::BootstrapBinding WorldAuthority::bind_bootstrap(const pb::ActorRef& actor,
+    const pb::BootstrapSelector& selector, const std::string& parent, const pb::GrantTerms& terms, std::uint64_t revision) {
+    const auto result = store_.bind_bootstrap(actor, selector, parent, terms, revision,
+        [this](const auto& subject) { return active(subject); });
+    decisions_.clear(); return result;
+}
+pb::BootstrapBinding WorldAuthority::bootstrap_binding(const pb::BootstrapSelector& selector) {
+    return store_.bootstrap_binding(selector);
+}
+std::vector<pb::ActorRef> WorldAuthority::bootstrap_subjects(const std::vector<std::string>& bindings,
+    const pb::ActorRef& recipient) {
+    return store_.bootstrap_subjects(bindings, recipient);
+}
+pb::GrantRecord WorldAuthority::materialize_bootstrap(const std::string& binding, const pb::ActorRef& recipient,
+    const pb::BootstrapSelector& selector, const pb::GrantTerms& checked_template) {
+    const auto result = store_.materialize_bootstrap(binding, recipient, selector, checked_template,
+        [this](const auto& subject) { return active(subject); });
+    decisions_.clear(); return result;
+}
+pb::BootstrapBinding WorldAuthority::revoke_bootstrap(const pb::ActorRef& actor, const std::string& binding,
+    std::uint64_t revision) {
+    const auto result = store_.revoke_bootstrap(actor, binding, revision,
+        [this](const auto& subject) { return active(subject); });
+    decisions_.clear(); return result;
+}
 void initialize_world_authority(const std::filesystem::path& path, const std::string& world) {
     identity::v1::WorldAuthoritySeed seed;
     if (!google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &seed))

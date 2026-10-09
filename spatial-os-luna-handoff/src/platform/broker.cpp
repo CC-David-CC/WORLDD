@@ -1,5 +1,7 @@
 #include "platform/broker.hpp"
 #include "world/store.hpp"
+#include "authority/store.hpp"
+#include <set>
 #include <array>
 #include <algorithm>
 #include <cerrno>
@@ -14,6 +16,47 @@
 
 namespace spatial {
 namespace {
+bool bootstrap_id(const std::string& id) { return !id.empty() && id.size() <= 128 && id.find('\0') == std::string::npos; }
+bool bootstrap_terms(const authority::v1::GrantTerms& terms, const std::string& workspace) {
+    try { authority::validate_permissions(terms); }
+    catch (const std::invalid_argument&) { return false; }
+    return terms.scope().domain().kind() == authority::v1::WORKSPACE && terms.scope().domain().id() == workspace;
+}
+bool bootstrap_binding(const authority::v1::BootstrapBinding& binding, const std::string& workspace) {
+    return binding.id().size() == 32 && binding.parent_id().size() == 32 &&
+        binding.authorizer().issuer_id().size() == 32 && binding.authorizer().actor_id().size() == 32 &&
+        binding.selector().issuer_id().size() == 32 && bootstrap_id(binding.selector().profile_id()) &&
+        bootstrap_id(binding.selector().template_id()) && binding.selector().profile_revision() > 0 &&
+        binding.selector().profile_revision() <= INT64_MAX && binding.created_revision() > 0 &&
+        binding.created_revision() <= INT64_MAX && binding.revoked_revision() <= INT64_MAX &&
+        (!binding.revoked_revision() || binding.revoked_revision() > binding.created_revision()) &&
+        !binding.terms().has_subject() && bootstrap_terms(binding.terms(), workspace);
+}
+bool bootstrap_report(const authority::v1::BootstrapReport& report, const broker_wire::BootstrapApplyRequest& request) {
+    identity::v1::ActorCredential claims;
+    if (!claims.ParseFromString(request.credential().content().payload())) return false;
+    if (claims.issuer_id() != request.principal().issuer_id() || claims.actor_id() != request.principal().actor_id() ||
+        report.issuer_id() != request.principal().issuer_id() || report.issuer_id().size() != 32 ||
+        report.profile_id() != claims.bootstrap_profile() || !bootstrap_id(report.profile_id()) ||
+        report.profile_revision() != claims.bootstrap_profile_revision() || report.profile_revision() == 0 ||
+        report.profile_revision() > INT64_MAX || report.domain().kind() != authority::v1::WORKSPACE ||
+        report.domain().id() != request.workspace() || report.results_size() > 32) return false;
+    if (report.has_error()) return report.results_size() == 0 && report.error().code() != wire::ERROR_CODE_UNSPECIFIED;
+    std::set<std::string> templates, grants;
+    for (const auto& result : report.results()) {
+        if (!bootstrap_id(result.template_id()) || !templates.insert(result.template_id()).second) return false;
+        if (result.has_error()) { if (result.error().code() == wire::ERROR_CODE_UNSPECIFIED) return false; continue; }
+        if (!result.has_grant()) return false;
+        const auto& record = result.grant();
+        if (record.protocol_version() != 1 || record.id().size() != 32 || !grants.insert(record.id()).second ||
+            record.parent_id().size() != 32 || record.issuer().issuer_id().size() != 32 || record.issuer().actor_id().size() != 32 ||
+            record.terms().subject().SerializeAsString() != request.principal().SerializeAsString() ||
+            record.created_revision() == 0 || record.created_revision() > INT64_MAX || record.revoked_revision() > INT64_MAX ||
+            (record.revoked_revision() && record.revoked_revision() <= record.created_revision()) ||
+            !bootstrap_terms(record.terms(), request.workspace())) return false;
+    }
+    return true;
+}
 bool valid_control_lease(const broker_wire::ApplicationControlLease& lease) {
     return lease.id().size() == 32 && lease.principal().issuer_id().size() == 32 &&
         lease.principal().actor_id().size() == 32 && lease.application().server_id().size() == 32 &&
@@ -225,6 +268,22 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
                 valid = reply.grant().protocol_version() == 1 && reply.grant().id() == request.revoke().id() &&
                     reply.grant().revoked_revision() > 0 && reply.grant().terms().scope().domain().kind() == authority::v1::WORKSPACE &&
                     reply.grant().terms().scope().domain().id() == request.revoke().workspace();
+            if (request.has_bootstrap_bind() && reply.has_binding()) {
+                const auto& expected = request.bootstrap_bind(); const auto& binding = reply.binding();
+                valid = bootstrap_binding(binding, expected.workspace()) && expected.has_expected_revision() &&
+                    expected.expected_revision() < INT64_MAX && binding.created_revision() == expected.expected_revision()+1 &&
+                    !binding.revoked_revision() && binding.parent_id() == expected.parent_id() &&
+                    binding.selector().SerializeAsString() == expected.selector().SerializeAsString() &&
+                    binding.authorizer().SerializeAsString() == expected.principal().SerializeAsString();
+            }
+            if (request.has_bootstrap_revoke() && reply.has_binding()) {
+                const auto& expected = request.bootstrap_revoke(); const auto& binding = reply.binding();
+                valid = bootstrap_binding(binding, expected.workspace()) && expected.has_expected_revision() &&
+                    expected.expected_revision() < INT64_MAX && binding.id() == expected.id() && binding.revoked_revision() &&
+                    binding.created_revision() <= expected.expected_revision() && binding.revoked_revision() <= expected.expected_revision()+1;
+            }
+            if (request.has_bootstrap_apply() && reply.has_bootstrap())
+                valid = bootstrap_report(reply.bootstrap(), request.bootstrap_apply());
             if (request.has_management() && reply.has_management()) {
                 const auto& command = request.management(); const auto& result = reply.management();
                 valid = result.protocol_version() == 1 && result.request_id() == sequence_ &&
@@ -288,5 +347,14 @@ authority::v1::GrantRecord BrokerClient::delegate(const broker_wire::GrantDelega
 }
 authority::v1::GrantRecord BrokerClient::revoke(const broker_wire::GrantRevokeRequest& command) {
     broker_wire::Request request; *request.mutable_revoke() = command; return exchange(request).grant();
+}
+authority::v1::BootstrapBinding BrokerClient::bind_bootstrap(const broker_wire::BootstrapBindRequest& command) {
+    broker_wire::Request request; *request.mutable_bootstrap_bind() = command; return exchange(request).binding();
+}
+authority::v1::BootstrapBinding BrokerClient::revoke_bootstrap(const broker_wire::BootstrapRevokeRequest& command) {
+    broker_wire::Request request; *request.mutable_bootstrap_revoke() = command; return exchange(request).binding();
+}
+authority::v1::BootstrapReport BrokerClient::apply_bootstrap(const broker_wire::BootstrapApplyRequest& command) {
+    broker_wire::Request request; *request.mutable_bootstrap_apply() = command; return exchange(request).bootstrap();
 }
 }

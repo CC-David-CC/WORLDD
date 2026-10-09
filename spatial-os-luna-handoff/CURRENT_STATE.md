@@ -1,5 +1,49 @@
 # Implementation status
 
+## 2026-10-09: Authenticated enrollment delivery integrated after both-host qualification
+
+The world and workspace adapters now use signed enrollment profiles to create explicitly delegated grants.
+The guarded integration applied eighteen reviewed files and preserved the corrected process witness.
+All 223 integrated source hashes match both hosts' qualified source manifests.
+Commit, box-git push, and host adoption remain the next steps.
+
+Both hosts passed complete Debug and runtime ASan/UBSan qualification for candidate 04.
+Each profile passed 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
+No final profile failed or skipped a case.
+Each exact binary set also passed six new process-witness checks and twelve unchanged process tests.
+The twelve repeated process tests are not additional unique checks.
+
+World delivery requires valid actor proof and explicit domain delegation.
+Workspace delivery requires an explicit authenticated operation and preserves availability, selection, and placement.
+Issuer revision changes reject stale operations without terminating independently authorized applications.
+Malformed issuer context and failed transport still disable the affected authority channel.
+No operator authority database was migrated. No normal login session changed.
+M01, M02, and complete Spatial-M1 remain unfinished.
+See evidence/bootstrap-workspace-adapters-2026-10-09 for all four final profiles and source pins.
+
+## 2026-10-09: Remote actor draft passes focused Debug checks
+
+The isolated draft adds an explicit TLS 1.3 listener to the existing world actor interface.
+Transport certificates do not replace signed actor proof, world admission, or workspace authority.
+The private management pipe remains separate. Production source has not adopted this draft.
+
+On sb16, five functional cases, thirteen security cases, and six lifecycle cases passed.
+Three native cases passed with real confined application windows and compositor output.
+Remote observations retain world geometry and omit live application pixels and metadata.
+Local reconnection restores authorized application observation.
+A stalled large reply closes its remote channel while a local actor and application remain usable.
+Disconnect and revocation stop motion before the configured ten-second motion expiry.
+Restart preserves checkpointed actor context and rejects an old authentication challenge.
+The draft also passed 68 existing local identity, authority, and bootstrap checks.
+These 95 focused Debug checks had no failures or skips.
+
+The same frozen source built with runtime ASan/UBSan. Focused sanitizer tests are running.
+Full cumulative qualification, second-host remote qualification, and physical cross-host transport remain pending.
+Additional configuration and delayed-issuer counterexamples remain required.
+The primary review also requests an audit of deadlines during TLS read-to-write retries.
+No active qualification source was changed.
+See evidence/world-remote-2026-10-09 and the root M01_WORLD_REMOTE_DEBUG.txt.
+
 ## 2026-10-09: Authenticated bootstrap adapters under qualification
 
 The isolated candidate connects signed enrollment profiles to real world and workspace grants.

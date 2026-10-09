@@ -71,6 +71,12 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         else if (request.has_application_access()) *reply.mutable_application_access() = store.application_access(request.application_access());
         else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire());
         else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release());
+        else if (request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
+            if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
+            if (request.has_bootstrap_bind()) *reply.mutable_binding() = authority->bind_bootstrap(request.bootstrap_bind());
+            else if (request.has_bootstrap_revoke()) *reply.mutable_binding() = authority->revoke_bootstrap(request.bootstrap_revoke());
+            else *reply.mutable_bootstrap() = authority->apply_bootstrap(request.bootstrap_apply());
+        }
         else if (request.has_grants() || request.has_delegate() || request.has_revoke()) {
             if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
             if (request.has_grants()) *reply.mutable_grants() = authority->list(request.grants());

@@ -1,0 +1,40 @@
+Remote actor transport status, 2026-10-09
+
+The implementation remains an isolated draft on sb16.
+No remote actor listener has been integrated into the production source.
+Production tests use Protocol Buffers, real identityd, worldd, and real authority storage.
+
+Passed on sb16 in Debug:
+5 functional remote cases.
+13 TLS and framing security cases.
+6 connection, cancellation, replay, and restart cases.
+3 native application-pixel and slow-reader cases.
+68 existing local identity, authority, and enrollment regressions.
+Total: 95 focused checks. None failed or skipped.
+
+Running:
+Focused runtime ASan/UBSan qualification of the same frozen source.
+The separate sb16-2 enrollment candidate 04 full sanitizer qualification continues.
+
+Not demonstrated yet:
+Remote transport between physical hosts.
+Full remote candidate Debug and sanitizer qualification on both hosts.
+Remote revocation during a delayed issuer reply.
+Distributed revocation acknowledgement and cancellation barrier.
+Malformed listener configuration rejection cases.
+Native-server GLX sanitizer qualification.
+Complete Spatial-M1, physical input, performance, and native-session soak requirements.
+
+Cross-host setup observation:
+Direct sb16-to-sb16-2 SSH stopped at host key verification.
+No host key check was bypassed. No SSH trust or operator configuration changed.
+Windows-to-both-host SSH remains available for orchestration.
+This is a setup detail, not a project-wide blocker.
+
+Evidence:
+spatial-os-luna-handoff/evidence/world-remote-2026-10-09
+Read draft-review-01.txt for the per-file review and remaining checks.
+Read spatial-os-luna-handoff/CURRENT_STATE.md for integrated production status.
+
+No operator database, normal login session, or active qualification source was changed.
+No credentials or runtime databases belong in Git.

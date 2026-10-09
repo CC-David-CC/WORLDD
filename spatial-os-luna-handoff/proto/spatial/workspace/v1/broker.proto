@@ -2,6 +2,7 @@ syntax = "proto3";
 package spatial.workspace.v1;
 import "core.proto";
 import "grants.proto";
+import "issuer.proto";
 
 // Sealed, inherited supervisor input. Never store cookies in workspace state.
 message NativeLaunchConfig {
@@ -76,6 +77,21 @@ message GrantRevokeRequest {
   string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
   bytes id = 3; optional uint64 expected_revision = 4;
 }
+message BootstrapBindRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  spatial.authority.v1.BootstrapSelector selector = 3;
+  bytes parent_id = 4; optional uint64 expected_revision = 5;
+  spatial.identity.v1.SignedCredential credential = 6;
+}
+message BootstrapRevokeRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  bytes id = 3; optional uint64 expected_revision = 4;
+  spatial.identity.v1.SignedCredential credential = 5;
+}
+message BootstrapApplyRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  spatial.identity.v1.SignedCredential credential = 3;
+}
 // The broker and its namespace supervisor use this channel. Applications never receive it.
 message AppStart { uint32 protocol_version = 1; repeated string argv = 2; }
 message AppEvent {
@@ -95,6 +111,9 @@ message Request {
     ApplicationAccessRequest application_access = 106;
     ApplicationControlRequest control_acquire = 107;
     ApplicationControlRelease control_release = 108;
+    BootstrapBindRequest bootstrap_bind = 110;
+    BootstrapRevokeRequest bootstrap_revoke = 111;
+    BootstrapApplyRequest bootstrap_apply = 112;
   }
 }
 message Reply {
@@ -112,5 +131,7 @@ message Reply {
     ApplicationControlReleased control_released = 108;
     // Unsolicited event. request_id is zero. The reservation remains until release.
     ApplicationControlLease control_revoked = 109;
+    spatial.authority.v1.BootstrapBinding binding = 110;
+    spatial.authority.v1.BootstrapReport bootstrap = 111;
   }
 }

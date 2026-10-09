@@ -48,6 +48,9 @@ int main(int argc, char** argv) {
                         } else if (request.has_grants()) *reply.mutable_grants() = client.grants(request.grants());
                         else if (request.has_delegate()) *reply.mutable_grant() = client.delegate(request.delegate());
                         else if (request.has_revoke()) *reply.mutable_grant() = client.revoke(request.revoke());
+                        else if (request.has_bootstrap_bind()) *reply.mutable_binding() = client.bind_bootstrap(request.bootstrap_bind());
+                        else if (request.has_bootstrap_revoke()) *reply.mutable_binding() = client.revoke_bootstrap(request.bootstrap_revoke());
+                        else if (request.has_bootstrap_apply()) *reply.mutable_bootstrap() = client.apply_bootstrap(request.bootstrap_apply());
                         else if (request.has_launch()) {
                             const auto& r = request.launch();
                             *reply.mutable_launched() = client.launch(r.workspace(),r.actor(),r.command(),r.has_principal()?&r.principal():nullptr);

@@ -1,6 +1,6 @@
 # Authenticated bootstrap delivery
 
-Status: isolated implementation candidate. Production integration remains pending.
+Status: both-host qualification passed. Reviewed source is integrated locally; commit and host adoption remain pending.
 This contract extends BOOTSTRAP_PROFILES.md without changing locked acceptance assertions.
 
 ## World delivery
@@ -79,6 +79,17 @@ The corrected test requires empty selection, FORBIDDEN on reselection, and NO_WO
 The original failed tests remain preserved. Existing acceptance tests remain unchanged.
 
 ## Qualification limits
+
+Candidate 04 passed complete Debug and runtime ASan/UBSan qualification on both hosts.
+Each profile passed 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped.
+The corrected witness passed six new checks and twelve unchanged process cases against each exact binary set.
+Those twelve reruns do not add new unique cases.
+All 223 integrated source hashes match both hosts' qualified manifests.
+Integration preserves the separately qualified b2ab006 process-witness correction.
+M01, M02, native-server GLX sanitizer qualification, and complete Spatial-M1 remain unfinished.
+
+The following paragraphs preserve earlier qualification stages and their failures.
 
 The first complete snapshot omitted four locked contract documents.
 The harness refused that snapshot on both hosts. The corrected snapshot includes the original documents.
