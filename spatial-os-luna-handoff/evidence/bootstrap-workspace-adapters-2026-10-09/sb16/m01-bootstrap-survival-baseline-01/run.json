@@ -1,0 +1,14 @@
+{
+  "scope": "credential loss must not stop independent process authority",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-baseline-01/test_workspace_bootstrap_races.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/worldd",
+    "WorkspaceBootstrapRaceTests.test_credential_revoked_during_credential_reply_preserves_authorized_process",
+    "WorkspaceBootstrapRaceTests.test_credential_revoked_during_actor_reply_preserves_authorized_process"
+  ],
+  "exit_code": 1,
+  "test_sha256": "d1ae48ec95a8cb05a4384d51daa6390feb905b675d84aa2dac8637b6eb15b3c0"
+}

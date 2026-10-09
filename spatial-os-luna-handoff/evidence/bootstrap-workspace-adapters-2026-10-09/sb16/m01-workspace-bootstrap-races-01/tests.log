@@ -1,0 +1,11 @@
+test_binding_credential_revoked_during_profile_read_creates_no_binding (__main__.WorkspaceBootstrapRaceTests.test_binding_credential_revoked_during_profile_read_creates_no_binding) ... ok
+test_binding_revoke_credential_race_keeps_binding_active (__main__.WorkspaceBootstrapRaceTests.test_binding_revoke_credential_race_keeps_binding_active) ... ok
+test_credential_revoked_during_broker_parent_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_parent_read_creates_no_grant) ... ok
+test_credential_revoked_during_broker_profile_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_profile_read_creates_no_grant) ... ok
+test_parent_actor_revoked_during_broker_parent_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_parent_actor_revoked_during_broker_parent_read_creates_no_grant) ... ok
+test_parent_actor_revoked_during_broker_profile_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_parent_actor_revoked_during_broker_profile_read_creates_no_grant) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 14.433s
+
+OK

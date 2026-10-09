@@ -1,0 +1,9 @@
+{
+  "scope": "baseline new checked-client tests against previous production client",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-focused-debug-01/build/spatial-broker-control-client-probe"
+  ],
+  "exit_code": 1
+}

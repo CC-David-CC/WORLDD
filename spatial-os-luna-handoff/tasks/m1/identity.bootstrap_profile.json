@@ -4,7 +4,7 @@
   "profile": "tasks/spatial-m1.json",
   "contract": "docs/BOOTSTRAP_PROFILES.md",
   "status": "in_progress",
-  "current_step": "authenticated_domain_delivery",
+  "current_step": "authenticated_adapter_qualification",
   "invariant": "Enrollment pins an owner-selected immutable profile; only explicitly authorized domain delegation can turn its templates into durable grants.",
   "production_roots": [
     "proto/spatial/identity/v1/issuer.proto",
@@ -35,18 +35,18 @@
     "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
     "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
   ],
-  "current_test_scope": "Domain commit c470a4e is qualified and adopted on both hosts. Each Debug and runtime sanitizer profile passed 973 core checks, 51 harness checks, and 151 P10 cases. Isolated world adapter passed 81 regression and six additional checks per sb16 Debug and runtime sanitizer profile. Full cumulative and second-host adapter qualification remain pending. Workspace adapter remains unimplemented.",
+  "current_test_scope": "Domain store c470a4e remains qualified on both hosts. Candidate 04 is isolated: 62 focused sb16 Debug checks passed; full sb16 Debug build, 51 harness checks, and 64 adapter checks passed. Full candidate 04 matrices remain pending. Candidate 03 passed complete sb16-2 Debug; sb16 stopped on the preserved process-witness race. Separate fixture b2ab006 passed 18 checks on both hosts.",
   "remaining_steps": [
-    "Implement and qualify authenticated world/workspace profile lookup and delivery through existing actor channels",
-    "Validate credential and parent revocation during external I/O, and checked broker response context",
-    "Complete real workspace action counterexamples, reconnects, second credentials, and partial-profile recovery"
+    "Complete candidate 04 Debug and runtime sanitizer qualification on both hosts",
+    "Integrate reviewed authenticated adapters while retaining the separately tested process-witness correction",
+    "Audit complete M01 and M02 requirements against production evidence before claiming milestone completion"
   ],
   "preceding_gate": "P10",
   "base_commit": "76c29bd897a0fffa0d3dce2a2c968ed87bf8aefb",
   "limitations": [
-    "Isolated world adapter has focused evidence only; it is not integrated into production.",
-    "Workspace bootstrap delivery remains unimplemented; five baseline tests document the gap.",
-    "Profile and domain storage alone do not complete M01, M02, or Spatial-M1."
+    "Authenticated adapters remain isolated candidates outside production.",
+    "Candidate 03 does not include the final ordinary-access process-survival fix.",
+    "Full candidate 04 qualification, M01, M02, native-server GLX sanitizers, and Spatial-M1 remain incomplete."
   ],
   "issuer_commit": "9e21cdf8b6747fc50998bd2c95c5d4eb0fcba94f"
 }

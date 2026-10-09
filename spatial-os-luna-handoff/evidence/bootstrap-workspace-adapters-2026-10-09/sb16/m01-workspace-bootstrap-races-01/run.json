@@ -1,0 +1,12 @@
+{
+  "scope": "isolated workspace bootstrap credential revocation",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-races-01/test_workspace_bootstrap_races.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/worldd"
+  ],
+  "exit_code": 0,
+  "test_sha256": "a8e6c54d069648b103e71fc1ba6970eecc9d1b8c99933095422620ef86b7197b"
+}

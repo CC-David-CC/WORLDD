@@ -1,0 +1,22 @@
+{
+  "fixed_candidate_checks": {
+    "workspace": 11,
+    "revocation": 8
+  },
+  "failed_final_focused": 0,
+  "skipped_final_focused": 0,
+  "new_broker_client_checks": 22,
+  "original_world_checks": 21,
+  "limits": [
+    "Ninth workspace race pending in full matrix",
+    "Both-host complete Debug and runtime sanitizer matrices running",
+    "No adapter production integration",
+    "No operator state migrated"
+  ],
+  "preserved_failures": [
+    "22 checked-client baseline errors",
+    "Two incorrect initial workspace test expectations",
+    "Two real process-survival failures before correction",
+    "Both hosts: three harness failures because snapshot omitted four locked documents"
+  ]
+}

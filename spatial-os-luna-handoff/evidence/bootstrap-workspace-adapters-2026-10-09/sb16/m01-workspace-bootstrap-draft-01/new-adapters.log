@@ -1,0 +1,166 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: workspace-bootstrap
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_workspace_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/worldd"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source
+1: Test timeout computed to be: 180
+1: test_application_does_not_make_workspace_available (__main__.WorkspaceBootstrapTests.test_application_does_not_make_workspace_available) ... ok
+1: test_explicit_application_enables_confined_real_file_write (__main__.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write) ... ok
+1: test_read_only_bootstrap_does_not_authorize_writable_application (__main__.WorkspaceBootstrapTests.test_read_only_bootstrap_does_not_authorize_writable_application) ... FAIL
+1: test_retry_preserves_receipt_and_parent_revocation_denies_execution (__main__.WorkspaceBootstrapTests.test_retry_preserves_receipt_and_parent_revocation_denies_execution) ... FAIL
+1: test_unknown_workspace_never_redirects_application_to_current_world (__main__.WorkspaceBootstrapTests.test_unknown_workspace_never_redirects_application_to_current_world) ... ok
+1: 
+1: ======================================================================
+1: FAIL: test_read_only_bootstrap_does_not_authorize_writable_application (__main__.WorkspaceBootstrapTests.test_read_only_bootstrap_does_not_authorize_writable_application)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_workspace_bootstrap.py", line 101, in test_read_only_bootstrap_does_not_authorize_writable_application
+1:     self.denied(peer.act(process_launch=core.ProcessLaunchRequest(argv=['/bin/true'],operation_id='writable-denied',profile='development')),core.FORBIDDEN)
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_identity_issuer.py", line 138, in denied
+1:     self.assertEqual(reply.error.code, code, reply)
+1: AssertionError: 0 != 13 : protocol_version: 1
+1: request_id: 5
+1: action {
+1:   accepted: true
+1:   process {
+1:     process_id: "dfbc2f620d02e80ccffff0b0902f0477"
+1:     workspace: "one"
+1:   }
+1: }
+1: 
+1: 
+1: ======================================================================
+1: FAIL: test_retry_preserves_receipt_and_parent_revocation_denies_execution (__main__.WorkspaceBootstrapTests.test_retry_preserves_receipt_and_parent_revocation_denies_execution)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_workspace_bootstrap.py", line 96, in test_retry_preserves_receipt_and_parent_revocation_denies_execution
+1:     self.denied(peer.act(process_launch=core.ProcessLaunchRequest(argv=['/bin/true'],operation_id='denied',profile='development')),core.FORBIDDEN)
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_identity_issuer.py", line 138, in denied
+1:     self.assertEqual(reply.error.code, code, reply)
+1: AssertionError: 25 != 13 : protocol_version: 1
+1: request_id: 9
+1: error {
+1:   code: NO_WORKSPACE
+1:   message: "Actor has no selected workspace"
+1: }
+1: 
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 5 tests in 12.348s
+1: 
+1: FAILED (failures=2)
+1/4 Test #1: workspace-bootstrap ..............***Failed   12.48 sec
+test 2
+    Start 2: world-bootstrap-races
+
+2: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_world_bootstrap_races.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/worldd"
+2: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build
+2: Environment variables: 
+2:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source
+2: Test timeout computed to be: 120
+2: test_credential_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+2: test_credential_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt) ... ok
+2: test_independent_grant_survives_bootstrap_parent_revocation (__main__.WorldBootstrapRaceTests.test_independent_grant_survives_bootstrap_parent_revocation) ... ok
+2: test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+2: test_parent_actor_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_profile_read_creates_no_receipt) ... ok
+2: test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry (__main__.WorldBootstrapRaceTests.test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry) ... ok
+2: 
+2: ----------------------------------------------------------------------
+2: Ran 6 tests in 10.606s
+2: 
+2: OK
+2/4 Test #2: world-bootstrap-races ............   Passed   10.70 sec
+test 3
+    Start 3: broker-bootstrap-client
+
+3: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_broker_bootstrap_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/spatial-broker-control-client-probe"
+3: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build
+3: Environment variables: 
+3:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source
+3: Test timeout computed to be: 120
+3: test_binding_cannot_assign_recipient (__main__.BrokerBootstrapClientTests.test_binding_cannot_assign_recipient) ... ok
+3: test_binding_cannot_return_world_right (__main__.BrokerBootstrapClientTests.test_binding_cannot_return_world_right) ... ok
+3: test_binding_cannot_substitute_authorizer (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_authorizer) ... ok
+3: test_binding_cannot_substitute_parent (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_parent) ... ok
+3: test_binding_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_profile) ... ok
+3: test_binding_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_workspace) ... ok
+3: test_binding_revision_must_follow_request (__main__.BrokerBootstrapClientTests.test_binding_revision_must_follow_request) ... ok
+3: test_binding_revoke_cannot_substitute_identity (__main__.BrokerBootstrapClientTests.test_binding_revoke_cannot_substitute_identity) ... ok
+3: test_binding_revoke_matches_identity_and_revision (__main__.BrokerBootstrapClientTests.test_binding_revoke_matches_identity_and_revision) ... ok
+3: test_exact_binding_is_returned (__main__.BrokerBootstrapClientTests.test_exact_binding_is_returned) ... ok
+3: test_exact_report_is_returned (__main__.BrokerBootstrapClientTests.test_exact_report_is_returned) ... ok
+3: test_recorded_revoked_grant_is_data_not_new_authority (__main__.BrokerBootstrapClientTests.test_recorded_revoked_grant_is_data_not_new_authority) ... ok
+3: test_report_cannot_duplicate_template (__main__.BrokerBootstrapClientTests.test_report_cannot_duplicate_template) ... ok
+3: test_report_cannot_return_invalid_revocation_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_return_invalid_revocation_revision) ... ok
+3: test_report_cannot_substitute_issuer (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_issuer) ... ok
+3: test_report_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_profile) ... ok
+3: test_report_cannot_substitute_recipient (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_recipient) ... ok
+3: test_report_cannot_substitute_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_revision) ... ok
+3: test_report_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_workspace) ... ok
+3: test_report_cannot_supply_root_grant (__main__.BrokerBootstrapClientTests.test_report_cannot_supply_root_grant) ... ok
+3: test_report_requires_result_outcome (__main__.BrokerBootstrapClientTests.test_report_requires_result_outcome) ... ok
+3: test_report_whole_error_cannot_hide_recorded_grant (__main__.BrokerBootstrapClientTests.test_report_whole_error_cannot_hide_recorded_grant) ... ok
+3: 
+3: ----------------------------------------------------------------------
+3: Ran 22 tests in 0.132s
+3: 
+3: OK
+3/4 Test #3: broker-bootstrap-client ..........   Passed    0.20 sec
+test 4
+    Start 4: world-bootstrap
+
+4: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_world_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/worldd"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build
+4: Environment variables: 
+4:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source
+4: Test timeout computed to be: 120
+4: test_administration_cannot_bind_without_explicit_delegation (__main__.WorldBootstrapTests.test_administration_cannot_bind_without_explicit_delegation) ... ok
+4: test_anonymous_channels_cannot_administer_or_apply_bootstrap (__main__.WorldBootstrapTests.test_anonymous_channels_cannot_administer_or_apply_bootstrap) ... ok
+4: test_binding_requires_authenticated_parent_holder (__main__.WorldBootstrapTests.test_binding_requires_authenticated_parent_holder) ... ok
+4: test_bound_profile_admits_private_actor_and_routes_real_navigation (__main__.WorldBootstrapTests.test_bound_profile_admits_private_actor_and_routes_real_navigation) ... ok
+4: test_challenge_and_failed_proof_do_not_materialize_grants (__main__.WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants) ... ok
+4: test_checked_template_cannot_bind_to_another_world (__main__.WorldBootstrapTests.test_checked_template_cannot_bind_to_another_world) ... ok
+4: test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants (__main__.WorldBootstrapTests.test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants) ... ok
+4: test_failed_binding_consumes_actor_sequence (__main__.WorldBootstrapTests.test_failed_binding_consumes_actor_sequence) ... ok
+4: test_new_profile_revision_cannot_replace_existing_grant (__main__.WorldBootstrapTests.test_new_profile_revision_cannot_replace_existing_grant) ... ok
+4: test_parent_revocation_prevents_reconnect_from_restoring_access (__main__.WorldBootstrapTests.test_parent_revocation_prevents_reconnect_from_restoring_access) ... ok
+4: test_public_entry_reports_unbound_template_without_action_authority (__main__.WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority) ... ok
+4: test_reconnect_and_explicit_retry_return_same_durable_grant (__main__.WorldBootstrapTests.test_reconnect_and_explicit_retry_return_same_durable_grant) ... ok
+4: test_second_credential_cannot_revive_revoked_bootstrap_grant (__main__.WorldBootstrapTests.test_second_credential_cannot_revive_revoked_bootstrap_grant) ... ok
+4: test_server_restart_retains_binding_and_receipt (__main__.WorldBootstrapTests.test_server_restart_retains_binding_and_receipt) ... ok
+4: test_signed_profile_without_domain_binding_cannot_create_admission (__main__.WorldBootstrapTests.test_signed_profile_without_domain_binding_cannot_create_admission) ... ok
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 15 tests in 22.046s
+4: 
+4: OK
+4/4 Test #4: world-bootstrap ..................   Passed   22.14 sec
+
+The following tests passed:
+	world-bootstrap-races
+	broker-bootstrap-client
+	world-bootstrap
+
+75% tests passed, 1 tests failed out of 4
+
+Total Test time (real) =  45.52 sec
+
+The following tests FAILED:
+	  1 - workspace-bootstrap (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

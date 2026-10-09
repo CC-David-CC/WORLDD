@@ -1,0 +1,15 @@
+test_binding_credential_revoked_during_profile_read_creates_no_binding (__main__.WorkspaceBootstrapRaceTests.test_binding_credential_revoked_during_profile_read_creates_no_binding) ... ok
+test_binding_revoke_credential_race_keeps_binding_active (__main__.WorkspaceBootstrapRaceTests.test_binding_revoke_credential_race_keeps_binding_active) ... ok
+test_credential_revoked_during_actor_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_actor_reply_preserves_authorized_process) ... ok
+test_credential_revoked_during_broker_parent_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_parent_read_creates_no_grant) ... ok
+test_credential_revoked_during_broker_profile_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_profile_read_creates_no_grant) ... ok
+test_credential_revoked_during_credential_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_credential_reply_preserves_authorized_process) ... ok
+test_ordinary_workspace_access_race_preserves_independent_process_authority (__main__.WorkspaceBootstrapRaceTests.test_ordinary_workspace_access_race_preserves_independent_process_authority) ... ok
+test_parent_actor_revocation_during_reply_preserves_independent_process_grant (__main__.WorkspaceBootstrapRaceTests.test_parent_actor_revocation_during_reply_preserves_independent_process_grant) ... ok
+test_parent_actor_revoked_during_broker_parent_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_parent_actor_revoked_during_broker_parent_read_creates_no_grant) ... ok
+test_parent_actor_revoked_during_broker_profile_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_parent_actor_revoked_during_broker_profile_read_creates_no_grant) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 27.811s
+
+OK

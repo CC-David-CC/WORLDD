@@ -1,0 +1,98 @@
+Authenticated bootstrap delivery draft, 2026-10-09
+
+Status: proposed additive interfaces and real-service tests. Production adapters remain unimplemented.
+The 15 world cases ran against the current real issuer and worldd on sb16.
+All 15 failed because the world bootstrap operations or reports are absent.
+This baseline does not test a new adapter implementation.
+
+The issuer's signed profile requests domain grants. It does not create domain roots.
+A binding requires the authenticated parent holder and the existing attenuation rules.
+Fetch the exact issuer profile and select its requested template inside the trusted service.
+Do not accept template terms or a grant recipient from an actor's bind or apply request.
+Bind and revoke operations require an actor sequence and authority revision.
+Explicit application requires an actor sequence. Durable receipts separately prevent grant replay.
+
+World authentication:
+Keep begin side-effect free with respect to domain grants.
+Complete the actual issuer proof before attempting bootstrap materialization.
+Keep the in-flight credential visible to revocation during every issuer call.
+Apply templates for this world's exact domain before private admission checks.
+An absent binding produces an explicit per-template NOT_FOUND result.
+Public admission may succeed with failed application results and no new action authority.
+Private admission still requires a valid WORLD_ENTER grant.
+The built-in empty-v1 revision one contains no templates and needs no materialization.
+
+WorldSessionRequest adds bootstrap_bind, bootstrap_revoke, and bootstrap_apply.
+An explicit workspace field targets that workspace. Absence targets the current world.
+Never silently treat a workspace request as a world request.
+WorldSessionReply adds binding and bootstrap outcomes.
+Its bootstrap_attempt field reports the authenticated attempt even when private admission is denied.
+Never return an application report before valid actor proof.
+A recorded grant is not proof of current permission. Its parent or the grant itself may be revoked.
+
+Workspace application:
+Use an explicit authenticated actor request through worldd and the existing private broker channel.
+Worldd derives the principal and forwards that channel's signed credential.
+The broker checks registration, signature context, issuer, actor, credential, and profile identity.
+It fetches the exact profile through the checked issuer client.
+Domain scope must match the requested workspace.
+Application does not create a workspace, make it available, select it, or place a cabinet.
+The checked broker client must reject substituted binding/report domains, actors, revisions, and outcomes.
+
+Revocation and transaction ordering:
+Fetch the profile before the domain transaction.
+Collect each binding's complete parent ancestry, including identities absent from the recipient's current grants.
+Refresh the credential and ancestry against one observed issuer security revision.
+Reject a changed revision during preparation rather than combining inconsistent snapshots.
+Drain revocation events and recheck the authenticated channel before each store mutation.
+Do not perform external issuer I/O inside a SQLite domain transaction.
+The store rechecks parent authority and inserts the grant and receipt atomically.
+Recheck the channel after broker waits before exporting a successful result.
+Credential revocation must block delivery even when the actor identity remains active.
+
+Each template is a separate domain transaction.
+Do not claim a transaction across a profile, the issuer, worlds, and workspaces.
+Report per-template failures. A request lost after a commit may have an uncertain result.
+Recover that result through the durable receipt. Do not create another grant.
+Previously recorded grants remain governed by their ordinary parent chains.
+An updated profile or second credential cannot replace a receipt for the same actor/profile/template.
+
+Required follow-up tests:
+- Credential and parent-actor revocation while a real issuer relay delays profile or status responses.
+- Independent surviving grants after bootstrap-parent revocation.
+- Real workspace selection and confined file operations through the same actor path.
+- Workspace availability and selection remain unchanged by application.
+- Wrong broker response context disables the checked channel.
+- Multiple templates report partial failure without duplicate or invented grants.
+- Missing services report failure without silently changing authority or provider.
+
+The current draft report's whole-attempt error field is reserved for a failure before any result is recorded.
+If implementation needs terminal failure after partial results, version and document that interpretation explicitly first.
+Do not discard already recorded effects or present them as an atomic rollback.
+
+Neither these drafts nor the store tests complete M01, M02, or Spatial-M1.
+
+Workspace draft refinement, 2026-10-09:
+BootstrapBindRequest adds signed credential field six.
+BootstrapRevokeRequest adds signed credential field five.
+All new broker bootstrap mutations now receive the authenticated channel credential.
+The broker verifies the issuer signature, registered credential, and exact principal before acting.
+Binding administrators may select another profile. Their own enrollment profile does not constrain that selector.
+Application always uses the recipient credential's exact enrollment profile and revision.
+The broker tracks credential revocation for the in-flight operation, including during external issuer waits.
+Credential revocation does not revoke an independent application's actor authority.
+The checked broker client validates binding identity, domain, selector, parent, authorizer, and revision.
+It validates report context, unique template results, delegated grant structure, and recipient identity.
+Existing revoked grant records remain valid receipt data. They do not grant active authority.
+The world checks channel validity again after a broker operation.
+These additive draft changes do not alter existing acceptance assertions or production schemas yet.
+
+Workspace test clarification after the first implementation run:
+The initial draft expected a read-only actor's development-profile launch to fail.
+The existing broker contract intersects actor rights, workspace policy, and the requested profile.
+A development-profile process can run with a read-only project mount when execution and read authority remain valid.
+The corrected test attempts a real unauthorized project write under both profiles and requires failure.
+The initial draft also expected FORBIDDEN after revocation removed workspace selection.
+The existing actor contract returns NO_WORKSPACE when no workspace is selected.
+The corrected test requires empty selection, FORBIDDEN on reselection, and NO_WORKSPACE on launch.
+These corrections retain the original failed run and preserve all existing acceptance tests.

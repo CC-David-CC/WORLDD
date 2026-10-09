@@ -1,0 +1,115 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start  1: workspace-bootstrap
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/source/tests/core/test_workspace_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/worldd"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/source
+1: Test timeout computed to be: 180
+1: test_actor_cannot_bind_another_holders_parent (__main__.WorkspaceBootstrapTests.test_actor_cannot_bind_another_holders_parent) ... ok
+1: test_application_does_not_make_workspace_available (__main__.WorkspaceBootstrapTests.test_application_does_not_make_workspace_available) ... ok
+1: test_binding_revocation_blocks_new_recipients_but_preserves_existing_access (__main__.WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access) ... ok
+1: test_broker_and_world_restart_preserve_binding_receipt_and_real_file (__main__.WorkspaceBootstrapTests.test_broker_and_world_restart_preserve_binding_receipt_and_real_file) ... ok
+1: test_broker_rejects_mismatched_missing_and_forged_credentials (__main__.WorkspaceBootstrapTests.test_broker_rejects_mismatched_missing_and_forged_credentials) ... ok
+1: test_explicit_application_enables_confined_real_file_write (__main__.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write) ... ok
+1: test_read_only_bootstrap_does_not_authorize_writable_application (__main__.WorkspaceBootstrapTests.test_read_only_bootstrap_does_not_authorize_writable_application) ... ok
+1: test_retry_preserves_receipt_and_parent_revocation_denies_execution (__main__.WorkspaceBootstrapTests.test_retry_preserves_receipt_and_parent_revocation_denies_execution) ... ok
+1: test_second_credential_does_not_revive_revoked_receipt (__main__.WorkspaceBootstrapTests.test_second_credential_does_not_revive_revoked_receipt) ... ok
+1: test_unknown_workspace_never_redirects_application_to_current_world (__main__.WorkspaceBootstrapTests.test_unknown_workspace_never_redirects_application_to_current_world) ... ok
+1: test_updated_profile_cannot_replace_prior_actor_receipt (__main__.WorkspaceBootstrapTests.test_updated_profile_cannot_replace_prior_actor_receipt) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 11 tests in 30.982s
+1: 
+1: OK
+1/3 Test  #1: workspace-bootstrap ..............   Passed   31.09 sec
+test 3
+    Start  3: broker-bootstrap-client
+
+3: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/source/tests/core/test_broker_bootstrap_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/spatial-broker-control-client-probe"
+3: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build
+3: Environment variables: 
+3:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/source
+3: Test timeout computed to be: 120
+3: test_binding_cannot_assign_recipient (__main__.BrokerBootstrapClientTests.test_binding_cannot_assign_recipient) ... ok
+3: test_binding_cannot_return_world_right (__main__.BrokerBootstrapClientTests.test_binding_cannot_return_world_right) ... ok
+3: test_binding_cannot_substitute_authorizer (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_authorizer) ... ok
+3: test_binding_cannot_substitute_parent (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_parent) ... ok
+3: test_binding_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_profile) ... ok
+3: test_binding_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_workspace) ... ok
+3: test_binding_revision_must_follow_request (__main__.BrokerBootstrapClientTests.test_binding_revision_must_follow_request) ... ok
+3: test_binding_revoke_cannot_substitute_identity (__main__.BrokerBootstrapClientTests.test_binding_revoke_cannot_substitute_identity) ... ok
+3: test_binding_revoke_matches_identity_and_revision (__main__.BrokerBootstrapClientTests.test_binding_revoke_matches_identity_and_revision) ... ok
+3: test_exact_binding_is_returned (__main__.BrokerBootstrapClientTests.test_exact_binding_is_returned) ... ok
+3: test_exact_report_is_returned (__main__.BrokerBootstrapClientTests.test_exact_report_is_returned) ... ok
+3: test_recorded_revoked_grant_is_data_not_new_authority (__main__.BrokerBootstrapClientTests.test_recorded_revoked_grant_is_data_not_new_authority) ... ok
+3: test_report_cannot_duplicate_template (__main__.BrokerBootstrapClientTests.test_report_cannot_duplicate_template) ... ok
+3: test_report_cannot_return_invalid_revocation_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_return_invalid_revocation_revision) ... ok
+3: test_report_cannot_substitute_issuer (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_issuer) ... ok
+3: test_report_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_profile) ... ok
+3: test_report_cannot_substitute_recipient (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_recipient) ... ok
+3: test_report_cannot_substitute_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_revision) ... ok
+3: test_report_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_workspace) ... ok
+3: test_report_cannot_supply_root_grant (__main__.BrokerBootstrapClientTests.test_report_cannot_supply_root_grant) ... ok
+3: test_report_requires_result_outcome (__main__.BrokerBootstrapClientTests.test_report_requires_result_outcome) ... ok
+3: test_report_whole_error_cannot_hide_recorded_grant (__main__.BrokerBootstrapClientTests.test_report_whole_error_cannot_hide_recorded_grant) ... ok
+3: 
+3: ----------------------------------------------------------------------
+3: Ran 22 tests in 0.138s
+3: 
+3: OK
+2/3 Test  #3: broker-bootstrap-client ..........   Passed    0.21 sec
+test 10
+    Start 10: workspace-authority
+
+10: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/source/tests/core/test_workspace_authority.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/worldd"
+10: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build
+10: Environment variables: 
+10:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/source
+10: Test timeout computed to be: 180
+10: test_access_revocation_keeps_valid_process_execution (__main__.WorkspaceAuthorityTests.test_access_revocation_keeps_valid_process_execution) ... ok
+10: test_actor_revocation_interrupts_a_blocked_process_wait (__main__.WorkspaceAuthorityTests.test_actor_revocation_interrupts_a_blocked_process_wait) ... ok
+10: test_actor_revocation_stops_execution_while_broker_is_idle (__main__.WorkspaceAuthorityTests.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+10: test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process) ... ok
+10: test_bound_workspace_rejects_static_authority_edits (__main__.WorkspaceAuthorityTests.test_bound_workspace_rejects_static_authority_edits) ... ok
+10: test_credential_revocation_preserves_valid_workspace_process (__main__.WorkspaceAuthorityTests.test_credential_revocation_preserves_valid_workspace_process) ... ok
+10: test_cross_domain_unknown_and_foreign_grants_are_rejected (__main__.WorkspaceAuthorityTests.test_cross_domain_unknown_and_foreign_grants_are_rejected) ... ok
+10: test_file_scope_does_not_authorize_a_whole_project_mount (__main__.WorkspaceAuthorityTests.test_file_scope_does_not_authorize_a_whole_project_mount) ... ok
+10: test_grant_revocation_kills_confined_process_without_recipient_request (__main__.WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request) ... ok
+10: test_grants_do_not_make_workspace_available_implicitly (__main__.WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly) ... ok
+10: test_independent_execution_grant_survives_other_grant_revocation (__main__.WorkspaceAuthorityTests.test_independent_execution_grant_survives_other_grant_revocation) ... ok
+10: test_partial_file_write_grants_do_not_mount_entire_project_writable (__main__.WorkspaceAuthorityTests.test_partial_file_write_grants_do_not_mount_entire_project_writable) ... ok
+10: test_partial_private_frame_does_not_block_revocation (__main__.WorkspaceAuthorityTests.test_partial_private_frame_does_not_block_revocation) ... ok
+10: test_persistent_grants_and_selection_survive_broker_and_world_restart (__main__.WorkspaceAuthorityTests.test_persistent_grants_and_selection_survive_broker_and_world_restart) ... ok
+10: test_readonly_profile_keeps_project_and_git_readonly (__main__.WorkspaceAuthorityTests.test_readonly_profile_keeps_project_and_git_readonly) ... ok
+10: test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh (__main__.WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh) ... ok
+10: test_revoked_ancestor_without_world_session_stops_process (__main__.WorkspaceAuthorityTests.test_revoked_ancestor_without_world_session_stops_process) ... ok
+10: test_workspace_policy_limits_a_broader_actor_grant (__main__.WorkspaceAuthorityTests.test_workspace_policy_limits_a_broader_actor_grant) ... ok
+10: test_world_admission_and_availability_do_not_grant_workspace_access (__main__.WorkspaceAuthorityTests.test_world_admission_and_availability_do_not_grant_workspace_access) ... ok
+10: 
+10: ----------------------------------------------------------------------
+10: Ran 19 tests in 42.286s
+10: 
+10: OK
+3/3 Test #10: workspace-authority ..............   Passed   42.39 sec
+
+The following tests passed:
+	workspace-bootstrap
+	broker-bootstrap-client
+	workspace-authority
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =  73.70 sec

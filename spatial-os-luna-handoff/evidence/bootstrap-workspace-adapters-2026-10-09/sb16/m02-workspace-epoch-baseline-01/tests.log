@@ -1,0 +1,29 @@
+test_ordinary_workspace_access_race_preserves_independent_process_authority (__main__.WorkspaceBootstrapRaceTests.test_ordinary_workspace_access_race_preserves_independent_process_authority) ... FAIL
+
+======================================================================
+FAIL: test_ordinary_workspace_access_race_preserves_independent_process_authority (__main__.WorkspaceBootstrapRaceTests.test_ordinary_workspace_access_race_preserves_independent_process_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-baseline-01/test_workspace_bootstrap_races.py", line 96, in test_ordinary_workspace_access_race_preserves_independent_process_authority
+    self.running_process_survives_credential_race('actor_status',ordinary_access=True)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-baseline-01/test_workspace_bootstrap_races.py", line 86, in running_process_survives_credential_race
+    (self.project/'release').touch();self.wait_job(world,process)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/source/tests/core/test_workspace_authority.py", line 129, in wait_job
+    self.assertEqual(world.management('process.wait', id=process.process_id, timeout_seconds=5), {'exit_code':0})
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/source/tests/core/test_world_identity.py", line 71, in management
+    if reply.HasField('error'): raise AssertionError(reply)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 3
+error {
+  code: UNAVAILABLE
+  message: "Process completion is uncertain or execution was revoked"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 3.167s
+
+FAILED (failures=1)

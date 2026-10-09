@@ -1,0 +1,12 @@
+{
+  "scope": "existing workspace access epoch drift must not revoke independent execution",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-baseline-01/test_workspace_bootstrap_races.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/worldd",
+    "WorkspaceBootstrapRaceTests.test_ordinary_workspace_access_race_preserves_independent_process_authority"
+  ],
+  "exit_code": 1
+}

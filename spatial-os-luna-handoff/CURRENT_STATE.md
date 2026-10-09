@@ -1,5 +1,44 @@
 # Implementation status
 
+## 2026-10-09: Authenticated bootstrap adapters under qualification
+
+The isolated candidate connects signed enrollment profiles to real world and workspace grants.
+World admission applies matching world templates only after valid issuer proof.
+Workspace application uses an explicit actor request and the existing private broker channel.
+The broker verifies the signed channel credential and current registration before applying templates.
+Binding administration requires ordinary parent delegation authority.
+The checked broker client rejects substituted domains, actors, profiles, and malformed results.
+Workspace application does not create availability, selection, or geometry.
+
+The candidate passed real confined writes, read-only mounts, restart recovery, and receipt retry cases on sb16.
+It also passed credential and parent revocation tests during real issuer waits.
+Both hosts passed candidate 03 Debug builds, 51 harness checks, and all 63 checks across five adapter suites.
+Candidate 03 passed complete sb16-2 Debug: 1,036 core checks, 51 harness checks, and 151 P10 cases.
+Its sb16 Debug run failed one process witness on ProcessLookupError during /proc inspection.
+That run did not reach P10 or runtime sanitizer checks. The original failure remains preserved.
+The corrected witness passed six new checks and all twelve real process tests on both hosts.
+Fixture commit b2ab006 preserves every original process-test body and all locked acceptance files.
+Candidate 03 runtime sanitizer qualification continues on sb16-2.
+All 223 candidate input hashes matched both hosts.
+The additive schema audit preserved 219 messages, 804 fields, and 111 enum values.
+All 75 existing test files and 41 locked files remain unchanged.
+
+The first workspace run exposed two incorrect draft test expectations. The corrections preserve real confinement checks.
+Two added tests exposed a real process-lifetime defect during bootstrap credential revocation.
+The corrected candidate rejects that operation without terminating independently authorized processes.
+A further test reproduced the same defect in ordinary workspace access.
+Candidate 04 extends that correction. Its sb16 focused Debug run passed 52 workspace/broker checks and ten race checks.
+Its sb16 complete Debug build, 51 harness checks, and 64 adapter checks passed. Remaining core checks are running.
+The sb16-2 candidate 04 run waits for its live candidate 03 runner to finish.
+Candidate 04 still includes the original process witness. Active source trees remain immutable.
+Integration must preserve the separately qualified b2ab006 witness correction.
+No adapter is integrated into production yet. The source under active tests remains unchanged.
+
+The initial full snapshot omitted four locked documents. The harness rejected it on both hosts.
+The corrected snapshot includes those unchanged documents. All original failures remain preserved.
+See docs/BOOTSTRAP_DELIVERY.md and evidence/bootstrap-workspace-adapters-2026-10-09.
+M01, M02, native-server GLX sanitizer qualification, and full Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Domain bootstrap store qualified on both hosts
 
 The domain store is committed as c470a4e and pushed to box-git.

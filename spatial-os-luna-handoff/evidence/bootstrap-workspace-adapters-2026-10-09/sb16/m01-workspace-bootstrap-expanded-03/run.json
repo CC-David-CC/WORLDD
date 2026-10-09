@@ -1,0 +1,12 @@
+{
+  "scope": "expanded workspace bootstrap coverage; same candidate binaries",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-expanded-03/test_workspace_bootstrap.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/worldd"
+  ],
+  "exit_code": 0,
+  "test_sha256": "94bbe03010a9a3889fe26b4a57499d01b2f5ce12862ced09fa394a10a5dbc7be"
+}

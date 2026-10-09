@@ -1,0 +1,88 @@
+{
+  "debug": {
+    "core_checks": 1036,
+    "core_suites": 55,
+    "partitions": {
+      "adapters": {
+        "suites": {
+          "workspace-bootstrap-races": 9,
+          "workspace-bootstrap": 11,
+          "world-bootstrap-races": 6,
+          "broker-bootstrap-client": 22,
+          "world-bootstrap": 15
+        },
+        "checks": 63
+      },
+      "core": {
+        "suites": {
+          "native-display-ready": 5,
+          "render-observation-client": 9,
+          "broker-control-client": 29,
+          "authority-store": 43,
+          "authority-bootstrap": 32,
+          "workspace-authority": 19,
+          "identity-keys": 16,
+          "identity-issuer": 18,
+          "identity-enrollment": 25,
+          "identity-bootstrap": 18,
+          "identity-revocation": 24,
+          "identity-tls": 23,
+          "actor-status": 21,
+          "issuer-client": 28,
+          "identity-watch": 17,
+          "render-runtime": 13,
+          "surface-runtime": 22,
+          "actor-observation": 9,
+          "actor-collision": 16,
+          "broker-control-client-live": 25,
+          "application-control-lease": 25,
+          "application-observation": 16,
+          "world-application-control": 25,
+          "actor-pixels": 14,
+          "application-access": 28,
+          "native-surface_identity": 15,
+          "native-compositor_identity": 7,
+          "native-world_surface_groups": 14,
+          "native-application-launch": 19,
+          "native-actor-binding": 25,
+          "native-application-input": 15,
+          "native-device-administration": 13,
+          "native-global-isolation": 19,
+          "native-selection-isolation": 14,
+          "native-extension-isolation": 32,
+          "native-resource-isolation": 36,
+          "native-security-identity": 22,
+          "world-identity": 20,
+          "world-authority": 27,
+          "actor-objects": 21,
+          "actor-portals": 19,
+          "native-actor-input": 14,
+          "core-protocol": 13,
+          "worldd-lifecycle": 11,
+          "actor-runtime": 10,
+          "recovery-boundaries": 11,
+          "workspace-git": 45,
+          "workspace-context": 13,
+          "workspace-processes": 12,
+          "storage-faults": 6
+        },
+        "checks": 973
+      }
+    },
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "67fde3bcd33e11037fdc76fd83a313d504b4ed8b433a35661c61855617fd0992",
+      "workspaced": "8fd275a74da94f37e8f8385466c7b2dac686973db1137ffec21de90701501f8b",
+      "identityd": "4151c92eb57f5569776b25d1377b72550abcbd4ab2fcc8064c03e468a3f35210",
+      "spatialwm": "6a8bca6b26f111c5c5c457c5b19797df65562e4259670494dc627caf3de8331e",
+      "spatial-test-host": "ddcffff915f06747798d37dc638df8f5c64a7435d2ee036ac700b8643a09b8cb",
+      "spatial-broker-control-client-probe": "37b4d1a2b57faf2fdbb022777c4f86f266d791233a573772c8edd5b9c349c136"
+    }
+  },
+  "source_files": 223,
+  "production_integration": "pending",
+  "native_server_GLX_sanitizer": "unqualified"
+}

@@ -1,0 +1,44 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: workspace-bootstrap
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/source/tests/core/test_workspace_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/worldd"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-fixed-02/source
+1: Test timeout computed to be: 180
+1: test_actor_cannot_bind_another_holders_parent (__main__.WorkspaceBootstrapTests.test_actor_cannot_bind_another_holders_parent) ... ok
+1: test_application_does_not_make_workspace_available (__main__.WorkspaceBootstrapTests.test_application_does_not_make_workspace_available) ... ok
+1: test_binding_revocation_blocks_new_recipients_but_preserves_existing_access (__main__.WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access) ... ok
+1: test_broker_and_world_restart_preserve_binding_receipt_and_real_file (__main__.WorkspaceBootstrapTests.test_broker_and_world_restart_preserve_binding_receipt_and_real_file) ... ok
+1: test_broker_rejects_mismatched_missing_and_forged_credentials (__main__.WorkspaceBootstrapTests.test_broker_rejects_mismatched_missing_and_forged_credentials) ... ok
+1: test_explicit_application_enables_confined_real_file_write (__main__.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write) ... ok
+1: test_read_only_bootstrap_does_not_authorize_writable_application (__main__.WorkspaceBootstrapTests.test_read_only_bootstrap_does_not_authorize_writable_application) ... ok
+1: test_retry_preserves_receipt_and_parent_revocation_denies_execution (__main__.WorkspaceBootstrapTests.test_retry_preserves_receipt_and_parent_revocation_denies_execution) ... ok
+1: test_second_credential_does_not_revive_revoked_receipt (__main__.WorkspaceBootstrapTests.test_second_credential_does_not_revive_revoked_receipt) ... ok
+1: test_unknown_workspace_never_redirects_application_to_current_world (__main__.WorkspaceBootstrapTests.test_unknown_workspace_never_redirects_application_to_current_world) ... ok
+1: test_updated_profile_cannot_replace_prior_actor_receipt (__main__.WorkspaceBootstrapTests.test_updated_profile_cannot_replace_prior_actor_receipt) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 11 tests in 28.614s
+1: 
+1: OK
+1/1 Test #1: workspace-bootstrap ..............   Passed   28.71 sec
+
+The following tests passed:
+	workspace-bootstrap
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  28.71 sec

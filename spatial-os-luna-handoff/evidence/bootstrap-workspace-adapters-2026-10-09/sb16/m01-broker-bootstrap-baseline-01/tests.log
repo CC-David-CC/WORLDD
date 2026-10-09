@@ -1,0 +1,480 @@
+test_binding_cannot_assign_recipient (__main__.BrokerBootstrapClientTests.test_binding_cannot_assign_recipient) ... ERROR
+test_binding_cannot_return_world_right (__main__.BrokerBootstrapClientTests.test_binding_cannot_return_world_right) ... ERROR
+test_binding_cannot_substitute_authorizer (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_authorizer) ... ERROR
+test_binding_cannot_substitute_parent (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_parent) ... ERROR
+test_binding_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_profile) ... ERROR
+test_binding_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_workspace) ... ERROR
+test_binding_revision_must_follow_request (__main__.BrokerBootstrapClientTests.test_binding_revision_must_follow_request) ... ERROR
+test_binding_revoke_cannot_substitute_identity (__main__.BrokerBootstrapClientTests.test_binding_revoke_cannot_substitute_identity) ... ERROR
+test_binding_revoke_matches_identity_and_revision (__main__.BrokerBootstrapClientTests.test_binding_revoke_matches_identity_and_revision) ... ERROR
+test_exact_binding_is_returned (__main__.BrokerBootstrapClientTests.test_exact_binding_is_returned) ... ERROR
+test_exact_report_is_returned (__main__.BrokerBootstrapClientTests.test_exact_report_is_returned) ... ERROR
+test_recorded_revoked_grant_is_data_not_new_authority (__main__.BrokerBootstrapClientTests.test_recorded_revoked_grant_is_data_not_new_authority) ... ERROR
+test_report_cannot_duplicate_template (__main__.BrokerBootstrapClientTests.test_report_cannot_duplicate_template) ... ERROR
+test_report_cannot_return_invalid_revocation_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_return_invalid_revocation_revision) ... ERROR
+test_report_cannot_substitute_issuer (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_issuer) ... ERROR
+test_report_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_profile) ... ERROR
+test_report_cannot_substitute_recipient (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_recipient) ... ERROR
+test_report_cannot_substitute_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_revision) ... ERROR
+test_report_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_workspace) ... ERROR
+test_report_cannot_supply_root_grant (__main__.BrokerBootstrapClientTests.test_report_cannot_supply_root_grant) ... ERROR
+test_report_requires_result_outcome (__main__.BrokerBootstrapClientTests.test_report_requires_result_outcome) ... ERROR
+test_report_whole_error_cannot_hide_recorded_grant (__main__.BrokerBootstrapClientTests.test_report_whole_error_cannot_hide_recorded_grant) ... ERROR
+
+======================================================================
+ERROR: test_binding_cannot_assign_recipient (__main__.BrokerBootstrapClientTests.test_binding_cannot_assign_recipient)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 57, in test_binding_cannot_assign_recipient
+    def test_binding_cannot_assign_recipient(self):self.bind_reply(lambda b:b.terms.subject.CopyFrom(self.principal))
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 29, in bind_reply
+    request=self.send(bootstrap_bind=broker.BootstrapBindRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_binding_cannot_return_world_right (__main__.BrokerBootstrapClientTests.test_binding_cannot_return_world_right)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 58, in test_binding_cannot_return_world_right
+    def test_binding_cannot_return_world_right(self):self.bind_reply(lambda b:b.terms.rights.append(grant.WORLD_ENTER))
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 29, in bind_reply
+    request=self.send(bootstrap_bind=broker.BootstrapBindRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_binding_cannot_substitute_authorizer (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_authorizer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 53, in test_binding_cannot_substitute_authorizer
+    def test_binding_cannot_substitute_authorizer(self):self.bind_reply(lambda b:setattr(b.authorizer,'actor_id',b'x'*32))
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 29, in bind_reply
+    request=self.send(bootstrap_bind=broker.BootstrapBindRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_binding_cannot_substitute_parent (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_parent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 52, in test_binding_cannot_substitute_parent
+    def test_binding_cannot_substitute_parent(self):self.bind_reply(lambda b:setattr(b,'parent_id',b'x'*32))
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 29, in bind_reply
+    request=self.send(bootstrap_bind=broker.BootstrapBindRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_binding_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_profile)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 54, in test_binding_cannot_substitute_profile
+    def test_binding_cannot_substitute_profile(self):self.bind_reply(lambda b:setattr(b.selector,'profile_id','other'))
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 29, in bind_reply
+    request=self.send(bootstrap_bind=broker.BootstrapBindRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_binding_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_workspace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 55, in test_binding_cannot_substitute_workspace
+    def test_binding_cannot_substitute_workspace(self):self.bind_reply(lambda b:setattr(b.terms.scope.domain,'id','other'))
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 29, in bind_reply
+    request=self.send(bootstrap_bind=broker.BootstrapBindRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_binding_revision_must_follow_request (__main__.BrokerBootstrapClientTests.test_binding_revision_must_follow_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 56, in test_binding_revision_must_follow_request
+    def test_binding_revision_must_follow_request(self):self.bind_reply(lambda b:setattr(b,'created_revision',5))
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 29, in bind_reply
+    request=self.send(bootstrap_bind=broker.BootstrapBindRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_binding_revoke_cannot_substitute_identity (__main__.BrokerBootstrapClientTests.test_binding_revoke_cannot_substitute_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 89, in test_binding_revoke_cannot_substitute_identity
+    request=self.send(bootstrap_revoke=broker.BootstrapRevokeRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_binding_revoke_matches_identity_and_revision (__main__.BrokerBootstrapClientTests.test_binding_revoke_matches_identity_and_revision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 83, in test_binding_revoke_matches_identity_and_revision
+    request=self.send(bootstrap_revoke=broker.BootstrapRevokeRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_exact_binding_is_returned (__main__.BrokerBootstrapClientTests.test_exact_binding_is_returned)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 51, in test_exact_binding_is_returned
+    def test_exact_binding_is_returned(self):self.bind_reply()
+                                             ^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 29, in bind_reply
+    request=self.send(bootstrap_bind=broker.BootstrapBindRequest(workspace='one',principal=self.principal,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_exact_report_is_returned (__main__.BrokerBootstrapClientTests.test_exact_report_is_returned)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 59, in test_exact_report_is_returned
+    def test_exact_report_is_returned(self):self.report_reply()
+                                            ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_recorded_revoked_grant_is_data_not_new_authority (__main__.BrokerBootstrapClientTests.test_recorded_revoked_grant_is_data_not_new_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 78, in test_recorded_revoked_grant_is_data_not_new_authority
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_cannot_duplicate_template (__main__.BrokerBootstrapClientTests.test_report_cannot_duplicate_template)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 66, in test_report_cannot_duplicate_template
+    def test_report_cannot_duplicate_template(self):self.report_reply(lambda r:r.results.add().CopyFrom(r.results[0]))
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_cannot_return_invalid_revocation_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_return_invalid_revocation_revision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 69, in test_report_cannot_return_invalid_revocation_revision
+    def test_report_cannot_return_invalid_revocation_revision(self):self.report_reply(lambda r:setattr(r.results[0].grant,'revoked_revision',3))
+                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_cannot_substitute_issuer (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_issuer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 60, in test_report_cannot_substitute_issuer
+    def test_report_cannot_substitute_issuer(self):self.report_reply(lambda r:setattr(r,'issuer_id',b'x'*32))
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_profile)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 61, in test_report_cannot_substitute_profile
+    def test_report_cannot_substitute_profile(self):self.report_reply(lambda r:setattr(r,'profile_id','other'))
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_cannot_substitute_recipient (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_recipient)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 64, in test_report_cannot_substitute_recipient
+    def test_report_cannot_substitute_recipient(self):self.report_reply(lambda r:setattr(r.results[0].grant.terms.subject,'actor_id',b'x'*32))
+                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_cannot_substitute_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_revision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 62, in test_report_cannot_substitute_revision
+    def test_report_cannot_substitute_revision(self):self.report_reply(lambda r:setattr(r,'profile_revision',2))
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_workspace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 63, in test_report_cannot_substitute_workspace
+    def test_report_cannot_substitute_workspace(self):self.report_reply(lambda r:setattr(r.domain,'id','other'))
+                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_cannot_supply_root_grant (__main__.BrokerBootstrapClientTests.test_report_cannot_supply_root_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 65, in test_report_cannot_supply_root_grant
+    def test_report_cannot_supply_root_grant(self):self.report_reply(lambda r:r.results[0].grant.ClearField('parent_id'))
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_requires_result_outcome (__main__.BrokerBootstrapClientTests.test_report_requires_result_outcome)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 67, in test_report_requires_result_outcome
+    def test_report_requires_result_outcome(self):self.report_reply(lambda r:r.results[0].ClearField('grant'))
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+======================================================================
+ERROR: test_report_whole_error_cannot_hide_recorded_grant (__main__.BrokerBootstrapClientTests.test_report_whole_error_cannot_hide_recorded_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 68, in test_report_whole_error_cannot_hide_recorded_grant
+    def test_report_whole_error_cannot_hide_recorded_grant(self):self.report_reply(lambda r:setattr(r.error,'code',core.NOT_FOUND))
+                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-broker-bootstrap-baseline-01/test_broker_bootstrap_client.py", line 43, in report_reply
+    request=self.send(bootstrap_apply=broker.BootstrapApplyRequest(workspace='one',principal=self.principal,credential=credential))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 63, in send
+    return receive(self.peer,pb.Request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 28, in receive
+    n=struct.unpack('!I',exact(4))[0]
+                         ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-bootstrap-draft-01/source/tests/core/test_broker_control_client.py", line 25, in exact
+    if not part:raise EOFError('Protocol peer closed')
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Protocol peer closed
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.117s
+
+FAILED (errors=22)

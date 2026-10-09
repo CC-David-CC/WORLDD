@@ -150,7 +150,10 @@ No final profile failed or skipped a case. All 214 tested source hashes match.
 Domain commit c470a4e is pushed to box-git and adopted on both hosts, with unchanged tested source hashes.
 The isolated world adapter passed 81 regression checks and six additional cases per sb16 profile.
 Both focused Debug and runtime sanitizer profiles passed. Full cumulative and second-host adapter qualification remain pending.
-Workspace delivery remains unimplemented. Neither adapter is integrated into production.
+World and workspace delivery now have isolated implementations. Neither adapter is integrated into production.
+Candidate 04 passed 62 focused sb16 Debug checks, including real process survival during credential revocation.
+Complete candidate 04 qualification remains pending on both hosts.
+See BOOTSTRAP_DELIVERY.md and evidence/bootstrap-workspace-adapters-2026-10-09 for current scope.
 These results do not complete bootstrap delivery, M01, M02, or Spatial-M1.
 
 ## Explicit domain storage migration

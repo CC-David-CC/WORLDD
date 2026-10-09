@@ -1,0 +1,54 @@
+{
+  "scope": "workspace issuer epoch changes must not revoke independent process authority",
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "workspace-regressions",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build",
+        "-V",
+        "-R",
+        "^(workspace-bootstrap|workspace-authority|broker-bootstrap-client)$"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "races",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/source/tests/core/test_workspace_bootstrap_races.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-epoch-fixed-02/build/worldd"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "source_files": 219
+}

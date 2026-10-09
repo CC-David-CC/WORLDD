@@ -1,0 +1,41 @@
+======================================================================
+FAIL: test_baseline_intact (tests.harness.test_tools.ToolTests.test_baseline_intact)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-02/tests/harness/test_tools.py", line 11, in test_baseline_intact
+    def test_baseline_intact(self):self.assertEqual(verify(ROOT,[t.id() for t in collect()]),[])
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['missing locked file: docs/CONTRACT.md', [123 chars].md'] != []
+
+First list contains 4 additional elements.
+First extra element 0:
+'missing locked file: docs/CONTRACT.md'
+
++ []
+- ['missing locked file: docs/CONTRACT.md',
+-  'missing locked file: docs/PROTOBUF_MIGRATION.md',
+-  'missing locked file: docs/WORLDD.md',
+-  'missing locked file: docs/ACTORS.md']
+
+======================================================================
+FAIL: test_fixture_cannot_certify_product (tests.harness.test_tools.ToolTests.test_fixture_cannot_certify_product)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-02/tests/harness/test_tools.py", line 31, in test_fixture_cannot_certify_product
+    self.assertEqual(r.returncode,1);self.assertEqual(json.loads((Path(d)/"report.json").read_text())["status"],"failed")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_no_sut_is_blocked_not_passed (tests.harness.test_tools.ToolTests.test_no_sut_is_blocked_not_passed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-02/tests/harness/test_tools.py", line 25, in test_no_sut_is_blocked_not_passed
+    self.assertEqual(r.returncode,2);self.assertIn("no production SUT",r.stderr)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'no production SUT' not found in 'BLOCKED: baseline integrity\nmissing locked file: docs/CONTRACT.md\nmissing locked file: docs/PROTOBUF_MIGRATION.md\nmissing locked file: docs/WORLDD.md\nmissing locked file: docs/ACTORS.md\n'
+
+----------------------------------------------------------------------
+Ran 51 tests in 0.640s
+
+FAILED (failures=3)

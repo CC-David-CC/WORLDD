@@ -1,0 +1,29 @@
+{
+  "scope": "corrected draft tests; unchanged candidate binaries",
+  "results": [
+    {
+      "name": "workspace-bootstrap",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-corrected-02/test_workspace_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build/worldd"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "existing-regressions",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/build",
+        "-V",
+        "-R",
+        "^(workspace-authority|world-identity|world-authority|broker-control-client|broker-control-client-live)$"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "test_sha256": "f2294ad607428ce5d35ce1899da10c6d8f95f3524c71ff890571cb709f6dd923"
+}

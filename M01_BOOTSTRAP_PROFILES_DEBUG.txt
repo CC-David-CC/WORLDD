@@ -172,3 +172,30 @@ Those checks include 15 bootstrap, 19 existing workspace authority, 20 world ide
 The six additional cases cover issuer revocation waits, independent grants, and partial application.
 No final focused case failed or skipped. Full cumulative and second-host adapter qualification remain pending.
 No adapter production integration is claimed. Workspace bootstrap delivery remains unimplemented.
+
+2026-10-09 authenticated adapters and revocation corrections:
+Implemented isolated world and workspace adapters through signed actor credentials and the private broker channel.
+The primary agent reviewed the changes. No local-model review was used.
+First draft tests had two incorrect expectations for read-only launch and selection after revocation.
+Corrected tests require failed real writes, cleared selection, denied reselection, and no selected workspace on launch.
+Real delayed issuer replies exposed process termination after credential revocation.
+Candidate 03 corrects bootstrap cancellation. Candidate 04 also corrects ordinary workspace status refresh.
+Candidate 04 passed 52 focused workspace/broker checks and ten revocation checks on sb16 Debug.
+Its complete sb16 Debug run passed build, 51 harness checks, and 64 adapter checks; remaining checks are running.
+The sb16-2 candidate 04 queue remains behind the live candidate 03 runtime sanitizer run.
+No authenticated adapter production integration is claimed.
+
+The initial full package omitted four locked documents. Both hosts rejected it at the harness.
+The corrected package contains all original locked inputs. No locked assertions changed.
+Candidate 03 complete sb16-2 Debug passed 1,036 core checks, 51 harness checks, and 151 P10 cases.
+Candidate 03 sb16 Debug failed one process test when /proc/PID/stat raised ProcessLookupError.
+It did not reach P10 or runtime sanitizers. Its complete failed core log remains preserved.
+The witness now treats ESRCH as a disappeared process. Unrelated read errors still fail.
+Both hosts reproduced the old bug, then passed six new witness checks and twelve real process tests.
+The twelve original process-test bodies remain unchanged. The separate fix is b2ab006, pushed to box-git.
+Current full candidate source trees remain immutable and still contain the old witness.
+Retain the separately qualified witness correction during eventual adapter integration.
+
+Evidence: spatial-os-luna-handoff/evidence/bootstrap-workspace-adapters-2026-10-09.
+Fixture evidence: spatial-os-luna-handoff/evidence/process-witness-exit-2026-10-09.
+Full M01, M02, and Spatial-M1 remain incomplete. Physical and native GPU acceptance remain separate.

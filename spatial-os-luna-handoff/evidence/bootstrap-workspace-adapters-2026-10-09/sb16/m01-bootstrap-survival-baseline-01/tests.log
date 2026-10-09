@@ -1,0 +1,53 @@
+test_credential_revoked_during_credential_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_credential_reply_preserves_authorized_process) ... FAIL
+test_credential_revoked_during_actor_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_actor_reply_preserves_authorized_process) ... FAIL
+
+======================================================================
+FAIL: test_credential_revoked_during_credential_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_credential_reply_preserves_authorized_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-baseline-01/test_workspace_bootstrap_races.py", line 88, in test_credential_revoked_during_credential_reply_preserves_authorized_process
+    self.running_process_survives_credential_race('credential_check')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-baseline-01/test_workspace_bootstrap_races.py", line 84, in running_process_survives_credential_race
+    (self.project/'release').touch();self.wait_job(world,process)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_workspace_authority.py", line 129, in wait_job
+    self.assertEqual(world.management('process.wait', id=process.process_id, timeout_seconds=5), {'exit_code':0})
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_world_identity.py", line 71, in management
+    if reply.HasField('error'): raise AssertionError(reply)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 3
+error {
+  code: UNAVAILABLE
+  message: "Process completion is uncertain or execution was revoked"
+}
+
+
+======================================================================
+FAIL: test_credential_revoked_during_actor_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_actor_reply_preserves_authorized_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-baseline-01/test_workspace_bootstrap_races.py", line 91, in test_credential_revoked_during_actor_reply_preserves_authorized_process
+    self.running_process_survives_credential_race('actor_status')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-bootstrap-survival-baseline-01/test_workspace_bootstrap_races.py", line 84, in running_process_survives_credential_race
+    (self.project/'release').touch();self.wait_job(world,process)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_workspace_authority.py", line 129, in wait_job
+    self.assertEqual(world.management('process.wait', id=process.process_id, timeout_seconds=5), {'exit_code':0})
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-workspace-bootstrap-draft-01/source/tests/core/test_world_identity.py", line 71, in management
+    if reply.HasField('error'): raise AssertionError(reply)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 3
+error {
+  code: UNAVAILABLE
+  message: "Process completion is uncertain or execution was revoked"
+}
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 5.895s
+
+FAILED (failures=2)

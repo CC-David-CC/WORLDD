@@ -1,0 +1,81 @@
+Authenticated world and workspace bootstrap delivery: primary review
+Status: reviewed isolated candidate 04; complete qualification and production integration remain pending.
+The primary agent performed review. No local model or delegated agent supplied execution evidence.
+
+Files reviewed:
+proto/spatial/authority/v1/grants.proto
+Adds typed per-template outcomes and a contextual report. Receipt data is not an authorization token.
+proto/spatial/identity/v1/world_session.proto
+Adds authenticated bind, revoke, and apply operations. No caller-supplied recipient or replacement credential exists.
+proto/spatial/workspace/v1/broker.proto
+Carries the channel's signed credential through each private broker bootstrap operation.
+The schema audit preserved all 219 original messages, 804 fields, and 111 enum values.
+
+src/world/authority.hpp and src/world/authority.cpp
+Forward operations to the existing durable store and invalidate cached decisions after mutation.
+They introduce no second grant store or independent authorization model.
+src/world/identity_sessions.cpp
+Verifies actor proof before materialization. Private admission still requires effective WORLD_ENTER authority.
+Loads the exact credential profile and filters templates to this world.
+Resolves binding ancestry before mutation. Rechecks channel validity after issuer and broker waits.
+World and workspace operations consume actor sequence numbers.
+Workspace application does not alter availability, selection, placement, or world identity.
+
+src/workspace/authority.hpp and src/workspace/authority.cpp
+Verifies credential signature, issuer, principal, registration, and pinned profile.
+Binding administration still requires the caller's parent ownership and delegation authority.
+Checks the recipient and bound parent ancestry against one issuer security revision.
+Revocation during issuer I/O cancels the operation after consuming its reply.
+Ordinary revision drift rejects the stale snapshot without disabling unrelated execution authority.
+Malformed identity context and transport failure retain fail-closed behavior.
+Actor revocation still invalidates affected actors and dependent grants.
+Materialization retains original receipts after retry or later profile changes.
+
+src/workspace/main.cpp
+Routes the three operations through WorkspaceAuthority. Missing persistent authority cannot create grants.
+src/platform/broker.hpp and src/platform/broker.cpp
+Checks expected reply types, identities, domain, profile, parent, revisions, and grant structure.
+Rejects duplicate outcomes and substituted context. Reuses production permission validation.
+src/testing/broker_control_client_probe.cpp
+Forwards requests to the production checked client. It does not implement authority or grant delivery.
+CMakeLists.txt
+Adds required protobuf dependencies, the permission-validation link, and five explicit CTest suites.
+Existing suites remain registered. Collectors compare executed partitions against CTest's complete suite list.
+
+tests/core/test_world_bootstrap.py
+Fifteen cases cover real enrollment, private admission, public admission without grants, delegation limits,
+failed proof, restart, retry, profile updates, second credentials, and revoked receipts.
+tests/core/test_world_bootstrap_races.py
+Six cases delay real issuer replies, revoke credentials or parents, and verify durable effects independently.
+Also checks partial results and independently surviving grants.
+tests/core/test_workspace_bootstrap.py
+Eleven cases exercise real confined writes, read-only mounts, availability, restart, parent revocation,
+credential substitution, profile changes, second credentials, and binding administration.
+tests/core/test_workspace_bootstrap_races.py
+Ten cases inspect the real authority database after delayed issuer replies.
+Live child processes prove survival when execution authority remains valid.
+tests/core/test_broker_bootstrap_client.py
+Twenty-two cases send malformed replies to the production checked broker client.
+These cases test transport validation. They do not substitute for real workspace effects.
+
+Review findings and corrections:
+The first draft's two incorrect test expectations were corrected without changing existing assertions.
+Read-only authority can launch a development profile with a read-only mount; real attempted writes must fail.
+Revocation clears invalid selection; reselect fails and launch has no workspace.
+Delayed credential replies exposed unwanted termination of independently authorized processes.
+Candidate 03 corrected bootstrap cancellation. A further test exposed ordinary workspace status drift.
+Candidate 04 fixes that path and adds its regression test.
+Candidate 03 and 04 differ in exactly workspace/authority.cpp and the workspace race test file.
+The candidate 04 focused sb16 Debug run passed 52 workspace/broker checks and ten race checks.
+
+Qualification boundaries:
+All 223 candidate inputs matched both hosts. The 75 existing test files were initially unchanged.
+All 41 locked inputs remain unchanged.
+Candidate 03 passed complete sb16-2 Debug: 1,036 core checks, 51 harness checks, and 151 P10 cases.
+Candidate 03 sb16 Debug stopped on a process-witness ESRCH exception. P10 and runtime sanitizers were unrun.
+That failure and its separate correction are recorded in ../process-witness-exit-2026-10-09.
+Commit b2ab006 preserves the twelve original process-test bodies and adds six witness checks.
+Both hosts passed those six checks and all twelve real process tests.
+Candidate 04 active source trees remain unchanged; preserve b2ab006 during eventual integration.
+Complete candidate 04 Debug and runtime sanitizer matrices remain mandatory on both hosts.
+No native-server GLX sanitizer, physical device, full M01/M02, or Spatial-M1 completion is claimed.

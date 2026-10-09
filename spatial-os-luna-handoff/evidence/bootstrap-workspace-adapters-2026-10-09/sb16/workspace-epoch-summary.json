@@ -1,0 +1,8 @@
+{
+  "host": "sb16",
+  "workspace_broker_checks": 52,
+  "revocation_checks": 10,
+  "failed": 0,
+  "skipped": 0,
+  "scope": "isolated Debug correction; full both-host Debug and runtime sanitizer qualification pending"
+}
