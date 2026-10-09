@@ -1,0 +1,156 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start  1: authority-native-scope
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source/tests/native/test_authority_native_scope.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/spatial-native-scope-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/spatial-security-auth"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source
+1: Test timeout computed to be: 90
+1: test_broker_stop_closes_descendants_preserves_independent_application (__main__.NativeScopeTests.test_broker_stop_closes_descendants_preserves_independent_application) ... ok
+1: test_compositor_stop_closes_only_owned_connections (__main__.NativeScopeTests.test_compositor_stop_closes_only_owned_connections) ... ok
+1: test_compositor_stop_releases_real_native_key_and_button (__main__.NativeScopeTests.test_compositor_stop_releases_real_native_key_and_button) ... ok
+1: test_missing_credential_is_not_accepted_as_a_cleanup_receipt (__main__.NativeScopeTests.test_missing_credential_is_not_accepted_as_a_cleanup_receipt) ... ok
+1: test_stop_waits_for_disposable_server_resume (__main__.NativeScopeTests.test_stop_waits_for_disposable_server_resume) ... ok
+1: test_stopped_server_timeout_cannot_report_cleanup (__main__.NativeScopeTests.test_stopped_server_timeout_cannot_report_cleanup) ... ok
+1: test_server_exit_cannot_replace_a_cleanup_reply (__main__.NativeScopeTests.test_server_exit_cannot_replace_a_cleanup_reply) ... ok
+1: test_checked_stop_retry_needs_no_new_server_operation (__main__.NativeScopeTests.test_checked_stop_retry_needs_no_new_server_operation) ... ok
+1: test_unsealed_config_does_not_issue_a_credential (__main__.NativeScopeTests.test_unsealed_config_does_not_issue_a_credential) ... ok
+1: test_application_role_is_not_an_authority_scope (__main__.NativeScopeTests.test_application_role_is_not_an_authority_scope) ... ok
+1: test_wrong_server_identity_does_not_issue_a_credential (__main__.NativeScopeTests.test_wrong_server_identity_does_not_issue_a_credential) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 11 tests in 4.587s
+1: 
+1: OK
+1/5 Test  #1: authority-native-scope .............   Passed    4.71 sec
+test 4
+    Start  4: authority-launch-coordinator
+
+4: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-coordinator-396c7ddb1acd415eac45b1d432bfaa13cf6f4ebef4f64814a2b8b89f84f460ad" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/server" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source/tests/native/test_authority_launch.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/spatial-security-auth"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build
+4: Test timeout computed to be: 120
+4: Running as unit: spatial-coordinator-396c7ddb1acd415eac45b1d432bfaa13cf6f4ebef4f64814a2b8b89f84f460ad.service; invocation ID: 3af5609c09cb450ca5ca7023c39fe209
+4: test_child_reads_exact_durable_start_before_execution (__main__.AuthorityLaunchTests.test_child_reads_exact_durable_start_before_execution) ... ok
+4: test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants (__main__.AuthorityLaunchTests.test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants) ... ok
+4: test_paused_native_server_keeps_durable_cleanup_pending (__main__.AuthorityLaunchTests.test_paused_native_server_keeps_durable_cleanup_pending) ... ok
+4: test_failed_journal_commit_prevents_execution (__main__.AuthorityLaunchTests.test_failed_journal_commit_prevents_execution) ... ok
+4: test_failed_exec_retains_start_attempt_and_cannot_retry (__main__.AuthorityLaunchTests.test_failed_exec_retains_start_attempt_and_cannot_retry) ... ok
+4: test_failed_prepared_commit_can_stop_retained_native_scope (__main__.AuthorityLaunchTests.test_failed_prepared_commit_can_stop_retained_native_scope) ... ok
+4: test_missing_native_grant_never_commits_stopped_record (__main__.AuthorityLaunchTests.test_missing_native_grant_never_commits_stopped_record) ... ok
+4: test_invalid_binding_cannot_create_an_external_scope (__main__.AuthorityLaunchTests.test_invalid_binding_cannot_create_an_external_scope) ... ok
+4: test_stopping_prepared_launch_prevents_later_execution (__main__.AuthorityLaunchTests.test_stopping_prepared_launch_prevents_later_execution) ... ok
+4: test_supervisor_crash_preserves_unresolved_record_and_denies_replacement (__main__.AuthorityLaunchTests.test_supervisor_crash_preserves_unresolved_record_and_denies_replacement) ... ok
+4: test_stopped_receipt_survives_restart_without_repeating_effects (__main__.AuthorityLaunchTests.test_stopped_receipt_survives_restart_without_repeating_effects) ... ok
+4: test_journal_excludes_native_secrets (__main__.AuthorityLaunchTests.test_journal_excludes_native_secrets) ... ok
+4: test_second_coordinator_cannot_open_owned_journal (__main__.AuthorityLaunchTests.test_second_coordinator_cannot_open_owned_journal) ... ok
+4: test_unknown_schema_is_rejected_without_mutation (__main__.AuthorityLaunchTests.test_unknown_schema_is_rejected_without_mutation) ... ok
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 14 tests in 4.702s
+4: 
+4: OK
+4: Finished with result: success
+4: Main processes terminated with: code=exited/status=0
+4: Service runtime: 4.796s
+4: CPU time consumed: 2.547s
+4: Memory peak: 1.5M
+4: Memory swap peak: 0B
+2/5 Test  #4: authority-launch-coordinator .......   Passed    4.82 sec
+test 5
+    Start  5: authority-prepared-launch
+
+5: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-prepared-396c7ddb1acd415eac45b1d432bfaa13cf6f4ebef4f64814a2b8b89f84f460ad" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source/tests/core/test_authority_prepared_launch.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/spatial-process-scope-probe"
+5: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build
+5: Test timeout computed to be: 120
+5: Running as unit: spatial-prepared-396c7ddb1acd415eac45b1d432bfaa13cf6f4ebef4f64814a2b8b89f84f460ad.service; invocation ID: 4599e148ffad4806a42e1694e311048f
+5: test_prepared_identity_and_membership_precede_child_execution (__main__.PreparedLaunchTests.test_prepared_identity_and_membership_precede_child_execution) ... ok
+5: test_stopped_prepared_scope_cannot_execute (__main__.PreparedLaunchTests.test_stopped_prepared_scope_cannot_execute) ... ok
+5: test_second_start_cannot_execute_or_replace_live_identity (__main__.PreparedLaunchTests.test_second_start_cannot_execute_or_replace_live_identity) ... ok
+5: test_only_explicit_descriptors_survive_exec_without_source_collision (__main__.PreparedLaunchTests.test_only_explicit_descriptors_survive_exec_without_source_collision) ... ok
+5: test_invalid_targets_are_rejected_before_start (__main__.PreparedLaunchTests.test_invalid_targets_are_rejected_before_start) ... ok
+5: test_mismatched_descriptor_table_is_rejected_before_start (__main__.PreparedLaunchTests.test_mismatched_descriptor_table_is_rejected_before_start) ... ok
+5: test_excessive_descriptor_table_is_rejected_before_start (__main__.PreparedLaunchTests.test_excessive_descriptor_table_is_rejected_before_start) ... ok
+5: test_failed_exec_requires_cleanup_and_cannot_retry_execution (__main__.PreparedLaunchTests.test_failed_exec_requires_cleanup_and_cannot_retry_execution) ... ok
+5: 
+5: ----------------------------------------------------------------------
+5: Ran 8 tests in 0.357s
+5: 
+5: OK
+5: Finished with result: success
+5: Main processes terminated with: code=exited/status=0
+5: Service runtime: 450ms
+5: CPU time consumed: 394ms
+5: Memory peak: 1.5M
+5: Memory swap peak: 0B
+3/5 Test  #5: authority-prepared-launch ..........   Passed    0.48 sec
+test 6
+    Start  6: authority-process-scope
+
+6: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-scope-396c7ddb1acd415eac45b1d432bfaa13cf6f4ebef4f64814a2b8b89f84f460ad" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source/tests/core/test_authority_process_scope.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/spatial-process-scope-probe"
+6: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build
+6: Test timeout computed to be: 120
+6: Running as unit: spatial-scope-396c7ddb1acd415eac45b1d432bfaa13cf6f4ebef4f64814a2b8b89f84f460ad.service; invocation ID: 5d0e7de6239a443b90e4ce58894377d0
+6: test_detached_descendants_exit_before_receipt (__main__.ProcessScopeTests.test_detached_descendants_exit_before_receipt) ... ok
+6: test_exec_failure_removes_scope (__main__.ProcessScopeTests.test_exec_failure_removes_scope) ... ok
+6: test_invalid_executable_rejected_without_scope (__main__.ProcessScopeTests.test_invalid_executable_rejected_without_scope) ... ok
+6: test_kernel_denied_kill_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_kill_never_returns_stopped) ... ok
+6: test_kernel_denied_wait_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_wait_never_returns_stopped) ... ok
+6: test_leader_exit_does_not_hide_live_detached_child (__main__.ProcessScopeTests.test_leader_exit_does_not_hide_live_detached_child) ... ok
+6: test_ordinary_directory_rejected_before_execution (__main__.ProcessScopeTests.test_ordinary_directory_rejected_before_execution) ... ok
+6: test_parent_environment_is_not_exported (__main__.ProcessScopeTests.test_parent_environment_is_not_exported) ... ok
+6: test_stop_preserves_independent_scope (__main__.ProcessScopeTests.test_stop_preserves_independent_scope) ... ok
+6: test_unknown_protobuf_fields_rejected (__main__.ProcessScopeTests.test_unknown_protobuf_fields_rejected) ... ok
+6: 
+6: ----------------------------------------------------------------------
+6: Ran 10 tests in 0.458s
+6: 
+6: OK
+6: Finished with result: success
+6: Main processes terminated with: code=exited/status=0
+6: Service runtime: 550ms
+6: CPU time consumed: 440ms
+6: Memory peak: 1.5M
+6: Memory swap peak: 0B
+4/5 Test  #6: authority-process-scope ............   Passed    0.59 sec
+test 12
+    Start 12: identity-participant-incarnation
+
+12: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source/tests/core/test_participant_incarnation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/spatial-participant-runtime-probe"
+12: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build
+12: Environment variables: 
+12:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-full-03/source
+12: Test timeout computed to be: 90
+12: test_exact_preassigned_incarnation_reaches_durable_activation (__main__.IncarnationTests.test_exact_preassigned_incarnation_reaches_durable_activation) ... ok
+12: test_explicit_invalid_incarnation_is_rejected_before_network_access (__main__.IncarnationTests.test_explicit_invalid_incarnation_is_rejected_before_network_access) ... ok
+12: test_preassigned_incarnation_cannot_be_reused_after_release (__main__.IncarnationTests.test_preassigned_incarnation_cannot_be_reused_after_release) ... ok
+12: test_assignment_does_not_bypass_registered_domains (__main__.IncarnationTests.test_assignment_does_not_bypass_registered_domains) ... ok
+12: test_assignment_does_not_bypass_service_key_proof (__main__.IncarnationTests.test_assignment_does_not_bypass_service_key_proof) ... ok
+12: 
+12: ----------------------------------------------------------------------
+12: Ran 5 tests in 3.553s
+12: 
+12: OK
+5/5 Test #12: identity-participant-incarnation ...   Passed    3.67 sec
+
+The following tests passed:
+	authority-native-scope
+	authority-launch-coordinator
+	authority-prepared-launch
+	authority-process-scope
+	identity-participant-incarnation
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =  14.27 sec

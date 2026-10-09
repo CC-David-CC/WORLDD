@@ -1,5 +1,5 @@
 Supervisor authorization for one authority launch
-Status: missing-feature baseline reproduced on both hosts. Production authorization remains unimplemented.
+Status: isolated candidate02 passed focused Debug on both hosts. Runtime sanitizer qualification is running.
 
 Invariant
 
@@ -114,4 +114,37 @@ Both hosts built all required targets and ran the positive production-client cas
 The issuer returned UNKNOWN_METHOD for the new launch request on both hosts.
 The original failure, commands, patch, and 273-file manifest are preserved in evidence/launch-authorization-2026-10-09.
 All 41 locked file hashes remain unchanged.
-The other seven drafted checks remain unrun until implementation.
+The baseline did not run the other seven drafted checks.
+
+Implementation and review
+
+Candidate01 implements the schema8 authorization record and TLS-bound supervisor proof.
+Activation checks the exact approval and consumes it atomically with generation creation.
+The production client checks the challenge, signing purpose, proof, and correlated reply.
+Twenty-two new checks cover real activation, concurrent proofs, replay, rotation, restart, storage rollback, and migration.
+Independent TLS peers test rejected challenge and reply substitutions.
+A real pending revocation remains pending after authorization retrieval.
+
+The first Debug run passed 283 of 284 focused checks on each host.
+One new concurrency fixture shared temporary signing files between its threads.
+It produced an invalid proof. Preserve that failure and the original source.
+Candidate02 generates both proofs before issuing concurrent requests.
+The requests remain concurrent. No production code or existing assertion changed for this correction.
+
+Candidate02 passed all 284 focused Debug checks across sixteen suites on both hosts.
+Each host also passed 51 harness checks. No corrected Debug case failed or skipped.
+All 273 source hashes and 41 locked hashes match.
+Descriptor comparison preserves all previous protobuf fields, messages, and enum values.
+Six historical migration fixtures remove the schema8 table before constructing older schemas.
+Their current-version assertions change from7 to8. All other assertions remain unchanged.
+Read candidate-source-review.json for the exact files and methods.
+
+Candidate02 passed all 284 focused sanitizer checks and 51 harness checks on sb16.
+On sb16-2, one sanitizer fixture failed before its required request reached the peer.
+Both hosts reproduced configuration overwrite by another fixture client.
+Candidate03 creates a private, unique configuration snapshot for each client.
+It adds one configuration regression. All existing test bodies and production code remain unchanged.
+Candidate03 passed 285 focused Debug checks and 51 harness checks on both hosts.
+No Debug case failed or skipped. Runtime sanitizer and full qualification remain pending.
+The original failure and diagnostic logs remain preserved.
+The coordinator signing bridge, fencing, external cleanup reconciliation, and retirement remain required before integration.

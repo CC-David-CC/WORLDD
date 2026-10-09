@@ -1,0 +1,74 @@
+{
+  "reconstructed_files": 273,
+  "locked_files": 41,
+  "changed": [
+    "CMakeLists.txt",
+    "proto/spatial/identity/v1/issuer.proto",
+    "proto/spatial/identity/v1/key.proto",
+    "src/identity/issuer.cpp",
+    "src/identity/issuer.hpp",
+    "src/identity/issuer_client.cpp",
+    "src/identity/participants.hpp",
+    "src/identity/protocol.cpp",
+    "tests/core/test_identity_bootstrap.py",
+    "tests/core/test_identity_enrollment.py",
+    "tests/core/test_identity_participant_barrier.py",
+    "tests/core/test_identity_participants.py",
+    "tests/core/test_identity_revocation.py",
+    "tests/core/test_launch_authorization.py",
+    "tests/core/test_supervisor_registry.py"
+  ],
+  "migration_fixtures": [
+    {
+      "file": "tests/core/test_identity_bootstrap.py",
+      "changed_methods": [
+        "test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
+      ],
+      "changes": "Remove schema8 authorization table when constructing historical schemas. Current-version assertions7 become8; all other assertions unchanged."
+    },
+    {
+      "file": "tests/core/test_identity_enrollment.py",
+      "changed_methods": [
+        "test_explicit_schema_migration_preserves_issuer_key_owner_and_policy"
+      ],
+      "changes": "Remove schema8 authorization table when constructing historical schemas. Current-version assertions7 become8; all other assertions unchanged."
+    },
+    {
+      "file": "tests/core/test_identity_participant_barrier.py",
+      "changed_methods": [
+        "test_v5_migration_preserves_state_without_inventing_historical_completion",
+        "test_failed_v5_migration_rolls_back_tables_and_version"
+      ],
+      "changes": "Remove schema8 authorization table when constructing historical schemas. Current-version assertions7 become8; all other assertions unchanged."
+    },
+    {
+      "file": "tests/core/test_identity_participants.py",
+      "changed_methods": [
+        "test_v4_migration_preserves_credential_and_issuer_state"
+      ],
+      "changes": "Remove schema8 authorization table when constructing historical schemas. Current-version assertions7 become8; all other assertions unchanged."
+    },
+    {
+      "file": "tests/core/test_identity_revocation.py",
+      "changed_methods": [
+        "test_explicit_v2_migration_preserves_all_existing_credential_bytes"
+      ],
+      "changes": "Remove schema8 authorization table when constructing historical schemas. Current-version assertions7 become8; all other assertions unchanged."
+    },
+    {
+      "file": "tests/core/test_supervisor_registry.py",
+      "changed_methods": [
+        "test_explicit_v6_migration_preserves_existing_activation",
+        "test_failed_v6_migration_rolls_back_without_adopting_services",
+        "respond",
+        "respond",
+        "respond",
+        "respond"
+      ],
+      "changes": "Remove schema8 authorization table when constructing historical schemas. Current-version assertions7 become8; all other assertions unchanged."
+    }
+  ],
+  "candidate02": "Only new concurrency fixture changed. Proofs are generated sequentially with the existing shared-file signer; actual issuer requests remain concurrent.",
+  "review": "Primary agent reviewed exact registration and TLS binding, supervisor revision, nonce consumption, atomic activation, stale generation rejection, migration rollback, and checked client replies. Qualification pending.",
+  "integrated": false
+}

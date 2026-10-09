@@ -44,6 +44,6 @@ M02, supervisor recovery, and Spatial-M1 remain incomplete.
 Both hosts passed 84 focused checks across six suites in Debug and runtime ASan/UBSan.
 Each profile also passed 51 harness checks. No final case failed or skipped.
 All 271 source hashes and 41 locked hashes match. Descriptor comparison confirms the additive field only.
-Full Debug qualification passed separately in output03 on both hosts.
-Each host passed 1287 core checks across 84 suites, 51 harness checks, and 151 P10 cases.
-No full Debug case failed or skipped. Runtime sanitizer qualification remains pending.
+Full Debug and runtime ASan/UBSan qualification passed separately in output03 on both hosts.
+Each profile passed 1287 core checks across 84 suites, 51 harness checks, and 151 P10 cases.
+No full case failed or skipped. Source integration and supervisor recovery remain pending.

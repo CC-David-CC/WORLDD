@@ -1,0 +1,56 @@
+{
+  "commands": [
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/descriptor-audit/before.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source/proto/spatial/input/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source/proto/spatial/supervisor/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source/proto/spatial/workspace/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source/proto/spatial/identity/v1/issuer.proto"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/descriptor-audit/after.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/source/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/source/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/source/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/source/proto/spatial/input/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/source/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/source/proto/spatial/supervisor/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/source/proto/spatial/workspace/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-03/source/proto/spatial/identity/v1/issuer.proto"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "result": {
+    "preserved_files": 5,
+    "added_messages": [
+      "AuthorityLaunchAuthorization",
+      "AuthorityLaunchBegin",
+      "AuthorityLaunchChallenge",
+      "AuthorityLaunchComplete"
+    ],
+    "added_fields": {
+      "IssuerRequest": {
+        "authority_launch_begin": 28,
+        "authority_launch_complete": 29
+      },
+      "IssuerReply": {
+        "authority_launch_authorization": 27
+      }
+    },
+    "added_purpose": "AUTHORITY_LAUNCH_AUTHORIZATION=6",
+    "existing_descriptors_unchanged": true
+  }
+}

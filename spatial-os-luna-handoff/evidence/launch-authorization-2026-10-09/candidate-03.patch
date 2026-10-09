@@ -1,0 +1,37 @@
+--- a/tests/core/test_issuer_client.py
++++ b/tests/core/test_issuer_client.py
+@@ -6,6 +6,7 @@
+ import subprocess
+ import sys
+ import threading
++import tempfile
+ import time
+ import unittest
+ 
+@@ -110,8 +111,9 @@
+             certificate_path=str(self.service_cert), private_key_path=str(self.service_key),
+             issuer_id=self.info.issuer_id, issuer_public_key=self.info.public_key, io_timeout_ms=700)
+         for key, value in overrides.items(): setattr(config, key, value)
+-        path = self.root/'client.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
+-        return path
++        with tempfile.NamedTemporaryFile(mode='w',dir=self.root,prefix='client-',suffix='.textproto',delete=False) as file:
++            file.write(text_format.MessageToString(config))
++        return Path(file.name)
+ 
+     def client(self, endpoint_port=None, **overrides):
+         client = ClientProcess(self.config_file(endpoint_port, **overrides), self.root/f'client-{len(self.connections)}.log')
+--- a/tests/core/test_launch_authorization.py
++++ b/tests/core/test_launch_authorization.py
+@@ -266,6 +266,12 @@
+         self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_launch_complete=pb.AuthorityLaunchComplete(
+             nonce=challenge.nonce,proof=self.proof(challenge,self.supervisor_key,self.supervisor_public))),peer,3)
+ 
++    def test_client_configuration_remains_private_and_unchanged_for_delayed_readers(self):
++        first=self.config_file(1);original=first.read_bytes();second=self.config_file(2)
++        self.assertNotEqual(first,second);self.assertEqual(first.read_bytes(),original)
++        self.assertNotEqual(first.read_bytes(),second.read_bytes())
++        self.assertEqual(first.stat().st_mode & 0o077,0);self.assertEqual(second.stat().st_mode & 0o077,0)
++
+ 
+ if __name__=='__main__':
+     suite=unittest.TestSuite(LaunchAuthorizationTests(n) for n in LaunchAuthorizationTests.__dict__ if n.startswith('test_'))

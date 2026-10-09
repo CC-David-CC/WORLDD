@@ -9,14 +9,16 @@
   "integrated": false,
   "evidence": "evidence/launch-authorization-2026-10-09",
   "baseline": "Both hosts built the additive schema and reproduced UNKNOWN_METHOD through the production issuer client.",
-  "implementation": "Not written. Eight integration checks are drafted; only the positive missing-feature baseline has executed.",
+  "implementation": "Isolated schema8 authorization, distinct supervisor proof bound to exact target and TLS, atomic activation consumption, and checked production client.",
   "remaining": [
-    "Implement explicit schema8 migration and exact durable authorization records.",
-    "Bind a fresh supervisor proof to the target service and supervisor TLS connection.",
-    "Consume authorization atomically with activation and reject superseded approvals.",
-    "Add production client challenge and reply validation.",
-    "Test replay, stale connections, rotation, issuer restart, migration, and storage rollback.",
-    "Connect signing to the coordinator's retained production launch ownership.",
-    "Qualify both profiles on both hosts before integration."
-  ]
+    "Complete focused sanitizer and full qualification on both hosts.",
+    "Connect signing to the coordinator retained production launch ownership.",
+    "Implement fencing, checked external cleanup reconciliation, and exact generation retirement."
+  ],
+  "candidate": 3,
+  "focused": "Candidate03 passed 285 focused Debug checks across 16 suites and 51 harness checks on both hosts. No failures or skips. Runtime sanitizer qualification is running.",
+  "candidate01": "Both hosts passed283 of284 Debug checks. One new concurrency fixture raced through shared signing files. Original failure preserved; candidate02 changes only proof preparation before concurrent requests.",
+  "migration": "Six historical fixtures remove the schema8 table and update current-version assertions7to8; all other assertions and41locks preserved.",
+  "candidate02": "Debug passed on both hosts. Sanitizer284+51 passed on sb16. On sb16-2,283of284 focused checks passed; shared fixture configuration overwrite reproduced on both hosts.",
+  "candidate03": "Only shared fixture config_file helper and one new regression changed. Unique private files prevent another client from changing a delayed reader endpoint. Existing test bodies and production unchanged."
 }

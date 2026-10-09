@@ -1,0 +1,833 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -281,6 +281,11 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(world-revocation-receipts PROPERTIES TIMEOUT 120
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME identity-launch-authorization COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_launch_authorization.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(identity-launch-authorization PROPERTIES TIMEOUT 180
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-supervisor-registry COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_supervisor_registry.py" $<TARGET_FILE:identityd>
+         $<TARGET_FILE:spatial-issuer-client>)
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -284,6 +284,31 @@
+ message RevocationUpdate {
+   uint32 protocol_version = 1;
+   oneof outcome { RevocationBatch batch = 2; spatial.core.v1.Error error = 3; }
++}
++// Supervisor proof authorizes one exact service connection and retained launch.
++message AuthorityLaunchBegin {
++  AuthorityAuthenticationResult service = 1;
++  uint64 supervision_revision = 2;
++  bytes launch_id = 3;
++  optional uint64 previous_generation = 4;
++}
++message AuthorityLaunchChallenge {
++  uint32 protocol_version = 1;
++  bytes issuer_id = 2;
++  bytes issuer_incarnation = 3;
++  bytes nonce = 4;
++  bytes connection_binding = 5;
++  AuthorityLaunchBegin request = 6;
++  bytes supervisor_public_key = 7;
++  uint32 lifetime_ms = 8;
++  string audience = 9;
++}
++message AuthorityLaunchComplete { bytes nonce = 1; KeyProof proof = 2; }
++message AuthorityLaunchAuthorization {
++  AuthorityLaunchBegin request = 1;
++  bytes authorization_id = 2;
++  uint64 generation = 3;
++  bytes supervisor_public_key = 4;
+ }
+ message IssuerRequest {
+   uint32 protocol_version = 1;
+@@ -307,6 +332,8 @@
+     AuthorityApplied authority_applied = 25;
+     AuthorityRelease authority_release = 26;
+     AuthorityStateRead authority_state = 27;
++    AuthorityLaunchBegin authority_launch_begin = 28;
++    AuthorityLaunchComplete authority_launch_complete = 29;
+   }
+ }
+ message IssuerReply {
+@@ -330,6 +357,7 @@
+     AuthorityActivationState authority_activation = 24;
+     AuthorityBarrierStatus authority_barrier = 25;
+     AuthoritySupervisorBinding supervision = 26;
++    AuthorityLaunchAuthorization authority_launch_authorization = 27;
+   }
+ }
+ 
+--- a/proto/spatial/identity/v1/key.proto
++++ b/proto/spatial/identity/v1/key.proto
+@@ -10,6 +10,7 @@
+   ISSUER_ADMINISTRATION = 3;
+   ISSUER_CREDENTIAL = 4;
+   AUTHORITY_PARTICIPATION = 5;
++  AUTHORITY_LAUNCH_AUTHORIZATION = 6;
+ }
+ message SignRequest {
+   SignaturePurpose purpose = 1;
+--- a/src/identity/issuer.cpp
++++ b/src/identity/issuer.cpp
+@@ -201,6 +201,15 @@
+             "registration BLOB NOT NULL,public_key BLOB NOT NULL CHECK(length(public_key)=32),"
+             "revision INTEGER NOT NULL CHECK(revision>0)); PRAGMA user_version=7");
+ }
++void create_launch_schema(sqlite3* db) {
++    sql(db, "CREATE TABLE authority_launch_authorization("
++            "authorization_id BLOB PRIMARY KEY CHECK(length(authorization_id)=32),"
++            "participant_id BLOB NOT NULL REFERENCES authority_supervisor(participant_id),"
++            "service_incarnation BLOB NOT NULL CHECK(length(service_incarnation)=32),"
++            "launch_id BLOB NOT NULL UNIQUE CHECK(length(launch_id)=32),request BLOB NOT NULL,"
++            "supervisor_public_key BLOB NOT NULL CHECK(length(supervisor_public_key)=32),"
++            "generation INTEGER NOT NULL CHECK(generation>=0),UNIQUE(participant_id,service_incarnation)); PRAGMA user_version=8");
++}
+ } // namespace
+ 
+ struct Issuer::Impl {
+@@ -214,6 +223,7 @@
+         v1::IdentityStatus authenticated_identity;
+         v1::AuthorityAuthenticationBegin authority{};
+         std::string connection_binding{};
++        v1::AuthorityLaunchBegin launch{};
+     };
+     File directory, lock;
+     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
+@@ -253,12 +263,12 @@
+         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
+                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
+         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
+-        sqlite3_int64 schema = 7;
++        sqlite3_int64 schema = 8;
+         if (!owner) {
+             Query version(db.get(), "PRAGMA user_version"); version.step();
+             Query application(db.get(), "PRAGMA application_id"); application.step();
+             schema = version.integer(0);
+-            storage((schema == 7 || ((schema >= 1 && schema <= 6) && migrate)) && application.integer(0) == application_id,
++            storage((schema == 8 || ((schema >= 1 && schema <= 7) && migrate)) && application.integer(0) == application_id,
+                     "Unknown issuer schema; explicit migration is required");
+         }
+         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
+@@ -276,7 +286,7 @@
+             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
+             insert.blob(4, policy.SerializeAsString()); insert.step();
+             create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
+-            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); tx.commit();
++            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); tx.commit();
+             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
+         }
+         { Query integrity(db.get(), "PRAGMA quick_check");
+@@ -287,14 +297,15 @@
+         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
+                 "Issuer key does not match its durable identity");
+         policy();
+-        if (schema < 7) {
++        if (schema < 8) {
+             Transaction migration(db.get());
+             if (schema == 1) create_enrollment_schema(db.get());
+             if (schema < 3) create_security_schema(db.get());
+             if (schema < 4) create_bootstrap_schema(db.get());
+             if (schema < 5) create_participant_schema(db.get());
+             if (schema < 6) create_barrier_schema(db.get());
+-            create_supervisor_schema(db.get()); migration.commit();
++            if (schema < 7) create_supervisor_schema(db.get());
++            create_launch_schema(db.get()); migration.commit();
+         }
+     }
+ 
+@@ -375,6 +386,64 @@
+         }
+         transaction.commit(); return result;
+     }
++    v1::AuthoritySupervisorBinding launch_context(const v1::AuthorityLaunchBegin& request) {
++        validate_launch_begin(request, identity.issuer_id());
++        const auto& service = request.service();
++        if (service.issuer_incarnation() != incarnation || service.security_revision() > security_revision())
++            throw WorldError(wire::UNAUTHORIZED, "Launch service context is stale or ahead of issuer history");
++        const auto& participant = service.registration().participant().id();
++        if (!supervised(participant)) throw WorldError(wire::FORBIDDEN, "Participant has no registered supervisor");
++        const auto binding = supervision_record(participant);
++        if (binding.registration().SerializeAsString() != service.registration().SerializeAsString())
++            throw WorldError(wire::UNAUTHORIZED, "Launch service registration does not match supervisor binding");
++        if (binding.revision() != request.supervision_revision())
++            throw WorldError(wire::REVISION_CONFLICT, "Launch supervisor revision changed");
++        return binding;
++    }
++    std::optional<v1::AuthorityLaunchAuthorization> launch_authorization(const std::string& participant, const std::string& service) {
++        Query row(db.get(), "SELECT authorization_id,launch_id,request,supervisor_public_key,generation "
++                            "FROM authority_launch_authorization WHERE participant_id=? AND service_incarnation=?");
++        row.blob(1, participant); row.blob(2, service);
++        if (row.step() != SQLITE_ROW) return {};
++        v1::AuthorityLaunchAuthorization result;
++        storage(row.blob(0).size() == 32 && row.blob(1).size() == 32 && row.blob(3).size() == 32 && row.integer(4) >= 0 &&
++                result.mutable_request()->ParseFromString(row.blob(2)), "Invalid durable launch authorization");
++        try { validate_launch_begin(result.request(), identity.issuer_id()); }
++        catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Invalid durable launch request"); }
++        const auto& request = result.request();
++        storage(request.service().registration().participant().id() == participant && request.service().service_incarnation() == service &&
++                request.launch_id() == row.blob(1) && (row.integer(4) == 0 || (request.previous_generation() < INT64_MAX &&
++                static_cast<std::uint64_t>(row.integer(4)) == request.previous_generation()+1)), "Contradictory durable launch context");
++        result.set_authorization_id(row.blob(0)); result.set_supervisor_public_key(row.blob(3)); result.set_generation(row.integer(4));
++        return result;
++    }
++    v1::AuthorityLaunchAuthorization authorize_launch(const v1::AuthorityLaunchBegin& request, const std::string& public_key) {
++        const auto binding = launch_context(request);
++        if (binding.public_key() != public_key) throw WorldError(wire::UNAUTHORIZED, "Launch supervisor key changed during proof");
++        const auto& participant = request.service().registration().participant().id();
++        const auto existing = launch_authorization(participant, request.service().service_incarnation());
++        if (existing) {
++            if (existing->request().SerializeAsString() != request.SerializeAsString() || existing->supervisor_public_key() != public_key)
++                throw WorldError(wire::ALREADY_EXISTS, "Service incarnation already has another launch authorization");
++            return *existing;
++        }
++        Query active(db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND active=1"); active.blob(1, participant);
++        if (active.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "New launch requires prior generation cleanup");
++        Query prior(db.get(), "SELECT COALESCE(MAX(generation),0) FROM authority_activation WHERE participant_id=?"); prior.blob(1, participant);
++        storage(prior.step() == SQLITE_ROW && prior.integer(0) >= 0, "Invalid previous generation");
++        if (static_cast<std::uint64_t>(prior.integer(0)) != request.previous_generation())
++            throw WorldError(wire::REVISION_CONFLICT, "Launch previous generation changed");
++        Query used(db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND service_incarnation=?");
++        used.blob(1, participant); used.blob(2, request.service().service_incarnation());
++        if (used.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Activated service incarnation cannot receive a new authorization");
++        Query launch(db.get(), "SELECT 1 FROM authority_launch_authorization WHERE launch_id=?"); launch.blob(1, request.launch_id());
++        if (launch.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Launch identity already has an authorization");
++        Query insert(db.get(), "INSERT INTO authority_launch_authorization VALUES(?,?,?,?,?,?,0)");
++        insert.blob(1, random_id()); insert.blob(2, participant); insert.blob(3, request.service().service_incarnation());
++        insert.blob(4, request.launch_id()); insert.blob(5, request.SerializeAsString()); insert.blob(6, public_key); insert.step();
++        const auto result = launch_authorization(participant, request.service().service_incarnation());
++        storage(result.has_value(), "Committed launch authorization is missing"); return *result;
++    }
+     bool supervisor_key(const std::string& public_key) {
+         Query row(db.get(), "SELECT 1 FROM authority_supervisor WHERE public_key=?"); row.blob(1, public_key);
+         return row.step() == SQLITE_ROW;
+@@ -920,12 +989,42 @@
+     auto result = impl_->activation(context.registration().participant().id());
+     transaction.commit(); return result;
+ }
++v1::ChallengeReply Issuer::authority_launch_begin(const v1::AuthorityLaunchBegin& request, IssuerConnection& connection) {
++    if (connection.binding.size() != 32) throw WorldError(wire::FORBIDDEN, "Launch proof requires a TLS connection identity");
++    Transaction transaction(impl_->db.get()); const auto binding = impl_->launch_context(request); transaction.commit();
++    const auto nonce = impl_->nonce();
++    v1::AuthorityLaunchChallenge payload; payload.set_protocol_version(1); payload.set_issuer_id(impl_->identity.issuer_id());
++    payload.set_issuer_incarnation(impl_->incarnation); payload.set_nonce(nonce); payload.set_connection_binding(connection.binding);
++    *payload.mutable_request() = request; payload.set_supervisor_public_key(binding.public_key());
++    payload.set_lifetime_ms(static_cast<std::uint32_t>(impl_->lifetime.count())); payload.set_audience("identityd/authority-launch/v1");
++    v1::ChallengeReply result; result.set_nonce(nonce); result.mutable_signing_request()->set_purpose(v1::AUTHORITY_LAUNCH_AUTHORIZATION);
++    result.mutable_signing_request()->set_payload(payload.SerializeAsString());
++    Impl::Pending pending; pending.content = result.signing_request(); pending.expected_key = binding.public_key();
++    pending.expires = Clock::now()+impl_->lifetime; pending.connection_binding = connection.binding; pending.launch = request;
++    impl_->pending.emplace(nonce, std::move(pending)); return result;
++}
++v1::AuthorityLaunchAuthorization Issuer::authority_launch_complete(const v1::AuthorityLaunchComplete& request, IssuerConnection& connection) {
++    validate_message(request); require(request.nonce().size() == 32 && request.has_proof(), "Launch nonce and proof are required");
++    if (connection.binding.size() != 32) throw WorldError(wire::FORBIDDEN, "Launch proof requires a TLS connection identity");
++    const auto pending = impl_->consume(request.nonce(), request.proof(), v1::AUTHORITY_LAUNCH_AUTHORIZATION);
++    if (pending.connection_binding != connection.binding) throw WorldError(wire::UNAUTHORIZED, "Launch proof belongs to another connection");
++    Transaction transaction(impl_->db.get()); const auto result = impl_->authorize_launch(pending.launch, pending.expected_key);
++    transaction.commit(); return result;
++}
+ v1::AuthorityActivationState Issuer::authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection) {
+     validate_message(request);
+     require(request.has_synchronized_revision() && request.synchronized_revision() <= INT64_MAX, "Synchronization revision is required");
+     Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
+     const auto& participant = context.registration().participant().id();
+-    if (impl_->supervised(participant)) throw WorldError(wire::FORBIDDEN, "Supervisor launch authorization is required");
++    std::optional<v1::AuthorityLaunchAuthorization> authorization;
++    if (impl_->supervised(participant)) {
++        authorization = impl_->launch_authorization(participant, context.service_incarnation());
++        const auto binding = impl_->supervision_record(participant);
++        if (!authorization || authorization->request().service().SerializeAsString() != context.SerializeAsString() ||
++                authorization->request().supervision_revision() != binding.revision() || authorization->supervisor_public_key() != binding.public_key())
++            throw WorldError(wire::FORBIDDEN, "Matching supervisor launch authorization is required");
++        if (authorization->generation()) throw WorldError(wire::ALREADY_EXISTS, "Launch authorization was already consumed");
++    }
+     Query active(impl_->db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND active=1");
+     active.blob(1, participant);
+     if (active.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "Service already has an active generation; cleanup is required");
+@@ -937,11 +1036,18 @@
+     Query prior(impl_->db.get(), "SELECT COALESCE(MAX(generation),0) FROM authority_activation WHERE participant_id=?");
+     prior.blob(1, participant);
+     storage(prior.step() == SQLITE_ROW && prior.integer(0) >= 0 && prior.integer(0) < INT64_MAX, "Service generation limit reached");
++    if (authorization && authorization->request().previous_generation() != static_cast<std::uint64_t>(prior.integer(0)))
++        throw WorldError(wire::REVISION_CONFLICT, "Launch authorization was superseded by another generation");
+     const auto generation = prior.integer(0)+1;
+     Query insert(impl_->db.get(), "INSERT INTO authority_activation VALUES(?,?,?,?,?,?,?,?,1)");
+     insert.blob(1, participant); insert.integer(2, generation); insert.blob(3, context.service_incarnation());
+     insert.blob(4, context.issuer_incarnation()); insert.blob(5, context.connection_binding());
+     insert.blob(6, context.registration().SerializeAsString()); insert.integer(7, head); insert.integer(8, head); insert.step();
++    if (authorization) {
++        Query consume(impl_->db.get(), "UPDATE authority_launch_authorization SET generation=? WHERE authorization_id=? AND generation=0");
++        consume.integer(1, generation); consume.blob(2, authorization->authorization_id()); consume.step();
++        storage(sqlite3_changes(impl_->db.get()) == 1, "Launch authorization was not consumed");
++    }
+     auto result = impl_->activation(participant, generation); transaction.commit(); return result;
+ }
+ v1::AuthorityActivationState Issuer::authority_applied(const v1::AuthorityApplied& request, IssuerConnection& connection) {
+--- a/src/identity/issuer.hpp
++++ b/src/identity/issuer.hpp
+@@ -37,6 +37,8 @@
+                                                      IssuerConnection& connection);
+     v1::AuthorityAuthenticationResult authority_authentication_complete(const v1::AuthorityAuthenticationComplete& request,
+                                                                       IssuerConnection& connection);
++    v1::ChallengeReply authority_launch_begin(const v1::AuthorityLaunchBegin& request, IssuerConnection& connection);
++    v1::AuthorityLaunchAuthorization authority_launch_complete(const v1::AuthorityLaunchComplete& request, IssuerConnection& connection);
+     v1::AuthorityActivationState authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection);
+     v1::AuthorityActivationState authority_applied(const v1::AuthorityApplied& request, IssuerConnection& connection);
+     v1::AuthorityActivationState authority_release(const v1::AuthorityRelease& request, IssuerConnection& connection);
+--- a/src/identity/issuer_client.cpp
++++ b/src/identity/issuer_client.cpp
+@@ -42,9 +42,10 @@
+ bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& reply) {
+     return (request.has_hello() && reply.has_hello()) || (request.has_info() && reply.has_info()) ||
+         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin() ||
+-            request.has_authority_authentication_begin()) && reply.has_challenge()) ||
++            request.has_authority_authentication_begin() || request.has_authority_launch_begin()) && reply.has_challenge()) ||
+         (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
+             reply.has_participant() || reply.has_registry() || reply.has_authority_barrier() || reply.has_supervision())) ||
++        (request.has_authority_launch_complete() && reply.has_authority_launch_authorization()) ||
+         (request.has_profile_read() && reply.has_profile()) ||
+         (request.has_enrollment_complete() && reply.has_enrollment()) ||
+         (request.has_authentication_complete() && reply.has_authentication()) ||
+@@ -118,7 +119,7 @@
+         Clock::time_point expires;
+     };
+     std::map<std::string, ServiceChallenge> service_challenges;
+-    std::string service_binding, issuer_incarnation;
++    std::string service_binding, issuer_incarnation, launch_binding;
+     bool service_authenticated = false;
+     std::optional<v1::AuthorityAuthenticationResult> service_identity;
+     std::optional<v1::AuthorityActivationState> own_activation, latest_activation;
+@@ -131,6 +132,52 @@
+     std::map<std::string, BarrierChallenge> barrier_challenges;
+     std::map<std::string, BarrierChallenge> supervision_challenges;
+ 
++    struct LaunchChallenge {
++        v1::SignRequest signing_request;
++        v1::AuthorityLaunchChallenge context;
++        Clock::time_point expires;
++    };
++    std::map<std::string, LaunchChallenge> launch_challenges;
++    void remember_launch_challenge(const v1::AuthorityLaunchBegin& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
++        require(reply.nonce().size() == 32 && reply.has_signing_request() &&
++                reply.signing_request().purpose() == v1::AUTHORITY_LAUNCH_AUTHORIZATION && reply.signing_request().has_payload(),
++                "Invalid launch challenge envelope");
++        LaunchChallenge pending; pending.signing_request = reply.signing_request(); auto& value = pending.context;
++        require(value.ParseFromString(pending.signing_request.payload()), "Invalid launch challenge payload");
++        try { validate_message(value); validate_launch_begin(request, config.issuer_id()); }
++        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid launch challenge fields"); }
++        require(value.protocol_version() == 1 && value.issuer_id() == config.issuer_id() &&
++                value.issuer_incarnation() == request.service().issuer_incarnation() && value.issuer_incarnation().size() == 32 &&
++                value.nonce() == reply.nonce() && value.connection_binding().size() == 32 && value.has_request() &&
++                value.request().SerializeAsString() == request.SerializeAsString() && value.supervisor_public_key().size() == 32 &&
++                value.supervisor_public_key() != request.service().registration().participant().public_key() &&
++                value.supervisor_public_key() != config.issuer_public_key() && value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 &&
++                value.audience() == "identityd/authority-launch/v1", "Invalid launch challenge context");
++        require((issuer_incarnation.empty() || issuer_incarnation == value.issuer_incarnation()) &&
++                (launch_binding.empty() || launch_binding == value.connection_binding()) &&
++                (service_binding.empty() || service_binding == value.connection_binding()), "Launch challenge changed connection context");
++        require(!launch_challenges.contains(reply.nonce()), "Duplicate launch challenge nonce");
++        std::erase_if(launch_challenges, [](const auto& item) { return item.second.expires <= Clock::now(); });
++        require(launch_challenges.size() < 256, "Too many launch challenges");
++        pending.expires = sent + std::chrono::milliseconds(value.lifetime_ms());
++        require(Clock::now() < pending.expires, "Launch challenge expired in transit");
++        issuer_incarnation = value.issuer_incarnation(); launch_binding = value.connection_binding();
++        launch_challenges.emplace(reply.nonce(), std::move(pending));
++    }
++    void check_launch_result(const v1::AuthorityLaunchComplete& request, const v1::AuthorityLaunchAuthorization& result,
++                             const std::optional<LaunchChallenge>& pending) {
++        require(pending && Clock::now() < pending->expires, "Unrequested or expired launch success");
++        const auto& expected = pending->context;
++        require(result.has_request() && result.request().SerializeAsString() == expected.request().SerializeAsString() &&
++                result.authorization_id().size() == 32 && result.supervisor_public_key() == expected.supervisor_public_key() &&
++                result.generation() <= INT64_MAX && (result.generation() == 0 || (result.request().previous_generation() < INT64_MAX &&
++                result.generation() == result.request().previous_generation()+1)), "Invalid launch authorization result");
++        try {
++            v1::VerifyRequest verification; *verification.mutable_content() = pending->signing_request;
++            *verification.mutable_proof() = request.proof(); verification.set_expected_public_key(expected.supervisor_public_key());
++            require(verify(verification), "Launch authorization accepted an invalid supervisor proof");
++        } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid launch authorization proof"); }
++    }
+     void remember_supervision_challenge(const v1::IssuerOperation& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
+         require(reply.nonce().size() == 32 && reply.has_signing_request() &&
+                 reply.signing_request().purpose() == v1::ISSUER_ADMINISTRATION && reply.signing_request().has_payload(),
+@@ -318,7 +365,8 @@
+                 value.request().service_incarnation() == request.service_incarnation() &&
+                 value.connection_binding().size() == 32 && value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 &&
+                 value.audience() == "identityd/authority-participation/v1", "Invalid service challenge context");
+-        require((service_binding.empty() || service_binding == value.connection_binding()) &&
++        require((launch_binding.empty() || launch_binding == value.connection_binding()) &&
++                (service_binding.empty() || service_binding == value.connection_binding()) &&
+                 (issuer_incarnation.empty() || issuer_incarnation == value.issuer_incarnation()),
+                 "Service challenge changed connection context");
+         require(!service_challenges.contains(reply.nonce()), "Duplicate service challenge nonce");
+@@ -448,6 +496,11 @@
+             auto node = supervision_challenges.extract(request.execute().nonce());
+             if (!node.empty()) supervision_pending = std::move(node.mapped());
+         }
++        std::optional<LaunchChallenge> launch_pending;
++        if (request.has_authority_launch_complete()) {
++            auto node = launch_challenges.extract(request.authority_launch_complete().nonce());
++            if (!node.empty()) launch_pending = std::move(node.mapped());
++        }
+         std::optional<ServiceChallenge> service_pending;
+         if (request.has_authority_authentication_complete()) {
+             // Consume before I/O. A typed denial must not leave a reusable proof context.
+@@ -480,6 +533,8 @@
+             if (reply.has_supervision()) check_supervision_result(request.execute(), reply.supervision(), supervision_pending);
+             if (barrier_pending) require(reply.has_authority_barrier(), "Barrier query returned another outcome");
+             if (reply.has_authority_barrier()) check_barrier_result(request.execute(), reply.authority_barrier(), barrier_pending);
++            if (request.has_authority_launch_begin()) remember_launch_challenge(request.authority_launch_begin(), reply.challenge(), sent);
++            if (request.has_authority_launch_complete()) check_launch_result(request.authority_launch_complete(), reply.authority_launch_authorization(), launch_pending);
+             if (reply.has_authority_activation()) check_activation_result(request, reply.authority_activation());
+             if (request.has_authority_authentication_begin())
+                 remember_service_challenge(request.authority_authentication_begin(), reply.challenge(), sent);
+--- a/src/identity/participants.hpp
++++ b/src/identity/participants.hpp
+@@ -47,6 +47,18 @@
+         require(participant_detail::domain_key(record.participant().domains(i-1)) <
+                 participant_detail::domain_key(record.participant().domains(i)), "Participant domains are not canonical");
+ }
++inline void validate_launch_begin(const v1::AuthorityLaunchBegin& request, const std::string& issuer) {
++    using participant_detail::require;
++    validate_message(request);
++    const auto& service = request.service();
++    require(request.has_service() && service.issuer_id() == issuer && service.issuer_incarnation().size() == 32 &&
++            service.connection_binding().size() == 32 && service.service_incarnation().size() == 32 &&
++            service.security_revision() <= INT64_MAX && request.supervision_revision() > 0 &&
++            request.supervision_revision() <= INT64_MAX && request.launch_id().size() == 32 &&
++            request.has_previous_generation() && request.previous_generation() <= INT64_MAX,
++            "Invalid authority launch context");
++    validate_participant_record(service.registration(), issuer);
++}
+ inline void validate_registry_page(const v1::AuthorityRegistryPage& page, const std::string& issuer) {
+     using participant_detail::require;
+     validate_message(page);
+--- a/src/identity/protocol.cpp
++++ b/src/identity/protocol.cpp
+@@ -22,6 +22,7 @@
+             result->add_capabilities("identity.authority-participation-proof/v1");
+             result->add_capabilities("identity.authority-barrier/v1");
+             result->add_capabilities("identity.authority-supervisor-registry/v1");
++            result->add_capabilities("identity.authority-launch-authorization/v1");
+         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
+         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
+         else if (request.has_execute()) {
+@@ -42,6 +43,12 @@
+         else if (request.has_authentication_begin()) *reply.mutable_challenge() = issuer.authentication_begin(request.authentication_begin());
+         else if (request.has_authentication_complete()) *reply.mutable_authentication() = issuer.authentication_complete(request.authentication_complete());
+         else if (request.has_revocations()) *reply.mutable_revocations() = issuer.revocations(request.revocations());
++        else if (request.has_authority_launch_begin() || request.has_authority_launch_complete()) {
++            if (!connection || connection->binding.size() != 32)
++                throw spatial::WorldError(spatial::wire::FORBIDDEN, "Launch proof requires a TLS connection context");
++            if (request.has_authority_launch_begin()) *reply.mutable_challenge() = issuer.authority_launch_begin(request.authority_launch_begin(), *connection);
++            else *reply.mutable_authority_launch_authorization() = issuer.authority_launch_complete(request.authority_launch_complete(), *connection);
++        }
+         else if (request.has_authority_authentication_begin() || request.has_authority_authentication_complete()) {
+             if (!connection || connection->binding.size() != 32)
+                 throw spatial::WorldError(spatial::wire::FORBIDDEN, "Service identity proof requires a TLS connection context");
+--- a/tests/core/test_identity_bootstrap.py
++++ b/tests/core/test_identity_bootstrap.py
+@@ -217,7 +217,7 @@
+         self.client.close(); secret = (self.state/'issuer.pem').read_bytes(); policy = self.snapshot()
+         with sqlite3.connect(self.state/'identity.db') as db:
+             before = db.execute('SELECT * FROM credential').fetchall()
+-            db.executescript('DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
++            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
+         command = [str(BINARY), '--state-dir', str(self.state)]
+         old = subprocess.run(command, input=b'', capture_output=True, timeout=4)
+         self.assertNotEqual(old.returncode, 0); self.assertIn(b'migration', old.stderr.lower())
+@@ -226,7 +226,7 @@
+             self.assertEqual(migrated.returncode, 0, migrated.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(), before)
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 7)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 8)
+         self.assertEqual((self.state/'issuer.pem').read_bytes(), secret); self.assertEqual(self.snapshot(), policy)
+         self.client = self.start(); self.assertEqual(self.enroll(self.client), approved)
+         self.assertEqual(len(self.read('empty-v1').profile.grants), 0)
+--- a/tests/core/test_identity_enrollment.py
++++ b/tests/core/test_identity_enrollment.py
+@@ -246,7 +246,7 @@
+     def test_explicit_schema_migration_preserves_issuer_key_owner_and_policy(self):
+         info=self.init();before=self.snapshot();secret=(self.state/'issuer.pem').read_bytes()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
++            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
+                              'DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
+         command=[str(BINARY),'--state-dir',str(self.state)]
+         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+--- a/tests/core/test_identity_participant_barrier.py
++++ b/tests/core/test_identity_participant_barrier.py
+@@ -218,7 +218,7 @@
+         self.revoke_actor(); self.peer.close(); self.service['peer'].close(); self.stop_daemons()
+         secret = (self.state/'issuer.pem').read_bytes()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; PRAGMA user_version=5;')
++            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; PRAGMA user_version=5;')
+         before = self.snapshot(); command = [str(BINARY),'--state-dir',str(self.state)]
+         denied = subprocess.run(command,input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(denied.returncode,0); self.assertIn(b'migration',denied.stderr.lower())
+@@ -227,7 +227,7 @@
+             self.assertEqual(migrated.returncode,0,migrated.stderr)
+         after = self.snapshot(); self.assertEqual({n:after[n] for n in before},before)
+         for name in ('authority_activation','authority_barrier','authority_obligation'):self.assertEqual(after[name],[])
+-        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret); self.peer = self.ready()
+         op = pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(revision=1))
+         self.denied(self.execute(self.peer,self.challenge(self.peer,op)),core.NOT_FOUND)
+@@ -235,7 +235,7 @@
+     def test_failed_v5_migration_rolls_back_tables_and_version(self):
+         self.peer.close(); self.service['peer'].close(); self.stop_daemons()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; '
++            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; '
+                 'PRAGMA user_version=5; CREATE TABLE authority_obligation(marker INTEGER);')
+         before = self.snapshot()
+         result = subprocess.run([str(BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
+--- a/tests/core/test_identity_participants.py
++++ b/tests/core/test_identity_participants.py
+@@ -7,7 +7,7 @@
+ import issuer_pb2 as pb
+ from test_identity_enrollment import EnrollmentFixture,BINARY
+ 
+-DROP_REGISTRY='DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; '
++DROP_REGISTRY='DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; '
+ 
+ class ParticipantTests(EnrollmentFixture):
+     def setUp(self):
+@@ -179,7 +179,7 @@
+         for _ in range(2):
+             result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+             self.assertEqual({table:db.execute('SELECT * FROM '+table).fetchall() for table in before},before)
+         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+         self.client=self.start();self.assertFalse(self.client.call(credential_check=enrolled.credential).identity_status.active)
+--- a/tests/core/test_identity_revocation.py
++++ b/tests/core/test_identity_revocation.py
+@@ -199,7 +199,7 @@
+         self.client.close();secret=(self.state/'issuer.pem').read_bytes();policy=self.snapshot()
+         with sqlite3.connect(self.state/'identity.db') as db:
+             before=db.execute('SELECT * FROM credential').fetchall()
+-            db.executescript('DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
++            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
+         command=[str(BINARY),'--state-dir',str(self.state)]
+         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
+@@ -207,7 +207,7 @@
+         self.assertEqual(result.returncode,0,result.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(),before)
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+         self.assertEqual(self.snapshot(),policy);self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+         self.client=self.start();self.assertTrue(self.authenticate().authentication.identity.active)
+ 
+--- /dev/null
++++ b/tests/core/test_launch_authorization.py
+@@ -0,0 +1,270 @@
++"""Supervisor approval is bound to one actual TLS service identity and launch."""
++import sqlite3
++import subprocess
++import concurrent.futures
++import unittest
++import core_pb2 as core
++import issuer_pb2 as pb
++import key_pb2 as keys
++import test_supervisor_registry as registry
++from harness.wire import frame
++
++
++class LaunchAuthorizationTests(registry.SupervisorRegistryTests):
++    def setUp(self):
++        super().setUp()
++        self.assertTrue(self.bind().HasField('supervision'))
++        self.supervisor=self.client()
++        self.service=self.authenticate(self.peer)
++
++    def authenticate(self, peer, incarnation=b'i'*32):
++        result=self.service_finish(self.service_begin(peer,self.request(incarnation=incarnation)),peer)
++        self.assertTrue(result.HasField('authority_authentication'),result)
++        return result.authority_authentication
++
++    def launch_request(self, service=None, launch_id=b'l'*32, previous=0, revision=1):
++        return pb.AuthorityLaunchBegin(service=self.service if service is None else service,
++            supervision_revision=revision,launch_id=launch_id,previous_generation=previous)
++
++    def launch_begin(self, request=None, peer=None):
++        result=(peer or self.supervisor).call(authority_launch_begin=request or self.launch_request())
++        self.assertTrue(result.HasField('challenge'),result)
++        self.assertEqual(result.challenge.signing_request.purpose,keys.AUTHORITY_LAUNCH_AUTHORIZATION)
++        return result.challenge
++
++    def launch_complete(self, challenge, peer=None, proof=None):
++        return (peer or self.supervisor).call(authority_launch_complete=pb.AuthorityLaunchComplete(
++            nonce=challenge.nonce,proof=proof or self.proof(challenge,self.supervisor_key,self.supervisor_public)))
++
++    def authorize(self, request=None):
++        result=self.launch_complete(self.launch_begin(request))
++        self.assertTrue(result.HasField('authority_launch_authorization'),result)
++        return result.authority_launch_authorization
++
++    def activate(self, peer=None):
++        return (peer or self.peer).call(authority_activate=pb.AuthorityActivate(synchronized_revision=0))
++
++    def test_supervisor_authorizes_exact_service_connection_through_production_client(self):
++        self.denied(self.activate(),core.FORBIDDEN)
++        request=self.launch_request();authorization=self.authorize(request)
++        self.assertEqual(authorization.request,request);self.assertEqual(len(authorization.authorization_id),32)
++        self.assertEqual(authorization.generation,0);self.assertEqual(authorization.supervisor_public_key,self.supervisor_public)
++        result=self.activate();self.assertTrue(result.HasField('authority_activation'),result)
++        self.assertEqual(result.authority_activation.generation,1)
++        recovered=self.authorize(request)
++        self.assertEqual(recovered.authorization_id,authorization.authorization_id);self.assertEqual(recovered.generation,1)
++
++    def test_other_service_connection_cannot_consume_authorization(self):
++        self.authorize();other=self.connect();self.authenticate(other)
++        before=self.snapshot_all();self.denied(self.activate(other),core.FORBIDDEN)
++        self.assertEqual(self.snapshot_all(),before)
++        self.assertTrue(self.activate().HasField('authority_activation'))
++
++    def test_wrong_signers_cannot_authorize_launch(self):
++        before=self.snapshot_all()
++        for key,public in [(self.owner,self.owner_public),(self.signer,self.public)]:
++            challenge=self.launch_begin();self.denied(self.launch_complete(challenge,proof=self.proof(challenge,key,public)))
++            self.assertEqual(self.snapshot_all(),before)
++        self.denied(self.activate(),core.FORBIDDEN)
++
++    def test_completion_cannot_cross_supervisor_connections(self):
++        challenge=self.launch_begin();other=self.client();before=self.snapshot_all()
++        self.denied(self.launch_complete(challenge,peer=other));self.assertEqual(self.snapshot_all(),before)
++        self.denied(self.launch_complete(challenge));self.assertEqual(self.snapshot_all(),before)
++
++    def test_replayed_nonce_cannot_repeat_authorization(self):
++        challenge=self.launch_begin();result=self.launch_complete(challenge)
++        self.assertTrue(result.HasField('authority_launch_authorization'),result);before=self.snapshot_all()
++        self.denied(self.launch_complete(challenge));self.assertEqual(self.snapshot_all(),before)
++
++    def test_supervisor_rotation_invalidates_unused_authorization(self):
++        self.authorize();_,public=self.key('new-supervisor')
++        self.assertTrue(self.bind(expected=1,public=public).HasField('supervision'));before=self.snapshot_all()
++        self.denied(self.activate(),core.FORBIDDEN);self.assertEqual(self.snapshot_all(),before)
++
++    def test_authorization_consumption_and_activation_roll_back_together(self):
++        self.authorize()
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.execute("CREATE TRIGGER deny_consumption BEFORE UPDATE ON authority_launch_authorization BEGIN SELECT RAISE(ABORT,'launch fault'); END")
++        before=self.snapshot_all();self.denied(self.activate(),core.STORAGE_ERROR);self.assertEqual(self.snapshot_all(),before)
++        with sqlite3.connect(self.state/'identity.db') as db:db.execute('DROP TRIGGER deny_consumption')
++        result=self.activate();self.assertTrue(result.HasField('authority_activation'),result)
++        self.assertEqual(result.authority_activation.generation,1)
++
++    def test_starting_one_generation_invalidates_other_prior_approvals(self):
++        self.authorize();other=self.connect();service=self.authenticate(other,b'n'*32)
++        self.authorize(self.launch_request(service,launch_id=b'm'*32))
++        self.assertTrue(self.activate().HasField('authority_activation'))
++        released=self.peer.call(authority_release=pb.AuthorityRelease(generation=1,applied_revision=0))
++        self.assertTrue(released.HasField('authority_activation'),released);before=self.snapshot_all()
++        self.denied(self.activate(other),core.REVISION_CONFLICT);self.assertEqual(self.snapshot_all(),before)
++
++    def test_stale_supervision_or_registration_cannot_authorize(self):
++        for mode in ('supervision','registration','domain','issuer-incarnation','future-security'):
++            with self.subTest(mode=mode):
++                request=self.launch_request()
++                if mode=='supervision':request.supervision_revision=2
++                elif mode=='registration':request.service.registration.registered_revision=2
++                elif mode=='domain':request.service.registration.participant.domains[0].id='other'
++                elif mode=='issuer-incarnation':request.service.issuer_incarnation=b'x'*32
++                else:request.service.security_revision=1
++                before=self.snapshot_all();reply=self.peer.call(authority_launch_begin=request)
++                self.assertTrue(reply.HasField('error'),reply);self.assertEqual(self.snapshot_all(),before)
++
++    def test_rotation_between_challenge_and_proof_denies_authorization(self):
++        challenge=self.launch_begin();_,public=self.key('rotated-before-proof')
++        self.assertTrue(self.bind(expected=1,public=public).HasField('supervision'));before=self.snapshot_all()
++        self.denied(self.launch_complete(challenge),core.REVISION_CONFLICT);self.assertEqual(self.snapshot_all(),before)
++
++    def test_new_authorization_cannot_bypass_an_active_generation(self):
++        self.authorize();self.assertTrue(self.activate().HasField('authority_activation'))
++        other=self.connect();service=self.authenticate(other,b'n'*32)
++        challenge=self.launch_begin(self.launch_request(service,launch_id=b'm'*32,previous=1));before=self.snapshot_all()
++        self.denied(self.launch_complete(challenge),core.BUSY);self.assertEqual(self.snapshot_all(),before)
++
++    def test_launch_and_service_incarnation_reuse_cannot_change_approved_context(self):
++        self.authorize();other=self.connect();service=self.authenticate(other,b'n'*32)
++        for request in [self.launch_request(service),self.launch_request(launch_id=b'm'*32)]:
++            challenge=self.launch_begin(request);before=self.snapshot_all()
++            self.denied(self.launch_complete(challenge),core.ALREADY_EXISTS);self.assertEqual(self.snapshot_all(),before)
++
++    def test_concurrent_identical_proofs_return_one_durable_authorization(self):
++        other=self.client();first=self.launch_begin();second=self.launch_begin(peer=other)
++        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
++            replies=list(pool.map(lambda pair:self.launch_complete(pair[0],peer=pair[1]),[(first,self.supervisor),(second,other)]))
++        for reply in replies:self.assertTrue(reply.HasField('authority_launch_authorization'),reply)
++        self.assertEqual(replies[0].authority_launch_authorization,replies[1].authority_launch_authorization)
++        self.assertEqual(len(self.snapshot_all()['authority_launch_authorization']),1)
++
++    def test_failed_authorization_insert_preserves_state_and_fresh_proof_can_retry(self):
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.execute("CREATE TRIGGER deny_authorization BEFORE INSERT ON authority_launch_authorization BEGIN SELECT RAISE(ABORT,'authorization fault'); END")
++        challenge=self.launch_begin();before=self.snapshot_all()
++        self.denied(self.launch_complete(challenge),core.STORAGE_ERROR);self.assertEqual(self.snapshot_all(),before)
++        with sqlite3.connect(self.state/'identity.db') as db:db.execute('DROP TRIGGER deny_authorization')
++        self.assertEqual(self.authorize().generation,0)
++
++    def test_restart_rejects_old_challenge_and_unused_service_authorization(self):
++        self.authorize();challenge=self.launch_begin();proof=self.proof(challenge,self.supervisor_key,self.supervisor_public)
++        request=self.launch_request();self.peer.close();self.supervisor.close();self.stop_daemons();self.peer=self.ready()
++        before=self.snapshot_all()
++        self.denied(self.peer.call(authority_launch_complete=pb.AuthorityLaunchComplete(nonce=challenge.nonce,proof=proof)))
++        self.denied(self.peer.call(authority_launch_begin=request));self.assertEqual(self.snapshot_all(),before)
++        self.authenticate(self.peer);self.denied(self.activate(),core.FORBIDDEN);self.assertEqual(self.snapshot_all(),before)
++
++    def test_explicit_v7_migration_preserves_binding_without_granting_launch(self):
++        self.peer.close();self.supervisor.close();self.stop_daemons();secret=(self.state/'issuer.pem').read_bytes()
++        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_launch_authorization; PRAGMA user_version=7;')
++        before=self.snapshot_all();command=[str(registry.sessions.BINARY),'--state-dir',str(self.state)]
++        result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
++        self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
++        for _ in range(2):
++            result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
++        after=self.snapshot_all();self.assertEqual({n:after[n] for n in before},before);self.assertEqual(after['authority_launch_authorization'],[])
++        self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
++        self.peer=self.ready();self.authenticate(self.peer);self.denied(self.activate(),core.FORBIDDEN)
++
++    def test_failed_v7_migration_rolls_back(self):
++        self.peer.close();self.supervisor.close();self.stop_daemons()
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.executescript('DROP TABLE authority_launch_authorization; PRAGMA user_version=7; CREATE TABLE authority_launch_authorization(marker INTEGER);')
++        before=self.snapshot_all()
++        result=subprocess.run([str(registry.sessions.BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
++        self.assertNotEqual(result.returncode,0);self.assertEqual(self.snapshot_all(),before)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
++
++    def test_authorization_retry_does_not_complete_pending_revocation(self):
++        authorization=self.authorize();self.assertTrue(self.activate().HasField('authority_activation'))
++        record=self.decide(self.peer,self.enroll(self.peer)).enrollment;claims=self.claims(record,self.info)
++        operation=pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(
++            target=pb.IdentityReference(kind=pb.ACTOR_TARGET,id=claims.actor_id),expected_security_revision=0,reason='authorization witness'))
++        result=self.execute(self.peer,self.challenge(self.peer,operation));self.assertTrue(result.HasField('identity_status'),result)
++        before=self.snapshot_all();self.assertEqual(len(before['authority_obligation']),1)
++        recovered=self.authorize();self.assertEqual(recovered.authorization_id,authorization.authorization_id)
++        self.assertEqual(recovered.generation,1);self.assertEqual(self.snapshot_all(),before)
++        operation=pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(revision=1))
++        result=self.execute(self.peer,self.challenge(self.peer,operation))
++        self.assertTrue(result.HasField('authority_barrier'),result);self.assertEqual(result.authority_barrier.pending_count,1)
++
++    def good_launch_challenge(self, request):
++        value=pb.AuthorityLaunchChallenge(protocol_version=1,issuer_id=self.info.issuer_id,
++            issuer_incarnation=self.service.issuer_incarnation,nonce=b'n'*32,connection_binding=b'c'*32,
++            request=request,supervisor_public_key=self.supervisor_public,lifetime_ms=30000,audience='identityd/authority-launch/v1')
++        return pb.ChallengeReply(nonce=value.nonce,signing_request=keys.SignRequest(
++            purpose=keys.AUTHORITY_LAUNCH_AUTHORIZATION,payload=value.SerializeToString()))
++
++    def good_authorization(self):
++        return pb.AuthorityLaunchAuthorization(request=self.launch_request(),authorization_id=b'a'*32,
++            supervisor_public_key=self.supervisor_public,generation=0)
++
++    def test_client_rejects_substituted_launch_challenge(self):
++        for mode in ('issuer','incarnation','nonce','binding','request','supervision','generation','key','lifetime','audience','purpose','unknown'):
++            with self.subTest(mode=mode):
++                def respond(peer,request,reply):
++                    challenge=self.good_launch_challenge(request.authority_launch_begin)
++                    value=pb.AuthorityLaunchChallenge.FromString(challenge.signing_request.payload)
++                    if mode=='issuer':value.issuer_id=b'x'*32
++                    elif mode=='incarnation':value.issuer_incarnation=b'x'*32
++                    elif mode=='nonce':value.nonce=b'x'*32
++                    elif mode=='binding':value.connection_binding=b'x'
++                    elif mode=='request':value.request.launch_id=b'x'*32
++                    elif mode=='supervision':value.request.supervision_revision=2
++                    elif mode=='generation':value.request.previous_generation=1
++                    elif mode=='key':value.supervisor_public_key=self.public
++                    elif mode=='lifetime':value.lifetime_ms=60001
++                    elif mode=='audience':value.audience='other'
++                    elif mode=='unknown':value.ParseFromString(value.SerializeToString()+b'\xf8\x07\x01')
++                    challenge.signing_request.payload=value.SerializeToString()
++                    if mode=='purpose':challenge.signing_request.purpose=keys.AUTHORITY_PARTICIPATION
++                    reply.challenge.CopyFrom(challenge);peer.stream.sendall(frame(reply))
++                peer=registry.clients.FaultPeer(self,response=respond);client=self.client(peer.port)
++                self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_launch_begin=self.launch_request()),peer,3)
++
++    def test_client_rejects_substituted_authorization_or_invalid_proof(self):
++        for mode in ('key','issuer','id','launch','binding','previous','generation','overflow','unknown','outcome','proof'):
++            with self.subTest(mode=mode):
++                def respond(peer,request,reply):
++                    if request.HasField('authority_launch_begin'):reply.challenge.CopyFrom(self.good_launch_challenge(request.authority_launch_begin))
++                    else:
++                        result=self.good_authorization()
++                        if mode=='key':result.supervisor_public_key=b'x'*32
++                        elif mode=='issuer':result.request.service.issuer_id=b'x'*32
++                        elif mode=='id':result.authorization_id=b'x'
++                        elif mode=='launch':result.request.launch_id=b'x'*32
++                        elif mode=='binding':result.request.service.connection_binding=b'x'*32
++                        elif mode=='previous':result.request.previous_generation=1
++                        elif mode=='generation':result.generation=2
++                        elif mode=='overflow':result.generation=2**63
++                        elif mode=='unknown':result.ParseFromString(result.SerializeToString()+b'\xf8\x07\x01')
++                        if mode=='outcome':reply.policy.CopyFrom(pb.PolicyState(revision=1))
++                        else:reply.authority_launch_authorization.CopyFrom(result)
++                    peer.stream.sendall(frame(reply))
++                peer=registry.clients.FaultPeer(self,response=respond);client=self.client(peer.port);challenge=self.launch_begin(peer=client)
++                proof=self.proof(challenge,self.supervisor_key,self.supervisor_public)
++                if mode=='proof':proof.signature=b'x'*64
++                self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_launch_complete=pb.AuthorityLaunchComplete(
++                    nonce=challenge.nonce,proof=proof)),peer,4)
++
++    def test_client_denial_consumes_launch_context(self):
++        def respond(peer,request,reply):
++            if request.HasField('authority_launch_begin'):reply.challenge.CopyFrom(self.good_launch_challenge(request.authority_launch_begin))
++            elif len(peer.requests)>4:reply.authority_launch_authorization.CopyFrom(self.good_authorization())
++            peer.stream.sendall(frame(reply))
++        peer=registry.clients.FaultPeer(self,response=respond);client=self.client(peer.port);challenge=self.launch_begin(peer=client)
++        completion=pb.AuthorityLaunchComplete(nonce=challenge.nonce,proof=self.proof(challenge,self.supervisor_key,self.supervisor_public))
++        self.denied(client.call(authority_launch_complete=completion),core.FORBIDDEN)
++        self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_launch_complete=completion),peer,5)
++
++    def test_client_unsolicited_authorization_is_rejected(self):
++        challenge=self.good_launch_challenge(self.launch_request())
++        def respond(peer,request,reply):
++            reply.authority_launch_authorization.CopyFrom(self.good_authorization());peer.stream.sendall(frame(reply))
++        peer=registry.clients.FaultPeer(self,response=respond);client=self.client(peer.port)
++        self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_launch_complete=pb.AuthorityLaunchComplete(
++            nonce=challenge.nonce,proof=self.proof(challenge,self.supervisor_key,self.supervisor_public))),peer,3)
++
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(LaunchAuthorizationTests(n) for n in LaunchAuthorizationTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())
+--- a/tests/core/test_supervisor_registry.py
++++ b/tests/core/test_supervisor_registry.py
+@@ -206,7 +206,7 @@
+         self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
+         self.assertTrue(self.peer.call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)).HasField('authority_activation'))
+         self.peer.close();self.stop_daemons();secret=(self.state/'issuer.pem').read_bytes()
+-        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_supervisor; PRAGMA user_version=6;')
++        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; PRAGMA user_version=6;')
+         before=self.snapshot_all();command=[str(sessions.BINARY),'--state-dir',str(self.state)]
+         denied=subprocess.run(command,input=b'',capture_output=True,timeout=4);self.assertNotEqual(denied.returncode,0)
+         self.assertIn(b'migration',denied.stderr.lower())
+@@ -214,13 +214,13 @@
+             result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
+         after=self.snapshot_all();self.assertEqual({n:after[n] for n in before},before);self.assertEqual(after['authority_supervisor'],[])
+         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+-        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+         self.peer=self.ready();self.denied(self.bind(),core.BUSY)
+ 
+     def test_failed_v6_migration_rolls_back_without_adopting_services(self):
+         self.peer.close();self.stop_daemons()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_supervisor; PRAGMA user_version=6; CREATE TABLE authority_supervisor(marker INTEGER);')
++            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; PRAGMA user_version=6; CREATE TABLE authority_supervisor(marker INTEGER);')
+         before=self.snapshot_all();result=subprocess.run([str(sessions.BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(result.returncode,0);self.assertEqual(self.snapshot_all(),before)
+         with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],6)

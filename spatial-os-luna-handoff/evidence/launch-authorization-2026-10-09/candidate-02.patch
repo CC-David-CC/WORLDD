@@ -1,0 +1,14 @@
+--- a/tests/core/test_launch_authorization.py
++++ b/tests/core/test_launch_authorization.py
+@@ -130,8 +130,10 @@
+ 
+     def test_concurrent_identical_proofs_return_one_durable_authorization(self):
+         other=self.client();first=self.launch_begin();second=self.launch_begin(peer=other)
++        proofs=[self.proof(challenge,self.supervisor_key,self.supervisor_public) for challenge in (first,second)]
+         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+-            replies=list(pool.map(lambda pair:self.launch_complete(pair[0],peer=pair[1]),[(first,self.supervisor),(second,other)]))
++            replies=list(pool.map(lambda item:self.launch_complete(item[0],peer=item[1],proof=item[2]),
++                [(first,self.supervisor,proofs[0]),(second,other,proofs[1])]))
+         for reply in replies:self.assertTrue(reply.HasField('authority_launch_authorization'),reply)
+         self.assertEqual(replies[0].authority_launch_authorization,replies[1].authority_launch_authorization)
+         self.assertEqual(len(self.snapshot_all()['authority_launch_authorization']),1)

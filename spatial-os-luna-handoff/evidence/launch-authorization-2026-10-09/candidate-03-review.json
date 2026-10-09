@@ -1,0 +1,14 @@
+{
+  "changed": [
+    "tests/core/test_issuer_client.py",
+    "tests/core/test_launch_authorization.py"
+  ],
+  "source_files": 273,
+  "locked_files": 41,
+  "production_unchanged": true,
+  "existing_test_bodies_unchanged": true,
+  "patch_reconstruction": "passed",
+  "review": "Each fixture client gets a closed, private, unique configuration snapshot before process launch. Prior rejection assertions and deadlines remain unchanged. A new regression checks independent contents and permissions.",
+  "qualification": "Both hosts passed285 focused Debug checks and51harness. Runtime sanitizer qualification is running. No source integrated.",
+  "integrated": false
+}

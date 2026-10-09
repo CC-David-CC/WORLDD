@@ -18,5 +18,5 @@
     "Add authenticated per-launch supervisor authorization.",
     "Connect production ownership receipts to fenced generation retirement."
   ],
-  "full": "Fresh output03 qualification running both hosts. Debug focused18checks and51harness passed both hosts. Full expected1305core85suites51harness151P10 perprofile remains pending."
+  "full": "Full Debug passed on both hosts: 1305 core checks across 85 suites, 51 harness checks, and 151 P10 cases. Full runtime sanitizer qualification remains active."
 }

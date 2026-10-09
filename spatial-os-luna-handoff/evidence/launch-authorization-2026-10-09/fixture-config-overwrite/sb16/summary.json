@@ -1,0 +1,6 @@
+{
+  "host": "sb16",
+  "source_files": 273,
+  "integrated": false,
+  "config_overwrite_baseline": "Reproduced; original client configuration was overwritten by a second client."
+}

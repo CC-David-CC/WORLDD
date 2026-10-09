@@ -1,0 +1,14 @@
+test_configuration_snapshot (__main__.Diagnostic.test_configuration_snapshot) ... FAIL
+
+======================================================================
+FAIL: test_configuration_snapshot (__main__.Diagnostic.test_configuration_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-client-config-overwrite-01/driver.py", line 7, in test_configuration_snapshot
+    self.assertEqual(first.read_bytes(),original,"Another client configuration overwrote the first launch input")
+AssertionError: b'pro[41 chars]ort: 2\nserver_name: "issuer.test"\nserver_ca_[445 chars]00\n' != b'pro[41 chars]ort: 1\nserver_name: "issuer.test"\nserver_ca_[445 chars]00\n' : Another client configuration overwrote the first launch input
+
+----------------------------------------------------------------------
+Ran 1 test in 0.529s
+
+FAILED (failures=1)

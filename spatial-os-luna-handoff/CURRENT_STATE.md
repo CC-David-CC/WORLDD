@@ -1,5 +1,55 @@
 # Implementation status
 
+## 2026-10-09: Client fixture correction enters qualification; incarnation full matrix passes
+
+Service incarnation candidate01 completed full Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 1287 core checks across 84 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. The collector verified all 271 source hashes and 41 locked hashes.
+The final reports are preserved in evidence/participant-incarnation-2026-10-09/full-candidate-01.
+
+Launch authorization candidate02 passed 284 focused checks and 51 harness checks in both profiles on sb16.
+On sb16-2, Debug passed. One sanitizer fixture failed; 283 of 284 focused checks passed.
+The unsolicited-reply fixture sometimes sent too few or too many requests to its test peer.
+A ten-run diagnostic reproduced two failures and recorded the extra connection and early timeout.
+Both hosts then reproduced the shared configuration overwrite directly.
+The fixture reused one configuration pathname before an earlier client necessarily read it.
+
+Candidate03 gives each fixture client a separate private configuration file.
+One additional check verifies independent contents, retained configuration bytes, and private permissions.
+All prior test bodies and production source match candidate02 exactly.
+The patch reconstructs all 273 files. All 41 locked hashes remain unchanged.
+Both hosts passed 285 focused Debug checks across sixteen suites and 51 harness checks.
+No Debug case failed or skipped. Runtime sanitizer qualification continues.
+Full authorization qualification has not started.
+Read evidence/launch-authorization-2026-10-09 for the original failures and corrective patch.
+
+Registry full Debug passed on both hosts: 1305 core checks, 51 harness checks, and 151 P10 cases each.
+Its full sanitizer runs remain active. No new candidate source is integrated.
+Supervisor launch ownership integration, fencing, recovery, M02, and Spatial-M1 remain incomplete.
+
+## 2026-10-09: Exact supervisor launch authorization passes focused Debug
+
+The isolated issuer records supervisor approval for an exact launch and service connection.
+Activation consumes that approval in the same transaction that creates the service generation.
+Stale connections, changed supervisor bindings, and superseded generation approvals cannot activate.
+Authorization retrieval preserves pending revocation obligations.
+The production client validates supervisor challenges, proofs, and correlated replies.
+
+Both hosts passed 284 focused Debug checks across sixteen suites and 51 harness checks.
+The twenty-two new checks include storage rollback, migration, restart, concurrency, replay, and independent TLS fault peers.
+No corrected Debug case failed or skipped.
+An earlier new fixture raced through shared signing files and failed on both hosts.
+Candidate02 prepares proofs before issuing concurrent requests. Its production code matches candidate01 exactly.
+The original failure and both source patches remain preserved.
+
+All 273 candidate source hashes and 41 locked hashes match.
+Six historical migration fixtures changed only schema construction and current-version assertions.
+Existing protobuf descriptors remain unchanged after removing the documented additions.
+Runtime sanitizer qualification is running. Full qualification has not started.
+Read docs/AUTHORITY_LAUNCH_AUTHORIZATION.txt and evidence/launch-authorization-2026-10-09.
+No authorization source is integrated. The coordinator signing bridge and checked recovery remain required.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Registry focused qualification and coordinator full qualification pass
 
 Supervisor registry candidate01 passed Debug and runtime ASan/UBSan on both hosts.

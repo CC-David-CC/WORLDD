@@ -1,0 +1,45 @@
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... {"requests": ["hello", "info", "authority_launch_complete", "hello"], "connections": 2, "stderr": "spatial-issuer-client: Unrequested or expired launch success\n"}
+FAIL
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... ok
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... ok
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... ok
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... ok
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... {"requests": ["hello", "info"], "connections": 1, "stderr": "spatial-issuer-client: Issuer client deadline exceeded\n"}
+FAIL
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... ok
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... ok
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... ok
+test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected) ... ok
+
+======================================================================
+FAIL: test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-02/source/tests/core/test_launch_authorization.py", line 266, in test_client_unsolicited_authorization_is_rejected
+    self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_launch_complete=pb.AuthorityLaunchComplete(
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-unsolicited-diagnostic-01/driver.py", line 6, in poisoned
+    try:return super().poisoned(client,request,peer,count)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-02/source/tests/core/test_supervisor_registry.py", line 116, in poisoned
+    self.assertEqual(len(peer.requests),count);self.assertEqual(peer.connections,1)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 4 != 3
+
+======================================================================
+FAIL: test_client_unsolicited_authorization_is_rejected (__main__.Diagnostic.test_client_unsolicited_authorization_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-02/source/tests/core/test_launch_authorization.py", line 266, in test_client_unsolicited_authorization_is_rejected
+    self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_launch_complete=pb.AuthorityLaunchComplete(
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-unsolicited-diagnostic-01/driver.py", line 6, in poisoned
+    try:return super().poisoned(client,request,peer,count)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-02/source/tests/core/test_supervisor_registry.py", line 116, in poisoned
+    self.assertEqual(len(peer.requests),count);self.assertEqual(peer.connections,1)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3
+
+----------------------------------------------------------------------
+Ran 10 tests in 7.386s
+
+FAILED (failures=2)

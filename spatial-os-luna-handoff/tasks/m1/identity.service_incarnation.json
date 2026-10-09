@@ -24,9 +24,8 @@
     "failed": 0,
     "skipped": 0
   },
-  "full": "Full Debug passed both hosts:1287core84suites51harness151P10; runtime sanitizer qualification running.",
+  "full": "Full Debug and runtime ASan/UBSan passed on both hosts: 1287 core checks across 84 suites, 51 harness checks, and 151 P10 cases per profile. No failures or skips.",
   "remaining": [
-    "Complete full qualification.",
     "Require authenticated supervisor authorization for supervised issuer activation.",
     "Deliver each coordinator binding through the real authority launch configuration."
   ],

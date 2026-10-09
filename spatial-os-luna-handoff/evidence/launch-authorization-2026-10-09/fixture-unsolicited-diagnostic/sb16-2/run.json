@@ -1,0 +1,12 @@
+{
+  "host": "sb16-2",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-unsolicited-diagnostic-01/driver.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-02/source/tests/core/test_launch_authorization.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-02/runtime-sanitize/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-02/runtime-sanitize/build/spatial-issuer-client"
+  ],
+  "exit_code": 1,
+  "source_files": 273
+}

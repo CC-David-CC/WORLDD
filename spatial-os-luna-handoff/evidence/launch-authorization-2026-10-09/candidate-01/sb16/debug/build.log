@@ -1,0 +1,55 @@
+[0/2] Re-checking globbed directories...
+[1/54] Generating python/security_pb2.py
+[2/54] Generating python/core_pb2.py
+[3/54] Generating python/key_pb2.py
+[4/54] Generating python/grants_pb2.py
+[5/54] Generating python/issuer_pb2.py
+[6/54] Running cpp protocol buffer compiler on proto/spatial/supervisor/v1/native_scope.proto
+[7/54] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+[8/54] Running cpp protocol buffer compiler on proto/spatial/identity/v1/key.proto
+[9/54] Running cpp protocol buffer compiler on proto/spatial/core/v1/core.proto
+[10/54] Running cpp protocol buffer compiler on proto/spatial/identity/v1/world_session.proto
+[11/54] Running cpp protocol buffer compiler on proto/spatial/identity/v1/issuer.proto
+[12/54] Running cpp protocol buffer compiler on proto/spatial/security/v1/security.proto
+[13/54] Running cpp protocol buffer compiler on proto/spatial/authority/v1/grants.proto
+[14/54] Building CXX object CMakeFiles/spatial-protobuf.dir/native_scope.pb.cc.o
+[15/54] Building CXX object CMakeFiles/spatial-protobuf.dir/broker.pb.cc.o
+[16/54] Building CXX object CMakeFiles/spatial-protobuf.dir/core.pb.cc.o
+[17/54] Building CXX object CMakeFiles/spatial-protobuf.dir/key.pb.cc.o
+[18/54] Building CXX object CMakeFiles/spatial-protobuf.dir/world_session.pb.cc.o
+[19/54] Building CXX object CMakeFiles/spatial-protobuf.dir/issuer.pb.cc.o
+[20/54] Building CXX object CMakeFiles/spatial-protobuf.dir/grants.pb.cc.o
+[21/54] Building CXX object CMakeFiles/spatial-protobuf.dir/security.pb.cc.o
+[22/54] Linking CXX static library libspatial-protobuf.a
+[23/54] Building CXX object CMakeFiles/spatial-scene.dir/src/core/geometry.cpp.o
+[24/54] Building CXX object CMakeFiles/spatial-scene.dir/src/core/framing.cpp.o
+[25/54] Building CXX object CMakeFiles/spatial-scene.dir/src/core/collision.cpp.o
+[26/54] Building CXX object CMakeFiles/spatial-scene.dir/src/core/navigation.cpp.o
+[27/54] Building CXX object CMakeFiles/spatial-scene.dir/src/core/scene.cpp.o
+[28/54] Linking CXX static library libspatial-scene.a
+[29/54] Building CXX object CMakeFiles/spatial-identity.dir/src/identity/keys.cpp.o
+[30/54] Linking CXX static library libspatial-identity.a
+[31/54] Building CXX object CMakeFiles/spatial-identity-tls.dir/src/identity/tls_support.cpp.o
+[32/54] Linking CXX static library libspatial-identity-tls.a
+[33/54] Building CXX object CMakeFiles/spatial-key.dir/src/identity/key_main.cpp.o
+[34/54] Linking CXX executable spatial-key
+[35/54] Building CXX object CMakeFiles/spatial-issuer-client.dir/src/identity/client_main.cpp.o
+[36/54] Building CXX object CMakeFiles/spatial-issuer-client-lib.dir/src/identity/issuer_client.cpp.o
+[37/54] Building CXX object CMakeFiles/spatial-participant-runtime-probe.dir/src/testing/participant_runtime_probe.cpp.o
+[38/54] Building CXX object CMakeFiles/spatial-participant-runtime-lib.dir/src/identity/participant_runtime.cpp.o
+[39/54] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[40/54] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/issuer.cpp.o
+[41/54] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/tls_server.cpp.o
+[42/54] Building CXX object CMakeFiles/spatial-authority.dir/src/authority/store.cpp.o
+[43/54] Linking CXX static library libspatial-authority.a
+[44/54] Building CXX object CMakeFiles/spatial-bootstrap.dir/src/identity/bootstrap.cpp.o
+[45/54] Linking CXX static library libspatial-bootstrap.a
+[46/54] Linking CXX static library libspatial-issuer-client-lib.a
+[47/54] Linking CXX executable spatial-issuer-client
+[48/54] Linking CXX static library libspatial-participant-runtime-lib.a
+[49/54] Building CXX object CMakeFiles/identityd.dir/src/identity/issuer_main.cpp.o
+[50/54] Linking CXX static library libspatial-issuer.a
+[51/54] Linking CXX executable spatial-participant-runtime-probe
+[52/54] Linking CXX executable identityd
+[53/54] Building CXX object CMakeFiles/spatial-issuer-client-probe.dir/src/testing/issuer_client_probe.cpp.o
+[54/54] Linking CXX executable spatial-issuer-client-probe
