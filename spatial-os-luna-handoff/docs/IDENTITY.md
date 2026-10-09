@@ -5,14 +5,16 @@ Humans and model agents use separate keypairs and the same authority rules.
 David controls the initial issuer. Enrollment never implies administrator authority.
 Key material, issuer control, and manual enrollment are implemented and qualified as separate components.
 See ISSUER_CONTROL.md and ENROLLMENT.md for their interfaces, evidence, and explicit migration.
-Manual and automatic issuance currently resolve only the empty-v1 profile, which grants no authority.
+Manual and automatic issuance now pin immutable enrollment profiles. See BOOTSTRAP_PROFILES.md for the qualified issuer and domain stores.
 Issuer-side credential and actor revocation and fresh authentication are qualified. See IDENTITY_REVOCATION.md for their limits.
 The issuer TLS service listener is qualified. See ISSUER_TLS.md for its interface and limits.
 The production checked issuer client is qualified. See ISSUER_CLIENT.md for its interface and limits.
 The ordered revocation feed and bounded watcher are qualified. See ISSUER_WATCH.md.
 Authenticated local world channels and native credential cancellation are qualified. See WORLD_IDENTITY.md for their limits.
 Persistent world grants now govern authenticated local actions. See WORLD_AUTHORITY.md.
-Nonempty bootstrap grants, workspace authority, remote actor transport, and distributed revocation acknowledgement remain required.
+Persistent workspace authority is qualified. See WORKSPACE_AUTHORITY.md for its evidence and limits.
+Authenticated bootstrap delivery remains an isolated candidate under qualification. See BOOTSTRAP_DELIVERY.md for its current status.
+Remote actor transport and distributed revocation acknowledgement remain required.
 
 ## Required integration
 
@@ -31,7 +33,8 @@ An independently valid credential or grant survives unrelated revocation.
 M02 supplies grant delegation and scoped authorization. Cryptographic proof alone grants no workspace or world authority.
 The persistent grant-store library is qualified separately. See AUTHORITY_STORE.md.
 Worldd now integrates these records through authenticated local actor channels.
-Workspace integration and use by bootstrap profiles remain pending.
+Workspace integration uses the production broker and persistent authority store.
+Authenticated bootstrap delivery must finish both-host qualification before production integration.
 The issuer now provides checked current actor-status batches for ancestor validation. See ACTOR_STATUS.md.
 These queries grant no authority and do not replace fresh caller authentication.
 

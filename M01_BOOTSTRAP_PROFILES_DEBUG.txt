@@ -199,3 +199,14 @@ Retain the separately qualified witness correction during eventual adapter integ
 Evidence: spatial-os-luna-handoff/evidence/bootstrap-workspace-adapters-2026-10-09.
 Fixture evidence: spatial-os-luna-handoff/evidence/process-witness-exit-2026-10-09.
 Full M01, M02, and Spatial-M1 remain incomplete. Physical and native GPU acceptance remain separate.
+
+2026-10-09 candidate 04 sb16 complete Debug qualification:
+Collector verified 1,037 core checks across all 55 CTest suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. All 223 frozen source hashes match.
+The sb16 runtime sanitizer run is active. The sb16-2 candidate 04 run remains queued behind candidate 03.
+Added a follow-up collector on each host. It waits for candidate 04 and requires both complete successful matrices.
+It then runs the corrected process witness against the exact Debug and sanitizer executables.
+It verifies source hashes, binary hashes, and preservation of all twelve original process-test bodies.
+The follow-ups have not passed yet. They do not modify the active qualification source trees.
+Primary review checked their wait targets, expected test counts, manifests, and failure handling.
+Remote authenticated actor transport and distributed revocation acknowledgement remain required after bootstrap delivery.

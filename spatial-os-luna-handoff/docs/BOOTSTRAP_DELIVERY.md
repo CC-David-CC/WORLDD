@@ -93,8 +93,8 @@ Candidate 04 requires its own complete qualification before integration.
 Neither candidate completes M01, M02, or Spatial-M1 by itself.
 
 Candidate 04 focused sb16 Debug verification passed 52 workspace/broker checks and ten revocation checks.
-Its sb16 full Debug run passed the build, 51 harness checks, and 64 adapter checks.
-The remaining full Debug and runtime sanitizer results are pending.
+Its complete sb16 Debug profile passed 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. The remaining host and runtime sanitizer results are pending.
 Candidate 03 passed complete sb16-2 Debug with 1,036 core checks, 51 harness checks, and 151 P10 cases.
 Candidate 03 failed sb16 Debug on a process-witness read race before P10 and sanitizer execution.
 The separate fixture correction is b2ab006. It preserves all twelve original process-test bodies.

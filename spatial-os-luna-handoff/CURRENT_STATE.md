@@ -28,10 +28,14 @@ Two added tests exposed a real process-lifetime defect during bootstrap credenti
 The corrected candidate rejects that operation without terminating independently authorized processes.
 A further test reproduced the same defect in ordinary workspace access.
 Candidate 04 extends that correction. Its sb16 focused Debug run passed 52 workspace/broker checks and ten race checks.
-Its sb16 complete Debug build, 51 harness checks, and 64 adapter checks passed. Remaining core checks are running.
+Its sb16 complete Debug profile passed 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. Runtime sanitizer qualification is running.
 The sb16-2 candidate 04 run waits for its live candidate 03 runner to finish.
 Candidate 04 still includes the original process witness. Active source trees remain immutable.
 Integration must preserve the separately qualified b2ab006 witness correction.
+An automatic follow-up waits for each candidate 04 matrix to finish successfully.
+It then runs the corrected witness and all twelve real process cases against both exact qualified binary sets.
+These follow-ups are queued, not reported as passed.
 No adapter is integrated into production yet. The source under active tests remains unchanged.
 
 The initial full snapshot omitted four locked documents. The harness rejected it on both hosts.
