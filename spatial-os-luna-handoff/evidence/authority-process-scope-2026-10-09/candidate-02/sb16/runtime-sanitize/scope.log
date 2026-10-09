@@ -1,0 +1,44 @@
+Running as unit: spatial-process-scope-02-runtime-sanitize.service; invocation ID: 54694d08039e4a0090abcfee4773f905
+test_detached_descendants_exit_before_receipt (__main__.ProcessScopeTests.test_detached_descendants_exit_before_receipt) ... ok
+test_exec_failure_removes_scope (__main__.ProcessScopeTests.test_exec_failure_removes_scope) ... ok
+test_invalid_executable_rejected_without_scope (__main__.ProcessScopeTests.test_invalid_executable_rejected_without_scope) ... ok
+test_kernel_denied_kill_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_kill_never_returns_stopped) ... ERROR
+test_kernel_denied_wait_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_wait_never_returns_stopped) ... ok
+test_leader_exit_does_not_hide_live_detached_child (__main__.ProcessScopeTests.test_leader_exit_does_not_hide_live_detached_child) ... ok
+test_ordinary_directory_rejected_before_execution (__main__.ProcessScopeTests.test_ordinary_directory_rejected_before_execution) ... ok
+test_parent_environment_is_not_exported (__main__.ProcessScopeTests.test_parent_environment_is_not_exported) ... ok
+test_stop_preserves_independent_scope (__main__.ProcessScopeTests.test_stop_preserves_independent_scope) ... ok
+test_unknown_protobuf_fields_rejected (__main__.ProcessScopeTests.test_unknown_protobuf_fields_rejected) ... ok
+
+======================================================================
+ERROR: test_kernel_denied_kill_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_kill_never_returns_stopped)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source/tests/core/test_authority_process_scope.py", line 151, in test_kernel_denied_kill_never_returns_stopped
+    self.denied('deny-write')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source/tests/core/test_authority_process_scope.py", line 157, in denied
+    proc = self.probe(mode); self.launch(proc, 'import time;time.sleep(30)')
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source/tests/core/test_authority_process_scope.py", line 64, in launch
+    reply = self.call(proc, launch=pb.AuthorityProcessLaunch(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source/tests/core/test_authority_process_scope.py", line 58, in call
+    reply = read_message(proc.stdout, pb.ProcessScopeReply)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source/harness/wire.py", line 49, in read_message
+    length, = struct.unpack('!I', read_exact(stream, 4))
+                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source/harness/wire.py", line 43, in read_exact
+    raise EOFError('SUT closed stdout during protobuf frame')
+EOFError: SUT closed stdout during protobuf frame
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.362s
+
+FAILED (errors=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 439ms
+CPU time consumed: 361ms
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -1,0 +1,6 @@
+test_explicit_application_enables_confined_real_file_write (__main__.IdleOwner.test_explicit_application_enables_confined_real_file_write) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 7.684s
+
+OK

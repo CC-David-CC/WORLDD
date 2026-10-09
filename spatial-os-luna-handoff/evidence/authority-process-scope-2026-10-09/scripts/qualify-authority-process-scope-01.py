@@ -1,0 +1,50 @@
+import hashlib
+import json
+import os
+from pathlib import Path
+import socket
+import subprocess
+import tarfile
+
+root = Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff')
+host = socket.gethostname().split('.')[0]
+assert host in ('sb16', 'sb16-2')
+output = root/'local/m02-authority-process-scope-01'
+source = output/'source'
+source.mkdir(parents=True)
+with tarfile.open(root/'local/authority-process-scope-candidate-01.tar') as archive:
+    archive.extractall(source, filter='data')
+manifest = json.loads((root/'local/authority-process-scope-candidate-01.json').read_text())['files']
+def audit():
+    for name, sha in manifest.items():
+        assert hashlib.sha256((source/name).read_bytes()).hexdigest() == sha, name
+    for name, sha in json.loads((source/'acceptance.lock.json').read_text())['files'].items():
+        assert hashlib.sha256((source/name).read_bytes()).hexdigest() == sha, name
+audit()
+for profile, sanitize in [('debug', 'OFF'), ('runtime-sanitize', 'ON')]:
+    target = output/profile
+    target.mkdir()
+    build = target/'build'
+    commands = [
+        ('configure', ['cmake', '-S', str(source), '-B', str(build), '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=Debug', '-DSPATIAL_SANITIZERS='+sanitize]),
+        ('build', ['cmake', '--build', str(build), '--target', 'spatial-process-scope-probe', '--parallel', '2']),
+        ('scope', ['systemd-run', '--user', '--wait', '--pipe', '--collect',
+                   '--unit=spatial-process-scope-01-'+profile, '--property=Delegate=yes',
+                   '--setenv=PYTHONPATH='+str(build/'python')+':'+str(source),
+                   '--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1',
+                   '--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1',
+                   '/usr/bin/python3', str(source/'tests/core/test_authority_process_scope.py'),
+                   str(build/'spatial-process-scope-probe')]),
+    ]
+    results = []
+    for name, command in commands:
+        with (target/(name+'.log')).open('wb') as log:
+            result = subprocess.run(command, cwd=source, stdout=log, stderr=subprocess.STDOUT)
+        results.append(dict(name=name, command=command, exit_code=result.returncode))
+        (target/'run.json').write_text(json.dumps(dict(host=host, results=results), indent=2)+'\n')
+        print(host, profile, name, result.returncode, flush=True)
+        if result.returncode:
+            print((target/(name+'.log')).read_text()[-16000:], flush=True)
+            raise SystemExit(result.returncode)
+    audit()
+print(host, 'process scope focused qualification complete', flush=True)

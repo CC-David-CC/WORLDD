@@ -1,0 +1,13 @@
+Running as unit: spatial-process-scope-01-debug.service; invocation ID: 8b33b1b257b54e73ad2b36e63da8826e
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-01/source/tests/core/test_authority_process_scope.py", line 11, in <module>
+    from harness.wire import frame, read_message
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 141ms
+CPU time consumed: 137ms
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -1,0 +1,148 @@
+{
+  "host": "sb16",
+  "candidate": 5,
+  "output": 6,
+  "status": "failed",
+  "runtime_core_checks": 1151,
+  "runtime_core_suites": 66,
+  "failed_methods": [
+    "test_credential_revocation_releases_native_input"
+  ],
+  "P10": "unrun after failure",
+  "candidate06_credential_repetitions": {
+    "host": "sb16",
+    "candidate": 6,
+    "results": [
+      {
+        "index": 0,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      },
+      {
+        "index": 1,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      },
+      {
+        "index": 2,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      },
+      {
+        "index": 3,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      },
+      {
+        "index": 4,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      },
+      {
+        "index": 5,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      },
+      {
+        "index": 6,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      },
+      {
+        "index": 7,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      },
+      {
+        "index": 8,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      },
+      {
+        "index": 9,
+        "command": [
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_world_application_control.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-issuer-client",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/worldd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/runtime-sanitize/build/spatial-security-auth",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input"
+        ],
+        "exit_code": 0
+      }
+    ]
+  }
+}

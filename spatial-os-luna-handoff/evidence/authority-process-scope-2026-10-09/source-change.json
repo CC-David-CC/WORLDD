@@ -1,0 +1,13 @@
+{
+  "base": "participant-fixtures-candidate-06",
+  "candidate": "authority-process-scope-candidate-03",
+  "changed_files": [
+    "CMakeLists.txt",
+    "proto/spatial/supervisor/v1/process_scope.proto",
+    "src/supervisor/process_scope.cpp",
+    "src/supervisor/process_scope.hpp",
+    "src/testing/process_scope_probe.cpp",
+    "tests/core/test_authority_process_scope.py"
+  ],
+  "integrated": false
+}

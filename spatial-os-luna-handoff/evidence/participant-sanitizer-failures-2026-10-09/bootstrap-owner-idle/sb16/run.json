@@ -1,0 +1,24 @@
+{
+  "host": "sb16",
+  "candidate": 6,
+  "results": [
+    {
+      "mode": "baseline",
+      "exit_code": 1,
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-bootstrap-owner-idle-02.py",
+        "baseline"
+      ]
+    },
+    {
+      "mode": "fresh",
+      "exit_code": 0,
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-bootstrap-owner-idle-02.py",
+        "fresh"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+test_explicit_application_enables_confined_real_file_write (__main__.IdleOwner.test_explicit_application_enables_confined_real_file_write) ... ERROR
+
+======================================================================
+ERROR: test_explicit_application_enables_confined_real_file_write (__main__.IdleOwner.test_explicit_application_enables_confined_real_file_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_workspace_bootstrap.py", line 64, in test_explicit_application_enables_confined_real_file_write
+    world,binding,actor=self.ready_workspace();peer=world.peers[1]
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_workspace_bootstrap.py", line 56, in ready_workspace
+    world=self.workspace();self.publish(rights=rights);binding=self.binding(world)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/diagnose-bootstrap-owner-idle-02.py", line 18, in publish
+    return super().publish(*args,**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_workspace_bootstrap.py", line 32, in publish
+    reply=self.execute(self.owner_peer,self.challenge(self.owner_peer,operation))
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_issuer.py", line 116, in challenge
+    reply = client.call(challenge=operation or self.operation())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_tls.py", line 47, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_tls.py", line 41, in request
+    reply = self.receive()
+            ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_tls.py", line 34, in receive
+    length = struct.unpack('!I', exact(4))[0]
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-07/source/tests/core/test_identity_tls.py", line 31, in exact
+    if not part: raise EOFError('Issuer TLS stream closed')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Issuer TLS stream closed
+
+----------------------------------------------------------------------
+Ran 1 test in 6.668s
+
+FAILED (errors=1)

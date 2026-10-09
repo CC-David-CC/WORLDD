@@ -1,0 +1,92 @@
+Authority process ownership
+Status: isolated candidate03 passed ten focused checks per profile on both hosts.
+Production integration and complete supervisor recovery remain pending.
+
+Invariant
+
+Execute an authority only after its supervisor owns a fresh cgroup and pins the direct child with a pidfd.
+Report process cleanup only after the cgroup is empty, the direct child is reaped, and the scope is removed.
+
+Host boundary
+
+Run the supervisor as the project user inside an explicitly delegated cgroup v2 service.
+Both allowed hosts verified user-service delegation on 2026-10-09.
+The temporary checks used systemd-run --user with Delegate=yes and removed their empty child scopes.
+They made no persistent service, login, display, or controller configuration change.
+Do not use the system cgroup root or a directory owned by another user.
+Do not expose the delegated directory or its descriptors to workspace applications.
+
+Kernel mechanism
+
+The supervisor creates a randomly named child cgroup and retains its directory descriptor.
+It forks a direct child that waits on a private startup gate.
+It pins that child before writing the child's PID to the owned cgroup.procs file.
+Only then does it release the child to execute the configured authority.
+The unreaped direct child cannot be confused with a reused PID during that startup sequence.
+Close inherited scope descriptors before execution.
+Pass only explicitly selected standard streams to this first launcher.
+Later private service channels require explicit descriptor handling; they must not inherit accidentally.
+
+The child uses a parent-death signal while the supervisor is alive.
+That signal alone does not prove descendant cleanup after a supervisor crash.
+Persistent launch ownership and supervisor-restart reconciliation remain later parts of this component.
+
+Write cgroup.kill through the retained owned scope to terminate its process subtree.
+Read cgroup.events until populated is zero.
+Check the direct child's wait result. Treat errors and elapsed deadlines as unresolved cleanup.
+Verify the directory identity before removing its name from the delegated parent.
+Do not remove another scope after a rename or replacement.
+A second successful stop returns the same receipt and performs no new process operation.
+
+The kernel documents subtree killing and populated-state semantics here:
+https://docs.kernel.org/admin-guide/cgroup-v2.html#core-interface-files
+https://docs.kernel.org/admin-guide/cgroup-v2.html#un-populated-notification
+
+Protobuf contract selected before implementation
+
+Use proto/spatial/supervisor/v1/process_scope.proto.
+AuthorityProcessLaunch names one absolute executable and a bounded argv list.
+Only the private trusted supervisor supplies this configuration. It is not an actor execution API.
+Workspace processes continue to launch through workspaced and inherit its scope.
+The application broker keeps its existing namespace and filesystem confinement.
+
+ProcessScopeIdentity contains a random launch ID, child scope name, boot ID, device number, and inode number.
+These fields identify the supervisor's retained local kernel objects.
+They do not authenticate a caller or serve as issuer recovery proof.
+ProcessScopeState reports current population and direct-child exit without implying complete cleanup.
+ProcessScopeStopped returns the same identity only after checked termination, reaping, and directory removal.
+The private request and reply envelopes use version 1, request IDs, and typed protobuf outcomes.
+They retain the project's bounded four-byte framing and unknown-field checks.
+
+Initial qualification
+
+Use real child and detached-grandchild processes inside temporary delegated services.
+Pin independent pidfds before stop. Confirm every observed descendant exits before the stop receipt.
+Let a leader exit while a detached child remains. The scope must still report populated.
+Check idempotent stop and isolation between two independently owned scopes.
+Reject an ordinary directory and an invalid launch before executing child code.
+Deny access to the owned cgroup.kill file or deny wait4 in the diagnostic parent after launch.
+Those failures must never produce a successful stop receipt.
+Keep the production class free of test fault flags.
+
+Verified focused results
+
+Both hosts passed all ten checks with Debug and runtime ASan/UBSan binaries.
+The tested source contains 258 files. All candidate source hashes were checked.
+See evidence/authority-process-scope-2026-10-09 for the patch, manifests, commands, logs, and review.
+The new test target uses a temporary delegated systemd user service.
+The service is collected after exit. Fixture cleanup removes only its own scopes.
+If a qualification process is interrupted, stop its recorded unit with systemctl --user stop UNIT.
+Do not substitute a wildcard or stop an operator service.
+
+Candidate01 compiled, but its test fixture lacked generated core Python bindings.
+Candidate02 passed Debug. Its broad diagnostic write filter broke an ASan memory probe before the cleanup assertion.
+Candidate03 denies only the owned kernel kill-control permission. It preserves the wait4 syscall-denial test.
+No sanitizer was disabled. No existing acceptance assertion or production failure outcome was weakened.
+
+Limits
+
+This primitive proves only its owned process boundary.
+It does not clear issuer obligations or prove native input, observation, or lease cleanup.
+Do not integrate a recovery completion API until those effects and durable launch ownership are verified.
+Do not start operator worlds through the new launcher during isolated qualification.

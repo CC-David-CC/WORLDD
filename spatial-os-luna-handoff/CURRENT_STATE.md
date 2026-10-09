@@ -1,5 +1,30 @@
 # Implementation status
 
+## 2026-10-09: Process scope focused checks pass; broader sanitizer failures retained
+
+The isolated supervisor process-scope candidate03 passed ten checks per profile on both hosts.
+Both Debug and runtime ASan/UBSan passed. All 258 source hashes matched.
+The production class owns a cgroup before execution and checks subtree termination before its cleanup receipt.
+It does not yet provide complete supervisor recovery or issuer fencing.
+See evidence/authority-process-scope-2026-10-09 and docs/AUTHORITY_PROCESS_SCOPE.txt.
+No process-scope source is integrated into main.
+
+Combined participant candidate06 passed full Debug on both hosts.
+Each host passed 1232 core checks, 51 harness checks, and 151 P10 cases with no failures or skips.
+Its sanitizer build, harness, and 81 focused checks passed on both hosts. Remaining core testing continues.
+
+Historical candidate05 failed sanitizer core qualification on both hosts.
+sb16 failed one credential-revocation native-control method, including cleanup assertions.
+sb16-2 failed thirteen bootstrap methods while using a closed owner TLS connection.
+Runtime P10 remains unrun for both failed candidate05 runs.
+See evidence/participant-sanitizer-failures-2026-10-09 for all raw failures and diagnostics.
+
+A controlled idle diagnostic reproduced the bootstrap connection failure on both hosts.
+Opening a fresh owner connection before the mutation challenge passed the unchanged file-write test on both hosts.
+That fixture correction still needs incorporation and qualification.
+Twenty exact credential-control repetitions passed on candidate06. The historical native-control cause remains unresolved.
+M02 and Spatial-M1 remain incomplete. No operator display or database changed.
+
 ## 2026-10-09: Native cleanup acknowledgement gap corrected in isolated candidate06
 
 A diagnostic on candidate05 observed issuer completion while the private X server was stopped and native cleanup was unconfirmed.

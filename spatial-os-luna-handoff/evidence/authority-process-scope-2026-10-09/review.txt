@@ -1,0 +1,45 @@
+Primary review of isolated authority process scope candidate03
+
+Six changed files were reviewed against participant-fixtures candidate06.
+The patch adds one protobuf schema, a production process class, a thin probe, tests, and build rules.
+The patch is not integrated into main.
+
+AuthorityProcessLaunch uses executable field 1 and arguments field 2.
+ProcessScopeIdentity uses launch_id 1, scope_name 2, boot_id 3, device 4, and inode 5.
+State uses identity 1, populated 2, and direct_child_exited 3.
+The stop receipt uses identity 1.
+Request and reply use protocol_version 1 and request_id 2.
+Their typed operations or outcomes use fields 10 through 12.
+Unknown protobuf fields are rejected. Messages retain bounded production framing.
+
+The launch validates the request before it creates a child.
+It retains an owned cgroup directory and a direct-child pidfd before releasing the execution gate.
+Arguments are bounded. The child receives explicit standard streams and a minimal environment.
+Unselected descriptors are close-on-exec. Exec failure triggers checked cleanup.
+The startup reply proves process launch, not service readiness or issuer authorization.
+
+Stop uses the retained cgroup directory, checks population, and checks direct-child reaping.
+It verifies the named directory identity before removal.
+The delegated hierarchy is trusted supervisor state. This class is not a filesystem confinement boundary.
+Applications must not receive access to that hierarchy through the broker's namespace mounts.
+Nested group removal, durable ownership recovery, and native effects are not claimed.
+If cleanup is unresolved, the destructor exits with failure instead of allowing a success return.
+
+Both hosts passed ten Debug checks and ten runtime ASan/UBSan checks.
+Checks cover detached descendants, an exited leader, independent scopes, repeated stop, invalid roots,
+invalid executables, exec failure, environment exclusion, unknown fields, and kernel cleanup denial.
+Independent pidfds verify observed descendant exits before the stop receipt.
+No full combined suite has yet qualified this 258-file candidate.
+
+Candidate01 test startup failed because generated fixture dependencies were missing.
+Candidate02 passed Debug but its broad diagnostic write filter broke ASan before the launch reply.
+The retained standalone diagnostic reports sanitizer_posix_libcdep.cpp expecting EFAULT and receiving EPERM.
+LLVM's primary source shows memory-access checks writing to private pipes:
+https://github.com/llvm/llvm-project/blob/main/compiler-rt/lib/sanitizer_common/sanitizer_posix_libcdep.cpp
+Candidate03 removes that broad filter and changes permission only on its owned cgroup.kill control.
+The kernel then rejects production cleanup access. The test requires an error and exit 2.
+The independent fixture restores only that test-owned control permission before final cleanup.
+
+Production recovery still needs durable launch ownership, checked native cleanup, lease cleanup,
+issuer fencing, signed completion, and restart or concurrent-revocation qualification.
+M02 and Spatial-M1 remain incomplete.

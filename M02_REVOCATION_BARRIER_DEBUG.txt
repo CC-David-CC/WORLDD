@@ -137,3 +137,13 @@ Both hosts pass 81 focused Debug checks and 51 harness checks; full output07 run
 Candidate05 full Debug passed 1230 core checks and151 P10 cases per host, but the separate native failure prevents its integration.
 Evidence: spatial-os-luna-handoff/evidence/participant-native-settlement-2026-10-09
 Supervisor recovery remains unimplemented. No physical session was qualified.
+
+2026-10-09: Supervisor process ownership and broader sanitizer status
+Process-scope candidate03 passed ten Debug and ten runtime sanitizer checks on each host.
+Its six-file patch and raw diagnostics are in spatial-os-luna-handoff/evidence/authority-process-scope-2026-10-09.
+Combined participant candidate06 passed complete Debug on both hosts; sanitizer core tests continue.
+Historical candidate05 failed sanitizer core checks on both hosts.
+The sb16 native-control failure remains unexplained after twenty passing candidate06 repetitions.
+The sb16-2 bootstrap failure is reproducible after owner TLS idle expiry. A fresh connection before the challenge passes.
+The diagnostic correction is not yet in the maintained fixture. All raw failures are in evidence/participant-sanitizer-failures-2026-10-09.
+No operator display restart or production database migration occurred. M02 and M1 remain incomplete.

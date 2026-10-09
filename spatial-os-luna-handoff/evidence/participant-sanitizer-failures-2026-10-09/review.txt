@@ -1,0 +1,33 @@
+Combined participant sanitizer failures
+
+Historical candidate05 finished the remaining runtime sanitizer core suites on both hosts.
+Both runs failed. Runtime P10 did not run after those failures.
+These results do not qualify candidate06 or override the separate native settlement failure.
+
+sb16 failed test_credential_revocation_releases_native_input.
+After revoking the viewer credential, the independent owner's pointer action returned UNAVAILABLE.
+The response said that the world session changed during the operation.
+World and broker shutdown reported unresolved participant release.
+One test method reported three failures including cleanup assertions.
+The cause remains unresolved.
+
+Candidate06 ran the exact credential-control method ten times on each host with sanitizer binaries.
+All twenty repetitions passed. Original source hashes remained unchanged.
+These repetitions do not prove the historical failure is fixed or harmless.
+
+sb16-2 failed thirteen methods across workspace-bootstrap-races and workspace-bootstrap.
+Each failed while publishing a profile through a closed owner TLS connection.
+The immutable original logs and retained service logs are under candidate-05.
+
+A separate candidate06 diagnostic paused after workspace setup for 3.2 seconds.
+The unchanged issuer fixture idle timeout is 3000 milliseconds.
+The existing complete file-write test failed at the same profile challenge on both hosts.
+A diagnostic wrapper opened a fresh owner connection before that challenge.
+The same test then passed on both hosts, including real confined file creation.
+The wrapper did not retry an uncertain mutation or change issuer deadlines.
+This establishes an idle owner-connection defect in bootstrap fixture setup.
+The wrapper correction is demonstrated but not yet incorporated into the maintained fixture.
+
+Next: correct the bootstrap fixture's connection ownership and add the idle regression.
+Continue investigating the native-control failure before combined source integration.
+Candidate06 full runtime sanitizer runs remain separately tracked in output07.

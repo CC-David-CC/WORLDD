@@ -1,0 +1,171 @@
+{
+  "host": "sb16",
+  "integrated": false,
+  "candidates": {
+    "1": {
+      "debug": [
+        {
+          "name": "configure",
+          "command": [
+            "cmake",
+            "-S",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-01/source",
+            "-B",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-01/debug/build",
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Debug",
+            "-DSPATIAL_SANITIZERS=OFF"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "build",
+          "command": [
+            "cmake",
+            "--build",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-01/debug/build",
+            "--target",
+            "spatial-process-scope-probe",
+            "--parallel",
+            "2"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "scope",
+          "command": [
+            "systemd-run",
+            "--user",
+            "--wait",
+            "--pipe",
+            "--collect",
+            "--unit=spatial-process-scope-01-debug",
+            "--property=Delegate=yes",
+            "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-01/source",
+            "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+            "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+            "/usr/bin/python3",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-01/source/tests/core/test_authority_process_scope.py",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-01/debug/build/spatial-process-scope-probe"
+          ],
+          "exit_code": 1
+        }
+      ]
+    },
+    "2": {
+      "debug": [
+        {
+          "name": "configure",
+          "command": [
+            "cmake",
+            "-S",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source",
+            "-B",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/debug/build",
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Debug",
+            "-DSPATIAL_SANITIZERS=OFF"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "build",
+          "command": [
+            "cmake",
+            "--build",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/debug/build",
+            "--target",
+            "spatial-process-scope-probe",
+            "--parallel",
+            "2"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "scope",
+          "command": [
+            "systemd-run",
+            "--user",
+            "--wait",
+            "--pipe",
+            "--collect",
+            "--unit=spatial-process-scope-02-debug",
+            "--property=Delegate=yes",
+            "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source",
+            "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+            "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+            "/usr/bin/python3",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source/tests/core/test_authority_process_scope.py",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/debug/build/spatial-process-scope-probe"
+          ],
+          "exit_code": 0
+        }
+      ],
+      "runtime-sanitize": [
+        {
+          "name": "configure",
+          "command": [
+            "cmake",
+            "-S",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source",
+            "-B",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/runtime-sanitize/build",
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Debug",
+            "-DSPATIAL_SANITIZERS=ON"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "build",
+          "command": [
+            "cmake",
+            "--build",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/runtime-sanitize/build",
+            "--target",
+            "spatial-process-scope-probe",
+            "--parallel",
+            "2"
+          ],
+          "exit_code": 0
+        },
+        {
+          "name": "scope",
+          "command": [
+            "systemd-run",
+            "--user",
+            "--wait",
+            "--pipe",
+            "--collect",
+            "--unit=spatial-process-scope-02-runtime-sanitize",
+            "--property=Delegate=yes",
+            "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source",
+            "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+            "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+            "/usr/bin/python3",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/source/tests/core/test_authority_process_scope.py",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-process-scope-02/runtime-sanitize/build/spatial-process-scope-probe"
+          ],
+          "exit_code": 1
+        }
+      ]
+    },
+    "3": {
+      "debug": {
+        "checks": 10,
+        "failed": 0,
+        "skipped": 0,
+        "binary_sha256": "800e1e39b300735821c9fd3877bf805d688907d166a2bdfb9d1e142cb90033de"
+      },
+      "runtime-sanitize": {
+        "checks": 10,
+        "failed": 0,
+        "skipped": 0,
+        "binary_sha256": "5b5e3c43983d4eb5892360bda486038f4f138e94e45b5e9cf9e18e46b3578638"
+      }
+    }
+  }
+}

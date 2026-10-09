@@ -1,0 +1,611 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -24,7 +24,14 @@
+ protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/identity/v1/issuer.proto)
+ protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
+ protobuf_generate_cpp(grants_proto_sources grants_proto_headers proto/spatial/authority/v1/grants.proto)
++protobuf_generate_cpp(scope_proto_sources scope_proto_headers proto/spatial/supervisor/v1/process_scope.proto)
+ file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
++add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/process_scope_pb2.py"
++    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
++        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/process_scope.proto
++    DEPENDS proto/spatial/supervisor/v1/process_scope.proto protobuf::protoc VERBATIM)
++add_custom_target(scope-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/process_scope_pb2.py")
+ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py"
+     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+@@ -123,6 +130,11 @@
+ target_include_directories(spatial-scene PUBLIC src)
+ target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
+ add_library(spatial-identity STATIC src/identity/keys.cpp)
++add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp ${scope_proto_sources} ${scope_proto_headers})
++target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
++add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
++target_link_libraries(spatial-process-scope-probe PRIVATE spatial-process-scope)
++add_dependencies(spatial-process-scope-probe scope-python-protobuf python-protobuf security-python-protobuf)
+ target_link_libraries(spatial-identity PUBLIC spatial-scene OpenSSL::Crypto)
+ add_executable(spatial-key src/identity/key_main.cpp)
+ target_link_libraries(spatial-key PRIVATE spatial-identity)
+@@ -174,6 +186,14 @@
+ include(CTest)
+ if(BUILD_TESTING)
+     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
++    add_test(NAME authority-process-scope COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-scope-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_process_scope.py"
++        $<TARGET_FILE:spatial-process-scope-probe>)
++    set_tests_properties(authority-process-scope PROPERTIES TIMEOUT 120)
+     add_executable(spatial-process-termination-probe src/testing/process_termination_probe.cpp src/workspace/process.cpp src/workspace/native_launch.cpp)
+     target_link_libraries(spatial-process-termination-probe PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
+     add_dependencies(spatial-process-termination-probe spatial-app-init)
+--- /dev/null
++++ b/proto/spatial/supervisor/v1/process_scope.proto
+@@ -0,0 +1,52 @@
++syntax = "proto3";
++package spatial.supervisor.v1;
++
++// Private supervisor configuration. This is not an actor execution API.
++message AuthorityProcessLaunch {
++  string executable = 1;
++  repeated string arguments = 2; // Arguments after argv[0].
++}
++message ProcessScopeIdentity {
++  bytes launch_id = 1;
++  string scope_name = 2;
++  string boot_id = 3;
++  uint64 device = 4;
++  uint64 inode = 5;
++}
++message ProcessScopeState {
++  ProcessScopeIdentity identity = 1;
++  bool populated = 2;
++  bool direct_child_exited = 3;
++}
++message ProcessScopeStopped { ProcessScopeIdentity identity = 1; }
++message ProcessScopeQuery {}
++message ProcessScopeRequest {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof operation {
++    AuthorityProcessLaunch launch = 10;
++    ProcessScopeQuery state = 11;
++    ProcessScopeQuery stop = 12;
++  }
++}
++message ProcessScopeError {
++  enum Code {
++    UNSPECIFIED = 0;
++    INVALID_ARGUMENT = 1;
++    UNSUPPORTED_VERSION = 2;
++    INVALID_STATE = 3;
++    CLEANUP_UNCONFIRMED = 4;
++    LAUNCH_FAILED = 5;
++  }
++  Code code = 1;
++  string message = 2;
++}
++message ProcessScopeReply {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof outcome {
++    ProcessScopeState state = 10;
++    ProcessScopeStopped stopped = 11;
++    ProcessScopeError error = 12;
++  }
++}
+--- /dev/null
++++ b/src/supervisor/process_scope.cpp
+@@ -0,0 +1,214 @@
++#include "supervisor/process_scope.hpp"
++#include "core/protocol.hpp"
++#include <cerrno>
++#include <chrono>
++#include <climits>
++#include <csignal>
++#include <cstring>
++#include <fcntl.h>
++#include <fstream>
++#include <iostream>
++#include <linux/close_range.h>
++#include <linux/magic.h>
++#include <poll.h>
++#include <sstream>
++#include <stdexcept>
++#include <string>
++#include <sys/prctl.h>
++#include <sys/random.h>
++#include <sys/socket.h>
++#include <sys/stat.h>
++#include <sys/statfs.h>
++#include <sys/syscall.h>
++#include <sys/wait.h>
++#include <unistd.h>
++#include <vector>
++
++namespace spatial::supervisor {
++namespace {
++using Clock = std::chrono::steady_clock;
++struct Fd {
++    int value = -1;
++    explicit Fd(int fd = -1) : value(fd) {}
++    ~Fd() { if (value >= 0) close(value); }
++    Fd(const Fd&) = delete;
++    Fd& operator=(const Fd&) = delete;
++};
++void check(bool okay, const char* message) {
++    if (!okay) throw std::runtime_error(std::string(message) + ": " + std::strerror(errno));
++}
++void valid(bool okay, const char* message) {
++    if (!okay) throw std::invalid_argument(message);
++}
++std::string contents(int directory, const char* name) {
++    Fd fd(openat(directory, name, O_RDONLY | O_CLOEXEC | O_NOFOLLOW));
++    check(fd.value >= 0, "Cannot open cgroup state");
++    std::string result; char buffer[4096];
++    for (;;) {
++        auto size = read(fd.value, buffer, sizeof(buffer));
++        if (size < 0 && errno == EINTR) continue;
++        check(size >= 0, "Cannot read cgroup state");
++        if (!size) return result;
++        result.append(buffer, static_cast<std::size_t>(size));
++        valid(result.size() <= 65536, "Excessive cgroup state");
++    }
++}
++void control(int directory, const char* name, const std::string& value) {
++    Fd fd(openat(directory, name, O_WRONLY | O_CLOEXEC | O_NOFOLLOW));
++    check(fd.value >= 0, "Cannot open cgroup control");
++    ssize_t size;
++    do { size = write(fd.value, value.data(), value.size()); } while (size < 0 && errno == EINTR);
++    check(size == static_cast<ssize_t>(value.size()), "Cannot write cgroup control");
++}
++void tick() { poll(nullptr, 0, 5); }
++[[noreturn]] void child_failure(int gate, int error) {
++    (void)send(gate, &error, sizeof(error), MSG_NOSIGNAL); _exit(126);
++}
++}
++
++std::unique_ptr<ProcessScope> ProcessScope::launch(const std::filesystem::path& root,
++    const v1::AuthorityProcessLaunch& request, const std::array<int, 3>& streams) {
++    validate_message(request);
++    const auto& exe = request.executable();
++    valid(!exe.empty() && exe.front() == '/' && exe.size() <= 4096 && exe.find('\0') == std::string::npos,
++          "Authority executable must be an absolute path");
++    valid(request.arguments_size() <= 128, "Too many authority arguments");
++    std::size_t size = exe.size();
++    std::vector<char*> argv{const_cast<char*>(exe.c_str())};
++    for (const auto& arg : request.arguments()) {
++        size += arg.size()+1;
++        valid(size <= 65536 && arg.find('\0') == std::string::npos, "Invalid authority argument");
++        argv.push_back(const_cast<char*>(arg.c_str()));
++    }
++    argv.push_back(nullptr);
++    // Do not inherit provider credentials or supervisor secrets through the environment.
++    char path[] = "PATH=/usr/bin:/bin", lang[] = "LANG=C.UTF-8";
++    char* environment[]{path, lang, nullptr};
++    std::array<Fd, 3> copied;
++    for (std::size_t i = 0; i < copied.size(); ++i) {
++        copied[i].value = fcntl(streams[i], F_DUPFD_CLOEXEC, 3);
++        check(copied[i].value >= 0, "Cannot retain explicit authority stream");
++    }
++    auto result = std::unique_ptr<ProcessScope>(new ProcessScope);
++    result->parent_ = open(root.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
++    check(result->parent_ >= 0, "Cannot open delegated cgroup");
++    struct statfs fs{}; struct stat parent{}, above{};
++    check(fstatfs(result->parent_, &fs) == 0 && fstat(result->parent_, &parent) == 0,
++          "Cannot inspect delegated cgroup");
++    Fd upper(openat(result->parent_, "..", O_RDONLY | O_DIRECTORY | O_CLOEXEC));
++    check(upper.value >= 0 && fstat(upper.value, &above) == 0, "Cannot inspect cgroup parent");
++    valid(fs.f_type == CGROUP2_SUPER_MAGIC && parent.st_uid == geteuid() &&
++          !(parent.st_dev == above.st_dev && parent.st_ino == above.st_ino), "Expected owned delegated cgroup v2 directory");
++    valid(contents(result->parent_, "cgroup.type") == "domain\n", "Expected domain cgroup");
++    std::string random(32, '\0'); std::size_t received = 0;
++    while (received != random.size()) {
++        auto count = getrandom(random.data()+received, random.size()-received, 0);
++        if (count < 0 && errno == EINTR) continue;
++        check(count > 0, "Cannot create launch identity"); received += static_cast<std::size_t>(count);
++    }
++    std::string name = "authority-"; constexpr char hex[] = "0123456789abcdef";
++    for (unsigned char c : random) { name += hex[c >> 4]; name += hex[c & 15]; }
++    std::ifstream boot("/proc/sys/kernel/random/boot_id"); std::string boot_id; std::getline(boot, boot_id);
++    valid(boot_id.size() == 36, "Cannot read kernel boot identity");
++    result->identity_.set_launch_id(random); result->identity_.set_boot_id(boot_id);
++    check(mkdirat(result->parent_, name.c_str(), 0700) == 0, "Cannot create authority scope");
++    result->identity_.set_scope_name(name);
++    result->scope_ = openat(result->parent_, name.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
++    check(result->scope_ >= 0, "Cannot retain authority scope");
++    struct stat owned{}; check(fstat(result->scope_, &owned) == 0, "Cannot identify authority scope");
++    result->identity_.set_device(owned.st_dev); result->identity_.set_inode(owned.st_ino);
++    int pair[2]; check(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) == 0, "Cannot create startup gate");
++    Fd gate(pair[0]), child_gate(pair[1]); const pid_t owner = getpid();
++    result->child_ = fork(); check(result->child_ >= 0, "Cannot fork authority");
++    if (!result->child_) {
++        close(gate.value);
++        if (prctl(PR_SET_PDEATHSIG, SIGKILL) < 0) child_failure(child_gate.value, errno);
++        if (getppid() != owner) child_failure(child_gate.value, ECHILD);
++        char token; ssize_t count;
++        do { count = read(child_gate.value, &token, 1); } while (count < 0 && errno == EINTR);
++        if (count != 1 || token != 'G') child_failure(child_gate.value, EPIPE);
++        for (int i = 0; i < 3; ++i) if (dup2(copied[i].value, i) < 0) child_failure(child_gate.value, errno);
++        if (syscall(SYS_close_range, 3U, UINT_MAX, CLOSE_RANGE_CLOEXEC) < 0) child_failure(child_gate.value, errno);
++        execve(exe.c_str(), argv.data(), environment);
++        const int error = errno;
++        (void)send(child_gate.value, &error, sizeof(error), MSG_NOSIGNAL);
++        _exit(127);
++    }
++    close(child_gate.value); child_gate.value = -1;
++    result->pidfd_ = static_cast<int>(syscall(SYS_pidfd_open, result->child_, 0));
++    check(result->pidfd_ >= 0, "Cannot pin authority child");
++    control(result->scope_, "cgroup.procs", std::to_string(result->child_)+"\n");
++    valid(result->populated(), "Authority did not enter its owned scope");
++    check(send(gate.value, "G", 1, MSG_NOSIGNAL) == 1, "Cannot release authority startup gate");
++    pollfd ready{gate.value, POLLIN | POLLHUP, 0}; int polled;
++    do { polled = poll(&ready, 1, 2000); } while (polled < 0 && errno == EINTR);
++    check(polled > 0, "Authority exec deadline exceeded");
++    int error = 0; ssize_t count;
++    do { count = read(gate.value, &error, sizeof(error)); } while (count < 0 && errno == EINTR);
++    if (count > 0) { errno = error; check(false, "Authority exec failed"); }
++    check(count == 0, "Cannot confirm authority exec");
++    return result;
++}
++
++bool ProcessScope::populated() const {
++    std::istringstream input(contents(scope_, "cgroup.events"));
++    std::string key; unsigned long long value; bool found = false, populated = false;
++    while (input >> key >> value) {
++        if (key == "populated") {
++            valid(!found && value <= 1, "Invalid cgroup population state");
++            found = true; populated = value != 0;
++        }
++    }
++    valid(found, "Missing cgroup population state"); return populated;
++}
++bool ProcessScope::child_exited() const {
++    if (reaped_ || child_ < 0) return true;
++    valid(pidfd_ >= 0, "Direct child was not pinned");
++    pollfd event{pidfd_, POLLIN, 0}; int result;
++    do { result = poll(&event, 1, 0); } while (result < 0 && errno == EINTR);
++    check(result >= 0 && !(event.revents & (POLLERR | POLLNVAL)), "Cannot inspect child exit");
++    return event.revents & POLLIN;
++}
++v1::ProcessScopeState ProcessScope::state() const {
++    v1::ProcessScopeState result; *result.mutable_identity() = identity_;
++    result.set_populated(!removed_ && populated()); result.set_direct_child_exited(child_exited()); return result;
++}
++v1::ProcessScopeStopped ProcessScope::stop() {
++    if (!removed_) {
++        if (scope_ >= 0) control(scope_, "cgroup.kill", "1\n");
++        // Also cover a startup failure before cgroup migration. The direct child remains unreaped.
++        if (child_ > 0 && !reaped_) {
++            const int rc = pidfd_ >= 0 ? static_cast<int>(syscall(SYS_pidfd_send_signal, pidfd_, SIGKILL, nullptr, 0)) : kill(child_, SIGKILL);
++            check(rc == 0 || errno == ESRCH, "Cannot terminate owned authority child");
++        }
++        const auto deadline = Clock::now()+std::chrono::seconds(2);
++        while (scope_ >= 0 && populated()) {
++            valid(Clock::now() < deadline, "Authority scope remains populated"); tick();
++        }
++        while (child_ > 0 && !reaped_) {
++            int status; const auto waited = waitpid(child_, &status, WNOHANG);
++            if (waited < 0 && errno == EINTR) continue;
++            check(waited >= 0, "Cannot reap authority child");
++            if (waited == child_) { reaped_ = true; break; }
++            valid(Clock::now() < deadline, "Authority child reap deadline exceeded"); tick();
++        }
++        if (!identity_.scope_name().empty()) {
++            struct stat named{};
++            check(fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
++                  "Cannot find owned scope for removal");
++            valid(identity_.inode() && identity_.device() == static_cast<std::uint64_t>(named.st_dev) &&
++                  identity_.inode() == static_cast<std::uint64_t>(named.st_ino), "Owned scope identity changed");
++            check(unlinkat(parent_, identity_.scope_name().c_str(), AT_REMOVEDIR) == 0, "Cannot remove owned scope");
++        }
++        removed_ = true;
++    }
++    v1::ProcessScopeStopped result; *result.mutable_identity() = identity_; return result;
++}
++ProcessScope::~ProcessScope() {
++    try { stop(); }
++    catch (const std::exception& error) {
++        std::cerr << "authority process cleanup unconfirmed: " << error.what() << '\n'; _exit(2);
++    }
++    for (int fd : {pidfd_, scope_, parent_}) if (fd >= 0) close(fd);
++}
++}
+--- /dev/null
++++ b/src/supervisor/process_scope.hpp
+@@ -0,0 +1,28 @@
++#pragma once
++#include "process_scope.pb.h"
++#include <array>
++#include <filesystem>
++#include <memory>
++#include <sys/types.h>
++
++namespace spatial::supervisor {
++// Owns one authority process subtree. Native cleanup and issuer retirement are separate.
++class ProcessScope final {
++public:
++    static std::unique_ptr<ProcessScope> launch(const std::filesystem::path& delegated_root,
++        const v1::AuthorityProcessLaunch& request, const std::array<int, 3>& streams);
++    ~ProcessScope();
++    ProcessScope(const ProcessScope&) = delete;
++    ProcessScope& operator=(const ProcessScope&) = delete;
++    v1::ProcessScopeState state() const;
++    v1::ProcessScopeStopped stop();
++private:
++    ProcessScope() = default;
++    bool populated() const;
++    bool child_exited() const;
++    int parent_ = -1, scope_ = -1, pidfd_ = -1;
++    pid_t child_ = -1;
++    bool reaped_ = false, removed_ = false;
++    v1::ProcessScopeIdentity identity_;
++};
++}
+--- /dev/null
++++ b/src/testing/process_scope_probe.cpp
+@@ -0,0 +1,76 @@
++#include "supervisor/process_scope.hpp"
++#include "core/protocol.hpp"
++#include <cerrno>
++#include <csignal>
++#include <cstddef>
++#include <fcntl.h>
++#include <iostream>
++#include <linux/filter.h>
++#include <linux/seccomp.h>
++#include <stdexcept>
++#include <sys/prctl.h>
++#include <sys/syscall.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++namespace {
++// Probe-only kernel fault injection, installed after the production launch.
++void deny_wait() {
++    sock_filter filter[]{
++        BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(seccomp_data, nr)),
++        BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, SYS_wait4, 0, 1),
++        BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | EPERM),
++        BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
++    };
++    sock_fprog program{static_cast<unsigned short>(sizeof(filter)/sizeof(filter[0])), filter};
++    if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) || prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &program))
++        throw std::runtime_error("Cannot install diagnostic cleanup filter");
++}
++}
++int main(int argc, char** argv) {
++    namespace pb = spatial::supervisor::v1;
++    std::signal(SIGPIPE, SIG_IGN);
++    try {
++        if (argc < 2 || argc > 3) throw std::invalid_argument("Expected delegated root and optional fault mode");
++        const std::string mode = argc == 3 ? argv[2] : "normal";
++        if (mode != "normal" && mode != "deny-write" && mode != "deny-wait") throw std::invalid_argument("Unknown probe mode");
++        const int empty = open("/dev/null", O_RDWR | O_CLOEXEC);
++        if (empty < 0) throw std::runtime_error("Cannot open private child streams");
++        std::unique_ptr<spatial::supervisor::ProcessScope> process;
++        std::string bytes;
++        while (spatial::read_frame(std::cin, bytes)) {
++            pb::ProcessScopeRequest request; pb::ProcessScopeReply reply; reply.set_protocol_version(1);
++            try {
++                if (!request.ParseFromString(bytes)) throw std::invalid_argument("Malformed scope request");
++                reply.set_request_id(request.request_id()); spatial::validate_message(request);
++                if (request.protocol_version() != 1) {
++                    reply.mutable_error()->set_code(pb::ProcessScopeError::UNSUPPORTED_VERSION);
++                } else if (request.has_launch()) {
++                    if (process) { reply.mutable_error()->set_code(pb::ProcessScopeError::INVALID_STATE); }
++                    else {
++                        process = spatial::supervisor::ProcessScope::launch(argv[1], request.launch(), {empty, empty, empty});
++                        *reply.mutable_state() = process->state();
++                        if (mode == "deny-wait") deny_wait();
++                        if (mode == "deny-write") {
++                            // Deny only this owned kernel control. Broad write filtering breaks
++                            // ASan's unrelated memory probes before cleanup can be exercised.
++                            const auto file = std::filesystem::path(argv[1])/reply.state().identity().scope_name()/"cgroup.kill";
++                            if (chmod(file.c_str(), 0400) != 0) throw std::runtime_error("Cannot deny owned kill control");
++                        }
++                    }
++                } else if (request.has_state() && process) *reply.mutable_state() = process->state();
++                else if (request.has_stop() && process) *reply.mutable_stopped() = process->stop();
++                else reply.mutable_error()->set_code(pb::ProcessScopeError::INVALID_STATE);
++            } catch (const std::invalid_argument& error) {
++                reply.mutable_error()->set_code(pb::ProcessScopeError::INVALID_ARGUMENT);
++                reply.mutable_error()->set_message(error.what());
++            } catch (const std::exception& error) {
++                reply.mutable_error()->set_code(request.has_stop() ? pb::ProcessScopeError::CLEANUP_UNCONFIRMED : pb::ProcessScopeError::LAUNCH_FAILED);
++                reply.mutable_error()->set_message(error.what());
++            }
++            spatial::write_frame(std::cout, reply);
++            if (reply.has_error() && request.has_stop()) return 2;
++        }
++        close(empty); return 0;
++    } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 2; }
++}
+--- /dev/null
++++ b/tests/core/test_authority_process_scope.py
+@@ -0,0 +1,182 @@
++"""Run inside a disposable delegated user service. Observe real kernel process exits."""
++import os
++from pathlib import Path
++import select
++import shutil
++import subprocess
++import sys
++import tempfile
++import time
++import unittest
++import process_scope_pb2 as pb
++from harness.wire import frame, read_message
++
++PROBE = Path(sys.argv.pop(1)).resolve()
++RELATIVE = Path('/proc/self/cgroup').read_text().strip().split('::', 1)[1]
++ROOT = Path('/sys/fs/cgroup') / RELATIVE.lstrip('/')
++assert RELATIVE != '/' and ROOT.stat().st_uid == os.getuid()
++
++
++class ProcessScopeTests(unittest.TestCase):
++    def setUp(self):
++        self.temp = tempfile.TemporaryDirectory()
++        self.addCleanup(self.temp.cleanup)
++        self.files = Path(self.temp.name)
++        def preserve():
++            if os.environ.get('SPATIAL_SCOPE_EVIDENCE'):
++                target = Path(os.environ['SPATIAL_SCOPE_EVIDENCE'])/self._testMethodName
++                target.mkdir(parents=True, exist_ok=True)
++                for log in self.files.glob('*.log'): shutil.copy2(log, target/log.name)
++        self.addCleanup(preserve)
++        self.root = ROOT / ('test-' + self.files.name)
++        self.root.mkdir()
++        self.addCleanup(self.cleanup_scopes)
++
++    def cleanup_scopes(self):
++        for scope in self.root.iterdir():
++            if not scope.is_dir(): continue
++            (scope/'cgroup.kill').chmod(0o600)
++            (scope/'cgroup.kill').write_text('1\n')
++            deadline = time.monotonic()+3
++            while 'populated 1' in (scope/'cgroup.events').read_text():
++                self.assertLess(time.monotonic(), deadline)
++                time.sleep(.01)
++            scope.rmdir()
++        self.root.rmdir()
++
++    def probe(self, mode='normal', root=None):
++        log = (self.files/(mode+str(time.monotonic_ns())+'.log')).open('wb')
++        self.addCleanup(log.close)
++        proc = subprocess.Popen([str(PROBE), str(root or self.root), mode],
++                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log)
++        def cleanup():
++            if proc.poll() is None:
++                proc.stdin.close()
++                try: proc.wait(timeout=3)
++                except subprocess.TimeoutExpired: proc.kill(); proc.wait(timeout=3)
++            if not proc.stdin.closed: proc.stdin.close()
++            proc.stdout.close()
++        self.addCleanup(cleanup)
++        return proc
++
++    def call(self, proc, **operation):
++        request = pb.ProcessScopeRequest(protocol_version=1, request_id=77, **operation)
++        proc.stdin.write(frame(request)); proc.stdin.flush()
++        self.assertTrue(select.select([proc.stdout], [], [], 5)[0], 'Scope reply deadline')
++        reply = read_message(proc.stdout, pb.ProcessScopeReply)
++        self.assertEqual(reply.protocol_version, 1)
++        self.assertEqual(reply.request_id, 77)
++        return reply
++
++    def launch(self, proc, code):
++        reply = self.call(proc, launch=pb.AuthorityProcessLaunch(
++            executable='/usr/bin/python3', arguments=['-c', code]))
++        self.assertEqual(reply.WhichOneof('outcome'), 'state', reply)
++        self.assertEqual(len(reply.state.identity.launch_id), 32)
++        self.assertEqual(len(reply.state.identity.boot_id), 36)
++        scope = self.root/reply.state.identity.scope_name
++        self.assertEqual(scope.stat().st_ino, reply.state.identity.inode)
++        return reply.state.identity
++
++    def wait_file(self, path):
++        deadline = time.monotonic()+3
++        while not path.exists():
++            self.assertLess(time.monotonic(), deadline, 'Child readiness deadline')
++            time.sleep(.005)
++
++    def pins(self, identity):
++        pids = [int(p) for p in (self.root/identity.scope_name/'cgroup.procs').read_text().split()]
++        result = [os.pidfd_open(p) for p in pids]
++        for fd in result: self.addCleanup(os.close, fd)
++        return result
++
++    def stop(self, proc):
++        reply = self.call(proc, stop=pb.ProcessScopeQuery())
++        self.assertEqual(reply.WhichOneof('outcome'), 'stopped', reply)
++        return reply.stopped
++
++    def test_detached_descendants_exit_before_receipt(self):
++        ready = self.files/'ready'; proc = self.probe()
++        identity = self.launch(proc, f'import os,pathlib,time\npid=os.fork()\nif pid==0:\n os.setsid();pathlib.Path({str(ready)!r}).touch()\ntime.sleep(30)')
++        self.wait_file(ready); pins = self.pins(identity); self.assertEqual(len(pins), 2)
++        receipt = self.stop(proc)
++        self.assertEqual(receipt.identity, identity)
++        self.assertEqual(len(select.select(pins, [], [], 0)[0]), 2)
++        self.assertFalse((self.root/identity.scope_name).exists())
++        self.assertEqual(self.stop(proc), receipt)
++
++    def test_leader_exit_does_not_hide_live_detached_child(self):
++        ready = self.files/'ready'; proc = self.probe()
++        identity = self.launch(proc, f'import os,pathlib,time\npid=os.fork()\nif pid: os._exit(0)\nos.setsid();pathlib.Path({str(ready)!r}).touch();time.sleep(30)')
++        self.wait_file(ready)
++        deadline = time.monotonic()+3
++        while True:
++            state = self.call(proc, state=pb.ProcessScopeQuery()).state
++            if state.direct_child_exited: break
++            self.assertLess(time.monotonic(), deadline); time.sleep(.005)
++        self.assertTrue(state.populated)
++        pins = self.pins(identity); self.assertGreaterEqual(len(pins), 1)
++        self.stop(proc)
++        self.assertEqual(len(select.select(pins, [], [], 0)[0]), len(pins))
++
++    def test_stop_preserves_independent_scope(self):
++        first = self.probe(); second = self.probe()
++        one = self.launch(first, 'import time;time.sleep(30)')
++        two = self.launch(second, 'import time;time.sleep(30)')
++        self.assertNotEqual(one.launch_id, two.launch_id)
++        pins = self.pins(two); self.stop(first)
++        self.assertTrue(self.call(second, state=pb.ProcessScopeQuery()).state.populated)
++        self.assertEqual(select.select(pins, [], [], 0)[0], [])
++        self.stop(second)
++
++    def test_ordinary_directory_rejected_before_execution(self):
++        ready = self.files/'unexpected'; proc = self.probe(root=self.files)
++        reply = self.call(proc, launch=pb.AuthorityProcessLaunch(executable='/usr/bin/touch', arguments=[str(ready)]))
++        self.assertEqual(reply.WhichOneof('outcome'), 'error')
++        self.assertFalse(ready.exists())
++
++    def test_invalid_executable_rejected_without_scope(self):
++        proc = self.probe()
++        for executable in ['python3', '/bin/true\0bad', '']:
++            reply = self.call(proc, launch=pb.AuthorityProcessLaunch(executable=executable))
++            self.assertEqual(reply.error.code, pb.ProcessScopeError.INVALID_ARGUMENT)
++        self.assertEqual([p for p in self.root.iterdir() if p.is_dir()], [])
++
++    def test_exec_failure_removes_scope(self):
++        proc = self.probe()
++        reply = self.call(proc, launch=pb.AuthorityProcessLaunch(executable='/no/such/spatial-authority'))
++        self.assertEqual(reply.error.code, pb.ProcessScopeError.LAUNCH_FAILED)
++        self.assertEqual([p for p in self.root.iterdir() if p.is_dir()], [])
++
++    def test_parent_environment_is_not_exported(self):
++        proc = self.probe(); ready = self.files/'environment'
++        self.launch(proc, f'import os,pathlib;pathlib.Path({str(ready)!r}).write_text(str(sorted(os.environ)))')
++        self.wait_file(ready)
++        self.assertEqual(ready.read_text(), "['LANG', 'PATH']")
++        self.stop(proc)
++
++    def test_kernel_denied_kill_never_returns_stopped(self):
++        self.denied('deny-write')
++
++    def test_kernel_denied_wait_never_returns_stopped(self):
++        self.denied('deny-wait')
++
++    def denied(self, mode):
++        proc = self.probe(mode); self.launch(proc, 'import time;time.sleep(30)')
++        reply = self.call(proc, stop=pb.ProcessScopeQuery())
++        self.assertEqual(reply.error.code, pb.ProcessScopeError.CLEANUP_UNCONFIRMED)
++        self.assertIn('Cannot open cgroup control' if mode == 'deny-write' else 'Cannot reap authority child', reply.error.message)
++        self.assertEqual(proc.wait(timeout=3), 2)
++
++    def test_unknown_protobuf_fields_rejected(self):
++        proc = self.probe()
++        request = pb.ProcessScopeRequest(protocol_version=1, request_id=77)
++        # Field 99 is outside the versioned schema.
++        raw = request.SerializeToString()+b'\x98\x06\x01'
++        proc.stdin.write(len(raw).to_bytes(4, 'big')+raw); proc.stdin.flush()
++        self.assertTrue(select.select([proc.stdout], [], [], 3)[0])
++        reply = read_message(proc.stdout, pb.ProcessScopeReply)
++        self.assertEqual(reply.error.code, pb.ProcessScopeError.INVALID_ARGUMENT)
++
++
++if __name__ == '__main__': unittest.main(verbosity=2)

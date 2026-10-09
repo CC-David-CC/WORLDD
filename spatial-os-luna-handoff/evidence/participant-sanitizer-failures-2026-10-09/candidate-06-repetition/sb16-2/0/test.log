@@ -1,0 +1,6 @@
+test_credential_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_credential_revocation_releases_native_input) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 5.751s
+
+OK

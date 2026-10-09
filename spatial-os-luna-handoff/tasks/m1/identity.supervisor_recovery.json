@@ -3,14 +3,17 @@
   "phase": "M02",
   "parent": "identity.revocation_barrier",
   "status": "in_progress",
-  "current_step": "verified_crash_witnesses_and_recorded_trust_boundary",
+  "current_step": "owned_process_scope_focused_both_host_profiles_passed",
   "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
   "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "evidence": "evidence/participant-recovery-2026-10-09",
   "baseline": {
     "candidate": 4,
     "profile": "Debug",
-    "hosts": ["sb16", "sb16-2"],
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
     "checks_per_host": 2,
     "world_result": "World and compositor exit preceded native release. Confirmed cleanup still left one pending obligation and blocked replacement.",
     "broker_result": "Five pinned descendants exited. Confirmed cleanup still left one pending obligation and blocked replacement.",
@@ -24,5 +27,20 @@
     "Reject stale service connections and unauthorized replacement activation.",
     "Test crash recovery, concurrent revocation, replay, and issuer or supervisor failure.",
     "Qualify Debug and runtime sanitizer profiles on both hosts."
-  ]
+  ],
+  "process_scope": {
+    "candidate": 3,
+    "source_files": 258,
+    "checks_per_profile": 10,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "integrated": false,
+    "evidence": "evidence/authority-process-scope-2026-10-09"
+  }
 }
