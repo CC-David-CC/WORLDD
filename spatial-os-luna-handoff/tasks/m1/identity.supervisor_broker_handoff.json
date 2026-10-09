@@ -18,5 +18,6 @@
   "correction_test_evidence": "evidence/supervisor-broker-handoff-2026-10-09/observer-review-02.json",
   "isolated_candidate": 2,
   "integration": "Exact five-file primary review, guarded patch, staged-source audit, and host-adoption scripts are prepared. Apply, stage audit, and adoption remain unrun for this candidate. Both-host full qualification remains required.",
-  "next_task": "tasks/m1/identity.supervised_broker_participation.json"
+  "next_task": "tasks/m1/identity.supervised_broker_participation.json",
+  "cumulative": "sb16 full Debug passed:1393 core checks across93 suites,51 harness checks,151 P10 cases; zero failures or skips. sb16 full runtime sanitizer and sb16-2 full Debug remain active."
 }

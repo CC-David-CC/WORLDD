@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Full broker candidate Debug qualification passes on sb16
+
+Broker handoff candidate02 passed full Debug on sb16.
+The result contains 1393 core checks across 93 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. Raw logs confirm the reported counts and distinct suite coverage.
+The collector verified all 283 candidate source hashes and 41 locked files.
+Read evidence/supervisor-broker-handoff-2026-10-09/full-candidate-02/sb16/summary-debug.json.
+
+sb16 full runtime sanitizer qualification is active.
+sb16-2 full Debug remains active, followed by its sanitizer continuation.
+Both hosts already passed both focused profiles.
+Supervised broker participation tests and the world/compositor handoff baseline remain queued.
+The five-file broker integration remains prepared and unrun until all full profiles pass.
+Production remains the supervisor increment at 534a94c. M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-09: World/compositor native handoff baseline is prepared
 
 The source audit confirms that worldd and RenderWorker pass only a display argument to spatialwm.
