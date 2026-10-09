@@ -1,0 +1,27 @@
+--- a/tests/core/test_participant_channel.py
++++ b/tests/core/test_participant_channel.py
+@@ -189,6 +189,7 @@
+                 else:auth.issuer_incarnation=b''
+                 self.send_update(parent,authenticated=auth);self.error(runtime,core.INVALID_ARGUMENT)
+                 self.assertEqual(self.rows(),[])
++                peer.close();parent.close();runtime.close()
+ 
+     def test_invalid_revocation_batches_never_reach_the_consumer(self):
+         for mode in ['issuer','gap','repeat-baseline','target','future-from']:
+@@ -217,7 +218,7 @@
+     def test_correlated_reply_cannot_change_operation_identity_or_revision(self):
+         for mode in ['request-id','operation','connection','incarnation','registration','generation','active','revision']:
+             with self.subTest(mode=mode):
+-                runtime,parent,_,auth,_,_=self.ready_private();runtime.send(55,activate=pb.AuthorityActivate(synchronized_revision=0))
++                runtime,parent,peer,auth,_,_=self.ready_private();runtime.send(55,activate=pb.AuthorityActivate(synchronized_revision=0))
+                 command=self.receive_command(parent);self.assertEqual(command.request_id,55)
+                 state=self.state_for(auth);request_id=55;outcome='activated'
+                 if mode=='request-id':request_id=56
+@@ -230,6 +231,7 @@
+                 else:state.applied_revision=1
+                 self.send_update(parent,request_id,**{outcome:state});self.error(runtime,core.INVALID_ARGUMENT)
+                 self.assertEqual(self.rows(),[])
++                peer.close();parent.close();runtime.close()
+ 
+     def test_replayed_activation_reply_is_rejected_without_releasing_generation(self):
+         runtime,parent,_,auth,state,_=self.activate_private()

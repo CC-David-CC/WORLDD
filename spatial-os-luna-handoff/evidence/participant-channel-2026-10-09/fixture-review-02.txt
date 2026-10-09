@@ -1,0 +1,18 @@
+Candidate02 fixture correction
+
+Both original Debug runs executed 356 checks across 22 suites.
+One new test errored before its final revision assertion. The other 355 checks passed.
+The fixture retained one real issuer connection for every negative subcase.
+Its eighth subcase exceeded the configured limit of eight connections, including the existing fixture connection.
+The issuer closed the excess TLS connection during its handshake.
+
+Close completed subcase peers and child resources before starting the next subcase.
+Keep the connection limit, negative reply payloads, and every assertion unchanged.
+All production files and prior test files match candidate01 exactly.
+The correction patch reconstructs all 276 frozen files.
+
+Both hosts ran the corrected seventeen tests against the original candidate01 production binaries.
+All seventeen passed on each host. No case skipped.
+This diagnoses the fixture lifecycle without attributing success to a production change.
+Fresh candidate02 Debug and runtime ASan/UBSan qualification remains active.
+The original failure logs, commands, source hashes, and descriptor audits are preserved.

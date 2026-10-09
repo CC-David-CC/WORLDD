@@ -1,5 +1,5 @@
 {
-  "candidate": 1,
+  "candidate": 2,
   "source_files": 276,
   "reviewer": "Primary agent",
   "integrated": false,
@@ -14,11 +14,12 @@
     "No automatic reconnect or command replay."
   ],
   "baseline": "Both hosts reject inherited configuration before authentication. Original BrokenPipe failure and exact child diagnostic preserved.",
-  "qualification": "Candidate01 frozen with17newchecks. Both-host Debug builds started; no candidate pass claimed.",
+  "qualification": "Candidate01 Debug356checks had1newfixture error on bothhosts. Candidate02 changes only completed subcase cleanup. Corrected17checks pass original binaries on bothhosts. Fresh both-profile qualification active.",
   "limitations": [
     "Production supervisor relay remains unimplemented.",
     "Parent receipt cannot acknowledge child cancellation.",
     "World/broker integration, fencing, and checked recovery remain required."
   ],
-  "patch_reconstruction": "Both patches applied to the recorded base and reproduce every frozen file hash."
+  "patch_reconstruction": "Both patches applied to the recorded base and reproduce every frozen file hash.",
+  "fixture_review": "fixture-review-02.txt"
 }

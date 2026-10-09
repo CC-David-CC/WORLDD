@@ -1,0 +1,14 @@
+{
+  "host": "sb16-2",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-02/source/tests/core/test_participant_channel.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-01/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-01/debug/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-01/debug/build/spatial-participant-runtime-probe"
+  ],
+  "exit_code": 0,
+  "production_identical": true,
+  "binary_source": "participant-channel-candidate-01",
+  "test_source": "participant-channel-candidate-02"
+}

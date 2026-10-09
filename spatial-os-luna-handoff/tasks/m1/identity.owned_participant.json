@@ -16,5 +16,6 @@
     "Connect worldd and workspaced through a private inherited participant channel.",
     "Implement fencing, checked recovery reconciliation, and exact generation retirement."
   ],
-  "setup_failure": "Original output01 passed328checks20suites; native-input dependencies were absent, so11checks remained unrun. Original failure preserved; output02 builds all targets without source or assertion changes."
+  "setup_failure": "Original output01 passed328checks20suites; native-input dependencies were absent, so11checks remained unrun. Original failure preserved; output02 builds all targets without source or assertion changes.",
+  "full_Debug": "Both hosts passed1339core87suites51harness151P10; no failures or skips. Runtime sanitizer active."
 }

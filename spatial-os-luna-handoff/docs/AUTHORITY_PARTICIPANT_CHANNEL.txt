@@ -1,5 +1,5 @@
 Private inherited participant channel
-Status: isolated child-transport candidate01. Both-host qualification is running. Production relay remains pending.
+Status: isolated child-transport candidate02. Both-host qualification is running. Production relay remains pending.
 
 Invariant
 
@@ -70,3 +70,8 @@ Qualify Debug and runtime ASan/UBSan on both hosts before integration.
 
 This child transport does not alone qualify the production supervisor relay.
 Coordinator relay, worldd and workspaced integration, fencing, and checked crash recovery remain required.
+
+Candidate01 exposed a new fixture connection-lifetime error on both hosts.
+Candidate02 closes completed subcases without changing production or assertions.
+All seventeen corrected checks passed on both hosts using original production binaries.
+Fresh both-profile qualification remains active.

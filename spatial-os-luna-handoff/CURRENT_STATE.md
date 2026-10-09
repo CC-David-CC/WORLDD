@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-09: Child-channel fixture corrected; owned participant full Debug passes
+
+Private channel candidate01 ran 356 Debug checks across 22 suites on each host.
+One new fixture test retained too many issuer connections and errored before its final assertion.
+The other 355 checks passed. Both harness runs passed all 51 checks.
+The original failures, commands, source, and additive protobuf audits remain preserved.
+
+Candidate02 closes completed subcase connections before starting the next subcase.
+All production files, previous tests, connection limits, and assertions remain unchanged.
+Both hosts passed all seventeen corrected channel tests using the original production binaries.
+Fresh candidate02 Debug and runtime ASan/UBSan qualification is active on both hosts.
+Read evidence/participant-channel-2026-10-09/fixture-review-02.txt.
+
+Owned participant candidate01 passed full Debug qualification on both hosts.
+Each host passed 1339 core checks across 87 suites, 51 harness checks, and 151 P10 cases.
+No Debug case failed or skipped. Full runtime sanitizer qualification continues.
+The launch-authorization full sanitizer matrix also remains active.
+
+No new source is integrated. Production relay, fencing, checked recovery, M02, and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Owned participant sanitizer checks pass; private child channel enters qualification
 
 Owned participant candidate01 passed both focused profiles on both hosts.
