@@ -14,7 +14,9 @@ Acknowledgements must also wait for native input, deferred leases, observations,
 The exact worker and integration contract is recorded in docs/AUTHORITY_PARTICIPANT_RUNTIME.txt.
 The reproduction and binary hashes are in evidence/revocation-barrier-2026-10-09/runtime-participation-gap-01.
 This diagnostic is not a passed cancellation requirement. M02 and Spatial-M1 remain incomplete.
-Both service-session sanitizer runs remain live. No production source or operator state changed.
+Service-session Debug and runtime ASan/UBSan profiles passed on sb16: 1,152 core, 51 harness, and 151 P10 checks each.
+No case failed or skipped. All 238 source hashes match. sb16-2 sanitizer qualification remains live.
+Full barrier qualification has started on sb16. No production source or operator state changed.
 
 ## 2026-10-09: Durable participation checked client passes focused Debug checks
 

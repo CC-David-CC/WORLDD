@@ -2,7 +2,7 @@
   "id": "identity.participant_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "candidate_04_focused_passed_full_qualification_prepared",
+  "current_step": "candidate_04_full_sb16_qualification_started",
   "parent": "identity.revocation_barrier",
   "integration_dependency": "identity.participant_session",
   "contract": "docs/AUTHORITY_PARTICIPANT_BARRIER.txt",

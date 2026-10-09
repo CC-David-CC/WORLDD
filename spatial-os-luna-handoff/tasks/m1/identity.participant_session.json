@@ -58,5 +58,17 @@
       "sb16-2"
     ]
   },
-  "full_qualification": "Both Debug profiles passed; both runtime sanitizer profiles running"
+  "full_qualification": "sb16 Debug and runtime sanitizers passed;sb16-2 Debug passed and runtime sanitizers remain live",
+  "sb16_final": {
+    "core_checks": 1152,
+    "core_suites": 66,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ]
+  }
 }
