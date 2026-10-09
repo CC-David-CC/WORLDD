@@ -1,5 +1,28 @@
 # Implementation status
 
+## 2026-10-09: sb16 relay qualification passes; supervisor correction starts testing
+
+Relay candidate01 passed full Debug and runtime ASan/UBSan on sb16.
+Each profile passed 1366 core checks across 89 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. This candidate remains isolated.
+sb16-2 passed full Debug. Its runtime sanitizer run remains active.
+
+The independent ownership witness confirmed NativeScope descriptor ownership loss on sb16 in both profiles.
+Each profile produced two expected failures and one passing NativeLaunch control.
+This does not establish the cause of earlier world startup failures.
+The same witness remains queued behind the unchanged sb16-2 relay run.
+
+Supervisor candidate02 includes the correction, three ownership checks, and fourteen supervisor checks.
+Its sb16 configure step passed. Its build is active.
+No candidate02 runtime result is claimed. Both hosts must pass qualification before integration.
+Integrated production remains the 242-file increment at 94c6cb6.
+M01, M02, and full Spatial-M1 qualification remain incomplete.
+
+Read evidence/participant-relay-2026-10-09/full-candidate-01/sb16/summary-final.json.
+Read evidence/native-scope-config-2026-10-09/baseline-01/sb16/summary.json.
+Read evidence/authority-supervisor-2026-10-09/source-review-02.json.
+
+
 ## 2026-10-09: Relay full Debug passes; native configuration ownership witness prepared
 
 Relay candidate01 completed full Debug on both sb16 and sb16-2.

@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.revocation_barrier",
   "status": "in_progress",
-  "current_step": "private_participant_relay_qualification",
+  "current_step": "production_supervisor_and_native_ownership_qualification",
   "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
   "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "evidence": "evidence/participant-recovery-2026-10-09",
@@ -57,5 +57,7 @@
   "supervisor_registry_task": "tasks/m1/identity.supervisor_registry.json",
   "launch_authorization_task": "tasks/m1/identity.launch_authorization.json",
   "owned_participant_task": "tasks/m1/identity.owned_participant.json",
-  "participant_relay_task": "tasks/m1/identity.participant_relay.json"
+  "participant_relay_task": "tasks/m1/identity.participant_relay.json",
+  "authority_supervisor_task": "tasks/m1/identity.authority_supervisor.json",
+  "native_configuration_ownership": "docs/NATIVE_SCOPE_DESCRIPTOR_OWNERSHIP.txt"
 }

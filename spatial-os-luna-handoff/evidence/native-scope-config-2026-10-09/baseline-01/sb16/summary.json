@@ -1,0 +1,15 @@
+{
+  "host": "sb16",
+  "source_files": 277,
+  "locked_files": 41,
+  "production_changed": false,
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "expected_failures_per_profile": 2,
+  "passed_controls_per_profile": 1,
+  "acceptance_pass": false,
+  "result": "NativeScope consumes or replaces the configuration descriptor retained by its caller.",
+  "limitation": "This proves ownership loss. It does not establish the cause of earlier world startup failures."
+}

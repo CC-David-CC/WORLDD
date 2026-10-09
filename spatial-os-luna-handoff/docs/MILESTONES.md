@@ -15,6 +15,7 @@ Keep native hardware, authority, confinement, shared worlds, cabinets, and provi
 All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qualification items.
 Existing components provide partial implementation where CURRENT_STATE.md records their evidence.
 The mandatory profile is tasks/spatial-m1.json.
+See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
 
 The latest fully qualified production increment is checked application process termination at 94c6cb6.
 Both hosts passed Debug and runtime ASan/UBSan qualification for that increment.

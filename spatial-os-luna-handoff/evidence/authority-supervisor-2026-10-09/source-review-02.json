@@ -1,0 +1,35 @@
+{
+  "status": "Prepared after verified ownership baseline; Linux qualification pending.",
+  "baseline_hosts": [
+    "sb16"
+  ],
+  "required_qualification_hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "candidate": 2,
+  "source_files": 281,
+  "changed_files": [
+    "CMakeLists.txt",
+    "proto/spatial/supervisor/v1/launch.proto",
+    "src/supervisor/launch.cpp",
+    "src/supervisor/launch.hpp",
+    "src/supervisor/main.cpp",
+    "src/supervisor/native_scope.hpp",
+    "src/supervisor/process_scope.cpp",
+    "src/supervisor/process_scope.hpp",
+    "src/testing/native_scope_config_witness.cpp",
+    "src/testing/native_scope_probe.cpp",
+    "src/workspace/native_launch.cpp",
+    "src/workspace/native_launch.hpp",
+    "tests/native/test_authority_supervisor.py",
+    "tests/native/test_native_scope_config_ownership.py"
+  ],
+  "new_checks": 17,
+  "existing_tests_unchanged": true,
+  "supervisor_candidate01_tests_unchanged": true,
+  "locked_files_unchanged": 41,
+  "patch_reconstruction": "All281 hashes match applying the patch to frozen relay source.",
+  "integrated": false,
+  "qualified": false
+}

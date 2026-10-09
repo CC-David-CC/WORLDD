@@ -1,5 +1,7 @@
 NativeScope configuration descriptor ownership
-Status: static defect identified. Runtime reproduction is pending.
+Status: confirmed on sb16 in Debug and runtime ASan/UBSan.
+The sb16-2 baseline remains queued behind its full relay qualification.
+The correction is applied only to isolated supervisor candidate02. Qualification is active on sb16.
 
 Observed source
 
@@ -25,7 +27,7 @@ The caller retains and closes that descriptor exactly once.
 NativeScope owns only its separately opened native connection and socket-path descriptors.
 NativeLaunch keeps its existing consuming interface for the workspace executable.
 
-Proposed correction after reproduction
+Correction in isolated candidate02
 
 Make the sealed configuration reader borrow its input descriptor.
 Move the consuming guard into the NativeLaunch configuration adapter.
@@ -60,14 +62,18 @@ Witness: local/native-scope-config-witness.cpp
 Test: local/test_native_scope_config_ownership.py
 Driver: local/diagnose-native-scope-config-01.py
 Expected output: local/native-scope-config-baseline-01 on each host.
-No witness build or runtime result exists yet.
-The witness is queued behind each host's exact running relay process through a pidfd.
+The sb16 baseline recorded two ownership failures and one passing control in each profile.
+Read evidence/native-scope-config-2026-10-09/baseline-01/sb16/summary.json.
+The sb16-2 witness is queued behind its exact running relay process through a pidfd.
 The queued driver does not restart or replace the relay run.
 It preserves the baseline and collects its logs before exiting.
 
 The proposed four-file patch is evidence/native-scope-config-2026-10-09/proposed-fix-01.patch.
 Patch reconstruction passed in a disposable copy. The running sources remain unchanged.
 The correction driver is local/prepare-authority-supervisor-02.py.
-It requires both-host baseline logs before applying the correction to a new isolated candidate.
-The candidate will retain all fourteen supervisor tests and add three ownership checks.
-The correction driver has not run.
+It requires exact baseline logs from the explicitly selected hosts. The default requires both hosts.
+The driver ran with --baseline-host sb16 after that host confirmed the defect in both profiles.
+This permits sb16 testing while sb16-2 finishes its unchanged run.
+Both hosts must still pass final qualification before integration.
+Candidate02 retains all fourteen supervisor tests and adds three ownership checks.
+The original candidates and failed baselines remain preserved.

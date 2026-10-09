@@ -1,0 +1,29 @@
+test_caller_owned_configuration_and_reused_descriptor_survive_native_scope (__main__.NativeConfigOwnershipTests.test_caller_owned_configuration_and_reused_descriptor_survive_native_scope) ... FAIL: NativeScope consumed or replaced the caller-owned configuration descriptor
+FAIL
+test_native_scope_rejection_preserves_caller_configuration (__main__.NativeConfigOwnershipTests.test_native_scope_rejection_preserves_caller_configuration) ... FAIL: NativeScope consumed the caller-owned rejected configuration descriptor
+FAIL
+test_native_launch_rejection_still_consumes_configuration (__main__.NativeConfigOwnershipTests.test_native_launch_rejection_still_consumes_configuration) ... PASS: NativeLaunch rejection retains its consuming interface
+ok
+
+======================================================================
+FAIL: test_caller_owned_configuration_and_reused_descriptor_survive_native_scope (__main__.NativeConfigOwnershipTests.test_caller_owned_configuration_and_reused_descriptor_survive_native_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_native_scope_config_ownership.py", line 32, in test_caller_owned_configuration_and_reused_descriptor_survive_native_scope
+    self.assertEqual(run.returncode, 0, 'NativeScope must borrow its caller-owned sealed descriptor')
+AssertionError: 42 != 0 : NativeScope must borrow its caller-owned sealed descriptor
+
+======================================================================
+FAIL: test_native_scope_rejection_preserves_caller_configuration (__main__.NativeConfigOwnershipTests.test_native_scope_rejection_preserves_caller_configuration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_native_scope_config_ownership.py", line 46, in test_native_scope_rejection_preserves_caller_configuration
+    self.rejected_config('scope-reject')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_native_scope_config_ownership.py", line 43, in rejected_config
+    self.assertEqual(run.returncode, 0, 'Rejected configuration descriptor ownership differs from the public interface')
+AssertionError: 42 != 0 : Rejected configuration descriptor ownership differs from the public interface
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.182s
+
+FAILED (failures=2)

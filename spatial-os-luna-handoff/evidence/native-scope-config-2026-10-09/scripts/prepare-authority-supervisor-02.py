@@ -1,11 +1,14 @@
-"""Apply the reviewed ownership correction only after both-host baseline evidence exists."""
-import ast, difflib, hashlib, json, pathlib, shutil, subprocess, tarfile, tempfile
+"""Apply the correction after verified baseline evidence; both hosts still require qualification."""
+import argparse, ast, difflib, hashlib, json, pathlib, shutil, subprocess, tarfile, tempfile
 
 r = pathlib.Path(__file__).resolve().parents[1]
 local = r / 'local'
 evidence = r / 'evidence/authority-supervisor-2026-10-09'
 ownership = r / 'evidence/native-scope-config-2026-10-09'
-for host in ('sb16', 'sb16-2'):
+parser = argparse.ArgumentParser()
+parser.add_argument('--baseline-host', choices=('sb16', 'sb16-2'), action='append')
+baseline_hosts = parser.parse_args().baseline_host or ['sb16', 'sb16-2']
+for host in baseline_hosts:
     baseline = json.loads((ownership / 'baseline-01' / host / 'summary.json').read_text())
     assert baseline['source_files'] == 277 and baseline['production_changed'] is False
     assert baseline['expected_failures_per_profile'] == 2 and baseline['passed_controls_per_profile'] == 1
@@ -101,6 +104,7 @@ ast.parse(collector)
 for name in ('qualify-authority-supervisor-02.py', 'collect-authority-supervisor-02.py', 'prepare-authority-supervisor-02.py'):
     shutil.copyfile(local / name, evidence / 'scripts' / name)
 (evidence / 'source-review-02.json').write_text(json.dumps(dict(status='Prepared after verified ownership baseline; Linux qualification pending.',
+    baseline_hosts=baseline_hosts, required_qualification_hosts=['sb16', 'sb16-2'],
     candidate=2, source_files=281, changed_files=changed, new_checks=17, existing_tests_unchanged=True,
     supervisor_candidate01_tests_unchanged=True, locked_files_unchanged=41,
     patch_reconstruction='All281 hashes match applying the patch to frozen relay source.', integrated=False, qualified=False), indent=2) + '\n', encoding='utf-8', newline='\n')

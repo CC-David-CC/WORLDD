@@ -5,12 +5,12 @@
   "parent": "identity.supervisor_recovery",
   "contract": "docs/AUTHORITY_SUPERVISOR_RUNTIME.txt",
   "evidence": "evidence/authority-supervisor-2026-10-09",
-  "candidate": 1,
-  "source_files": 279,
-  "new_tests": 14,
+  "candidate": 2,
+  "source_files": 281,
+  "new_tests": 17,
   "baseline": "Both hosts confirmed the missing executable. Both builds and 51 harness checks passed.",
   "review": "Primary-agent static review and complete patch reconstruction passed. Existing tests and 41 locked files are unchanged.",
-  "qualification": "Not started. After full relay qualification ends, reproduce and correct native configuration ownership before supervisor builds.",
+  "qualification": "sb16 configure passed; build and focused qualification active. sb16-2 waits for its full relay run and ownership baseline.",
   "integrated": false,
   "remaining": [
     "Run both-host Debug and runtime sanitizer qualification.",
@@ -19,5 +19,5 @@
     "Wire worldd and workspaced with native credential handoff.",
     "Implement fencing, checked recovery, and issuer retirement."
   ],
-  "native_scope_review": "Static descriptor ownership mismatch found in inherited coordinator code. Witness prepared but unrun. Resolve before candidate qualification and integration."
+  "native_scope_review": "Ownership loss confirmed by independent witness on sb16 in Debug and runtime sanitizers. Four-file correction applied only to isolated candidate02. Second-host baseline and both-host correction tests remain required."
 }
