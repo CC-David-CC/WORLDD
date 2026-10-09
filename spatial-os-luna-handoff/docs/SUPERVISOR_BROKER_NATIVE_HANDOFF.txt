@@ -54,3 +54,17 @@ Scope
 This step provides the broker credential handoff.
 Complete broker participant configuration and world/compositor credential handoff remain separate required steps.
 The startup baseline does not establish broker participant activation, native application confinement, or completed M02 recovery.
+
+Prepared correction tests, 2026-10-09
+
+Eight regression methods are prepared in test_supervisor_broker_handoff_regressions.py.
+Read evidence/supervisor-broker-handoff-2026-10-09/correction-tests-prepared-01.json.
+They use the production broker, real confined native applications, independent X clients, and pidfds.
+A transport adapter only serializes protobuf requests to the actual broker child.
+Reject a compositor scope before creating journal ownership.
+Use the diagnostic: Broker handoff requires a broker native scope.
+The boundary test permits fourteen explicit descriptors plus the two generated descriptors.
+A fifteenth explicit descriptor must fail before ownership.
+All eight tests remain unrun. Static syntax checks do not establish runtime correctness.
+The existing unchanged-source baseline remains unchanged and queued.
+Complete issuer-backed broker participation remains separate required work.

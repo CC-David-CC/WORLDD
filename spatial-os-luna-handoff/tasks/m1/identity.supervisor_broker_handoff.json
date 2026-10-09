@@ -13,5 +13,7 @@
     "Verify real native application identity and selective cleanup.",
     "Test both hosts in Debug and runtime sanitizers.",
     "Complete broker participant and world/compositor integration."
-  ]
+  ],
+  "correction_tests": "Eight new independent regression methods prepared and primary-reviewed. Python AST parsing passed. All eight remain unrun. The original baseline test is unchanged.",
+  "correction_test_evidence": "evidence/supervisor-broker-handoff-2026-10-09/correction-tests-prepared-01.json"
 }

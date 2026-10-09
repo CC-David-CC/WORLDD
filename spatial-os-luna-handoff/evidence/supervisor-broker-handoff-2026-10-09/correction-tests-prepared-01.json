@@ -1,0 +1,35 @@
+{
+  "status": "prepared_unrun",
+  "reviewer": "primary agent",
+  "tests": [
+    "test_owned_broker_launches_confined_native_application_and_stop_closes_only_its_scope",
+    "test_broker_death_preserves_issuer_state_and_revokes_native_descendants",
+    "test_invalid_native_targets_fail_before_scope_ownership",
+    "test_native_target_cannot_replace_an_explicit_descriptor",
+    "test_descriptor_capacity_reserves_both_generated_descriptors",
+    "test_exact_descriptor_capacity_launches_real_broker",
+    "test_compositor_scope_cannot_supply_a_broker_credential",
+    "test_failed_broker_exec_records_checked_native_cleanup_without_activation"
+  ],
+  "test_count": 8,
+  "sha256": "07e3ac0a5d57bdb2266e785642f17c0f6285ac807adaa4d4bff3f14bde3c83f4",
+  "baseline_unchanged": true,
+  "production_changed": false,
+  "static_validation": "Python AST parsing passed. Imports, generated schemas, Linux behavior, and runtime assertions remain unverified until execution on authorized hosts.",
+  "scope": "The eight correction tests exercise the real supervisor, workspaced, confined native applications, independent X clients, and pidfds. The pipe adapter only serializes protobuf requests.",
+  "limitations": [
+    "No correction test has run.",
+    "The existing one-test unchanged-source baseline remains queued behind each full qualifier.",
+    "The broker in this bounded test uses trusted private management setup. It does not yet load the complete issuer-backed participant configuration.",
+    "These tests do not establish complete broker activation, fencing, cross-host cancellation, or M02 completion."
+  ],
+  "coverage": [
+    "Application receives APPLICATION native identity for the expected workspace and application; no arbitrary inherited descriptors; read-only Xauthority; separate network namespace; no_new_privs.",
+    "Stopping the supervisor closes owned native descendants and the real broker process while preserving an independently issued client.",
+    "Broker death triggers checked native cleanup without changing issuer activation rows.",
+    "Invalid targets and collisions fail before scope ownership.",
+    "Fourteen explicit descriptors plus two generated descriptors succeed; fifteen explicit descriptors fail.",
+    "A compositor scope cannot supply a broker credential and must fail before journal ownership.",
+    "Failed broker exec records checked cleanup without activation."
+  ]
+}
