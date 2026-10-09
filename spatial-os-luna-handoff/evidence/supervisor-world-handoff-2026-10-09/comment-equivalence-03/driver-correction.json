@@ -1,0 +1,8 @@
+{
+  "initial_command": "protoc with only proto-root and system import paths",
+  "initial_result": "Both hosts rejected bare imports: process_scope.proto, native_scope.proto, issuer.proto, grants.proto.",
+  "correction": "Provide each versioned schema directory, matching the project import layout.",
+  "corrected_result": "Both hosts produced identical before/after launch descriptors.",
+  "production_changed": false,
+  "frozen_candidates_changed": false
+}

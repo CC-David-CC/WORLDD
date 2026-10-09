@@ -1,0 +1,14 @@
+{
+  "files": [
+    "tests/core/test_identity_bootstrap.py",
+    "tests/core/test_identity_enrollment.py",
+    "tests/core/test_identity_participants.py",
+    "tests/core/test_identity_participant_barrier.py",
+    "tests/core/test_identity_revocation.py",
+    "tests/core/test_launch_authorization.py",
+    "tests/core/test_supervisor_registry.py"
+  ],
+  "reason": "Explicit version9 schema adds authority_fence. Historical fixtures remove that table before reconstructing versions1 through7.",
+  "preserved": "All existing test methods and row/key/rollback assertions. Latest successful version assertion changes8 to9.",
+  "acceptance_lock_changed": false
+}

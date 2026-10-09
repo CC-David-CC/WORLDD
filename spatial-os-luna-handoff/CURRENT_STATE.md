@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-09: Fencing Debug passes; world integration guard prepared
+
+Both hosts passed 26 new fencing checks, the missing-feature regression, and 51 harness checks in Debug.
+The frozen candidate contains 292 files. All 41 locked files remain unchanged.
+Runtime sanitizer qualification and full cumulative fencing qualification remain active or pending.
+Read evidence/authority-fencing-2026-10-09/debug-results-review-01.json.
+
+Both hosts passed full world Debug: 1407 core checks, 95 suites, 51 harness checks, and 151 P10 cases.
+Full world runtime sanitizer qualification remains active.
+The prepared integration requires passing raw evidence from both hosts and both profiles.
+Its missing-evidence refusal preserved all 283 production source files.
+Both hosts verified identical protobuf descriptors for the reviewed source-comment correction.
+Read evidence/supervisor-world-handoff-2026-10-09/integration-prepared-03.json and comment-equivalence-03.
+
+Production remains broker283 at f4c4148. World and fencing candidates remain unintegrated.
+Verified cleanup receipts, issuer retirement, and cross-host cancellation remain required.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Missing authority fencing confirmed on both hosts
 
 Both hosts rejected the proposed fence request through the real issuer TLS endpoint.

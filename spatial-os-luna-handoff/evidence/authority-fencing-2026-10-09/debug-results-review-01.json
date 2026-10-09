@@ -1,0 +1,24 @@
+{
+  "reviewer": "primary agent",
+  "candidate": 1,
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "profile": "Debug",
+  "source_files": 292,
+  "locked_files": 41,
+  "new_checks": 26,
+  "baseline_checks": 1,
+  "harness_checks": 51,
+  "failed": 0,
+  "skipped": 0,
+  "evidence": "candidate-01/HOST/debug-new and summary-new-debug.json",
+  "scope": "Supervisor-only fencing, exact launch binding, immutable cleanup obligations, migration, and client response validation.",
+  "remaining": [
+    "Full cumulative Debug qualification.",
+    "Runtime sanitizer qualification.",
+    "Final review and integration."
+  ],
+  "integrated": false
+}

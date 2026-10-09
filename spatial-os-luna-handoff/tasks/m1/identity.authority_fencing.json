@@ -9,12 +9,14 @@
   "invariant": "Only the registered supervisor can fence its exact active authorized generation; fencing preserves unresolved cleanup obligations.",
   "baseline": "Both hosts returned INVALID_ARGUMENT: Unknown protobuf fields for the new fence request in Debug and runtime ASan/UBSan. Each profile has one expected missing-feature failure. Durable state remained unchanged.",
   "remaining": [
-    "Implement additive protobuf messages, distinct signature purpose, and exact generation validation.",
-    "Implement explicit version 9 migration and durable fencing without advancing acknowledgement history.",
-    "Reject fenced service mutations and replacement activation.",
-    "Validate fencing challenge and result context in the production issuer client.",
-    "Record necessary historical migration-fixture changes explicitly and preserve their existing assertions.",
-    "Run focused counterexamples and full Debug/runtime sanitizer qualification on both hosts."
+    "Complete both-host focused and cumulative qualification. Preserve and resolve any failure.",
+    "Review exact client/server authority boundaries and migration counterexamples.",
+    "Integrate only after both-host Debug/runtime sanitizers pass; world candidate qualification remains required."
   ],
-  "scope": "Fencing alone does not complete recovery. Verified cleanup receipts and issuer retirement remain required."
+  "scope": "Fencing alone does not complete recovery. Verified cleanup receipts and issuer retirement remain required.",
+  "candidate": "Frozen candidate01: 292 files, 18 changed files, 26 new checks. Both hosts passed focused Debug.",
+  "candidate_review": "evidence/authority-fencing-2026-10-09/candidate-prepared-review-01.json",
+  "implementation_status": "Implemented in isolated source. Full cumulative qualification and production integration remain pending.",
+  "qualification": "Both hosts passed 26 new Debug checks, the original missing-feature baseline, and 51 harness checks. Runtime sanitizer qualification remains active.",
+  "debug_review": "evidence/authority-fencing-2026-10-09/debug-results-review-01.json"
 }

@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python",
+    "spatial-os-luna-handoff\\local\\integrate-supervisor-world-handoff-03.py",
+    "--apply"
+  ],
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\dflanag3\\Documents\\spacial_desktop\\spatial-os-luna-handoff\\local\\integrate-supervisor-world-handoff-03.py\", line 79, in <module>\n    summary = read(folder / 'summary-final.json')\n  File \"C:\\Users\\dflanag3\\Documents\\spacial_desktop\\spatial-os-luna-handoff\\local\\integrate-supervisor-world-handoff-03.py\", line 15, in read\n    return json.loads(path.read_text(encoding='utf-8'))\n                      ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\Python313\\Lib\\pathlib\\_local.py\", line 546, in read_text\n    return PathBase.read_text(self, encoding, errors, newline)\n           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\Python313\\Lib\\pathlib\\_abc.py\", line 632, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:\n         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\Python313\\Lib\\pathlib\\_local.py\", line 537, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: 'C:\\\\Users\\\\dflanag3\\\\Documents\\\\spacial_desktop\\\\spatial-os-luna-handoff\\\\evidence\\\\supervisor-world-handoff-2026-10-09\\\\candidate-02\\\\sb16\\\\summary-final.json'\n",
+  "production_files_unchanged": 283,
+  "reason": "Required full-profile evidence is absent. Integration refused before production mutation."
+}

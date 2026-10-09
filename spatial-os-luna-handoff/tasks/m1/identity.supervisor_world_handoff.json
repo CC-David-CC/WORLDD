@@ -6,9 +6,9 @@
   "contract": "docs/SUPERVISOR_WORLD_NATIVE_HANDOFF.txt",
   "evidence": "evidence/supervisor-world-handoff-2026-10-09",
   "production_changed": false,
-  "qualification": "Both hosts passed focused Debug and runtime ASan/UBSan:126 core checks across13 suites plus51 harness checks each. Full cumulative runs remain active.",
+  "qualification": "Both hosts passed full Debug:1407 core checks across95 suites,51 harness checks,151 P10 cases. Both focused sanitizer profiles passed126/13+51. Full runtime sanitizer runs remain active.",
   "remaining": [
-    "Complete both-host full Debug and runtime sanitizer cumulative qualification.",
+    "Complete both-host full runtime sanitizer cumulative qualification. Full Debug already passed on both hosts.",
     "Apply the reviewed schema comment correction with explicit source-delta and descriptor-equivalence evidence. Do not mutate frozen candidate02.",
     "Integrate the reviewed exact290-file candidate and adopt qualified source on both hosts."
   ],
@@ -18,5 +18,6 @@
   "candidate_review": "evidence/supervisor-world-handoff-2026-10-09/candidate-prepared-review-02.json",
   "reader_correction": "evidence/supervisor-world-handoff-2026-10-09/reader-correction-review-02.json",
   "participation_task": "tasks/m1/identity.supervised_world_participation.json",
-  "schema_comment_review": "evidence/supervisor-world-handoff-2026-10-09/schema-comment-review-03.json"
+  "schema_comment_review": "evidence/supervisor-world-handoff-2026-10-09/schema-comment-review-03.json",
+  "integration_preparation": "Verified 16-file integration plan with one comment-only source delta. Both hosts produced identical before/after protobuf descriptors. Apply refused missing full qualification evidence before production mutation."
 }

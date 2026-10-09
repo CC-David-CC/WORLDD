@@ -1,0 +1,48 @@
+{
+  "host": "sb16-2",
+  "candidate": 1,
+  "source_files": 292,
+  "locked_files": 41,
+  "mode": "new-debug",
+  "integrated": false,
+  "schema": {
+    "existing_files": 13,
+    "existing_descriptors_unchanged": true,
+    "added_messages": [
+      "AuthorityFenceBegin",
+      "AuthorityFenceChallenge",
+      "AuthorityFenceComplete",
+      "AuthorityFenceState"
+    ],
+    "request_fields": [
+      30,
+      31
+    ],
+    "reply_field": 28,
+    "signature_purpose": 7
+  },
+  "debug": {
+    "core_checks": 26,
+    "core_suites": 2,
+    "baseline_checks": 1,
+    "harness_checks": 51,
+    "P10_cases": "uncollected",
+    "failed": 0,
+    "skipped": 0,
+    "parts": {
+      "fencing": {
+        "identity-authority-fencing": 22,
+        "identity-authority-fencing-client": 4
+      }
+    },
+    "binaries": {
+      "worldd": "5ee57befc16886c34b5141b9b26c267fbbf12fb8fb8531256ff65d967509f0f6",
+      "workspaced": "a39f8c37a06140a362f954b71c44646c31ea84943f1dd35f4fcf81f82b2f16a1",
+      "identityd": "55d76506363adea06701657fe1f8b7e0016b30792cb9b8e83b5d1baf2bf32223",
+      "spatialwm": "53f26ffe648444eb309b9684115580f9bb4d90a3d9adde09dfc918378c17cf1c",
+      "spatial-test-host": "d4f6ea2f35a0880742729a9e18e090834b006b53ea85d75e2f5730df327b6425",
+      "spatial-authority-supervisor": "2191a0e29c167c7b12093e4481ae3962cc826395ce2610d18be0e63ce458d624",
+      "spatial-issuer-client": "4027cdf88540f214ad965e3c8dbd762b6901710e3b30c96e300e7f2bea061b8d"
+    }
+  }
+}

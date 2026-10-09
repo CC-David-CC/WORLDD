@@ -1,0 +1,977 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -384,6 +384,16 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(world-revocation-receipts PROPERTIES TIMEOUT 120
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME identity-authority-fencing COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_fencing.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(identity-authority-fencing PROPERTIES TIMEOUT 180
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME identity-authority-fencing-client COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_fencing_client.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(identity-authority-fencing-client PROPERTIES TIMEOUT 180
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-launch-authorization COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_launch_authorization.py" $<TARGET_FILE:identityd>
+         $<TARGET_FILE:spatial-issuer-client>)
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -309,6 +309,40 @@
+   bytes authorization_id = 2;
+   uint64 generation = 3;
+   bytes supervisor_public_key = 4;
++}
++// Fencing stops issuer-side service mutations. It does not prove external cleanup.
++message AuthorityFenceBegin {
++  bytes participant_id = 1;
++  uint64 registered_revision = 2;
++  uint64 generation = 3;
++  bytes service_incarnation = 4;
++  bytes launch_id = 5;
++  uint64 supervision_revision = 6;
++  bytes authorization_id = 7;
++}
++message AuthorityFenceChallenge {
++  uint32 protocol_version = 1;
++  bytes issuer_id = 2;
++  bytes issuer_incarnation = 3;
++  bytes nonce = 4;
++  bytes connection_binding = 5;
++  AuthorityFenceBegin request = 6;
++  bytes supervisor_public_key = 7;
++  uint32 lifetime_ms = 8;
++  string audience = 9;
++}
++message AuthorityFenceComplete { bytes nonce = 1; KeyProof proof = 2; }
++message AuthorityFenceState {
++  bytes issuer_id = 1;
++  AuthorityParticipantRecord registration = 2;
++  uint64 generation = 3;
++  bytes service_incarnation = 4;
++  bytes authorization_id = 5;
++  bytes launch_id = 6;
++  uint64 supervision_revision = 7;
++  bytes fence_id = 8;
++  uint64 security_revision = 9;
++  bytes supervisor_public_key = 10;
+ }
+ message IssuerRequest {
+   uint32 protocol_version = 1;
+@@ -334,6 +368,8 @@
+     AuthorityStateRead authority_state = 27;
+     AuthorityLaunchBegin authority_launch_begin = 28;
+     AuthorityLaunchComplete authority_launch_complete = 29;
++    AuthorityFenceBegin authority_fence_begin = 30;
++    AuthorityFenceComplete authority_fence_complete = 31;
+   }
+ }
+ message IssuerReply {
+@@ -358,6 +394,7 @@
+     AuthorityBarrierStatus authority_barrier = 25;
+     AuthoritySupervisorBinding supervision = 26;
+     AuthorityLaunchAuthorization authority_launch_authorization = 27;
++    AuthorityFenceState authority_fence = 28;
+   }
+ }
+ 
+--- a/proto/spatial/identity/v1/key.proto
++++ b/proto/spatial/identity/v1/key.proto
+@@ -11,6 +11,7 @@
+   ISSUER_CREDENTIAL = 4;
+   AUTHORITY_PARTICIPATION = 5;
+   AUTHORITY_LAUNCH_AUTHORIZATION = 6;
++  AUTHORITY_FENCING = 7;
+ }
+ message SignRequest {
+   SignaturePurpose purpose = 1;
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -55,8 +55,8 @@
+   string child_participant_config = 8;
+   uint32 participant_target_fd = 9;
+   repeated uint32 inherited_source_fds = 10;
+-  optional uint32 broker_native_target_fd = 11;
+-  optional uint32 compositor_native_target_fd = 12; // Sealed issued broker credential; never the supervisor credential.
++  optional uint32 broker_native_target_fd = 11; // Sealed issued broker credential; never the supervisor credential.
++  optional uint32 compositor_native_target_fd = 12; // Sealed issued compositor credential; never the supervisor credential.
+ }
+ message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
+ message AuthorityLaunchQuery {}
+--- a/src/identity/issuer.cpp
++++ b/src/identity/issuer.cpp
+@@ -210,6 +210,17 @@
+             "supervisor_public_key BLOB NOT NULL CHECK(length(supervisor_public_key)=32),"
+             "generation INTEGER NOT NULL CHECK(generation>=0),UNIQUE(participant_id,service_incarnation)); PRAGMA user_version=8");
+ }
++void create_fence_schema(sqlite3* db) {
++    sql(db, "CREATE TABLE authority_fence("
++            "participant_id BLOB NOT NULL CHECK(length(participant_id)=32),"
++            "generation INTEGER NOT NULL CHECK(generation>0),"
++            "fence_id BLOB NOT NULL UNIQUE CHECK(length(fence_id)=32),"
++            "security_revision INTEGER NOT NULL CHECK(security_revision>=0),"
++            "supervisor_public_key BLOB NOT NULL CHECK(length(supervisor_public_key)=32),"
++            "request BLOB NOT NULL,state BLOB NOT NULL,PRIMARY KEY(participant_id,generation),"
++            "FOREIGN KEY(participant_id,generation) REFERENCES authority_activation(participant_id,generation));"
++            "PRAGMA user_version=9");
++}
+ } // namespace
+ 
+ struct Issuer::Impl {
+@@ -224,6 +235,7 @@
+         v1::AuthorityAuthenticationBegin authority{};
+         std::string connection_binding{};
+         v1::AuthorityLaunchBegin launch{};
++        v1::AuthorityFenceBegin fence{};
+     };
+     File directory, lock;
+     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
+@@ -263,12 +275,12 @@
+         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
+                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
+         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
+-        sqlite3_int64 schema = 8;
++        sqlite3_int64 schema = 9;
+         if (!owner) {
+             Query version(db.get(), "PRAGMA user_version"); version.step();
+             Query application(db.get(), "PRAGMA application_id"); application.step();
+             schema = version.integer(0);
+-            storage((schema == 8 || ((schema >= 1 && schema <= 7) && migrate)) && application.integer(0) == application_id,
++            storage((schema == 9 || ((schema >= 1 && schema <= 8) && migrate)) && application.integer(0) == application_id,
+                     "Unknown issuer schema; explicit migration is required");
+         }
+         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
+@@ -286,7 +298,7 @@
+             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
+             insert.blob(4, policy.SerializeAsString()); insert.step();
+             create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
+-            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); tx.commit();
++            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); create_fence_schema(db.get()); tx.commit();
+             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
+         }
+         { Query integrity(db.get(), "PRAGMA quick_check");
+@@ -297,7 +309,7 @@
+         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
+                 "Issuer key does not match its durable identity");
+         policy();
+-        if (schema < 8) {
++        if (schema < 9) {
+             Transaction migration(db.get());
+             if (schema == 1) create_enrollment_schema(db.get());
+             if (schema < 3) create_security_schema(db.get());
+@@ -305,7 +317,8 @@
+             if (schema < 5) create_participant_schema(db.get());
+             if (schema < 6) create_barrier_schema(db.get());
+             if (schema < 7) create_supervisor_schema(db.get());
+-            create_launch_schema(db.get()); migration.commit();
++            if (schema < 8) create_launch_schema(db.get());
++            create_fence_schema(db.get()); migration.commit();
+         }
+     }
+ 
+@@ -386,6 +399,68 @@
+         }
+         transaction.commit(); return result;
+     }
++    bool fenced(const std::string& participant, std::uint64_t generation) {
++        Query row(db.get(), "SELECT 1 FROM authority_fence WHERE participant_id=? AND generation=?");
++        row.blob(1, participant); row.integer(2, generation);
++        return row.step() == SQLITE_ROW;
++    }
++    v1::AuthoritySupervisorBinding fence_context(const v1::AuthorityFenceBegin& request) {
++        validate_fence_begin(request);
++        const auto& participant = request.participant_id();
++        if (!supervised(participant)) throw WorldError(wire::FORBIDDEN, "Fencing requires a registered supervisor");
++        const auto binding = supervision_record(participant);
++        if (binding.registration().registered_revision() != request.registered_revision() ||
++                binding.revision() != request.supervision_revision())
++            throw WorldError(wire::REVISION_CONFLICT, "Fence registration or supervisor revision changed");
++        const auto active = activation(participant, request.generation());
++        if (!active.active() || active.service_incarnation() != request.service_incarnation() ||
++                active.registration().SerializeAsString() != binding.registration().SerializeAsString())
++            throw WorldError(wire::UNAUTHORIZED, "Fence does not match the active registered generation");
++        const auto authorized = launch_authorization(participant, request.service_incarnation());
++        if (!authorized || authorized->generation() != request.generation() ||
++                authorized->authorization_id() != request.authorization_id() ||
++                authorized->request().launch_id() != request.launch_id() ||
++                authorized->request().supervision_revision() != request.supervision_revision() ||
++                authorized->supervisor_public_key() != binding.public_key() ||
++                authorized->request().service().registration().SerializeAsString() != active.registration().SerializeAsString() ||
++                authorized->request().service().issuer_incarnation() != active.issuer_incarnation() ||
++                authorized->request().service().connection_binding() != active.connection_binding())
++            throw WorldError(wire::UNAUTHORIZED, "Fence does not match consumed launch authorization");
++        return binding;
++    }
++    v1::AuthorityFenceState fence(const v1::AuthorityFenceBegin& request, const std::string& key) {
++        const auto binding = fence_context(request);
++        if (binding.public_key() != key) throw WorldError(wire::UNAUTHORIZED, "Fence supervisor key changed during proof");
++        Query prior(db.get(), "SELECT fence_id,security_revision,supervisor_public_key,request,state "
++                             "FROM authority_fence WHERE participant_id=? AND generation=?");
++        prior.blob(1, request.participant_id()); prior.integer(2, request.generation());
++        if (prior.step() == SQLITE_ROW) {
++            v1::AuthorityFenceState result;
++            storage(result.ParseFromString(prior.blob(4)), "Invalid durable fence state");
++            try { validate_message(result); }
++            catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Invalid durable fence fields"); }
++            storage(prior.blob(0).size() == 32 && prior.integer(1) >= 0 &&
++                    static_cast<std::uint64_t>(prior.integer(1)) <= security_revision() && prior.blob(2) == key &&
++                    prior.blob(3) == request.SerializeAsString() && result.issuer_id() == identity.issuer_id() &&
++                    result.registration().SerializeAsString() == binding.registration().SerializeAsString() &&
++                    result.generation() == request.generation() && result.service_incarnation() == request.service_incarnation() &&
++                    result.authorization_id() == request.authorization_id() && result.launch_id() == request.launch_id() &&
++                    result.supervision_revision() == request.supervision_revision() && result.fence_id() == prior.blob(0) &&
++                    result.security_revision() == static_cast<std::uint64_t>(prior.integer(1)) && result.supervisor_public_key() == key,
++                    "Inconsistent durable fence identity");
++            return result;
++        }
++        v1::AuthorityFenceState result; result.set_issuer_id(identity.issuer_id());
++        *result.mutable_registration() = binding.registration(); result.set_generation(request.generation());
++        result.set_service_incarnation(request.service_incarnation()); result.set_authorization_id(request.authorization_id());
++        result.set_launch_id(request.launch_id()); result.set_supervision_revision(request.supervision_revision());
++        result.set_fence_id(random_id()); result.set_security_revision(security_revision()); result.set_supervisor_public_key(key);
++        Query insert(db.get(), "INSERT INTO authority_fence VALUES(?,?,?,?,?,?,?)");
++        insert.blob(1, request.participant_id()); insert.integer(2, request.generation()); insert.blob(3, result.fence_id());
++        insert.integer(4, result.security_revision()); insert.blob(5, key); insert.blob(6, request.SerializeAsString());
++        insert.blob(7, result.SerializeAsString()); insert.step();
++        return result;
++    }
+     v1::AuthoritySupervisorBinding launch_context(const v1::AuthorityLaunchBegin& request) {
+         validate_launch_begin(request, identity.issuer_id());
+         const auto& service = request.service();
+@@ -1011,6 +1086,28 @@
+     Transaction transaction(impl_->db.get()); const auto result = impl_->authorize_launch(pending.launch, pending.expected_key);
+     transaction.commit(); return result;
+ }
++v1::ChallengeReply Issuer::authority_fence_begin(const v1::AuthorityFenceBegin& request, IssuerConnection& connection) {
++    if (connection.binding.size() != 32) throw WorldError(wire::FORBIDDEN, "Fence proof requires a TLS connection identity");
++    Transaction transaction(impl_->db.get()); const auto binding = impl_->fence_context(request); transaction.commit();
++    const auto nonce = impl_->nonce();
++    v1::AuthorityFenceChallenge payload; payload.set_protocol_version(1); payload.set_issuer_id(impl_->identity.issuer_id());
++    payload.set_issuer_incarnation(impl_->incarnation); payload.set_nonce(nonce); payload.set_connection_binding(connection.binding);
++    *payload.mutable_request() = request; payload.set_supervisor_public_key(binding.public_key());
++    payload.set_lifetime_ms(static_cast<std::uint32_t>(impl_->lifetime.count())); payload.set_audience("identityd/authority-fence/v1");
++    v1::ChallengeReply result; result.set_nonce(nonce); result.mutable_signing_request()->set_purpose(v1::AUTHORITY_FENCING);
++    result.mutable_signing_request()->set_payload(payload.SerializeAsString());
++    Impl::Pending pending; pending.content = result.signing_request(); pending.expected_key = binding.public_key();
++    pending.expires = Clock::now()+impl_->lifetime; pending.connection_binding = connection.binding; pending.fence = request;
++    impl_->pending.emplace(nonce, std::move(pending)); return result;
++}
++v1::AuthorityFenceState Issuer::authority_fence_complete(const v1::AuthorityFenceComplete& request, IssuerConnection& connection) {
++    validate_message(request); require(request.nonce().size() == 32 && request.has_proof(), "Fence nonce and proof are required");
++    if (connection.binding.size() != 32) throw WorldError(wire::FORBIDDEN, "Fence proof requires a TLS connection identity");
++    const auto pending = impl_->consume(request.nonce(), request.proof(), v1::AUTHORITY_FENCING);
++    if (pending.connection_binding != connection.binding) throw WorldError(wire::UNAUTHORIZED, "Fence proof belongs to another connection");
++    Transaction transaction(impl_->db.get()); const auto result = impl_->fence(pending.fence, pending.expected_key);
++    transaction.commit(); return result;
++}
+ v1::AuthorityActivationState Issuer::authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection) {
+     validate_message(request);
+     require(request.has_synchronized_revision() && request.synchronized_revision() <= INT64_MAX, "Synchronization revision is required");
+@@ -1057,7 +1154,8 @@
+             "Application requires one contiguous revision and a valid generation");
+     Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
+     const auto state = impl_->bound_activation(context, request.generation());
+-    if (!state.active()) throw WorldError(wire::UNAUTHORIZED, "Service generation is inactive");
++    if (!state.active() || impl_->fenced(context.registration().participant().id(), request.generation()))
++        throw WorldError(wire::UNAUTHORIZED, "Service generation is inactive or fenced");
+     if (request.through_revision() > state.head_revision()) throw WorldError(wire::REVISION_CONFLICT, "Cannot apply a future revision");
+     Query original(impl_->db.get(), "SELECT initial_revision FROM authority_activation WHERE participant_id=? AND generation=?");
+     original.blob(1, context.registration().participant().id()); original.integer(2, request.generation());
+@@ -1081,6 +1179,8 @@
+             "Release requires generation and applied revision");
+     Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
+     auto state = impl_->bound_activation(context, request.generation());
++    if (impl_->fenced(context.registration().participant().id(), request.generation()))
++        throw WorldError(wire::UNAUTHORIZED, "Service generation is fenced");
+     if (state.applied_revision() != request.applied_revision()) throw WorldError(wire::REVISION_CONFLICT, "Release applied revision changed");
+     if (!state.active()) { transaction.commit(); return state; }
+     if (state.applied_revision() != state.head_revision()) throw WorldError(wire::BUSY, "Release has unapplied cancellation effects");
+--- a/src/identity/issuer.hpp
++++ b/src/identity/issuer.hpp
+@@ -39,6 +39,8 @@
+                                                                       IssuerConnection& connection);
+     v1::ChallengeReply authority_launch_begin(const v1::AuthorityLaunchBegin& request, IssuerConnection& connection);
+     v1::AuthorityLaunchAuthorization authority_launch_complete(const v1::AuthorityLaunchComplete& request, IssuerConnection& connection);
++    v1::ChallengeReply authority_fence_begin(const v1::AuthorityFenceBegin& request, IssuerConnection& connection);
++    v1::AuthorityFenceState authority_fence_complete(const v1::AuthorityFenceComplete& request, IssuerConnection& connection);
+     v1::AuthorityActivationState authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection);
+     v1::AuthorityActivationState authority_applied(const v1::AuthorityApplied& request, IssuerConnection& connection);
+     v1::AuthorityActivationState authority_release(const v1::AuthorityRelease& request, IssuerConnection& connection);
+--- a/src/identity/issuer_client.cpp
++++ b/src/identity/issuer_client.cpp
+@@ -42,10 +42,11 @@
+ bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& reply) {
+     return (request.has_hello() && reply.has_hello()) || (request.has_info() && reply.has_info()) ||
+         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin() ||
+-            request.has_authority_authentication_begin() || request.has_authority_launch_begin()) && reply.has_challenge()) ||
++            request.has_authority_authentication_begin() || request.has_authority_launch_begin() || request.has_authority_fence_begin()) && reply.has_challenge()) ||
+         (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
+             reply.has_participant() || reply.has_registry() || reply.has_authority_barrier() || reply.has_supervision())) ||
+         (request.has_authority_launch_complete() && reply.has_authority_launch_authorization()) ||
++        (request.has_authority_fence_complete() && reply.has_authority_fence()) ||
+         (request.has_profile_read() && reply.has_profile()) ||
+         (request.has_enrollment_complete() && reply.has_enrollment()) ||
+         (request.has_authentication_complete() && reply.has_authentication()) ||
+@@ -132,6 +133,57 @@
+     std::map<std::string, BarrierChallenge> barrier_challenges;
+     std::map<std::string, BarrierChallenge> supervision_challenges;
+ 
++    struct FenceChallenge {
++        v1::SignRequest signing_request;
++        v1::AuthorityFenceChallenge context;
++        Clock::time_point expires;
++    };
++    std::map<std::string, FenceChallenge> fence_challenges;
++    void remember_fence_challenge(const v1::AuthorityFenceBegin& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
++        require(reply.nonce().size() == 32 && reply.has_signing_request() &&
++                reply.signing_request().purpose() == v1::AUTHORITY_FENCING && reply.signing_request().has_payload(),
++                "Invalid fence challenge envelope");
++        FenceChallenge pending; pending.signing_request = reply.signing_request(); auto& value = pending.context;
++        require(value.ParseFromString(pending.signing_request.payload()), "Invalid fence challenge payload");
++        try { validate_message(value); validate_fence_begin(request); }
++        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid fence challenge fields"); }
++        require(value.protocol_version() == 1 && value.issuer_id() == config.issuer_id() &&
++                value.issuer_incarnation().size() == 32 && value.nonce() == reply.nonce() &&
++                value.connection_binding().size() == 32 && value.has_request() &&
++                value.request().SerializeAsString() == request.SerializeAsString() && value.supervisor_public_key().size() == 32 &&
++                value.supervisor_public_key() != config.issuer_public_key() && value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 &&
++                value.audience() == "identityd/authority-fence/v1", "Invalid fence challenge context");
++        require((issuer_incarnation.empty() || issuer_incarnation == value.issuer_incarnation()) &&
++                (launch_binding.empty() || launch_binding == value.connection_binding()) &&
++                (service_binding.empty() || service_binding == value.connection_binding()), "Fence challenge changed connection context");
++        require(!fence_challenges.contains(reply.nonce()), "Duplicate fence challenge nonce");
++        std::erase_if(fence_challenges, [](const auto& item) { return item.second.expires <= Clock::now(); });
++        require(fence_challenges.size() < 256, "Too many fence challenges");
++        pending.expires = sent + std::chrono::milliseconds(value.lifetime_ms());
++        require(Clock::now() < pending.expires, "Fence challenge expired in transit");
++        issuer_incarnation = value.issuer_incarnation(); launch_binding = value.connection_binding();
++        fence_challenges.emplace(reply.nonce(), std::move(pending));
++    }
++    void check_fence_result(const v1::AuthorityFenceComplete& request, const v1::AuthorityFenceState& result,
++                            const std::optional<FenceChallenge>& pending) {
++        require(pending && Clock::now() < pending->expires, "Unrequested or expired fence success");
++        const auto& expected = pending->context;
++        const auto& target = expected.request();
++        try { validate_participant_record(result.registration(), config.issuer_id()); }
++        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid fence registration"); }
++        require(result.issuer_id() == config.issuer_id() && result.registration().participant().id() == target.participant_id() &&
++                result.registration().registered_revision() == target.registered_revision() && result.generation() == target.generation() &&
++                result.service_incarnation() == target.service_incarnation() && result.authorization_id() == target.authorization_id() &&
++                result.launch_id() == target.launch_id() && result.supervision_revision() == target.supervision_revision() &&
++                result.fence_id().size() == 32 && result.security_revision() <= INT64_MAX &&
++                result.supervisor_public_key() == expected.supervisor_public_key() &&
++                result.supervisor_public_key() != result.registration().participant().public_key(), "Invalid fence result context");
++        try {
++            v1::VerifyRequest verification; *verification.mutable_content() = pending->signing_request;
++            *verification.mutable_proof() = request.proof(); verification.set_expected_public_key(expected.supervisor_public_key());
++            require(verify(verification), "Fence accepted an invalid supervisor proof");
++        } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid fence proof"); }
++    }
+     struct LaunchChallenge {
+         v1::SignRequest signing_request;
+         v1::AuthorityLaunchChallenge context;
+@@ -496,6 +548,11 @@
+             auto node = supervision_challenges.extract(request.execute().nonce());
+             if (!node.empty()) supervision_pending = std::move(node.mapped());
+         }
++        std::optional<FenceChallenge> fence_pending;
++        if (request.has_authority_fence_complete()) {
++            auto node = fence_challenges.extract(request.authority_fence_complete().nonce());
++            if (!node.empty()) fence_pending = std::move(node.mapped());
++        }
+         std::optional<LaunchChallenge> launch_pending;
+         if (request.has_authority_launch_complete()) {
+             auto node = launch_challenges.extract(request.authority_launch_complete().nonce());
+@@ -533,6 +590,8 @@
+             if (reply.has_supervision()) check_supervision_result(request.execute(), reply.supervision(), supervision_pending);
+             if (barrier_pending) require(reply.has_authority_barrier(), "Barrier query returned another outcome");
+             if (reply.has_authority_barrier()) check_barrier_result(request.execute(), reply.authority_barrier(), barrier_pending);
++            if (request.has_authority_fence_begin()) remember_fence_challenge(request.authority_fence_begin(), reply.challenge(), sent);
++            if (request.has_authority_fence_complete()) check_fence_result(request.authority_fence_complete(), reply.authority_fence(), fence_pending);
+             if (request.has_authority_launch_begin()) remember_launch_challenge(request.authority_launch_begin(), reply.challenge(), sent);
+             if (request.has_authority_launch_complete()) check_launch_result(request.authority_launch_complete(), reply.authority_launch_authorization(), launch_pending);
+             if (reply.has_authority_activation()) check_activation_result(request, reply.authority_activation());
+--- a/src/identity/participants.hpp
++++ b/src/identity/participants.hpp
+@@ -59,6 +59,16 @@
+             "Invalid authority launch context");
+     validate_participant_record(service.registration(), issuer);
+ }
++inline void validate_fence_begin(const v1::AuthorityFenceBegin& request) {
++    using participant_detail::require;
++    validate_message(request);
++    require(request.participant_id().size() == 32 && request.service_incarnation().size() == 32 &&
++            request.launch_id().size() == 32 && request.authorization_id().size() == 32 &&
++            request.registered_revision() > 0 && request.registered_revision() <= INT64_MAX &&
++            request.generation() > 0 && request.generation() <= INT64_MAX &&
++            request.supervision_revision() > 0 && request.supervision_revision() <= INT64_MAX,
++            "Invalid authority fence context");
++}
+ inline void validate_registry_page(const v1::AuthorityRegistryPage& page, const std::string& issuer) {
+     using participant_detail::require;
+     validate_message(page);
+--- a/src/identity/protocol.cpp
++++ b/src/identity/protocol.cpp
+@@ -12,6 +12,7 @@
+             auto* result = reply.mutable_hello(); result->set_protocol("spatial-identity-protobuf/1");
+             result->set_implementation("production"); result->set_build_id(SPATIAL_BUILD_ID);
+             result->add_capabilities("identity.issuer-control/v1");
++            result->add_capabilities("identity.authority-fencing/v1");
+             result->add_capabilities("identity.enrollment/v1");
+             result->add_capabilities("identity.revocation/v1");
+             result->add_capabilities("identity.authentication/v1");
+@@ -43,6 +44,11 @@
+         else if (request.has_authentication_begin()) *reply.mutable_challenge() = issuer.authentication_begin(request.authentication_begin());
+         else if (request.has_authentication_complete()) *reply.mutable_authentication() = issuer.authentication_complete(request.authentication_complete());
+         else if (request.has_revocations()) *reply.mutable_revocations() = issuer.revocations(request.revocations());
++        else if (request.has_authority_fence_begin() || request.has_authority_fence_complete()) {
++            if (!connection) throw spatial::WorldError(spatial::wire::FORBIDDEN, "Fencing requires a TLS connection context");
++            if (request.has_authority_fence_begin()) *reply.mutable_challenge() = issuer.authority_fence_begin(request.authority_fence_begin(), *connection);
++            else *reply.mutable_authority_fence() = issuer.authority_fence_complete(request.authority_fence_complete(), *connection);
++        }
+         else if (request.has_authority_launch_begin() || request.has_authority_launch_complete()) {
+             if (!connection || connection->binding.size() != 32)
+                 throw spatial::WorldError(spatial::wire::FORBIDDEN, "Launch proof requires a TLS connection context");
+--- /dev/null
++++ b/tests/core/test_authority_fencing.py
+@@ -0,0 +1,280 @@
++"""Durable fencing requires the exact supervisor proof and preserves cleanup obligations."""
++import concurrent.futures
++import sqlite3
++import subprocess
++import time
++import unittest
++import core_pb2 as core
++import issuer_pb2 as pb
++import key_pb2 as keys
++import test_launch_authorization as launch
++from harness.wire import frame
++
++
++class AuthorityFencingTests(launch.LaunchAuthorizationTests):
++    def setUp(self):
++        super().setUp()
++        self.authorization = self.authorize()
++        reply = self.activate()
++        self.assertTrue(reply.HasField('authority_activation'), reply)
++        self.active = reply.authority_activation
++
++    def fence_request(self, **changes):
++        value = pb.AuthorityFenceBegin(participant_id=self.registration.participant.id,
++            registered_revision=1, generation=1, service_incarnation=self.service.service_incarnation,
++            launch_id=self.authorization.request.launch_id, supervision_revision=1,
++            authorization_id=self.authorization.authorization_id)
++        for name, item in changes.items():
++            setattr(value, name, item)
++        return value
++
++    def fence_begin(self, request=None, peer=None):
++        reply = (peer or self.supervisor).call(authority_fence_begin=request or self.fence_request())
++        self.assertTrue(reply.HasField('challenge'), reply)
++        self.assertEqual(reply.challenge.signing_request.purpose, keys.AUTHORITY_FENCING)
++        return reply.challenge
++
++    def fence_complete(self, challenge, peer=None, proof=None):
++        return (peer or self.supervisor).call(authority_fence_complete=pb.AuthorityFenceComplete(
++            nonce=challenge.nonce, proof=proof or self.proof(challenge, self.supervisor_key, self.supervisor_public)))
++
++    def fenced(self):
++        reply = self.fence_complete(self.fence_begin())
++        self.assertTrue(reply.HasField('authority_fence'), reply)
++        return reply.authority_fence
++
++    def error(self, reply, code=None):
++        self.assertTrue(reply.HasField('error'), reply)
++        if code is not None:
++            self.assertEqual(reply.error.code, code)
++
++    def revoke_actor_for_test(self, revision=0):
++        record = self.decide(self.peer, self.enroll(self.peer)).enrollment
++        claims = self.claims(record, self.info)
++        operation = pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(target=pb.IdentityReference(
++            kind=pb.ACTOR_TARGET, id=claims.actor_id), expected_security_revision=revision, reason='fencing witness'))
++        reply = self.execute(self.peer, self.challenge(self.peer, operation))
++        self.assertTrue(reply.HasField('identity_status'), reply)
++
++    def barrier_for_test(self, revision=1):
++        operation = pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(revision=revision))
++        result = self.execute(self.peer, self.challenge(self.peer, operation))
++        self.assertTrue(result.HasField('authority_barrier'), result)
++        return result.authority_barrier
++
++    def restart(self):
++        self.peer.close(); self.supervisor.close(); self.stop_daemons()
++        self.peer = self.ready(); self.supervisor = self.client()
++
++    def test_supervisor_fences_exact_active_launch_without_changing_acknowledgement_history(self):
++        before = self.snapshot_all()
++        value = self.fenced()
++        self.assertEqual(value.issuer_id, self.info.issuer_id)
++        self.assertEqual(value.registration, self.registration)
++        self.assertEqual(value.generation, 1)
++        self.assertEqual(value.service_incarnation, self.service.service_incarnation)
++        self.assertEqual(value.authorization_id, self.authorization.authorization_id)
++        self.assertEqual(value.launch_id, self.authorization.request.launch_id)
++        self.assertEqual(value.supervisor_public_key, self.supervisor_public)
++        self.assertEqual(value.supervision_revision, 1)
++        self.assertEqual(value.security_revision, 0)
++        self.assertEqual(len(value.fence_id), 32)
++        after = self.snapshot_all()
++        self.assertEqual(len(after['authority_fence']), 1)
++        self.assertEqual({n:v for n,v in before.items() if n != 'authority_fence'},
++                         {n:v for n,v in after.items() if n != 'authority_fence'})
++        reply = self.peer.call(authority_state=pb.AuthorityStateRead())
++        self.assertTrue(reply.HasField('authority_activation'), reply)
++        self.assertEqual(reply.authority_activation, self.active)
++
++    def test_owner_service_and_unknown_keys_cannot_fence(self):
++        other_key, other_public = self.key('unregistered-fencer')
++        before = self.snapshot_all()
++        for key, public in [(self.owner, self.owner_public), (self.signer, self.public), (other_key, other_public)]:
++            challenge = self.fence_begin()
++            self.error(self.fence_complete(challenge, proof=self.proof(challenge, key, public)), core.UNAUTHORIZED)
++            self.assertEqual(self.snapshot_all(), before)
++
++    def test_fence_proof_cannot_use_launch_signature_purpose(self):
++        challenge = self.fence_begin()
++        proof = self.proof(challenge, self.supervisor_key, self.supervisor_public)
++        proof.purpose = keys.AUTHORITY_LAUNCH_AUTHORIZATION
++        before = self.snapshot_all()
++        self.error(self.fence_complete(challenge, proof=proof), core.UNAUTHORIZED)
++        self.assertEqual(self.snapshot_all(), before)
++
++    def test_fence_proof_cannot_cross_connections_and_consumes_nonce(self):
++        challenge = self.fence_begin(); other = self.client()
++        before = self.snapshot_all()
++        self.error(self.fence_complete(challenge, peer=other), core.UNAUTHORIZED)
++        self.error(self.fence_complete(challenge), core.UNAUTHORIZED)
++        self.assertEqual(self.snapshot_all(), before)
++
++    def test_replayed_nonce_fails_but_fresh_identical_proof_returns_same_fence(self):
++        challenge = self.fence_begin()
++        first = self.fence_complete(challenge)
++        self.assertTrue(first.HasField('authority_fence'), first)
++        before = self.snapshot_all()
++        self.error(self.fence_complete(challenge), core.UNAUTHORIZED)
++        self.assertEqual(self.fenced(), first.authority_fence)
++        self.assertEqual(self.snapshot_all(), before)
++
++    def test_mismatched_target_fields_do_not_create_fences(self):
++        changes = dict(participant_id=b'x'*32, registered_revision=2, generation=2,
++            service_incarnation=b'x'*32, launch_id=b'x'*32, supervision_revision=2, authorization_id=b'x'*32)
++        before = self.snapshot_all()
++        for name, value in changes.items():
++            with self.subTest(field=name):
++                self.error(self.supervisor.call(authority_fence_begin=self.fence_request(**{name:value})))
++                self.assertEqual(self.snapshot_all(), before)
++
++    def test_malformed_and_overflowed_target_fields_are_rejected(self):
++        before = self.snapshot_all()
++        changes = [(n, b'x') for n in ('participant_id','service_incarnation','launch_id','authorization_id')]
++        changes += [(n,v) for n in ('registered_revision','generation','supervision_revision') for v in (0,2**63)]
++        for name, value in changes:
++            with self.subTest(field=name, value=value):
++                self.error(self.supervisor.call(authority_fence_begin=self.fence_request(**{name:value})), core.INVALID_ARGUMENT)
++                self.assertEqual(self.snapshot_all(), before)
++
++    def test_release_between_challenge_and_completion_prevents_fencing(self):
++        challenge = self.fence_begin()
++        reply = self.peer.call(authority_release=pb.AuthorityRelease(generation=1, applied_revision=0))
++        self.assertTrue(reply.HasField('authority_activation'), reply)
++        before = self.snapshot_all()
++        self.error(self.fence_complete(challenge), core.UNAUTHORIZED)
++        self.assertEqual(self.snapshot_all(), before)
++
++    def test_fenced_service_cannot_apply_or_release_and_barrier_stays_pending(self):
++        self.revoke_actor_for_test(); self.fenced(); before = self.snapshot_all()
++        self.error(self.peer.call(authority_applied=pb.AuthorityApplied(generation=1, from_revision=0, through_revision=1)), core.UNAUTHORIZED)
++        self.error(self.peer.call(authority_release=pb.AuthorityRelease(generation=1, applied_revision=0)), core.UNAUTHORIZED)
++        status = self.barrier_for_test()
++        self.assertEqual((status.participant_count,status.pending_count,status.complete), (1,1,False))
++        self.assertEqual(self.snapshot_all(), before)
++
++    def test_previously_valid_acknowledgement_retry_is_rejected_after_fencing(self):
++        self.revoke_actor_for_test()
++        applied = pb.AuthorityApplied(generation=1, from_revision=0, through_revision=1)
++        self.assertTrue(self.peer.call(authority_applied=applied).HasField('authority_activation'))
++        self.fenced(); before = self.snapshot_all()
++        self.error(self.peer.call(authority_applied=applied), core.UNAUTHORIZED)
++        self.assertEqual(self.snapshot_all(), before)
++        self.assertTrue(self.barrier_for_test().complete, 'Fencing must preserve a prior real acknowledgement')
++
++    def test_new_revocation_still_obligates_fenced_generation(self):
++        fence = self.fenced(); self.revoke_actor_for_test()
++        status = self.barrier_for_test()
++        self.assertEqual((status.participant_count,status.pending_count,status.complete), (1,1,False))
++        self.assertEqual(self.fenced(), fence)
++
++    def test_concurrent_revocation_and_fencing_preserve_pending_obligation(self):
++        record = self.decide(self.peer, self.enroll(self.peer)).enrollment
++        claims = self.claims(record, self.info)
++        operation = pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(target=pb.IdentityReference(
++            kind=pb.ACTOR_TARGET,id=claims.actor_id),expected_security_revision=0,reason='concurrent fence'))
++        revocation = self.challenge(self.peer,operation)
++        revoke_proof = self.proof(revocation,self.owner,self.owner_public)
++        fence = self.fence_begin(); fence_proof = self.proof(fence,self.supervisor_key,self.supervisor_public)
++        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
++            tasks = [pool.submit(self.execute,self.peer,revocation,revoke_proof),
++                     pool.submit(self.fence_complete,fence,proof=fence_proof)]
++            revoked, fenced = [task.result() for task in tasks]
++        self.assertTrue(revoked.HasField('identity_status'),revoked)
++        self.assertTrue(fenced.HasField('authority_fence'),fenced)
++        self.assertEqual(self.barrier_for_test().pending_count,1)
++        state = self.peer.call(authority_state=pb.AuthorityStateRead())
++        self.assertTrue(state.authority_activation.active)
++        self.assertEqual(state.authority_activation.applied_revision,0)
++
++    def test_second_authenticated_service_socket_and_new_launch_cannot_bypass_fence(self):
++        other = self.connect(); service = self.authenticate(other, b'n'*32)
++        self.fenced(); before = self.snapshot_all()
++        challenge = self.launch_begin(self.launch_request(service, launch_id=b'm'*32, previous=1))
++        self.error(self.launch_complete(challenge), core.BUSY)
++        self.error(self.activate(other), core.FORBIDDEN)
++        self.error(other.call(authority_applied=pb.AuthorityApplied(generation=1,from_revision=0,through_revision=1)), core.UNAUTHORIZED)
++        self.assertEqual(self.snapshot_all(), before)
++
++    def test_failed_fence_insert_rolls_back_and_fresh_proof_can_retry(self):
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.execute("CREATE TRIGGER reject_fence BEFORE INSERT ON authority_fence BEGIN SELECT RAISE(ABORT,'fence fault'); END")
++        before = self.snapshot_all()
++        self.error(self.fence_complete(self.fence_begin()), core.STORAGE_ERROR)
++        self.assertEqual(self.snapshot_all(), before)
++        with sqlite3.connect(self.state/'identity.db') as db: db.execute('DROP TRIGGER reject_fence')
++        self.assertEqual(self.fenced().generation, 1)
++
++    def test_concurrent_identical_completions_return_one_fence(self):
++        other = self.client()
++        challenges = [self.fence_begin(), self.fence_begin(peer=other)]
++        proofs = [self.proof(c,self.supervisor_key,self.supervisor_public) for c in challenges]
++        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
++            replies = list(pool.map(lambda item:self.fence_complete(item[0],peer=item[1],proof=item[2]),
++                zip(challenges,[self.supervisor,other],proofs)))
++        for reply in replies:self.assertTrue(reply.HasField('authority_fence'),reply)
++        self.assertEqual(replies[0].authority_fence,replies[1].authority_fence)
++        self.assertEqual(len(self.snapshot_all()['authority_fence']),1)
++
++    def test_restart_allows_fencing_original_active_generation(self):
++        before = self.snapshot_all(); self.restart()
++        self.assertEqual(self.snapshot_all(),before)
++        self.assertEqual(self.fenced().generation,1)
++
++    def test_committed_fence_survives_restart_and_remains_pending(self):
++        original = self.fenced(); self.revoke_actor_for_test(); self.restart()
++        self.assertEqual(self.fenced(),original)
++        self.assertEqual(self.barrier_for_test().pending_count,1)
++
++    def test_restart_invalidates_outstanding_fence_challenge(self):
++        challenge = self.fence_begin(); proof = self.proof(challenge,self.supervisor_key,self.supervisor_public)
++        self.restart(); before=self.snapshot_all()
++        self.error(self.fence_complete(challenge,proof=proof),core.UNAUTHORIZED)
++        self.assertEqual(self.snapshot_all(),before)
++        self.assertEqual(self.fenced().generation,1)
++
++    def test_expired_fence_challenge_cannot_commit(self):
++        self.challenge_ttl=100; self.restart()
++        challenge=self.fence_begin(); proof=self.proof(challenge,self.supervisor_key,self.supervisor_public)
++        before=self.snapshot_all();time.sleep(.15)
++        self.error(self.fence_complete(challenge,proof=proof),core.UNAUTHORIZED)
++        self.assertEqual(self.snapshot_all(),before)
++
++    def test_inconsistent_persisted_fence_is_not_returned_as_success(self):
++        self.fenced()
++        with sqlite3.connect(self.state/'identity.db') as db:db.execute('UPDATE authority_fence SET fence_id=?',(b'x'*32,))
++        before=self.snapshot_all()
++        self.error(self.fence_complete(self.fence_begin()),core.STORAGE_ERROR)
++        self.assertEqual(self.snapshot_all(),before)
++
++    def test_explicit_v8_migration_preserves_active_launch_and_issuer_key(self):
++        self.peer.close();self.supervisor.close();self.stop_daemons()
++        secret=(self.state/'issuer.pem').read_bytes()
++        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_fence; PRAGMA user_version=8;')
++        before=self.snapshot_all();command=[str(launch.registry.sessions.BINARY),'--state-dir',str(self.state)]
++        result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
++        self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
++        self.assertEqual(self.snapshot_all(),before)
++        for _ in range(2):
++            result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4)
++            self.assertEqual(result.returncode,0,result.stderr)
++        after=self.snapshot_all();self.assertEqual({n:after[n] for n in before},before)
++        self.assertEqual(after['authority_fence'],[])
++        self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
++        self.peer=self.ready();self.supervisor=self.client()
++        self.assertEqual(self.fenced().generation,1)
++
++    def test_failed_v8_migration_rolls_back(self):
++        self.peer.close();self.supervisor.close();self.stop_daemons()
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.executescript('DROP TABLE authority_fence; PRAGMA user_version=8; CREATE TABLE authority_fence(marker INTEGER);')
++        before=self.snapshot_all()
++        result=subprocess.run([str(launch.registry.sessions.BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
++        self.assertNotEqual(result.returncode,0);self.assertEqual(self.snapshot_all(),before)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
++
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(AuthorityFencingTests(n) for n in AuthorityFencingTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())
+--- /dev/null
++++ b/tests/core/test_authority_fencing_client.py
+@@ -0,0 +1,101 @@
++"""Independent TLS peers must not substitute fencing proof context or results."""
++import unittest
++import issuer_pb2 as pb
++import key_pb2 as keys
++import core_pb2 as core
++import test_authority_fencing as fencing
++from harness.wire import frame
++
++
++class FencingClientTests(fencing.AuthorityFencingTests):
++    def good_challenge(self, request):
++        value=pb.AuthorityFenceChallenge(protocol_version=1,issuer_id=self.info.issuer_id,
++            issuer_incarnation=b'i'*32,nonce=b'n'*32,connection_binding=b'c'*32,
++            request=request,supervisor_public_key=self.supervisor_public,lifetime_ms=30000,
++            audience='identityd/authority-fence/v1')
++        return pb.ChallengeReply(nonce=value.nonce,signing_request=keys.SignRequest(
++            purpose=keys.AUTHORITY_FENCING,payload=value.SerializeToString()))
++
++    def good_result(self):
++        request=self.fence_request()
++        return pb.AuthorityFenceState(issuer_id=self.info.issuer_id,registration=self.registration,
++            generation=request.generation,service_incarnation=request.service_incarnation,
++            authorization_id=request.authorization_id,launch_id=request.launch_id,
++            supervision_revision=request.supervision_revision,fence_id=b'f'*32,security_revision=0,
++            supervisor_public_key=self.supervisor_public)
++
++    def test_client_rejects_substituted_fence_challenge(self):
++        for mode in ('issuer','incarnation','nonce','binding','target','generation','key','lifetime','audience','purpose','unknown'):
++            with self.subTest(mode=mode):
++                def respond(peer,request,reply):
++                    challenge=self.good_challenge(request.authority_fence_begin)
++                    value=pb.AuthorityFenceChallenge.FromString(challenge.signing_request.payload)
++                    if mode=='issuer':value.issuer_id=b'x'*32
++                    elif mode=='incarnation':value.issuer_incarnation=b'x'
++                    elif mode=='nonce':value.nonce=b'x'*32
++                    elif mode=='binding':value.connection_binding=b'x'
++                    elif mode=='target':value.request.authorization_id=b'x'*32
++                    elif mode=='generation':value.request.generation=2
++                    elif mode=='key':value.supervisor_public_key=self.info.public_key
++                    elif mode=='lifetime':value.lifetime_ms=60001
++                    elif mode=='audience':value.audience='other'
++                    elif mode=='unknown':value.ParseFromString(value.SerializeToString()+b'\xf8\x07\x01')
++                    challenge.signing_request.payload=value.SerializeToString()
++                    if mode=='purpose':challenge.signing_request.purpose=keys.AUTHORITY_LAUNCH_AUTHORIZATION
++                    reply.challenge.CopyFrom(challenge);peer.stream.sendall(frame(reply))
++                peer=fencing.launch.registry.clients.FaultPeer(self,response=respond);client=self.client(peer.port)
++                self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_fence_begin=self.fence_request()),peer,3)
++
++    def test_client_rejects_substituted_fence_result_or_invalid_proof(self):
++        for mode in ('issuer','registration','generation','incarnation','authorization','launch','supervision','id','revision','key','unknown','outcome','proof'):
++            with self.subTest(mode=mode):
++                def respond(peer,request,reply):
++                    if request.HasField('authority_fence_begin'):
++                        reply.challenge.CopyFrom(self.good_challenge(request.authority_fence_begin))
++                    else:
++                        value=self.good_result()
++                        if mode=='issuer':value.issuer_id=b'x'*32
++                        elif mode=='registration':value.registration.registered_revision=2
++                        elif mode=='generation':value.generation=2
++                        elif mode=='incarnation':value.service_incarnation=b'x'*32
++                        elif mode=='authorization':value.authorization_id=b'x'*32
++                        elif mode=='launch':value.launch_id=b'x'*32
++                        elif mode=='supervision':value.supervision_revision=2
++                        elif mode=='id':value.fence_id=b'x'
++                        elif mode=='revision':value.security_revision=2**63
++                        elif mode=='key':value.supervisor_public_key=b'x'*32
++                        elif mode=='unknown':value.ParseFromString(value.SerializeToString()+b'\xf8\x07\x01')
++                        if mode=='outcome':reply.policy.CopyFrom(pb.PolicyState(revision=1))
++                        else:reply.authority_fence.CopyFrom(value)
++                    peer.stream.sendall(frame(reply))
++                peer=fencing.launch.registry.clients.FaultPeer(self,response=respond);client=self.client(peer.port)
++                challenge=self.fence_begin(peer=client)
++                proof=self.proof(challenge,self.supervisor_key,self.supervisor_public)
++                if mode=='proof':proof.signature=b'x'*64
++                self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_fence_complete=pb.AuthorityFenceComplete(
++                    nonce=challenge.nonce,proof=proof)),peer,4)
++
++    def test_typed_denial_consumes_client_fence_context(self):
++        def respond(peer,request,reply):
++            if request.HasField('authority_fence_begin'):
++                reply.challenge.CopyFrom(self.good_challenge(request.authority_fence_begin))
++            elif len(peer.requests)>4:reply.authority_fence.CopyFrom(self.good_result())
++            peer.stream.sendall(frame(reply))
++        peer=fencing.launch.registry.clients.FaultPeer(self,response=respond);client=self.client(peer.port)
++        challenge=self.fence_begin(peer=client)
++        complete=pb.AuthorityFenceComplete(nonce=challenge.nonce,proof=self.proof(challenge,self.supervisor_key,self.supervisor_public))
++        self.denied(client.call(authority_fence_complete=complete),core.FORBIDDEN)
++        self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_fence_complete=complete),peer,5)
++
++    def test_client_rejects_unsolicited_fence_success(self):
++        challenge=self.good_challenge(self.fence_request())
++        def respond(peer,request,reply):
++            reply.authority_fence.CopyFrom(self.good_result());peer.stream.sendall(frame(reply))
++        peer=fencing.launch.registry.clients.FaultPeer(self,response=respond);client=self.client(peer.port)
++        self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_fence_complete=pb.AuthorityFenceComplete(
++            nonce=challenge.nonce,proof=self.proof(challenge,self.supervisor_key,self.supervisor_public))),peer,3)
++
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(FencingClientTests(n) for n in FencingClientTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())
+--- a/tests/core/test_identity_bootstrap.py
++++ b/tests/core/test_identity_bootstrap.py
+@@ -217,7 +217,7 @@
+         self.client.close(); secret = (self.state/'issuer.pem').read_bytes(); policy = self.snapshot()
+         with sqlite3.connect(self.state/'identity.db') as db:
+             before = db.execute('SELECT * FROM credential').fetchall()
+-            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
++            db.executescript('DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
+         command = [str(BINARY), '--state-dir', str(self.state)]
+         old = subprocess.run(command, input=b'', capture_output=True, timeout=4)
+         self.assertNotEqual(old.returncode, 0); self.assertIn(b'migration', old.stderr.lower())
+@@ -226,7 +226,7 @@
+             self.assertEqual(migrated.returncode, 0, migrated.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(), before)
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 8)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 9)
+         self.assertEqual((self.state/'issuer.pem').read_bytes(), secret); self.assertEqual(self.snapshot(), policy)
+         self.client = self.start(); self.assertEqual(self.enroll(self.client), approved)
+         self.assertEqual(len(self.read('empty-v1').profile.grants), 0)
+--- a/tests/core/test_identity_enrollment.py
++++ b/tests/core/test_identity_enrollment.py
+@@ -246,7 +246,7 @@
+     def test_explicit_schema_migration_preserves_issuer_key_owner_and_policy(self):
+         info=self.init();before=self.snapshot();secret=(self.state/'issuer.pem').read_bytes()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
++            db.executescript('DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
+                              'DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
+         command=[str(BINARY),'--state-dir',str(self.state)]
+         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+--- a/tests/core/test_identity_participant_barrier.py
++++ b/tests/core/test_identity_participant_barrier.py
+@@ -218,7 +218,7 @@
+         self.revoke_actor(); self.peer.close(); self.service['peer'].close(); self.stop_daemons()
+         secret = (self.state/'issuer.pem').read_bytes()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; PRAGMA user_version=5;')
++            db.executescript('DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; PRAGMA user_version=5;')
+         before = self.snapshot(); command = [str(BINARY),'--state-dir',str(self.state)]
+         denied = subprocess.run(command,input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(denied.returncode,0); self.assertIn(b'migration',denied.stderr.lower())
+@@ -227,7 +227,7 @@
+             self.assertEqual(migrated.returncode,0,migrated.stderr)
+         after = self.snapshot(); self.assertEqual({n:after[n] for n in before},before)
+         for name in ('authority_activation','authority_barrier','authority_obligation'):self.assertEqual(after[name],[])
+-        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
+         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret); self.peer = self.ready()
+         op = pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(revision=1))
+         self.denied(self.execute(self.peer,self.challenge(self.peer,op)),core.NOT_FOUND)
+@@ -235,7 +235,7 @@
+     def test_failed_v5_migration_rolls_back_tables_and_version(self):
+         self.peer.close(); self.service['peer'].close(); self.stop_daemons()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; '
++            db.executescript('DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; '
+                 'PRAGMA user_version=5; CREATE TABLE authority_obligation(marker INTEGER);')
+         before = self.snapshot()
+         result = subprocess.run([str(BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
+--- a/tests/core/test_identity_participants.py
++++ b/tests/core/test_identity_participants.py
+@@ -7,7 +7,7 @@
+ import issuer_pb2 as pb
+ from test_identity_enrollment import EnrollmentFixture,BINARY
+ 
+-DROP_REGISTRY='DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; '
++DROP_REGISTRY='DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; '
+ 
+ class ParticipantTests(EnrollmentFixture):
+     def setUp(self):
+@@ -179,7 +179,7 @@
+         for _ in range(2):
+             result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
+             self.assertEqual({table:db.execute('SELECT * FROM '+table).fetchall() for table in before},before)
+         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+         self.client=self.start();self.assertFalse(self.client.call(credential_check=enrolled.credential).identity_status.active)
+--- a/tests/core/test_identity_revocation.py
++++ b/tests/core/test_identity_revocation.py
+@@ -199,7 +199,7 @@
+         self.client.close();secret=(self.state/'issuer.pem').read_bytes();policy=self.snapshot()
+         with sqlite3.connect(self.state/'identity.db') as db:
+             before=db.execute('SELECT * FROM credential').fetchall()
+-            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
++            db.executescript('DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
+         command=[str(BINARY),'--state-dir',str(self.state)]
+         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
+@@ -207,7 +207,7 @@
+         self.assertEqual(result.returncode,0,result.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(),before)
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
+         self.assertEqual(self.snapshot(),policy);self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+         self.client=self.start();self.assertTrue(self.authenticate().authentication.identity.active)
+ 
+--- a/tests/core/test_launch_authorization.py
++++ b/tests/core/test_launch_authorization.py
+@@ -156,7 +156,7 @@
+ 
+     def test_explicit_v7_migration_preserves_binding_without_granting_launch(self):
+         self.peer.close();self.supervisor.close();self.stop_daemons();secret=(self.state/'issuer.pem').read_bytes()
+-        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_launch_authorization; PRAGMA user_version=7;')
++        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; PRAGMA user_version=7;')
+         before=self.snapshot_all();command=[str(registry.sessions.BINARY),'--state-dir',str(self.state)]
+         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
+@@ -164,13 +164,13 @@
+             result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
+         after=self.snapshot_all();self.assertEqual({n:after[n] for n in before},before);self.assertEqual(after['authority_launch_authorization'],[])
+         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+-        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
+         self.peer=self.ready();self.authenticate(self.peer);self.denied(self.activate(),core.FORBIDDEN)
+ 
+     def test_failed_v7_migration_rolls_back(self):
+         self.peer.close();self.supervisor.close();self.stop_daemons()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_launch_authorization; PRAGMA user_version=7; CREATE TABLE authority_launch_authorization(marker INTEGER);')
++            db.executescript('DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; PRAGMA user_version=7; CREATE TABLE authority_launch_authorization(marker INTEGER);')
+         before=self.snapshot_all()
+         result=subprocess.run([str(registry.sessions.BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(result.returncode,0);self.assertEqual(self.snapshot_all(),before)
+--- a/tests/core/test_supervisor_registry.py
++++ b/tests/core/test_supervisor_registry.py
+@@ -206,7 +206,7 @@
+         self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
+         self.assertTrue(self.peer.call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)).HasField('authority_activation'))
+         self.peer.close();self.stop_daemons();secret=(self.state/'issuer.pem').read_bytes()
+-        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; PRAGMA user_version=6;')
++        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; PRAGMA user_version=6;')
+         before=self.snapshot_all();command=[str(sessions.BINARY),'--state-dir',str(self.state)]
+         denied=subprocess.run(command,input=b'',capture_output=True,timeout=4);self.assertNotEqual(denied.returncode,0)
+         self.assertIn(b'migration',denied.stderr.lower())
+@@ -214,13 +214,13 @@
+             result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
+         after=self.snapshot_all();self.assertEqual({n:after[n] for n in before},before);self.assertEqual(after['authority_supervisor'],[])
+         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+-        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
+         self.peer=self.ready();self.denied(self.bind(),core.BUSY)
+ 
+     def test_failed_v6_migration_rolls_back_without_adopting_services(self):
+         self.peer.close();self.stop_daemons()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; PRAGMA user_version=6; CREATE TABLE authority_supervisor(marker INTEGER);')
++            db.executescript('DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; PRAGMA user_version=6; CREATE TABLE authority_supervisor(marker INTEGER);')
+         before=self.snapshot_all();result=subprocess.run([str(sessions.BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(result.returncode,0);self.assertEqual(self.snapshot_all(),before)
+         with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],6)
