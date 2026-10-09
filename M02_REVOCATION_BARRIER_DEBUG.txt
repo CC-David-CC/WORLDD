@@ -1,7 +1,8 @@
 ## 2026-10-09: Supervisor fencing sanitizers pass; world qualification has one unresolved failure
 
 Both hosts passed 10 new supervisor fencing checks and 51 harness checks in both profiles.
-Full cumulative issuer and supervisor fencing qualification remains active.
+Both hosts passed full issuer fencing Debug: 1433 core checks, 51 harness checks, and 151 P10 cases.
+Full issuer fencing sanitizers and supervisor cumulative qualification remain active.
 
 sb16 passed full world qualification in Debug and runtime ASan/UBSan.
 sb16-2 passed full Debug. Its runtime sanitizer core recorded 1406 passes and one bootstrap failure.

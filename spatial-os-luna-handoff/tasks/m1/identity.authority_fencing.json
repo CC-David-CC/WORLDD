@@ -17,8 +17,10 @@
   "candidate": "Frozen candidate01: 292 files, 18 changed files, 26 new checks. Both hosts passed focused Debug.",
   "candidate_review": "evidence/authority-fencing-2026-10-09/candidate-prepared-review-01.json",
   "implementation_status": "Implemented in isolated source. Full cumulative qualification and production integration remain pending.",
-  "qualification": "Both hosts passed 26 new checks, the baseline regression, and 51 harness checks in Debug and runtime ASan/UBSan. Full cumulative qualification remains active.",
+  "qualification": "Both hosts passed full Debug:1433 core checks across97 suites,51 harness checks,151 P10 cases. Focused runtime sanitizer checks passed; full runtime remains active.",
   "debug_review": "evidence/authority-fencing-2026-10-09/debug-results-review-01.json",
   "focused_review": "evidence/authority-fencing-2026-10-09/focused-results-review-01.json",
-  "real_world_review": "evidence/supervised-world-fencing-2026-10-09/results-review-01.json"
+  "real_world_review": "evidence/supervised-world-fencing-2026-10-09/results-review-01.json",
+  "full_debug_review": "evidence/authority-fencing-2026-10-09/full-debug-results-review-01.json",
+  "integration_dependency": "World bootstrap runtime failure remains under investigation."
 }
