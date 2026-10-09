@@ -1,0 +1,36 @@
+Box-git transport repair, 2026-10-09
+
+Direct Git access from sb16 and sb16-2 previously failed host-key verification.
+The controller's existing authenticated SSH connection to box-git works.
+The controller read /etc/ssh/ssh_host_ed25519_key.pub over that connection.
+Both world hosts independently observed the same public host key with ssh-keyscan.
+Neither host had an existing box-git known-host entry.
+
+Planned change: append only that verified public key to each user's .ssh/known_hosts.
+Preserve the original file as .ssh/known_hosts.before-spacial-box-git-20261009.
+The script refuses existing host entries and mismatched server keys.
+Do not disable StrictHostKeyChecking or copy private keys.
+The script uses git ls-remote to check repository access after the trust update.
+It does not fetch, merge, or modify the source currently under qualification.
+
+Recovery: compare known_hosts with the recorded after_sha256 before restoring its backup.
+If it still matches, restore the recorded backup to that same known_hosts path.
+If it changed, remove only the exact box-git public-key line after reviewing the later changes.
+Retain the backup and local/box-git-trust-20261009.json as evidence.
+
+Implementation and result are pending at this pre-change checkpoint.
+
+Both host-key changes succeeded. Both repository probes then failed SSH authentication.
+Next change: generate a separate Ed25519 key at ~/.ssh/spacial_desktop_boxgit on each world host.
+Keep each private key on its originating host.
+Append its public key to box-git's authorized_keys with restrict and a forced repository-only command.
+The command permits upload-pack and receive-pack only for /srv/data/git/spacial_desktop.git.
+Back up authorized_keys before changing it. Preserve the existing entries.
+Set core.sshCommand only in each project's local Git configuration after authorization succeeds.
+Verify read access, dry-run push access, and rejection of shell commands and other repository paths.
+
+Completed: both hosts passed all seven repository access and confinement checks.
+Direct origin access now works with repository-specific SSH keys and strict host-key checking.
+No source checkout changed during this repair. No private key was copied or committed.
+Evidence and exact recovery commands: spatial-os-luna-handoff/evidence/git-transport-2026-10-09/README.txt.
+The authorization gate source and installation hashes are preserved beside that report.

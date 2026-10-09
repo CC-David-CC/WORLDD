@@ -1,0 +1,18 @@
+{
+  "changed_path": "/home/dflanag3/.ssh/authorized_keys",
+  "backup_path": "/home/dflanag3/.ssh/authorized_keys.before-spacial-hosts-20261009",
+  "before_sha256": "d77f43dfa01d6bf3326e23ffb2a42ac9664e0d2c193b8effcb74ce0e274a63f0",
+  "after_sha256": "334812066458e6c6f0756524ea8b72b356c969d5b180dba256546f304c556a24",
+  "wrapper": "/home/dflanag3/.ssh/spacial_desktop_git_gate.py",
+  "wrapper_sha256": "58a30226e2a3c5c99a9d1ee61c7689ee92ca116d28cb9edca8470cc9885f1115",
+  "authorized_key_fingerprints": [
+    {
+      "label": "spacial_desktop-sb16",
+      "fingerprint": "SHA256:v9zxO9RGbl5M6ED2mTIrS9Gm8ckSDO5Rvl0La8EoxEs"
+    },
+    {
+      "label": "spacial_desktop-sb16-2",
+      "fingerprint": "SHA256:Wx9A4W5xWfrRXCnNGYTKUXYvhoSAJgkyG17DdUwjI20"
+    }
+  ]
+}

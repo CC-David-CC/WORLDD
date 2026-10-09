@@ -1,0 +1,140 @@
+{
+  "host": "sb16",
+  "key_path": "/home/dflanag3/.ssh/spacial_desktop_boxgit",
+  "configured_command": "ssh -i /home/dflanag3/.ssh/spacial_desktop_boxgit -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10",
+  "backup_path": "/home/dflanag3/src/spacial_desktop/.git/config.before-spacial-boxgit-20261009",
+  "config_before_sha256": "f457b64fd8377c99dbd899a05bf43586cef3cd82cc01790dc70465de7dd730d2",
+  "config_after_sha256": "a0b66d262a725253d552e80c3c63df3981f1c4160c0fcf45931aa42179a1fead",
+  "results": [
+    {
+      "command": [
+        "git",
+        "-c",
+        "core.sshCommand=ssh -i /home/dflanag3/.ssh/spacial_desktop_boxgit -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "exit_code": 0,
+      "stdout": "71386ba45d9f55368e5b1bb53913bbf30bcdce27\trefs/heads/main\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "core.sshCommand=ssh -i /home/dflanag3/.ssh/spacial_desktop_boxgit -o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10",
+        "push",
+        "--dry-run",
+        "origin",
+        "HEAD:refs/heads/main"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Everything up-to-date\n"
+    },
+    {
+      "command": [
+        "ssh",
+        "-i",
+        "/home/dflanag3/.ssh/spacial_desktop_boxgit",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "IdentityAgent=none",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "StrictHostKeyChecking=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-T",
+        "dflanag3@box-git",
+        "printf unconfined"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "This key permits Git access to spacial_desktop only.\n"
+    },
+    {
+      "command": [
+        "ssh",
+        "-i",
+        "/home/dflanag3/.ssh/spacial_desktop_boxgit",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "IdentityAgent=none",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "StrictHostKeyChecking=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-T",
+        "dflanag3@box-git",
+        "git-upload-pack /srv/data/git/unrelated.git"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "This key permits Git access to spacial_desktop only.\n"
+    },
+    {
+      "command": [
+        "ssh",
+        "-i",
+        "/home/dflanag3/.ssh/spacial_desktop_boxgit",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "IdentityAgent=none",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "StrictHostKeyChecking=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-T",
+        "dflanag3@box-git",
+        "git-receive-pack /srv/data/git/spacial_desktop.git extra"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "This key permits Git access to spacial_desktop only.\n"
+    },
+    {
+      "command": [
+        "ssh",
+        "-i",
+        "/home/dflanag3/.ssh/spacial_desktop_boxgit",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "IdentityAgent=none",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "StrictHostKeyChecking=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "-T",
+        "dflanag3@box-git",
+        ""
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "This key permits Git access to spacial_desktop only.\n"
+    },
+    {
+      "command": [
+        "git",
+        "ls-remote",
+        "origin",
+        "refs/heads/main"
+      ],
+      "exit_code": 0,
+      "stdout": "71386ba45d9f55368e5b1bb53913bbf30bcdce27\trefs/heads/main\n",
+      "stderr": ""
+    }
+  ]
+}

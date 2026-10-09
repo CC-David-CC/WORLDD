@@ -1,0 +1,11 @@
+{
+  "host": "sb16",
+  "changed_path": "/home/dflanag3/.ssh/known_hosts",
+  "backup_path": "/home/dflanag3/.ssh/known_hosts.before-spacial-box-git-20261009",
+  "before_sha256": "6233fddbb0a29afc8c4e8c699733c1a188c3a41f2fb63a2640653dc4aea624ce",
+  "after_sha256": "f4f22911f78c339ce92c2aa79d66e626a91df786a18c1e72aee4ed31821c4610",
+  "host_key_fingerprint": "SHA256:bvx5684zHcsZwOy//i6Gw3+6eXHyKX4OT1d7EpzdHhc",
+  "git_probe_exit": 128,
+  "git_probe_stdout": "",
+  "git_probe_stderr": "dflanag3@box-git: Permission denied (publickey,password).\nfatal: Could not read from remote repository.\n\nPlease make sure you have the correct access rights\nand the repository exists.\n"
+}
