@@ -1,0 +1,38 @@
+{
+  "reviewer": "primary agent",
+  "profiles": {
+    "sb16/debug": {
+      "new_checks": 10,
+      "harness_checks": 51,
+      "failed": 0,
+      "skipped": 0
+    },
+    "sb16/runtime-sanitize": {
+      "new_checks": 10,
+      "harness_checks": 51,
+      "failed": 0,
+      "skipped": 0
+    },
+    "sb16-2/debug": {
+      "new_checks": 10,
+      "harness_checks": 51,
+      "failed": 0,
+      "skipped": 0
+    },
+    "sb16-2/runtime-sanitize": {
+      "new_checks": 10,
+      "harness_checks": 51,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "source_files": 294,
+  "locked_files": 41,
+  "production_changed": false,
+  "integrated": false,
+  "limits": [
+    "Full cumulative qualification is still running.",
+    "The bootstrap failure remains unresolved.",
+    "Dependent control cleanup and verified issuer retirement remain required."
+  ]
+}

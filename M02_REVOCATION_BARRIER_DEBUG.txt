@@ -1,3 +1,11 @@
+## 2026-10-09: Automatic crash fencing passes both focused profiles
+
+Both hosts passed ten new checks and 51 harness checks in Debug and runtime ASan/UBSan.
+No focused check failed or skipped. Full cumulative qualification continues.
+Read evidence/supervisor-crash-fencing-2026-10-09/focused-results-review-01.json.
+The candidate remains unintegrated. Bootstrap authority-channel failures still require diagnosis.
+Production remains broker283. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Issuer fencing finishes with a second bootstrap failure
 
 sb16-2 passed full issuer fencing in Debug and runtime ASan/UBSan.
