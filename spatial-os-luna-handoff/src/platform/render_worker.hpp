@@ -15,8 +15,9 @@ public:
     wire::FrameReply render(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height, bool capture);
     wire::RenderVisibility observe(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height);
     wire::NativeSnapshot synchronize();
-    wire::NativeActorInput input(const wire::RendererInputCommand& command);
+    wire::NativeActorInput input(const wire::RendererInputCommand& command, const std::function<void()>& before_send = {});
     void check_alive() const;
+    bool busy() const { return busy_; }
     void set_tick(std::function<void()> tick) { tick_ = std::move(tick); }
     pid_t pid() const { return pid_; }
     const std::string& display() const { return display_; }
@@ -24,12 +25,13 @@ private:
     void wait(short events);
     void read_all(char* out, std::size_t size);
     wire::RenderResult receive();
-    wire::RenderResult exchange(wire::RenderCommand command);
+    wire::RenderResult exchange(wire::RenderCommand command, const std::function<void()>& before_send = {});
     int socket_ = -1, pidfd_ = -1;
     pid_t pid_ = -1;
     std::string display_;
     std::uint64_t sequence_ = 0;
     std::uint64_t frame_id_ = 0;
+    bool busy_ = false;
     std::function<void()> tick_ = [] {};
     std::chrono::steady_clock::time_point deadline_;
 };

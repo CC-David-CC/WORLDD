@@ -1,0 +1,221 @@
+test_authorized_native_input_without_workspace_selection (__main__.WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection) ... FAIL
+test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control) ... FAIL
+test_readonly_actor_cannot_control_writable_application (__main__.WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application) ... FAIL
+test_readonly_actor_can_control_readonly_application (__main__.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application) ... FAIL
+test_one_application_has_one_actor_controller (__main__.WorldApplicationControlTests.test_one_application_has_one_actor_controller) ... FAIL
+test_unfocus_releases_native_input_before_handoff (__main__.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff) ... FAIL
+test_idle_control_revocation_releases_input_and_preserves_execution (__main__.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution) ... FAIL
+test_observation_revocation_cancels_control (__main__.WorldApplicationControlTests.test_observation_revocation_cancels_control) ... FAIL
+test_independent_control_grant_survives_other_revocation (__main__.WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation) ... FAIL
+test_stop_releases_application_reservation (__main__.WorldApplicationControlTests.test_stop_releases_application_reservation) ... FAIL
+test_scroll_uses_real_native_events (__main__.WorldApplicationControlTests.test_scroll_uses_real_native_events) ... FAIL
+test_independent_applications_allow_simultaneous_actors (__main__.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors) ... FAIL
+
+======================================================================
+FAIL: test_authorized_native_input_without_workspace_selection (__main__.WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 88, in test_authorized_native_input_without_workspace_selection
+    app,surface,observe,control=self.begin_control();self.assertFalse(self.actor_state().workspace)
+                                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 74, in begin_control
+    self.setup_world();app,surface=self.probe(profile=profile)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 94, in test_observation_does_not_grant_control
+    self.setup_world();app,surface=self.probe();self.grant_viewer([grant.WORKSPACE_ACCESS]);self.grant_viewer([grant.APPLICATION_OBSERVE],app)
+                                   ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_readonly_actor_cannot_control_writable_application (__main__.WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 99, in test_readonly_actor_cannot_control_writable_application
+    self.setup_world();app,surface=self.probe();self.grant_control(app,readonly=True);self.actor_aim()
+                                   ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_readonly_actor_can_control_readonly_application (__main__.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 104, in test_readonly_actor_can_control_readonly_application
+    app,surface,observe,control=self.begin_control(profile='read-only',readonly=True)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 74, in begin_control
+    self.setup_world();app,surface=self.probe(profile=profile)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_one_application_has_one_actor_controller (__main__.WorldApplicationControlTests.test_one_application_has_one_actor_controller)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 109, in test_one_application_has_one_actor_controller
+    app,surface,observe,control=self.begin_control();self.actor_aim(self.peer)
+                                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 74, in begin_control
+    self.setup_world();app,surface=self.probe(profile=profile)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_unfocus_releases_native_input_before_handoff (__main__.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 114, in test_unfocus_releases_native_input_before_handoff
+    app,surface,observe,control=self.begin_control();self.actor_key('Shift_L',True)
+                                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 74, in begin_control
+    self.setup_world();app,surface=self.probe(profile=profile)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_idle_control_revocation_releases_input_and_preserves_execution (__main__.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 120, in test_idle_control_revocation_releases_input_and_preserves_execution
+    app,surface,observe,control=self.begin_control();self.actor_key('a',True)
+                                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 74, in begin_control
+    self.setup_world();app,surface=self.probe(profile=profile)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_observation_revocation_cancels_control (__main__.WorldApplicationControlTests.test_observation_revocation_cancels_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 127, in test_observation_revocation_cancels_control
+    app,surface,observe,control=self.begin_control();self.actor_key('a',True)
+                                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 74, in begin_control
+    self.setup_world();app,surface=self.probe(profile=profile)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_independent_control_grant_survives_other_revocation (__main__.WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 132, in test_independent_control_grant_survives_other_revocation
+    app,surface,observe,control=self.begin_control();self.grant_viewer([grant.APPLICATION_CONTROL],app)
+                                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 74, in begin_control
+    self.setup_world();app,surface=self.probe(profile=profile)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_stop_releases_application_reservation (__main__.WorldApplicationControlTests.test_stop_releases_application_reservation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 137, in test_stop_releases_application_reservation
+    app,surface,observe,control=self.begin_control();self.actor_key('a',True)
+                                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 74, in begin_control
+    self.setup_world();app,surface=self.probe(profile=profile)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_scroll_uses_real_native_events (__main__.WorldApplicationControlTests.test_scroll_uses_real_native_events)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 142, in test_scroll_uses_real_native_events
+    self.setup_world();app,surface=self.probe();self.grant_control(app);self.actor_aim()
+                                   ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+======================================================================
+FAIL: test_independent_applications_allow_simultaneous_actors (__main__.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 149, in test_independent_applications_allow_simultaneous_actors
+    self.setup_world();app,left=self.probe((-.6,0,-2));other,right=self.probe((.6,0,-2));self.grant_control(app)
+                                ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 39, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+----------------------------------------------------------------------
+Ran 12 tests in 77.126s
+
+FAILED (failures=12)

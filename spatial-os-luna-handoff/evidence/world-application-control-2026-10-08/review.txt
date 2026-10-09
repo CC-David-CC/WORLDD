@@ -1,0 +1,66 @@
+Primary-agent review: authenticated native application control
+
+Production inputs reviewed against cd651f5e76e01296b813335914990794e500efd8.
+No local-model review was used.
+
+src/world/actors.cpp and actors.hpp:
+- Bind native input to checked broker reservations for authenticated labeled applications.
+- Require observation and sufficient execution authority without requiring workspace selection.
+- Recheck application identity, room, mapping, target generation, and aim after broker waits.
+- Preserve one controller per application group, including popups and separate top-level windows.
+- Keep independent applications independently controllable through genuine native devices.
+- Check authority before the first compositor request byte and after each exchange.
+- Complete a partially sent request before cancellation. Do not replay uncertain input.
+- Confirm cleared native focus, keys, and buttons before queueing broker release.
+- Retain the original principal on queued releases after session closure.
+- Defer native closure during renderer I/O and complete it after an in-flight cancel.
+- Preserve explicit interaction grants on unlabelled diagnostic displays.
+- Do not fall back to diagnostic grants after an application reservation is lost.
+
+src/platform/render_worker.cpp and render_worker.hpp:
+- Reject recursive exchanges with an exception-safe busy guard.
+- Recheck authority after POLLOUT waits and before sending any request bytes.
+- Preserve correlation and finish partially transmitted frames.
+
+src/platform/broker.hpp:
+- Expose pending-exchange state so native cancellation can defer broker release safely.
+- Leave the checked broker protocol and reservation validation unchanged.
+
+src/world/identity_sessions.cpp:
+- Service issuer revocations during component waits with a reentrancy guard.
+- Detect actor socket loss with nonblocking poll and MSG_PEEK.
+- Cancel the actor without dispatching nested actor requests.
+- Keep cancellation failure fatal. Do not acknowledge uncertain native teardown.
+
+src/world/server.cpp:
+- Poll identity and control changes during broker and compositor waits.
+- Let renderer and broker guards defer recursive operations to the outer scheduler.
+- Preserve callback cleanup when the server exits.
+
+tests/core/test_world_application_control.py:
+- Use real issuer credentials, persistent grants, broker confinement, worldd, spatialwm, and patched XLibre.
+- Observe real core X11 events with the unchanged independent C witness.
+- Query native device identity through a separate supervisor connection.
+- Test denial, read-only profiles, same-application exclusion, and independent controllers.
+- Test popup transfer, scroll, stale pixels, unmap, stop, unfocus, close, and restored authority.
+- Test revocation and controller loss during broker waits.
+- Pause only the fixture-owned compositor. Always resume it in finally.
+- Check cancellation without replay after renderer waits and device removal after in-flight cancel.
+- Preserve setup mistakes and genuine production failures as distinct evidence.
+
+CMakeLists.txt:
+- Register the new 25-case suite with generated protobuf bindings and a bounded timeout.
+- Leave all locked acceptance assertions and the independent C witness unchanged.
+
+Documentation and task record:
+- Describe the component invariant and its cancellation ordering.
+- Keep full M04, M09, M10, physical-input, and Spatial-M1 completion separate.
+- Keep native-server GLX sanitizer coverage explicitly unrun for this component.
+
+Final qualification passed on both hosts before integration.
+Each Debug and runtime ASan/UBSan profile passed 891 core checks across 45 suites.
+Each profile also passed 51 harness checks and 151 P10 cases, without skips.
+The focused 61-check run passed on both hosts.
+The collector verified the final reports and the nine changed source/build/test hashes.
+The broader 452-file source audit also matched on both hosts.
+Native-server GLX sanitizer coverage remains explicitly unrun for this component.

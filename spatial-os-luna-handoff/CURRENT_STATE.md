@@ -1,5 +1,44 @@
 # Implementation status
 
+## 2026-10-08: Authenticated native application control checked
+
+Worldd now acquires production broker reservations before authenticated native application input.
+It checks observation, execution authority, native application identity, room, and target generation.
+Workspace selection is not required for control.
+One actor controls an application group, including its popups.
+Different application groups support simultaneous controllers with genuine native input devices.
+Read-only actors cannot control writable applications.
+
+Native cancellation clears held input and focus before the world acknowledges broker release.
+Issuer revocation and controller socket loss remain serviced during component waits.
+An in-flight compositor request finishes before cancellation; it is never replayed.
+A close requested during native cancellation completes before reservation release.
+Control loss preserves independently authorized application execution.
+Explicit diagnostic interaction grants remain available on unlabelled displays.
+Labeled applications cannot fall back to those grants after reservation loss.
+
+Both hosts passed 25 new control checks, 20 existing identity checks, and 16 observation checks.
+Both hosts then passed complete Debug and runtime ASan/UBSan qualification.
+Each profile passed 891 core checks across 45 suites, 51 harness checks, and 151 P10 cases.
+No final profile skipped a case.
+The 452-file source audit matched Windows and both hosts.
+The primary agent reviewed each changed file without local-model review.
+
+The preserved failures exposed delayed cancellation during broker waits and incomplete native device teardown.
+The first full Debug run also exposed an overly broad diagnostic-input denial.
+The final passing profiles include the corrections and their regression tests.
+Fixture setup failures remain separate from production failures in the debug note.
+No locked acceptance assertion, schema, independent C witness, or XLibre source changed.
+No host system configuration changed.
+See docs/WORLD_APPLICATION_CONTROL.md and evidence/world-application-control-2026-10-08.
+The root M04_WORLD_APPLICATION_CONTROL_DEBUG.txt records the failure history and remaining limits.
+
+These renderer-dependent world tests use GLX on the normal patched native server.
+Native-server ASan/UBSan GLX coverage remains unrun for this component.
+The existing instrumented GLX cleanup issue remains unqualified.
+Filtered actor pixels, physical input, native GPU timing, restoration, and full M1 qualification remain pending.
+M04, M09, M10, and Spatial-M1 remain incomplete.
+
 ## 2026-10-08: Broker control client checked
 
 The production broker client now supports checked control acquisition, release, and asynchronous revocation.

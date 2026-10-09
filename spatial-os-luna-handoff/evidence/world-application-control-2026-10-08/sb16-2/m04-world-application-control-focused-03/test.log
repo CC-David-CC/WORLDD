@@ -1,0 +1,135 @@
+test_authorized_native_input_without_workspace_selection (__main__.WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection) ... ok
+test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control) ... ok
+test_readonly_actor_cannot_control_writable_application (__main__.WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application) ... ok
+test_readonly_actor_can_control_readonly_application (__main__.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application) ... ok
+test_one_application_has_one_actor_controller (__main__.WorldApplicationControlTests.test_one_application_has_one_actor_controller) ... ok
+test_unfocus_releases_native_input_before_handoff (__main__.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff) ... ok
+test_idle_control_revocation_releases_input_and_preserves_execution (__main__.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution) ... ok
+test_observation_revocation_cancels_control (__main__.WorldApplicationControlTests.test_observation_revocation_cancels_control) ... ok
+test_independent_control_grant_survives_other_revocation (__main__.WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation) ... ok
+test_stop_releases_application_reservation (__main__.WorldApplicationControlTests.test_stop_releases_application_reservation) ... ok
+test_scroll_uses_real_native_events (__main__.WorldApplicationControlTests.test_scroll_uses_real_native_events) ... ok
+test_independent_applications_allow_simultaneous_actors (__main__.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors) ... ok
+test_session_close_releases_before_handoff (__main__.WorldApplicationControlTests.test_session_close_releases_before_handoff) ... ok
+test_controller_disconnect_releases_before_handoff (__main__.WorldApplicationControlTests.test_controller_disconnect_releases_before_handoff) ... ok
+test_restored_grant_does_not_restore_held_input (__main__.WorldApplicationControlTests.test_restored_grant_does_not_restore_held_input) ... ok
+test_popup_uses_same_application_reservation (__main__.WorldApplicationControlTests.test_popup_uses_same_application_reservation) ... FAIL
+test_resized_aim_rejects_stale_generation (__main__.WorldApplicationControlTests.test_resized_aim_rejects_stale_generation) ... FAIL
+test_unmapped_capture_releases_reservation (__main__.WorldApplicationControlTests.test_unmapped_capture_releases_reservation) ... ok
+test_actor_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_actor_revocation_releases_native_input) ... ERROR
+test_credential_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_credential_revocation_releases_native_input) ... ERROR
+test_actor_revocation_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_actor_revocation_cancels_during_broker_wait) ... ERROR
+
+======================================================================
+ERROR: test_actor_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_actor_revocation_releases_native_input)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 248, in test_actor_revocation_releases_native_input
+    self.revoke_viewer_identity(issuer.ACTOR_TARGET);self.assert_released(app,inspect=False)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 243, in revoke_viewer_identity
+    result=self.execute(self.owner_peer,self.challenge(self.owner_peer,operation))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 116, in challenge
+    reply = client.call(challenge=operation or self.operation())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 47, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 41, in request
+    reply = self.receive()
+            ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 34, in receive
+    length = struct.unpack('!I', exact(4))[0]
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 31, in exact
+    if not part: raise EOFError('Issuer TLS stream closed')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Issuer TLS stream closed
+
+======================================================================
+ERROR: test_credential_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_credential_revocation_releases_native_input)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 254, in test_credential_revocation_releases_native_input
+    self.revoke_viewer_identity(issuer.CREDENTIAL_TARGET);self.assert_released(app,inspect=False)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 243, in revoke_viewer_identity
+    result=self.execute(self.owner_peer,self.challenge(self.owner_peer,operation))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 116, in challenge
+    reply = client.call(challenge=operation or self.operation())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 47, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 41, in request
+    reply = self.receive()
+            ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 34, in receive
+    length = struct.unpack('!I', exact(4))[0]
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 31, in exact
+    if not part: raise EOFError('Issuer TLS stream closed')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Issuer TLS stream closed
+
+======================================================================
+ERROR: test_actor_revocation_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_actor_revocation_cancels_during_broker_wait)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 264, in test_actor_revocation_cancels_during_broker_wait
+    self.revoke_viewer_identity(issuer.ACTOR_TARGET);self.assert_released(app,inspect=False)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 243, in revoke_viewer_identity
+    result=self.execute(self.owner_peer,self.challenge(self.owner_peer,operation))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_issuer.py", line 116, in challenge
+    reply = client.call(challenge=operation or self.operation())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 47, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 41, in request
+    reply = self.receive()
+            ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 34, in receive
+    length = struct.unpack('!I', exact(4))[0]
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_identity_tls.py", line 31, in exact
+    if not part: raise EOFError('Issuer TLS stream closed')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Issuer TLS stream closed
+
+======================================================================
+FAIL: test_popup_uses_same_application_reservation (__main__.WorldApplicationControlTests.test_popup_uses_same_application_reservation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 220, in test_popup_uses_same_application_reservation
+    self.world_process.management('surface.place',id=popup['id'],room=self.world_info['entry_room'],pose=pose((.6,0,-2)),size=[.5,.5])
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 71, in management
+    if reply.HasField('error'): raise AssertionError(reply)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 9
+error {
+  code: INVALID_ARGUMENT
+  message: "Place the application parent surface"
+}
+
+
+======================================================================
+FAIL: test_resized_aim_rejects_stale_generation (__main__.WorldApplicationControlTests.test_resized_aim_rejects_stale_generation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 229, in test_resized_aim_rejects_stale_generation
+    self.until(lambda:self.world_process.management('surface.get',id=surface['id']),lambda r:r['generation']!=surface['generation'])
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'id': 'surface-c6729f30540545bc757bf814e91bae81-1', 'xid': 8388609, 'generation': 3, 'room': 'entry-5c23572f9c71581ea933ee994a593c6b', 'pose': {'p': [0.0, 0.0, -2.0], 'q': [0.0, 0.0, 0.0, 1.0]}, 'size': [1.0, 1.0], 'pixels': [320, 240], 'mapped': True, 'parent_id': None, 'slot': None}
+
+----------------------------------------------------------------------
+Ran 21 tests in 94.196s
+
+FAILED (failures=2, errors=3)

@@ -88,7 +88,10 @@ void Actors::refresh_authority() {
         if (!actor.authority) continue;
         if (!granted(actor, "navigate")) { actor.axes.fill(0); actor.expires = now_; }
         if (!granted(actor, "observe")) actor.aim.Clear();
-        if (!granted(actor, "interact") && !actor.native.actor_id().empty()) {
+        const bool control_lost = actor.application_control ?
+            (!granted(actor, "observe") || !broker_ || !broker_->control_active(*actor.application_control)) :
+            !granted(actor, "interact");
+        if (control_lost && (!actor.native.actor_id().empty() || actor.application_control)) {
             actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
         }
     }
@@ -118,7 +121,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
         require(grants.insert(grant).second, "Duplicate actor grant");
     }
     auto found = actors_.find(request.id());
-    if (found != actors_.end() && !found->second.token.empty())
+    if (found != actors_.end() && (!found->second.token.empty() || found->second.close_pending))
         throw WorldError(wire::IN_USE, "Actor already has a controller");
     const auto token = random_token();
     if (sessions_.contains(token)) throw std::runtime_error("Session entropy collision");
@@ -136,6 +139,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     selected_workspace(actor);
     // An existing actor keeps its last valid pose, including a durable restore.
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
+    actor.application_input = false;
     actor.require_observation_grant = require_observation_grant;
     actor.axes.fill(0); actor.expires = now_;
     actor.aim.Clear();
@@ -160,7 +164,9 @@ wire::ActorStateReply Actors::inspect(const std::string& token) {
 wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
     cancel_object(actor);
-    release_input(actor, true);
+    if (renderer_ && renderer_->busy()) {
+        actor.close_pending = true; actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
+    } else release_input(actor, true);
     actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
     actor.aim.Clear();
     sessions_.erase(token);
@@ -233,8 +239,13 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     case wire::ActorActionRequest::kPointer:
     case wire::ActorActionRequest::kKey:
     case wire::ActorActionRequest::kScroll:
-        if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
-        route_input(actor, request); break;
+        if (!actor.principal && !granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
+        try { route_input(actor, request); }
+        catch (...) {
+            if (actor.application_control && !actor.native.has_focus()) { release_input(actor); drain_control_releases(); }
+            throw;
+        }
+        break;
     case wire::ActorActionRequest::kAim: {
         if (actor.authority && !granted(actor, "observe")) throw WorldError(wire::FORBIDDEN, "Observation authority required");
         if (!granted(actor, "navigate") && !granted(actor, "interact"))
@@ -252,16 +263,108 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     }
     wire::ActorActionReply result; result.set_accepted(true); return result;
 }
-void Actors::release_input(Actor& actor, bool close) {
-    actor.interaction_reset_pending = false;
+void Actors::release_input(Actor& actor, bool close, bool keep_reservation) {
+    close = close || actor.close_pending;
     if (renderer_ && !actor.native.actor_id().empty()) {
         wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
         if (close) command.mutable_close(); else command.mutable_cancel();
         actor.native = renderer_->input(command);
+        if (actor.native.has_focus() || actor.native.held_keys_size() || actor.native.held_buttons_size())
+            throw std::runtime_error("Native input cancellation was not confirmed");
         if (close) actor.native.Clear();
+    }
+    // Revocation can request closure while the cancellation exchange is waiting.
+    // Finish that closure before discarding the pending flag or broker reservation.
+    if (!close && actor.close_pending) { release_input(actor, true); return; }
+    actor.interaction_reset_pending = false;
+    actor.close_pending = false;
+    actor.capture.Clear(); actor.capture_motion_pending = false;
+    if (keep_reservation && !close) return;
+    if (actor.application_control) {
+        control_releases_.push_back(*actor.application_control);
+        actor.application_control.reset();
     }
     if (!actor.lease.empty()) leases_.erase(actor.lease);
     actor.lease.clear(); actor.capture.Clear(); actor.capture_motion_pending = false;
+}
+void Actors::poll_control() {
+    if (!broker_) return;
+    broker_->poll_control();
+    for (auto& [id, actor] : actors_) {
+        (void)id;
+        if (actor.application_control && !broker_->control_active(*actor.application_control)) {
+            actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
+        }
+    }
+}
+void Actors::drain_control_releases() {
+    if (!broker_ || broker_->busy()) return;
+    while (!control_releases_.empty()) {
+        const auto lease = control_releases_.front();
+        workspace::v1::ApplicationControlRelease request;
+        request.set_id(lease.id()); *request.mutable_principal() = lease.principal();
+        broker_->control_release(request);
+        control_releases_.erase(control_releases_.begin());
+    }
+}
+void Actors::authorize_input(Actor& actor, const wire::SurfaceHandle& target) {
+    const auto app = surfaces_->application(target);
+    if (!actor.principal || !app) {
+        if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
+        if (actor.application_control) { release_input(actor); drain_control_releases(); }
+        actor.application_input = false;
+        return;
+    }
+    actor.application_input = true;
+    if (!broker_ || !granted(actor, "observe"))
+        throw WorldError(wire::FORBIDDEN, "Application control authority required");
+    if (actor.application_control && actor.application_control->application().SerializeAsString() != app->SerializeAsString())
+        release_input(actor);
+    drain_control_releases();
+    workspace::v1::ApplicationControlRequest request;
+    *request.mutable_principal() = *actor.principal; *request.mutable_application() = *app;
+    const auto token = actor.token;
+    const auto lease = broker_->control_acquire(request);
+    // A wait callback may already have cancelled and queued this same reservation.
+    if (std::any_of(control_releases_.begin(), control_releases_.end(), [&](const auto& item) { return item.id() == lease.id(); }))
+        throw WorldError(wire::FORBIDDEN, "Application control was cancelled");
+    actor.application_control = lease;
+    if (actor.token != token || actor.token.empty() || !granted(actor, "observe") || !broker_->control_active(lease)) {
+        release_input(actor); drain_control_releases();
+        throw WorldError(wire::FORBIDDEN, "Application control authority changed");
+    }
+    // Refresh after the broker wait; never route to a replaced surface generation.
+    refresh_native();
+    const auto current = surfaces_->application(target);
+    const auto placement = surfaces_->get(target.id());
+    if (!current || current->SerializeAsString() != app->SerializeAsString() || !placement.mapped() ||
+        placement.room() != actor.entity.room() || placement.generation() != target.generation()) {
+        release_input(actor); drain_control_releases();
+        throw WorldError(wire::STALE_TARGET, "Application target changed during authorization");
+    }
+    finish_input(actor);
+}
+void Actors::finish_input(Actor& actor) {
+    poll_control();
+    if (actor.token.empty() || actor.interaction_reset_pending || (actor.application_input &&
+        (!actor.application_control || !broker_->control_active(*actor.application_control) || !granted(actor, "observe")))) {
+        release_input(actor); drain_control_releases();
+        throw WorldError(wire::FORBIDDEN, "Application control authority changed");
+    }
+}
+void Actors::send_input(Actor& actor, const wire::RendererInputCommand& command) {
+    try {
+        actor.native = renderer_->input(command, [&] {
+            poll_control();
+            if (actor.token.empty() || actor.interaction_reset_pending || (actor.application_input &&
+                (!actor.application_control || !broker_->control_active(*actor.application_control) || !granted(actor, "observe"))))
+                throw WorldError(wire::FORBIDDEN, "Input authority changed before native submission");
+        });
+    } catch (const WorldError& error) {
+        if (error.code == wire::FORBIDDEN) { release_input(actor); drain_control_releases(); }
+        throw;
+    }
+    finish_input(actor);
 }
 std::string Actors::control_group(const wire::SurfaceRecord& surface) const {
     return surfaces_->control_group(surface);
@@ -292,7 +395,8 @@ void Actors::refresh_native() {
 }
 wire::AimHit Actors::input_target(Actor& actor, bool captured) {
     if (captured && actor.native.held_buttons_size()) return actor.capture;
-    if (!actor.aim.has_hit() || !actor.aim.hit().has_pixel()) throw WorldError(wire::NO_TARGET, "No aimed application surface");
+    if (!actor.aim.has_hit() || !actor.aim.hit().has_pixel())
+        throw WorldError(actor.principal ? wire::FORBIDDEN : wire::NO_TARGET, "No aimed application surface");
     const auto& hit = actor.aim.hit();
     try {
         const auto surface = surfaces_->get(hit.id());
@@ -311,11 +415,9 @@ wire::AimHit Actors::input_target(Actor& actor, bool captured) {
 void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
     actor.capture_motion_pending = false;
     if (!actor.native.held_buttons_size()) return;
-    if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
-    const auto surface = surfaces_->get(actor.capture.id());
-    wire::SurfaceHandle captured; captured.set_id(surface.id()); captured.set_generation(surface.generation());
-    if (actor.principal && surfaces_->application(captured))
-        throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
+    wire::SurfaceHandle captured; captured.set_id(actor.capture.id()); captured.set_generation(actor.capture.generation());
+    authorize_input(actor, captured);
+    const auto surface = surfaces_->get(captured.id());
     const auto camera = scene_pose(actor.entity.pose());
     const auto plane = scene_pose(surface.pose());
     Vec3 local{input.x(), input.y(), input.z()};
@@ -338,7 +440,7 @@ void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
     command.mutable_target()->set_generation(actor.capture.generation());
     command.mutable_motion()->set_x(static_cast<std::int32_t>(x));
     command.mutable_motion()->set_y(static_cast<std::int32_t>(y));
-    actor.native = renderer_->input(command);
+    send_input(actor, command);
 }
 void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) {
     if (!renderer_ || !surfaces_) throw WorldError(wire::UNIMPLEMENTED, "Native actor input is unavailable");
@@ -353,17 +455,14 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
     wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
     if (request.has_key()) {
         if (!actor.native.has_focus()) throw WorldError(wire::NO_FOCUS, "Actor has no focus");
-        if (actor.principal && surfaces_->application(actor.native.focus()))
-            throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
-        *command.mutable_key() = request.key(); actor.native = renderer_->input(command); return;
+        const auto target = actor.native.focus(); authorize_input(actor, target);
+        *command.mutable_key() = request.key(); send_input(actor, command); return;
     }
     const auto hit = input_target(actor, !request.has_scroll());
     if (request.has_scroll() && actor.native.held_buttons_size() && hit.id() != actor.capture.id())
         throw WorldError(wire::BUSY, "Scroll cannot change the captured pointer target");
     const auto surface = surfaces_->get(hit.id());
     wire::SurfaceHandle target; target.set_id(hit.id()); target.set_generation(hit.generation());
-    if (actor.principal && surfaces_->application(target))
-        throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
     const auto group = control_group(surface);
     const auto holder = leases_.find(group);
     if (holder != leases_.end() && holder->second != actor.entity.id())
@@ -375,11 +474,16 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
         *command.mutable_pointer() = request.pointer();
     } else *command.mutable_scroll() = request.scroll();
     if (request.has_scroll() && request.scroll().steps_y() == 0) return;
-    if (actor.native.has_focus() && actor.native.focus().id() != hit.id()) release_input(actor);
+    authorize_input(actor, target);
+    const auto checked = input_target(actor, !request.has_scroll());
+    if (checked.SerializeAsString() != hit.SerializeAsString()) throw WorldError(wire::STALE_TARGET, "Input target changed");
+    if (actor.native.has_focus() && actor.native.focus().id() != hit.id())
+        release_input(actor, false, actor.application_control.has_value() && actor.lease == group);
+    finish_input(actor);
     command.mutable_target()->set_id(hit.id()); command.mutable_target()->set_generation(hit.generation());
     *command.mutable_pixel() = hit.pixel();
     command.set_keep_capture_position(request.has_pointer() && actor.native.held_buttons_size() > 0);
-    actor.native = renderer_->input(command);
+    send_input(actor, command);
     if (actor.native.has_focus()) { actor.lease = group; leases_[group] = actor.entity.id(); }
     if (actor.native.held_buttons_size()) actor.capture = hit; else actor.capture.Clear();
 }
@@ -561,13 +665,19 @@ void Actors::step(double target) {
 }
 void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic_seconds); }
 void Actors::flush_input() {
+    poll_control();
     refresh_authority();
+    if (flushing_input_ || (renderer_ && renderer_->busy())) return;
+    flushing_input_ = true;
+    struct Reset { bool& value; ~Reset() { value = false; } } reset{flushing_input_};
     // Tick also runs while waiting on compositor I/O. Submit deferred motion only
     // from the outer scheduler, never recursively inside a renderer exchange.
     for (auto& [id, actor] : actors_) {
         (void)id;
         if (actor.interaction_reset_pending) release_input(actor);
     }
+    drain_control_releases();
+    if (broker_ && broker_->busy()) return;
     std::vector<std::string> pending;
     for (const auto& [id, actor] : actors_) if (actor.capture_motion_pending) pending.push_back(id);
     if (pending.empty()) return;

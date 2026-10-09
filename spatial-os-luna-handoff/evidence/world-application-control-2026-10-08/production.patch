@@ -1,0 +1,455 @@
+diff --git a/spatial-os-luna-handoff/CMakeLists.txt b/spatial-os-luna-handoff/CMakeLists.txt
+index 4206988..6e4ba3e 100644
+--- a/spatial-os-luna-handoff/CMakeLists.txt
++++ b/spatial-os-luna-handoff/CMakeLists.txt
+@@ -285,6 +285,11 @@ if(BUILD_TESTING)
+             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+         set_tests_properties(application-observation PROPERTIES TIMEOUT 180
+             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++        add_test(NAME world-application-control COMMAND "${Python3_EXECUTABLE}"
++            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_application_control.py" $<TARGET_FILE:identityd>
++            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
++        set_tests_properties(world-application-control PROPERTIES TIMEOUT 240
++            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+         add_test(NAME application-access COMMAND "${Python3_EXECUTABLE}"
+             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_access.py" $<TARGET_FILE:identityd>
+             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+diff --git a/spatial-os-luna-handoff/src/platform/broker.hpp b/spatial-os-luna-handoff/src/platform/broker.hpp
+index c6c6e96..355f77a 100644
+--- a/spatial-os-luna-handoff/src/platform/broker.hpp
++++ b/spatial-os-luna-handoff/src/platform/broker.hpp
+@@ -40,6 +40,7 @@ public:
+     std::vector<broker_wire::ApplicationControlLease> poll_control();
+     // A local validity check, not a replacement for pumping the authority channel.
+     bool control_active(const broker_wire::ApplicationControlLease&) const;
++    bool busy() const { return pending_ != nullptr; }
+     wire::ProcessLaunchReply launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
+                                    const authority::v1::ActorRef* principal = nullptr);
+     authority::v1::GrantPage grants(const broker_wire::GrantListRequest&);
+diff --git a/spatial-os-luna-handoff/src/platform/render_worker.cpp b/spatial-os-luna-handoff/src/platform/render_worker.cpp
+index fc7d045..9f54af6 100644
+--- a/spatial-os-luna-handoff/src/platform/render_worker.cpp
++++ b/spatial-os-luna-handoff/src/platform/render_worker.cpp
+@@ -137,14 +137,17 @@ wire::RenderVisibility RenderWorker::observe(const wire::RenderScene& scene, std
+     frame_id_ = reply.visibility().frame_id();
+     return reply.visibility();
+ }
+-wire::NativeActorInput RenderWorker::input(const wire::RendererInputCommand& input) {
++wire::NativeActorInput RenderWorker::input(const wire::RendererInputCommand& input, const std::function<void()>& before_send) {
+     wire::RenderCommand command; *command.mutable_input() = input;
+-    const auto reply = exchange(command);
++    const auto reply = exchange(command, before_send);
+     if (!reply.has_input() || reply.input().actor_id() != input.actor_id())
+         throw std::runtime_error("Invalid compositor actor input reply");
+     return reply.input();
+ }
+-wire::RenderResult RenderWorker::exchange(wire::RenderCommand command) {
++wire::RenderResult RenderWorker::exchange(wire::RenderCommand command, const std::function<void()>& before_send) {
++    if (busy_) throw std::runtime_error("Recursive compositor exchange");
++    busy_ = true;
++    struct Reset { bool& value; ~Reset() { value = false; } } reset{busy_};
+     command.set_protocol_version(1); command.set_request_id(sequence_ + 1);
+     const auto payload = command.SerializeAsString();
+     if (payload.size() > max_frame_bytes) throw std::invalid_argument("Scene exceeds renderer channel limit");
+@@ -157,6 +160,9 @@ wire::RenderResult RenderWorker::exchange(wire::RenderCommand command) {
+     std::size_t sent = 0;
+     while (sent < bytes.size()) {
+         wait(POLLOUT);
++        // A scheduler callback may revoke input while the socket is blocked.
++        // Once bytes have been sent, finish the frame and cancel after its reply.
++        if (!sent && before_send) before_send();
+         const auto count = send(socket_, bytes.data() + sent, bytes.size() - sent, MSG_NOSIGNAL);
+         if (count < 0 && (errno == EAGAIN || errno == EINTR)) continue;
+         if (count <= 0) throw std::runtime_error("Cannot submit compositor scene");
+diff --git a/spatial-os-luna-handoff/src/platform/render_worker.hpp b/spatial-os-luna-handoff/src/platform/render_worker.hpp
+index 3af5b84..8aefd96 100644
+--- a/spatial-os-luna-handoff/src/platform/render_worker.hpp
++++ b/spatial-os-luna-handoff/src/platform/render_worker.hpp
+@@ -15,8 +15,9 @@ public:
+     wire::FrameReply render(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height, bool capture);
+     wire::RenderVisibility observe(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height);
+     wire::NativeSnapshot synchronize();
+-    wire::NativeActorInput input(const wire::RendererInputCommand& command);
++    wire::NativeActorInput input(const wire::RendererInputCommand& command, const std::function<void()>& before_send = {});
+     void check_alive() const;
++    bool busy() const { return busy_; }
+     void set_tick(std::function<void()> tick) { tick_ = std::move(tick); }
+     pid_t pid() const { return pid_; }
+     const std::string& display() const { return display_; }
+@@ -24,12 +25,13 @@ private:
+     void wait(short events);
+     void read_all(char* out, std::size_t size);
+     wire::RenderResult receive();
+-    wire::RenderResult exchange(wire::RenderCommand command);
++    wire::RenderResult exchange(wire::RenderCommand command, const std::function<void()>& before_send = {});
+     int socket_ = -1, pidfd_ = -1;
+     pid_t pid_ = -1;
+     std::string display_;
+     std::uint64_t sequence_ = 0;
+     std::uint64_t frame_id_ = 0;
++    bool busy_ = false;
+     std::function<void()> tick_ = [] {};
+     std::chrono::steady_clock::time_point deadline_;
+ };
+diff --git a/spatial-os-luna-handoff/src/world/actors.cpp b/spatial-os-luna-handoff/src/world/actors.cpp
+index 96ae6bf..953aa6f 100644
+--- a/spatial-os-luna-handoff/src/world/actors.cpp
++++ b/spatial-os-luna-handoff/src/world/actors.cpp
+@@ -88,7 +88,10 @@ void Actors::refresh_authority() {
+         if (!actor.authority) continue;
+         if (!granted(actor, "navigate")) { actor.axes.fill(0); actor.expires = now_; }
+         if (!granted(actor, "observe")) actor.aim.Clear();
+-        if (!granted(actor, "interact") && !actor.native.actor_id().empty()) {
++        const bool control_lost = actor.application_control ?
++            (!granted(actor, "observe") || !broker_ || !broker_->control_active(*actor.application_control)) :
++            !granted(actor, "interact");
++        if (control_lost && (!actor.native.actor_id().empty() || actor.application_control)) {
+             actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
+         }
+     }
+@@ -118,7 +121,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
+         require(grants.insert(grant).second, "Duplicate actor grant");
+     }
+     auto found = actors_.find(request.id());
+-    if (found != actors_.end() && !found->second.token.empty())
++    if (found != actors_.end() && (!found->second.token.empty() || found->second.close_pending))
+         throw WorldError(wire::IN_USE, "Actor already has a controller");
+     const auto token = random_token();
+     if (sessions_.contains(token)) throw std::runtime_error("Session entropy collision");
+@@ -136,6 +139,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
+     selected_workspace(actor);
+     // An existing actor keeps its last valid pose, including a durable restore.
+     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
++    actor.application_input = false;
+     actor.require_observation_grant = require_observation_grant;
+     actor.axes.fill(0); actor.expires = now_;
+     actor.aim.Clear();
+@@ -160,7 +164,9 @@ wire::ActorStateReply Actors::inspect(const std::string& token) {
+ wire::ActorCloseReply Actors::close(const std::string& token) {
+     auto& actor = authenticated(token);
+     cancel_object(actor);
+-    release_input(actor, true);
++    if (renderer_ && renderer_->busy()) {
++        actor.close_pending = true; actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
++    } else release_input(actor, true);
+     actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
+     actor.aim.Clear();
+     sessions_.erase(token);
+@@ -233,8 +239,13 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
+     case wire::ActorActionRequest::kPointer:
+     case wire::ActorActionRequest::kKey:
+     case wire::ActorActionRequest::kScroll:
+-        if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
+-        route_input(actor, request); break;
++        if (!actor.principal && !granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
++        try { route_input(actor, request); }
++        catch (...) {
++            if (actor.application_control && !actor.native.has_focus()) { release_input(actor); drain_control_releases(); }
++            throw;
++        }
++        break;
+     case wire::ActorActionRequest::kAim: {
+         if (actor.authority && !granted(actor, "observe")) throw WorldError(wire::FORBIDDEN, "Observation authority required");
+         if (!granted(actor, "navigate") && !granted(actor, "interact"))
+@@ -252,17 +263,109 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
+     }
+     wire::ActorActionReply result; result.set_accepted(true); return result;
+ }
+-void Actors::release_input(Actor& actor, bool close) {
+-    actor.interaction_reset_pending = false;
++void Actors::release_input(Actor& actor, bool close, bool keep_reservation) {
++    close = close || actor.close_pending;
+     if (renderer_ && !actor.native.actor_id().empty()) {
+         wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
+         if (close) command.mutable_close(); else command.mutable_cancel();
+         actor.native = renderer_->input(command);
++        if (actor.native.has_focus() || actor.native.held_keys_size() || actor.native.held_buttons_size())
++            throw std::runtime_error("Native input cancellation was not confirmed");
+         if (close) actor.native.Clear();
+     }
++    // Revocation can request closure while the cancellation exchange is waiting.
++    // Finish that closure before discarding the pending flag or broker reservation.
++    if (!close && actor.close_pending) { release_input(actor, true); return; }
++    actor.interaction_reset_pending = false;
++    actor.close_pending = false;
++    actor.capture.Clear(); actor.capture_motion_pending = false;
++    if (keep_reservation && !close) return;
++    if (actor.application_control) {
++        control_releases_.push_back(*actor.application_control);
++        actor.application_control.reset();
++    }
+     if (!actor.lease.empty()) leases_.erase(actor.lease);
+     actor.lease.clear(); actor.capture.Clear(); actor.capture_motion_pending = false;
+ }
++void Actors::poll_control() {
++    if (!broker_) return;
++    broker_->poll_control();
++    for (auto& [id, actor] : actors_) {
++        (void)id;
++        if (actor.application_control && !broker_->control_active(*actor.application_control)) {
++            actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
++        }
++    }
++}
++void Actors::drain_control_releases() {
++    if (!broker_ || broker_->busy()) return;
++    while (!control_releases_.empty()) {
++        const auto lease = control_releases_.front();
++        workspace::v1::ApplicationControlRelease request;
++        request.set_id(lease.id()); *request.mutable_principal() = lease.principal();
++        broker_->control_release(request);
++        control_releases_.erase(control_releases_.begin());
++    }
++}
++void Actors::authorize_input(Actor& actor, const wire::SurfaceHandle& target) {
++    const auto app = surfaces_->application(target);
++    if (!actor.principal || !app) {
++        if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
++        if (actor.application_control) { release_input(actor); drain_control_releases(); }
++        actor.application_input = false;
++        return;
++    }
++    actor.application_input = true;
++    if (!broker_ || !granted(actor, "observe"))
++        throw WorldError(wire::FORBIDDEN, "Application control authority required");
++    if (actor.application_control && actor.application_control->application().SerializeAsString() != app->SerializeAsString())
++        release_input(actor);
++    drain_control_releases();
++    workspace::v1::ApplicationControlRequest request;
++    *request.mutable_principal() = *actor.principal; *request.mutable_application() = *app;
++    const auto token = actor.token;
++    const auto lease = broker_->control_acquire(request);
++    // A wait callback may already have cancelled and queued this same reservation.
++    if (std::any_of(control_releases_.begin(), control_releases_.end(), [&](const auto& item) { return item.id() == lease.id(); }))
++        throw WorldError(wire::FORBIDDEN, "Application control was cancelled");
++    actor.application_control = lease;
++    if (actor.token != token || actor.token.empty() || !granted(actor, "observe") || !broker_->control_active(lease)) {
++        release_input(actor); drain_control_releases();
++        throw WorldError(wire::FORBIDDEN, "Application control authority changed");
++    }
++    // Refresh after the broker wait; never route to a replaced surface generation.
++    refresh_native();
++    const auto current = surfaces_->application(target);
++    const auto placement = surfaces_->get(target.id());
++    if (!current || current->SerializeAsString() != app->SerializeAsString() || !placement.mapped() ||
++        placement.room() != actor.entity.room() || placement.generation() != target.generation()) {
++        release_input(actor); drain_control_releases();
++        throw WorldError(wire::STALE_TARGET, "Application target changed during authorization");
++    }
++    finish_input(actor);
++}
++void Actors::finish_input(Actor& actor) {
++    poll_control();
++    if (actor.token.empty() || actor.interaction_reset_pending || (actor.application_input &&
++        (!actor.application_control || !broker_->control_active(*actor.application_control) || !granted(actor, "observe")))) {
++        release_input(actor); drain_control_releases();
++        throw WorldError(wire::FORBIDDEN, "Application control authority changed");
++    }
++}
++void Actors::send_input(Actor& actor, const wire::RendererInputCommand& command) {
++    try {
++        actor.native = renderer_->input(command, [&] {
++            poll_control();
++            if (actor.token.empty() || actor.interaction_reset_pending || (actor.application_input &&
++                (!actor.application_control || !broker_->control_active(*actor.application_control) || !granted(actor, "observe"))))
++                throw WorldError(wire::FORBIDDEN, "Input authority changed before native submission");
++        });
++    } catch (const WorldError& error) {
++        if (error.code == wire::FORBIDDEN) { release_input(actor); drain_control_releases(); }
++        throw;
++    }
++    finish_input(actor);
++}
+ std::string Actors::control_group(const wire::SurfaceRecord& surface) const {
+     return surfaces_->control_group(surface);
+ }
+@@ -292,7 +395,8 @@ void Actors::refresh_native() {
+ }
+ wire::AimHit Actors::input_target(Actor& actor, bool captured) {
+     if (captured && actor.native.held_buttons_size()) return actor.capture;
+-    if (!actor.aim.has_hit() || !actor.aim.hit().has_pixel()) throw WorldError(wire::NO_TARGET, "No aimed application surface");
++    if (!actor.aim.has_hit() || !actor.aim.hit().has_pixel())
++        throw WorldError(actor.principal ? wire::FORBIDDEN : wire::NO_TARGET, "No aimed application surface");
+     const auto& hit = actor.aim.hit();
+     try {
+         const auto surface = surfaces_->get(hit.id());
+@@ -311,11 +415,9 @@ wire::AimHit Actors::input_target(Actor& actor, bool captured) {
+ void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
+     actor.capture_motion_pending = false;
+     if (!actor.native.held_buttons_size()) return;
+-    if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
+-    const auto surface = surfaces_->get(actor.capture.id());
+-    wire::SurfaceHandle captured; captured.set_id(surface.id()); captured.set_generation(surface.generation());
+-    if (actor.principal && surfaces_->application(captured))
+-        throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
++    wire::SurfaceHandle captured; captured.set_id(actor.capture.id()); captured.set_generation(actor.capture.generation());
++    authorize_input(actor, captured);
++    const auto surface = surfaces_->get(captured.id());
+     const auto camera = scene_pose(actor.entity.pose());
+     const auto plane = scene_pose(surface.pose());
+     Vec3 local{input.x(), input.y(), input.z()};
+@@ -338,7 +440,7 @@ void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
+     command.mutable_target()->set_generation(actor.capture.generation());
+     command.mutable_motion()->set_x(static_cast<std::int32_t>(x));
+     command.mutable_motion()->set_y(static_cast<std::int32_t>(y));
+-    actor.native = renderer_->input(command);
++    send_input(actor, command);
+ }
+ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) {
+     if (!renderer_ || !surfaces_) throw WorldError(wire::UNIMPLEMENTED, "Native actor input is unavailable");
+@@ -353,17 +455,14 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request)
+     wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
+     if (request.has_key()) {
+         if (!actor.native.has_focus()) throw WorldError(wire::NO_FOCUS, "Actor has no focus");
+-        if (actor.principal && surfaces_->application(actor.native.focus()))
+-            throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
+-        *command.mutable_key() = request.key(); actor.native = renderer_->input(command); return;
++        const auto target = actor.native.focus(); authorize_input(actor, target);
++        *command.mutable_key() = request.key(); send_input(actor, command); return;
+     }
+     const auto hit = input_target(actor, !request.has_scroll());
+     if (request.has_scroll() && actor.native.held_buttons_size() && hit.id() != actor.capture.id())
+         throw WorldError(wire::BUSY, "Scroll cannot change the captured pointer target");
+     const auto surface = surfaces_->get(hit.id());
+     wire::SurfaceHandle target; target.set_id(hit.id()); target.set_generation(hit.generation());
+-    if (actor.principal && surfaces_->application(target))
+-        throw WorldError(wire::FORBIDDEN, "Authenticated application control is not available");
+     const auto group = control_group(surface);
+     const auto holder = leases_.find(group);
+     if (holder != leases_.end() && holder->second != actor.entity.id())
+@@ -375,11 +474,16 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request)
+         *command.mutable_pointer() = request.pointer();
+     } else *command.mutable_scroll() = request.scroll();
+     if (request.has_scroll() && request.scroll().steps_y() == 0) return;
+-    if (actor.native.has_focus() && actor.native.focus().id() != hit.id()) release_input(actor);
++    authorize_input(actor, target);
++    const auto checked = input_target(actor, !request.has_scroll());
++    if (checked.SerializeAsString() != hit.SerializeAsString()) throw WorldError(wire::STALE_TARGET, "Input target changed");
++    if (actor.native.has_focus() && actor.native.focus().id() != hit.id())
++        release_input(actor, false, actor.application_control.has_value() && actor.lease == group);
++    finish_input(actor);
+     command.mutable_target()->set_id(hit.id()); command.mutable_target()->set_generation(hit.generation());
+     *command.mutable_pixel() = hit.pixel();
+     command.set_keep_capture_position(request.has_pointer() && actor.native.held_buttons_size() > 0);
+-    actor.native = renderer_->input(command);
++    send_input(actor, command);
+     if (actor.native.has_focus()) { actor.lease = group; leases_[group] = actor.entity.id(); }
+     if (actor.native.held_buttons_size()) actor.capture = hit; else actor.capture.Clear();
+ }
+@@ -561,13 +665,19 @@ void Actors::step(double target) {
+ }
+ void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic_seconds); }
+ void Actors::flush_input() {
++    poll_control();
+     refresh_authority();
++    if (flushing_input_ || (renderer_ && renderer_->busy())) return;
++    flushing_input_ = true;
++    struct Reset { bool& value; ~Reset() { value = false; } } reset{flushing_input_};
+     // Tick also runs while waiting on compositor I/O. Submit deferred motion only
+     // from the outer scheduler, never recursively inside a renderer exchange.
+     for (auto& [id, actor] : actors_) {
+         (void)id;
+         if (actor.interaction_reset_pending) release_input(actor);
+     }
++    drain_control_releases();
++    if (broker_ && broker_->busy()) return;
+     std::vector<std::string> pending;
+     for (const auto& [id, actor] : actors_) if (actor.capture_motion_pending) pending.push_back(id);
+     if (pending.empty()) return;
+diff --git a/spatial-os-luna-handoff/src/world/actors.hpp b/spatial-os-luna-handoff/src/world/actors.hpp
+index 3a8a381..0d2a872 100644
+--- a/spatial-os-luna-handoff/src/world/actors.hpp
++++ b/spatial-os-luna-handoff/src/world/actors.hpp
+@@ -59,8 +59,11 @@ private:
+         wire::NativeActorInput native;
+         wire::AimHit capture;
+         std::string lease;
++        std::optional<workspace::v1::ApplicationControlLease> application_control;
++        bool application_input = false;
+         bool capture_motion_pending = false;
+         bool interaction_reset_pending = false;
++        bool close_pending = false;
+         std::vector<ObservedApplication> observed_applications;
+         std::optional<ObjectHold> object;
+         wire::ErrorCode object_error = wire::NO_TARGET;
+@@ -71,7 +74,12 @@ private:
+     std::string selected_workspace(const Actor& actor);
+     void step(double target);
+     void refresh_native();
+-    void release_input(Actor& actor, bool close = false);
++    void release_input(Actor& actor, bool close = false, bool keep_reservation = false);
++    void poll_control();
++    void drain_control_releases();
++    void authorize_input(Actor& actor, const wire::SurfaceHandle& target);
++    void finish_input(Actor& actor);
++    void send_input(Actor& actor, const wire::RendererInputCommand& command);
+     wire::AimHit input_target(Actor& actor, bool captured = true);
+     std::string control_group(const wire::SurfaceRecord& surface) const;
+     void route_input(Actor& actor, const wire::ActorActionRequest& request);
+@@ -88,6 +96,8 @@ private:
+     RenderWorker* renderer_;
+     BrokerClient* broker_;
+     std::map<std::string, std::string> leases_;
++    std::vector<workspace::v1::ApplicationControlLease> control_releases_;
++    bool flushing_input_ = false;
+     std::map<std::string, std::string> object_leases_;
+     wire::RuntimeConfig config_;
+     bool manual_clock_;
+diff --git a/spatial-os-luna-handoff/src/world/identity_sessions.cpp b/spatial-os-luna-handoff/src/world/identity_sessions.cpp
+index f09db4a..db4a4ec 100644
+--- a/spatial-os-luna-handoff/src/world/identity_sessions.cpp
++++ b/spatial-os-luna-handoff/src/world/identity_sessions.cpp
+@@ -86,7 +86,7 @@ struct IdentitySessions::Impl {
+     std::map<std::string, std::set<std::string>> grants;
+     std::string audience;
+     Clock::time_point last_exchange = Clock::now();
+-    bool ready = false, broken = false;
++    bool ready = false, broken = false, ticking = false;
+ 
+     Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine, BrokerClient* execution)
+         : world(store), actors(engine), broker(execution) {
+@@ -134,7 +134,25 @@ struct IdentitySessions::Impl {
+         for (auto& channel : channels) disconnect(*channel);
+     }
+     void tick() {
+-        if (broken || !watcher) return;
++        if (ticking || broken || !watcher) return;
++        ticking = true;
++        struct Reset { bool& value; ~Reset() { value = false; } } reset{ticking};
++        // Detect controller loss during component waits without dispatching new actions.
++        for (auto& channel : channels) {
++            if (channel->fd.value < 0) continue;
++            pollfd fd{channel->fd.value, POLLIN, 0};
++            const int result = poll(&fd, 1, 0);
++            if (result < 0 && errno == EINTR) continue;
++            bool lost = result < 0 || (fd.revents & (POLLERR | POLLHUP | POLLNVAL));
++            if (!lost && (fd.revents & POLLIN)) {
++                char byte;
++                const auto count = recv(channel->fd.value, &byte, 1, MSG_PEEK | MSG_DONTWAIT);
++                lost = !count || (count < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR);
++            }
++            if (lost) {
++                disconnect(*channel); channel->fd.reset(); channel->input.clear(); channel->output.clear();
++            }
++        }
+         if (watcher->failed()) { fail(); return; }
+         while (auto update = watcher->poll()) {
+             if (update->has_error() || update->batch().issuer_id() != issuer.issuer_id()) { fail(); return; }
+diff --git a/spatial-os-luna-handoff/src/world/server.cpp b/spatial-os-luna-handoff/src/world/server.cpp
+index 7d3adb4..b8ee650 100644
+--- a/spatial-os-luna-handoff/src/world/server.cpp
++++ b/spatial-os-luna-handoff/src/world/server.cpp
+@@ -43,8 +43,12 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces*
+     if (sessions) sessions->set_tick([&] {
+         actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
+     });
+-    if (renderer) renderer->set_tick([&] { actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); });
++    if (renderer) renderer->set_tick([&] {
++        if (sessions) sessions->tick();
++        actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
++    });
+     if (broker) broker->set_tick([&] {
++        if (sessions) sessions->tick();
+         actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
+     });
+     auto input_started = origin, output_started = origin;

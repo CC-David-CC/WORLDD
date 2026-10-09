@@ -59,8 +59,11 @@ private:
         wire::NativeActorInput native;
         wire::AimHit capture;
         std::string lease;
+        std::optional<workspace::v1::ApplicationControlLease> application_control;
+        bool application_input = false;
         bool capture_motion_pending = false;
         bool interaction_reset_pending = false;
+        bool close_pending = false;
         std::vector<ObservedApplication> observed_applications;
         std::optional<ObjectHold> object;
         wire::ErrorCode object_error = wire::NO_TARGET;
@@ -71,7 +74,12 @@ private:
     std::string selected_workspace(const Actor& actor);
     void step(double target);
     void refresh_native();
-    void release_input(Actor& actor, bool close = false);
+    void release_input(Actor& actor, bool close = false, bool keep_reservation = false);
+    void poll_control();
+    void drain_control_releases();
+    void authorize_input(Actor& actor, const wire::SurfaceHandle& target);
+    void finish_input(Actor& actor);
+    void send_input(Actor& actor, const wire::RendererInputCommand& command);
     wire::AimHit input_target(Actor& actor, bool captured = true);
     std::string control_group(const wire::SurfaceRecord& surface) const;
     void route_input(Actor& actor, const wire::ActorActionRequest& request);
@@ -88,6 +96,8 @@ private:
     RenderWorker* renderer_;
     BrokerClient* broker_;
     std::map<std::string, std::string> leases_;
+    std::vector<workspace::v1::ApplicationControlLease> control_releases_;
+    bool flushing_input_ = false;
     std::map<std::string, std::string> object_leases_;
     wire::RuntimeConfig config_;
     bool manual_clock_;

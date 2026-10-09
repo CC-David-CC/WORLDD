@@ -1,0 +1,14 @@
+{
+  "normalization": "CRLF to LF",
+  "manifest": "tested-tree.json",
+  "hosts": {
+    "sb16": {
+      "checked": 452,
+      "mismatches": []
+    },
+    "sb16-2": {
+      "checked": 452,
+      "mismatches": []
+    }
+  }
+}

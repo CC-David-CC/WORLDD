@@ -12,38 +12,28 @@ Keep native hardware, authority, confinement, shared worlds, cabinets, and provi
 
 ## Current qualification
 
-P00-P10 passed all 151 acceptance cases on both hosts in Debug and ASan/UBSan on 2026-10-07.
-The baseline has zero failures, errors, skipped cases, or unrun cases.
-See WALKTHROUGHS.md and evidence/walkthroughs-2026-10-07 for execution evidence and the cancellation mutation.
 All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qualification items.
-Existing components provide partial implementation only where CURRENT_STATE.md records their evidence.
-The mandatory profile is tasks/spatial-m1.json. M01's contract is IDENTITY.md.
-Production key material, issuer control, and manual enrollment are qualified components of M01.
-Manual and automatic issuance currently support only the empty-v1 profile. See ENROLLMENT.md for this limitation.
-Issuer-side revocation and fresh authentication are qualified. See IDENTITY_REVOCATION.md for their scope.
-Protected issuer transport, its checked client, and its ordered revocation watcher are qualified components.
-Authenticated local world channels now use real actor actions and cancel held native input. See WORLD_IDENTITY.md.
-Nonempty bootstrap profiles, native application authority, remote actor transport, and distributed revocation acknowledgement remain required.
-Static baseline action grants do not establish workspace or application isolation. M01 remains incomplete.
-The persistent authority-store library now qualifies structural delegation and stored revocation. See AUTHORITY_STORE.md.
-Its 43 checks remain part of the cumulative core suite.
-Current actor-status queries support ancestor validation. See ACTOR_STATUS.md.
-Worldd now enforces persistent world grants through authenticated local sessions. See WORLD_AUTHORITY.md.
-Its 27 checks cover live cancellation, delegation, scope, persistence, and configuration boundaries.
-Workspaced now enforces persistent workspace grants for selection and confined execution. See WORKSPACE_AUTHORITY.md.
-Its 19 checks cover real processes, scope restrictions, restart, and live revocation.
-The workspace-authority increment passed 512 core checks, 51 harness checks, and 151 acceptance cases in both host build profiles.
-Three mutations detect missing process cancellation, excess writes, and stale launch retry acknowledgement.
-Native application authority and distributed revocation acknowledgement remain required. M02 remains incomplete.
-Native connection identities now pass 22 independent checks. See NATIVE_SECURITY_IDENTITY.md.
-Native resource access adds 36 checks. See NATIVE_RESOURCE_POLICY.md.
-The current increment passes 570 core checks, 51 harness checks, and all 151 acceptance cases.
-Its development matrix uses Debug on sb16 and runtime ASan/UBSan on sb16-2.
-Both hosts passed focused Debug native checks. sb16-2 also passed focused core-X server sanitizers.
-The omitted host/build combinations remain unrun for this increment. Final two-host qualification remains mandatory.
-Native GLX sanitizer cleanup remains an open failure from the preceding increment.
-Extension access, global operations, atoms, selections, devices, and application authority integration remain required.
-Next: extension isolation and independent attacks against global native operations.
+Existing components provide partial implementation where CURRENT_STATE.md records their evidence.
+The mandatory profile is tasks/spatial-m1.json.
+
+The latest qualified increment adds authenticated native application control through production broker reservations.
+Both hosts passed complete Debug and runtime ASan/UBSan qualification on 2026-10-08.
+Each profile passed 891 core checks across 45 suites, 51 harness checks, and all 151 P10 cases.
+No final profile skipped a case.
+See evidence/world-application-control-2026-10-08 for source pins, commands, failures, and final results.
+The original P00-P10 baseline and walkthrough evidence remain in evidence/walkthroughs-2026-10-07.
+
+Qualified components now include actor identity, persistent grants, confined execution, and several native X isolation boundaries.
+Worldd enforces broker-authorized application metadata and input through authenticated local actor channels.
+Control loss cancels native input without terminating independently authorized application execution.
+These component results do not establish complete milestone qualification.
+
+Filtered actor pixels, nonempty enrollment bootstrap profiles, and remote authenticated actor transport remain required.
+Shared worlds, world transitions, complete cabinet actions, application restoration, and model tasks remain required.
+Physical devices, native GPU output, timing, and soak evidence remain mandatory.
+Native-server GLX sanitizer cleanup remains unqualified.
+Read the newest CURRENT_STATE.md section before using historical entries as current implementation facts.
+Next: real pixels through the authenticated, authority-filtered actor observation path.
 
 ## Ordered implementation
 

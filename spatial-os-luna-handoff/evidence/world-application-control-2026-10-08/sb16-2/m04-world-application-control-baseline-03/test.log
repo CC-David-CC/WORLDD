@@ -1,0 +1,30 @@
+test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control) ... FAIL
+
+======================================================================
+FAIL: test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 46, in probe
+    value=self.until(lambda:self.world_process.management('surface.find',probe_id=name),lambda r:r['surface'] is not None)['surface']
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: {'surface': None}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 98, in test_observation_does_not_grant_control
+    self.setup_world();app,surface=self.probe();self.grant_viewer([grant.WORKSPACE_ACCESS]);self.grant_viewer([grant.APPLICATION_OBSERVE],app)
+                                   ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 49, in probe
+    self.fail(str(error)+'\n'+(log.read_text() if log.exists() else 'No native probe output'))
+AssertionError: World condition expired: {'surface': None}
+XI2 unavailable
+
+
+----------------------------------------------------------------------
+Ran 1 test in 7.052s
+
+FAILED (failures=1)

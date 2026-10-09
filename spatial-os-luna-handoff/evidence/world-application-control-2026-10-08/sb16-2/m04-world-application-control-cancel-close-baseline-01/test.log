@@ -1,0 +1,17 @@
+test_revocation_during_native_cancel_closes_actor_devices (__main__.CancellationCloseTests.test_revocation_during_native_cancel_closes_actor_devices) ... FAIL
+
+======================================================================
+FAIL: test_revocation_during_native_cancel_closes_actor_devices (__main__.CancellationCloseTests.test_revocation_during_native_cancel_closes_actor_devices)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_cancel_close.py", line 38, in test_revocation_during_native_cancel_closes_actor_devices
+    self.until(self.native_device_count,lambda count:count==before-4)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_identity.py", line 113, in until
+    if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: World condition expired: 12
+
+----------------------------------------------------------------------
+Ran 1 test in 8.069s
+
+FAILED (failures=1)

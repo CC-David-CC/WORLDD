@@ -43,8 +43,12 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* 
     if (sessions) sessions->set_tick([&] {
         actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
     });
-    if (renderer) renderer->set_tick([&] { actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); });
+    if (renderer) renderer->set_tick([&] {
+        if (sessions) sessions->tick();
+        actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
+    });
     if (broker) broker->set_tick([&] {
+        if (sessions) sessions->tick();
         actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
     });
     auto input_started = origin, output_started = origin;

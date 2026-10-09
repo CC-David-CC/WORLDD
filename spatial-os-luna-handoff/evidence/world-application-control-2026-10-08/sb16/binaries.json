@@ -1,0 +1,12 @@
+{
+  "build": {
+    "worldd": "dccfa9e79fc6fb0a3224016e7b1d16a627612459938e04b2e9076ff884b5c4de",
+    "spatialwm": "a06978a4b68f46028d47e4eec4dd899d3d08ee452bf190a590fe7c9c70b0c46d",
+    "workspaced": "3f535a7fe34da90da97fbf1c034eeb85668b65d361ed6fa72ee8e91d0cecaab1"
+  },
+  "build-sanitize": {
+    "worldd": "1d460eec25fe0d9be295becd3384ab7f0a4753d4252726a80d1953eafc95b559",
+    "spatialwm": "6eb1e31d1b40d0c76261cd810e247806f2581675a0bc731199565261dfbc3bed",
+    "workspaced": "9bffa4033032d478150ed90f254a55d1337d29b6ee0c27d4224767932f8dcc23"
+  }
+}

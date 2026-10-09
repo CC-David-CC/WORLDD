@@ -137,14 +137,17 @@ wire::RenderVisibility RenderWorker::observe(const wire::RenderScene& scene, std
     frame_id_ = reply.visibility().frame_id();
     return reply.visibility();
 }
-wire::NativeActorInput RenderWorker::input(const wire::RendererInputCommand& input) {
+wire::NativeActorInput RenderWorker::input(const wire::RendererInputCommand& input, const std::function<void()>& before_send) {
     wire::RenderCommand command; *command.mutable_input() = input;
-    const auto reply = exchange(command);
+    const auto reply = exchange(command, before_send);
     if (!reply.has_input() || reply.input().actor_id() != input.actor_id())
         throw std::runtime_error("Invalid compositor actor input reply");
     return reply.input();
 }
-wire::RenderResult RenderWorker::exchange(wire::RenderCommand command) {
+wire::RenderResult RenderWorker::exchange(wire::RenderCommand command, const std::function<void()>& before_send) {
+    if (busy_) throw std::runtime_error("Recursive compositor exchange");
+    busy_ = true;
+    struct Reset { bool& value; ~Reset() { value = false; } } reset{busy_};
     command.set_protocol_version(1); command.set_request_id(sequence_ + 1);
     const auto payload = command.SerializeAsString();
     if (payload.size() > max_frame_bytes) throw std::invalid_argument("Scene exceeds renderer channel limit");
@@ -157,6 +160,9 @@ wire::RenderResult RenderWorker::exchange(wire::RenderCommand command) {
     std::size_t sent = 0;
     while (sent < bytes.size()) {
         wait(POLLOUT);
+        // A scheduler callback may revoke input while the socket is blocked.
+        // Once bytes have been sent, finish the frame and cancel after its reply.
+        if (!sent && before_send) before_send();
         const auto count = send(socket_, bytes.data() + sent, bytes.size() - sent, MSG_NOSIGNAL);
         if (count < 0 && (errno == EAGAIN || errno == EINTR)) continue;
         if (count <= 0) throw std::runtime_error("Cannot submit compositor scene");

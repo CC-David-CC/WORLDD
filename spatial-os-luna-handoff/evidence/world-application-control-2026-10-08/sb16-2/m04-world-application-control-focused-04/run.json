@@ -1,0 +1,19 @@
+{
+  "host": "sb16-2",
+  "base_commit": "cd651f5e76e01296b813335914990794e500efd8",
+  "command": [
+    "python3",
+    "tests/core/test_world_application_control.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/worldd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/build/spatial-security-auth"
+  ],
+  "exit_code": 1,
+  "binary": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "worldd_sha256": "67c3893925606d8add1ed9b305e0619f6dcdbeec040d2b2edaafe9162259ed65",
+  "test_sha256": "13266f866ec3fc28cc447d3cdbd2aaff878ebad7c80526b8706eb7d7fd676778"
+}

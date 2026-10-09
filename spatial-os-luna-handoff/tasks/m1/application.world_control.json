@@ -1,0 +1,68 @@
+{
+  "id": "application.world_control",
+  "phase": "M04",
+  "profile": "tasks/spatial-m1.json",
+  "invariant": "Only an authorized actor controls a native application, and confirmed native cancellation precedes reservation release.",
+  "production_roots": [
+    "src/world/actors.cpp",
+    "src/world/actors.hpp",
+    "src/world/identity_sessions.cpp",
+    "src/world/server.cpp",
+    "src/platform/render_worker.cpp",
+    "src/platform/render_worker.hpp",
+    "src/platform/broker.hpp"
+  ],
+  "test_ids": [
+    "WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection",
+    "WorldApplicationControlTests.test_observation_does_not_grant_control",
+    "WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application",
+    "WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application",
+    "WorldApplicationControlTests.test_one_application_has_one_actor_controller",
+    "WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff",
+    "WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution",
+    "WorldApplicationControlTests.test_observation_revocation_cancels_control",
+    "WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation",
+    "WorldApplicationControlTests.test_stop_releases_application_reservation",
+    "WorldApplicationControlTests.test_scroll_uses_real_native_events",
+    "WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors",
+    "WorldApplicationControlTests.test_session_close_releases_before_handoff",
+    "WorldApplicationControlTests.test_controller_disconnect_releases_before_handoff",
+    "WorldApplicationControlTests.test_restored_grant_does_not_restore_held_input",
+    "WorldApplicationControlTests.test_popup_uses_same_application_reservation",
+    "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels",
+    "WorldApplicationControlTests.test_unmapped_capture_releases_reservation",
+    "WorldApplicationControlTests.test_actor_revocation_releases_native_input",
+    "WorldApplicationControlTests.test_credential_revocation_releases_native_input",
+    "WorldApplicationControlTests.test_actor_revocation_cancels_during_broker_wait",
+    "WorldApplicationControlTests.test_credential_revocation_cancels_during_broker_wait",
+    "WorldApplicationControlTests.test_disconnect_cancels_during_broker_wait",
+    "WorldApplicationControlTests.test_revocation_during_renderer_wait_does_not_replay_input",
+    "WorldApplicationControlTests.test_revocation_during_native_cancel_closes_actor_devices"
+  ],
+  "preceding_gate": "P10",
+  "contract": "docs/WORLD_APPLICATION_CONTROL.md",
+  "status": "component_qualified",
+  "limitations": [
+    "Instrumented native-server GLX cleanup remains unqualified.",
+    "Physical input and full Spatial-M1 qualification remain pending."
+  ],
+  "evidence": "evidence/world-application-control-2026-10-08",
+  "qualification": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "builds": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "core_suites": 45,
+    "core_checks_per_profile": 891,
+    "harness_checks_per_profile": 51,
+    "P10_cases_per_profile": 151,
+    "focused_checks_per_host": 61,
+    "failed": 0,
+    "skipped": 0,
+    "native_server_GLX_sanitizer": "unrun"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "spatial-os-luna-handoff/CMakeLists.txt": "9582e4bfe47880e9914c9e2d4f716787ca54fc4dcf8ca560741afc3c2d213a44",
+  "spatial-os-luna-handoff/src/platform/broker.hpp": "887c6d3ff887be7cb57fd1afb200898931192a8a19c24327b3e12e30e78ba25d",
+  "spatial-os-luna-handoff/src/platform/render_worker.hpp": "c8231bfb5f2afbdcb810a5dc8192e8f37d5e316f84ec268faaeea2ee07b6e54d",
+  "spatial-os-luna-handoff/src/platform/render_worker.cpp": "46b43030fd5c2a48355bf69ddfbadee5b4e7321ca73dbbda4153e6353349303d",
+  "spatial-os-luna-handoff/src/world/actors.hpp": "1289e3bcb956ecfa6e57a2aaf36a7ffa50889a2950a19a95894941f05f5c54a2",
+  "spatial-os-luna-handoff/src/world/actors.cpp": "83dae9b4b2a59f90265d148724aa7e1c5ada0bbb92cdd5c528878e984f1fb50f",
+  "spatial-os-luna-handoff/src/world/server.cpp": "40ee1c4d2d7671a68dc32d2ae8523ee043f2432ba2463fe93ca2a1d9c08bc635",
+  "spatial-os-luna-handoff/src/world/identity_sessions.cpp": "1bc55b8288ec4007b046a9c704b4e82352c52b0c4fba5bf62626ee50b9cdec20",
+  "spatial-os-luna-handoff/tests/core/test_world_application_control.py": "b54badb414750003d17d74c1f8201dfe1584e08f3eb5efc0cce5c41b7dc7d6ae"
+}

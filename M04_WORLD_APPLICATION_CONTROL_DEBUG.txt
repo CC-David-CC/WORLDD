@@ -1,0 +1,117 @@
+Final qualification status
+
+Both hosts passed full Debug and runtime ASan/UBSan qualification-02.
+Each profile passed 891 core checks across 45 suites, 51 harness checks, and 151 P10 cases.
+No final failures or skipped cases remain in these profiles.
+The collector verified counts and changed-input hashes on both hosts.
+See spatial-os-luna-handoff/evidence/world-application-control-2026-10-08.
+Native-server GLX sanitizer coverage remains unrun for this component.
+The chronological notes below preserve earlier failures and intermediate states.
+
+Authenticated native application control
+Base: cd651f5e76e01296b813335914990794e500efd8
+
+The preceding broker client passed full qualification on both hosts.
+Each Debug and runtime sanitizer profile passed 866 core, 51 harness, and 151 P10 checks.
+Each native-server sanitizer profile passed 25 live client checks.
+The primary agent reviews this work without a local model.
+
+The first 12-case native actor baseline failed during test setup.
+The new key() helper shadowed the issuer fixture's key-generation method.
+The fixture now uses distinct actor-input helper names.
+The review also removed collisions with inherited begin() and the state directory field.
+These setup errors do not establish production control defects.
+The failed baseline-01 logs remain on both hosts.
+
+The corrected baseline-04 completed against unchanged worldd production code.
+Both hosts passed two denial checks and failed ten authorized-control checks.
+At that baseline, authenticated application input was disabled. Later runs below test its implementation.
+No full M04, M09, M10, or Spatial-M1 qualification is claimed.
+
+Primary-agent implementation and review, 2026-10-08
+
+The first 12-case focused suite passes on both hosts (focused-02).
+It uses real signed actor channels, the real broker, and confined native C clients.
+The world now acquires application control reservations and consumes revocations.
+Native cancellation precedes broker release acknowledgements.
+A read-only actor cannot control a writable application.
+Different applications can have independent simultaneous controllers.
+At focused-02, this draft was not committed or fully qualified.
+
+Preserved fixture failures:
+- baseline-02: XI2 witness could not open under the confined-client extension policy.
+- baseline-03: diagnostic rerun confirmed XI2 unavailable.
+- The fixture now uses real core X events plus independent supervisor device queries.
+- focused-01: actor_key helper collided with the inherited cryptographic key path.
+- focused-03: popup placement, unchanged resize dimensions, missing expected revision, and expired owner TLS connection.
+- focused-04: popup aim omitted Y; resize requested the initial dimensions.
+These failures do not establish production defects.
+The independent C witness and locked acceptance tests remain unchanged.
+
+Review found a production revocation delay during a broker process wait.
+The credential-wait regression failed on both hosts with worldd hash:
+67c3893925606d8add1ed9b305e0619f6dcdbeec040d2b2edaafe9162259ed65
+Evidence: local/m04-world-application-control-wait-baseline-01 on each host.
+Both corrected popup and stale-pixel checks passed in that same run.
+The next draft polls identity watches during broker and renderer waits.
+It defers native actor teardown when the compositor is already exchanging a message.
+A pre-send check rejects input revoked while waiting for a writable compositor socket.
+Already submitted native operations finish before cancellation. They are never replayed.
+
+At the wait-baseline checkpoint, full qualification for that draft was unrun.
+M04, M09, M10, and Spatial-M1 remain incomplete.
+
+The 24-case focused-05 suite passes on both hosts.
+The focused worldd SHA256 is f2550e12f46cf9a8dda2434a067bddb28ed168532859efcd9d0b17bbe6f10c34.
+The test SHA256 is b54badb414750003d17d74c1f8201dfe1584e08f3eb5efc0cce5c41b7dc7d6ae.
+The wait-focused-01 run confirmed a second production defect: disconnect cancellation waited for the broker request.
+The corrected identity scheduler checks socket loss during waits without dispatching another action.
+The same run already passed credential-wait and paused-compositor revocation checks.
+Full Debug and runtime sanitizer qualification now runs on both hosts.
+
+Qualification driver review:
+The inherited native-server tail selects GLX-disabled mode. That mode cannot run these world-renderer tests.
+Do not interpret that profile's result as world-control qualification.
+Native-server GLX sanitizer cleanup has an existing unresolved failure recorded in CURRENT_STATE.md.
+Keep native world-control sanitizer status separate from runtime sanitizer results.
+
+A separate cancellation-in-flight regression failed on both hosts.
+Evidence: local/m04-world-application-control-cancel-close-baseline-01.
+The 24-case passing binary leaves actor devices allocated when credential revocation arrives during native cancel.
+The actor's native device count remains 12 rather than returning to 8.
+The local draft now completes a pending native close before clearing the close flag or reservation.
+The regression is now the 25th test in test_world_application_control.py.
+At this checkpoint, the correction was not yet copied, built, or tested.
+The later focused-06 run below verifies it on both hosts.
+
+Qualification-01 terminal result on both hosts:
+- Harness: 51 passed.
+- Debug core: 44 suites passed; world-identity failed five of its 20 checks.
+- Runtime sanitizer, P10, and the incompatible native-server tail did not run after that failure.
+- The new application gate rejected explicitly authorized input on the unlabelled diagnostic display.
+- The corrected gate preserves explicit diagnostic interaction grants.
+- Authenticated labeled applications still require a live broker reservation.
+- An explicit application-input flag prevents fallback after reservation loss.
+
+The pending-close fix and diagnostic-path fix are now built on both hosts.
+Focused-06 runs the 25 new control cases plus the 20 existing identity cases and 16 observation cases.
+The corrected qualification driver will run complete Debug and runtime sanitizer profiles separately from native-server GLX coverage.
+
+Focused-06 is terminal and passing on both hosts.
+All 61 checks passed: 25 native world-control, 20 identity, and 16 application-observation.
+This includes the pending native-close regression and the diagnostic-input regression.
+Nine reviewed source hashes match on Windows, sb16, and sb16-2.
+Final full qualification-02 is now running on both hosts.
+Each final profile must pass all core suites, harness checks, and P10 before integration.
+The corrected driver omits the incompatible GLX-disabled native-server stage.
+Native-server GLX sanitizer coverage remains unrun, not passed.
+
+Source integrity audit during qualification-02:
+All 452 files in tested-tree.json match Windows, sb16, and sb16-2.
+The primary agent recorded the file-by-file review in the tracked evidence directory.
+No host system configuration changed. Normal login and SSH recovery remain intact.
+
+Qualification-02 update:
+Both hosts passed full Debug qualification: 891 core checks across 45 suites, 51 harness checks, and 151 P10 cases.
+Both runtime sanitizer builds and 51-check harness runs passed. Their core suites remain live.
+Do not interpret the unfinished runtime profiles as passed.

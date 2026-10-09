@@ -1,0 +1,17 @@
+{
+  "host": "sb16",
+  "command": [
+    "ctest",
+    "--test-dir",
+    "build",
+    "-V",
+    "-R",
+    "^(world-application-control|world-identity|application-observation)$"
+  ],
+  "exit_code": 0,
+  "binary": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "worldd_sha256": "dccfa9e79fc6fb0a3224016e7b1d16a627612459938e04b2e9076ff884b5c4de"
+}

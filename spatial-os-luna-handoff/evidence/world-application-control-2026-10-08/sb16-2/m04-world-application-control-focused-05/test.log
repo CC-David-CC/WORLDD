@@ -1,0 +1,29 @@
+test_authorized_native_input_without_workspace_selection (__main__.WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection) ... ok
+test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control) ... ok
+test_readonly_actor_cannot_control_writable_application (__main__.WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application) ... ok
+test_readonly_actor_can_control_readonly_application (__main__.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application) ... ok
+test_one_application_has_one_actor_controller (__main__.WorldApplicationControlTests.test_one_application_has_one_actor_controller) ... ok
+test_unfocus_releases_native_input_before_handoff (__main__.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff) ... ok
+test_idle_control_revocation_releases_input_and_preserves_execution (__main__.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution) ... ok
+test_observation_revocation_cancels_control (__main__.WorldApplicationControlTests.test_observation_revocation_cancels_control) ... ok
+test_independent_control_grant_survives_other_revocation (__main__.WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation) ... ok
+test_stop_releases_application_reservation (__main__.WorldApplicationControlTests.test_stop_releases_application_reservation) ... ok
+test_scroll_uses_real_native_events (__main__.WorldApplicationControlTests.test_scroll_uses_real_native_events) ... ok
+test_independent_applications_allow_simultaneous_actors (__main__.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors) ... ok
+test_session_close_releases_before_handoff (__main__.WorldApplicationControlTests.test_session_close_releases_before_handoff) ... ok
+test_controller_disconnect_releases_before_handoff (__main__.WorldApplicationControlTests.test_controller_disconnect_releases_before_handoff) ... ok
+test_restored_grant_does_not_restore_held_input (__main__.WorldApplicationControlTests.test_restored_grant_does_not_restore_held_input) ... ok
+test_popup_uses_same_application_reservation (__main__.WorldApplicationControlTests.test_popup_uses_same_application_reservation) ... ok
+test_resized_aim_rejects_stale_pixels (__main__.WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels) ... ok
+test_unmapped_capture_releases_reservation (__main__.WorldApplicationControlTests.test_unmapped_capture_releases_reservation) ... ok
+test_actor_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_actor_revocation_releases_native_input) ... ok
+test_credential_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_credential_revocation_releases_native_input) ... ok
+test_actor_revocation_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_actor_revocation_cancels_during_broker_wait) ... ok
+test_credential_revocation_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_credential_revocation_cancels_during_broker_wait) ... ok
+test_disconnect_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_disconnect_cancels_during_broker_wait) ... ok
+test_revocation_during_renderer_wait_does_not_replay_input (__main__.WorldApplicationControlTests.test_revocation_during_renderer_wait_does_not_replay_input) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 102.620s
+
+OK

@@ -1,0 +1,18 @@
+test_credential_revocation_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_credential_revocation_cancels_during_broker_wait) ... ok
+test_revocation_during_renderer_wait_does_not_replay_input (__main__.WorldApplicationControlTests.test_revocation_during_renderer_wait_does_not_replay_input) ... ok
+test_disconnect_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_disconnect_cancels_during_broker_wait) ... FAIL
+
+======================================================================
+FAIL: test_disconnect_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_disconnect_cancels_during_broker_wait)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 284, in test_disconnect_cancels_during_broker_wait
+    self.revocation_during_broker_wait(None)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 271, in revocation_during_broker_wait
+    self.assertFalse(select.select([world.proc.stdout],[],[],0)[0])
+AssertionError: [<_io.BufferedReader name=21>] is not false
+
+----------------------------------------------------------------------
+Ran 3 tests in 13.148s
+
+FAILED (failures=1)

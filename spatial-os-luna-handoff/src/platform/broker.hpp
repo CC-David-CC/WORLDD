@@ -40,6 +40,7 @@ public:
     std::vector<broker_wire::ApplicationControlLease> poll_control();
     // A local validity check, not a replacement for pumping the authority channel.
     bool control_active(const broker_wire::ApplicationControlLease&) const;
+    bool busy() const { return pending_ != nullptr; }
     wire::ProcessLaunchReply launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
                                    const authority::v1::ActorRef* principal = nullptr);
     authority::v1::GrantPage grants(const broker_wire::GrantListRequest&);

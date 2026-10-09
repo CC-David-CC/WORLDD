@@ -1,0 +1,89 @@
+test_authorized_native_input_without_workspace_selection (__main__.WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection) ... ERROR
+test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control) ... ok
+test_readonly_actor_cannot_control_writable_application (__main__.WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application) ... ok
+test_readonly_actor_can_control_readonly_application (__main__.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application) ... ERROR
+test_one_application_has_one_actor_controller (__main__.WorldApplicationControlTests.test_one_application_has_one_actor_controller) ... ok
+test_unfocus_releases_native_input_before_handoff (__main__.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff) ... ERROR
+test_idle_control_revocation_releases_input_and_preserves_execution (__main__.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution) ... ERROR
+test_observation_revocation_cancels_control (__main__.WorldApplicationControlTests.test_observation_revocation_cancels_control) ... ERROR
+test_independent_control_grant_survives_other_revocation (__main__.WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation) ... ERROR
+test_stop_releases_application_reservation (__main__.WorldApplicationControlTests.test_stop_releases_application_reservation) ... ERROR
+test_scroll_uses_real_native_events (__main__.WorldApplicationControlTests.test_scroll_uses_real_native_events) ... ok
+test_independent_applications_allow_simultaneous_actors (__main__.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors) ... ERROR
+
+======================================================================
+ERROR: test_authorized_native_input_without_workspace_selection (__main__.WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 104, in test_authorized_native_input_without_workspace_selection
+    self.actor_pointer(False);self.actor_key('a',True);self.actor_key('a',False)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'PosixPath' object is not callable
+
+======================================================================
+ERROR: test_readonly_actor_can_control_readonly_application (__main__.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 120, in test_readonly_actor_can_control_readonly_application
+    self.actor_pointer(False);self.actor_key('a',True);self.actor_key('a',False)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'PosixPath' object is not callable
+
+======================================================================
+ERROR: test_unfocus_releases_native_input_before_handoff (__main__.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 129, in test_unfocus_releases_native_input_before_handoff
+    app,surface,observe,control=self.begin_control();self.actor_key('Shift_L',True)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'PosixPath' object is not callable
+
+======================================================================
+ERROR: test_idle_control_revocation_releases_input_and_preserves_execution (__main__.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 135, in test_idle_control_revocation_releases_input_and_preserves_execution
+    app,surface,observe,control=self.begin_control();self.actor_key('a',True)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'PosixPath' object is not callable
+
+======================================================================
+ERROR: test_observation_revocation_cancels_control (__main__.WorldApplicationControlTests.test_observation_revocation_cancels_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 142, in test_observation_revocation_cancels_control
+    app,surface,observe,control=self.begin_control();self.actor_key('a',True)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'PosixPath' object is not callable
+
+======================================================================
+ERROR: test_independent_control_grant_survives_other_revocation (__main__.WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 148, in test_independent_control_grant_survives_other_revocation
+    self.revoke_grant(self.peer,control);self.actor_key('a',True);self.actor_key('a',False)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'PosixPath' object is not callable
+
+======================================================================
+ERROR: test_stop_releases_application_reservation (__main__.WorldApplicationControlTests.test_stop_releases_application_reservation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 152, in test_stop_releases_application_reservation
+    app,surface,observe,control=self.begin_control();self.actor_key('a',True)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'PosixPath' object is not callable
+
+======================================================================
+ERROR: test_independent_applications_allow_simultaneous_actors (__main__.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/tests/core/test_world_application_control.py", line 168, in test_independent_applications_allow_simultaneous_actors
+    self.actor_key('a',True);self.actor_key('b',True,self.peer)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'PosixPath' object is not callable
+
+----------------------------------------------------------------------
+Ran 12 tests in 46.429s
+
+FAILED (errors=8)

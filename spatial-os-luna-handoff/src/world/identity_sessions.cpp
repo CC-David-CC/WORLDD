@@ -86,7 +86,7 @@ struct IdentitySessions::Impl {
     std::map<std::string, std::set<std::string>> grants;
     std::string audience;
     Clock::time_point last_exchange = Clock::now();
-    bool ready = false, broken = false;
+    bool ready = false, broken = false, ticking = false;
 
     Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine, BrokerClient* execution)
         : world(store), actors(engine), broker(execution) {
@@ -134,7 +134,25 @@ struct IdentitySessions::Impl {
         for (auto& channel : channels) disconnect(*channel);
     }
     void tick() {
-        if (broken || !watcher) return;
+        if (ticking || broken || !watcher) return;
+        ticking = true;
+        struct Reset { bool& value; ~Reset() { value = false; } } reset{ticking};
+        // Detect controller loss during component waits without dispatching new actions.
+        for (auto& channel : channels) {
+            if (channel->fd.value < 0) continue;
+            pollfd fd{channel->fd.value, POLLIN, 0};
+            const int result = poll(&fd, 1, 0);
+            if (result < 0 && errno == EINTR) continue;
+            bool lost = result < 0 || (fd.revents & (POLLERR | POLLHUP | POLLNVAL));
+            if (!lost && (fd.revents & POLLIN)) {
+                char byte;
+                const auto count = recv(channel->fd.value, &byte, 1, MSG_PEEK | MSG_DONTWAIT);
+                lost = !count || (count < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR);
+            }
+            if (lost) {
+                disconnect(*channel); channel->fd.reset(); channel->input.clear(); channel->output.clear();
+            }
+        }
         if (watcher->failed()) { fail(); return; }
         while (auto update = watcher->poll()) {
             if (update->has_error() || update->batch().issuer_id() != issuer.issuer_id()) { fail(); return; }
