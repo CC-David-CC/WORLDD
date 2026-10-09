@@ -1,0 +1,98 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 9
+    Start 9: authority-world-handoff-regressions
+
+9: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-world-handoff-regressions-15a39b3d2120a5b9d5f3cc6e9d0e23a7405ef7f69269cc66660b875f1773ce24" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/server" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_supervisor_world_handoff_regressions.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/spatial-issuer-client"
+9: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build
+9: Test timeout computed to be: 180
+9: Running as unit: spatial-world-handoff-regressions-15a39b3d2120a5b9d5f3cc6e9d0e23a7405ef7f69269cc66660b875f1773ce24.service; invocation ID: f2239926ac7a430ab735fa98c5d04cc0
+9: test_owned_world_renders_real_application_pixels_and_releases_held_input (__main__.WorldHandoffRegressionTests.test_owned_world_renders_real_application_pixels_and_releases_held_input) ... FAIL
+9: test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application (__main__.WorldHandoffRegressionTests.test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application) ... FAIL
+9: test_world_and_compositor_consume_the_native_configuration_descriptor (__main__.WorldHandoffRegressionTests.test_world_and_compositor_consume_the_native_configuration_descriptor) ... ok
+9: test_invalid_compositor_targets_fail_before_scope_ownership (__main__.WorldHandoffRegressionTests.test_invalid_compositor_targets_fail_before_scope_ownership) ... ok
+9: test_compositor_rejects_malformed_and_incomplete_native_configurations (__main__.WorldHandoffRegressionTests.test_compositor_rejects_malformed_and_incomplete_native_configurations) ... ok
+9: test_compositor_rejects_unsealed_native_configuration (__main__.WorldHandoffRegressionTests.test_compositor_rejects_unsealed_native_configuration) ... ok
+9: test_compositor_rejects_wrong_server_pins_and_native_roles (__main__.WorldHandoffRegressionTests.test_compositor_rejects_wrong_server_pins_and_native_roles) ... ok
+9: test_compositor_rejects_display_conflict (__main__.WorldHandoffRegressionTests.test_compositor_rejects_display_conflict) ... ok
+9: test_wrong_server_receives_no_authentication_bytes (__main__.WorldHandoffRegressionTests.test_wrong_server_receives_no_authentication_bytes) ... ok
+9: test_broker_and_compositor_handoffs_cannot_share_one_native_scope (__main__.WorldHandoffRegressionTests.test_broker_and_compositor_handoffs_cannot_share_one_native_scope) ... ok
+9: test_wrong_native_roles_fail_before_scope_ownership (__main__.WorldHandoffRegressionTests.test_wrong_native_roles_fail_before_scope_ownership) ... ok
+9: 
+9: ======================================================================
+9: FAIL: test_owned_world_renders_real_application_pixels_and_releases_held_input (__main__.WorldHandoffRegressionTests.test_owned_world_renders_real_application_pixels_and_releases_held_input)
+9: ----------------------------------------------------------------------
+9: Traceback (most recent call last):
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_supervisor_world_handoff_regressions.py", line 155, in test_owned_world_renders_real_application_pixels_and_releases_held_input
+9:     self.released_input()
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_supervisor_world_handoff_regressions.py", line 138, in released_input
+9:     self.assertEqual(self.native_witness.inspect().role, security.APPLICATION)
+9:                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_security_identity.py", line 86, in inspect
+9:     reply = self.call(inspect=pb.Inspect())
+9:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_security_identity.py", line 83, in call
+9:     return self.exchange(pb.Request(protocol_version=1,request_id=self.operation_sequence,**operation))
+9:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_security_identity.py", line 73, in exchange
+9:     header,data = self.request(self.opcode,struct.pack(self.endian+'I',len(data))+data)
+9:                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_security_identity.py", line 64, in request
+9:     if header[0] != 1: raise AssertionError('Native request returned error/event: '+str(header[:4]))
+9:                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9: AssertionError: Native request returned error/event: b'"\x00\x02\x00'
+9: 
+9: ======================================================================
+9: FAIL: test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application (__main__.WorldHandoffRegressionTests.test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application)
+9: ----------------------------------------------------------------------
+9: Traceback (most recent call last):
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_supervisor_world_handoff_regressions.py", line 167, in test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application
+9:     self.released_input()
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_supervisor_world_handoff_regressions.py", line 138, in released_input
+9:     self.assertEqual(self.native_witness.inspect().role, security.APPLICATION)
+9:                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_security_identity.py", line 86, in inspect
+9:     reply = self.call(inspect=pb.Inspect())
+9:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_security_identity.py", line 83, in call
+9:     return self.exchange(pb.Request(protocol_version=1,request_id=self.operation_sequence,**operation))
+9:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_security_identity.py", line 73, in exchange
+9:     header,data = self.request(self.opcode,struct.pack(self.endian+'I',len(data))+data)
+9:                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/source/tests/native/test_security_identity.py", line 64, in request
+9:     if header[0] != 1: raise AssertionError('Native request returned error/event: '+str(header[:4]))
+9:                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+9: AssertionError: Native request returned error/event: b'"\x00\x02\x00'
+9: 
+9: ----------------------------------------------------------------------
+9: Ran 11 tests in 6.841s
+9: 
+9: FAILED (failures=2)
+9: Finished with result: exit-code
+9: Main processes terminated with: code=exited/status=1
+9: Service runtime: 6.988s
+9: CPU time consumed: 4.333s
+9: Memory peak: 1.5M
+9: Memory swap peak: 0B
+1/1 Test #9: authority-world-handoff-regressions ...***Failed    7.01 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   7.01 sec
+
+The following tests FAILED:
+	  9 - authority-world-handoff-regressions (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

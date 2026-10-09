@@ -1,0 +1,82 @@
+--- a/tests/native/test_supervisor_world_handoff_regressions.py
++++ b/tests/native/test_supervisor_world_handoff_regressions.py
+@@ -21,6 +21,27 @@
+ from harness.oracles import PPM, pose
+ from harness.probe import Probe
+ from harness.wire import frame, make_request, result_value
++
++
++class InputAwareNativeClient(baseline.supervisor.owned.existing.native.NativeClient):
++    """Keep the same native connection across legitimate keymap notifications."""
++    def request(self, opcode, payload=b'', minor=0):
++        self.send(opcode, payload, minor)
++        for _ in range(65):
++            header = self.exact(32)
++            if header[0] == 34:  # Core MappingNotify; never discard errors or other event types.
++                if header[4] not in (0, 1, 2):
++                    raise AssertionError('Invalid MappingNotify request')
++                continue
++            if header[0] != 1:
++                raise AssertionError('Native request returned error/event: ' + str(header[:4]))
++            if struct.unpack(self.endian + 'H', header[2:4])[0] != self.sequence % 65536:
++                raise AssertionError('Native reply sequence mismatch')
++            size = struct.unpack(self.endian + 'I', header[4:8])[0] * 4
++            if size > 1048576:
++                raise AssertionError('Excessive native reply')
++            return header, self.exact(size)
++        raise AssertionError('Excessive MappingNotify events before native reply')
+ 
+ 
+ class WorldHandoffRegressionTests(baseline.WorldNativeHandoffTests):
+@@ -111,8 +132,10 @@
+         actor = self.world_call('actor.open', id='witness-controller', grants=['interact'])
+         self.actor = actor['token']; self.actor_sequence = 0
+         self.application_cookie = grant.cookie
+-        self.native_witness = self.connect(grant.cookie)
++        self.native_witness = InputAwareNativeClient(self.display, grant.cookie)
++        self.clients.append(self.native_witness)
+         native = self.native_witness.inspect()
++        self.native_identity = native
+         self.assertEqual(native.role, security.APPLICATION)
+         self.assertEqual((native.workspace, native.application), (b'one', b'independent-witness'))
+         return surface
+@@ -135,7 +158,7 @@
+         events = self.probe.input_events()
+         self.assertEqual([event['pressed'] for event in events if event['event'] == 'key'], [True, False])
+         self.assertEqual([event['pressed'] for event in events if event['event'] == 'button'], [True, False])
+-        self.assertEqual(self.native_witness.inspect().role, security.APPLICATION)
++        self.assertEqual(self.native_witness.inspect(), self.native_identity)
+         self.assertIsNone(self.probe.proc.poll(), 'Independent application must survive world cleanup')
+ 
+     def test_owned_world_renders_real_application_pixels_and_releases_held_input(self):
+@@ -357,6 +380,30 @@
+             peer.settimeout(5)
+             self.assertEqual(peer.recv(4096), b'', 'Credentials reached the wrong native server')
+ 
++    def test_input_aware_reader_preserves_reply_validation(self):
++        notification = bytes([34, 0]) + b'\0' * 30
++        reply = b'\x01\0' + struct.pack('<H', 1) + b'\0' * 28
++        cases = [('valid', notification + reply, False),
++                 ('error', b'\0' * 32, True),
++                 ('unrelated-event', bytes([2]) + b'\0' * 31, True),
++                 ('bad-sequence', reply[:2] + struct.pack('<H', 2) + reply[4:], True),
++                 ('bad-mapping-kind', bytes([34, 0, 0, 0, 3]) + b'\0' * 27, True),
++                 ('excessive-events', notification * 65, True),
++                 ('truncated', notification + reply[:3], True)]
++        for name, data, reject in cases:
++            with self.subTest(case=name):
++                parent, peer = socket.socketpair()
++                with parent, peer:
++                    parent.settimeout(1)
++                    client = InputAwareNativeClient.__new__(InputAwareNativeClient)
++                    client.stream = parent; client.endian = '<'; client.sequence = 0
++                    peer.sendall(data); peer.shutdown(socket.SHUT_WR)
++                    if reject:
++                        with self.assertRaises((AssertionError, EOFError)):
++                            client.request(43)
++                    else:
++                        self.assertEqual(client.request(43), (reply, b''))
++
+     def test_broker_and_compositor_handoffs_cannot_share_one_native_scope(self):
+         config = self.configuration(); config.broker_native_target_fd = 39
+         proc, _ = self.launch_world(config)

@@ -1,0 +1,37 @@
+Running as unit: spatial-world-handoff-e92a3664436c4346a04e8cf460f70585.service; invocation ID: df737a99f93b4baa97ca320639094d37
+test_supervised_world_starts_real_compositor_with_owned_native_configuration (__main__.WorldNativeHandoffTests.test_supervised_world_starts_real_compositor_with_owned_native_configuration) ... FAIL
+
+======================================================================
+FAIL: test_supervised_world_starts_real_compositor_with_owned_native_configuration (__main__.WorldNativeHandoffTests.test_supervised_world_starts_real_compositor_with_owned_native_configuration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_world_handoff.py", line 53, in test_supervised_world_starts_real_compositor_with_owned_native_configuration
+    initial = self.message(channel, launch.AuthorityLaunchReply)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source/tests/native/test_authority_supervisor.py", line 96, in message
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source/tests/native/test_authority_supervisor.py", line 93, in exact
+    self.assertTrue(chunk, 'Supervisor or child closed reply channel')
+AssertionError: b'' is not true : Supervisor or child closed reply channel
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_world_handoff.py", line 58, in test_supervised_world_starts_real_compositor_with_owned_native_configuration
+    self.fail('Supervised world native handoff failed: ' + str(error) + '\n' + diagnostic)
+AssertionError: Supervised world native handoff failed: b'' is not true : Supervisor or child closed reply channel
+[libprotobuf ERROR google/protobuf/text_format.cc:337] Error parsing text-format spatial.supervisor.v1.AuthoritySupervisorConfig: 34:28: Message type "spatial.supervisor.v1.AuthoritySupervisorConfig" has no field named "compositor_native_target_fd".
+authority supervisor: Malformed supervisor configuration
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.517s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 626ms
+CPU time consumed: 430ms
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/usr/bin/systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--unit=spatial-world-handoff-e92a3664436c4346a04e8cf460f70585",
+    "--property=Delegate=yes",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/supervisor-world-handoff-baseline-01/runtime-sanitize/server",
+    "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+    "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_world_handoff.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/runtime-sanitize/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/runtime-sanitize/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/runtime-sanitize/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/runtime-sanitize/build/spatial-issuer-client"
+  ],
+  "exit_code": 1,
+  "binaries": {
+    "spatial-authority-supervisor": "6e9541442f0d5547bd31c0e7425677d48bee85e6d66d88a8678dcecf574f70d0",
+    "worldd": "8a6610834c8b59de7cd5d12d59d660597aa94e8b1eb7c9a800459c3098001bea",
+    "spatialwm": "df35839b70c3af49c2c2a8e82e3329d5882733c9d13adbe07cede07edbb2454d",
+    "identityd": "be2365556cd17bc2b98117fe549177ae12a188899c2fed3e04b8beea29dfb620"
+  }
+}

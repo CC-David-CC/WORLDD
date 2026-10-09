@@ -1,0 +1,27 @@
+{
+  "reviewer": "primary agent",
+  "status": "corrected_witness_passed_both_host_debug_only",
+  "root_cause": "The borrowed minimal NativeClient.request assumes the next X packet is a reply. Actor input changes produce core MappingNotify(type34), so post-cleanup inspection fails before reading its reply.",
+  "protocol_source": "sb16 installed X11/X.h defines MappingNotify=34. X11/Xproto.h places mappingNotify.request at byte4 after pad00.",
+  "invariant": "The same independent application connection survives compositor cleanup and returns its unchanged authenticated identity.",
+  "correction": "Use a new input-aware witness for this new test only. Skip bounded valid MappingNotify packets, retain reply/error/size/sequence validation, and compare the complete original identity.",
+  "extra_counterexample": "A socketpair checks valid notification+reply and rejects errors, unrelated events, bad sequence, invalid mapping kind, excess notifications, and truncated packets.",
+  "preserved": [
+    "Both original failures on both hosts; frozen candidate01 source and binaries unchanged.",
+    "All production files, existing tests, and41 locks unchanged by the witness correction."
+  ],
+  "results": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "debug_correction_checks": 12,
+    "failed": 0,
+    "skipped": 0
+  },
+  "remaining": [
+    "Freeze corrected candidate02 with the reviewed witness.",
+    "Run runtime sanitizer and cumulative qualification on both hosts.",
+    "Complete actual compositor attribution and schema compatibility audit."
+  ]
+}

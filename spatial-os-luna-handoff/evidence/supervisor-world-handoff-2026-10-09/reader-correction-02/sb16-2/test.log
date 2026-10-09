@@ -1,0 +1,24 @@
+Running as unit: spatial-world-reader-448d9efdaa094c2ba0f87ffec3b75a86.service; invocation ID: cf369aebcd23485d9fc9c32891beb5e2
+test_owned_world_renders_real_application_pixels_and_releases_held_input (__main__.WorldHandoffRegressionTests.test_owned_world_renders_real_application_pixels_and_releases_held_input) ... ok
+test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application (__main__.WorldHandoffRegressionTests.test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application) ... ok
+test_world_and_compositor_consume_the_native_configuration_descriptor (__main__.WorldHandoffRegressionTests.test_world_and_compositor_consume_the_native_configuration_descriptor) ... ok
+test_invalid_compositor_targets_fail_before_scope_ownership (__main__.WorldHandoffRegressionTests.test_invalid_compositor_targets_fail_before_scope_ownership) ... ok
+test_compositor_rejects_malformed_and_incomplete_native_configurations (__main__.WorldHandoffRegressionTests.test_compositor_rejects_malformed_and_incomplete_native_configurations) ... ok
+test_compositor_rejects_unsealed_native_configuration (__main__.WorldHandoffRegressionTests.test_compositor_rejects_unsealed_native_configuration) ... ok
+test_compositor_rejects_wrong_server_pins_and_native_roles (__main__.WorldHandoffRegressionTests.test_compositor_rejects_wrong_server_pins_and_native_roles) ... ok
+test_compositor_rejects_display_conflict (__main__.WorldHandoffRegressionTests.test_compositor_rejects_display_conflict) ... ok
+test_wrong_server_receives_no_authentication_bytes (__main__.WorldHandoffRegressionTests.test_wrong_server_receives_no_authentication_bytes) ... ok
+test_input_aware_reader_preserves_reply_validation (__main__.WorldHandoffRegressionTests.test_input_aware_reader_preserves_reply_validation) ... ok
+test_broker_and_compositor_handoffs_cannot_share_one_native_scope (__main__.WorldHandoffRegressionTests.test_broker_and_compositor_handoffs_cannot_share_one_native_scope) ... ok
+test_wrong_native_roles_fail_before_scope_ownership (__main__.WorldHandoffRegressionTests.test_wrong_native_roles_fail_before_scope_ownership) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 7.033s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 7.182s
+CPU time consumed: 4.543s
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/usr/bin/systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--unit=spatial-world-handoff-7fff0f612b86447d854f6cc199f9270a",
+    "--property=Delegate=yes",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/supervisor-world-handoff-baseline-01/debug/server",
+    "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+    "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_world_handoff.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-issuer-client"
+  ],
+  "exit_code": 1,
+  "binaries": {
+    "spatial-authority-supervisor": "13eccc6770ddc40158a2b9ef54736e7824debbd8f3604654218b2263ef91494b",
+    "worldd": "0a9c817ed9576ddff549e864d857cdda04487e7b8d95d65d7eb87ba7a3f42c7c",
+    "spatialwm": "00080c9379c895cc3d8ea7c4ebd89b77ae55297f704102bcfd62891c47d44da4",
+    "identityd": "85de412827e34b18baf6379b2aae45c8b536842cd3b6cdf93360eaa85da75016"
+  }
+}

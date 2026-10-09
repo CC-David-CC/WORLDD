@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-09: World Debug witness corrected; sb16 broker sanitizer and integration pass
+
+World handoff candidate01 built on both hosts. Both passed 51 harness checks and the real startup test.
+Nine regression methods passed. Two failed when the independent identity reader encountered an asynchronous MappingNotify event.
+Both failures occurred after real pixel or held-input cleanup assertions succeeded. The original failures remain preserved.
+The new reader handles bounded MappingNotify packets and still rejects invalid replies and unrelated events.
+Its post-cleanup assertion compares the complete original application connection identity.
+The corrected witness passed all twelve checks against unchanged Debug binaries on both hosts.
+Read evidence/supervisor-world-handoff-2026-10-09/reader-correction-review-02.json.
+World runtime sanitizer and full cumulative qualification remain unrun. Candidate01 remains frozen and unintegrated.
+
+sb16 completed full broker Debug and runtime sanitizer qualification:1393 core checks,93 suites,51 harness checks,151 P10 cases each.
+It also passed all four supervised broker integration checks in both profiles.
+Its queued world baseline confirmed the missing field in unchanged broker binaries in both profiles.
+sb16-2 full broker sanitizers remain active. Its dependent diagnostics remain queued.
+Production remains the supervisor increment at 534a94c. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: World native handoff candidate01 enters Debug qualification
 
 The isolated world/compositor correction now contains 290 files, with 16 changed or added files.

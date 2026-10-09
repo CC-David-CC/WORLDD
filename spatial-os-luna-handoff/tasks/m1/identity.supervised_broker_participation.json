@@ -12,7 +12,7 @@
     "test_actor_revocation_closes_native_app_before_barrier_acknowledgement",
     "test_broker_death_cleans_native_scope_but_preserves_unretired_issuer_obligation"
   ],
-  "qualification": "All four tests are unrun. Static syntax and primary review passed.",
+  "qualification": "sb16 passed all4 integration checks in Debug and runtime sanitizers. sb16-2 remains queued behind its full broker sanitizer run.",
   "remaining": [
     "Run unchanged-source integration checks in both profiles on both hosts.",
     "Resolve any implementation or fixture failure without weakening the invariant.",

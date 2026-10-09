@@ -1,5 +1,6 @@
 Supervisor world and compositor native handoff
-Status: Missing-field failure reproduced on both qualified Debug builds. Candidate01 Debug qualification is active.
+Status: Candidate01 built on both hosts. A corrected witness passed twelve Debug checks on each host.
+Runtime sanitizer and full cumulative qualification remain unrun.
 
 Invariant
 
@@ -55,6 +56,9 @@ Verify genuine rendered application surfaces and held-input cleanup under the ow
 Qualify both hosts in Debug and runtime sanitizers before integration.
 
 Candidate01 adds eleven correction tests. They do not alter the queued baseline or frozen broker candidate.
+Two tests exposed the borrowed reader's failure to handle MappingNotify before a native reply.
+Preserve those failures. The corrected witness adds a twelfth test for its reply validation.
+It keeps the original connection and compares its complete identity after cleanup.
 Each direct compositor denial test first requires successful startup with a valid sealed configuration.
 The descriptor witness tracks the memfd device and inode across live, pidfd-pinned processes.
 A retained parent descriptor provides a positive observation control.

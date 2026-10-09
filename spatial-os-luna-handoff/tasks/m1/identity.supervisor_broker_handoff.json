@@ -19,5 +19,5 @@
   "isolated_candidate": 2,
   "integration": "Exact five-file primary review, guarded patch, staged-source audit, and host-adoption scripts are prepared. Apply, stage audit, and adoption remain unrun for this candidate. Both-host full qualification remains required.",
   "next_task": "tasks/m1/identity.supervised_broker_participation.json",
-  "cumulative": "Both hosts passed full Debug:1393 core checks across93 suites,51 harness checks,151 P10 cases per host; zero failures or skips. Full runtime sanitizer qualification remains active on both hosts."
+  "cumulative": "sb16 full Debug and runtime sanitizers passed1393/93+51+151 each. sb16-2 full Debug passed; full runtime sanitizers active. No integration yet."
 }
