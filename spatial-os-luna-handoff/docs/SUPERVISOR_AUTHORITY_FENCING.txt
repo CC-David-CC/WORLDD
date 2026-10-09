@@ -1,0 +1,77 @@
+Supervisor authority fencing
+Status: Contract recorded. Production integration is pending.
+
+Invariant
+
+The owning supervisor fences only its exact authorized launch before reporting successful fenced cleanup.
+Fencing does not retire the issuer generation or complete its outstanding obligations.
+
+Protocol addition
+
+Add AuthorityLaunchRecord.fence at field 10, with type spatial.identity.v1.AuthorityFenceState.
+Add AuthorityLaunchRequest.fence at field 20, with type AuthorityLaunchQuery.
+Keep every existing field number, enum value, and locked test unchanged.
+The private management request supplies no participant, generation, launch, key, or cleanup assertion.
+Use the authorization configuration retained by the successful production authorize operation.
+Do not persist private key paths or issuer configuration paths in the launch journal.
+
+Owned request construction
+
+Require an existing supervised launch and its retained process and native ownership objects.
+Require a successful start attempt and the exact durable launch authorization.
+Use the durable issuer, participant registration, incarnation, launch ID, authorization ID, and supervisor revision.
+The authorization's previous_generation defines the only candidate generation: previous_generation plus one.
+Reject integer overflow.
+This calculation is a request constraint. It is not evidence that activation occurred.
+Require the issuer to verify that this exact authorization was consumed by the exact active generation.
+Reject an unconsumed authorization. Do not invent an activation receipt.
+Require the signing key to match the public key in the original launch authorization.
+Use the checked production IssuerClient and the AUTHORITY_FENCING challenge path.
+
+Local ordering
+
+Stop private participant forwarding before requesting the fence.
+Close the child relay and retained service connection. Discard queued participant messages.
+Do not resume forwarding after a failed fence attempt.
+Compare the returned fence against the entire owned authorization and launch binding.
+Persist the checked fence before returning it to the management caller.
+A failed journal transaction must not produce a successful fence reply.
+The issuer may have committed the fence even when local persistence fails. Report that uncertainty.
+A retained coordinator can retry the same request with a fresh proof.
+An already persisted matching fence returns the same record without repeating external effects.
+
+The production supervisor handles fence by requesting fencing, then stopping its owned process and native scopes.
+Return the record only after both checked cleanup receipts exist.
+Exit after draining that response. Do not return to child routing.
+On fencing failure, attempt the existing checked cleanup and return an error.
+Preserve a successful issuer fence even if subsequent native or process cleanup fails.
+Keep ordinary inspect, stop, graceful release, and crash handling unchanged in this increment.
+Automatic crash fencing and verified issuer retirement remain required recovery work.
+
+Persistence
+
+Add one optional field to the version 2 supervised launch record.
+The SQLite table and user_version remain unchanged.
+Old records without this field retain their existing meaning.
+Validate every field of a persisted fence against its original launch authorization on read.
+A forged or mismatched journal field must prevent startup.
+Reopening a record does not reconstruct ownership, reload signing configuration, or authorize new execution.
+No operator database migration is authorized by this increment.
+
+Required checks
+
+Observe the missing management operation against the unchanged fencing candidate on both hosts.
+Use a real production supervisor and a real activated child, not a caller-supplied activation report.
+Verify exact issuer fencing, checked process/native cleanup, and a matching durable launch record.
+Verify that issuer activation and pending revocation obligations remain unresolved.
+Reject fencing before activation and after graceful issuer release.
+Reject changed signing material and mismatched durable fence identities.
+Preserve issuer fencing when native cleanup is uncertain.
+Exercise lost local persistence and fresh-proof retry through the production coordinator.
+Run focused and full qualification in Debug and runtime ASan/UBSan on both hosts.
+
+Remaining recovery scope
+
+This operation does not prove dependent application-control reservation cleanup.
+It does not issue a verified retirement receipt or authorize replacement execution.
+Automatic crash coordination, supervisor restart recovery, issuer retirement, and cross-host cancellation remain required.

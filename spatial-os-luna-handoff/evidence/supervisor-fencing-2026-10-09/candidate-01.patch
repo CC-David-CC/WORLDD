@@ -1,0 +1,341 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -309,6 +309,17 @@
+         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+     set_tests_properties(authority-world-handoff-regressions PROPERTIES TIMEOUT 180)
++    add_test(NAME authority-supervisor-fencing COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-supervisor-fencing-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_supervisor_fencing.py" "${CMAKE_CURRENT_SOURCE_DIR}"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(authority-supervisor-fencing PROPERTIES TIMEOUT 180)
+     add_test(NAME authority-participant-relay COMMAND systemd-run --user --wait --pipe --collect
+         --unit=spatial-participant-relay-${build_hash} --property=Delegate=yes
+         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -32,6 +32,7 @@
+   ProcessScopeStopped process_stopped = 7;
+   NativeScopeStopped native_stopped = 8;
+   spatial.identity.v1.AuthorityLaunchAuthorization authorization = 9;
++  spatial.identity.v1.AuthorityFenceState fence = 10;
+ }
+ message AuthorityParticipantAttach {
+   string runtime_config = 1;
+@@ -74,6 +75,7 @@
+     spatial.identity.v1.ParticipantCommand participant_command = 17;
+     AuthorityParticipantChannelPrepare prepare_channel = 18;
+     AuthorityLaunchQuery pump_channel = 19;
++    AuthorityLaunchQuery fence = 20;
+   }
+ }
+ message AuthorityLaunchView {
+--- a/src/supervisor/launch.cpp
++++ b/src/supervisor/launch.cpp
+@@ -101,6 +101,21 @@
+             service.service_incarnation() == binding.service_incarnation() &&
+             request.launch_id() == process.launch_id(), "Invalid durable participant approval");
+     }
++    if (value.has_fence()) {
++        const auto& fence = value.fence();
++        const auto& approval = value.authorization();
++        const auto& request = approval.request();
++        require(value.has_authorization() && binding.supervised() && value.stage() >= v1::START_ATTEMPTED &&
++            request.previous_generation() < INT64_MAX && fence.issuer_id() == binding.issuer_id() &&
++            fence.registration().SerializeAsString() == request.service().registration().SerializeAsString() &&
++            fence.generation() == request.previous_generation()+1 &&
++            fence.service_incarnation() == binding.service_incarnation() &&
++            fence.authorization_id() == approval.authorization_id() && fence.launch_id() == process.launch_id() &&
++            fence.supervision_revision() == request.supervision_revision() &&
++            fence.supervisor_public_key() == approval.supervisor_public_key() &&
++            fence.fence_id().size() == 32 && fence.security_revision() <= INT64_MAX,
++            "Invalid durable authority fence");
++    }
+     require(!binding.supervised() || value.stage() != v1::START_ATTEMPTED || value.has_authorization(),
+         "Supervised execution requires durable approval");
+     require(native.credential_id().size() == 32 ||
+@@ -123,6 +138,7 @@
+     std::unique_ptr<NativeScope> native;
+     std::unique_ptr<identity::ParticipantRuntime> participant;
+     std::optional<identity::v1::AuthorityAuthenticationResult> authenticated;
++    std::optional<v1::AuthorityLaunchAuthorize> authorization_config;
+     bool attached = false, stopping = false, started = false;
+     bool relay_prepared = false, relay_terminal = false, relay_finished = false, relay_failed = false;
+     bool relay_released = false;
+@@ -354,6 +370,44 @@
+     require(!impl_->participant->failed(), "Participant failed during supervisor approval");
+     auto next = impl_->record; *next.mutable_authorization() = result.authority_launch_authorization();
+     impl_->persist(next); // The remote approval alone never releases child execution.
++    impl_->authorization_config = request; // Private paths stay in this live supervisor only.
++    return impl_->record;
++}
++v1::AuthorityLaunchRecord AuthorityLaunch::fence() {
++    require(impl_->record.binding().supervised() && impl_->record.has_authorization() &&
++        impl_->record.stage() >= v1::START_ATTEMPTED && impl_->process && impl_->native &&
++        impl_->authorization_config, "Fencing requires retained authorized launch ownership");
++    if (impl_->record.has_fence()) return impl_->record;
++    impl_->stopping = true;
++    impl_->relay.reset(); impl_->bootstrap.clear();
++    if (impl_->relay_child.fd >= 0) close(std::exchange(impl_->relay_child.fd, -1));
++    impl_->participant.reset();
++    const auto& approval = impl_->record.authorization();
++    const auto& authorized = approval.request();
++    require(authorized.previous_generation() < INT64_MAX, "Fence candidate generation overflows");
++    auto key = identity::KeyPair::load(impl_->authorization_config->private_key_path());
++    require(key.public_key() == approval.supervisor_public_key(), "Fence signing key differs from owned authorization");
++    identity::IssuerClient client(impl_->authorization_config->issuer_client_config());
++    identity::v1::IssuerRequest begin; begin.set_protocol_version(1);
++    auto* request = begin.mutable_authority_fence_begin();
++    const auto& binding = impl_->record.binding();
++    request->set_participant_id(binding.participant_id());
++    request->set_registered_revision(binding.registered_revision());
++    request->set_generation(authorized.previous_generation()+1);
++    request->set_service_incarnation(binding.service_incarnation());
++    request->set_launch_id(impl_->record.process().launch_id());
++    request->set_supervision_revision(authorized.supervision_revision());
++    request->set_authorization_id(approval.authorization_id());
++    auto result = client.call(std::move(begin));
++    require(result.has_challenge(), "Issuer rejected owned authority fence challenge");
++    identity::v1::IssuerRequest complete; complete.set_protocol_version(1);
++    auto* proof = complete.mutable_authority_fence_complete();
++    proof->set_nonce(result.challenge().nonce());
++    *proof->mutable_proof() = key.sign(result.challenge().signing_request());
++    result = client.call(std::move(complete));
++    require(result.has_authority_fence(), "Issuer did not fence the owned authority launch");
++    auto next = impl_->record; *next.mutable_fence() = result.authority_fence();
++    impl_->persist(next); // Full binding validation precedes the durable local write.
+     return impl_->record;
+ }
+ void AuthorityLaunch::submit_participant(identity::v1::ParticipantCommand command) {
+--- a/src/supervisor/launch.hpp
++++ b/src/supervisor/launch.hpp
+@@ -31,6 +31,8 @@
+     bool child_completed() const;
+     v1::AuthorityLaunchRecord inspect() const;
+     v1::AuthorityLaunchRecord stop();
++    // Fence the exact authorized generation. This does not retire issuer obligations.
++    v1::AuthorityLaunchRecord fence();
+ private:
+     struct Impl;
+     std::unique_ptr<Impl> impl_;
+--- a/src/supervisor/main.cpp
++++ b/src/supervisor/main.cpp
+@@ -248,11 +248,12 @@
+                     require(request.ParseFromString(*bytes), "Malformed supervisor request");
+                     reply.set_request_id(request.request_id()); spatial::validate_message(request);
+                     require(request.protocol_version() == 1, "Unsupported supervisor request version");
+-                    require(request.has_inspect() || request.has_stop(), "Supervisor supports only inspect and stop");
+-                    stop = request.has_stop();
++                    require(request.has_inspect() || request.has_stop() || request.has_fence(), "Supervisor supports only inspect, stop, and fence");
++                    stop = request.has_stop() || request.has_fence();
+                 } catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
+                 if (!reply.has_error()) {
+                     // Cleanup errors are fatal and cannot resume child routing.
++                    if (request.has_fence()) launch->fence();
+                     *reply.mutable_view()->mutable_record() = stop ? launch->stop() : launch->inspect();
+                 }
+                 management->send(reply.SerializeAsString());
+--- a/src/testing/authority_launch_probe.cpp
++++ b/src/testing/authority_launch_probe.cpp
+@@ -39,6 +39,7 @@
+                 else if (request.has_pump_channel()) { launch.pump_channel(); *reply.mutable_view()->mutable_record() = launch.inspect(); }
+                 else if (request.has_inspect()) *reply.mutable_view()->mutable_record() = launch.inspect();
+                 else if (request.has_stop()) *reply.mutable_view()->mutable_record() = launch.stop();
++                else if (request.has_fence()) *reply.mutable_view()->mutable_record() = launch.fence();
+                 else throw std::runtime_error("Unknown launch operation");
+             } catch (const std::exception& error) {
+                 reply.mutable_error()->set_message(error.what());
+--- /dev/null
++++ b/tests/native/test_supervisor_fencing.py
+@@ -0,0 +1,185 @@
++"""The real supervisor must connect its owned launch to issuer fencing."""
++import struct
++from pathlib import Path
++import sys
++import unittest
++SOURCE = Path(sys.argv.pop(1)).resolve()
++sys.path.insert(0,str(SOURCE/'tests/native'))
++import test_authority_supervisor as supervisor
++import launch_pb2 as launch
++
++
++class SupervisorFencingBaselineTests(supervisor.AuthoritySupervisorTests):
++    def test_supervisor_fences_its_actual_activated_child_before_checked_cleanup(self):
++        proc, channel = self.running()
++        active = self.activate_child(proc)
++        before = self.read_record()
++        # Additive protobuf field 20 is an empty AuthorityLaunchQuery.
++        # This encodes the same request against old and new generated bindings.
++        request = launch.AuthorityLaunchRequest(protocol_version=1,request_id=77).SerializeToString()+b'\xa2\x01\x00'
++        channel.sendall(struct.pack('!I',len(request))+request)
++        reply = self.message(channel,launch.AuthorityLaunchReply)
++        self.assertEqual(reply.request_id,77)
++        self.assertFalse(reply.HasField('error'),'Missing production supervisor fencing: '+str(reply))
++        self.assertTrue(reply.HasField('view'),reply)
++        record = reply.view.record
++        self.assertEqual(record.stage,launch.OWNED_SCOPES_STOPPED)
++        self.assertEqual(proc.wait(timeout=5),0)
++        self.assertEqual(self.checked_cleanup(),record)
++        self.assertTrue(record.HasField('fence'))
++        self.assertEqual(record.fence.generation,active.generation)
++        self.assertEqual(record.fence.launch_id,before.process.launch_id)
++        self.assertEqual(record.fence.authorization_id,before.authorization.authorization_id)
++        self.assertEqual(record.fence.registration,self.issuer.registration)
++        self.assertEqual(record.fence.service_incarnation,before.binding.service_incarnation)
++        self.assertEqual(record.fence.supervisor_public_key,self.issuer.supervisor_public)
++        self.assertEqual(record.authorization,before.authorization)
++        rows = self.issuer.snapshot_all()
++        self.assertEqual(len(rows['authority_fence']),1)
++        self.assertEqual(len(rows['authority_activation']),1)
++        self.assertEqual(rows['authority_activation'][0][-1],1)
++
++
++import sqlite3
++import issuer_pb2 as identity
++import security_pb2 as security
++
++
++class SupervisorFenceFailures(supervisor.AuthoritySupervisorTests):
++    def failed_fence(self,channel):
++        request=launch.AuthorityLaunchRequest(protocol_version=1,request_id=77,fence=launch.AuthorityLaunchQuery()).SerializeToString()
++        channel.sendall(struct.pack('!I',len(request))+request)
++        reply=self.message(channel,launch.AuthorityLaunchReply)
++        self.assertEqual(reply.request_id,0) # Existing fatal supervisor error channel.
++        self.assertTrue(reply.HasField('error'),reply)
++        return reply
++
++    def test_pending_revocation_survives_fenced_cleanup(self):
++        proc,channel=self.running();self.activate_child(proc)
++        self.revoke();self.child_update(proc,'revocations')
++        self.assertEqual(self.barrier().pending_count,1)
++        reply=self.control(channel,fence=launch.AuthorityLaunchQuery())
++        self.assertTrue(reply.HasField('view'),reply)
++        self.assertEqual(proc.wait(timeout=5),0)
++        record=self.checked_cleanup();self.assertTrue(record.HasField('fence'))
++        self.assertEqual(record.fence.security_revision,1)
++        pending=self.barrier()
++        self.assertEqual((pending.participant_count,pending.pending_count,pending.complete),(1,1,False))
++
++    def test_unconsumed_authorization_cannot_be_fenced(self):
++        proc,channel=self.running()
++        reply=self.failed_fence(channel)
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertEqual(proc.wait(timeout=5),2)
++        self.assertFalse(self.checked_cleanup().HasField('fence'))
++        rows=self.issuer.snapshot_all()
++        self.assertEqual(rows['authority_fence'],[]);self.assertEqual(rows['authority_activation'],[])
++
++    def test_replaced_signing_key_cannot_fence_owned_launch(self):
++        proc,channel=self.running();self.activate_child(proc)
++        self.issuer.supervisor_key.write_bytes(self.issuer.signer.read_bytes())
++        reply=self.failed_fence(channel)
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertIn('Fence signing key differs',reply.error.message)
++        self.assertEqual(proc.wait(timeout=5),2)
++        self.assertFalse(self.checked_cleanup().HasField('fence'))
++        self.assertEqual(self.issuer.snapshot_all()['authority_fence'],[])
++
++    def test_native_cleanup_uncertainty_preserves_committed_fence(self):
++        proc,channel=self.running();self.activate_child(proc)
++        before=self.read_record()
++        revoked=self.supervisor.call(revoke=security.Revoke(credential_id=before.native.credential_id))
++        self.assertEqual(revoked.code,security.OK);self.assertTrue(revoked.revoked)
++        reply=self.failed_fence(channel)
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertEqual(proc.wait(timeout=5),2)
++        record=self.read_record()
++        self.assertEqual(record.stage,launch.CLEANUP_PENDING)
++        self.assertTrue(record.HasField('fence'));self.assertTrue(record.HasField('process_stopped'))
++        self.assertFalse(record.HasField('native_stopped'))
++        self.assertEqual(len(self.issuer.snapshot_all()['authority_fence']),1)
++
++    def test_failed_local_commit_never_reports_success(self):
++        proc,channel=self.running();self.activate_child(proc)
++        before=self.read_record()
++        with sqlite3.connect(self.journal/'launch.db') as db:
++            db.execute("CREATE TRIGGER refuse_fence BEFORE UPDATE ON launch BEGIN SELECT RAISE(ABORT,'fence journal fault'); END")
++        reply=self.failed_fence(channel)
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertEqual(proc.wait(timeout=5),2)
++        self.assertEqual(self.read_record(),before)
++        self.assertEqual(len(self.issuer.snapshot_all()['authority_fence']),1)
++
++
++class CoordinatorFenceTests(supervisor.owned.OwnedParticipantTests):
++    def live_authorized(self):
++        proc,view,auth,batch=self.connected()
++        self.assertTrue(self.authorize(proc).HasField('view'))
++        self.assertTrue(self.run_child(proc,'import time;time.sleep(30)').HasField('view'))
++        self.assertTrue(self.activate(proc,batch.through_revision).HasField('view'))
++        self.update(proc,'activated')
++        return proc
++
++    def test_matching_fence_retry_preserves_record_and_rejects_further_participant_commands(self):
++        proc=self.live_authorized()
++        reply=self.call(proc,fence=launch.AuthorityLaunchQuery())
++        self.assertTrue(reply.HasField('view'),reply);record=reply.view.record
++        self.assertTrue(record.HasField('fence'))
++        self.assertEqual(self.call(proc,fence=launch.AuthorityLaunchQuery()).view.record,record)
++        self.assertTrue(self.activate(proc).HasField('error'))
++        stopped=self.stopped(proc)
++        self.assertEqual(stopped.fence,record.fence)
++        self.assertEqual(self.call(proc,fence=launch.AuthorityLaunchQuery()).view.record,stopped)
++
++    def test_lost_local_commit_can_retry_exact_remote_fence_with_retained_ownership(self):
++        proc=self.live_authorized();before=self.read_record()
++        with sqlite3.connect(self.journal/'launch.db') as db:
++            db.execute("CREATE TRIGGER refuse_fence BEFORE UPDATE ON launch BEGIN SELECT RAISE(ABORT,'fence journal fault'); END")
++        reply=self.call(proc,fence=launch.AuthorityLaunchQuery())
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertEqual(self.read_record(),before)
++        rows=self.issuer.snapshot_all()['authority_fence'];self.assertEqual(len(rows),1)
++        with sqlite3.connect(self.journal/'launch.db') as db:db.execute('DROP TRIGGER refuse_fence')
++        retry=self.call(proc,fence=launch.AuthorityLaunchQuery())
++        self.assertTrue(retry.HasField('view'),retry)
++        self.assertTrue(retry.view.record.HasField('fence'))
++        self.assertEqual(self.issuer.snapshot_all()['authority_fence'],rows)
++        self.stopped(proc)
++
++    def test_released_generation_cannot_be_fenced(self):
++        proc=self.live_authorized()
++        reply=self.call(proc,participant_command=identity.ParticipantCommand(request_id=72,
++            release=identity.AuthorityRelease(generation=1,applied_revision=0)))
++        self.assertTrue(reply.HasField('view'),reply);self.update(proc,'released')
++        reply=self.call(proc,fence=launch.AuthorityLaunchQuery())
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertFalse(self.read_record().HasField('fence'))
++        self.assertEqual(self.issuer.snapshot_all()['authority_fence'],[])
++        self.stopped(proc)
++
++    def test_reopened_journal_rejects_mismatched_fence_and_cannot_reconstruct_ownership(self):
++        proc=self.live_authorized()
++        self.assertTrue(self.call(proc,fence=launch.AuthorityLaunchQuery()).HasField('view'))
++        record=self.stopped(proc)
++        proc.stdin.close();self.assertEqual(proc.wait(timeout=5),0)
++        for field,value in [('issuer_id',b'x'*32),('generation',2),('service_incarnation',b'x'*32),
++                ('authorization_id',b'x'*32),('launch_id',b'x'*32),('supervision_revision',2),
++                ('supervisor_public_key',b'x'*32),('fence_id',b''),('security_revision',2**63)]:
++            changed=launch.AuthorityLaunchRecord();changed.CopyFrom(record)
++            setattr(changed.fence,field,value)
++            with sqlite3.connect(self.journal/'launch.db') as db:
++                db.execute('UPDATE launch SET record=?',(changed.SerializeToString(),))
++            rejected=self.probe(start_server=False);self.assertEqual(rejected.wait(timeout=5),2)
++        with sqlite3.connect(self.journal/'launch.db') as db:
++            db.execute('UPDATE launch SET record=?',(record.SerializeToString(),))
++        reopened=self.probe(start_server=False)
++        self.assertEqual(self.call(reopened,inspect=launch.AuthorityLaunchQuery()).view.record,record)
++        self.assertTrue(self.call(reopened,fence=launch.AuthorityLaunchQuery()).HasField('error'))
++        self.assertTrue(self.call(reopened,prepare=self.binding).HasField('error'))
++
++
++if __name__ == '__main__':
++    suite=unittest.TestSuite(cls(name) for cls in
++        (SupervisorFencingBaselineTests,SupervisorFenceFailures,CoordinatorFenceTests)
++        for name in cls.__dict__ if name.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

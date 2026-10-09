@@ -1,3 +1,22 @@
+## 2026-10-09: Supervisor fence operation implemented in isolated candidate
+
+Both hosts reproduced the missing supervisor operation in Debug and runtime ASan/UBSan.
+Each profile rejected protobuf field 20 after its real owned child activated.
+These four expected failures are diagnostic evidence, not acceptance passes.
+
+Candidate01 adds private supervisor fencing and a checked durable fence field.
+It derives the request from retained launch authorization and requires issuer confirmation of the consumed generation.
+It stops private participant forwarding before fencing and performs checked cleanup before reporting success.
+Ten new tests cover normal cleanup, pending obligations, signing keys, journal faults, retries, and uncertain native cleanup.
+All existing tests and 41 locked files remain unchanged. Both hosts passed 10 new Debug checks and 51 harness checks.
+Read docs/SUPERVISOR_AUTHORITY_FENCING.txt and evidence/supervisor-fencing-2026-10-09.
+
+sb16 completed full world qualification in both profiles:1407 core checks,51 harness checks,151 P10 cases each.
+sb16-2 full world sanitizers remain active. World integration still requires both-host completion.
+Issuer fencing cumulative qualification also remains active on both hosts.
+All new candidates remain unintegrated. Production remains broker283.
+Automatic crash fencing, dependent control cleanup, issuer retirement, and cross-host cancellation remain required.
+
 ## 2026-10-09: Fencing sanitizers and real-world crash diagnostics pass
 
 Both hosts passed all 26 fencing checks, the baseline regression, and 51 harness checks in both profiles.

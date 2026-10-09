@@ -1,0 +1,16 @@
+{
+  "reviewer": "primary agent",
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "source_files": 292,
+  "expected_failures_per_profile": 1,
+  "acceptance_pass": false,
+  "diagnostic_confirmed": true,
+  "finding": "The actual supervisor rejects additive field20 after a real child activates. Issuer-only fencing is not a supervisor recovery path."
+}

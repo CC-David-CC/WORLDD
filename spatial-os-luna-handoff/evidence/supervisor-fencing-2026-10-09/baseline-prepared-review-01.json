@@ -1,0 +1,9 @@
+{
+  "reviewer": "primary agent",
+  "test_sha256": "7fad73c576d6a3190a1e5cf20cc794c6ddbca87a9371687d2fde79e4b2369026",
+  "source_files": 292,
+  "checks_per_profile": 1,
+  "status": "prepared_unrun",
+  "scope": "Missing private supervisor fence operation for an actual activated owned child.",
+  "expected_baseline": "Unknown protobuf fields; one missing-feature failure. This is not an acceptance pass."
+}

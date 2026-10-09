@@ -98,5 +98,6 @@
       "Verify dependent control cleanup before issuer retirement.",
       "Test replacement, recovery races, and cross-host cancellation."
     ]
-  }
+  },
+  "supervisor_fencing_task": "tasks/m1/identity.supervisor_fencing.json"
 }

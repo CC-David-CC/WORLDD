@@ -1,0 +1,26 @@
+Running as unit: spatial-supervised-world-1ea47410221844f3b83452a1b97cfe4e.service; invocation ID: 19fd570600e34e5e8ed0203f687f70a8
+test_supervisor_fences_its_actual_activated_child_before_checked_cleanup (__main__.SupervisorFencingBaselineTests.test_supervisor_fences_its_actual_activated_child_before_checked_cleanup) ... FAIL
+
+======================================================================
+FAIL: test_supervisor_fences_its_actual_activated_child_before_checked_cleanup (__main__.SupervisorFencingBaselineTests.test_supervisor_fences_its_actual_activated_child_before_checked_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_fencing_baseline.py", line 23, in test_supervisor_fences_its_actual_activated_child_before_checked_cleanup
+    self.assertFalse(reply.HasField('error'),'Missing production supervisor fencing: '+str(reply))
+AssertionError: True is not false : Missing production supervisor fencing: protocol_version: 1
+request_id: 77
+error {
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 1.012s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 1.175s
+CPU time consumed: 540ms
+Memory peak: 1.5M
+Memory swap peak: 0B

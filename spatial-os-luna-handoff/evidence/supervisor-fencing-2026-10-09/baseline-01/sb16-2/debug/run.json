@@ -1,0 +1,28 @@
+{
+  "command": [
+    "/usr/bin/systemd-run",
+    "--property=RuntimeMaxSec=150",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--unit=spatial-supervised-world-1ea47410221844f3b83452a1b97cfe4e",
+    "--property=Delegate=yes",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/supervisor-fencing-baseline-01/debug/server",
+    "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+    "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_fencing_baseline.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-fencing-01/debug/build/spatial-issuer-client"
+  ],
+  "exit_code": 1,
+  "ran": 1,
+  "passed": true,
+  "sanitizer_marker": false
+}

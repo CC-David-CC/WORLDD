@@ -1,0 +1,29 @@
+{
+  "id": "identity.supervisor_fencing",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "contract": "docs/SUPERVISOR_AUTHORITY_FENCING.txt",
+  "evidence": "evidence/supervisor-fencing-2026-10-09",
+  "production_changed": false,
+  "invariant": "Only retained exact launch ownership can request and persist an issuer fence before checked fenced cleanup.",
+  "candidate": {
+    "number": 1,
+    "source_files": 293,
+    "changed_files": 7,
+    "new_checks": 10,
+    "locked_files_unchanged": 41
+  },
+  "baseline": "One confirmed missing-operation failure per host/profile; four profiles total.",
+  "qualification": "Both hosts passed 10 new Debug checks and 51 harness checks. Related regressions, runtime sanitizers, and cumulative qualification remain active or pending.",
+  "live_drivers": {
+    "sb16": 1266474,
+    "sb16_2": 1047059
+  },
+  "remaining": [
+    "Qualify new and existing checks in both profiles on both hosts.",
+    "Complete cumulative qualification and review before integration.",
+    "Keep automatic crash coordination, dependent control cleanup, and issuer retirement as required recovery work."
+  ],
+  "debug_review": "evidence/supervisor-fencing-2026-10-09/debug-results-review-01.json"
+}
