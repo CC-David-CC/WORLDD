@@ -1,5 +1,5 @@
 Supervisor world and compositor native handoff
-Status: Baseline prepared. Runtime reproduction and correction remain unrun.
+Status: Missing-field failure reproduced on both qualified Debug builds. Correction remains partial and unrun.
 
 Invariant
 

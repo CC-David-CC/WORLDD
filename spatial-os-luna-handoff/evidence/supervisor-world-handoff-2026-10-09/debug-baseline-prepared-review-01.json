@@ -1,0 +1,13 @@
+{
+  "reviewer": "primary agent",
+  "status": "prepared_runtime_unrun",
+  "runner_sha256": "aa5d4582547e97959ebca47efe9a06a970d5c4506ced841d4a9f270c7205f3e5",
+  "rationale": "Full Debug has passed on both hosts. Run the unchanged startup diagnostic independently while full sanitizer qualification continues.",
+  "isolation": [
+    "Read-only frozen 283-file source and qualified Debug binaries.",
+    "Original baseline test hash remains pinned; expected parser failure remains unchanged.",
+    "Separate output directory, random delegated systemd unit, private test directory and disposable X server.",
+    "No builds, operator session changes, production integration, or acceptance claim.",
+    "RuntimeMaxSec100 and command timeout120; queued full-profile diagnostics remain untouched."
+  ]
+}

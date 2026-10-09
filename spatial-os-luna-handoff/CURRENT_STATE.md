@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Both hosts reproduce the missing world native handoff
+
+The unchanged, qualified Debug binaries fail the new startup baseline on both hosts.
+Each reports one failure: AuthoritySupervisorConfig has no compositor_native_target_fd field.
+The diagnostic verified all 283 source hashes and the recorded Debug binary hashes.
+Read evidence/supervisor-world-handoff-2026-10-09/debug-baseline-01.
+These are expected missing-feature failures, not acceptance passes.
+
+A separate six-file draft adds the protobuf schema, sealed configuration reader, and supervisor handoff.
+It remains partial, unbuilt, and outside production. World/compositor forwarding and authenticated connection work remain required.
+Read partial-draft-01.json and partial-draft-01.patch in the same evidence directory.
+Ten prepared correction tests remain unrun.
+
+Both full broker sanitizer drivers remain active. Their queued integration diagnostics remain unchanged.
+Production remains the supervisor increment at 534a94c. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Both hosts pass full broker Debug; world correction witnesses prepared
 
 Broker candidate02 passed full Debug on both hosts.

@@ -1,0 +1,274 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -16,6 +16,7 @@
+ find_package(GLEW REQUIRED)
+ configure_file(config/conformance.textproto runtime.textproto COPYONLY)
+ set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
++protobuf_generate_cpp(compositor_proto_sources compositor_proto_headers proto/spatial/render/v1/compositor_native.proto)
+ protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
+ protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
+ protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
+@@ -28,6 +29,12 @@
+ protobuf_generate_cpp(scope_proto_sources scope_proto_headers proto/spatial/supervisor/v1/process_scope.proto)
+ protobuf_generate_cpp(launch_proto_sources launch_proto_headers proto/spatial/supervisor/v1/launch.proto)
+ file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
++add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/compositor_native_pb2.py"
++    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
++        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1/compositor_native.proto
++    DEPENDS proto/spatial/render/v1/compositor_native.proto protobuf::protoc VERBATIM)
++add_custom_target(compositor-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/compositor_native_pb2.py")
+ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py"
+     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+@@ -144,12 +151,14 @@
+ string(SHA256 build_hash "${build_material}")
+ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
+ 
+-add_library(spatial-protobuf STATIC ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
++add_library(spatial-protobuf STATIC ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
+ target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
+ target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+ add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
+ target_include_directories(spatial-scene PUBLIC src)
+ target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
++add_library(spatial-compositor-config STATIC src/platform/compositor_config.cpp)
++target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
+ add_library(spatial-identity STATIC src/identity/keys.cpp)
+ add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp ${scope_proto_sources} ${scope_proto_headers})
+ target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
+--- /dev/null
++++ b/proto/spatial/render/v1/compositor_native.proto
+@@ -0,0 +1,12 @@
++syntax = "proto3";
++package spatial.render.v1;
++
++// Private sealed handoff. Never expose this message through management replies.
++message NativeCompositorConfig {
++  uint32 protocol_version = 1;
++  optional uint32 display_number = 2;
++  bytes compositor_cookie = 3;
++  bytes server_id = 4;
++  optional uint32 server_pid = 5;
++  optional uint32 server_uid = 6;
++}
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -55,7 +55,8 @@
+   string child_participant_config = 8;
+   uint32 participant_target_fd = 9;
+   repeated uint32 inherited_source_fds = 10;
+-  optional uint32 broker_native_target_fd = 11; // Sealed issued broker credential; never the supervisor credential.
++  optional uint32 broker_native_target_fd = 11;
++  optional uint32 compositor_native_target_fd = 12; // Sealed issued broker credential; never the supervisor credential.
+ }
+ message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
+ message AuthorityLaunchQuery {}
+--- /dev/null
++++ b/src/platform/compositor_config.cpp
+@@ -0,0 +1,66 @@
++#include "platform/compositor_config.hpp"
++#include "core/protocol.hpp"
++#include <cerrno>
++#include <climits>
++#include <cstring>
++#include <fcntl.h>
++#include <stdexcept>
++#include <sys/prctl.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++namespace spatial {
++namespace {
++void require(bool okay, const char* message) {
++    if (!okay) throw std::invalid_argument(std::string("Native compositor configuration: ") + message);
++}
++void erase(std::string& bytes) {
++    if (!bytes.empty()) explicit_bzero(bytes.data(), bytes.size());
++    bytes.clear();
++}
++}
++CompositorConfig::CompositorConfig(int descriptor) {
++    require(descriptor > STDERR_FILENO, "expected private descriptor");
++    descriptor_ = descriptor;
++    std::string bytes;
++    try {
++        require(prctl(PR_SET_DUMPABLE, 0) == 0, "cannot disable process inspection");
++        constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
++        const int actual = fcntl(descriptor_, F_GET_SEALS);
++        struct stat info{};
++        require(actual >= 0 && (actual & seals) == seals && fstat(descriptor_, &info) == 0 &&
++                S_ISREG(info.st_mode) && info.st_size > 0 && info.st_size <= 1048576,
++                "expected sealed bounded protobuf");
++        const int flags = fcntl(descriptor_, F_GETFD);
++        require(flags >= 0 && fcntl(descriptor_, F_SETFD, flags | FD_CLOEXEC) == 0,
++                "cannot restrict descriptor inheritance");
++        bytes.resize(static_cast<std::size_t>(info.st_size));
++        std::size_t used = 0;
++        while (used < bytes.size()) {
++            const auto count = pread(descriptor_, bytes.data() + used, bytes.size() - used, used);
++            if (count < 0 && errno == EINTR) continue;
++            require(count > 0, "cannot read sealed protobuf");
++            used += static_cast<std::size_t>(count);
++        }
++        require(value_.ParseFromString(bytes), "malformed protobuf");
++        try { validate_message(value_); }
++        catch (const std::exception&) { require(false, "unsupported protobuf fields"); }
++        require(value_.protocol_version() == 1 && value_.has_display_number() && value_.display_number() <= 65535 &&
++                value_.compositor_cookie().size() == 32 && value_.server_id().size() == 32 &&
++                value_.has_server_pid() && value_.server_pid() > 0 && value_.server_pid() <= INT_MAX &&
++                value_.has_server_uid(), "invalid protocol, credential, or server pins");
++        erase(bytes);
++    } catch (...) {
++        erase(bytes);
++        consume();
++        throw;
++    }
++}
++CompositorConfig::~CompositorConfig() { consume(); }
++std::string CompositorConfig::display() const { return ":" + std::to_string(value_.display_number()); }
++void CompositorConfig::consume() {
++    if (descriptor_ >= 0) close(descriptor_);
++    descriptor_ = -1;
++    erase(*value_.mutable_compositor_cookie());
++}
++}
+--- /dev/null
++++ b/src/platform/compositor_config.hpp
+@@ -0,0 +1,22 @@
++#pragma once
++#include "compositor_native.pb.h"
++#include <string>
++
++namespace spatial {
++// This owner keeps the sealed descriptor until the compositor fork completes.
++// It disables unprivileged inspection before reading any credential bytes.
++class CompositorConfig {
++public:
++    explicit CompositorConfig(int descriptor);
++    ~CompositorConfig();
++    CompositorConfig(const CompositorConfig&) = delete;
++    CompositorConfig& operator=(const CompositorConfig&) = delete;
++    int descriptor() const { return descriptor_; }
++    std::string display() const;
++    const render::v1::NativeCompositorConfig& value() const { return value_; }
++    void consume();
++private:
++    int descriptor_ = -1;
++    render::v1::NativeCompositorConfig value_;
++};
++}
+--- a/src/supervisor/main.cpp
++++ b/src/supervisor/main.cpp
+@@ -2,6 +2,7 @@
+ #include "identity/participant_stream.hpp"
+ #include "identity/tls_support.hpp"
+ #include "broker.pb.h"
++#include "compositor_native.pb.h"
+ #include <google/protobuf/text_format.h>
+ #include <charconv>
+ #include <chrono>
+@@ -51,7 +52,8 @@
+         absolute(value.journal_directory()) && absolute(value.delegated_cgroup()) &&
+         absolute(value.child_participant_config()) && absolute(value.launch().executable()) &&
+         value.participant_target_fd() >= 3 && value.participant_target_fd() <= 255 &&
+-        value.inherited_source_fds_size() + (value.has_broker_native_target_fd() ? 2 : 1) <= 16 &&
++        !(value.has_broker_native_target_fd() && value.has_compositor_native_target_fd()) &&
++        value.inherited_source_fds_size() + ((value.has_broker_native_target_fd() || value.has_compositor_native_target_fd()) ? 2 : 1) <= 16 &&
+         value.inherited_source_fds_size() == value.launch().inherited_fds_size(),
+         "Invalid supervisor configuration");
+     std::set<std::uint32_t> targets{value.participant_target_fd()}, sources;
+@@ -59,6 +61,11 @@
+         const auto target = value.broker_native_target_fd();
+         require(target >= 3 && target <= 255 && targets.insert(target).second,
+             "Invalid broker native descriptor target");
++    }
++    if (value.has_compositor_native_target_fd()) {
++        const auto target = value.compositor_native_target_fd();
++        require(target >= 3 && target <= 255 && targets.insert(target).second,
++            "Invalid compositor native descriptor target");
+     }
+     struct stat native_info{}, management_info{};
+     require(fstat(native, &native_info) == 0 && fstat(management, &management_info) == 0,
+@@ -78,7 +85,7 @@
+     }
+     return value;
+ }
+-pb::NativeScopeConfig broker_source(int fd) {
++pb::NativeScopeConfig handoff_source(int fd, bool compositor) {
+     constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
+     struct stat info{};
+     const int actual = fcntl(fd, F_GET_SEALS);
+@@ -90,7 +97,8 @@
+     pb::NativeScopeConfig value;
+     require(value.ParseFromString(bytes), "Malformed broker handoff source");
+     spatial::validate_message(value);
+-    require(value.role() == spatial::security::v1::BROKER, "Broker handoff requires a broker native scope");
++    require(value.role() == (compositor ? spatial::security::v1::COMPOSITOR : spatial::security::v1::BROKER),
++        compositor ? "Compositor handoff requires a compositor native scope" : "Broker handoff requires a broker native scope");
+     // AuthorityLaunch::prepare validates all source pins against the live native server.
+     return value;
+ }
+@@ -118,6 +126,30 @@
+     require(fcntl(file.value, F_ADD_SEALS, F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL) == 0,
+         "Cannot seal broker configuration");
+ }
++void seal_compositor_config(File& file, const pb::NativeScopeConfig& source, const pb::NativeScopeReady& ready) {
++    require(ready.identity().role() == spatial::security::v1::COMPOSITOR &&
++        ready.identity().server_id() == source.server_id() &&
++        ready.credential().role() == spatial::security::v1::COMPOSITOR &&
++        ready.credential().id() == ready.identity().credential_id() &&
++        ready.credential().cookie().size() == 32 && ready.credential().cookie() != source.supervisor_cookie(),
++        "Compositor handoff requires the owned issued native credential");
++    spatial::render::v1::NativeCompositorConfig config;
++    config.set_protocol_version(1); config.set_display_number(source.display_number());
++    config.set_compositor_cookie(ready.credential().cookie()); config.set_server_id(source.server_id());
++    config.set_server_pid(source.server_pid()); config.set_server_uid(source.server_uid());
++    const auto bytes = config.SerializeAsString();
++    file.reset(memfd_create("supervised-compositor-native", MFD_CLOEXEC | MFD_ALLOW_SEALING));
++    require(file.value >= 0, "Cannot allocate sealed compositor configuration");
++    std::size_t written = 0;
++    while (written < bytes.size()) {
++        const auto count = write(file.value, bytes.data()+written, bytes.size()-written);
++        if (count < 0 && errno == EINTR) continue;
++        require(count > 0, "Cannot write sealed compositor configuration");
++        written += static_cast<std::size_t>(count);
++    }
++    require(fcntl(file.value, F_ADD_SEALS, F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL) == 0,
++        "Cannot seal compositor configuration");
++}
+ void write_child_config(const std::filesystem::path& path,
+                         const spatial::identity::v1::AuthorityParticipantRuntimeConfig& config) {
+     require(!path.filename().empty() && path.filename() != "." && path.filename() != "..",
+@@ -164,12 +196,15 @@
+         management = std::make_unique<spatial::identity::ParticipantStream>(control, getppid());
+         File native_config(native);
+         File broker_config;
++        File compositor_config;
+         std::optional<pb::NativeScopeConfig> source;
+-        if (config.has_broker_native_target_fd()) source = broker_source(native);
++        if (config.has_broker_native_target_fd() || config.has_compositor_native_target_fd())
++            source = handoff_source(native, config.has_compositor_native_target_fd());
+         parent_alive(control);
+         launch = std::make_unique<spatial::supervisor::AuthorityLaunch>(config.journal_directory());
+         const auto prepared = launch->prepare(config.delegated_cgroup(), config.binding(), native);
+-        if (source) seal_broker_config(broker_config, *source, prepared.ready());
++        if (config.has_broker_native_target_fd()) seal_broker_config(broker_config, *source, prepared.ready());
++        if (config.has_compositor_native_target_fd()) seal_compositor_config(compositor_config, *source, prepared.ready());
+         native_config.reset();
+         launch->attach(config.participant());
+         bool authenticated = false, baseline = false;
+@@ -195,8 +230,13 @@
+             config.mutable_launch()->add_inherited_fds(config.broker_native_target_fd());
+             inherited.push_back(broker_config.value);
+         }
++        if (config.has_compositor_native_target_fd()) {
++            config.mutable_launch()->add_inherited_fds(config.compositor_native_target_fd());
++            inherited.push_back(compositor_config.value);
++        }
+         view(*management, launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited));
+         broker_config.reset();
++        compositor_config.reset();
+         for (;;) {
+             require(!interrupted, "Supervisor termination requested");
+             // Inspect the private parent channel before accepting more child commands.
