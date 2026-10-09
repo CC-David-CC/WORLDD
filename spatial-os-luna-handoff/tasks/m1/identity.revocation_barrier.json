@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "real_notification_delay_gap_reproduced",
+  "current_step": "diagnostic_preserved_durable_participant_interface_next",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -40,5 +40,6 @@
     "The diagnostic reproduces a known missing requirement. It is not passing M02 acceptance.",
     "Participant registration, barrier persistence, and acknowledgement interfaces are not implemented yet.",
     "Native input and multi-host cancellation barrier evidence remains unrun."
-  ]
+  ],
+  "implementation_plan": "docs/REVOCATION_BARRIER_PLAN.txt"
 }
