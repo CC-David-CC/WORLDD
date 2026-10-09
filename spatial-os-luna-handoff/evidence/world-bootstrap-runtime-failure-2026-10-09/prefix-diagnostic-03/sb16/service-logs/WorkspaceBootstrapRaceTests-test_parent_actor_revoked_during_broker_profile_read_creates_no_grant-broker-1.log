@@ -1,0 +1,3 @@
+participant diagnostic: Issuer TLS connection failed request=0
+authority participant failed: code=26 request=0
+workspaced: Workspace participant release remains unresolved

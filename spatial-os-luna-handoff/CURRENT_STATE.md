@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-09: Automatic crash fencing passes focused Debug on both hosts
+
+Both hosts passed ten new automatic crash-fencing checks and 51 harness checks in Debug.
+The tests cover child death, management loss, termination, issuer loss, signing keys, and uncertain cleanup.
+They preserve pending revocation obligations and distinguish committed fences from completed recovery.
+Read evidence/supervisor-crash-fencing-2026-10-09/debug-results-review-01.json.
+Related regressions, runtime sanitizers, and full cumulative qualification continue.
+The 294-file candidate remains unintegrated.
+
+Both hosts completed the original 30-suite bootstrap diagnostic prefix without failures.
+The original startup failure remains unresolved. These diagnostic passes do not replace its failed qualification.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/prefix-results-review-03.json.
+Further diagnosis needs transport and server-expiry context. Do not rely on more blind repetitions.
+Production remains broker283. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Full supervisor Debug passes; automatic crash fencing enters qualification
 
 Both hosts passed supervisor fencing Debug: 1443 core checks, 51 harness checks, and 151 P10 cases.

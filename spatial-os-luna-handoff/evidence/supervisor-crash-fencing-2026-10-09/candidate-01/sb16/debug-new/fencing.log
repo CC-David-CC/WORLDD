@@ -1,0 +1,48 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 11
+    Start 11: authority-supervisor-crash-fencing
+
+11: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-supervisor-crash-fencing-6dae6ba1f8ca0448a2b0c69fd7a014099d6404b3d31ef220b3bfa561056f3f6b" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/server" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/source/tests/native/test_supervisor_crash_fencing.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/spatial-issuer-client"
+11: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build
+11: Test timeout computed to be: 180
+11: Running as unit: spatial-supervisor-crash-fencing-6dae6ba1f8ca0448a2b0c69fd7a014099d6404b3d31ef220b3bfa561056f3f6b.service; invocation ID: c00b1cbcbdbc4492b9b65c302789213d
+11: test_child_crash_fences_exact_generation_and_preserves_obligation (__main__.SupervisorCrashFencingTests.test_child_crash_fences_exact_generation_and_preserves_obligation) ... ok
+11: test_management_loss_fences_exact_generation_and_preserves_obligation (__main__.SupervisorCrashFencingTests.test_management_loss_fences_exact_generation_and_preserves_obligation) ... ok
+11: test_termination_signal_fences_activated_service (__main__.SupervisorCrashFailureTests.test_termination_signal_fences_activated_service) ... ok
+11: test_unconsumed_start_is_cleaned_without_fabricated_fence (__main__.SupervisorCrashFailureTests.test_unconsumed_start_is_cleaned_without_fabricated_fence) ... ok
+11: test_graceful_release_does_not_create_fence (__main__.SupervisorCrashFailureTests.test_graceful_release_does_not_create_fence) ... ok
+11: test_explicit_stop_preserves_existing_unfenced_semantics (__main__.SupervisorCrashFailureTests.test_explicit_stop_preserves_existing_unfenced_semantics) ... ok
+11: test_changed_signing_key_preserves_cleanup_and_original_failure (__main__.SupervisorCrashFailureTests.test_changed_signing_key_preserves_cleanup_and_original_failure) ... ok
+11: test_issuer_loss_cannot_prevent_local_cleanup_or_fabricate_fence (__main__.SupervisorCrashFailureTests.test_issuer_loss_cannot_prevent_local_cleanup_or_fabricate_fence) ... ok
+11: test_native_cleanup_uncertainty_preserves_automatic_fence (__main__.SupervisorCrashFailureTests.test_native_cleanup_uncertainty_preserves_automatic_fence) ... ok
+11: test_failed_journal_commit_retains_remote_fence_and_original_error (__main__.SupervisorCrashFailureTests.test_failed_journal_commit_retains_remote_fence_and_original_error) ... ok
+11: 
+11: ----------------------------------------------------------------------
+11: Ran 10 tests in 13.171s
+11: 
+11: OK
+11: Finished with result: success
+11: Main processes terminated with: code=exited/status=0
+11: Service runtime: 13.358s
+11: CPU time consumed: 2.783s
+11: Memory peak: 1.5M
+11: Memory swap peak: 0B
+1/1 Test #11: authority-supervisor-crash-fencing ...   Passed   13.38 sec
+
+The following tests passed:
+	authority-supervisor-crash-fencing
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  13.38 sec

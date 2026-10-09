@@ -24,5 +24,7 @@
   "live_drivers": {
     "sb16": 1403725,
     "sb16_2": 1196184
-  }
+  },
+  "qualification": "Both hosts passed10new Debug checks and51harness checks. Related regressions, sanitizers, and cumulative qualification continue.",
+  "debug_review": "evidence/supervisor-crash-fencing-2026-10-09/debug-results-review-01.json"
 }

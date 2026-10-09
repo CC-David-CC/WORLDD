@@ -1,0 +1,780 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 3
+      Start  3: world-revision-interleave
+
+3: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_revision_interleave.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+3: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+3: Environment variables: 
+3:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+3: Test timeout computed to be: 90
+3: test_old_credential_reply_does_not_disable_unrelated_actor (__main__.RevisionInterleaveTests.test_old_credential_reply_does_not_disable_unrelated_actor) ... ok
+3: test_old_actor_reply_does_not_disable_unrelated_actor (__main__.RevisionInterleaveTests.test_old_actor_reply_does_not_disable_unrelated_actor) ... ok
+3: test_credential_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_credential_reply_older_than_query_context_is_terminal) ... ok
+3: test_actor_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_actor_reply_older_than_query_context_is_terminal) ... ok
+3: 
+3: ----------------------------------------------------------------------
+3: Ran 4 tests in 10.027s
+3: 
+3: OK
+ 1/30 Test  #3: world-revision-interleave .............   Passed   10.15 sec
+test 4
+      Start  4: workspace-bootstrap-owner-idle
+
+4: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_owner_idle.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+4: Environment variables: 
+4:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+4: Test timeout computed to be: 60
+4: test_idle_owner_does_not_block_workspace_bootstrap (__main__.BootstrapOwnerIdleTests.test_idle_owner_does_not_block_workspace_bootstrap) ... ok
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 1 test in 8.298s
+4: 
+4: OK
+ 2/30 Test  #4: workspace-bootstrap-owner-idle ........   Passed    8.44 sec
+test 15
+      Start 15: process-termination
+
+15: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_process_termination.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-process-termination-probe"
+15: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+15: Environment variables: 
+15:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+15: Test timeout computed to be: 90
+15: test_already_exited_process_can_be_stopped_twice (__main__.ProcessTerminationTests.test_already_exited_process_can_be_stopped_twice) ... ok
+15: test_confirmed_stop_has_already_terminated_detached_descendants (__main__.ProcessTerminationTests.test_confirmed_stop_has_already_terminated_detached_descendants) ... ok
+15: test_destructor_signal_error_cannot_return_broker_success (__main__.ProcessTerminationTests.test_destructor_signal_error_cannot_return_broker_success) ... ok
+15: test_destructor_wait_error_cannot_return_broker_success (__main__.ProcessTerminationTests.test_destructor_wait_error_cannot_return_broker_success) ... ok
+15: test_signal_error_returns_failure_without_waiting_for_live_child (__main__.ProcessTerminationTests.test_signal_error_returns_failure_without_waiting_for_live_child) ... ok
+15: test_wait_error_cannot_be_reported_as_confirmed_stop (__main__.ProcessTerminationTests.test_wait_error_cannot_be_reported_as_confirmed_stop) ... ok
+15: 
+15: ----------------------------------------------------------------------
+15: Ran 6 tests in 0.838s
+15: 
+15: OK
+ 3/30 Test #15: process-termination ...................   Passed    0.93 sec
+test 16
+      Start 16: workspace-participant-races
+
+16: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_participant_races.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+16: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+16: Environment variables: 
+16:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+16: Test timeout computed to be: 120
+16: test_exact_multi_workspace_registration_allows_both_bindings (__main__.WorkspaceParticipantMultiTests.test_exact_multi_workspace_registration_allows_both_bindings) ... ok
+16: test_actor_revocation_during_delayed_reply_waits_for_handler_and_process_exit (__main__.WorkspaceParticipantRaceTests.test_actor_revocation_during_delayed_reply_waits_for_handler_and_process_exit) ... ok
+16: test_credential_revocation_rejects_late_reply_without_killing_actor_execution (__main__.WorkspaceParticipantRaceTests.test_credential_revocation_rejects_late_reply_without_killing_actor_execution) ... ok
+16: test_registered_service_rejects_a_different_workspace (__main__.WorkspaceParticipantRaceTests.test_registered_service_rejects_a_different_workspace) ... ok
+16: test_registration_must_cover_every_configured_workspace (__main__.WorkspaceParticipantRaceTests.test_registration_must_cover_every_configured_workspace) ... ok
+16: 
+16: ----------------------------------------------------------------------
+16: Ran 5 tests in 14.518s
+16: 
+16: OK
+ 4/30 Test #16: workspace-participant-races ...........   Passed   14.65 sec
+test 17
+      Start 17: workspace-participant
+
+17: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_participant.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+17: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+17: Environment variables: 
+17:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+17: Test timeout computed to be: 180
+17: test_authority_broker_requires_participant_configuration (__main__.WorkspaceParticipantTests.test_authority_broker_requires_participant_configuration) ... ok
+17: test_broker_activates_before_protected_work_and_cleanly_releases (__main__.WorkspaceParticipantTests.test_broker_activates_before_protected_work_and_cleanly_releases) ... ok
+17: test_clean_restart_uses_new_generation (__main__.WorkspaceParticipantTests.test_clean_restart_uses_new_generation) ... ok
+17: test_completion_waits_for_real_detached_process_exit (__main__.WorkspaceParticipantTests.test_completion_waits_for_real_detached_process_exit) ... ok
+17: test_crash_retains_obligation_and_blocks_replacement (__main__.WorkspaceParticipantTests.test_crash_retains_obligation_and_blocks_replacement) ... ok
+17: test_credential_revocation_preserves_actor_owned_execution (__main__.WorkspaceParticipantTests.test_credential_revocation_preserves_actor_owned_execution) ... ok
+17: 
+17: ----------------------------------------------------------------------
+17: Ran 6 tests in 14.773s
+17: 
+17: OK
+ 5/30 Test #17: workspace-participant .................   Passed   14.90 sec
+test 18
+      Start 18: world-participant
+
+18: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_participant.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+18: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+18: Environment variables: 
+18:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+18: Test timeout computed to be: 180
+18: test_actor_serving_world_requires_participant_configuration (__main__.WorldParticipantTests.test_actor_serving_world_requires_participant_configuration) ... ok
+18: test_barrier_stays_pending_until_held_event_stops_real_actor_motion (__main__.WorldParticipantTests.test_barrier_stays_pending_until_held_event_stops_real_actor_motion) ... ok
+18: test_clean_restart_preserves_world_and_uses_new_generation (__main__.WorldParticipantTests.test_clean_restart_preserves_world_and_uses_new_generation) ... ok
+18: test_crash_retains_obligation_and_rejects_unfenced_replacement (__main__.WorldParticipantTests.test_crash_retains_obligation_and_rejects_unfenced_replacement) ... ok
+18: test_service_cannot_activate_a_different_world (__main__.WorldParticipantTests.test_service_cannot_activate_a_different_world) ... ok
+18: test_world_activates_before_admitting_actor_and_cleanly_releases (__main__.WorldParticipantTests.test_world_activates_before_admitting_actor_and_cleanly_releases) ... ok
+18: 
+18: ----------------------------------------------------------------------
+18: Ran 6 tests in 9.014s
+18: 
+18: OK
+ 6/30 Test #18: world-participant .....................   Passed    9.13 sec
+test 19
+      Start 19: world-revocation-receipts
+
+19: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_revocation_receipts.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+19: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+19: Environment variables: 
+19:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+19: Test timeout computed to be: 120
+19: test_issuer_revocation_before_local_commit_cannot_receive_success_receipt (__main__.WorldRevocationReceiptTests.test_issuer_revocation_before_local_commit_cannot_receive_success_receipt) ... ok
+19: test_private_self_revocation_returns_receipt_then_denies_further_actions (__main__.WorldRevocationReceiptTests.test_private_self_revocation_returns_receipt_then_denies_further_actions) ... ok
+19: test_public_self_revocation_preserves_admission_but_not_navigation (__main__.WorldRevocationReceiptTests.test_public_self_revocation_preserves_admission_but_not_navigation) ... ok
+19: 
+19: ----------------------------------------------------------------------
+19: Ran 3 tests in 7.458s
+19: 
+19: OK
+ 7/30 Test #19: world-revocation-receipts .............   Passed    7.59 sec
+test 20
+      Start 20: identity-launch-authorization
+
+20: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_launch_authorization.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client"
+20: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+20: Environment variables: 
+20:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+20: Test timeout computed to be: 180
+20: test_supervisor_authorizes_exact_service_connection_through_production_client (__main__.LaunchAuthorizationTests.test_supervisor_authorizes_exact_service_connection_through_production_client) ... ok
+20: test_other_service_connection_cannot_consume_authorization (__main__.LaunchAuthorizationTests.test_other_service_connection_cannot_consume_authorization) ... ok
+20: test_wrong_signers_cannot_authorize_launch (__main__.LaunchAuthorizationTests.test_wrong_signers_cannot_authorize_launch) ... ok
+20: test_completion_cannot_cross_supervisor_connections (__main__.LaunchAuthorizationTests.test_completion_cannot_cross_supervisor_connections) ... ok
+20: test_replayed_nonce_cannot_repeat_authorization (__main__.LaunchAuthorizationTests.test_replayed_nonce_cannot_repeat_authorization) ... ok
+20: test_supervisor_rotation_invalidates_unused_authorization (__main__.LaunchAuthorizationTests.test_supervisor_rotation_invalidates_unused_authorization) ... ok
+20: test_authorization_consumption_and_activation_roll_back_together (__main__.LaunchAuthorizationTests.test_authorization_consumption_and_activation_roll_back_together) ... ok
+20: test_starting_one_generation_invalidates_other_prior_approvals (__main__.LaunchAuthorizationTests.test_starting_one_generation_invalidates_other_prior_approvals) ... ok
+20: test_stale_supervision_or_registration_cannot_authorize (__main__.LaunchAuthorizationTests.test_stale_supervision_or_registration_cannot_authorize) ... ok
+20: test_rotation_between_challenge_and_proof_denies_authorization (__main__.LaunchAuthorizationTests.test_rotation_between_challenge_and_proof_denies_authorization) ... ok
+20: test_new_authorization_cannot_bypass_an_active_generation (__main__.LaunchAuthorizationTests.test_new_authorization_cannot_bypass_an_active_generation) ... ok
+20: test_launch_and_service_incarnation_reuse_cannot_change_approved_context (__main__.LaunchAuthorizationTests.test_launch_and_service_incarnation_reuse_cannot_change_approved_context) ... ok
+20: test_concurrent_identical_proofs_return_one_durable_authorization (__main__.LaunchAuthorizationTests.test_concurrent_identical_proofs_return_one_durable_authorization) ... ok
+20: test_failed_authorization_insert_preserves_state_and_fresh_proof_can_retry (__main__.LaunchAuthorizationTests.test_failed_authorization_insert_preserves_state_and_fresh_proof_can_retry) ... ok
+20: test_restart_rejects_old_challenge_and_unused_service_authorization (__main__.LaunchAuthorizationTests.test_restart_rejects_old_challenge_and_unused_service_authorization) ... ok
+20: test_explicit_v7_migration_preserves_binding_without_granting_launch (__main__.LaunchAuthorizationTests.test_explicit_v7_migration_preserves_binding_without_granting_launch) ... ok
+20: test_failed_v7_migration_rolls_back (__main__.LaunchAuthorizationTests.test_failed_v7_migration_rolls_back) ... ok
+20: test_authorization_retry_does_not_complete_pending_revocation (__main__.LaunchAuthorizationTests.test_authorization_retry_does_not_complete_pending_revocation) ... ok
+20: test_client_rejects_substituted_launch_challenge (__main__.LaunchAuthorizationTests.test_client_rejects_substituted_launch_challenge) ... ok
+20: test_client_rejects_substituted_authorization_or_invalid_proof (__main__.LaunchAuthorizationTests.test_client_rejects_substituted_authorization_or_invalid_proof) ... ok
+20: test_client_denial_consumes_launch_context (__main__.LaunchAuthorizationTests.test_client_denial_consumes_launch_context) ... ok
+20: test_client_unsolicited_authorization_is_rejected (__main__.LaunchAuthorizationTests.test_client_unsolicited_authorization_is_rejected) ... ok
+20: test_client_configuration_remains_private_and_unchanged_for_delayed_readers (__main__.LaunchAuthorizationTests.test_client_configuration_remains_private_and_unchanged_for_delayed_readers) ... ok
+20: 
+20: ----------------------------------------------------------------------
+20: Ran 23 tests in 20.370s
+20: 
+20: OK
+ 8/30 Test #20: identity-launch-authorization .........   Passed   20.50 sec
+test 21
+      Start 21: identity-supervisor-registry
+
+21: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_supervisor_registry.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client"
+21: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+21: Environment variables: 
+21:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+21: Test timeout computed to be: 180
+21: test_owner_binds_exact_registration_through_production_client (__main__.SupervisorRegistryTests.test_owner_binds_exact_registration_through_production_client) ... ok
+21: test_stale_revision_cannot_replace_supervisor (__main__.SupervisorRegistryTests.test_stale_revision_cannot_replace_supervisor) ... ok
+21: test_service_and_supervisor_keys_cannot_bind_themselves (__main__.SupervisorRegistryTests.test_service_and_supervisor_keys_cannot_bind_themselves) ... ok
+21: test_active_generation_cannot_be_adopted_or_cleared (__main__.SupervisorRegistryTests.test_active_generation_cannot_be_adopted_or_cleared) ... ok
+21: test_binding_requires_launch_authorization_on_old_and_new_service_connections (__main__.SupervisorRegistryTests.test_binding_requires_launch_authorization_on_old_and_new_service_connections) ... ok
+21: test_key_roles_stay_separate_in_both_directions (__main__.SupervisorRegistryTests.test_key_roles_stay_separate_in_both_directions) ... ok
+21: test_pending_actor_enrollment_cannot_reuse_new_supervisor_key (__main__.SupervisorRegistryTests.test_pending_actor_enrollment_cannot_reuse_new_supervisor_key) ... ok
+21: test_wrong_registration_and_unknown_participant_cannot_bind (__main__.SupervisorRegistryTests.test_wrong_registration_and_unknown_participant_cannot_bind) ... ok
+21: test_binding_survives_restart (__main__.SupervisorRegistryTests.test_binding_survives_restart) ... ok
+21: test_failed_binding_transaction_leaves_revision_and_key_unchanged (__main__.SupervisorRegistryTests.test_failed_binding_transaction_leaves_revision_and_key_unchanged) ... ok
+21: test_client_rejects_substituted_binding_and_invalid_owner_proof (__main__.SupervisorRegistryTests.test_client_rejects_substituted_binding_and_invalid_owner_proof) ... ok
+21: test_client_rejects_substituted_challenge_context (__main__.SupervisorRegistryTests.test_client_rejects_substituted_challenge_context) ... ok
+21: test_client_denial_consumes_context_before_replay_success (__main__.SupervisorRegistryTests.test_client_denial_consumes_context_before_replay_success) ... ok
+21: test_client_unsolicited_binding_is_not_authority (__main__.SupervisorRegistryTests.test_client_unsolicited_binding_is_not_authority) ... ok
+21: test_client_read_cannot_return_another_participant (__main__.SupervisorRegistryTests.test_client_read_cannot_return_another_participant) ... ok
+21: test_malformed_binding_is_rejected_without_mutation (__main__.SupervisorRegistryTests.test_malformed_binding_is_rejected_without_mutation) ... ok
+21: test_explicit_v6_migration_preserves_existing_activation (__main__.SupervisorRegistryTests.test_explicit_v6_migration_preserves_existing_activation) ... ok
+21: test_failed_v6_migration_rolls_back_without_adopting_services (__main__.SupervisorRegistryTests.test_failed_v6_migration_rolls_back_without_adopting_services) ... ok
+21: 
+21: ----------------------------------------------------------------------
+21: Ran 18 tests in 13.113s
+21: 
+21: OK
+ 9/30 Test #21: identity-supervisor-registry ..........   Passed   13.23 sec
+test 22
+      Start 22: identity-participant-incarnation
+
+22: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_participant_incarnation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-participant-runtime-probe"
+22: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+22: Environment variables: 
+22:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+22: Test timeout computed to be: 90
+22: test_exact_preassigned_incarnation_reaches_durable_activation (__main__.IncarnationTests.test_exact_preassigned_incarnation_reaches_durable_activation) ... ok
+22: test_explicit_invalid_incarnation_is_rejected_before_network_access (__main__.IncarnationTests.test_explicit_invalid_incarnation_is_rejected_before_network_access) ... ok
+22: test_preassigned_incarnation_cannot_be_reused_after_release (__main__.IncarnationTests.test_preassigned_incarnation_cannot_be_reused_after_release) ... ok
+22: test_assignment_does_not_bypass_registered_domains (__main__.IncarnationTests.test_assignment_does_not_bypass_registered_domains) ... ok
+22: test_assignment_does_not_bypass_service_key_proof (__main__.IncarnationTests.test_assignment_does_not_bypass_service_key_proof) ... ok
+22: 
+22: ----------------------------------------------------------------------
+22: Ran 5 tests in 3.511s
+22: 
+22: OK
+10/30 Test #22: identity-participant-incarnation ......   Passed    3.63 sec
+test 23
+      Start 23: identity-participant-channel
+
+23: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_participant_channel.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-participant-runtime-probe"
+23: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+23: Environment variables: 
+23:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+23: Test timeout computed to be: 120
+23: test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key (__main__.ParticipantChannelTests.test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key) ... ok
+23: test_child_acknowledges_real_revocation_only_after_explicit_command (__main__.ParticipantChannelTests.test_child_acknowledges_real_revocation_only_after_explicit_command) ... ok
+23: test_activation_race_requires_child_resynchronization_and_explicit_retry (__main__.ParticipantChannelTests.test_activation_race_requires_child_resynchronization_and_explicit_retry) ... ok
+23: test_mixed_signing_configuration_is_rejected_before_channel_use (__main__.ParticipantChannelTests.test_mixed_signing_configuration_is_rejected_before_channel_use) ... ok
+23: test_regular_file_cannot_be_used_as_private_channel (__main__.ParticipantChannelTests.test_regular_file_cannot_be_used_as_private_channel) ... ok
+23: test_channel_is_nonblocking_and_closed_by_later_exec (__main__.ParticipantChannelTests.test_channel_is_nonblocking_and_closed_by_later_exec) ... ok
+23: test_socket_from_another_process_cannot_impersonate_the_direct_parent (__main__.ParticipantChannelTests.test_socket_from_another_process_cannot_impersonate_the_direct_parent) ... ok
+23: test_authentication_identity_and_domains_cannot_be_substituted (__main__.ParticipantChannelTests.test_authentication_identity_and_domains_cannot_be_substituted) ... ok
+23: test_invalid_revocation_batches_never_reach_the_consumer (__main__.ParticipantChannelTests.test_invalid_revocation_batches_never_reach_the_consumer) ... ok
+23: test_unsolicited_activation_is_rejected (__main__.ParticipantChannelTests.test_unsolicited_activation_is_rejected) ... ok
+23: test_correlated_reply_cannot_change_operation_identity_or_revision (__main__.ParticipantChannelTests.test_correlated_reply_cannot_change_operation_identity_or_revision) ... ok
+23: test_replayed_activation_reply_is_rejected_without_releasing_generation (__main__.ParticipantChannelTests.test_replayed_activation_reply_is_rejected_without_releasing_generation) ... ok
+23: test_malformed_excessive_and_truncated_frames_fail_closed (__main__.ParticipantChannelTests.test_malformed_excessive_and_truncated_frames_fail_closed) ... ok
+23: test_unknown_update_fields_are_rejected (__main__.ParticipantChannelTests.test_unknown_update_fields_are_rejected) ... ok
+23: test_disconnect_permanently_disables_participation (__main__.ParticipantChannelTests.test_disconnect_permanently_disables_participation) ... ok
+23: test_incomplete_frame_expires (__main__.ParticipantChannelTests.test_incomplete_frame_expires) ... ok
+23: test_unanswered_command_expires_without_replay (__main__.ParticipantChannelTests.test_unanswered_command_expires_without_replay) ... ok
+23: 
+23: ----------------------------------------------------------------------
+23: Ran 17 tests in 20.499s
+23: 
+23: OK
+11/30 Test #23: identity-participant-channel ..........   Passed   20.63 sec
+test 24
+      Start 24: identity-participant-runtime
+
+24: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_identity_participant_runtime.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-participant-runtime-probe"
+24: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+24: Environment variables: 
+24:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+24: Test timeout computed to be: 180
+24: test_activation_race_requires_explicit_resynchronization_and_new_request (__main__.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request) ... ok
+24: test_application_acknowledgement_cannot_skip_committed_events (__main__.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events) ... ok
+24: test_authentication_and_baseline_do_not_activate_execution (__main__.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution) ... ok
+24: test_clean_release_allows_new_incarnation_and_generation (__main__.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation) ... ok
+24: test_command_queue_overflow_is_permanent_before_activation (__main__.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation) ... ok
+24: test_destructor_preserves_pending_obligation_and_blocks_replacement (__main__.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement) ... ok
+24: test_domain_mismatch_never_activates (__main__.ParticipantRuntimeTests.test_domain_mismatch_never_activates) ... ok
+24: test_exposed_private_key_is_rejected_before_service_authentication (__main__.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication) ... ok
+24: test_future_revision_cannot_be_acknowledged (__main__.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged) ... ok
+24: test_real_barrier_waits_for_explicit_application_acknowledgement (__main__.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement) ... ok
+24: test_release_cannot_discard_unapplied_revocation (__main__.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation) ... ok
+24: test_transport_loss_never_releases_or_reconnects (__main__.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects) ... ok
+24: test_wrong_registration_revision_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates) ... ok
+24: test_wrong_service_key_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates) ... ok
+24: 
+24: ----------------------------------------------------------------------
+24: Ran 14 tests in 12.732s
+24: 
+24: OK
+12/30 Test #24: identity-participant-runtime ..........   Passed   12.86 sec
+test 25
+      Start 25: identity-participant-barrier-client
+
+25: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_identity_participant_barrier_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client"
+25: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+25: Environment variables: 
+25:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+25: Test timeout computed to be: 180
+25: test_activation_context_and_registration_cannot_be_substituted (__main__.BarrierClientTests.test_activation_context_and_registration_cannot_be_substituted) ... ok
+25: test_activation_must_match_synchronized_revision_and_valid_state (__main__.BarrierClientTests.test_activation_must_match_synchronized_revision_and_valid_state) ... ok
+25: test_applied_reply_cannot_claim_wrong_generation_revision_or_inactive_state (__main__.BarrierClientTests.test_applied_reply_cannot_claim_wrong_generation_revision_or_inactive_state) ... ok
+25: test_barrier_identity_and_global_counts_are_checked (__main__.BarrierClientTests.test_barrier_identity_and_global_counts_are_checked) ... ok
+25: test_barrier_obligations_and_pagination_are_checked (__main__.BarrierClientTests.test_barrier_obligations_and_pagination_are_checked) ... ok
+25: test_checked_client_completes_real_activation_application_and_release (__main__.BarrierClientTests.test_checked_client_completes_real_activation_application_and_release) ... ok
+25: test_owner_challenge_cannot_substitute_context_or_query (__main__.BarrierClientTests.test_owner_challenge_cannot_substitute_context_or_query) ... ok
+25: test_owner_checked_client_reads_pending_then_complete_barrier (__main__.BarrierClientTests.test_owner_checked_client_reads_pending_then_complete_barrier) ... ok
+25: test_owner_denial_consumes_query_context_before_false_replay_success (__main__.BarrierClientTests.test_owner_denial_consumes_query_context_before_false_replay_success) ... ok
+25: test_owner_result_requires_matching_outcome_and_valid_proof (__main__.BarrierClientTests.test_owner_result_requires_matching_outcome_and_valid_proof) ... ok
+25: test_real_new_connection_can_inspect_but_not_release_existing_generation (__main__.BarrierClientTests.test_real_new_connection_can_inspect_but_not_release_existing_generation) ... ok
+25: test_release_cannot_claim_active_or_unsynchronized_state (__main__.BarrierClientTests.test_release_cannot_claim_active_or_unsynchronized_state) ... ok
+25: test_state_read_cannot_roll_back_an_observed_applied_revision (__main__.BarrierClientTests.test_state_read_cannot_roll_back_an_observed_applied_revision) ... ok
+25: test_unsolicited_barrier_success_is_not_owner_authority (__main__.BarrierClientTests.test_unsolicited_barrier_success_is_not_owner_authority) ... ok
+25: 
+25: ----------------------------------------------------------------------
+25: Ran 14 tests in 16.550s
+25: 
+25: OK
+13/30 Test #25: identity-participant-barrier-client ...   Passed   16.68 sec
+test 26
+      Start 26: identity-participant-barrier
+
+26: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_identity_participant_barrier.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd"
+26: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+26: Environment variables: 
+26:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+26: Test timeout computed to be: 120
+26: test_activation_records_original_service_and_connection (__main__.BarrierTests.test_activation_records_original_service_and_connection) ... ok
+26: test_another_connection_cannot_replace_acknowledge_or_release (__main__.BarrierTests.test_another_connection_cannot_replace_acknowledge_or_release) ... ok
+26: test_application_rejects_gaps_future_revisions_and_foreign_generations (__main__.BarrierTests.test_application_rejects_gaps_future_revisions_and_foreign_generations) ... ok
+26: test_clean_release_cannot_skip_pending_cancellation (__main__.BarrierTests.test_clean_release_cannot_skip_pending_cancellation) ... ok
+26: test_disconnect_keeps_obligation_and_blocks_replacement (__main__.BarrierTests.test_disconnect_keeps_obligation_and_blocks_replacement) ... ok
+26: test_duplicate_application_is_idempotent (__main__.BarrierTests.test_duplicate_application_is_idempotent) ... ok
+26: test_failed_v5_migration_rolls_back_tables_and_version (__main__.BarrierTests.test_failed_v5_migration_rolls_back_tables_and_version) ... ok
+26: test_issuer_restart_keeps_obligations_and_old_generation (__main__.BarrierTests.test_issuer_restart_keeps_obligations_and_old_generation) ... ok
+26: test_later_activation_does_not_change_earlier_obligations (__main__.BarrierTests.test_later_activation_does_not_change_earlier_obligations) ... ok
+26: test_malformed_queries_and_missing_application_fields_preserve_state (__main__.BarrierTests.test_malformed_queries_and_missing_application_fields_preserve_state) ... ok
+26: test_obligation_failure_rolls_back_revocation_and_revision (__main__.BarrierTests.test_obligation_failure_rolls_back_revocation_and_revision) ... ok
+26: test_owner_reads_committed_barrier_with_no_active_participants (__main__.BarrierTests.test_owner_reads_committed_barrier_with_no_active_participants) ... ok
+26: test_pagination_preserves_global_completion_counts (__main__.BarrierTests.test_pagination_preserves_global_completion_counts) ... ok
+26: test_reactivation_requires_new_incarnation_and_generation (__main__.BarrierTests.test_reactivation_requires_new_incarnation_and_generation) ... ok
+26: test_revocation_stays_pending_until_both_generations_apply (__main__.BarrierTests.test_revocation_stays_pending_until_both_generations_apply) ... ok
+26: test_service_key_cannot_read_owner_barrier_details (__main__.BarrierTests.test_service_key_cannot_read_owner_barrier_details) ... ok
+26: test_stale_activation_and_missing_revision_do_not_change_state (__main__.BarrierTests.test_stale_activation_and_missing_revision_do_not_change_state) ... ok
+26: test_transport_alone_cannot_activate (__main__.BarrierTests.test_transport_alone_cannot_activate) ... ok
+26: test_v5_migration_preserves_state_without_inventing_historical_completion (__main__.BarrierTests.test_v5_migration_preserves_state_without_inventing_historical_completion) ... ok
+26: 
+26: ----------------------------------------------------------------------
+26: Ran 19 tests in 14.623s
+26: 
+26: OK
+14/30 Test #26: identity-participant-barrier ..........   Passed   14.74 sec
+test 27
+      Start 27: identity-participant-session-client
+
+27: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_identity_participant_session_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client"
+27: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+27: Environment variables: 
+27:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+27: Test timeout computed to be: 180
+27: test_checked_client_completes_real_registered_service_proof (__main__.SessionClientTests.test_checked_client_completes_real_registered_service_proof) ... ok
+27: test_claimed_success_for_invalid_proof_poison_client (__main__.SessionClientTests.test_claimed_success_for_invalid_proof_poison_client) ... ok
+27: test_connection_context_and_fresh_nonce_remain_consistent (__main__.SessionClientTests.test_connection_context_and_fresh_nonce_remain_consistent) ... ok
+27: test_denial_cannot_leave_a_reusable_expected_challenge (__main__.SessionClientTests.test_denial_cannot_leave_a_reusable_expected_challenge) ... ok
+27: test_invalid_challenge_context_poison_client (__main__.SessionClientTests.test_invalid_challenge_context_poison_client) ... ok
+27: test_invalid_challenge_envelope_poison_client (__main__.SessionClientTests.test_invalid_challenge_envelope_poison_client) ... ok
+27: test_invalid_result_context_poison_client (__main__.SessionClientTests.test_invalid_result_context_poison_client) ... ok
+27: test_real_authenticated_connection_cannot_replace_service_identity (__main__.SessionClientTests.test_real_authenticated_connection_cannot_replace_service_identity) ... ok
+27: test_real_denial_consumes_proof_but_preserves_checked_connection (__main__.SessionClientTests.test_real_denial_consumes_proof_but_preserves_checked_connection) ... ok
+27: test_substituted_registration_poison_client (__main__.SessionClientTests.test_substituted_registration_poison_client) ... ok
+27: test_substituted_request_or_invalid_lifetime_poison_client (__main__.SessionClientTests.test_substituted_request_or_invalid_lifetime_poison_client) ... ok
+27: test_unrequested_authentication_success_poison_client (__main__.SessionClientTests.test_unrequested_authentication_success_poison_client) ... ok
+27: 
+27: ----------------------------------------------------------------------
+27: Ran 12 tests in 11.847s
+27: 
+27: OK
+15/30 Test #27: identity-participant-session-client ...   Passed   11.97 sec
+test 28
+      Start 28: identity-participant-session
+
+28: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_identity_participant_session.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd"
+28: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+28: Environment variables: 
+28:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+28: Test timeout computed to be: 120
+28: test_actor_owner_and_transport_keys_do_not_prove_registered_service (__main__.ParticipantSessionTests.test_actor_owner_and_transport_keys_do_not_prove_registered_service) ... ok
+28: test_altered_challenge_binding_is_not_an_authority_proof (__main__.ParticipantSessionTests.test_altered_challenge_binding_is_not_an_authority_proof) ... ok
+28: test_altered_service_incarnation_or_audience_is_rejected (__main__.ParticipantSessionTests.test_altered_service_incarnation_or_audience_is_rejected) ... ok
+28: test_authenticated_connection_cannot_switch_service_identity (__main__.ParticipantSessionTests.test_authenticated_connection_cannot_switch_service_identity) ... ok
+28: test_completed_proof_cannot_replay (__main__.ParticipantSessionTests.test_completed_proof_cannot_replay) ... ok
+28: test_completion_reports_revocation_committed_after_challenge (__main__.ParticipantSessionTests.test_completion_reports_revocation_committed_after_challenge) ... ok
+28: test_disconnect_requires_fresh_connection_proof (__main__.ParticipantSessionTests.test_disconnect_requires_fresh_connection_proof) ... ok
+28: test_earlier_pending_challenge_cannot_replace_authenticated_context (__main__.ParticipantSessionTests.test_earlier_pending_challenge_cannot_replace_authenticated_context) ... ok
+28: test_expired_service_proof_is_rejected_and_fresh_proof_succeeds (__main__.ParticipantSessionTests.test_expired_service_proof_is_rejected_and_fresh_proof_succeeds) ... ok
+28: test_fresh_challenges_keep_connection_binding_and_change_nonce (__main__.ParticipantSessionTests.test_fresh_challenges_keep_connection_binding_and_change_nonce) ... ok
+28: test_invalid_signature_consumes_nonce (__main__.ParticipantSessionTests.test_invalid_signature_consumes_nonce) ... ok
+28: test_malformed_begin_and_unknown_fields_fail_before_challenge (__main__.ParticipantSessionTests.test_malformed_begin_and_unknown_fields_fail_before_challenge) ... ok
+28: test_management_pipe_cannot_create_service_session (__main__.ParticipantSessionTests.test_management_pipe_cannot_create_service_session) ... ok
+28: test_new_connection_requires_its_own_proof (__main__.ParticipantSessionTests.test_new_connection_requires_its_own_proof) ... ok
+28: test_pending_service_challenges_are_bounded (__main__.ParticipantSessionTests.test_pending_service_challenges_are_bounded) ... ok
+28: test_proof_from_one_connection_cannot_authenticate_another (__main__.ParticipantSessionTests.test_proof_from_one_connection_cannot_authenticate_another) ... ok
+28: test_registered_service_proof_binds_issuer_process_and_tls_connection (__main__.ParticipantSessionTests.test_registered_service_proof_binds_issuer_process_and_tls_connection) ... ok
+28: test_restart_rejects_old_proof_and_changes_issuer_incarnation (__main__.ParticipantSessionTests.test_restart_rejects_old_proof_and_changes_issuer_incarnation) ... ok
+28: test_unknown_participant_and_wrong_registration_revision_fail (__main__.ParticipantSessionTests.test_unknown_participant_and_wrong_registration_revision_fail) ... ok
+28: test_wrong_signature_purpose_cannot_complete_or_replay (__main__.ParticipantSessionTests.test_wrong_signature_purpose_cannot_complete_or_replay) ... ok
+28: 
+28: ----------------------------------------------------------------------
+28: Ran 20 tests in 12.465s
+28: 
+28: OK
+16/30 Test #28: identity-participant-session ..........   Passed   12.58 sec
+test 29
+      Start 29: identity-participants
+
+29: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_identity_participants.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd"
+29: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+29: Environment variables: 
+29:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+29: Test timeout computed to be: 120
+29: test_actor_cannot_register_and_bad_proof_consumes_challenge (__main__.ParticipantTests.test_actor_cannot_register_and_bad_proof_consumes_challenge) ... ok
+29: test_all_64_domains_are_preserved (__main__.ParticipantTests.test_all_64_domains_are_preserved) ... ok
+29: test_binary_participant_ids_have_stable_pagination_order (__main__.ParticipantTests.test_binary_participant_ids_have_stable_pagination_order) ... ok
+29: test_corrupt_record_and_domain_index_fail_closed (__main__.ParticipantTests.test_corrupt_record_and_domain_index_fail_closed) ... ok
+29: test_domain_insert_failure_rolls_back_registration_and_revision (__main__.ParticipantTests.test_domain_insert_failure_rolls_back_registration_and_revision) ... ok
+29: test_domains_are_canonical_and_support_multiple_workspaces (__main__.ParticipantTests.test_domains_are_canonical_and_support_multiple_workspaces) ... ok
+29: test_duplicate_identity_key_and_domain_do_not_replace_record (__main__.ParticipantTests.test_duplicate_identity_key_and_domain_do_not_replace_record) ... ok
+29: test_empty_registry_is_explicit_and_owner_protected (__main__.ParticipantTests.test_empty_registry_is_explicit_and_owner_protected) ... ok
+29: test_failed_migration_rolls_back_new_tables_and_version (__main__.ParticipantTests.test_failed_migration_rolls_back_new_tables_and_version) ... ok
+29: test_malformed_registration_is_rejected_before_owner_challenge (__main__.ParticipantTests.test_malformed_registration_is_rejected_before_owner_challenge) ... ok
+29: test_owner_challenge_cannot_replay_after_restart (__main__.ParticipantTests.test_owner_challenge_cannot_replay_after_restart) ... ok
+29: test_owner_registers_distinct_service_without_actor_grants (__main__.ParticipantTests.test_owner_registers_distinct_service_without_actor_grants) ... ok
+29: test_pagination_is_ordered_and_bounded (__main__.ParticipantTests.test_pagination_is_ordered_and_bounded) ... ok
+29: test_registration_invalidates_pending_actor_enrollment_for_same_key (__main__.ParticipantTests.test_registration_invalidates_pending_actor_enrollment_for_same_key) ... ok
+29: test_registry_requires_owner_proof (__main__.ParticipantTests.test_registry_requires_owner_proof) ... ok
+29: test_reserved_owner_issuer_and_actor_keys_cannot_be_services (__main__.ParticipantTests.test_reserved_owner_issuer_and_actor_keys_cannot_be_services) ... ok
+29: test_restart_preserves_registration (__main__.ParticipantTests.test_restart_preserves_registration) ... ok
+29: test_revision_update_failure_rolls_back_all_domain_claims (__main__.ParticipantTests.test_revision_update_failure_rolls_back_all_domain_claims) ... ok
+29: test_same_domain_text_with_different_kind_is_distinct (__main__.ParticipantTests.test_same_domain_text_with_different_kind_is_distinct) ... ok
+29: test_service_key_cannot_enroll_as_actor (__main__.ParticipantTests.test_service_key_cannot_enroll_as_actor) ... ok
+29: test_stale_registry_revision_cannot_add_second_service (__main__.ParticipantTests.test_stale_registry_revision_cannot_add_second_service) ... ok
+29: test_v4_migration_preserves_credential_and_issuer_state (__main__.ParticipantTests.test_v4_migration_preserves_credential_and_issuer_state) ... ok
+29: 
+29: ----------------------------------------------------------------------
+29: Ran 22 tests in 6.923s
+29: 
+29: OK
+17/30 Test #29: identity-participants .................   Passed    7.02 sec
+test 30
+      Start 30: identity-participant-client
+
+30: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_identity_participant_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client"
+30: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+30: Environment variables: 
+30:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+30: Test timeout computed to be: 120
+30: test_checked_client_registers_and_reads_real_owner_signed_records (__main__.ParticipantClientTests.test_checked_client_registers_and_reads_real_owner_signed_records) ... ok
+30: test_conflicting_registry_entries_poison_client (__main__.ParticipantClientTests.test_conflicting_registry_entries_poison_client) ... ok
+30: test_duplicate_registration_revision_poison_client (__main__.ParticipantClientTests.test_duplicate_registration_revision_poison_client) ... ok
+30: test_invalid_record_domains_poison_client (__main__.ParticipantClientTests.test_invalid_record_domains_poison_client) ... ok
+30: test_invalid_record_identity_and_revision_poison_client (__main__.ParticipantClientTests.test_invalid_record_identity_and_revision_poison_client) ... ok
+30: test_invalid_registry_context_poison_client (__main__.ParticipantClientTests.test_invalid_registry_context_poison_client) ... ok
+30: test_invalid_registry_continuation_poison_client (__main__.ParticipantClientTests.test_invalid_registry_continuation_poison_client) ... ok
+30: test_rejected_registration_preserves_checked_connection (__main__.ParticipantClientTests.test_rejected_registration_preserves_checked_connection) ... ok
+30: test_transport_certificate_and_actor_key_do_not_authorize_registration (__main__.ParticipantClientTests.test_transport_certificate_and_actor_key_do_not_authorize_registration) ... ok
+30: 
+30: ----------------------------------------------------------------------
+30: Ran 9 tests in 7.304s
+30: 
+30: OK
+18/30 Test #30: identity-participant-client ...........   Passed    7.41 sec
+test 31
+      Start 31: world-remote-retries
+
+31: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_actor_tls_retries.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-actor-tls-retry-probe"
+31: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+31: Test timeout computed to be: 30
+31: test_authenticated_idle_has_no_io_deadline (__main__.ActorTlsRetryTests.test_authenticated_idle_has_no_io_deadline) ... ok
+31: test_completed_read_clears_retry_deadline (__main__.ActorTlsRetryTests.test_completed_read_clears_retry_deadline) ... ok
+31: test_read_retry_transition_preserves_deadline (__main__.ActorTlsRetryTests.test_read_retry_transition_preserves_deadline) ... ok
+31: test_repeated_retry_does_not_refresh_deadline (__main__.ActorTlsRetryTests.test_repeated_retry_does_not_refresh_deadline) ... ok
+31: test_stalled_read_to_write_retry_expires (__main__.ActorTlsRetryTests.test_stalled_read_to_write_retry_expires) ... ok
+31: 
+31: ----------------------------------------------------------------------
+31: Ran 5 tests in 1.078s
+31: 
+31: OK
+19/30 Test #31: world-remote-retries ..................   Passed    1.15 sec
+test 32
+      Start 32: world-remote-security
+
+32: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_remote_security.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+32: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+32: Environment variables: 
+32:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+32: Test timeout computed to be: 180
+32: test_plaintext_is_rejected_without_disrupting_an_actor (__main__.RemoteSecurityTests.test_plaintext_is_rejected_without_disrupting_an_actor) ... ok
+32: test_missing_client_certificate_is_rejected (__main__.RemoteSecurityTests.test_missing_client_certificate_is_rejected) ... ok
+32: test_untrusted_client_certificate_is_rejected (__main__.RemoteSecurityTests.test_untrusted_client_certificate_is_rejected) ... ok
+32: test_server_name_mismatch_fails_verification (__main__.RemoteSecurityTests.test_server_name_mismatch_fails_verification) ... ok
+32: test_untrusted_server_fails_verification (__main__.RemoteSecurityTests.test_untrusted_server_fails_verification) ... ok
+32: test_tls12_cannot_reach_actor_dispatch (__main__.RemoteSecurityTests.test_tls12_cannot_reach_actor_dispatch) ... ok
+32: test_fragmented_frame_reaches_existing_actor (__main__.RemoteSecurityTests.test_fragmented_frame_reaches_existing_actor) ... ok
+32: test_excessive_frame_closes_only_its_remote_channel (__main__.RemoteSecurityTests.test_excessive_frame_closes_only_its_remote_channel) ... ok
+32: test_stalled_partial_frame_expires_without_harming_an_actor (__main__.RemoteSecurityTests.test_stalled_partial_frame_expires_without_harming_an_actor) ... ok
+32: test_malformed_protobuf_does_not_authenticate_and_connection_recovers (__main__.RemoteSecurityTests.test_malformed_protobuf_does_not_authenticate_and_connection_recovers) ... ok
+32: test_authenticated_idle_actor_survives_unauthenticated_timeout (__main__.RemoteSecurityTests.test_authenticated_idle_actor_survives_unauthenticated_timeout) ... ok
+32: test_closed_channels_release_slots_for_repeated_connections (__main__.RemoteSecurityTests.test_closed_channels_release_slots_for_repeated_connections) ... ok
+32: test_remote_actor_cannot_inject_application_keys (__main__.RemoteSecurityTests.test_remote_actor_cannot_inject_application_keys) ... ok
+32: 
+32: ----------------------------------------------------------------------
+32: Ran 13 tests in 45.724s
+32: 
+32: OK
+20/30 Test #32: world-remote-security .................   Passed   45.85 sec
+test 33
+      Start 33: world-remote-lifecycle
+
+33: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_remote_lifecycle.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+33: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+33: Environment variables: 
+33:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+33: Test timeout computed to be: 180
+33: test_stalled_handshake_expires_and_does_not_block_valid_actor (__main__.RemoteLifecycleTests.test_stalled_handshake_expires_and_does_not_block_valid_actor) ... ok
+33: test_connection_limit_rejects_excess_and_recovers_after_close (__main__.RemoteLifecycleTests.test_connection_limit_rejects_excess_and_recovers_after_close) ... ok
+33: test_disconnect_stops_real_motion_before_motion_expiry (__main__.RemoteLifecycleTests.test_disconnect_stops_real_motion_before_motion_expiry) ... ok
+33: test_credential_revocation_cancels_idle_remote_actor (__main__.RemoteLifecycleTests.test_credential_revocation_cancels_idle_remote_actor) ... ok
+33: test_replayed_proof_cannot_reopen_closed_session (__main__.RemoteLifecycleTests.test_replayed_proof_cannot_reopen_closed_session) ... ok
+33: test_restart_preserves_checkpoint_and_rejects_old_challenge (__main__.RemoteLifecycleTests.test_restart_preserves_checkpoint_and_rejects_old_challenge) ... ok
+33: 
+33: ----------------------------------------------------------------------
+33: Ran 6 tests in 21.918s
+33: 
+33: OK
+21/30 Test #33: world-remote-lifecycle ................   Passed   22.04 sec
+test 34
+      Start 34: world-remote-native
+
+34: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_remote_native.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-security-auth"
+34: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+34: Environment variables: 
+34:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+34: Test timeout computed to be: 180
+34: test_remote_geometry_omits_authorized_live_application_pixels_and_metadata (__main__.RemoteNativeTests.test_remote_geometry_omits_authorized_live_application_pixels_and_metadata) ... ok
+34: test_same_actor_restores_local_application_observation_after_remote_session (__main__.RemoteNativeTests.test_same_actor_restores_local_application_observation_after_remote_session) ... ok
+34: test_stalled_large_reply_closes_remote_channel_and_preserves_local_actor (__main__.RemoteNativeTests.test_stalled_large_reply_closes_remote_channel_and_preserves_local_actor) ... ok
+34: 
+34: ----------------------------------------------------------------------
+34: Ran 3 tests in 20.276s
+34: 
+34: OK
+22/30 Test #34: world-remote-native ...................   Passed   20.46 sec
+test 35
+      Start 35: world-remote-races
+
+35: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_remote_races.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+35: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+35: Environment variables: 
+35:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+35: Test timeout computed to be: 180
+35: test_remote_credential_revocation_during_profile_reply_creates_no_grant (__main__.RemoteRaceTests.test_remote_credential_revocation_during_profile_reply_creates_no_grant) ... ok
+35: test_remote_disconnect_during_profile_reply_creates_no_grant (__main__.RemoteRaceTests.test_remote_disconnect_during_profile_reply_creates_no_grant) ... ok
+35: 
+35: ----------------------------------------------------------------------
+35: Ran 2 tests in 7.611s
+35: 
+35: OK
+23/30 Test #35: world-remote-races ....................   Passed    7.73 sec
+test 36
+      Start 36: world-remote-config
+
+36: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_remote_config.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+36: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+36: Environment variables: 
+36:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+36: Test timeout computed to be: 180
+36: test_listener_requires_identity_configuration (__main__.RemoteConfigTests.test_listener_requires_identity_configuration) ... ok
+36: test_listener_requires_tls_configuration (__main__.RemoteConfigTests.test_listener_requires_tls_configuration) ... ok
+36: test_mismatched_private_key_is_rejected (__main__.RemoteConfigTests.test_mismatched_private_key_is_rejected) ... ok
+36: test_non_listening_tcp_descriptor_is_rejected (__main__.RemoteConfigTests.test_non_listening_tcp_descriptor_is_rejected) ... ok
+36: test_readable_private_key_is_rejected (__main__.RemoteConfigTests.test_readable_private_key_is_rejected) ... ok
+36: test_relative_certificate_and_missing_trust_are_rejected (__main__.RemoteConfigTests.test_relative_certificate_and_missing_trust_are_rejected) ... ok
+36: test_reused_actor_listener_descriptor_is_rejected (__main__.RemoteConfigTests.test_reused_actor_listener_descriptor_is_rejected) ... ok
+36: test_reused_broker_listener_descriptor_is_rejected (__main__.RemoteConfigTests.test_reused_broker_listener_descriptor_is_rejected) ... ok
+36: test_symlinked_tls_configuration_is_rejected (__main__.RemoteConfigTests.test_symlinked_tls_configuration_is_rejected) ... ok
+36: test_udp_descriptor_is_rejected (__main__.RemoteConfigTests.test_udp_descriptor_is_rejected) ... ok
+36: test_unknown_configuration_field_is_rejected (__main__.RemoteConfigTests.test_unknown_configuration_field_is_rejected) ... ok
+36: test_unsupported_version_and_limits_are_rejected (__main__.RemoteConfigTests.test_unsupported_version_and_limits_are_rejected) ... ok
+36: 
+36: ----------------------------------------------------------------------
+36: Ran 12 tests in 26.358s
+36: 
+36: OK
+24/30 Test #36: world-remote-config ...................   Passed   26.48 sec
+test 37
+      Start 37: world-remote
+
+37: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_remote.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+37: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+37: Environment variables: 
+37:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+37: Test timeout computed to be: 180
+37: test_remote_authentication_proof_is_bound_to_its_channel (__main__.RemoteWorldTests.test_remote_authentication_proof_is_bound_to_its_channel) ... ok
+37: test_remote_channel_cannot_execute_trusted_management_request (__main__.RemoteWorldTests.test_remote_channel_cannot_execute_trusted_management_request) ... ok
+37: test_remote_private_admission_remains_separate_from_valid_identity (__main__.RemoteWorldTests.test_remote_private_admission_remains_separate_from_valid_identity) ... ok
+37: test_remote_proof_uses_persistent_world_authority_and_real_actor (__main__.RemoteWorldTests.test_remote_proof_uses_persistent_world_authority_and_real_actor) ... ok
+37: test_tls_identity_alone_does_not_authenticate_an_actor (__main__.RemoteWorldTests.test_tls_identity_alone_does_not_authenticate_an_actor) ... ok
+37: 
+37: ----------------------------------------------------------------------
+37: Ran 5 tests in 15.357s
+37: 
+37: OK
+25/30 Test #37: world-remote ..........................   Passed   15.47 sec
+test 38
+      Start 38: workspace-bootstrap-races
+
+38: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap_races.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+38: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+38: Environment variables: 
+38:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+38: Test timeout computed to be: 120
+38: test_binding_credential_revoked_during_profile_read_creates_no_binding (__main__.WorkspaceBootstrapRaceTests.test_binding_credential_revoked_during_profile_read_creates_no_binding) ... ok
+38: test_binding_revoke_credential_race_keeps_binding_active (__main__.WorkspaceBootstrapRaceTests.test_binding_revoke_credential_race_keeps_binding_active) ... ok
+38: test_credential_revoked_during_actor_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_actor_reply_preserves_authorized_process) ... ok
+38: test_credential_revoked_during_broker_parent_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_parent_read_creates_no_grant) ... ok
+38: test_credential_revoked_during_broker_profile_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_profile_read_creates_no_grant) ... ok
+38: test_credential_revoked_during_credential_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_credential_reply_preserves_authorized_process) ... ok
+38: test_ordinary_workspace_access_race_preserves_independent_process_authority (__main__.WorkspaceBootstrapRaceTests.test_ordinary_workspace_access_race_preserves_independent_process_authority) ... ok
+38: test_parent_actor_revocation_during_reply_preserves_independent_process_grant (__main__.WorkspaceBootstrapRaceTests.test_parent_actor_revocation_during_reply_preserves_independent_process_grant) ... ok
+38: test_parent_actor_revoked_during_broker_parent_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_parent_actor_revoked_during_broker_parent_read_creates_no_grant) ... ok
+38: test_parent_actor_revoked_during_broker_profile_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_parent_actor_revoked_during_broker_profile_read_creates_no_grant) ... ok
+38: 
+38: ----------------------------------------------------------------------
+38: Ran 10 tests in 43.744s
+38: 
+38: OK
+26/30 Test #38: workspace-bootstrap-races .............   Passed   43.87 sec
+test 39
+      Start 39: workspace-bootstrap
+
+39: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_workspace_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+39: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+39: Environment variables: 
+39:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+39: Test timeout computed to be: 180
+39: test_actor_cannot_bind_another_holders_parent (__main__.WorkspaceBootstrapTests.test_actor_cannot_bind_another_holders_parent) ... ok
+39: test_application_does_not_make_workspace_available (__main__.WorkspaceBootstrapTests.test_application_does_not_make_workspace_available) ... ok
+39: test_binding_revocation_blocks_new_recipients_but_preserves_existing_access (__main__.WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access) ... ok
+39: test_broker_and_world_restart_preserve_binding_receipt_and_real_file (__main__.WorkspaceBootstrapTests.test_broker_and_world_restart_preserve_binding_receipt_and_real_file) ... ok
+39: test_broker_rejects_mismatched_missing_and_forged_credentials (__main__.WorkspaceBootstrapTests.test_broker_rejects_mismatched_missing_and_forged_credentials) ... ok
+39: test_explicit_application_enables_confined_real_file_write (__main__.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write) ... ok
+39: test_read_only_bootstrap_does_not_authorize_writable_application (__main__.WorkspaceBootstrapTests.test_read_only_bootstrap_does_not_authorize_writable_application) ... ok
+39: test_retry_preserves_receipt_and_parent_revocation_denies_execution (__main__.WorkspaceBootstrapTests.test_retry_preserves_receipt_and_parent_revocation_denies_execution) ... ok
+39: test_second_credential_does_not_revive_revoked_receipt (__main__.WorkspaceBootstrapTests.test_second_credential_does_not_revive_revoked_receipt) ... ok
+39: test_unknown_workspace_never_redirects_application_to_current_world (__main__.WorkspaceBootstrapTests.test_unknown_workspace_never_redirects_application_to_current_world) ... ok
+39: test_updated_profile_cannot_replace_prior_actor_receipt (__main__.WorkspaceBootstrapTests.test_updated_profile_cannot_replace_prior_actor_receipt) ... ok
+39: 
+39: ----------------------------------------------------------------------
+39: Ran 11 tests in 52.085s
+39: 
+39: OK
+27/30 Test #39: workspace-bootstrap ...................   Passed   52.21 sec
+test 40
+      Start 40: world-bootstrap-races
+
+40: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_bootstrap_races.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+40: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+40: Environment variables: 
+40:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+40: Test timeout computed to be: 120
+40: test_credential_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+40: test_credential_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt) ... ok
+40: test_independent_grant_survives_bootstrap_parent_revocation (__main__.WorldBootstrapRaceTests.test_independent_grant_survives_bootstrap_parent_revocation) ... ok
+40: test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+40: test_parent_actor_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_profile_read_creates_no_receipt) ... ok
+40: test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry (__main__.WorldBootstrapRaceTests.test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry) ... ok
+40: 
+40: ----------------------------------------------------------------------
+40: Ran 6 tests in 17.635s
+40: 
+40: OK
+28/30 Test #40: world-bootstrap-races .................   Passed   17.77 sec
+test 41
+      Start 41: broker-bootstrap-client
+
+41: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_broker_bootstrap_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-broker-control-client-probe"
+41: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+41: Environment variables: 
+41:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+41: Test timeout computed to be: 120
+41: test_binding_cannot_assign_recipient (__main__.BrokerBootstrapClientTests.test_binding_cannot_assign_recipient) ... ok
+41: test_binding_cannot_return_world_right (__main__.BrokerBootstrapClientTests.test_binding_cannot_return_world_right) ... ok
+41: test_binding_cannot_substitute_authorizer (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_authorizer) ... ok
+41: test_binding_cannot_substitute_parent (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_parent) ... ok
+41: test_binding_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_profile) ... ok
+41: test_binding_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_workspace) ... ok
+41: test_binding_revision_must_follow_request (__main__.BrokerBootstrapClientTests.test_binding_revision_must_follow_request) ... ok
+41: test_binding_revoke_cannot_substitute_identity (__main__.BrokerBootstrapClientTests.test_binding_revoke_cannot_substitute_identity) ... ok
+41: test_binding_revoke_matches_identity_and_revision (__main__.BrokerBootstrapClientTests.test_binding_revoke_matches_identity_and_revision) ... ok
+41: test_exact_binding_is_returned (__main__.BrokerBootstrapClientTests.test_exact_binding_is_returned) ... ok
+41: test_exact_report_is_returned (__main__.BrokerBootstrapClientTests.test_exact_report_is_returned) ... ok
+41: test_recorded_revoked_grant_is_data_not_new_authority (__main__.BrokerBootstrapClientTests.test_recorded_revoked_grant_is_data_not_new_authority) ... ok
+41: test_report_cannot_duplicate_template (__main__.BrokerBootstrapClientTests.test_report_cannot_duplicate_template) ... ok
+41: test_report_cannot_return_invalid_revocation_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_return_invalid_revocation_revision) ... ok
+41: test_report_cannot_substitute_issuer (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_issuer) ... ok
+41: test_report_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_profile) ... ok
+41: test_report_cannot_substitute_recipient (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_recipient) ... ok
+41: test_report_cannot_substitute_revision (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_revision) ... ok
+41: test_report_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_report_cannot_substitute_workspace) ... ok
+41: test_report_cannot_supply_root_grant (__main__.BrokerBootstrapClientTests.test_report_cannot_supply_root_grant) ... ok
+41: test_report_requires_result_outcome (__main__.BrokerBootstrapClientTests.test_report_requires_result_outcome) ... ok
+41: test_report_whole_error_cannot_hide_recorded_grant (__main__.BrokerBootstrapClientTests.test_report_whole_error_cannot_hide_recorded_grant) ... ok
+41: 
+41: ----------------------------------------------------------------------
+41: Ran 22 tests in 1.704s
+41: 
+41: OK
+29/30 Test #41: broker-bootstrap-client ...............   Passed    1.81 sec
+test 42
+      Start 42: world-bootstrap
+
+42: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source/tests/core/test_world_bootstrap.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/worldd"
+42: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build
+42: Environment variables: 
+42:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/world-bootstrap-diagnostic-run-01/source
+42: Test timeout computed to be: 120
+42: test_administration_cannot_bind_without_explicit_delegation (__main__.WorldBootstrapTests.test_administration_cannot_bind_without_explicit_delegation) ... ok
+42: test_anonymous_channels_cannot_administer_or_apply_bootstrap (__main__.WorldBootstrapTests.test_anonymous_channels_cannot_administer_or_apply_bootstrap) ... ok
+42: test_binding_requires_authenticated_parent_holder (__main__.WorldBootstrapTests.test_binding_requires_authenticated_parent_holder) ... ok
+42: test_bound_profile_admits_private_actor_and_routes_real_navigation (__main__.WorldBootstrapTests.test_bound_profile_admits_private_actor_and_routes_real_navigation) ... ok
+42: test_challenge_and_failed_proof_do_not_materialize_grants (__main__.WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants) ... ok
+42: test_checked_template_cannot_bind_to_another_world (__main__.WorldBootstrapTests.test_checked_template_cannot_bind_to_another_world) ... ok
+42: test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants (__main__.WorldBootstrapTests.test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants) ... ok
+42: test_failed_binding_consumes_actor_sequence (__main__.WorldBootstrapTests.test_failed_binding_consumes_actor_sequence) ... ok
+42: test_new_profile_revision_cannot_replace_existing_grant (__main__.WorldBootstrapTests.test_new_profile_revision_cannot_replace_existing_grant) ... ok
+42: test_parent_revocation_prevents_reconnect_from_restoring_access (__main__.WorldBootstrapTests.test_parent_revocation_prevents_reconnect_from_restoring_access) ... ok
+42: test_public_entry_reports_unbound_template_without_action_authority (__main__.WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority) ... ok
+42: test_reconnect_and_explicit_retry_return_same_durable_grant (__main__.WorldBootstrapTests.test_reconnect_and_explicit_retry_return_same_durable_grant) ... ok
+42: test_second_credential_cannot_revive_revoked_bootstrap_grant (__main__.WorldBootstrapTests.test_second_credential_cannot_revive_revoked_bootstrap_grant) ... ok
+42: test_server_restart_retains_binding_and_receipt (__main__.WorldBootstrapTests.test_server_restart_retains_binding_and_receipt) ... ok
+42: test_signed_profile_without_domain_binding_cannot_create_admission (__main__.WorldBootstrapTests.test_signed_profile_without_domain_binding_cannot_create_admission) ... ok
+42: 
+42: ----------------------------------------------------------------------
+42: Ran 15 tests in 42.979s
+42: 
+42: OK
+30/30 Test #42: world-bootstrap .......................   Passed   43.12 sec
+
+The following tests passed:
+	world-revision-interleave
+	workspace-bootstrap-owner-idle
+	process-termination
+	workspace-participant-races
+	workspace-participant
+	world-participant
+	world-revocation-receipts
+	identity-launch-authorization
+	identity-supervisor-registry
+	identity-participant-incarnation
+	identity-participant-channel
+	identity-participant-runtime
+	identity-participant-barrier-client
+	identity-participant-barrier
+	identity-participant-session-client
+	identity-participant-session
+	identity-participants
+	identity-participant-client
+	world-remote-retries
+	world-remote-security
+	world-remote-lifecycle
+	world-remote-native
+	world-remote-races
+	world-remote-config
+	world-remote
+	workspace-bootstrap-races
+	workspace-bootstrap
+	world-bootstrap-races
+	broker-bootstrap-client
+	world-bootstrap
+
+100% tests passed, 0 tests failed out of 30
+
+Total Test time (real) = 505.02 sec

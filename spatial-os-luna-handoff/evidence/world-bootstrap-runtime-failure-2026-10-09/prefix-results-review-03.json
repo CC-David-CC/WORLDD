@@ -1,0 +1,23 @@
+{
+  "reviewer": "primary agent",
+  "hosts": {
+    "sb16": {
+      "suites": 30,
+      "checks": 314,
+      "failed": 0,
+      "qualification": false,
+      "core_log_sha256": "73137a2e8c219f1be01a0ff513b88944a3e09eef6a43509d03916b0413d94495"
+    },
+    "sb16-2": {
+      "suites": 30,
+      "checks": 314,
+      "failed": 0,
+      "qualification": false,
+      "core_log_sha256": "36bbcdf5af606fc147e574066cc7e8ae9a3a0d24ce9d807498bdf7c8f36b178a"
+    }
+  },
+  "original_failure_unresolved": true,
+  "production_changed": false,
+  "conclusion": "The original preceding suite order also did not reproduce the authority-channel failure.",
+  "next_diagnostic": "Capture classified transport failure and server peer-expiry context before any further blind repetition."
+}
