@@ -44,7 +44,9 @@ An isolated participant runtime worker draft now exists. Its first Debug build p
 Its real-issuer Debug tests now pass 13 new checks and 96 related regression checks on sb16-2.
 It remains isolated and unconnected to worlds and brokers. M02 remains incomplete.
 The barrier candidate passed full Debug on sb16: 1185 core, 51 harness, and 151 P10 checks, without failures or skips.
-Its sb16 sanitizer profile is running. The sb16-2 full barrier matrix has started.
+Both sb16 barrier profiles passed: 1185 core, 51 harness, and 151 P10 checks each.
+The sb16-2 Debug barrier profile also passed. Its sanitizer profile is running.
+The corrected workspace fixture must remain in the final barrier integration. Its barrier-binary verification is running on sb16.
 The remaining sb16-2 service-session sanitizer P10 run passed all 151 cases.
 A reviewed composite qualification receipt is still needed before integrating the corrected fixture and service candidate.
 

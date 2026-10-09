@@ -2,7 +2,7 @@
   "id": "identity.participant_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "both_host_full_qualification_running",
+  "current_step": "sb16_full_passed_sb16_2_sanitizer_running",
   "parent": "identity.revocation_barrier",
   "integration_dependency": "identity.participant_session",
   "contract": "docs/AUTHORITY_PARTICIPANT_BARRIER.txt",
@@ -30,5 +30,25 @@
     "new_server_checks": 19,
     "new_client_checks": 14
   },
-  "service_dependency": "qualified and adopted69d6618"
+  "service_dependency": "qualified and adopted69d6618",
+  "sb16_final": {
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "core_checks": 1185,
+    "core_suites": 68,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sb16_2_Debug": {
+    "core_checks": 1185,
+    "core_suites": 68,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
+  }
 }
