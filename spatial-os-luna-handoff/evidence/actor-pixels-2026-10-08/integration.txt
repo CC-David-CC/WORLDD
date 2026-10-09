@@ -1,0 +1,31 @@
+Authenticated actor pixel integration, 2026-10-09
+
+Implementation commit: 375ae5104fc17cf73fdc71360ed1156cae5a735c.
+The controller pushed the reviewed commit to origin/main on box-git.
+Both world hosts fetched origin through their new repository-scoped SSH keys.
+Both hosts fast-forwarded from 71386ba45d9f55368e5b1bb53913bbf30bcdce27 to the implementation commit.
+No force push, reset, or discarded work was used.
+
+Each host preserved its tested implementation in a scoped Git stash.
+Sb16 stash: caac677bba288104fdb99929412dd8186dd15c10.
+Sb16-2 stash: 348cac6f6b72083c4f53696e1696247edf96fa88.
+The previous schema, application-control, and older stashes remain available on both hosts.
+
+All 464 final source and documentation hashes matched on both hosts.
+Both worktrees were clean after integration.
+The per-host integration.json files record the commit, stash, checked count, and clean state.
+The tested source snapshot remains separately pinned by tested-tree.json.
+Only documentation and repository administration changed after the runtime qualification snapshot.
+The eleven tested implementation inputs remain unchanged.
+
+Both hosts passed Debug and runtime ASan/UBSan qualification before integration.
+Each profile passed 914 core checks across 47 suites, 51 harness checks, and 151 P10 cases.
+No final profile failed or skipped a case.
+The initial missing-feature failures and the separate fixture-label correction remain preserved.
+
+Direct box-git transport is qualified separately in evidence/git-transport-2026-10-09.
+That directory records the repository restrictions, seven checks per host, and exact recovery commands.
+No private key was transferred or committed.
+
+Native-server GLX sanitizer coverage, physical input, native timing, and full M1 qualification remain incomplete.
+This receipt proves component integration. It does not certify a complete native spatial session.
