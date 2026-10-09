@@ -189,3 +189,12 @@ The broker Reply schema has one outcome, so an error does not retain a protected
 Existing workspace retry assertions exposed this regression and now pass unchanged on the corrected draft.
 Registered-service fixtures preserve distinct keys, exact domains, and service identity across clean restarts.
 All original test methods remain unchanged. The full combined qualification uses candidate04 in output05.
+
+
+Native settlement correction, candidate06
+A native credential destructor can lose its checked revoke reply during process reconciliation or reaping.
+Check the native authority channel after those effects and before submitting any issuer acknowledgement.
+Do not rely on the next loop iteration to discover that failure.
+The same checked reconciliation applies before a clean participant release.
+The isolated correction passes 81 focused Debug checks on each host. Full qualification remains pending.
+See evidence/participant-native-settlement-2026-10-09 for the original failure and diagnostic scheduling limits.

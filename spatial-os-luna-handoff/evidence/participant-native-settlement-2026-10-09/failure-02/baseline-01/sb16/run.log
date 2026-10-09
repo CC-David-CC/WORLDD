@@ -1,0 +1,15 @@
+test_stopped_server_cannot_confirm_native_credential_cleanup (__main__.NativeSettlementSchedule.test_stopped_server_cannot_confirm_native_credential_cleanup) ... post_settlement_pause= False barrier= (0, True)
+FAIL
+
+======================================================================
+FAIL: test_stopped_server_cannot_confirm_native_credential_cleanup (__main__.NativeSettlementSchedule.test_stopped_server_cannot_confirm_native_credential_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_native_settlement_schedule.py", line 110, in test_stopped_server_cannot_confirm_native_credential_cleanup
+    self.assertFalse(status.complete,
+AssertionError: True is not false : Issuer completed revocation while native cleanup was unconfirmed and its X server was stopped
+
+----------------------------------------------------------------------
+Ran 1 test in 5.938s
+
+FAILED (failures=1)

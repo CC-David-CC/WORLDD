@@ -1,0 +1,6 @@
+test_stopped_server_cannot_confirm_native_credential_cleanup (__main__.NativeSettlementRelay.test_stopped_server_cannot_confirm_native_credential_cleanup) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 6.083s
+
+OK

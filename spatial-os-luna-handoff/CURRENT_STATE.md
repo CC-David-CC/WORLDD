@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-09: Native cleanup acknowledgement gap corrected in isolated candidate06
+
+A diagnostic on candidate05 observed issuer completion while the private X server was stopped and native cleanup was unconfirmed.
+The timing-sensitive failure occurred with GDB attached only to the test-owned broker.
+The intended sustained-pause marker was not reached. Later relay-only and boundary attempts passed.
+The original failure and those diagnostic limits remain preserved in evidence/participant-native-settlement-2026-10-09.
+
+Candidate06 rechecks the native channel after process reconciliation, reaping, and control updates.
+A cleanup failure now stops that iteration before it can enqueue a revocation acknowledgement.
+Both hosts passed 81 focused Debug checks across 11 suites and 51 harness checks.
+The two added core cases cover direct revocation and revocation during a delayed keepalive reply.
+The corrected debugger diagnostics also passed on both hosts.
+All 253 source hashes and 41 locked hashes match. Existing tests remain unchanged.
+Complete Debug, P10, and runtime sanitizer qualification continues in output07.
+No candidate06 production source is integrated yet. Supervisor recovery and remote participation remain pending.
+
+Candidate05 separately passed 1230 Debug core checks across 76 suites, 51 harness checks, and 151 P10 cases on each host.
+Its sanitizer runs continue as historical evidence. Those results cannot qualify candidate06 or override its recorded native failure.
+M02 and Spatial-M1 remain incomplete. No operator display or database changed.
+
+
 ## 2026-10-09: Self-revocation receipt corrected; native crash boundary witnessed
 
 Candidate04 completed Debug core testing on both hosts.
@@ -176,7 +197,7 @@ See evidence/participant-runtime-2026-10-09/candidate-04.
 The issuer now binds registered service-key proof to its actual TLS connection.
 The checked client validates the complete challenge and result context.
 The integrated source also includes the reviewed owner-idle fixture correction.
-Both hosts qualify 1153 core checks,51 harness checks, and 151 P10 cases in each Debug and runtime sanitizer profile.
+Both hosts qualify 1153 core checks, 51 harness checks, and 151 P10 cases in each Debug and runtime sanitizer profile.
 The final core count uses the full corrected 20-case workspace suite. The original failed run remains archived.
 All 238 source hashes and 41 locked files are verified. No operator state or running session changes.
 Commit 69d6618 is pushed to box-git and adopted on both hosts. Both worktrees are clean.

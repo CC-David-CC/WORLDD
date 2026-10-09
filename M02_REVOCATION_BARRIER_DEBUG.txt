@@ -94,7 +94,7 @@ Evidence: spatial-os-luna-handoff/evidence/workspace-participant-2026-10-09
 The separate process correction passed full Debug on both hosts. Its full sanitizer jobs remain live.
 
 Checked process termination integrated, 2026-10-09
-Both hosts passed full Debug and runtime sanitizer profiles:1192 core,51 harness,151 P10 checks per profile.
+Both hosts passed full Debug and runtime sanitizer profiles:1192 core, 51 harness,151 P10 checks per profile.
 The reviewed cleanup correction is integrated. Source and locked-test hashes match the qualified candidate.
 The original process cleanup failures remain in the evidence directory.
 Broker/world integration and supervisor fencing remain pending. This does not complete M02.
@@ -114,7 +114,7 @@ Process correction 94c6cb6 is adopted on both hosts with 242 matching source has
 Candidate04 failed one of1227 core checks on each host: successful self-revocation receipt was suppressed.
 P10 and runtime sanitizer were unrun after that failure. Full logs are retained.
 Candidate05 preserves only that successful local receipt. All prior assertions remain unchanged.
-Both hosts passed79 focused Debug checks and51 harness checks; full output06 qualification is running.
+Both hosts passed79 focused Debug checks and 51 harness checks; full output06 qualification is running.
 
 Two crash witnesses passed on each host. Process exit preceded native held-input release on a stopped display.
 Five broker descendants exited. The issuer still correctly refused unfenced replacement after observed cleanup.
@@ -125,3 +125,15 @@ Review NativeLaunch cleanup failure propagation at final broker settlement befor
 This is a code-review question, not a confirmed runtime failure. Do not omit it on continuation.
 Details: spatial-os-luna-handoff/docs/AUTHORITY_SUPERVISOR_RECOVERY.txt
 Evidence: spatial-os-luna-handoff/evidence/participant-recovery-2026-10-09
+
+2026-10-09: native-settlement review resolved with a guarded correction
+Candidate05's native diagnostic returned complete=true while its private X server was stopped.
+The broker subsequently exited because native authority was unavailable.
+GDB was attached to the owned broker. The intended sustained-pause marker was not reached.
+The first debugger attempt detached early. Simpler and later boundary attempts passed.
+Preserve these limits; do not claim a deterministic held-thread reproduction.
+Candidate06 adds a native health check after reconciliation and before acknowledgement submission.
+Both hosts pass 81 focused Debug checks and 51 harness checks; full output07 runs remain active.
+Candidate05 full Debug passed 1230 core checks and151 P10 cases per host, but the separate native failure prevents its integration.
+Evidence: spatial-os-luna-handoff/evidence/participant-native-settlement-2026-10-09
+Supervisor recovery remains unimplemented. No physical session was qualified.

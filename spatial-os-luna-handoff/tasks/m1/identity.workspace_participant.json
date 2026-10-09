@@ -4,8 +4,8 @@
   "status": "in_progress",
   "parent": "identity.revocation_barrier",
   "invariant": "Acknowledge issuer revocation only after broker process and control effects settle.",
-  "candidate": 5,
-  "source_files": 252,
+  "candidate": 6,
+  "source_files": 253,
   "integrated": false,
   "source": "local/participant-fixtures-draft-01",
   "contract": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt",
@@ -25,10 +25,9 @@
     "failed": 0,
     "skipped": 0
   },
-  "current_step": "combined_full_qualification_candidate05_output06",
+  "current_step": "combined_full_qualification_candidate06_output07",
   "remaining": [
     "Complete full Debug and runtime sanitizer qualification on both hosts.",
-    "Check the final native cleanup boundary for the recorded possible acknowledgement race before integration.",
     "Resolve any repeated startup failure using retained service diagnostics.",
     "Verify remote obligations and supervisor fencing before M02 completion."
   ],
@@ -77,6 +76,30 @@
     ],
     "checks": 79,
     "suites": 10,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "candidate05_full_Debug": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "core_checks": 1230,
+    "core_suites": 76,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0,
+    "limit": "Separate native-settlement diagnostic failed; candidate05 cannot be integrated."
+  },
+  "candidate06_Debug_focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "checks": 81,
+    "suites": 11,
     "harness_checks": 51,
     "failed": 0,
     "skipped": 0

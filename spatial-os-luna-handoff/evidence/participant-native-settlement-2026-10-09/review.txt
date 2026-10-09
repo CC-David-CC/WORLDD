@@ -1,0 +1,53 @@
+Primary review: native cleanup before broker settlement
+
+Confirmed failure
+
+The failure-02 sb16 run used frozen candidate05 Debug binaries and its 252-file manifest.
+The issuer reported pending_count=0 and complete=true while the owned X server was stopped.
+The broker then exited with its native authority channel unavailable.
+The test used a real issuer, delayed keepalive response, application namespace, and native credential.
+All five observed descendant processes had exited before the completion query.
+No mocked issuer state, simulated cleanup reply, or production source mutation was used.
+The original test hash matches scripts-01/test_native_settlement_schedule.py.
+
+Scheduling limits
+
+The diagnostic attached GDB only to the test-owned broker.
+It used non-stop mode and breakpoints. It did not write production program variables.
+The first debugger attempt detached early and did not expose the failure.
+The failing second attempt did not set its intended sustained-pause marker.
+Its breakpoint processing still perturbed scheduling. Do not call it a deterministic held-thread witness.
+The simpler relay-only runs passed on both hosts.
+A later attempt to enable the boundary breakpoint after descendant exit also passed on both hosts.
+That attempt did not reach its pause marker. These passes do not invalidate the recorded failure.
+
+Root cause and correction
+
+NativeLaunch::revoke closes its channel when native credential cleanup cannot be confirmed.
+The broker checked that channel before reconciliation and process reaping.
+Those operations can destroy a NativeCredential and lose its native cleanup reply.
+The same loop iteration could submit an issuer acknowledgement before its next native channel check.
+Worker scheduling could deliver that acknowledgement before broker failure stopped the worker.
+
+Candidate06 checks the native channel again after reconciliation, reaping, and control updates.
+No native cleanup operation occurs between that final check and settlement in the authority thread.
+A lost cleanup reply now throws before the iteration can enqueue its acknowledgement.
+The shutdown path also invokes this checked reconciliation before participant release.
+Nonnative brokers retain their existing path. Successful native operations retain their existing replies.
+The change does not modify the X server, its protocol, or the issuer schema.
+
+Qualification boundary
+
+Two added ordinary core tests stop a genuine private X server during native credential destruction.
+One revokes directly. One delays a real keepalive response across revocation.
+Both require pending completion after kernel process exit and after broker exit.
+They isolate credential cleanup by releasing the fixture's control reservation before revocation.
+They do not provide independent held-input evidence; the earlier world crash witnesses provide that boundary evidence.
+
+Candidate06 passed 81 focused Debug checks and 51 harness checks on each host.
+All 253 candidate hashes and all 41 locked hashes matched.
+The debugger diagnostic also passed against the corrected binaries on both hosts.
+No existing test method was changed. The new cases do not require GDB or sudo.
+The full Debug, P10, and runtime sanitizer matrix remains pending before integration.
+Candidate05 qualification may continue as historical evidence. It cannot qualify candidate06.
+Supervisor recovery and cross-host participant witnesses remain required for M02.

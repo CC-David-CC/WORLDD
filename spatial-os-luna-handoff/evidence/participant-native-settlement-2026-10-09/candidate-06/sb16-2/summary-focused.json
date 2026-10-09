@@ -1,0 +1,40 @@
+{
+  "host": "sb16-2",
+  "candidate": 6,
+  "output": 7,
+  "mode": "focused",
+  "source_files": 253,
+  "locked_files": 41,
+  "integrated": false,
+  "debug": {
+    "core_checks": 81,
+    "core_suites": 11,
+    "parts": {
+      "focused": {
+        "process-termination": 6,
+        "workspace-participant-races": 5,
+        "workspace-participant": 6,
+        "world-participant": 6,
+        "world-revocation-receipts": 3,
+        "identity-participant-runtime": 14,
+        "world-bootstrap": 15,
+        "workspace-authority": 20,
+        "workspace-participant-native": 2,
+        "workspace-participant-settlement": 2,
+        "world-participant-native": 2
+      }
+    },
+    "harness_checks": 51,
+    "P10_cases": "uncollected",
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "3d0d05bd443e0aaa43be74970e758e63eec7cdfd24ab86a1e3e6f2a0d3db3101",
+      "workspaced": "4271574036910d5ec53e316e6a198609087614472003c8ec75bdb2875a56dfe0",
+      "identityd": "f5216c4b7b39c5b051285501c8051ae0ad041c98fa670504b16347c6224c8707",
+      "spatialwm": "b20a77a248dec84f293a9d05740f2ba778ff5d4cb8ca3499d96b5758cef485df",
+      "spatial-app-init": "48fb279a1a2463b38feaf47ef410f7e27b2a3aa7d57d3d33e2343e7bfa751f2e",
+      "spatial-test-host": "5580c55abbf6d89fd1d2e0da9b3909b718253ead6d20bfcc3e8934a26b284988"
+    }
+  }
+}
