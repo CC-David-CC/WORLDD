@@ -20,6 +20,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             result->add_capabilities("identity.bootstrap-profile/v1");
             result->add_capabilities("identity.authority-registry/v1");
             result->add_capabilities("identity.authority-participation-proof/v1");
+            result->add_capabilities("identity.authority-barrier/v1");
         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
         else if (request.has_execute()) {
@@ -29,6 +30,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             else if (result.has_profile()) *reply.mutable_profile() = result.profile();
             else if (result.has_participant()) *reply.mutable_participant() = result.participant();
             else if (result.has_registry()) *reply.mutable_registry() = result.registry();
+            else if (result.has_barrier()) *reply.mutable_authority_barrier() = result.barrier();
             else *reply.mutable_identity_status() = result.identity_status();
         } else if (request.has_enrollment_begin()) *reply.mutable_challenge() = issuer.enrollment_begin(request.enrollment_begin());
         else if (request.has_enrollment_complete()) *reply.mutable_enrollment() = issuer.enrollment_complete(request.enrollment_complete());
@@ -44,6 +46,13 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             if (request.has_authority_authentication_begin())
                 *reply.mutable_challenge() = issuer.authority_authentication_begin(request.authority_authentication_begin(), *connection);
             else *reply.mutable_authority_authentication() = issuer.authority_authentication_complete(request.authority_authentication_complete(), *connection);
+        }
+        else if (request.has_authority_activate() || request.has_authority_applied() || request.has_authority_release() || request.has_authority_state()) {
+            if (!connection) throw spatial::WorldError(spatial::wire::FORBIDDEN, "Service participation requires a TLS connection context");
+            if (request.has_authority_activate()) *reply.mutable_authority_activation() = issuer.authority_activate(request.authority_activate(), *connection);
+            else if (request.has_authority_applied()) *reply.mutable_authority_activation() = issuer.authority_applied(request.authority_applied(), *connection);
+            else if (request.has_authority_release()) *reply.mutable_authority_activation() = issuer.authority_release(request.authority_release(), *connection);
+            else *reply.mutable_authority_activation() = issuer.authority_state(*connection);
         }
         else throw spatial::WorldError(spatial::wire::UNKNOWN_METHOD, "No recognized issuer operation");
     } catch (const spatial::WorldError& error) {

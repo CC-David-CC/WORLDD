@@ -2,15 +2,15 @@
   "id": "identity.participant_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "both_host_full_passed_candidate05_prepared",
+  "current_step": "reviewed_source_applied_commit_and_adoption_pending",
   "parent": "identity.revocation_barrier",
   "integration_dependency": "identity.participant_session",
   "contract": "docs/AUTHORITY_PARTICIPANT_BARRIER.txt",
   "isolated_source": "local/participant-barrier-draft-01",
   "invariant": "Commit revocation and active-generation obligations atomically; require contiguous authenticated application before completion.",
-  "integrated": false,
+  "integrated": true,
   "remaining": [
-    "Complete primary source review and integrate the prepared candidate05 with the corrected workspace fixture."
+    "Commit the reviewed source and adopt the exact commit on both hosts without migrating operator state."
   ],
   "limitations": [
     "Trusted service acknowledgements require later independent production effect witnesses.",

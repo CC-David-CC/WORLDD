@@ -44,11 +44,13 @@ bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& re
         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin() ||
             request.has_authority_authentication_begin()) && reply.has_challenge()) ||
         (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
-            reply.has_participant() || reply.has_registry())) ||
+            reply.has_participant() || reply.has_registry() || reply.has_authority_barrier())) ||
         (request.has_profile_read() && reply.has_profile()) ||
         (request.has_enrollment_complete() && reply.has_enrollment()) ||
         (request.has_authentication_complete() && reply.has_authentication()) ||
         (request.has_authority_authentication_complete() && reply.has_authority_authentication()) ||
+        ((request.has_authority_activate() || request.has_authority_applied() || request.has_authority_release() ||
+            request.has_authority_state()) && reply.has_authority_activation()) ||
         (request.has_credential_check() && reply.has_identity_status()) ||
         (request.has_revocations() && reply.has_revocations()) ||
         (request.has_actor_status() && reply.has_actor_status());
@@ -118,6 +120,130 @@ struct IssuerClient::Impl {
     std::map<std::string, ServiceChallenge> service_challenges;
     std::string service_binding, issuer_incarnation;
     bool service_authenticated = false;
+    std::optional<v1::AuthorityAuthenticationResult> service_identity;
+    std::optional<v1::AuthorityActivationState> own_activation, latest_activation;
+    std::uint64_t service_head = 0;
+    struct BarrierChallenge {
+        v1::SignRequest signing_request;
+        v1::IssuerChallenge context;
+        Clock::time_point expires;
+    };
+    std::map<std::string, BarrierChallenge> barrier_challenges;
+
+    void remember_barrier_challenge(const v1::IssuerOperation& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
+        require(reply.nonce().size() == 32 && reply.has_signing_request() &&
+                reply.signing_request().purpose() == v1::ISSUER_ADMINISTRATION && reply.signing_request().has_payload(),
+                "Invalid barrier challenge envelope");
+        BarrierChallenge pending; pending.signing_request = reply.signing_request(); auto& value = pending.context;
+        require(value.ParseFromString(pending.signing_request.payload()), "Invalid barrier challenge payload");
+        try { validate_message(value); }
+        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid barrier challenge fields"); }
+        const auto& read = request.barrier_read();
+        require(value.protocol_version() == 1 && value.issuer_id() == config.issuer_id() && value.incarnation().size() == 32 &&
+                value.nonce() == reply.nonce() && value.owner_public_key().size() == 32 &&
+                value.has_operation() && value.operation().SerializeAsString() == request.SerializeAsString() &&
+                value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 && value.audience() == "identityd/admin/v1" &&
+                read.revision() > 0 && read.revision() <= INT64_MAX && read.limit() <= 16 &&
+                (read.after_participant_id().empty() || read.after_participant_id().size() == 32), "Invalid barrier challenge context");
+        require(issuer_incarnation.empty() || issuer_incarnation == value.incarnation(), "Issuer incarnation changed on one connection");
+        require(!barrier_challenges.contains(reply.nonce()), "Duplicate barrier challenge nonce");
+        std::erase_if(barrier_challenges, [](const auto& item) { return item.second.expires <= Clock::now(); });
+        require(barrier_challenges.size() < 256, "Too many barrier challenges");
+        pending.expires = sent + std::chrono::milliseconds(value.lifetime_ms());
+        require(Clock::now() < pending.expires, "Barrier challenge expired in transit");
+        issuer_incarnation = value.incarnation(); barrier_challenges.emplace(reply.nonce(), std::move(pending));
+    }
+    void check_barrier_result(const v1::IssuerExecute& request, const v1::AuthorityBarrierStatus& result,
+                              const std::optional<BarrierChallenge>& pending) {
+        require(pending && Clock::now() < pending->expires, "Unrequested or expired barrier success");
+        const auto& read = pending->context.operation().barrier_read();
+        const auto limit = read.limit() ? read.limit() : 16;
+        require(result.issuer_id() == config.issuer_id() && result.revision() == read.revision() &&
+                result.has_target() && result.target().id().size() == 32 &&
+                (result.target().kind() == v1::ACTOR_TARGET || result.target().kind() == v1::CREDENTIAL_TARGET) &&
+                result.participant_count() <= INT64_MAX && result.pending_count() <= result.participant_count() &&
+                result.complete() == (result.pending_count() == 0) && static_cast<unsigned>(result.obligations_size()) <= limit &&
+                static_cast<std::uint64_t>(result.obligations_size()) <= result.participant_count(), "Invalid barrier status context or counts");
+        std::string previous = read.after_participant_id(); std::set<std::string> keys;
+        std::set<std::uint64_t> registrations; std::set<std::pair<int,std::string>> domains;
+        std::uint64_t pending_count = 0;
+        try {
+            v1::VerifyRequest verification; *verification.mutable_content() = pending->signing_request;
+            *verification.mutable_proof() = request.proof(); verification.set_expected_public_key(pending->context.owner_public_key());
+            require(verify(verification), "Barrier query accepted an invalid owner proof");
+            for (const auto& obligation : result.obligations()) {
+                validate_participant_record(obligation.registration(), config.issuer_id());
+                const auto& record = obligation.registration(); const auto& participant = record.participant();
+                require((previous.empty() || previous < participant.id()) && keys.insert(participant.public_key()).second &&
+                        registrations.insert(record.registered_revision()).second && obligation.generation() > 0 &&
+                        obligation.generation() <= INT64_MAX && obligation.service_incarnation().size() == 32 &&
+                        obligation.applied_revision() <= INT64_MAX && obligation.complete() == (obligation.applied_revision() >= result.revision()),
+                        "Invalid barrier obligation");
+                for (const auto& domain : participant.domains())
+                    require(domains.insert(participant_detail::domain_key(domain)).second, "Conflicting barrier domains");
+                previous = participant.id(); if (!obligation.complete()) ++pending_count;
+            }
+        } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid barrier response or proof"); }
+        const auto complete_count = static_cast<std::uint64_t>(result.obligations_size())-pending_count;
+        require(pending_count <= result.pending_count() && complete_count <= result.participant_count()-result.pending_count(),
+                "Barrier page contradicts global counts");
+        if (!result.next_after().empty())
+            require(static_cast<unsigned>(result.obligations_size()) == limit && result.next_after() == previous &&
+                    result.participant_count() > static_cast<std::uint64_t>(result.obligations_size()), "Invalid barrier continuation");
+        else if (read.after_participant_id().empty())
+            require(static_cast<std::uint64_t>(result.obligations_size()) == result.participant_count() && pending_count == result.pending_count(),
+                    "Incomplete barrier result");
+    }
+    static bool same_generation(const v1::AuthorityActivationState& a, const v1::AuthorityActivationState& b) {
+        return a.generation() == b.generation() && a.service_incarnation() == b.service_incarnation() &&
+            a.issuer_incarnation() == b.issuer_incarnation() && a.connection_binding() == b.connection_binding() &&
+            a.registration().SerializeAsString() == b.registration().SerializeAsString();
+    }
+    void check_activation_result(const v1::IssuerRequest& request, const v1::AuthorityActivationState& state) {
+        require(service_identity.has_value(), "Service activation response without authenticated identity");
+        const auto& identity = *service_identity;
+        require(state.issuer_id() == config.issuer_id() && state.has_registration() &&
+                state.registration().SerializeAsString() == identity.registration().SerializeAsString() &&
+                state.generation() > 0 && state.generation() <= INT64_MAX && state.service_incarnation().size() == 32 &&
+                state.issuer_incarnation().size() == 32 && state.connection_binding().size() == 32 &&
+                state.applied_revision() <= state.head_revision() && state.head_revision() <= INT64_MAX &&
+                state.head_revision() >= service_head, "Invalid activation state context");
+        const bool ours = state.service_incarnation() == identity.service_incarnation() &&
+            state.issuer_incarnation() == identity.issuer_incarnation() && state.connection_binding() == identity.connection_binding();
+        if (!request.has_authority_state()) require(ours, "Mutation result belongs to another service connection");
+        if (request.has_authority_activate()) {
+            require(!own_activation && request.authority_activate().has_synchronized_revision() && state.active() &&
+                    state.applied_revision() == request.authority_activate().synchronized_revision() &&
+                    state.applied_revision() == state.head_revision() &&
+                    (!latest_activation || state.generation() > latest_activation->generation()), "Invalid activation success");
+        } else if (request.has_authority_applied()) {
+            const auto& applied = request.authority_applied();
+            require(own_activation && own_activation->active() && same_generation(*own_activation, state) && state.active() &&
+                    applied.generation() == state.generation() && applied.has_from_revision() && applied.has_through_revision() &&
+                    applied.from_revision() < INT64_MAX && applied.through_revision() == applied.from_revision()+1 &&
+                    state.applied_revision() == applied.through_revision() &&
+                    (own_activation->applied_revision() == applied.from_revision() || own_activation->applied_revision() == applied.through_revision()),
+                    "Invalid service application success");
+        } else if (request.has_authority_release()) {
+            const auto& release = request.authority_release();
+            require(own_activation && same_generation(*own_activation, state) && !state.active() &&
+                    release.generation() == state.generation() && release.has_applied_revision() &&
+                    release.applied_revision() == state.applied_revision() && own_activation->applied_revision() == state.applied_revision() &&
+                    (!own_activation->active() || state.applied_revision() == state.head_revision()), "Invalid service release success");
+        } else if (latest_activation) {
+            require(state.generation() >= latest_activation->generation(), "Activation generation rolled back");
+            if (state.generation() == latest_activation->generation())
+                require(same_generation(*latest_activation,state) && state.applied_revision() >= latest_activation->applied_revision() &&
+                        (latest_activation->active() || !state.active()), "Activation state rolled back or changed identity");
+        }
+        if (ours) {
+            if (own_activation) require(same_generation(*own_activation,state) && state.applied_revision() >= own_activation->applied_revision() &&
+                    (own_activation->active() || !state.active()), "Own activation changed identity or rolled back");
+            own_activation = state;
+        }
+        if (!latest_activation || state.generation() >= latest_activation->generation()) latest_activation = state;
+        service_head = state.head_revision();
+    }
 
     void remember_service_challenge(const v1::AuthorityAuthenticationBegin& request,
                                     const v1::ChallengeReply& reply, Clock::time_point sent) {
@@ -176,6 +302,7 @@ struct IssuerClient::Impl {
             require(verify(verification), "Service authentication accepted an invalid proof");
         } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid service authentication result"); }
         service_authenticated = true;
+        service_identity = result; service_head = result.security_revision();
         service_challenges.clear();
     }
 
@@ -258,6 +385,11 @@ struct IssuerClient::Impl {
         }
     }
     v1::IssuerReply exchange(v1::IssuerRequest request) {
+        std::optional<BarrierChallenge> barrier_pending;
+        if (request.has_execute()) {
+            auto node = barrier_challenges.extract(request.execute().nonce());
+            if (!node.empty()) barrier_pending = std::move(node.mapped());
+        }
         std::optional<ServiceChallenge> service_pending;
         if (request.has_authority_authentication_complete()) {
             // Consume before I/O. A typed denial must not leave a reusable proof context.
@@ -282,6 +414,11 @@ struct IssuerClient::Impl {
         if (reply.has_error()) require(reply.error().code() != 0, "Issuer error lacks a valid code");
         else {
             require(outcome_matches(request, reply), "Issuer reply has the wrong outcome");
+            if (request.has_challenge() && request.challenge().has_barrier_read())
+                remember_barrier_challenge(request.challenge(), reply.challenge(), sent);
+            if (barrier_pending) require(reply.has_authority_barrier(), "Barrier query returned another outcome");
+            if (reply.has_authority_barrier()) check_barrier_result(request.execute(), reply.authority_barrier(), barrier_pending);
+            if (reply.has_authority_activation()) check_activation_result(request, reply.authority_activation());
             if (request.has_authority_authentication_begin())
                 remember_service_challenge(request.authority_authentication_begin(), reply.challenge(), sent);
             if (request.has_authority_authentication_complete())

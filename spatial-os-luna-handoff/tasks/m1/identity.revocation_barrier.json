@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "world_native_focused_qualification_and_barrier_integration_review",
+  "current_step": "issuer_barrier_source_integration_and_world_regression_preparation",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -37,9 +37,9 @@
   ],
   "next_test": "An owner observes committed-but-pending revocation while one enrolled authority delays cancellation, then observes completion only after genuine cancellation acknowledgement.",
   "limitations": [
-    "Issuer barrier passed both-host full qualification but remains isolated pending final integration review.",
-    "World participation passed focused motion and native cancellation tests on sb16 in both profiles; sb16-2 Debug passed and sanitizers are running.",
-    "Broker settlement, broad regression, remote world participation witnesses, and supervisor fencing remain pending."
+    "Issuer barrier source is reviewed and locally integrated; commit and both-host adoption follow.",
+    "Isolated world participation passed six world and two native cancellation tests on both hosts in Debug and runtime sanitizers.",
+    "Broker settlement, broad world regression, remote participation witnesses, and supervisor fencing remain pending."
   ],
   "implementation_plan": "docs/REVOCATION_BARRIER_PLAN.txt",
   "component_tasks": [

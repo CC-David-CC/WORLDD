@@ -217,7 +217,7 @@ class BootstrapTests(EnrollmentFixture):
         self.client.close(); secret = (self.state/'issuer.pem').read_bytes(); policy = self.snapshot()
         with sqlite3.connect(self.state/'identity.db') as db:
             before = db.execute('SELECT * FROM credential').fetchall()
-            db.executescript('DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
+            db.executescript('DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
         command = [str(BINARY), '--state-dir', str(self.state)]
         old = subprocess.run(command, input=b'', capture_output=True, timeout=4)
         self.assertNotEqual(old.returncode, 0); self.assertIn(b'migration', old.stderr.lower())
@@ -226,7 +226,7 @@ class BootstrapTests(EnrollmentFixture):
             self.assertEqual(migrated.returncode, 0, migrated.stderr)
         with sqlite3.connect(self.state/'identity.db') as db:
             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(), before)
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 5)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 6)
         self.assertEqual((self.state/'issuer.pem').read_bytes(), secret); self.assertEqual(self.snapshot(), policy)
         self.client = self.start(); self.assertEqual(self.enroll(self.client), approved)
         self.assertEqual(len(self.read('empty-v1').profile.grants), 0)

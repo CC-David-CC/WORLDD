@@ -80,6 +80,12 @@ void validate_reference(const v1::IdentityReference& target) {
 void validate_operation(const v1::IssuerOperation& operation) {
     validate_message(operation);
     if (operation.has_policy_read()) return;
+    if (operation.has_barrier_read()) {
+        const auto& read = operation.barrier_read();
+        require(read.revision() > 0 && read.revision() <= INT64_MAX && read.limit() <= 16 &&
+                (read.after_participant_id().empty() || read.after_participant_id().size() == 32), "Invalid barrier query");
+        return;
+    }
     if (operation.has_registry_read()) { validate_registry_read(operation.registry_read()); return; }
     if (operation.has_participant_register()) {
         const auto& request = operation.participant_register();
@@ -160,6 +166,25 @@ void create_participant_schema(sqlite3* db) {
             "participant_id BLOB NOT NULL REFERENCES authority_participant(id),PRIMARY KEY(kind,domain_id));"
             "PRAGMA user_version=5");
 }
+void create_barrier_schema(sqlite3* db) {
+    sql(db, "CREATE TABLE authority_activation("
+            "participant_id BLOB NOT NULL REFERENCES authority_participant(id),"
+            "generation INTEGER NOT NULL CHECK(generation>0),"
+            "service_incarnation BLOB NOT NULL CHECK(length(service_incarnation)=32),"
+            "issuer_incarnation BLOB NOT NULL CHECK(length(issuer_incarnation)=32),"
+            "connection_binding BLOB NOT NULL CHECK(length(connection_binding)=32),"
+            "registration BLOB NOT NULL,initial_revision INTEGER NOT NULL CHECK(initial_revision>=0),"
+            "applied_revision INTEGER NOT NULL CHECK(applied_revision>=initial_revision),"
+            "active INTEGER NOT NULL CHECK(active IN(0,1)),PRIMARY KEY(participant_id,generation),"
+            "UNIQUE(participant_id,service_incarnation));"
+            "CREATE UNIQUE INDEX authority_active_participant ON authority_activation(participant_id) WHERE active=1;"
+            "CREATE TABLE authority_barrier(revision INTEGER PRIMARY KEY REFERENCES revocation(revision),"
+            "participant_count INTEGER NOT NULL CHECK(participant_count>=0));"
+            "CREATE TABLE authority_obligation(revision INTEGER NOT NULL REFERENCES authority_barrier(revision),"
+            "participant_id BLOB NOT NULL,generation INTEGER NOT NULL,PRIMARY KEY(revision,participant_id),"
+            "FOREIGN KEY(participant_id,generation) REFERENCES authority_activation(participant_id,generation));"
+            "PRAGMA user_version=6");
+}
 } // namespace
 
 struct Issuer::Impl {
@@ -212,12 +237,12 @@ struct Issuer::Impl {
         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
-        sqlite3_int64 schema = 5;
+        sqlite3_int64 schema = 6;
         if (!owner) {
             Query version(db.get(), "PRAGMA user_version"); version.step();
             Query application(db.get(), "PRAGMA application_id"); application.step();
             schema = version.integer(0);
-            storage((schema == 5 || ((schema >= 1 && schema <= 4) && migrate)) && application.integer(0) == application_id,
+            storage((schema == 6 || ((schema >= 1 && schema <= 5) && migrate)) && application.integer(0) == application_id,
                     "Unknown issuer schema; explicit migration is required");
         }
         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
@@ -235,7 +260,7 @@ struct Issuer::Impl {
             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
             insert.blob(4, policy.SerializeAsString()); insert.step();
             create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
-            create_participant_schema(db.get()); tx.commit();
+            create_participant_schema(db.get()); create_barrier_schema(db.get()); tx.commit();
             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
         }
         { Query integrity(db.get(), "PRAGMA quick_check");
@@ -246,12 +271,13 @@ struct Issuer::Impl {
         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
                 "Issuer key does not match its durable identity");
         policy();
-        if (schema < 5) {
+        if (schema < 6) {
             Transaction migration(db.get());
             if (schema == 1) create_enrollment_schema(db.get());
             if (schema < 3) create_security_schema(db.get());
             if (schema < 4) create_bootstrap_schema(db.get());
-            create_participant_schema(db.get()); migration.commit();
+            if (schema < 5) create_participant_schema(db.get());
+            create_barrier_schema(db.get()); migration.commit();
         }
     }
 
@@ -259,6 +285,78 @@ struct Issuer::Impl {
         Query row(db.get(), "SELECT revision FROM authority_registry WHERE singleton=1");
         storage(row.step() == SQLITE_ROW && row.integer(0) >= 0, "Invalid authority registry revision");
         return static_cast<std::uint64_t>(row.integer(0));
+    }
+    const v1::AuthorityAuthenticationResult& service_context(const IssuerConnection& connection) {
+        if (!connection.authority || connection.binding.size() != 32)
+            throw WorldError(wire::FORBIDDEN, "Authenticated service connection is required");
+        const auto& context = *connection.authority;
+        if (context.issuer_id() != identity.issuer_id() || context.issuer_incarnation() != incarnation ||
+                context.connection_binding() != connection.binding || context.service_incarnation().size() != 32)
+            throw WorldError(wire::UNAUTHORIZED, "Stale service connection context");
+        const auto current = participant_record(context.registration().participant().id(), registry_revision());
+        storage(current.SerializeAsString() == context.registration().SerializeAsString(), "Service registration changed");
+        return context;
+    }
+    v1::AuthorityActivationState activation(const std::string& participant, std::uint64_t generation = 0) {
+        Query row(db.get(), "SELECT generation,service_incarnation,issuer_incarnation,connection_binding,"
+                            "registration,initial_revision,applied_revision,active FROM authority_activation "
+                            "WHERE participant_id=? AND (?=0 OR generation=?) ORDER BY generation DESC LIMIT 1");
+        row.blob(1, participant); row.integer(2, generation); row.integer(3, generation);
+        if (row.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Service generation does not exist");
+        const auto head = security_revision();
+        storage(row.integer(0) > 0 && row.blob(1).size() == 32 && row.blob(2).size() == 32 && row.blob(3).size() == 32 &&
+                row.integer(5) >= 0 && row.integer(6) >= row.integer(5) && static_cast<std::uint64_t>(row.integer(6)) <= head &&
+                (row.integer(7) == 0 || row.integer(7) == 1), "Invalid durable service generation");
+        v1::AuthorityActivationState result; result.set_issuer_id(identity.issuer_id());
+        result.set_generation(row.integer(0)); result.set_service_incarnation(row.blob(1));
+        result.set_issuer_incarnation(row.blob(2)); result.set_connection_binding(row.blob(3));
+        storage(result.mutable_registration()->ParseFromString(row.blob(4)), "Invalid activation registration");
+        const auto registered = participant_record(participant, registry_revision());
+        storage(result.registration().SerializeAsString() == registered.SerializeAsString(), "Activation registration changed");
+        result.set_applied_revision(row.integer(6)); result.set_head_revision(head); result.set_active(row.integer(7) != 0);
+        return result;
+    }
+    v1::AuthorityActivationState bound_activation(const v1::AuthorityAuthenticationResult& context, std::uint64_t generation) {
+        auto state = activation(context.registration().participant().id(), generation);
+        if (state.service_incarnation() != context.service_incarnation() || state.issuer_incarnation() != context.issuer_incarnation() ||
+                state.connection_binding() != context.connection_binding())
+            throw WorldError(wire::UNAUTHORIZED, "Generation belongs to another service connection");
+        return state;
+    }
+    v1::AuthorityBarrierStatus barrier(const v1::AuthorityBarrierRead& request) {
+        Transaction transaction(db.get());
+        Query row(db.get(), "SELECT b.participant_count,r.kind,r.target_id FROM authority_barrier b "
+                            "JOIN revocation r ON r.revision=b.revision WHERE b.revision=?");
+        row.integer(1, request.revision());
+        if (row.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "No recorded cancellation barrier for this revision");
+        storage(row.integer(0) >= 0 && row.blob(2).size() == 32 &&
+                (row.integer(1) == v1::ACTOR_TARGET || row.integer(1) == v1::CREDENTIAL_TARGET), "Invalid durable barrier");
+        v1::AuthorityBarrierStatus result; result.set_issuer_id(identity.issuer_id()); result.set_revision(request.revision());
+        result.set_participant_count(row.integer(0)); result.mutable_target()->set_kind(static_cast<v1::IdentityTargetKind>(row.integer(1)));
+        result.mutable_target()->set_id(row.blob(2));
+        Query count(db.get(), "SELECT COUNT(*),COALESCE(SUM(a.applied_revision<o.revision),0) "
+                              "FROM authority_obligation o JOIN authority_activation a "
+                              "ON a.participant_id=o.participant_id AND a.generation=o.generation WHERE o.revision=?");
+        count.integer(1, request.revision());
+        storage(count.step() == SQLITE_ROW && count.integer(0) == row.integer(0) && count.integer(1) >= 0 &&
+                count.integer(1) <= count.integer(0), "Inconsistent barrier obligation count");
+        result.set_pending_count(count.integer(1)); result.set_complete(count.integer(1) == 0);
+        const auto limit = request.limit() ? request.limit() : 16;
+        Query page(db.get(), "SELECT participant_id,generation FROM authority_obligation WHERE revision=? AND participant_id>? "
+                             "ORDER BY participant_id LIMIT ?");
+        page.integer(1, request.revision()); page.blob(2, request.after_participant_id()); page.integer(3, limit+1);
+        while (page.step() == SQLITE_ROW) {
+            if (static_cast<unsigned>(result.obligations_size()) == limit) {
+                result.set_next_after(result.obligations(result.obligations_size()-1).registration().participant().id()); break;
+            }
+            storage(page.blob(0).size() == 32 && page.integer(1) > 0, "Invalid durable obligation identity");
+            const auto state = activation(page.blob(0), page.integer(1));
+            auto* obligation = result.add_obligations(); *obligation->mutable_registration() = state.registration();
+            obligation->set_generation(state.generation()); obligation->set_service_incarnation(state.service_incarnation());
+            obligation->set_applied_revision(state.applied_revision());
+            obligation->set_complete(state.applied_revision() >= request.revision());
+        }
+        transaction.commit(); return result;
     }
     bool participant_key(const std::string& public_key) {
         Query row(db.get(), "SELECT 1 FROM authority_participant WHERE public_key=?"); row.blob(1, public_key);
@@ -494,6 +592,12 @@ struct Issuer::Impl {
             Query insert(db.get(), "INSERT INTO revocation(kind,target_id,revision,reason) VALUES(?,?,?,?)");
             insert.integer(1, request.target().kind()); insert.blob(2, request.target().id());
             insert.integer(3, before.security_revision()+1); insert.blob(4, request.reason()); insert.step();
+            Query barrier(db.get(), "INSERT INTO authority_barrier(revision,participant_count) "
+                                    "SELECT ?,COUNT(*) FROM authority_activation WHERE active=1");
+            barrier.integer(1, before.security_revision()+1); barrier.step();
+            Query obligations(db.get(), "INSERT INTO authority_obligation(revision,participant_id,generation) "
+                                        "SELECT ?,participant_id,generation FROM authority_activation WHERE active=1");
+            obligations.integer(1, before.security_revision()+1); obligations.step();
         }
         const auto result = identity_status(request.target()); transaction.commit();
         // Only committed revocation invalidates pending authentication. Independent credentials survive.
@@ -651,6 +755,7 @@ v1::AdminResult Issuer::execute(const v1::IssuerExecute& request) {
     // Execute only the server-stored operation authenticated by this consumed challenge.
     v1::AdminResult result;
     if (pending.operation.has_policy_read()) *result.mutable_policy() = impl_->policy();
+    else if (pending.operation.has_barrier_read()) *result.mutable_barrier() = impl_->barrier(pending.operation.barrier_read());
     else if (pending.operation.has_registry_read()) *result.mutable_registry() = impl_->registry(pending.operation.registry_read());
     else if (pending.operation.has_participant_register()) *result.mutable_participant() = impl_->register_participant(pending.operation.participant_register());
     else if (pending.operation.has_policy_set()) *result.mutable_policy() = impl_->set_policy(pending.operation.policy_set());
@@ -731,6 +836,77 @@ v1::AuthenticationResult Issuer::authentication_complete(const v1::Authenticatio
     v1::AuthenticationResult result; *result.mutable_identity() = current;
     result.set_audience(pending.authentication.audience()); result.set_channel_binding(pending.authentication.channel_binding());
     return result;
+}
+v1::AuthorityActivationState Issuer::authority_state(IssuerConnection& connection) {
+    Transaction transaction(impl_->db.get());
+    const auto& context = impl_->service_context(connection);
+    auto result = impl_->activation(context.registration().participant().id());
+    transaction.commit(); return result;
+}
+v1::AuthorityActivationState Issuer::authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection) {
+    validate_message(request);
+    require(request.has_synchronized_revision() && request.synchronized_revision() <= INT64_MAX, "Synchronization revision is required");
+    Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
+    const auto& participant = context.registration().participant().id();
+    Query active(impl_->db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND active=1");
+    active.blob(1, participant);
+    if (active.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "Service already has an active generation; cleanup is required");
+    const auto head = impl_->security_revision();
+    if (request.synchronized_revision() != head) throw WorldError(wire::REVISION_CONFLICT, "Service synchronization is stale");
+    Query reused(impl_->db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND service_incarnation=?");
+    reused.blob(1, participant); reused.blob(2, context.service_incarnation());
+    if (reused.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "A service process incarnation cannot be reused");
+    Query prior(impl_->db.get(), "SELECT COALESCE(MAX(generation),0) FROM authority_activation WHERE participant_id=?");
+    prior.blob(1, participant);
+    storage(prior.step() == SQLITE_ROW && prior.integer(0) >= 0 && prior.integer(0) < INT64_MAX, "Service generation limit reached");
+    const auto generation = prior.integer(0)+1;
+    Query insert(impl_->db.get(), "INSERT INTO authority_activation VALUES(?,?,?,?,?,?,?,?,1)");
+    insert.blob(1, participant); insert.integer(2, generation); insert.blob(3, context.service_incarnation());
+    insert.blob(4, context.issuer_incarnation()); insert.blob(5, context.connection_binding());
+    insert.blob(6, context.registration().SerializeAsString()); insert.integer(7, head); insert.integer(8, head); insert.step();
+    auto result = impl_->activation(participant, generation); transaction.commit(); return result;
+}
+v1::AuthorityActivationState Issuer::authority_applied(const v1::AuthorityApplied& request, IssuerConnection& connection) {
+    validate_message(request);
+    require(request.generation() > 0 && request.generation() <= INT64_MAX && request.has_from_revision() && request.has_through_revision() &&
+            request.from_revision() < INT64_MAX && request.through_revision() == request.from_revision()+1,
+            "Application requires one contiguous revision and a valid generation");
+    Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
+    const auto state = impl_->bound_activation(context, request.generation());
+    if (!state.active()) throw WorldError(wire::UNAUTHORIZED, "Service generation is inactive");
+    if (request.through_revision() > state.head_revision()) throw WorldError(wire::REVISION_CONFLICT, "Cannot apply a future revision");
+    Query original(impl_->db.get(), "SELECT initial_revision FROM authority_activation WHERE participant_id=? AND generation=?");
+    original.blob(1, context.registration().participant().id()); original.integer(2, request.generation());
+    storage(original.step() == SQLITE_ROW, "Service generation disappeared");
+    if (state.applied_revision() == request.through_revision() && request.through_revision() > static_cast<std::uint64_t>(original.integer(0))) {
+        transaction.commit(); return state;
+    }
+    if (state.applied_revision() != request.from_revision()) throw WorldError(wire::REVISION_CONFLICT, "Application revision has a gap or rollback");
+    Query event(impl_->db.get(), "SELECT 1 FROM revocation WHERE revision=?"); event.integer(1, request.through_revision());
+    storage(event.step() == SQLITE_ROW, "Required revocation event is missing");
+    Query update(impl_->db.get(), "UPDATE authority_activation SET applied_revision=? WHERE participant_id=? AND generation=? AND applied_revision=? AND active=1");
+    update.integer(1, request.through_revision()); update.blob(2, context.registration().participant().id());
+    update.integer(3, request.generation()); update.integer(4, request.from_revision()); update.step();
+    storage(sqlite3_changes(impl_->db.get()) == 1, "Service application lost its revision");
+    auto result = impl_->activation(context.registration().participant().id(), request.generation());
+    transaction.commit(); return result;
+}
+v1::AuthorityActivationState Issuer::authority_release(const v1::AuthorityRelease& request, IssuerConnection& connection) {
+    validate_message(request);
+    require(request.generation() > 0 && request.generation() <= INT64_MAX && request.has_applied_revision() && request.applied_revision() <= INT64_MAX,
+            "Release requires generation and applied revision");
+    Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
+    auto state = impl_->bound_activation(context, request.generation());
+    if (state.applied_revision() != request.applied_revision()) throw WorldError(wire::REVISION_CONFLICT, "Release applied revision changed");
+    if (!state.active()) { transaction.commit(); return state; }
+    if (state.applied_revision() != state.head_revision()) throw WorldError(wire::BUSY, "Release has unapplied cancellation effects");
+    Query pending(impl_->db.get(), "SELECT 1 FROM authority_obligation WHERE participant_id=? AND generation=? AND revision>? LIMIT 1");
+    pending.blob(1, context.registration().participant().id()); pending.integer(2, request.generation()); pending.integer(3, state.applied_revision());
+    storage(pending.step() == SQLITE_DONE, "Release has unresolved obligations");
+    Query update(impl_->db.get(), "UPDATE authority_activation SET active=0 WHERE participant_id=? AND generation=? AND active=1");
+    update.blob(1, context.registration().participant().id()); update.integer(2, request.generation()); update.step();
+    storage(sqlite3_changes(impl_->db.get()) == 1, "Release lost its service generation");
+    state.set_active(false); transaction.commit(); return state;
 }
 v1::ChallengeReply Issuer::authority_authentication_begin(const v1::AuthorityAuthenticationBegin& request,
                                                         IssuerConnection& connection) {

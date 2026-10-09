@@ -165,3 +165,8 @@ The independent native client witnesses held input release without a management 
 The sb16-2 Debug checks passed. Its sanitizer run remains active.
 Both-host worker focused qualification also passed fourteen new and ninety-six related checks per profile.
 Broker integration, broad regression, and supervisor fencing remain pending. Nothing here completes M02.
+
+Both-host focused world result
+Candidate03 passed six world, two native cancellation, and fourteen worker checks in each profile on both hosts.
+Each host passed Debug and runtime ASan/UBSan. Source and lock hashes match.
+The world implementation remains isolated pending broader fixture migration and qualification.

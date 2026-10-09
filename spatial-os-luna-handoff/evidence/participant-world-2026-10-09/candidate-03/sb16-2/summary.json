@@ -1,0 +1,35 @@
+{
+  "host": "sb16-2",
+  "source_files": 246,
+  "locked_files": 41,
+  "scope": "focused world and native input participation; broker, broad regression, supervisor fencing, and M02 qualification remain pending",
+  "integrated": false,
+  "debug": {
+    "world_checks": 6,
+    "native_checks": 2,
+    "worker_checks": 14,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "4d8cc63ed274f731a7332dc65285e3472e362b5f20676305d2d562d8e8b1e4d7",
+      "identityd": "0205ff4c3d511c5cd04c79c31b4093f19c009da54097d9ff98ce8b43b0a4c9b9",
+      "spatialwm": "7491770e4d50e53d02c9e14782b4c1eedc58da7d0416b4fdb6a6a558b5d28e17",
+      "spatial-xprobe": "ce10ee489801a07138b6e32ffa377a679d7fccc108f4acd8d2809826995bd106",
+      "spatial-participant-runtime-probe": "9993489b01159986f534c49955ffe969aa05cb152a587fe1ee431d884fc911b9"
+    }
+  },
+  "runtime-sanitize": {
+    "world_checks": 6,
+    "native_checks": 2,
+    "worker_checks": 14,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "ea2146a443279d7fb2b64faed8bc2000d158ec35b810b53ddc85af5beb2bce4f",
+      "identityd": "1131f840facfaedfa963cfba96a7f083b19dde52bc23b3cd0668be6c9f7f5206",
+      "spatialwm": "dfcb19b516700ceed3ad93624b44eb19a905e6c75972f828dd0bba630aa18680",
+      "spatial-xprobe": "81fcaddeedf4539c8662fd04f8d947044c512df8f89f963e30c9c69ed569f13e",
+      "spatial-participant-runtime-probe": "5f31677c8c5d018cd3a10766e1e51c445f62817bee889945cf7bea3353fa1997"
+    }
+  }
+}

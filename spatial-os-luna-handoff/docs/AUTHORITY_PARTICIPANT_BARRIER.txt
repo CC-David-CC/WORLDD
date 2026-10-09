@@ -143,3 +143,10 @@ Both hosts also passed the corrected twenty-case workspace suite against each ba
 The prepared candidate05 retains that fixture and therefore qualifies 1186 core checks.
 All forty-one locked files match. Twelve source files differ from the integrated service-session baseline.
 Final source review and integration remain pending. No operator schema migration was performed.
+
+Integration review
+Primary review completed for all twelve changed files. The candidate05 source is applied locally.
+The schema adds explicit service generations and per-revocation obligations with transactional rollback.
+Both-host qualification and corrected fixture receipts match the selected binaries and source hashes.
+Commit and host source adoption follow. Operator databases and running sessions remain untouched.
+This component cannot prove world or broker effect completion without their production participation.

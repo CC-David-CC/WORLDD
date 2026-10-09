@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-09: Durable issuer barrier integrated after both-host qualification
+
+The issuer records active-service obligations in the same transaction as revocation.
+Only the original authenticated service connection can acknowledge contiguous applied revisions or release its generation.
+Disconnect and restart preserve unresolved obligations. Owner queries distinguish committed revocation from completed cancellation.
+The checked client rejects inconsistent identity, revision, pagination, proof, and outcome data.
+
+Primary review covered all twelve changed source and test files.
+The integrated source retains the corrected workspace fixture.
+Both hosts qualify 1186 core checks, 51 harness checks, and 151 P10 cases in each Debug and runtime sanitizer profile.
+This count combines the preserved full barrier run with the complete corrected workspace suite.
+All 240 source hashes and 41 locked files match. Schema6 migration was tested only on disposable databases.
+Commit and source adoption are pending. No operator database was migrated and no native session was restarted.
+See evidence/participant-barrier-2026-10-09/integration-applied-05.json.
+
+The isolated world draft also passed focused checks on both hosts in both profiles.
+Each profile passed six world, two native cancellation, and fourteen worker checks.
+Broker integration, broad world regression, remote participation witnesses, and supervisor fencing remain pending.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-09: World participation and native cancellation pass focused checks
 
 The isolated world activates its registered service identity before admitting actor actions.
