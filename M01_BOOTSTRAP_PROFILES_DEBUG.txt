@@ -210,3 +210,13 @@ It verifies source hashes, binary hashes, and preservation of all twelve origina
 The follow-ups have not passed yet. They do not modify the active qualification source trees.
 Primary review checked their wait targets, expected test counts, manifests, and failure handling.
 Remote authenticated actor transport and distributed revocation acknowledgement remain required after bootstrap delivery.
+
+2026-10-09 sb16-2 candidate 03 final evidence and candidate 04 start:
+Candidate 03 completed both Debug and runtime sanitizer profiles on sb16-2.
+Each profile passed 1,036 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. The collector matched all 223 source hashes and both complete CTest partitions.
+The queue started candidate 04 automatically on sb16-2. Both hosts now run the final candidate.
+The earlier candidate's success does not qualify the later ordinary-workspace process-survival correction.
+Both exact-binary corrected-witness follow-ups remain pending.
+Recorded identity.world_session as the next pending component, based on the current local-only socket implementation.
+No remote actor transport or distributed revocation barrier is claimed implemented.

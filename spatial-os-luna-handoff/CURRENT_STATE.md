@@ -18,7 +18,8 @@ Its sb16 Debug run failed one process witness on ProcessLookupError during /proc
 That run did not reach P10 or runtime sanitizer checks. The original failure remains preserved.
 The corrected witness passed six new checks and all twelve real process tests on both hosts.
 Fixture commit b2ab006 preserves every original process-test body and all locked acceptance files.
-Candidate 03 runtime sanitizer qualification continues on sb16-2.
+Candidate 03 also passed complete sb16-2 runtime sanitizer qualification with the same counts and no failures or skips.
+That candidate omits the final ordinary workspace access correction. Its results do not qualify candidate 04.
 All 223 candidate input hashes matched both hosts.
 The additive schema audit preserved 219 messages, 804 fields, and 111 enum values.
 All 75 existing test files and 41 locked files remain unchanged.
@@ -30,7 +31,7 @@ A further test reproduced the same defect in ordinary workspace access.
 Candidate 04 extends that correction. Its sb16 focused Debug run passed 52 workspace/broker checks and ten race checks.
 Its sb16 complete Debug profile passed 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
 No case failed or skipped. Runtime sanitizer qualification is running.
-The sb16-2 candidate 04 run waits for its live candidate 03 runner to finish.
+The sb16-2 candidate 04 run has now started. Both hosts are testing that final candidate.
 Candidate 04 still includes the original process witness. Active source trees remain immutable.
 Integration must preserve the separately qualified b2ab006 witness correction.
 An automatic follow-up waits for each candidate 04 matrix to finish successfully.

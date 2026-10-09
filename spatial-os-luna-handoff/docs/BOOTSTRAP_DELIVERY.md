@@ -100,3 +100,7 @@ Candidate 03 failed sb16 Debug on a process-witness read race before P10 and san
 The separate fixture correction is b2ab006. It preserves all twelve original process-test bodies.
 Both hosts passed six new witness checks and twelve real process tests for that correction.
 Active candidate source trees remain unchanged. Integration must retain the corrected witness.
+
+Candidate 03 subsequently passed complete sb16-2 runtime sanitizer qualification with the same counts as Debug.
+That result preserves intermediate regression evidence. It does not qualify candidate 04's later correction.
+Candidate 04 is now running on both hosts. Its complete second-host and sanitizer results remain pending.

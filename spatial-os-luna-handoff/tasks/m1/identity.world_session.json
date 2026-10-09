@@ -1,0 +1,53 @@
+{
+  "id": "identity.world_session",
+  "phase": "M01",
+  "status": "pending",
+  "scope": "Protected remote actor channels for the authoritative world runtime",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/WORLD_IDENTITY.md",
+  "invariant": "Remote actors prove their own identity over protected transport and use the same world authority and actor handlers as local actors.",
+  "preceding_component": "identity.bootstrap_profile",
+  "preceding_gate": "P10",
+  "production_roots": [
+    "src/world/identity_sessions.cpp",
+    "src/world/identity_sessions.hpp",
+    "src/world/main.cpp",
+    "src/world/server.cpp",
+    "src/identity/tls_support.cpp",
+    "proto/spatial/identity/v1/world_session.proto"
+  ],
+  "current_evidence": [
+    "prepare_actor_channel currently accepts only inherited unnamed AF_UNIX sockets.",
+    "worldd currently requires identity configuration and inherited actor descriptors together.",
+    "IdentitySessions currently requires one through 32 inherited actor channels.",
+    "The issuer already has a bounded TLS 1.3 listener and private TLS material loader.",
+    "No existing issuer listener qualifies remote world actor transport."
+  ],
+  "required_evidence": [
+    "Explicit protected listener configuration; no network access to trusted management operations",
+    "Trusted server authentication and fresh actor proof; transport credentials alone grant no actor authority",
+    "Rejected plaintext, untrusted peers, mismatched server identity, replayed proofs, and cross-channel proofs",
+    "Real authenticated actions through the existing world authority and actor engine",
+    "Shared persistent world actors connected from both sb16 and sb16-2",
+    "No workspace creation, selection, or authority granted by connection or world admission",
+    "Bounded handshakes, connections, frames, partial writes, and slow peers",
+    "Controller disconnect and credential revocation cancel motion and affected control while other valid actors continue",
+    "World restart invalidates old sessions and proofs while preserving durable actor context",
+    "Independent Debug and runtime sanitizer qualification on both hosts with the complete baseline"
+  ],
+  "implementation_constraints": [
+    "Keep the trusted management pipe separate from remote actor traffic.",
+    "Reuse the production WorldSessionRequest and WorldSessionReply protobuf interface.",
+    "Do not relay the management interface or create a second actor engine.",
+    "Keep TLS private material outside workspace data and Git.",
+    "Preserve local actor channels and existing authorization checks.",
+    "Do not add remote application streaming or remote application input to M1 scope.",
+    "Record interface changes before implementation. Keep locked acceptance assertions unchanged."
+  ],
+  "limitations": [
+    "This task records a verified implementation gap. It has no passing remote-world evidence yet.",
+    "Transport qualification alone does not complete shared-world persistence, world transitions, or M01.",
+    "Issuer revocation acknowledgement still does not prove a distributed cancellation barrier."
+  ],
+  "next_components": ["identity.revocation_barrier", "M05", "M06"]
+}
