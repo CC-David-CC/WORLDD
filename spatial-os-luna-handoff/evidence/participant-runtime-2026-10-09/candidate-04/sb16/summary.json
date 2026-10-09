@@ -1,0 +1,80 @@
+{
+  "host": "sb16",
+  "source_files": 244,
+  "locked_files": 41,
+  "preserved_messages": 265,
+  "preserved_fields": 1027,
+  "preserved_enum_values": 123,
+  "new_messages": 3,
+  "commands": [
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/audit/before.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/input/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/workspace/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/authority/v1/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/authority/v1/grants_probe.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/core/v1/core.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/identity/v1/issuer.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/identity/v1/key.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/identity/v1/world_session.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/input/v1/input.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/security/v1/security.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-source-04/proto/spatial/workspace/v1/broker.proto"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/audit/after.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/input/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/workspace/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/authority/v1/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/authority/v1/grants_probe.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/core/v1/core.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/identity/v1/issuer.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/identity/v1/key.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/identity/v1/world_session.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/input/v1/input.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/security/v1/security.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-runtime-draft-04/source/proto/spatial/workspace/v1/broker.proto"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "scope": "focused worker and related issuer regression; world and broker integration pending",
+  "debug": {
+    "new_checks": 14,
+    "regression_checks": 96,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "identityd": "94dba611c8424c404e3e491cf159807ffeea24ba25c27178984941719c5edaed",
+      "spatial-issuer-client": "25b36e67ecf8818f07cb7879be5101d2634740723513cfe979ba7d5be5382260",
+      "spatial-participant-runtime-probe": "98cc7f89ea71e818c565f39d6ef86e3b55a589f8e3ee02113fc95278dd3fd1d0"
+    }
+  },
+  "runtime-sanitize": {
+    "new_checks": 14,
+    "regression_checks": 96,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "identityd": "55b54ea18162486683504931260e904e2721831204b0e37c76caed9e0b6451aa",
+      "spatial-issuer-client": "477ff7c713133d61ce68630f51cc43f64f9a985fc72937e2c9afee4ef9009cdf",
+      "spatial-participant-runtime-probe": "75047ea5b19b3b7302c38ae00e5cecaaaccfc50cee607675490c638034a88153"
+    }
+  }
+}

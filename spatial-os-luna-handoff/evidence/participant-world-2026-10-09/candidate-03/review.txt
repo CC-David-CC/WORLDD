@@ -1,0 +1,28 @@
+World participation review, 2026-10-09
+
+The isolated world requires a distinct registered service key for its persisted world domain.
+It activates before admitting actor actions. It consumes each event before acknowledging that revision.
+Acknowledgements occur only after outer handlers return and deferred cancellation settles.
+The world closes affected sessions and discards protected replies changed by reentrant cancellation.
+Clean shutdown releases its generation. A crash retains the generation and rejects an unfenced replacement.
+
+Six focused tests use a real issuer and worldd. A delayed genuine event retains one pending obligation.
+An independent management query witnesses continued motion before delivery and stopped motion after completion.
+Two native tests use the pinned project XLibre diagnostic server, real spatialwm, and an independent X client.
+Stopping only the test compositor keeps the issuer barrier pending while keys and buttons remain held.
+Resuming permits release and completion. A second test revokes during an in-flight renderer request.
+That test rejects the late actor result and verifies the deferred key event was not replayed.
+The independent client synchronizes its own X connection without asking worldd to fence.
+The application remains alive after actor credential revocation.
+
+On sb16, each Debug and runtime ASan/UBSan profile passes six world, two native, and fourteen worker checks.
+Candidate02 built identical production sources and ran the first native test.
+Candidate03 changes only the native test file and adds the second witness.
+The candidate03 script verifies all source hashes before running against those unchanged binaries.
+All 246 candidate03 source hashes and 41 locked files match.
+The sb16-2 equivalent focused matrix is running.
+
+This is a focused component result. The source remains isolated.
+Broader fixture migration and regression, broker control release, process termination, and supervisor fencing remain pending.
+Remote TLS world participation and both-host delayed-delivery integration still need explicit coverage.
+A diagnostic software X display does not prove physical input, native GPU performance, or complete Spatial-M1.

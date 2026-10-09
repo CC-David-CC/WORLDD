@@ -154,3 +154,14 @@ Focused verification update
 Candidate04 passes 14 new worker checks and 96 related regression checks on sb16-2 in Debug and runtime ASan/UBSan.
 All 244 source hashes and 41 locked files match. The schema preserves 265 existing messages and adds 3 messages.
 The matching sb16 focused qualification is running.
+
+World integration checkpoint, 2026-10-09
+Candidate03 requires WorldIdentityConfig participant_runtime_config and registers its persisted world domain.
+It acknowledges only from the outer loop after actor cancellation and pending control releases settle.
+It invalidates late replies when an operation's session was cancelled during a component wait.
+Clean shutdown explicitly releases the generation. Uncertain shutdown retains the unresolved generation.
+On sb16, each Debug and runtime sanitizer profile passes six world, two native, and fourteen worker checks.
+The independent native client witnesses held input release without a management fence from worldd.
+The sb16-2 Debug checks passed. Its sanitizer run remains active.
+Both-host worker focused qualification also passed fourteen new and ninety-six related checks per profile.
+Broker integration, broad regression, and supervisor fencing remain pending. Nothing here completes M02.

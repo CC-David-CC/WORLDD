@@ -1,0 +1,39 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: world-participant
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/source/tests/core/test_world_participant.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build/worldd"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-01/source
+1: Test timeout computed to be: 180
+1: test_actor_serving_world_requires_participant_configuration (__main__.WorldParticipantTests.test_actor_serving_world_requires_participant_configuration) ... ok
+1: test_barrier_stays_pending_until_held_event_stops_real_actor_motion (__main__.WorldParticipantTests.test_barrier_stays_pending_until_held_event_stops_real_actor_motion) ... ok
+1: test_clean_restart_preserves_world_and_uses_new_generation (__main__.WorldParticipantTests.test_clean_restart_preserves_world_and_uses_new_generation) ... ok
+1: test_crash_retains_obligation_and_rejects_unfenced_replacement (__main__.WorldParticipantTests.test_crash_retains_obligation_and_rejects_unfenced_replacement) ... ok
+1: test_service_cannot_activate_a_different_world (__main__.WorldParticipantTests.test_service_cannot_activate_a_different_world) ... ok
+1: test_world_activates_before_admitting_actor_and_cleanly_releases (__main__.WorldParticipantTests.test_world_activates_before_admitting_actor_and_cleanly_releases) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 6 tests in 6.612s
+1: 
+1: OK
+1/1 Test #1: world-participant ................   Passed    6.74 sec
+
+The following tests passed:
+	world-participant
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   6.75 sec

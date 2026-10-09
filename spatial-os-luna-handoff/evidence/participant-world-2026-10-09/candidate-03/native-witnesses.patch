@@ -1,0 +1,148 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -467,6 +467,12 @@
+             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_security_identity.py" $<TARGET_FILE:spatial-security-auth>)
+         set_tests_properties(native-security-identity PROPERTIES TIMEOUT 180
+             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++        add_test(NAME world-participant-native COMMAND "${Python3_EXECUTABLE}"
++            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
++            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_participant_native.py" $<TARGET_FILE:identityd>
++            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
++        set_tests_properties(world-participant-native PROPERTIES TIMEOUT 120
++            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>")
+         add_test(NAME world-identity COMMAND "${Python3_EXECUTABLE}"
+             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_identity.py" $<TARGET_FILE:identityd>
+--- a/tests/core/test_world_participant.py
++++ b/tests/core/test_world_participant.py
+@@ -55,7 +55,7 @@
+         self.release.set();super().close()
+ 
+ 
+-class WorldParticipantTests(WorldIdentityFixture):
++class WorldParticipantFixture(WorldIdentityFixture):
+     def setUp(self):
+         super().setUp()
+         self.world_state=self.root/'participating-world'
+@@ -70,7 +70,7 @@
+         self.definition=issuer.AuthorityParticipant(id=b'w'*32,public_key=self.public,domains=[grants.Domain(kind=grants.WORLD,id=self.world_id)])
+         peer=self.connect();op=issuer.IssuerOperation(participant_register=issuer.AuthorityParticipantRegister(participant=self.definition,expected_registry_revision=0))
+         result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('participant'),result);peer.close()
+-    def start_world(self,relay=None,participate=True,state=None):
++    def start_world(self,relay=None,participate=True,state=None,native=False):
+         # Actor queries and participant traffic use separate, independently authenticated TLS connections.
+         client=self.config_file();query_path=self.root/'query-client.textproto';query_path.write_bytes(client.read_bytes());query_path.chmod(0o600)
+         service=self.config_file(endpoint_port=relay.port if relay else None,io_timeout_ms=3000)
+@@ -81,7 +81,7 @@
+             actor_grants=[session.WorldActorGrants(actor_id=self.identity.actor_id,grants=['navigate','observe','interact'])])
+         if participate:config.participant_runtime_config=str(participant_path)
+         path=self.root/('world-config-'+str(len(self.worlds))+'.textproto');path.write_text(text_format.MessageToString(config));path.chmod(0o600)
+-        world=WorldProcess(self,path,state or self.world_state,runtime_config=self.runtime_path);self.worlds.append(world);self.addCleanup(world.close)
++        world=WorldProcess(self,path,state or self.world_state,native=native,runtime_config=self.runtime_path);self.worlds.append(world);self.addCleanup(world.close)
+         return world
+     def activations(self):
+         with sqlite3.connect(self.state/'identity.db') as db:return db.execute('SELECT generation,applied_revision,active FROM authority_activation ORDER BY generation').fetchall()
+@@ -93,6 +93,9 @@
+         finally:peer.close()
+     def revoke_now(self):
+         self.owner_peer=self.connect();self.revoke();self.owner_peer.close()
++
++
++class WorldParticipantTests(WorldParticipantFixture):
+     def test_actor_serving_world_requires_participant_configuration(self):
+         world=self.start_world(participate=False);self.assertEqual(world.proc.wait(timeout=4),2)
+         self.assertIn('participant configuration is required',Path(world.log.name).read_text());self.assertEqual(self.activations(),[])
+--- /dev/null
++++ b/tests/core/test_world_participant_native.py
+@@ -0,0 +1,91 @@
++"""Independent native input witnesses for durable world revocation completion."""
++import os
++from pathlib import Path
++import signal
++import select
++import time
++import unittest
++import core_pb2 as core
++import world_session_pb2 as session
++from test_world_participant import WorldParticipantFixture
++from test_world_identity import receive
++from harness.wire import frame
++
++
++class WorldParticipantNativeTests(WorldParticipantFixture):
++    def world(self, grants=(), native=False):
++        self.assertTrue(native)
++        self.assertEqual(set(grants), {'navigate','interact','observe'})
++        world=self.start_world(native=True)
++        world.management('system.hello')
++        return world
++
++    def compositor(self,world):
++        children=Path(f'/proc/{world.proc.pid}/task/{world.proc.pid}/children').read_text().split()
++        matches=[int(pid) for pid in children if Path(f'/proc/{pid}/comm').read_text().strip()=='spatialwm']
++        self.assertEqual(len(matches),1)
++        return matches[0]
++
++    def independent_release(self,probe):
++        rows=self.until(probe.input_events,lambda events:
++            any(e['event']=='key' and not e['pressed'] for e in events) and
++            any(e['event']=='button' and not e['pressed'] for e in events))
++        self.assertIsNone(probe.proc.poll())
++        return rows
++
++    def test_completion_waits_for_native_key_and_button_release(self):
++        world,peer,probe=self.held()
++        before=probe.input_events()
++        self.assertTrue(any(e['event']=='key' and e['pressed'] for e in before))
++        self.assertTrue(any(e['event']=='button' and e['pressed'] for e in before))
++        compositor=self.compositor(world)
++        os.kill(compositor,signal.SIGSTOP)
++        try:
++            self.revoke_now()
++            # A stopped production compositor cannot execute cancellation.
++            # Query the independent issuer, without pumping the world channel.
++            time.sleep(.15)
++            status=self.barrier()
++            self.assertEqual((status.participant_count,status.pending_count,status.complete),(1,1,False))
++            during=probe.input_events()
++            self.assertFalse(any(e['event'] in ('key','button') and not e['pressed'] for e in during))
++        finally:
++            os.kill(compositor,signal.SIGCONT)
++        complete=self.until(self.barrier,lambda result:result.complete)
++        self.assertEqual(complete.participant_count,1)
++        self.independent_release(probe)
++        self.denied(peer.call(inspect=session.WorldSessionInspect()),core.UNAUTHORIZED)
++        self.assertIsNone(probe.proc.poll())
++        world.close()
++        self.assertEqual(world.proc.returncode,0)
++        self.assertEqual(self.activations(),[(1,1,0)])
++
++    def test_revocation_during_renderer_request_does_not_ack_or_replay_late_input(self):
++        world,peer,probe=self.held()
++        compositor=self.compositor(world)
++        os.kill(compositor,signal.SIGSTOP)
++        try:
++            peer.sequence+=1;peer.action_sequence+=1
++            request=session.WorldSessionRequest(protocol_version=1,request_id=peer.sequence,
++                action=core.ActorActionRequest(seq=peer.action_sequence,key=core.ActorKeyRequest(keysym='b',pressed=True)))
++            peer.stream.sendall(frame(request))
++            self.assertFalse(select.select([peer.stream],[],[],.1)[0])
++            self.revoke_now()
++            time.sleep(.15)
++            status=self.barrier()
++            self.assertEqual((status.participant_count,status.pending_count,status.complete),(1,1,False))
++        finally:
++            os.kill(compositor,signal.SIGCONT)
++        reply=receive(peer.stream.recv,peer.stream,session.WorldSessionReply)
++        self.assertEqual(reply.request_id,request.request_id)
++        self.assertTrue(reply.HasField('error'),reply)
++        self.until(self.barrier,lambda result:result.complete)
++        rows=self.independent_release(probe)
++        self.assertFalse(any(e.get('text_hex')=='62' for e in rows))
++        self.denied(peer.act(key=core.ActorKeyRequest(keysym='c',pressed=True)),core.UNAUTHORIZED)
++        world.close()
++        self.assertEqual(world.proc.returncode,0)
++        self.assertEqual(self.activations(),[(1,1,0)])
++
++
++if __name__=='__main__':unittest.main(verbosity=2)

@@ -1,5 +1,29 @@
 # Implementation status
 
+## 2026-10-09: World participation and native cancellation pass focused checks
+
+The isolated world activates its registered service identity before admitting actor actions.
+Revocation completion waits for motion cancellation and native input release.
+A real delayed event keeps the issuer obligation pending. A stopped compositor also keeps it pending.
+The in-flight renderer test rejects a late result and prevents stale input replay.
+Clean world shutdown releases its generation. A crash retains it and prevents an unfenced replacement.
+
+On sb16, Debug and runtime ASan/UBSan each pass six world, two native, and fourteen worker checks.
+The sb16-2 Debug profile has passed the same checks. Its sanitizer profile is running.
+All 246 candidate03 source hashes and 41 locked files match on sb16.
+These checks use real worldd, spatialwm, and independent X clients on a diagnostic software display.
+They do not qualify physical input, native GPU timing, or the full M02 requirement group.
+Broker integration, broader fixture migration and regression, and supervisor fencing remain pending.
+See evidence/participant-world-2026-10-09.
+
+The isolated worker also passes 14 new and 96 related checks per profile on both hosts.
+The issuer barrier passes its full matrix on both hosts in Debug and runtime sanitizers.
+Each profile passes 1185 core checks, 51 harness checks, and 151 P10 cases.
+The complete corrected workspace suite adds one case, giving 1186 core checks for the prepared integration.
+All original logs remain preserved. Barrier integration is prepared and awaits final source review.
+No operator databases or desktop sessions changed.
+
+
 ## 2026-10-09: Participation worker passes focused Debug and sanitizer checks
 
 The isolated worker authenticates its service key and exact domains on one checked TLS connection.

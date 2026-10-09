@@ -2,7 +2,7 @@
   "id": "identity.participant_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "sb16_full_passed_sb16_2_sanitizer_running",
+  "current_step": "both_host_full_passed_candidate05_prepared",
   "parent": "identity.revocation_barrier",
   "integration_dependency": "identity.participant_session",
   "contract": "docs/AUTHORITY_PARTICIPANT_BARRIER.txt",
@@ -10,9 +10,7 @@
   "invariant": "Commit revocation and active-generation obligations atomically; require contiguous authenticated application before completion.",
   "integrated": false,
   "remaining": [
-    "Finish both-host Debug and runtime sanitizer qualification.",
-    "Retain the integrated owner-idle fixture correction; validate its20-case suite against each barrier binary profile.",
-    "Review exact source hashes and all raw results before integration."
+    "Complete primary source review and integrate the prepared candidate05 with the corrected workspace fixture."
   ],
   "limitations": [
     "Trusted service acknowledgements require later independent production effect witnesses.",
@@ -50,5 +48,19 @@
     "P10_cases": 151,
     "failed": 0,
     "skipped": 0
-  }
+  },
+  "sb16_2_final": {
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "core_checks": 1185,
+    "core_suites": 68,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "prepared_candidate": 5,
+  "prepared_core_checks": 1186
 }

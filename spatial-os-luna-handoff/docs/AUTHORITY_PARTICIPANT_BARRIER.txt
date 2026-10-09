@@ -136,3 +136,10 @@ Malformed peer data closes the channel. Do not automatically retry mutations.
 Candidate04 passed33 unique new checks and187 related regressions in Debug on sb16.
 This combines19 server checks and14 client checks. Repeated earlier client checks are not additional coverage.
 Full qualification is prepared and remains pending. Real cancellation effects are not established by these client checks.
+
+Full qualification checkpoint, 2026-10-09
+Both hosts passed Debug and runtime ASan/UBSan: 1185 core checks, 51 harness checks, and 151 P10 cases per profile.
+Both hosts also passed the corrected twenty-case workspace suite against each barrier binary profile.
+The prepared candidate05 retains that fixture and therefore qualifies 1186 core checks.
+All forty-one locked files match. Twelve source files differ from the integrated service-session baseline.
+Final source review and integration remain pending. No operator schema migration was performed.

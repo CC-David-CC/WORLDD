@@ -2,7 +2,7 @@
   "id": "identity.participant_runtime",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "candidate04_focused_sb16_2_passed_sb16_running",
+  "current_step": "worker_both_host_focused_passed_world_native_verification",
   "parent": "identity.revocation_barrier",
   "integration_dependency": "identity.participant_barrier",
   "contract": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt",
@@ -38,5 +38,12 @@
     "skipped": 0,
     "source_files": 244,
     "locked_files": 41
+  },
+  "world_candidate": {
+    "candidate": 3,
+    "files": 246,
+    "sb16": "six world plus two native plus fourteen worker checks passed each Debug/runtime sanitizers",
+    "sb16_2": "Debug passed; sanitizer running",
+    "integrated": false
   }
 }

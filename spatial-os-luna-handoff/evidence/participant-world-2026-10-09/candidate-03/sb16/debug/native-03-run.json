@@ -1,0 +1,27 @@
+{
+  "host": "sb16",
+  "profile": "debug",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-03/source/tools/with_test_display.py",
+    "--",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-03/source/tests/core/test_world_participant_native.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/debug/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-world-draft-02/debug/build/worldd"
+  ],
+  "exit_code": 0,
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "source_files": 246,
+  "binary_source": "participant-world-candidate-02",
+  "binaries": {
+    "worldd": "6cdbc7d24d976e1cc9054a9b0985c3bdffaa68acc7c594faeb625042c33a9455",
+    "identityd": "123eff4fe1e3df77a64f13ef19968c63a1d1deecc5c4b31eba3d34be173db8c5",
+    "spatialwm": "9f4574cff5ea347d8347604c08b3225b8ea3a236a9c0031e38ca46af4bf89280",
+    "spatial-xprobe": "d33779a7ed9dd85f7d82fdd876f8db1ad9530f08226a9965c3ec6290ab20b12a"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "source": "participant-world-candidate-01.json",
+  "baseline": "participant-runtime-candidate-04.json",
+  "changed_files": [
+    "CMakeLists.txt",
+    "proto/spatial/identity/v1/world_session.proto",
+    "src/world/actors.cpp",
+    "src/world/actors.hpp",
+    "src/world/identity_sessions.cpp",
+    "src/world/identity_sessions.hpp",
+    "src/world/server.cpp",
+    "tests/core/test_workspace_authority.py",
+    "tests/core/test_world_participant.py"
+  ],
+  "scope": "isolated world participation; six focused Debug world tests plus fourteen worker tests on sb16",
+  "native": "pending candidate02",
+  "integration": false,
+  "fixture_correction": "Retains reviewed 20-case workspace-authority suite from main; no locked acceptance changes"
+}

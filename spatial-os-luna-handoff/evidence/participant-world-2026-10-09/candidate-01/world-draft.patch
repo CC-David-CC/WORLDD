@@ -1,0 +1,435 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -159,7 +159,7 @@
+ add_executable(spatialwm src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
+ target_link_libraries(spatialwm PRIVATE spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
+ add_executable(worldd src/world/actor_tls.cpp src/world/main.cpp src/world/server.cpp src/world/identity_sessions.cpp src/world/authority.cpp)
+-target_link_libraries(worldd PRIVATE spatial-core spatial-issuer-watch-lib spatial-authority)
++target_link_libraries(worldd PRIVATE spatial-core spatial-issuer-watch-lib spatial-authority spatial-participant-runtime-lib)
+ add_dependencies(worldd spatialwm)
+ add_executable(spatial-app-init src/workspace/app_init.cpp)
+ target_link_libraries(spatial-app-init PRIVATE spatial-scene)
+@@ -174,6 +174,11 @@
+ include(CTest)
+ if(BUILD_TESTING)
+     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
++    add_test(NAME world-participant COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_participant.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
++    set_tests_properties(world-participant PROPERTIES TIMEOUT 180
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-participant-runtime COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_runtime.py" $<TARGET_FILE:identityd>
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
+--- a/proto/spatial/identity/v1/world_session.proto
++++ b/proto/spatial/identity/v1/world_session.proto
+@@ -15,6 +15,8 @@
+   repeated WorldActorGrants actor_grants = 5;
+   // Explicit persistent policy. Cannot be combined with static actor lists.
+   string authority_directory = 6;
++  // Required for actor-serving worlds. Private service key configuration.
++  string participant_runtime_config = 7;
+ }
+ // TLS connection permission is separate from signed actor identity and world admission.
+ message WorldActorTlsConfig {
+--- a/src/world/actors.cpp
++++ b/src/world/actors.cpp
+@@ -667,6 +667,12 @@
+     now_ = target;
+ }
+ void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic_seconds); }
++bool Actors::cancellation_settled() const {
++    if (flushing_input_ || !control_releases_.empty() || (renderer_ && renderer_->busy()) || (broker_ && broker_->busy())) return false;
++    return std::none_of(actors_.begin(), actors_.end(), [](const auto& item) {
++        return item.second.close_pending || item.second.interaction_reset_pending;
++    });
++}
+ void Actors::flush_input() {
+     poll_control();
+     refresh_authority();
+--- a/src/world/actors.hpp
++++ b/src/world/actors.hpp
+@@ -32,6 +32,7 @@
+     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
+     void tick(double monotonic_seconds);
+     void flush_input();
++    bool cancellation_settled() const;
+     const wire::Entity* find(const std::string& id) const;
+     bool room_in_use(const std::string& id) const;
+     bool manual_clock() const { return manual_clock_; }
+--- a/src/world/identity_sessions.cpp
++++ b/src/world/identity_sessions.cpp
+@@ -3,7 +3,7 @@
+ #include "world/actor_tls.hpp"
+ #include "platform/broker.hpp"
+ #include "identity/issuer_client.hpp"
+-#include "identity/issuer_watch.hpp"
++#include "identity/participant_runtime.hpp"
+ #include "identity/keys.hpp"
+ #include "identity/bootstrap.hpp"
+ #include "identity/tls_support.hpp"
+@@ -49,6 +49,7 @@
+     std::string input, output, token;
+     std::size_t sent = 0;
+     bool needs_observation = false;
++    std::uint64_t cancellation_generation = 0;
+     Clock::time_point input_started = Clock::now(), output_started = Clock::now();
+     std::optional<Pending> pending;
+     std::optional<pb::ActorCredential> completing;
+@@ -87,7 +88,11 @@
+     BrokerClient* broker;
+     pb::WorldIdentityConfig config;
+     std::unique_ptr<identity::IssuerClient> client;
+-    std::unique_ptr<identity::IssuerWatcher> watcher;
++    std::unique_ptr<identity::ParticipantRuntime> participant;
++    std::optional<std::uint64_t> consumed_revision;
++    std::uint64_t generation = 0, acknowledged_revision = 0, command_sequence = 0;
++    pb::ParticipantCommand::OperationCase pending_operation = pb::ParticipantCommand::OPERATION_NOT_SET;
++    bool closing = false, released = false;
+     pb::IssuerInfo issuer;
+     std::unique_ptr<WorldAuthority> authority;
+     std::uint64_t observed_revision = 0;
+@@ -130,12 +135,18 @@
+         require(info.has_info(), "World issuer identity is unavailable"); issuer = info.info();
+         if (!config.authority_directory().empty())
+             authority = std::make_unique<WorldAuthority>(config.authority_directory(), world.info().world_id(), issuer.issuer_id());
+-        watcher = std::make_unique<identity::IssuerWatcher>(config.issuer_client_config());
+-        const auto deadline = Clock::now()+client->timeout()+std::chrono::milliseconds(100);
+-        while (!ready && !broken && Clock::now() < deadline) { tick(); std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
+-        require(ready && !broken, "World revocation baseline is unavailable");
++        require(std::filesystem::path(config.participant_runtime_config()).is_absolute(), "World authority participant configuration is required");
++        spatial::authority::v1::Domain domain; domain.set_kind(spatial::authority::v1::WORLD); domain.set_id(world.info().world_id());
++        participant = std::make_unique<identity::ParticipantRuntime>(config.participant_runtime_config(),
++            std::vector<spatial::authority::v1::Domain>{domain});
++        const auto deadline = Clock::now()+std::max(client->timeout()*2, std::chrono::milliseconds(2000));
++        while (!ready && !broken && Clock::now() < deadline) {
++            tick(); actors.flush_input(); settle(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
++        }
++        require(ready && !broken, "World authority participation is unavailable");
+     }
+     void disconnect(Channel& channel) {
++        ++channel.cancellation_generation;
+         const auto token = std::move(channel.token); channel.token.clear();
+         channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.completing.reset(); channel.needs_observation = false;
+         if (!channel.output.empty()) { channel.output.clear(); channel.close_transport(); }
+@@ -149,7 +160,7 @@
+         for (auto& channel : channels) disconnect(*channel);
+     }
+     void tick() {
+-        if (ticking || broken || !watcher) return;
++        if (ticking || broken || !participant) return;
+         ticking = true;
+         struct Reset { bool& value; ~Reset() { value = false; } } reset{ticking};
+         // Detect controller loss during component waits without dispatching new actions.
+@@ -172,12 +183,33 @@
+                 disconnect(*channel); channel->close_transport(); channel->input.clear(); channel->output.clear();
+             }
+         }
+-        if (watcher->failed()) { fail(); return; }
+-        while (auto update = watcher->poll()) {
+-            if (update->has_error() || update->batch().issuer_id() != issuer.issuer_id()) { fail(); return; }
+-            observed_revision = std::max(observed_revision, update->batch().head_revision());
+-            if (update->batch().initial()) { ready = true; continue; }
+-            for (const auto& event : update->batch().events()) {
++        if (participant->failed()) { fail(); return; }
++        while (auto update = participant->poll()) {
++            if (update->has_authenticated()) {
++                if (update->authenticated().issuer_id() != issuer.issuer_id()) { fail(); return; }
++                continue;
++            }
++            if (!update->has_revocations()) {
++                if (pending_operation == pb::ParticipantCommand::OPERATION_NOT_SET || update->request_id() != command_sequence) { fail(); return; }
++                const auto expected = pending_operation; pending_operation = pb::ParticipantCommand::OPERATION_NOT_SET;
++                if (update->has_error()) {
++                    if (expected == pb::ParticipantCommand::kActivate && update->error().code() == wire::REVISION_CONFLICT) continue;
++                    fail(); return;
++                }
++                if (expected == pb::ParticipantCommand::kActivate && update->has_activated()) {
++                    generation = update->activated().generation(); acknowledged_revision = update->activated().applied_revision(); ready = true;
++                } else if (expected == pb::ParticipantCommand::kApplied && update->has_applied()) {
++                    acknowledged_revision = update->applied().applied_revision();
++                } else if (expected == pb::ParticipantCommand::kRelease && update->has_released()) released = true;
++                else { fail(); return; }
++                continue;
++            }
++            const auto& batch = update->revocations();
++            if (batch.issuer_id() != issuer.issuer_id()) { fail(); return; }
++            observed_revision = std::max(observed_revision, batch.head_revision());
++            consumed_revision = batch.through_revision();
++            if (batch.initial()) continue;
++            for (const auto& event : batch.events()) {
+                 if (authority && event.target().kind() == pb::ACTOR_TARGET) authority->revoked(event.target().id());
+                 const auto affected = [&](const pb::ActorCredential& claims) {
+                     return event.target().id() == (event.target().kind() == pb::ACTOR_TARGET ? claims.actor_id() : claims.credential_id());
+@@ -190,6 +222,34 @@
+             }
+             sync_authority();
+         }
++    }
++    void settle() {
++        // Never called by an issuer, renderer, or broker wait callback.
++        if (broken || released || !consumed_revision || pending_operation != pb::ParticipantCommand::OPERATION_NOT_SET ||
++                !actors.cancellation_settled()) return;
++        pb::ParticipantCommand command;
++        if (!ready) {
++            if (*consumed_revision < observed_revision) return;
++            command.mutable_activate()->set_synchronized_revision(*consumed_revision);
++        } else if (acknowledged_revision < *consumed_revision) {
++            auto* applied = command.mutable_applied(); applied->set_generation(generation);
++            applied->set_from_revision(acknowledged_revision); applied->set_through_revision(acknowledged_revision+1);
++        } else if (closing && *consumed_revision >= observed_revision) {
++            command.mutable_release()->set_generation(generation);
++            command.mutable_release()->set_applied_revision(acknowledged_revision);
++        } else return;
++        require(command_sequence < UINT64_MAX, "World participant sequence exhausted");
++        command.set_request_id(++command_sequence); pending_operation = command.operation_case();
++        participant->submit(std::move(command));
++    }
++    void shutdown() {
++        closing = true;
++        for (auto& channel : channels) { disconnect(*channel); channel->close_transport(); }
++        const auto deadline = Clock::now()+std::max(client->timeout()*2, std::chrono::milliseconds(2000));
++        while (!released && !broken && Clock::now() < deadline) {
++            tick(); actors.flush_input(); settle(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
++        }
++        if (!released) throw CancellationFailure("World participant release remains unresolved");
+     }
+     pb::IssuerReply exchange(pb::IssuerRequest request) {
+         if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
+@@ -364,7 +424,7 @@
+             validate_message(request);
+             if (request.protocol_version() != 1) throw WorldError(wire::UNSUPPORTED_VERSION, "Unsupported world session protocol");
+             if (request.has_close()) { disconnect(channel); reply.mutable_closed()->set_closed(true); return reply; }
+-            if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
++            if (broken || !ready || closing) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
+             if (request.has_begin()) {
+                 if (!channel.token.empty()) throw WorldError(wire::IN_USE, "Channel already has an actor");
+                 if (channel.pending && Clock::now() < channel.pending->expires)
+@@ -487,7 +547,7 @@
+                         bootstrap_live(channel, false); return reply;
+                     }
+                     if (!authority) throw WorldError(wire::UNIMPLEMENTED, "Persistent world authority is not configured");
+-                    // Copies remain valid if a watcher callback clears the channel during issuer I/O.
++                    // Copies remain valid if a participant callback clears the channel during issuer I/O.
+                     const auto credential = channel.credential; const auto claims = channel.claims;
+                     if (request.has_bootstrap_bind()) {
+                         const auto& operation = request.bootstrap_bind();
+@@ -623,13 +683,20 @@
+             if (length > max_frame_bytes) { drop(); continue; }
+             if (channel.input.size() < length+4) continue;
+             const auto bytes = channel.input.substr(4, length); channel.input.erase(0, length+4); channel.input_started = now;
+-            const auto reply = dispatch(channel, bytes);
++            const auto cancellation = channel.cancellation_generation;
++            auto reply = dispatch(channel, bytes);
+             if (channel.fd.value < 0) continue;
++            if (cancellation != channel.cancellation_generation && !reply.has_closed()) {
++                const auto id = reply.request_id();
++                const auto code = reply.has_error() ? reply.error().code() : wire::UNAUTHORIZED;
++                reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(id);
++                reply.mutable_error()->set_code(code); reply.mutable_error()->set_message("World session changed during operation");
++            }
+             std::ostringstream output; write_frame(output, reply); channel.output = output.str(); channel.sent = 0;
+             channel.output_started = Clock::now();
+         }
+         std::erase_if(channels, [](const auto& channel) { return channel->fd.value < 0; });
+-        if (listener && !broken) {
++        if (listener && !broken && ready && !closing) {
+             const auto fd = listener->accept();
+             if (fd >= 0) {
+                 auto channel = std::make_unique<Channel>(fd);
+@@ -651,4 +718,6 @@
+ }
+ void IdentitySessions::tick() { impl_->tick(); }
+ void IdentitySessions::pump() { impl_->pump(); }
++void IdentitySessions::settle() { impl_->settle(); }
++void IdentitySessions::shutdown() { impl_->shutdown(); }
+ }
+--- a/src/world/identity_sessions.hpp
++++ b/src/world/identity_sessions.hpp
+@@ -19,6 +19,9 @@
+     void set_tick(std::function<void()> callback);
+     void tick();
+     void pump();
++    // Call only from the outer scheduler, after handlers and native cancellation finish.
++    void settle();
++    void shutdown();
+ private:
+     struct Impl;
+     std::unique_ptr<Impl> impl_;
+--- a/src/world/server.cpp
++++ b/src/world/server.cpp
+@@ -79,8 +79,12 @@
+                 output.assign(header.data(), header.size()); output += payload; sent = 0; output_started = Clock::now();
+             }
+         }
++        // All actor and management handlers have returned. Settle deferred effects before acknowledgement.
++        actors.flush_input();
++        if (sessions) sessions->settle();
+         if (eof && output.empty()) {
+             if (!input.empty()) throw std::runtime_error("Truncated protobuf frame");
++            if (sessions) sessions->shutdown();
+             return;
+         }
+         if ((!input.empty() && now - input_started > std::chrono::seconds(10)) ||
+--- a/tests/core/test_workspace_authority.py
++++ b/tests/core/test_workspace_authority.py
+@@ -298,6 +298,12 @@
+         self.until(lambda:self.gone(pids),bool); self.assertFalse((self.project/'done').exists())
+ 
+     def test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh(self):
++        self.retry_revoked_process_after_idle(0)
++
++    def test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout(self):
++        self.retry_revoked_process_after_idle(self.config.idle_timeout_ms / 1000 + .2)
++
++    def retry_revoked_process_after_idle(self, idle_seconds):
+         self.enroll_second(); self.owner_peer = self.connect()
+         relay = world_authority.RelayingIssuer(self,lambda:self.revoke(kind=issuer.ACTOR_TARGET))
+         read = [grant.WORKSPACE_ACCESS,grant.FILE_READ,grant.FILE_BROWSE,grant.PROCESS_EXECUTE]
+@@ -306,7 +312,12 @@
+         self.assertTrue(self.authenticate_second(peer).HasField('opened')); process = self.running(world,peer)
+         with sqlite3.connect(self.execution/'execution.db') as database:
+             payload, = database.execute('SELECT payload FROM processes WHERE id=?',(process.process_id,)).fetchone()
+-        request = broker.LaunchRequest.FromString(payload); pids = self.descendants(); world.close()
++        request = broker.LaunchRequest.FromString(payload); pids = self.descendants()
++        if idle_seconds: time.sleep(idle_seconds)
++        world.close()
++        # Setup and sanitizer teardown can exceed the issuer's owner idle timeout.
++        # Authenticate the revocation on a fresh connection before arming the relay.
++        self.owner_peer = self.connect()
+         relay.armed.set(); result = self.broker.request(launch=request)
+         self.denied(result,core.UNAVAILABLE); self.assertTrue(relay.delivered.is_set())
+         self.until(lambda:self.gone(pids),bool); self.assertFalse((self.project/'done').exists())
+--- /dev/null
++++ b/tests/core/test_world_participant.py
+@@ -0,0 +1,130 @@
++"""Real world participation and independently witnessed revocation completion."""
++import io
++import os
++from pathlib import Path
++import sqlite3
++import socket
++import struct
++import subprocess
++import threading
++import time
++import unittest
++from google.protobuf import text_format
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as issuer
++import world_session_pb2 as session
++from harness.wire import frame,make_request,read_message,result_value
++from test_world_identity import WorldIdentityFixture,WorldProcess,WORLD
++from test_world_authority import RelayingIssuer
++
++class HeldRevocationRelay(RelayingIssuer):
++    def __init__(self,fixture):
++        self.held=threading.Event();self.release=threading.Event()
++        super().__init__(fixture,lambda:None)
++    def relay(self,raw):
++        upstream=None;stream=raw
++        try:
++            raw.settimeout(2);stream=self.context.wrap_socket(raw,server_side=True);self.streams.append(stream)
++            upstream=self.fixture.connect()
++            def exact(size):
++                data=b''
++                while len(data)<size:
++                    part=stream.recv(size-len(data))
++                    if not part:raise EOFError()
++                    data+=part
++                return data
++            while not self.stop.is_set():
++                size=struct.unpack('!I',exact(4))[0]
++                if size>1048576:raise AssertionError('Excessive relay frame')
++                request=issuer.IssuerRequest.FromString(exact(size));sequence=request.request_id
++                reply=upstream.request(request);reply.request_id=sequence
++                if reply.HasField('revocations') and reply.revocations.events:
++                    self.held.set()
++                    deadline=time.monotonic()+1.0
++                    while not self.release.wait(.005):
++                        if self.stop.is_set() or time.monotonic()>deadline:break
++                stream.sendall(frame(reply))
++                if reply.HasField('revocations') and reply.revocations.events:self.delivered.set()
++        except (OSError,EOFError):pass
++        except BaseException as error:self.errors.append(error)
++        finally:
++            stream.close()
++            if upstream:upstream.close()
++    def close(self):
++        self.release.set();super().close()
++
++
++class WorldParticipantTests(WorldIdentityFixture):
++    def setUp(self):
++        super().setUp()
++        self.world_state=self.root/'participating-world'
++        settings=core.RuntimeConfig();text_format.Parse((Path(__file__).resolve().parents[2]/'config/conformance.textproto').read_text(),settings)
++        settings.input_timeout=10
++        self.runtime_path=self.root/'runtime.textproto';self.runtime_path.write_text(text_format.MessageToString(settings));self.runtime_path.chmod(0o600)
++        result=subprocess.run([str(WORLD),'--state-dir',str(self.world_state),'--config',str(self.runtime_path)],input=frame(make_request('world.info',{})),capture_output=True,timeout=6)
++        self.assertEqual(result.returncode,0,result.stderr)
++        reply=read_message(io.BytesIO(result.stdout),core.Reply);self.assertFalse(reply.HasField('error'),reply)
++        self.world_id=result_value(reply)['world_id']
++        self.signer,self.public=self.key('world-service')
++        self.definition=issuer.AuthorityParticipant(id=b'w'*32,public_key=self.public,domains=[grants.Domain(kind=grants.WORLD,id=self.world_id)])
++        peer=self.connect();op=issuer.IssuerOperation(participant_register=issuer.AuthorityParticipantRegister(participant=self.definition,expected_registry_revision=0))
++        result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('participant'),result);peer.close()
++    def start_world(self,relay=None,participate=True,state=None):
++        # Actor queries and participant traffic use separate, independently authenticated TLS connections.
++        client=self.config_file();query_path=self.root/'query-client.textproto';query_path.write_bytes(client.read_bytes());query_path.chmod(0o600)
++        service=self.config_file(endpoint_port=relay.port if relay else None,io_timeout_ms=3000)
++        service_path=self.root/'service-client.textproto';service_path.write_bytes(service.read_bytes());service_path.chmod(0o600)
++        participant=issuer.AuthorityParticipantRuntimeConfig(protocol_version=1,issuer_client_config=str(service_path),private_key_path=str(self.signer),participant_id=self.definition.id,registered_revision=1)
++        participant_path=self.root/'participant.textproto';participant_path.write_text(text_format.MessageToString(participant));participant_path.chmod(0o600)
++        config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(query_path),admission=session.REGISTERED_ACTORS,
++            actor_grants=[session.WorldActorGrants(actor_id=self.identity.actor_id,grants=['navigate','observe','interact'])])
++        if participate:config.participant_runtime_config=str(participant_path)
++        path=self.root/('world-config-'+str(len(self.worlds))+'.textproto');path.write_text(text_format.MessageToString(config));path.chmod(0o600)
++        world=WorldProcess(self,path,state or self.world_state,runtime_config=self.runtime_path);self.worlds.append(world);self.addCleanup(world.close)
++        return world
++    def activations(self):
++        with sqlite3.connect(self.state/'identity.db') as db:return db.execute('SELECT generation,applied_revision,active FROM authority_activation ORDER BY generation').fetchall()
++    def barrier(self,revision=1):
++        peer=self.connect()
++        try:
++            op=issuer.IssuerOperation(barrier_read=issuer.AuthorityBarrierRead(revision=revision))
++            result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('authority_barrier'),result);return result.authority_barrier
++        finally:peer.close()
++    def revoke_now(self):
++        self.owner_peer=self.connect();self.revoke();self.owner_peer.close()
++    def test_actor_serving_world_requires_participant_configuration(self):
++        world=self.start_world(participate=False);self.assertEqual(world.proc.wait(timeout=4),2)
++        self.assertIn('participant configuration is required',Path(world.log.name).read_text());self.assertEqual(self.activations(),[])
++    def test_world_activates_before_admitting_actor_and_cleanly_releases(self):
++        world=self.start_world();world.management('system.hello');self.assertEqual(self.activations(),[(1,0,1)])
++        opened=self.authenticate(world.peers[0]);self.assertTrue(opened.HasField('opened'),opened)
++        world.close();self.assertEqual(world.proc.returncode,0);self.assertEqual(self.activations(),[(1,0,0)])
++    def test_barrier_stays_pending_until_held_event_stops_real_actor_motion(self):
++        relay=HeldRevocationRelay(self);world=self.start_world(relay);world.management('system.hello');peer=world.peers[0]
++        opened=self.authenticate(peer);self.assertTrue(opened.HasField('opened'),opened);actor=opened.opened.actor_id
++        self.assertTrue(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])).HasField('action'))
++        self.revoke_now();self.assertTrue(relay.held.wait(.3));self.assertFalse(relay.delivered.is_set())
++        pending=self.barrier();self.assertEqual((pending.participant_count,pending.pending_count,pending.complete),(1,1,False))
++        start=world.management('world.get',id=actor)['pose']['p'][0];time.sleep(.1);finish=world.management('world.get',id=actor)['pose']['p'][0]
++        self.assertFalse(relay.delivered.is_set());self.assertGreater(finish-start,.02)
++        relay.release.set();self.assertTrue(relay.delivered.wait(.3))
++        completed=self.until(self.barrier,lambda value:value.complete);self.assertEqual(completed.participant_count,1)
++        stopped=world.management('world.get',id=actor)['pose']['p'][0];time.sleep(.08);still=world.management('world.get',id=actor)['pose']['p'][0]
++        self.assertAlmostEqual(stopped,still,places=8);self.assertEqual(self.activations(),[(1,1,1)])
++        world.close();self.assertEqual(world.proc.returncode,0);self.assertEqual(self.activations(),[(1,1,0)])
++    def test_clean_restart_preserves_world_and_uses_new_generation(self):
++        first=self.start_world();first.management('system.hello');first.close();self.assertEqual(first.proc.returncode,0)
++        second=self.start_world();self.assertEqual(second.management('world.info')['world_id'],self.world_id)
++        self.assertEqual(self.activations(),[(1,0,0),(2,0,1)]);second.close();self.assertEqual(second.proc.returncode,0)
++    def test_service_cannot_activate_a_different_world(self):
++        other=self.start_world(state=self.root/'another-world');self.assertEqual(other.proc.wait(timeout=4),2)
++        self.assertIn('participation is unavailable',Path(other.log.name).read_text());self.assertEqual(self.activations(),[])
++    def test_crash_retains_obligation_and_rejects_unfenced_replacement(self):
++        world=self.start_world();world.management('system.hello');self.assertTrue(self.authenticate(world.peers[0]).HasField('opened'))
++        world.proc.kill();world.proc.wait(timeout=2);world.close();self.revoke_now()
++        self.assertEqual((self.barrier().participant_count,self.barrier().pending_count),(1,1))
++        replacement=self.start_world();self.assertEqual(replacement.proc.wait(timeout=4),2)
++        self.assertEqual(self.activations(),[(1,0,1)]);self.assertFalse(self.barrier().complete)
++
++if __name__=='__main__':unittest.main(verbosity=2)
