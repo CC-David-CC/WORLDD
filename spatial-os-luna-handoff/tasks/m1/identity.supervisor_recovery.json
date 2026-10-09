@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.revocation_barrier",
   "status": "in_progress",
-  "current_step": "owned_process_scope_focused_both_host_profiles_passed",
+  "current_step": "combined_process_and_native_full_qualification",
   "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
   "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "evidence": "evidence/participant-recovery-2026-10-09",
@@ -42,5 +42,13 @@
     ],
     "integrated": false,
     "evidence": "evidence/authority-process-scope-2026-10-09"
+  },
+  "native_scope_task": "tasks/m1/identity.native_scope.json",
+  "combined_candidate": {
+    "candidate": 1,
+    "source_files": 264,
+    "evidence": "evidence/authority-scopes-combined-2026-10-09",
+    "status": "full qualification running on both hosts",
+    "integrated": false
   }
 }

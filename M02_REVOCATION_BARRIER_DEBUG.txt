@@ -159,3 +159,7 @@ Candidate09 has255 files and remains unintegrated. Details: spatial-os-luna-hand
 The historical native-control failure is still not causally explained by the new defect. Keep its original evidence.
 
 2026-10-09: Candidate08 world111 and candidate09 native43 checks passed Debug and runtime ASan/UBSan on both hosts. Final evidence: spatial-os-luna-handoff/evidence/m02-corrections-2026-10-09. Candidate09 full qualification is running on both hosts in output10. No production source is integrated.
+
+2026-10-09: Native supervisor scope candidate02 passed 11 new and43 native regression checks plus51 harness checks on both Debug hosts. Candidate01 fixture failed because ordinary application XI2 was unavailable; both diagnostics passed the same core-event release assertions. Evidence: spatial-os-luna-handoff/evidence/authority-native-scope-2026-10-09. Runtime sanitizers and full combined participant qualification remain running. No native-scope source is integrated.
+
+2026-10-09: Native supervisor scope candidate02 now passes both Debug and runtime ASan/UBSan:54 focused native checks and51 harness checks per profile on both hosts. Combined participant09 full Debug also passes both hosts:1239 core,51 harness,151 P10. Its full sanitizers continue. Historical candidate07 completed both full profiles on both hosts:1233 core,51 harness,151 P10 each. Combined process and native ownership candidate01 (264 files) started full qualification on both hosts. No source integration or full M02 completion is claimed.

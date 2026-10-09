@@ -1,0 +1,18 @@
+{
+  "base": "participant-fixtures-candidate-09",
+  "candidate": 2,
+  "files": 259,
+  "changed_files": [
+    "CMakeLists.txt",
+    "proto/spatial/supervisor/v1/native_scope.proto",
+    "src/supervisor/native_scope.hpp",
+    "src/testing/native_scope_probe.cpp",
+    "src/workspace/native_launch.cpp",
+    "src/workspace/native_launch.hpp",
+    "tests/native/test_authority_native_scope.py"
+  ],
+  "existing_test_changes": [],
+  "locked_files_unchanged": 41,
+  "integrated": false,
+  "new_fixture_correction": "Use core events for the confined application; inspect actual input device through the supervisor. Existing test bodies remain unchanged."
+}

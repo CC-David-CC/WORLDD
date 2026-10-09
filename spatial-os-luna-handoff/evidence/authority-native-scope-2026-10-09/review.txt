@@ -1,0 +1,63 @@
+Primary review: native authority ownership
+
+Scope
+
+Candidate02 contains 259 files based on combined participant candidate09.
+Seven files differ from that base. No existing test body or locked acceptance file changes.
+The production class remains isolated. No operator session or issuer database changed.
+This component does not complete supervisor recovery or M02.
+
+Production boundary
+
+NativeScope owns one BROKER or COMPOSITOR credential through its own supervisor connection.
+It reads private configuration from a bounded, fully sealed inherited memfd.
+It checks role, field presence, identity lengths, display range, and unknown protobuf fields before issuing a grant.
+The supervisor cookie is never returned to the launched authority.
+The returned grant belongs to the retained native connection and names its server and launch identity.
+
+The existing NativeLaunch transport now has a private parameterized connection initializer.
+The broker constructor still requires BROKER. The supervisor constructor requires SUPERVISOR.
+Both paths retain pathname pinning, peer PID and UID checks, native server identity checks, and sequence validation.
+Existing application issuance, checkpoint callbacks, revocation, and channel-failure behavior remain unchanged.
+The initializer is private. Ordinary actor requests do not select its expected role.
+
+Stop sends the retained credential ID to the retained server connection.
+Only OK with revoked=true records successful cleanup.
+Unknown credentials, socket loss, timeout, and malformed replies cannot produce a stopped receipt.
+The native server drains credential descendants and client cleanup callbacks before its reply.
+An exact local retry after confirmed cleanup returns the retained public identity without another server operation.
+The destructor attempts checked cleanup. Uncertainty terminates unsuccessfully instead of returning success.
+
+Schema and test boundary
+
+The new protobuf schema is additive. No native server wire message or existing field changed.
+The private probe forwards configuration and operations to the production class.
+It contains no native cleanup implementation.
+Its expected failure exit avoids a second cleanup attempt after an uncertain stop.
+Rejected constructor configuration uses ordinary teardown so sanitizers can inspect that path.
+
+The baseline probe explicitly reported the absent production boundary.
+Two tests failed as expected on both hosts. This is missing-feature evidence, not a native-server defect report.
+Candidate01 passed ten new checks and 43 unchanged native regression checks on each Debug host.
+Its input witness failed before input because it requested XI2 under an ordinary application credential.
+Both controlled diagnostics retained the exact "XI2 unavailable" error.
+The same independent C witness passed all press and release assertions when using allowed core application events.
+
+Candidate02 corrects only that new fixture and the constructor-failure probe teardown.
+It also verifies the real routed pointer device through a separately authorized supervisor XI request.
+It does not grant the application permission to enumerate devices or change existing server policy.
+No existing assertion, native witness source, sanitizer, or deadline was weakened.
+
+The eleven new cases cover descendant revocation, independent credentials, compositor cleanup, and real input release.
+They also cover a paused server, timeout, server exit, absent credential, idempotent stop, and invalid configuration.
+The 43 existing launch and security checks cover unchanged broker behavior and native security enforcement.
+
+Remaining work
+
+Candidate02 passed eleven new checks, 43 native regressions, and 51 harness checks per profile on both hosts.
+All 259 source hashes and 41 locked hashes match. No check failed or skipped.
+Debug and runtime ASan/UBSan qualification passed on both hosts.
+Combine native ownership with process ownership and durable launch records before issuer retirement.
+Verify dependent broker reservation release and supervisor restart reconciliation.
+Full combined qualification remains necessary before source integration.
+These software-display checks do not qualify native GPU output or physical devices.

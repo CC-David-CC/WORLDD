@@ -1,0 +1,27 @@
+{
+  "host": "sb16",
+  "results": [
+    {
+      "mode": "original",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-input-diagnostic-01/driver.py",
+        "original",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-native-scope-01/debug/build/spatial-native-scope-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-native-scope-01/debug/build/spatial-security-auth"
+      ],
+      "exit_code": 1
+    },
+    {
+      "mode": "core",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/native-scope-input-diagnostic-01/driver.py",
+        "core",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-native-scope-01/debug/build/spatial-native-scope-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-native-scope-01/debug/build/spatial-security-auth"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

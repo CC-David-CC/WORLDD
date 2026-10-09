@@ -1,0 +1,582 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -19,6 +19,7 @@
+ protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
+ protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
+ protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
++protobuf_generate_cpp(native_scope_proto_sources native_scope_proto_headers proto/spatial/supervisor/v1/native_scope.proto)
+ protobuf_generate_cpp(broker_proto_sources broker_proto_headers proto/spatial/workspace/v1/broker.proto)
+ protobuf_generate_cpp(key_proto_sources key_proto_headers proto/spatial/identity/v1/key.proto)
+ protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/identity/v1/issuer.proto)
+@@ -45,6 +46,14 @@
+         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1/security.proto
+     DEPENDS proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+ add_custom_target(security-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/security_pb2.py")
++add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/native_scope_pb2.py"
++    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
++        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/native_scope.proto
++    DEPENDS proto/spatial/supervisor/v1/native_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
++add_custom_target(native-scope-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/native_scope_pb2.py")
++
+ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py"
+     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+@@ -116,7 +125,7 @@
+ string(SHA256 build_hash "${build_material}")
+ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
+ 
+-add_library(spatial-protobuf STATIC ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
++add_library(spatial-protobuf STATIC ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
+ target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
+ target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+ add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
+@@ -174,6 +183,15 @@
+ include(CTest)
+ if(BUILD_TESTING)
+     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
++    add_executable(spatial-native-scope-probe src/testing/native_scope_probe.cpp src/workspace/native_launch.cpp)
++    target_link_libraries(spatial-native-scope-probe PRIVATE spatial-scene)
++    add_dependencies(spatial-native-scope-probe native-scope-python-protobuf security-python-protobuf python-protobuf)
++    add_test(NAME authority-native-scope COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_native_scope.py"
++        $<TARGET_FILE:spatial-native-scope-probe> $<TARGET_FILE:spatial-security-auth>)
++    set_tests_properties(authority-native-scope PROPERTIES TIMEOUT 90
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++
+     add_test(NAME world-revision-interleave COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_revision_interleave.py" $<TARGET_FILE:identityd>
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+--- /dev/null
++++ b/proto/spatial/supervisor/v1/native_scope.proto
+@@ -0,0 +1,54 @@
++syntax = "proto3";
++package spatial.supervisor.v1;
++import "security.proto";
++
++// Fully sealed private supervisor input. Never expose the supervisor cookie to an authority.
++message NativeScopeConfig {
++  uint32 protocol_version = 1;
++  optional uint32 display_number = 2;
++  bytes supervisor_cookie = 3;
++  bytes server_id = 4;
++  optional uint32 server_pid = 5;
++  optional uint32 server_uid = 6;
++  bytes launch_id = 7;
++  spatial.security.v1.Role role = 8;
++}
++message NativeScopeIdentity {
++  bytes launch_id = 1;
++  bytes server_id = 2;
++  bytes credential_id = 3;
++  spatial.security.v1.Role role = 4;
++}
++message NativeScopeReady {
++  NativeScopeIdentity identity = 1;
++  spatial.security.v1.Credential credential = 2;
++}
++message NativeScopeStopped { NativeScopeIdentity identity = 1; }
++message NativeScopeQuery {}
++message NativeScopeRequest {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof operation {
++    NativeScopeQuery inspect = 10;
++    NativeScopeQuery stop = 11;
++  }
++}
++message NativeScopeError {
++  enum Code {
++    UNSPECIFIED = 0;
++    INVALID_ARGUMENT = 1;
++    CLEANUP_UNCONFIRMED = 2;
++    UNIMPLEMENTED = 3;
++  }
++  Code code = 1;
++  string message = 2;
++}
++message NativeScopeReply {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof outcome {
++    NativeScopeReady ready = 10;
++    NativeScopeStopped stopped = 11;
++    NativeScopeError error = 12;
++  }
++}
+--- /dev/null
++++ b/src/supervisor/native_scope.hpp
+@@ -0,0 +1,20 @@
++#pragma once
++#include "native_scope.pb.h"
++#include <memory>
++
++namespace spatial::supervisor {
++// Owns one native authority grant on one retained supervisor connection.
++// A stopped receipt proves native revocation, not process or issuer cleanup.
++class NativeScope final {
++public:
++    explicit NativeScope(int sealed_config_fd);
++    ~NativeScope();
++    NativeScope(const NativeScope&) = delete;
++    NativeScope& operator=(const NativeScope&) = delete;
++    v1::NativeScopeReady ready() const;
++    v1::NativeScopeStopped stop();
++private:
++    struct Impl;
++    std::unique_ptr<Impl> impl_;
++};
++}
+--- /dev/null
++++ b/src/testing/native_scope_probe.cpp
+@@ -0,0 +1,40 @@
++#include "core/protocol.hpp"
++#include "supervisor/native_scope.hpp"
++#include <iostream>
++#include <memory>
++#include <unistd.h>
++
++// Thin private driver. All native authority effects use the production class.
++int main(int argc, char** argv) {
++    namespace pb = spatial::supervisor::v1;
++    std::unique_ptr<spatial::supervisor::NativeScope> scope;
++    std::uint64_t sequence = 0;
++    try {
++        if (argc != 2) throw std::invalid_argument("Expected sealed native configuration descriptor");
++        scope = std::make_unique<spatial::supervisor::NativeScope>(std::stoi(argv[1]));
++        pb::NativeScopeReply ready; ready.set_protocol_version(1); *ready.mutable_ready() = scope->ready();
++        spatial::write_frame(std::cout, ready);
++        std::string bytes;
++        while (spatial::read_frame(std::cin, bytes)) {
++            pb::NativeScopeRequest request;
++            if (!request.ParseFromString(bytes)) throw std::invalid_argument("Invalid native scope request");
++            spatial::validate_message(request);
++            if (request.protocol_version() != 1 || request.request_id() <= sequence ||
++                    (!request.has_inspect() && !request.has_stop())) throw std::invalid_argument("Invalid native scope context");
++            sequence = request.request_id();
++            pb::NativeScopeReply reply; reply.set_protocol_version(1); reply.set_request_id(sequence);
++            if (request.has_stop()) *reply.mutable_stopped() = scope->stop();
++            else *reply.mutable_ready() = scope->ready();
++            spatial::write_frame(std::cout, reply);
++        }
++        scope->stop(); return 0;
++    } catch (const std::exception& error) {
++        pb::NativeScopeReply reply; reply.set_protocol_version(1); reply.set_request_id(sequence);
++        reply.mutable_error()->set_code(scope ? pb::NativeScopeError::CLEANUP_UNCONFIRMED : pb::NativeScopeError::INVALID_ARGUMENT);
++        reply.mutable_error()->set_message(error.what()); spatial::write_frame(std::cout, reply);
++        std::cerr << "native scope probe: " << error.what() << '\n';
++        if (!scope) return 2; // Preserve normal sanitizer teardown for rejected configurations.
++        // Do not run a second uncertain cleanup attempt after a failed stop.
++        _exit(2);
++    }
++}
+--- a/src/workspace/native_launch.cpp
++++ b/src/workspace/native_launch.cpp
+@@ -1,4 +1,6 @@
+ #include "workspace/native_launch.hpp"
++#include "supervisor/native_scope.hpp"
++#include <iostream>
+ #include "core/protocol.hpp"
+ #include "world/store.hpp"
+ #include "broker.pb.h"
+@@ -34,7 +36,7 @@
+ std::uint32_t read32(const char* bytes) { return read16(bytes) | (std::uint32_t(read16(bytes+2)) << 16); }
+ void pad(std::string& bytes) { while (bytes.size() % 4) bytes += '\0'; }
+ 
+-workspace::v1::NativeLaunchConfig configuration(int fd) {
++std::string sealed_configuration(int fd) {
+     Fd input{fd}; struct stat info{};
+     constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
+     require(fd >= 3 && fstat(fd, &info) == 0 && S_ISREG(info.st_mode) && info.st_size > 0 && info.st_size <= 4096,
+@@ -48,6 +50,10 @@
+         if (count < 0 && errno == EINTR) continue;
+         require(count > 0, "Incomplete native launch configuration"); used += static_cast<std::size_t>(count);
+     }
++    return data;
++}
++workspace::v1::NativeLaunchConfig configuration(int fd) {
++    const auto data = sealed_configuration(fd);
+     workspace::v1::NativeLaunchConfig result;
+     require(result.ParseFromString(data), "Malformed native launch configuration");
+     validate_message(result);
+@@ -79,6 +85,7 @@
+ struct NativeLaunch::Impl {
+     Fd socket_path, channel;
+     std::string number, server_id;
++    void connect_server(const workspace::v1::NativeLaunchConfig& config, native_security::Role role);
+     unsigned opcode = 0, native_sequence = 0;
+     std::uint64_t sequence = 0;
+ 
+@@ -128,40 +135,43 @@
+     }
+ };
+ 
+-NativeLaunch::NativeLaunch(int sealed_config_fd) : impl_(std::make_unique<Impl>()) {
+-    if (prctl(PR_SET_DUMPABLE, 0) != 0) unavailable();
+-    const auto config = configuration(sealed_config_fd);
+-    impl_->number = std::to_string(config.display_number());
+-    const auto path = "/tmp/.X11-unix/X"+impl_->number;
+-    impl_->socket_path.value = open(path.c_str(), O_PATH | O_NOFOLLOW | O_CLOEXEC);
++void NativeLaunch::Impl::connect_server(const workspace::v1::NativeLaunchConfig& config, native_security::Role role) {
++    number = std::to_string(config.display_number());
++    const auto path = "/tmp/.X11-unix/X"+number;
++    socket_path.value = open(path.c_str(), O_PATH | O_NOFOLLOW | O_CLOEXEC);
+     struct stat info{};
+-    if (impl_->socket_path.value < 0 || fstat(impl_->socket_path.value, &info) || !S_ISSOCK(info.st_mode)) unavailable();
+-    impl_->channel.value = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
+-    if (impl_->channel.value < 0) unavailable();
++    if (socket_path.value < 0 || fstat(socket_path.value, &info) || !S_ISSOCK(info.st_mode)) unavailable();
++    channel.value = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
++    if (channel.value < 0) unavailable();
+     sockaddr_un address{}; address.sun_family = AF_UNIX;
+-    const auto pinned = "/proc/self/fd/"+std::to_string(impl_->socket_path.value);
++    const auto pinned = "/proc/self/fd/"+std::to_string(socket_path.value);
+     std::memcpy(address.sun_path, pinned.c_str(), pinned.size()+1);
+-    if (connect(impl_->channel.value, reinterpret_cast<sockaddr*>(&address), sizeof(address)) != 0) unavailable();
++    if (connect(channel.value, reinterpret_cast<sockaddr*>(&address), sizeof(address)) != 0) unavailable();
+     ucred peer{}; socklen_t size = sizeof(peer);
+-    if (getsockopt(impl_->channel.value, SOL_SOCKET, SO_PEERCRED, &peer, &size) || size != sizeof(peer) ||
++    if (getsockopt(channel.value, SOL_SOCKET, SO_PEERCRED, &peer, &size) || size != sizeof(peer) ||
+             peer.pid <= 0 || static_cast<unsigned>(peer.pid) != config.server_pid() || peer.uid != config.server_uid()) unavailable();
+     std::string hello{"l\0", 2}; u16(hello, 11); u16(hello, 0); u16(hello, 18); u16(hello, 32); u16(hello, 0);
+     hello += "MIT-MAGIC-COOKIE-1"; pad(hello); hello += config.broker_cookie();
+     const auto deadline = Clock::now()+std::chrono::seconds(3);
+-    impl_->transfer(hello.data(), hello.size(), true, deadline);
+-    const auto header = impl_->receive(8, deadline);
++    transfer(hello.data(), hello.size(), true, deadline);
++    const auto header = receive(8, deadline);
+     if (header[0] != 1 || read16(header.data()+2) != 11 || read16(header.data()+4) != 0) unavailable();
+-    impl_->receive(static_cast<std::size_t>(read16(header.data()+6))*4, deadline);
++    receive(static_cast<std::size_t>(read16(header.data()+6))*4, deadline);
+     std::string query; u16(query, 16); u16(query, 0); query += "SPATIAL-SECURITY";
+-    auto [reply, body] = impl_->request(98, query);
++    auto [reply, body] = request(98, query);
+     if (!reply[8] || static_cast<unsigned char>(reply[9]) < 128 || !body.empty()) unavailable();
+-    impl_->opcode = static_cast<unsigned char>(reply[9]);
++    opcode = static_cast<unsigned char>(reply[9]);
+     native_security::Request inspect; inspect.mutable_inspect();
+-    const auto identity = impl_->call(inspect);
+-    if (identity.code() != native_security::OK || !identity.has_identity() || identity.identity().role() != native_security::BROKER ||
++    const auto identity = call(inspect);
++    if (identity.code() != native_security::OK || !identity.has_identity() || identity.identity().role() != role ||
+             identity.identity().server_id() != config.server_id() || !identity.identity().workspace().empty() ||
+             !identity.identity().application().empty()) unavailable();
+-    impl_->server_id = identity.identity().server_id();
++    server_id = identity.identity().server_id();
++}
++
++NativeLaunch::NativeLaunch(int sealed_config_fd) : impl_(std::make_unique<Impl>()) {
++    if (prctl(PR_SET_DUMPABLE, 0) != 0) unavailable();
++    impl_->connect_server(configuration(sealed_config_fd), native_security::BROKER);
+ }
+ NativeLaunch::~NativeLaunch() = default;
+ const std::string& NativeLaunch::server_id() const { return impl_->server_id; }
+@@ -215,4 +225,64 @@
+ NativeCredential::~NativeCredential() { close(authority_fd_); owner_.revoke(id_); }
+ int NativeCredential::socket_fd() const { return owner_.impl_->socket_path.value; }
+ const std::string& NativeCredential::display_number() const { return owner_.impl_->number; }
+-}
++
++namespace supervisor {
++struct NativeScope::Impl {
++    std::unique_ptr<NativeLaunch::Impl> native = std::make_unique<NativeLaunch::Impl>();
++    v1::NativeScopeReady ready;
++    bool stopped = false;
++};
++
++NativeScope::NativeScope(int sealed_config_fd) : impl_(std::make_unique<Impl>()) {
++    if (prctl(PR_SET_DUMPABLE, 0) != 0) unavailable();
++    const auto bytes = sealed_configuration(sealed_config_fd);
++    v1::NativeScopeConfig config;
++    require(config.ParseFromString(bytes), "Malformed native scope configuration");
++    validate_message(config);
++    require(config.protocol_version() == 1 && config.has_display_number() && config.display_number() <= 65535 &&
++            config.supervisor_cookie().size() == 32 && config.server_id().size() == 32 &&
++            config.has_server_pid() && config.server_pid() > 0 && config.has_server_uid() &&
++            config.launch_id().size() == 32 &&
++            (config.role() == native_security::BROKER || config.role() == native_security::COMPOSITOR),
++            "Invalid native scope configuration");
++    workspace::v1::NativeLaunchConfig connection;
++    connection.set_display_number(config.display_number()); connection.set_broker_cookie(config.supervisor_cookie());
++    connection.set_server_id(config.server_id()); connection.set_server_pid(config.server_pid());
++    connection.set_server_uid(config.server_uid());
++    impl_->native->connect_server(connection, native_security::SUPERVISOR);
++    native_security::Request issue; issue.mutable_issue()->set_role(config.role());
++    const auto result = impl_->native->call(issue);
++    const auto& grant = result.credential();
++    if (result.code() != native_security::OK || !result.has_credential() || grant.id().size() != 32 ||
++            grant.cookie().size() != 32 || grant.role() != config.role() ||
++            !grant.workspace().empty() || !grant.application().empty()) unavailable();
++    *impl_->ready.mutable_credential() = grant;
++    auto* identity = impl_->ready.mutable_identity();
++    identity->set_launch_id(config.launch_id()); identity->set_server_id(config.server_id());
++    identity->set_credential_id(grant.id()); identity->set_role(grant.role());
++}
++v1::NativeScopeReady NativeScope::ready() const {
++    require(!impl_->stopped, "Native authority scope has stopped");
++    return impl_->ready;
++}
++v1::NativeScopeStopped NativeScope::stop() {
++    if (!impl_->stopped) {
++        native_security::Request request;
++        request.mutable_revoke()->set_credential_id(impl_->ready.identity().credential_id());
++        const auto reply = impl_->native->call(request);
++        if (reply.code() != native_security::OK || !reply.has_revoked() || !reply.revoked()) {
++            impl_->native->channel.reset(); unavailable();
++        }
++        impl_->stopped = true;
++        impl_->ready.clear_credential();
++    }
++    v1::NativeScopeStopped result; *result.mutable_identity() = impl_->ready.identity(); return result;
++}
++NativeScope::~NativeScope() {
++    try { stop(); }
++    catch (const std::exception& error) {
++        std::cerr << "native authority cleanup unconfirmed: " << error.what() << '\n'; _exit(2);
++    }
++}
++}
++}
+--- a/src/workspace/native_launch.hpp
++++ b/src/workspace/native_launch.hpp
+@@ -4,6 +4,7 @@
+ #include <string>
+ 
+ namespace spatial {
++namespace supervisor { class NativeScope; }
+ class NativeLaunch;
+ class NativeCredential {
+ public:
+@@ -34,6 +35,7 @@
+     const std::string& server_id() const;
+ private:
+     friend class NativeCredential;
++    friend class supervisor::NativeScope;
+     void revoke(const std::string& id) noexcept;
+     struct Impl;
+     std::unique_ptr<Impl> impl_;
+--- /dev/null
++++ b/tests/native/test_authority_native_scope.py
+@@ -0,0 +1,221 @@
++"""Checked supervisor cleanup against a real, independently observed native server."""
++import fcntl
++import os
++from pathlib import Path
++import select
++import signal
++import struct
++import subprocess
++import sys
++import unittest
++from unittest.mock import patch
++import native_scope_pb2 as scope
++import security_pb2 as security
++import input_pb2 as native_input
++
++SCOPE = str(Path(sys.argv.pop(1)).resolve())
++# The existing security fixture consumes the independent authentication probe argument.
++import test_security_identity as native
++from harness.wire import frame
++from harness.probe import Probe
++
++
++class NativeScopeTests(native.SecurityIdentityTests):
++    def read_reply(self, proc, timeout=5, message_type=scope.NativeScopeReply):
++        def exact(size):
++            data = b''
++            while len(data) < size:
++                self.assertTrue(select.select([proc.stdout], [], [], timeout)[0], 'Native scope reply timed out')
++                part = os.read(proc.stdout.fileno(), size-len(data))
++                self.assertTrue(part, 'Native scope exited before its reply')
++                data += part
++            return data
++        size = struct.unpack('!I', exact(4))[0]
++        self.assertLessEqual(size, 1048576)
++        reply = message_type.FromString(exact(size))
++        self.assertEqual(reply.protocol_version, 1)
++        return reply
++
++    def launch_scope(self, role=security.BROKER, sealed=True, server_id=None, expect_ready=True):
++        identity = self.supervisor.inspect()
++        config = scope.NativeScopeConfig(protocol_version=1, display_number=self.display,
++            supervisor_cookie=self.cookie, server_id=server_id if server_id is not None else identity.server_id,
++            server_pid=self.server.pid, server_uid=os.getuid(), launch_id=os.urandom(32), role=role)
++        fd = os.memfd_create('test-native-scope', os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING)
++        os.write(fd, config.SerializeToString())
++        if sealed: fcntl.fcntl(fd, fcntl.F_ADD_SEALS, fcntl.F_SEAL_WRITE|fcntl.F_SEAL_GROW|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_SEAL)
++        path = self.root/('scope-'+str(len(list(self.root.glob('scope-*.log'))))+'.log')
++        log = path.open('wb')
++        try: proc = subprocess.Popen([SCOPE,str(fd)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log, pass_fds=(fd,))
++        finally: os.close(fd)
++        def cleanup():
++            if proc.poll() is None:
++                proc.stdin.close()
++                try: proc.wait(timeout=5)
++                except subprocess.TimeoutExpired: proc.kill(); proc.wait(timeout=3)
++            if not proc.stdin.closed: proc.stdin.close()
++            proc.stdout.close(); log.close()
++            text = path.read_text(errors='replace')
++            for marker in ('AddressSanitizer','LeakSanitizer','runtime error:'): self.assertNotIn(marker,text)
++        self.addCleanup(cleanup)
++        reply = self.read_reply(proc)
++        if expect_ready:
++            self.assertTrue(reply.HasField('ready'), reply)
++            self.assertEqual(reply.ready.identity.launch_id, config.launch_id)
++            self.assertEqual(reply.ready.identity.server_id, identity.server_id)
++            self.assertEqual(reply.ready.identity.credential_id, reply.ready.credential.id)
++            self.assertEqual(reply.ready.identity.role, role)
++        else:
++            self.assertTrue(reply.HasField('error'), reply)
++            self.assertEqual(reply.error.code, scope.NativeScopeError.INVALID_ARGUMENT)
++            self.assertNotEqual(proc.wait(timeout=5),0)
++        return proc, reply
++
++    def stop_scope(self, proc, sequence=1):
++        proc.stdin.write(frame(scope.NativeScopeRequest(protocol_version=1, request_id=sequence, stop=scope.NativeScopeQuery())))
++        proc.stdin.flush()
++
++    def stopped(self, proc, expected, sequence=1):
++        reply = self.read_reply(proc)
++        self.assertEqual(reply.request_id, sequence)
++        self.assertTrue(reply.HasField('stopped'), reply)
++        self.assertEqual(reply.stopped.identity, expected)
++        return reply
++
++    def finish(self, proc):
++        proc.stdin.close(); self.assertEqual(proc.wait(timeout=5),0)
++
++    def test_broker_stop_closes_descendants_preserves_independent_application(self):
++        self.start(); proc, ready = self.launch_scope()
++        broker = self.connect(ready.ready.credential.cookie)
++        app = broker.issue(); client = self.connect(app.cookie)
++        independent = self.supervisor.issue(workspace=b'other', application=b'other')
++        survivor = self.connect(independent.cookie)
++        self.stop_scope(proc); self.stopped(proc,ready.ready.identity)
++        self.assert_closed(broker); self.assert_closed(client)
++        with self.assertRaises(native.Denied): self.connect(app.cookie)
++        self.assertEqual(survivor.inspect().credential_id,independent.id)
++        self.finish(proc)
++
++    def test_compositor_stop_closes_only_owned_connections(self):
++        self.start(); proc, ready = self.launch_scope(security.COMPOSITOR)
++        compositor = self.connect(ready.ready.credential.cookie)
++        another = self.supervisor.issue(security.COMPOSITOR,b'',b'')
++        survivor = self.connect(another.cookie)
++        self.stop_scope(proc); self.stopped(proc,ready.ready.identity)
++        self.assert_closed(compositor)
++        self.assertEqual(survivor.inspect().credential_id,another.id)
++        self.finish(proc)
++
++    def test_compositor_stop_releases_real_native_key_and_button(self):
++        self.start(); proc, ready = self.launch_scope(security.COMPOSITOR)
++        def authority_file(name, cookie):
++            data = b'\xff\xff'
++            for field in (b'', str(self.display).encode(), b'MIT-MAGIC-COOKIE-1', cookie):
++                data += struct.pack('!H',len(field))+field
++            path=self.root/name; path.write_bytes(data); path.chmod(0o600); return str(path)
++        compositor_auth=authority_file('compositor.auth',ready.ready.credential.cookie)
++        app=self.supervisor.issue(workspace=b'input',application=b'witness')
++        app_auth=authority_file('application.auth',app.cookie)
++        log=(self.root/'bridge.log').open('wb')
++        bridge=subprocess.Popen([str(Path(SCOPE).with_name('spatial-input-bridge')),'--owner'],
++            stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log,
++            env=dict(os.environ,SPATIAL_TEST_DISPLAY=':'+str(self.display),XAUTHORITY=compositor_auth))
++        def close_bridge():
++            if bridge.poll() is None: bridge.terminate()
++            try: bridge.wait(timeout=4)
++            except subprocess.TimeoutExpired: bridge.kill(); bridge.wait(timeout=3)
++            bridge.stdin.close(); bridge.stdout.close(); log.close()
++            text=(self.root/'bridge.log').read_text(errors='replace')
++            for marker in ('AddressSanitizer','LeakSanitizer','runtime error:'): self.assertNotIn(marker,text)
++        self.addCleanup(close_bridge)
++        self.read_reply(bridge,message_type=native_input.Reply)
++        # Ordinary application credentials cannot enumerate XI devices.
++        # Observe real application events here and inspect device identity through the supervisor below.
++        with patch.dict(os.environ,{'XAUTHORITY':app_auth}): probe=Probe(self.root,xi2=False,display=':'+str(self.display))
++        self.addCleanup(probe.close)
++        sequence=0
++        def call(**operation):
++            nonlocal sequence
++            sequence+=1
++            bridge.stdin.write(frame(native_input.Request(protocol_version=1,request_id=sequence,**operation)));bridge.stdin.flush()
++            reply=self.read_reply(bridge,message_type=native_input.Reply)
++            self.assertEqual(reply.request_id,sequence);self.assertEqual(reply.code,native_input.OK)
++            return reply
++        opened=call(open=native_input.Empty());seat=opened.seat
++        target=call(inspect=native_input.Inspect(xid=probe.xid)).target
++        call(button=native_input.Button(seat=seat,target=target,x=10,y=10,button=1,pressed=True,focus=True))
++        call(key=native_input.Key(seat=seat,keycode=38,pressed=True))
++        probe.wait(lambda e:e.get('event')=='button' and e.get('pressed'))
++        probe.wait(lambda e:e.get('event')=='key' and e.get('pressed'))
++        name=b'XInputExtension'
++        head,_=self.supervisor.request(98,struct.pack('<HH',len(name),0)+name)
++        self.assertTrue(head[8])
++        head,_=self.supervisor.request(head[9],struct.pack('<I',probe.xid),minor=45)
++        self.assertTrue(head[8]);self.assertGreater(opened.pointer_device,0)
++        self.assertEqual(struct.unpack_from('<H',head,10)[0],opened.pointer_device)
++        self.stop_scope(proc);self.stopped(proc,ready.ready.identity)
++        probe.wait(lambda e:e.get('event')=='button' and not e.get('pressed'))
++        probe.wait(lambda e:e.get('event')=='key' and not e.get('pressed'))
++        self.assertIsNone(probe.proc.poll());self.finish(proc)
++
++    def test_missing_credential_is_not_accepted_as_a_cleanup_receipt(self):
++        self.start(); proc, ready = self.launch_scope()
++        reply=self.supervisor.call(revoke=security.Revoke(credential_id=ready.ready.identity.credential_id))
++        self.assertEqual(reply.code,security.OK)
++        self.stop_scope(proc);reply=self.read_reply(proc)
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertEqual(reply.error.code,scope.NativeScopeError.CLEANUP_UNCONFIRMED)
++        self.assertNotEqual(proc.wait(timeout=5),0)
++
++    def test_stop_waits_for_disposable_server_resume(self):
++        self.start(); proc, ready = self.launch_scope()
++        broker = self.connect(ready.ready.credential.cookie)
++        os.kill(self.server.pid,signal.SIGSTOP)
++        try:
++            self.stop_scope(proc)
++            self.assertFalse(select.select([proc.stdout],[],[],.15)[0], 'Stopped server cannot acknowledge cleanup')
++            self.assertIsNone(proc.poll())
++        finally: os.kill(self.server.pid,signal.SIGCONT)
++        self.stopped(proc,ready.ready.identity); self.assert_closed(broker); self.finish(proc)
++
++    def test_stopped_server_timeout_cannot_report_cleanup(self):
++        self.start(); proc, _ = self.launch_scope()
++        os.kill(self.server.pid,signal.SIGSTOP)
++        try:
++            self.stop_scope(proc); reply=self.read_reply(proc)
++            self.assertTrue(reply.HasField('error'),reply)
++            self.assertEqual(reply.error.code,scope.NativeScopeError.CLEANUP_UNCONFIRMED)
++            self.assertNotEqual(proc.wait(timeout=5),0)
++        finally: os.kill(self.server.pid,signal.SIGCONT)
++
++    def test_server_exit_cannot_replace_a_cleanup_reply(self):
++        self.start(); proc, _ = self.launch_scope()
++        self.server.terminate(); self.server.wait(timeout=4)
++        self.stop_scope(proc); reply=self.read_reply(proc)
++        self.assertTrue(reply.HasField('error'),reply)
++        self.assertEqual(reply.error.code,scope.NativeScopeError.CLEANUP_UNCONFIRMED)
++        self.assertNotEqual(proc.wait(timeout=5),0)
++
++    def test_checked_stop_retry_needs_no_new_server_operation(self):
++        self.start(); proc, ready = self.launch_scope()
++        self.stop_scope(proc); first=self.stopped(proc,ready.ready.identity)
++        self.server.terminate(); self.server.wait(timeout=4)
++        self.stop_scope(proc,2); second=self.stopped(proc,ready.ready.identity,2)
++        self.assertEqual(first.stopped,second.stopped); self.finish(proc)
++
++    def test_unsealed_config_does_not_issue_a_credential(self):
++        self.start(); self.launch_scope(sealed=False,expect_ready=False)
++
++    def test_application_role_is_not_an_authority_scope(self):
++        self.start(); self.launch_scope(role=security.APPLICATION,expect_ready=False)
++
++    def test_wrong_server_identity_does_not_issue_a_credential(self):
++        self.start(); self.launch_scope(server_id=os.urandom(32),expect_ready=False)
++
++
++def suite():
++    return unittest.TestSuite(NativeScopeTests(n) for n in vars(NativeScopeTests) if n.startswith('test_'))
++
++
++if __name__ == '__main__': unittest.main(defaultTest='suite',verbosity=2)

@@ -1,0 +1,6 @@
+test_compositor_stop_releases_real_native_key_and_button (__main__.Diagnostic.test_compositor_stop_releases_real_native_key_and_button) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.088s
+
+OK

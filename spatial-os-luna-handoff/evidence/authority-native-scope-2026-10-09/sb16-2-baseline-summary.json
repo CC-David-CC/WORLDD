@@ -1,0 +1,9 @@
+{
+  "host": "sb16-2",
+  "mode": "baseline",
+  "candidate": 2,
+  "integrated": false,
+  "baseline_expected_failures": 2,
+  "source_files": 259,
+  "locked_files": 41
+}

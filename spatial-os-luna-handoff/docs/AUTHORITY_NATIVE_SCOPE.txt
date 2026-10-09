@@ -1,0 +1,65 @@
+Authority native ownership
+Status: isolated candidate02 passed focused Debug and runtime ASan/UBSan qualification on both hosts.
+Full combined qualification and production integration remain pending.
+
+Invariant
+
+Issue a native authority credential through a supervisor-owned connection before exposing it to the authority.
+Report cleanup only after that same native server confirms revocation of the retained credential.
+Do not infer cleanup from authority exit, socket closure, or a timeout.
+
+Private configuration and results
+
+Use proto/spatial/supervisor/v1/native_scope.proto.
+NativeScopeConfig is fully sealed inherited supervisor configuration.
+It contains protocol_version, display_number, supervisor_cookie, server_id, server_pid, server_uid, launch_id, and role.
+Require a 32-byte cookie, server identity, and launch identity.
+Allow only BROKER or COMPOSITOR roles with no application labels.
+Pin the native socket pathname before connection. Check the connected peer PID and UID.
+Check the native server identity and SUPERVISOR role through the production extension.
+Keep the supervisor cookie and connection outside the launched authority and workspace boundaries.
+
+NativeScopeIdentity contains launch_id, server_id, credential_id, and role.
+NativeScopeReady pairs that identity with the issued credential for the private launch boundary.
+Never persist or log the credential cookie in world state or qualification logs.
+NativeScopeStopped contains only the retained public identity.
+The private query envelope supports inspect and stop, with version and request IDs.
+Use the existing bounded protobuf framing and reject unknown fields.
+
+Cleanup semantics
+
+Stop revokes only the retained credential. Broker descendants follow the native server's existing revocation chain.
+Compositor revocation closes its native connections and releases its owned input devices through existing server callbacks.
+Keep independently issued credentials usable.
+Require an OK reply with revoked=true. NOT_FOUND is not a cleanup receipt.
+Do not reconnect after an uncertain reply or silently accept a different server generation.
+After a checked stop, return the same retained identity for an exact local stop retry.
+Do not send another revocation request for that retry.
+An uncertain destructor cleanup exits unsuccessfully. It cannot manufacture a successful receipt.
+
+Qualification
+
+Use real native clients with independent protocol witnesses.
+Test broker descendant revocation and preservation of an unrelated application.
+Test compositor connection revocation and native held-input release.
+Stop only a disposable test server to prove that no early cleanup reply occurs.
+Test timeout, server death, foreign server identity, unsealed configuration, and a forbidden role.
+Test explicit stop retry after closing the disposable server.
+Retain the original failure and run Debug and runtime sanitizers on both hosts.
+
+Limits
+
+This boundary does not retire issuer generations or clear durable obligations.
+It does not prove broker control-reservation release or complete supervisor restart recovery.
+Persistent launch ownership, signed receipts, and issuer fencing remain separate required work.
+
+Verified evidence
+
+Both hosts passed eleven native ownership checks, 43 existing native regression checks, and 51 harness checks per profile.
+No final case failed or skipped. All 259 candidate hashes and 41 locked hashes match.
+See evidence/authority-native-scope-2026-10-09 for baseline failures, diagnostics, the patch, and review.
+The baseline's explicit unsupported reply demonstrates the missing production boundary, not a native server defect.
+Candidate01's input fixture incorrectly requested XI2 from an ordinary application credential.
+Both hosts retained that failure and passed the corrected core-event diagnostic.
+Candidate02 observes real application events and checks the routed device through a separately authorized supervisor.
+Existing acceptance tests and native server policy remain unchanged.

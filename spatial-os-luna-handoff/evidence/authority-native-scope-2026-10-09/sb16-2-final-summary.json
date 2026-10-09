@@ -1,0 +1,27 @@
+{
+  "host": "sb16-2",
+  "mode": "final",
+  "candidate": 2,
+  "integrated": false,
+  "baseline_expected_failures": 2,
+  "source_files": 259,
+  "locked_files": 41,
+  "debug": {
+    "checks": 54,
+    "suites": 3,
+    "new_checks": 11,
+    "regression_checks": 43,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime-sanitize": {
+    "checks": 54,
+    "suites": 3,
+    "new_checks": 11,
+    "regression_checks": 43,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  }
+}

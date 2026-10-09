@@ -1,0 +1,23 @@
+Combined process and native ownership qualification
+
+Candidate01 contains 264 files.
+Its base is native-scope candidate02, which passed both focused profiles on both hosts.
+The process-scope addition comes from candidate03, which passed ten checks per profile on both hosts.
+All five added process-scope files match their previously tested hashes exactly.
+All native-scope candidate02 files remain identical except CMakeLists.txt.
+The build file adds the existing process-scope protobuf generation, library, probe, and delegated CTest entry.
+No existing test, schema field, or production behavior was changed while combining these sources.
+All 41 locked files match.
+
+The complete matrix is running independently on sb16 and sb16-2.
+Expected totals per profile are 1260 core checks across 81 suites, 51 harness checks, and 151 P10 cases.
+Both hosts passed the focused Debug subset: eleven native-scope checks and ten process-scope checks.
+Both also passed 51 harness checks. All 264 source hashes and 41 locked hashes match.
+The remaining core, P10, and sanitizer qualification continue.
+Expected totals are not execution results. Collect exact inventories after each completed profile.
+Do not restart or modify a live qualification tree.
+
+This combination is not integrated and does not implement complete supervisor recovery.
+The primitives still need coordinated launch ownership, explicit descriptor passing, and durable launch records.
+Native and process receipts alone cannot clear broker reservation obligations or issuer generations.
+Issuer supervision proofs, fencing, replay checks, supervisor restart, and cross-host recovery remain required.

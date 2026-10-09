@@ -1,0 +1,21 @@
+test_compositor_stop_releases_real_native_key_and_button (__main__.Diagnostic.test_compositor_stop_releases_real_native_key_and_button) ... ERROR
+
+======================================================================
+ERROR: test_compositor_stop_releases_real_native_key_and_button (__main__.Diagnostic.test_compositor_stop_releases_real_native_key_and_button)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-native-scope-01/source/tests/native/test_authority_native_scope.py", line 133, in test_compositor_stop_releases_real_native_key_and_button
+    with patch.dict(os.environ,{'XAUTHORITY':app_auth}): probe=Probe(self.root,xi2=True,display=':'+str(self.display))
+                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-native-scope-01/source/harness/probe.py", line 29, in __init__
+    try:self.ready=self.wait(lambda e:e.get("event")=="ready")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-native-scope-01/source/harness/probe.py", line 48, in wait
+    if self.failure:raise self.failure
+                    ^^^^^^^^^^^^^^^^^^
+RuntimeError: X probe terminated; see its stderr
+
+----------------------------------------------------------------------
+Ran 1 test in 0.099s
+
+FAILED (errors=1)

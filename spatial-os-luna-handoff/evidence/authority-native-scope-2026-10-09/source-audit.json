@@ -1,0 +1,22 @@
+{
+  "candidate": 2,
+  "source_files": 259,
+  "locked_files": 41,
+  "existing_tests": "unchanged",
+  "broker_connection_refactor": "equivalent with same BROKER role",
+  "existing_application_methods": "identical",
+  "new_cases": [
+    "test_broker_stop_closes_descendants_preserves_independent_application",
+    "test_compositor_stop_closes_only_owned_connections",
+    "test_compositor_stop_releases_real_native_key_and_button",
+    "test_missing_credential_is_not_accepted_as_a_cleanup_receipt",
+    "test_stop_waits_for_disposable_server_resume",
+    "test_stopped_server_timeout_cannot_report_cleanup",
+    "test_server_exit_cannot_replace_a_cleanup_reply",
+    "test_checked_stop_retry_needs_no_new_server_operation",
+    "test_unsealed_config_does_not_issue_a_credential",
+    "test_application_role_is_not_an_authority_scope",
+    "test_wrong_server_identity_does_not_issue_a_credential"
+  ],
+  "integrated": false
+}

@@ -1,0 +1,14 @@
+{
+  "files": 264,
+  "locked_files": 41,
+  "native_inputs_unchanged_except_build_file": true,
+  "process_files_copied_exactly": [
+    "tests/core/test_authority_process_scope.py",
+    "src/supervisor/process_scope.cpp",
+    "src/supervisor/process_scope.hpp",
+    "src/testing/process_scope_probe.cpp",
+    "proto/spatial/supervisor/v1/process_scope.proto"
+  ],
+  "existing_tests_unchanged": true,
+  "integrated": false
+}

@@ -1,5 +1,30 @@
 # Implementation status
 
+## 2026-10-09: Supervisor native ownership passes both focused profiles
+
+The isolated native-scope candidate02 passed eleven new checks and 43 existing native regressions on both hosts.
+Both hosts also passed 51 harness checks per profile. No final case failed or skipped.
+All 259 source hashes and 41 locked hashes match. Debug and runtime ASan/UBSan both passed.
+
+The production class issues a native authority credential through its retained supervisor connection.
+It reports cleanup only after a checked revocation reply from the same native server.
+Independent witnesses verify descendant revocation, preservation of unrelated credentials, and real key and button release.
+Paused-server, timeout, missing-credential, and server-exit cases cannot report successful cleanup.
+The existing broker uses the same checked connection initializer and passes its unchanged native regression checks.
+
+Candidate01's new input fixture requested XI2 under an ordinary application credential and failed before receiving input.
+Both hosts reproduced that fixture mismatch. The same core-event release assertions passed in controlled diagnostics.
+Candidate02 uses permitted application events and independently checks the actual routed device through the supervisor.
+No existing test, native witness source, or server permission changed.
+See evidence/authority-native-scope-2026-10-09 and docs/AUTHORITY_NATIVE_SCOPE.txt.
+
+This component does not implement durable supervisor ownership, broker reservation recovery, or issuer retirement.
+Combined participant candidate09 passed full Debug on both hosts in output10.
+Each host passed 1239 core checks, 51 harness checks, and 151 P10 cases. Sanitizer qualification continues.
+The combined 264-file process and native ownership candidate01 has started full qualification on both hosts.
+Its expected matrix is 1260 core checks, 51 harness checks, and 151 P10 cases per profile.
+No native-scope source is integrated. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: World revision ordering and native witness corrections pass both focused profiles
 
 An older status reply can arrive after a newer participant revocation event.
@@ -23,7 +48,8 @@ The expected matrix contains 1239 core checks, 51 harness checks, and 151 P10 ca
 Those expected totals are not completed results.
 
 The maintained bootstrap fixture now opens a fresh owner connection before requesting a mutation challenge.
-Candidate07 passed 82 focused Debug checks on each host. Its full runs continue as intermediate evidence.
+Historical candidate07 completed both full profiles on both hosts: 1233 core checks, 51 harness checks, and 151 P10 cases each.
+It lacks the newer corrections and remains historical evidence.
 The historical native-control failure remains unexplained; the new ordering defect is not claimed as its proven cause.
 See evidence/m02-corrections-2026-10-09 for reviewed patches, explicit fixture changes, original failures, and exact manifests.
 No candidate07-09 source is integrated. M02 and Spatial-M1 remain incomplete.

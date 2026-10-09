@@ -1,0 +1,59 @@
+{
+  "id": "identity.native_scope",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "current_step": "combined_process_and_native_full_qualification",
+  "invariant": "Report native authority cleanup only after the retained server confirms revocation of the supervisor-owned credential.",
+  "contract": "docs/AUTHORITY_NATIVE_SCOPE.txt",
+  "evidence": "evidence/authority-native-scope-2026-10-09",
+  "baseline": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profile": "Debug",
+    "expected_unsupported_boundary_failures_per_host": 2,
+    "limit": "The baseline fixture reports the absent production boundary. It does not demonstrate a native-server defect."
+  },
+  "candidate": {
+    "version": 2,
+    "source_files": 259,
+    "new_checks": 11,
+    "regression_checks": 43,
+    "integrated": false,
+    "qualified_profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "both_host_profiles": {
+      "hosts": [
+        "sb16",
+        "sb16-2"
+      ],
+      "new_checks": 11,
+      "regression_checks": 43,
+      "harness_checks": 51,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "remaining": [
+    "Complete full combined qualification with process ownership on both hosts.",
+    "Review all changed production files and preserve existing broker behavior.",
+    "Combine checked process and native ownership with durable supervisor launch records.",
+    "Verify dependent broker reservation cleanup before issuer retirement.",
+    "Qualify the full combined runtime before integration."
+  ],
+  "candidate01_debug": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "new_passed": 10,
+    "new_failed": 1,
+    "regression_passed": 43,
+    "failed_method": "test_compositor_stop_releases_real_native_key_and_button",
+    "cause": "XI2 is unavailable to an ordinary application credential; core-event diagnostic passed with the same release assertions."
+  }
+}
