@@ -1,0 +1,18 @@
+Primary review: crash recovery witnesses
+
+Both Debug hosts passed the world and broker crash witnesses on candidate04 production binaries.
+The world witness used an owned diagnostic Xvfb process and pinned compositor pidfd.
+The broker witness pinned five real descendant processes before the crash.
+The tests retained pending issuer obligations and rejected replacement generations after observed cleanup.
+These checks do not qualify supervisor recovery or a physical session.
+
+The first extra native-settlement test had a fixture method-binding error before application startup.
+The corrected sb16 fixture passed one stopped-server native credential cleanup check.
+The original error and the corrected result are preserved separately.
+
+Review follow-up before combined integration:
+NativeLaunch::revoke closes its channel after an unconfirmed cleanup reply.
+The broker checks that channel before process reconciliation, which can destroy native credentials.
+Review the final settlement boundary for a possible acknowledgement race after a late native failure.
+The current stopped-server check passed; this race is not a confirmed runtime defect.
+Do not use this pass as proof that every scheduler ordering is covered.

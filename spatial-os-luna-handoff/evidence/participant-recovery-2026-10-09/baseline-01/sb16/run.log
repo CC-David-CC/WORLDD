@@ -1,0 +1,7 @@
+test_broker_crash_stops_detached_children_but_cannot_release_generation (__main__.BrokerCrashWitness.test_broker_crash_stops_detached_children_but_cannot_release_generation) ... ok
+test_world_exit_precedes_native_release_when_server_is_stopped (__main__.WorldCrashWitness.test_world_exit_precedes_native_release_when_server_is_stopped) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 3.936s
+
+OK

@@ -4,8 +4,8 @@
   "status": "in_progress",
   "parent": "identity.revocation_barrier",
   "invariant": "Acknowledge issuer revocation only after broker process and control effects settle.",
-  "candidate": 4,
-  "source_files": 251,
+  "candidate": 5,
+  "source_files": 252,
   "integrated": false,
   "source": "local/participant-fixtures-draft-01",
   "contract": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt",
@@ -25,9 +25,10 @@
     "failed": 0,
     "skipped": 0
   },
-  "current_step": "combined_full_qualification_candidate04_output05",
+  "current_step": "combined_full_qualification_candidate05_output06",
   "remaining": [
     "Complete full Debug and runtime sanitizer qualification on both hosts.",
+    "Check the final native cleanup boundary for the recorded possible acknowledgement race before integration.",
     "Resolve any repeated startup failure using retained service diagnostics.",
     "Verify remote obligations and supervisor fencing before M02 completion."
   ],
@@ -52,6 +53,30 @@
     ],
     "checks": 61,
     "suites": 8,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "candidate04_full_Debug": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "passed": 1226,
+    "failed": 1,
+    "skipped": 0,
+    "harness_checks": 51,
+    "failed_test": "WorldBootstrapTests.test_parent_revocation_prevents_reconnect_from_restoring_access",
+    "P10": "unrun",
+    "runtime_sanitize": "unrun"
+  },
+  "candidate05_Debug_focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "checks": 79,
+    "suites": 10,
     "harness_checks": 51,
     "failed": 0,
     "skipped": 0

@@ -1,0 +1,22 @@
+test_issuer_revocation_before_local_commit_cannot_receive_success_receipt (__main__.WorldRevocationReceiptTests.test_issuer_revocation_before_local_commit_cannot_receive_success_receipt) ... ok
+test_private_self_revocation_returns_receipt_then_denies_further_actions (__main__.WorldRevocationReceiptTests.test_private_self_revocation_returns_receipt_then_denies_further_actions) ... FAIL
+test_public_self_revocation_preserves_admission_but_not_navigation (__main__.WorldRevocationReceiptTests.test_public_self_revocation_preserves_admission_but_not_navigation) ... ok
+
+======================================================================
+FAIL: test_private_self_revocation_returns_receipt_then_denies_further_actions (__main__.WorldRevocationReceiptTests.test_private_self_revocation_returns_receipt_then_denies_further_actions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_world_revocation_receipts.py", line 15, in test_private_self_revocation_returns_receipt_then_denies_further_actions
+    self.assertTrue(result.HasField('grant'), result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: UNAUTHORIZED
+  message: "World session changed during operation"
+}
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 5.299s
+
+FAILED (failures=1)

@@ -1,0 +1,17 @@
+{
+  "host": "sb16-2",
+  "candidate": 4,
+  "output": 5,
+  "profile": "Debug",
+  "source_files": 251,
+  "core_checks": 1227,
+  "core_suites": 75,
+  "passed": 1226,
+  "failed": 1,
+  "skipped": 0,
+  "harness_checks": 51,
+  "failed_test": "WorldBootstrapTests.test_parent_revocation_prevents_reconnect_from_restoring_access",
+  "P10": "unrun after core failure",
+  "runtime_sanitize": "unrun after Debug core failure",
+  "integrated": false
+}

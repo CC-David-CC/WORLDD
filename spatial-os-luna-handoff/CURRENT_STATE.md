@@ -1,5 +1,32 @@
 # Implementation status
 
+## 2026-10-09: Self-revocation receipt corrected; native crash boundary witnessed
+
+Candidate04 completed Debug core testing on both hosts.
+Each executed 1227 core checks: 1226 passed, one failed, zero skipped. The 51 harness checks passed.
+Both failures affected the same existing world-bootstrap self-revocation receipt assertion.
+P10 and runtime sanitizer were unrun after the Debug failure.
+
+Candidate05 preserves the successful receipt when a local grant revocation removes the caller's own access.
+It does not restore access or exempt protected reads and delayed operations from cancellation.
+Three added counterexamples cover private self-revocation, public admission, and revocation before the local commit.
+Both hosts passed 79 focused Debug checks across ten suites and 51 harness checks.
+All 252 candidate source hashes and 41 locked hashes match. Existing test methods remain unchanged.
+Full qualification continues in output06. No candidate05 production source is integrated yet.
+See evidence/participant-fixtures-2026-10-09 for both failed inventories and the reviewed correction.
+
+Both hosts also passed two crash witnesses against candidate04 Debug binaries.
+World and compositor exit preceded native key/button release while the owned X server was stopped.
+Broker death terminated five pinned descendants. Both cases retained obligations and rejected replacement.
+See docs/AUTHORITY_SUPERVISOR_RECOVERY.txt and evidence/participant-recovery-2026-10-09.
+Supervisor recovery remains unimplemented. The witnesses do not qualify a physical or GPU session.
+
+Before combined integration, resolve the recorded native-settlement review question.
+Native cleanup can fail after the broker's early channel check. Review acknowledgement ordering at that boundary.
+The stopped-server diagnostic passed on sb16; a late acknowledgement race is not yet a confirmed runtime defect.
+M02, Spatial-M1, cross-host participation qualification, and physical acceptance remain incomplete.
+
+
 ## 2026-10-09: Registered world and broker fixtures enter combined qualification
 
 The broker/world candidate02 passed 36 focused checks and 51 harness checks in both profiles on both hosts.

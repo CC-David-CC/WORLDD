@@ -1,0 +1,21 @@
+Primary review: candidate05 self-revocation receipt correction
+
+Candidate04 completed its Debug core inventory on both hosts.
+Each executed 1227 checks: 1226 passed, one failed, zero skipped.
+The same unchanged world-bootstrap assertion failed on both hosts.
+P10 and runtime sanitizer were unrun after that failure.
+
+Three additional counterexamples ran against the frozen candidate04 binaries on sb16.
+Two passed. Private self-revocation returned UNAUTHORIZED instead of its committed GrantRecord.
+The failure occurred after the production grant mutation committed and cancelled the caller's own admission.
+
+Candidate05 permits only the successful local grant-revocation receipt for that self-cancellation.
+The marker is set after the checked local commit and only when the caller loses admission or required observation.
+It does not exempt reads, delegation, workspace replies, or uncommitted revocation attempts.
+A failed operation still returns its typed error. A closed transport still prevents delivery.
+Further actions and reauthentication must respect the revoked rights.
+
+The added checks cover private self-revocation, public admission without navigation authority,
+and issuer actor revocation during preparation before the local commit.
+Existing tests, schemas, and 41 locked files remain unchanged from candidate04.
+The production source remains isolated pending complete qualification on both hosts.

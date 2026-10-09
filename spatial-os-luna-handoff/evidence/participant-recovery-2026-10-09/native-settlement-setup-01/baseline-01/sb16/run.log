@@ -1,0 +1,18 @@
+test_stopped_server_cannot_confirm_native_credential_cleanup (__main__.NativeSettlementWitness.test_stopped_server_cannot_confirm_native_credential_cleanup) ... ERROR
+
+======================================================================
+ERROR: test_stopped_server_cannot_confirm_native_credential_cleanup (__main__.NativeSettlementWitness.test_stopped_server_cannot_confirm_native_credential_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-05/source/tests/core/test_workspace_participant.py", line 52, in setUp
+    seed=broker.WorkspaceAuthoritySeed(protocol_version=1,workspace='one',authority_directory=str(self.directory),roots=[self.workspace_terms()])
+                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-05/source/tests/core/test_workspace_participant_native.py", line 16, in workspace_terms
+    return super().workspace_terms(*args,**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: super(type, obj): obj must be an instance or subtype of type
+
+----------------------------------------------------------------------
+Ran 1 test in 0.936s
+
+FAILED (errors=1)

@@ -1,0 +1,6 @@
+test_stopped_server_cannot_confirm_native_credential_cleanup (__main__.NativeSettlementWitness.test_stopped_server_cannot_confirm_native_credential_cleanup) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.737s
+
+OK

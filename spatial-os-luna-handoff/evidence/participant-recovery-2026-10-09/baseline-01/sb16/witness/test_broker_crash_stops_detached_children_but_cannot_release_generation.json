@@ -1,0 +1,7 @@
+{
+  "broker_exit_confirmed": true,
+  "pinned_descendants_exited": 5,
+  "pending_after_cleanup": 1,
+  "replacement_exit": 2,
+  "recovery_qualified": false
+}

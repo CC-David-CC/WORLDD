@@ -109,3 +109,19 @@ A launcher initially referenced candidate03 instead of04. Its owned build was st
 Corrected output05 runs the full candidate04 matrix on both hosts.
 Evidence:spatial-os-luna-handoff/evidence/participant-fixtures-2026-10-09
 Process correction 94c6cb6 is adopted on both hosts with 242 matching source hashes and no session restart.
+
+2026-10-09: candidate05 correction and supervisor recovery baseline
+Candidate04 failed one of1227 core checks on each host: successful self-revocation receipt was suppressed.
+P10 and runtime sanitizer were unrun after that failure. Full logs are retained.
+Candidate05 preserves only that successful local receipt. All prior assertions remain unchanged.
+Both hosts passed79 focused Debug checks and51 harness checks; full output06 qualification is running.
+
+Two crash witnesses passed on each host. Process exit preceded native held-input release on a stopped display.
+Five broker descendants exited. The issuer still correctly refused unfenced replacement after observed cleanup.
+These are diagnostic displays, not physical sessions. Supervisor recovery is not implemented.
+The initial additional native-settlement fixture failed before startup because of method binding.
+The corrected native-settlement fixture passed on sb16. Both logs are retained.
+Review NativeLaunch cleanup failure propagation at final broker settlement before candidate integration.
+This is a code-review question, not a confirmed runtime failure. Do not omit it on continuation.
+Details: spatial-os-luna-handoff/docs/AUTHORITY_SUPERVISOR_RECOVERY.txt
+Evidence: spatial-os-luna-handoff/evidence/participant-recovery-2026-10-09

@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "confirmed_process_cleanup_defects_under_isolated_correction",
+  "current_step": "combined_participant_candidate05_qualification_and_supervisor_recovery",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -35,11 +35,12 @@
     "No model inference or additional host is needed for this component.",
     "Do not modify the active remote-transport candidate."
   ],
-  "next_test": "An owner observes committed-but-pending revocation while one enrolled authority delays cancellation, then observes completion only after genuine cancellation acknowledgement.",
+  "next_test": "Qualify candidate05, including unchanged world-bootstrap checks and three new revocation-receipt counterexamples.",
   "limitations": [
-    "Issuer barrier qualified, integrated, and adopted on both hosts as1d129f7. Actual world and broker integration remains incomplete.",
-    "Isolated world participation passed six world and two native cancellation tests on both hosts in Debug and runtime sanitizers.",
-    "Broker settlement, broad world regression, remote participation witnesses, and supervisor fencing remain pending."
+    "Issuer barrier and checked process cleanup are integrated and adopted on both hosts.",
+    "Combined candidate04 passed 1226 core checks and failed one self-revocation receipt test on each host. Debug P10 and runtime sanitizer were unrun after that failure.",
+    "Candidate05 preserves successful local self-revocation receipts and adds three counterexamples. Full qualification remains running.",
+    "Crash witnesses passed on both hosts. Trusted supervisor recovery and cross-host participation witnesses remain pending."
   ],
   "implementation_plan": "docs/REVOCATION_BARRIER_PLAN.txt",
   "component_tasks": [
@@ -47,7 +48,9 @@
     "tasks/m1/identity.participant_session.json",
     "tasks/m1/identity.participant_barrier.json",
     "tasks/m1/identity.participant_runtime.json",
-    "tasks/m1/identity.process_termination.json"
+    "tasks/m1/identity.process_termination.json",
+    "tasks/m1/identity.workspace_participant.json",
+    "tasks/m1/identity.supervisor_recovery.json"
   ],
-  "next_component_design": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt"
+  "next_component_design": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt"
 }

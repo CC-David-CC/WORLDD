@@ -1,0 +1,28 @@
+{
+  "id": "identity.supervisor_recovery",
+  "phase": "M02",
+  "parent": "identity.revocation_barrier",
+  "status": "in_progress",
+  "current_step": "verified_crash_witnesses_and_recorded_trust_boundary",
+  "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
+  "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
+  "evidence": "evidence/participant-recovery-2026-10-09",
+  "baseline": {
+    "candidate": 4,
+    "profile": "Debug",
+    "hosts": ["sb16", "sb16-2"],
+    "checks_per_host": 2,
+    "world_result": "World and compositor exit preceded native release. Confirmed cleanup still left one pending obligation and blocked replacement.",
+    "broker_result": "Five pinned descendants exited. Confirmed cleanup still left one pending obligation and blocked replacement.",
+    "recovery_qualified": false
+  },
+  "remaining": [
+    "Own production launches and retain process and native credential handles before protected execution.",
+    "Implement checked process, native input, observation, and lease cleanup.",
+    "Record exact additive protobuf interfaces and explicit persistence migration.",
+    "Bind registered supervisor proofs to exact launches and fenced generations.",
+    "Reject stale service connections and unauthorized replacement activation.",
+    "Test crash recovery, concurrent revocation, replay, and issuer or supervisor failure.",
+    "Qualify Debug and runtime sanitizer profiles on both hosts."
+  ]
+}
