@@ -1,5 +1,6 @@
 #include "identity/issuer_client.hpp"
 #include "identity/bootstrap.hpp"
+#include "identity/participants.hpp"
 #include "identity/tls_support.hpp"
 #include "core/protocol.hpp"
 #include <google/protobuf/text_format.h>
@@ -38,7 +39,8 @@ bool dns_name(const std::string& name) {
 bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& reply) {
     return (request.has_hello() && reply.has_hello()) || (request.has_info() && reply.has_info()) ||
         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin()) && reply.has_challenge()) ||
-        (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile())) ||
+        (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
+            reply.has_participant() || reply.has_registry())) ||
         (request.has_profile_read() && reply.has_profile()) ||
         (request.has_enrollment_complete() && reply.has_enrollment()) ||
         (request.has_authentication_complete() && reply.has_authentication()) ||
@@ -206,6 +208,10 @@ struct IssuerClient::Impl {
                     "Issuer identity does not match configured pins");
             if (reply.has_revocations()) check_revocations(request.revocations(), reply.revocations(), config.issuer_id());
             if (reply.has_actor_status()) check_actor_status(request.actor_status(), reply.actor_status(), config.issuer_id());
+            try {
+                if (reply.has_participant()) validate_participant_record(reply.participant(), config.issuer_id());
+                if (reply.has_registry()) validate_registry_page(reply.registry(), config.issuer_id());
+            } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid authority participant response"); }
             if (reply.has_profile()) {
                 const auto& state = reply.profile();
                 require(state.has_profile() && state.issuer_id() == config.issuer_id() &&

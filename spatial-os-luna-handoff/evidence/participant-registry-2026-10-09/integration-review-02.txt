@@ -1,0 +1,11 @@
+Primary integration review, candidate 02
+The primary agent reviewed the eleven changed files against the preserved candidate review.
+Both hosts completed Debug and runtime ASan/UBSan without failures or skipped cases.
+Each profile passed 1120 core checks across64 suites,51 harness checks,and151 P10 cases.
+Raw logs, source hashes, schema audit, and complete test listings were checked before integration.
+The guarded integration matched all236 source hashes and preserved all41 locked files.
+The three migration fixture edits remain explicit. The other84 existing test files are unchanged.
+No new source change was made after qualification.
+Registration grants no actor access and activates no execution authority.
+Service authentication and durable cancellation obligations remain separate pending components.
+No operator database or normal login session changed.

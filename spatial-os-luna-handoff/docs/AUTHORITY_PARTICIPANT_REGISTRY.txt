@@ -1,5 +1,5 @@
-Authority participant registry, proposed interface version 1
-Status: isolated implementation and qualification pending.
+Authority participant registry, interface version 1
+Status: qualified on both hosts in Debug and runtime sanitizer profiles; integrated into production.
 This is the first increment of docs/REVOCATION_BARRIER_PLAN.txt.
 Registration does not activate a participant or complete a revocation barrier.
 

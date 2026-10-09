@@ -18,6 +18,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             result->add_capabilities("identity.revocation-feed/v1");
             result->add_capabilities("identity.actor-status/v1");
             result->add_capabilities("identity.bootstrap-profile/v1");
+            result->add_capabilities("identity.authority-registry/v1");
         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
         else if (request.has_execute()) {
@@ -25,6 +26,8 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             if (result.has_policy()) *reply.mutable_policy() = result.policy();
             else if (result.has_enrollment()) *reply.mutable_enrollment() = result.enrollment();
             else if (result.has_profile()) *reply.mutable_profile() = result.profile();
+            else if (result.has_participant()) *reply.mutable_participant() = result.participant();
+            else if (result.has_registry()) *reply.mutable_registry() = result.registry();
             else *reply.mutable_identity_status() = result.identity_status();
         } else if (request.has_enrollment_begin()) *reply.mutable_challenge() = issuer.enrollment_begin(request.enrollment_begin());
         else if (request.has_enrollment_complete()) *reply.mutable_enrollment() = issuer.enrollment_complete(request.enrollment_complete());

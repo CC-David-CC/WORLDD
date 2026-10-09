@@ -43,3 +43,12 @@ Candidate 02 also strengthens transactional rollback and migration-preservation 
 Full qualification is running on both hosts. Complete distributed cancellation remains pending.
 Preserved failures, exact source manifests, candidate patches, scripts, and review:
 spatial-os-luna-handoff/evidence/participant-registry-2026-10-09
+
+Registry integration, 2026-10-09
+Candidate 02 passed complete Debug and runtime ASan/UBSan profiles on both hosts.
+Each profile passed 1,120 core checks, 51 harness checks, and 151 P10 cases.
+All 236 integrated source hashes match both qualified manifests. No final case failed or skipped.
+Production now contains the reviewed registry implementation. Commit and host adoption are next.
+This completes registration only. Distributed cancellation remains incomplete.
+The service-proof draft passed focused server and checked-client tests on sb16.
+Its complete qualification remains pending.

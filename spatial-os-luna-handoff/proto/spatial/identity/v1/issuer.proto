@@ -13,6 +13,29 @@ message BootstrapProfilePut { BootstrapProfile profile = 1; optional uint64 expe
 // Service reads require an exact positive revision. Signed owner reads may request the latest.
 message BootstrapProfileRead { string id = 1; optional uint64 revision = 2; }
 
+// Owner-managed service registry. Registration grants no actor authority.
+message AuthorityParticipant {
+  bytes id = 1;
+  bytes public_key = 2;
+  repeated spatial.authority.v1.Domain domains = 3;
+}
+message AuthorityParticipantRegister {
+  AuthorityParticipant participant = 1;
+  optional uint64 expected_registry_revision = 2;
+}
+message AuthorityRegistryRead { bytes after_id = 1; uint32 limit = 2; }
+message AuthorityParticipantRecord {
+  AuthorityParticipant participant = 1;
+  uint64 registered_revision = 2;
+  bytes issuer_id = 3;
+}
+message AuthorityRegistryPage {
+  bytes issuer_id = 1;
+  uint64 registry_revision = 2;
+  repeated AuthorityParticipantRecord participants = 3;
+  bytes next_after = 4;
+}
+
 enum EnrollmentMode { ENROLLMENT_MODE_UNSPECIFIED = 0; MANUAL = 1; APPROVE_ALWAYS = 2; }
 message EnrollmentPolicy {
   EnrollmentMode mode = 1;
@@ -31,6 +54,8 @@ message IssuerOperation {
     IdentityRevoke identity_revoke = 6;
     BootstrapProfileRead profile_read = 7;
     BootstrapProfilePut profile_put = 8;
+    AuthorityParticipantRegister participant_register = 9;
+    AuthorityRegistryRead registry_read = 10;
   }
 }
 enum ActorKind { ACTOR_KIND_UNSPECIFIED = 0; HUMAN = 1; AGENT = 2; }
@@ -125,7 +150,7 @@ message AuthenticationResult {
   bytes channel_binding = 3;
 }
 message AdminResult {
-  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; }
+  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; AuthorityParticipantRecord participant = 5; AuthorityRegistryPage registry = 6; }
 }
 message IssuerInfoRequest {}
 // Trusted supervisor configuration. Paths are absolute and remain outside Git.
@@ -213,5 +238,7 @@ message IssuerReply {
     RevocationBatch revocations = 18;
     ActorStatusBatch actor_status = 19;
     BootstrapProfileState profile = 20;
+    AuthorityParticipantRecord participant = 21;
+    AuthorityRegistryPage registry = 22;
   }
 }

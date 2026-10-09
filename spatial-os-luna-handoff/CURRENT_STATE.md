@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-09: Authority participant registry qualified and integrated
+
+The issuer now supports owner-signed registration of separate service keys and explicit authority domains.
+Registration persists atomically and rejects conflicting identities, keys, and domains.
+The checked TLS client validates registry records and pages.
+Existing issuer databases require explicit schema-5 migration.
+
+Both hosts passed complete Debug and runtime ASan/UBSan qualification for candidate 02.
+Each profile passed 1,120 core checks across 64 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. All 236 integrated source hashes match both host manifests.
+The schema audit preserves 248 messages, 946 fields, and 122 enum values.
+All 41 locked files and 84 existing test files remain unchanged.
+Three migration fixtures have explicit, reviewed schema-5 updates.
+Primary review and the failed duplicate-revision counterexample remain archived.
+
+The registry component is complete. Commit publication and host source adoption are next.
+Registration alone does not authenticate services, activate execution, or acknowledge cancellation.
+The separate service-session candidate now passes focused server and checked-client tests on sb16.
+Its full qualification remains pending. M02 and Spatial-M1 remain incomplete.
+No operator database or normal login session changed.
+See evidence/participant-registry-2026-10-09/candidate-02 and docs/AUTHORITY_PARTICIPANT_REGISTRY.txt.
+
 ## 2026-10-09: Service-session server draft passes focused Debug checks
 
 An isolated draft binds registered service-key proof to the actual issuer TLS connection.

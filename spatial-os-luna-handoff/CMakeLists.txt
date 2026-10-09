@@ -170,6 +170,14 @@ add_dependencies(spatial-test-host worldd workspaced)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_test(NAME identity-participants COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participants.py" $<TARGET_FILE:identityd>)
+    set_tests_properties(identity-participants PROPERTIES TIMEOUT 120
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-participant-client COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_client.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(identity-participant-client PROPERTIES TIMEOUT 120
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_executable(spatial-actor-tls-retry-probe src/testing/actor_tls_retry_probe.cpp src/world/actor_tls.cpp)
     target_link_libraries(spatial-actor-tls-retry-probe PRIVATE spatial-identity-tls)
     target_link_options(spatial-actor-tls-retry-probe PRIVATE -Wl,--wrap=SSL_read_ex -Wl,--wrap=SSL_get_error)

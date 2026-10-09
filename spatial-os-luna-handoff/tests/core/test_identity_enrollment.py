@@ -246,7 +246,7 @@ class EnrollmentTests(EnrollmentFixture):
     def test_explicit_schema_migration_preserves_issuer_key_owner_and_policy(self):
         info=self.init();before=self.snapshot();secret=(self.state/'issuer.pem').read_bytes()
         with sqlite3.connect(self.state/'identity.db') as db:
-            db.executescript('DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
+            db.executescript('DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
                              'DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
         command=[str(BINARY),'--state-dir',str(self.state)]
         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)

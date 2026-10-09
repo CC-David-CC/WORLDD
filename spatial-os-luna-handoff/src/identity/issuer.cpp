@@ -1,5 +1,6 @@
 #include "identity/issuer.hpp"
 #include "identity/bootstrap.hpp"
+#include "identity/participants.hpp"
 #include "identity/keys.hpp"
 #include "world/store.hpp"
 #include <openssl/rand.h>
@@ -79,6 +80,13 @@ void validate_reference(const v1::IdentityReference& target) {
 void validate_operation(const v1::IssuerOperation& operation) {
     validate_message(operation);
     if (operation.has_policy_read()) return;
+    if (operation.has_registry_read()) { validate_registry_read(operation.registry_read()); return; }
+    if (operation.has_participant_register()) {
+        const auto& request = operation.participant_register();
+        require(request.has_participant() && request.has_expected_registry_revision() &&
+                request.expected_registry_revision() <= INT64_MAX, "Participant and registry revision are required");
+        validate_participant(request.participant()); return;
+    }
     if (operation.has_profile_read()) { validate_bootstrap_read(operation.profile_read(), false); return; }
     if (operation.has_profile_put()) {
         const auto& request = operation.profile_put();
@@ -141,6 +149,17 @@ void create_bootstrap_schema(sqlite3* db) {
     sql(db, "CREATE TABLE bootstrap_profile(id BLOB NOT NULL,revision INTEGER NOT NULL CHECK(revision>0),"
             "profile BLOB NOT NULL,PRIMARY KEY(id,revision)); PRAGMA user_version=4");
 }
+void create_participant_schema(sqlite3* db) {
+    sql(db, "CREATE TABLE authority_registry(singleton INTEGER PRIMARY KEY CHECK(singleton=1),"
+            "revision INTEGER NOT NULL CHECK(revision>=0)); INSERT INTO authority_registry VALUES(1,0);"
+            "CREATE TABLE authority_participant(id BLOB PRIMARY KEY CHECK(length(id)=32),"
+            "public_key BLOB NOT NULL UNIQUE CHECK(length(public_key)=32),"
+            "registered_revision INTEGER NOT NULL UNIQUE CHECK(registered_revision>0),definition BLOB NOT NULL);"
+            "CREATE TABLE authority_participant_domain(kind INTEGER NOT NULL CHECK(kind IN(1,2)),"
+            "domain_id BLOB NOT NULL CHECK(length(domain_id)>0 AND length(domain_id)<=256),"
+            "participant_id BLOB NOT NULL REFERENCES authority_participant(id),PRIMARY KEY(kind,domain_id));"
+            "PRAGMA user_version=5");
+}
 } // namespace
 
 struct Issuer::Impl {
@@ -191,12 +210,12 @@ struct Issuer::Impl {
         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
-        sqlite3_int64 schema = 4;
+        sqlite3_int64 schema = 5;
         if (!owner) {
             Query version(db.get(), "PRAGMA user_version"); version.step();
             Query application(db.get(), "PRAGMA application_id"); application.step();
             schema = version.integer(0);
-            storage((schema == 4 || ((schema >= 1 && schema <= 3) && migrate)) && application.integer(0) == application_id,
+            storage((schema == 5 || ((schema >= 1 && schema <= 4) && migrate)) && application.integer(0) == application_id,
                     "Unknown issuer schema; explicit migration is required");
         }
         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
@@ -213,7 +232,8 @@ struct Issuer::Impl {
             Query insert(db.get(), "INSERT INTO issuer VALUES(1,?,?,?,1,?)");
             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
             insert.blob(4, policy.SerializeAsString()); insert.step();
-            create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get()); tx.commit();
+            create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
+            create_participant_schema(db.get()); tx.commit();
             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
         }
         { Query integrity(db.get(), "PRAGMA quick_check");
@@ -224,14 +244,98 @@ struct Issuer::Impl {
         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
                 "Issuer key does not match its durable identity");
         policy();
-        if (schema < 4) {
+        if (schema < 5) {
             Transaction migration(db.get());
             if (schema == 1) create_enrollment_schema(db.get());
             if (schema < 3) create_security_schema(db.get());
-            create_bootstrap_schema(db.get()); migration.commit();
+            if (schema < 4) create_bootstrap_schema(db.get());
+            create_participant_schema(db.get()); migration.commit();
         }
     }
 
+    std::uint64_t registry_revision() {
+        Query row(db.get(), "SELECT revision FROM authority_registry WHERE singleton=1");
+        storage(row.step() == SQLITE_ROW && row.integer(0) >= 0, "Invalid authority registry revision");
+        return static_cast<std::uint64_t>(row.integer(0));
+    }
+    bool participant_key(const std::string& public_key) {
+        Query row(db.get(), "SELECT 1 FROM authority_participant WHERE public_key=?"); row.blob(1, public_key);
+        return row.step() == SQLITE_ROW;
+    }
+    v1::AuthorityParticipantRecord participant_record(const std::string& id, std::uint64_t head) {
+        Query row(db.get(), "SELECT public_key,registered_revision,definition FROM authority_participant WHERE id=?");
+        row.blob(1, id);
+        storage(row.step() == SQLITE_ROW, "Required authority participant is missing");
+        v1::AuthorityParticipantRecord record; record.set_issuer_id(identity.issuer_id());
+        storage(row.integer(1) > 0 && static_cast<std::uint64_t>(row.integer(1)) <= head,
+                "Invalid authority participant revision");
+        record.set_registered_revision(static_cast<std::uint64_t>(row.integer(1)));
+        storage(record.mutable_participant()->ParseFromString(row.blob(2)), "Corrupt authority participant");
+        try { validate_participant_record(record, identity.issuer_id()); }
+        catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Invalid durable authority participant"); }
+        storage(record.participant().id() == id && record.participant().public_key() == row.blob(0) &&
+                row.blob(0) != owner_public && row.blob(0) != identity.public_key(), "Contradictory authority participant identity");
+        Query actor(db.get(), "SELECT 1 FROM enrollment WHERE public_key=?"); actor.blob(1, row.blob(0));
+        storage(actor.step() == SQLITE_DONE, "Service key is also registered for actor enrollment");
+        Query domains(db.get(), "SELECT kind,domain_id FROM authority_participant_domain WHERE participant_id=? ORDER BY kind,domain_id");
+        domains.blob(1, id); int index = 0;
+        while (domains.step() == SQLITE_ROW) {
+            storage(index < record.participant().domains_size(), "Excess authority participant domain");
+            const auto& expected = record.participant().domains(index++);
+            storage(domains.integer(0) == expected.kind() && domains.blob(1) == expected.id(),
+                    "Contradictory authority participant domain");
+        }
+        storage(index == record.participant().domains_size(), "Missing authority participant domain");
+        return record;
+    }
+    v1::AuthorityRegistryPage registry(const v1::AuthorityRegistryRead& request) {
+        Transaction transaction(db.get());
+        const auto head = registry_revision(); const auto limit = request.limit() ? request.limit() : 16;
+        v1::AuthorityRegistryPage page; page.set_issuer_id(identity.issuer_id()); page.set_registry_revision(head);
+        Query rows(db.get(), "SELECT id FROM authority_participant WHERE id>? ORDER BY id LIMIT ?");
+        rows.blob(1, request.after_id()); rows.integer(2, limit+1);
+        while (rows.step() == SQLITE_ROW) {
+            if (static_cast<unsigned>(page.participants_size()) == limit) {
+                page.set_next_after(page.participants(page.participants_size()-1).participant().id()); break;
+            }
+            *page.add_participants() = participant_record(rows.blob(0), head);
+        }
+        try { validate_registry_page(page, identity.issuer_id()); }
+        catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Invalid durable authority registry"); }
+        transaction.commit(); return page;
+    }
+    v1::AuthorityParticipantRecord register_participant(const v1::AuthorityParticipantRegister& request) {
+        Transaction transaction(db.get()); const auto head = registry_revision();
+        if (head != request.expected_registry_revision()) throw WorldError(wire::REVISION_CONFLICT, "Authority registry revision changed");
+        auto participant = request.participant();
+        std::sort(participant.mutable_domains()->begin(), participant.mutable_domains()->end(), [](const auto& a, const auto& b) {
+            return participant_detail::domain_key(a) < participant_detail::domain_key(b);
+        });
+        if (participant.public_key() == owner_public || participant.public_key() == identity.public_key())
+            throw WorldError(wire::FORBIDDEN, "Issuer keys cannot serve as authority participant keys");
+        Query actor(db.get(), "SELECT 1 FROM enrollment WHERE public_key=?"); actor.blob(1, participant.public_key());
+        if (actor.step() == SQLITE_ROW) throw WorldError(wire::FORBIDDEN, "Actor enrollment keys cannot serve as authority participant keys");
+        Query existing(db.get(), "SELECT 1 FROM authority_participant WHERE id=? OR public_key=?");
+        existing.blob(1, participant.id()); existing.blob(2, participant.public_key());
+        if (existing.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Authority participant identity or key is already registered");
+        for (const auto& domain : participant.domains()) {
+            Query claimed(db.get(), "SELECT 1 FROM authority_participant_domain WHERE kind=? AND domain_id=?");
+            claimed.integer(1, domain.kind()); claimed.blob(2, domain.id());
+            if (claimed.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Authority domain already has a registered participant");
+        }
+        storage(head < INT64_MAX, "Authority registry revision limit reached");
+        Query insert(db.get(), "INSERT INTO authority_participant(id,public_key,registered_revision,definition) VALUES(?,?,?,?)");
+        insert.blob(1, participant.id()); insert.blob(2, participant.public_key()); insert.integer(3, head+1);
+        insert.blob(4, participant.SerializeAsString()); insert.step();
+        for (const auto& domain : participant.domains()) {
+            Query claim(db.get(), "INSERT INTO authority_participant_domain(kind,domain_id,participant_id) VALUES(?,?,?)");
+            claim.integer(1, domain.kind()); claim.blob(2, domain.id()); claim.blob(3, participant.id()); claim.step();
+        }
+        Query update(db.get(), "UPDATE authority_registry SET revision=? WHERE singleton=1 AND revision=?");
+        update.integer(1, head+1); update.integer(2, head); update.step();
+        storage(sqlite3_changes(db.get()) == 1, "Authority registry lost its revision");
+        const auto result = participant_record(participant.id(), head+1); transaction.commit(); return result;
+    }
     v1::BootstrapProfileState profile(const v1::BootstrapProfileRead& request) {
         v1::BootstrapProfileState result; result.set_issuer_id(identity.issuer_id());
         if (request.id() == "empty-v1") {
@@ -465,6 +569,7 @@ struct Issuer::Impl {
     }
     v1::EnrollmentRecord submit(const v1::EnrollmentIntent& intent) {
         Transaction transaction(db.get());
+        if (participant_key(intent.public_key())) throw WorldError(wire::FORBIDDEN, "Authority participant keys cannot enroll as actors");
         std::string existing;
         { Query query(db.get(), "SELECT id FROM enrollment WHERE public_key=?"); query.blob(1, intent.public_key());
           if (query.step() == SQLITE_ROW) existing = query.blob(0); }
@@ -544,6 +649,8 @@ v1::AdminResult Issuer::execute(const v1::IssuerExecute& request) {
     // Execute only the server-stored operation authenticated by this consumed challenge.
     v1::AdminResult result;
     if (pending.operation.has_policy_read()) *result.mutable_policy() = impl_->policy();
+    else if (pending.operation.has_registry_read()) *result.mutable_registry() = impl_->registry(pending.operation.registry_read());
+    else if (pending.operation.has_participant_register()) *result.mutable_participant() = impl_->register_participant(pending.operation.participant_register());
     else if (pending.operation.has_policy_set()) *result.mutable_policy() = impl_->set_policy(pending.operation.policy_set());
     else if (pending.operation.has_profile_read()) *result.mutable_profile() = impl_->profile(pending.operation.profile_read());
     else if (pending.operation.has_profile_put()) *result.mutable_profile() = impl_->put_profile(pending.operation.profile_put());
@@ -556,6 +663,7 @@ v1::AdminResult Issuer::execute(const v1::IssuerExecute& request) {
 }
 v1::ChallengeReply Issuer::enrollment_begin(const v1::EnrollmentIntent& intent) {
     validate_intent(intent);
+    if (impl_->participant_key(intent.public_key())) throw WorldError(wire::FORBIDDEN, "Authority participant keys cannot enroll as actors");
     require(intent.public_key() != impl_->owner_public && intent.public_key() != impl_->identity.public_key(),
             "Administrative keys cannot serve as actor credentials");
     const auto nonce = impl_->nonce();
