@@ -1,0 +1,101 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 25
+    Start 25: workspace-authority
+
+25: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/source/tests/core/test_workspace_authority.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/worldd"
+25: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build
+25: Environment variables: 
+25:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/source
+25: Test timeout computed to be: 180
+25: test_access_revocation_keeps_valid_process_execution (__main__.WorkspaceAuthorityTests.test_access_revocation_keeps_valid_process_execution) ... ok
+25: test_actor_revocation_interrupts_a_blocked_process_wait (__main__.WorkspaceAuthorityTests.test_actor_revocation_interrupts_a_blocked_process_wait) ... ok
+25: test_actor_revocation_stops_execution_while_broker_is_idle (__main__.WorkspaceAuthorityTests.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+25: test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process) ... ok
+25: test_bound_workspace_rejects_static_authority_edits (__main__.WorkspaceAuthorityTests.test_bound_workspace_rejects_static_authority_edits) ... ok
+25: test_credential_revocation_preserves_valid_workspace_process (__main__.WorkspaceAuthorityTests.test_credential_revocation_preserves_valid_workspace_process) ... ok
+25: test_cross_domain_unknown_and_foreign_grants_are_rejected (__main__.WorkspaceAuthorityTests.test_cross_domain_unknown_and_foreign_grants_are_rejected) ... ok
+25: test_file_scope_does_not_authorize_a_whole_project_mount (__main__.WorkspaceAuthorityTests.test_file_scope_does_not_authorize_a_whole_project_mount) ... ok
+25: test_grant_revocation_kills_confined_process_without_recipient_request (__main__.WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request) ... ok
+25: test_grants_do_not_make_workspace_available_implicitly (__main__.WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly) ... ok
+25: test_independent_execution_grant_survives_other_grant_revocation (__main__.WorkspaceAuthorityTests.test_independent_execution_grant_survives_other_grant_revocation) ... ok
+25: test_partial_file_write_grants_do_not_mount_entire_project_writable (__main__.WorkspaceAuthorityTests.test_partial_file_write_grants_do_not_mount_entire_project_writable) ... ok
+25: test_partial_private_frame_does_not_block_revocation (__main__.WorkspaceAuthorityTests.test_partial_private_frame_does_not_block_revocation) ... ok
+25: test_persistent_grants_and_selection_survive_broker_and_world_restart (__main__.WorkspaceAuthorityTests.test_persistent_grants_and_selection_survive_broker_and_world_restart) ... ok
+25: test_readonly_profile_keeps_project_and_git_readonly (__main__.WorkspaceAuthorityTests.test_readonly_profile_keeps_project_and_git_readonly) ... ok
+25: test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh (__main__.WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh) ... ok
+25: test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout (__main__.WorkspaceAuthorityTests.test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout) ... ok
+25: test_revoked_ancestor_without_world_session_stops_process (__main__.WorkspaceAuthorityTests.test_revoked_ancestor_without_world_session_stops_process) ... ok
+25: test_workspace_policy_limits_a_broader_actor_grant (__main__.WorkspaceAuthorityTests.test_workspace_policy_limits_a_broader_actor_grant) ... ok
+25: test_world_admission_and_availability_do_not_grant_workspace_access (__main__.WorkspaceAuthorityTests.test_world_admission_and_availability_do_not_grant_workspace_access) ... ok
+25: 
+25: ----------------------------------------------------------------------
+25: Ran 20 tests in 56.920s
+25: 
+25: OK
+1/3 Test #25: workspace-authority ..............   Passed   57.02 sec
+test 67
+    Start 67: workspace-context
+
+67: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/source/tests/core/test_workspaces.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/worldd"
+67: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build
+67: Environment variables: 
+67:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/source
+67: Test timeout computed to be: 90
+67: .............
+67: ----------------------------------------------------------------------
+67: Ran 13 tests in 12.158s
+67: 
+67: OK
+2/3 Test #67: workspace-context ................   Passed   12.24 sec
+test 68
+    Start 68: workspace-processes
+
+68: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/source/tests/core/test_processes.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/worldd"
+68: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build
+68: Environment variables: 
+68:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-draft-01/source
+68: Test timeout computed to be: 120
+68: test_native_namespaces_capabilities_resource_limits_and_descriptor_closure (__main__.ProcessTests.test_native_namespaces_capabilities_resource_limits_and_descriptor_closure) ... ok
+68: test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible (__main__.ProcessTests.test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible) ... ok
+68: test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access (__main__.ProcessTests.test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access) ... ok
+68: test_nonzero_signal_exits_and_wait_timeout_preserve_the_actual_child_result (__main__.ProcessTests.test_nonzero_signal_exits_and_wait_timeout_preserve_the_actual_child_result) ... ok
+68: test_invalid_requests_create_no_process_record_and_missing_exec_is_not_success (__main__.ProcessTests.test_invalid_requests_create_no_process_record_and_missing_exec_is_not_success) ... ok
+68: test_operation_identity_is_actor_scoped_and_binds_arguments_and_profile (__main__.ProcessTests.test_operation_identity_is_actor_scoped_and_binds_arguments_and_profile) ... ok
+68: test_damaged_application_supervisor_does_not_poison_future_launches (__main__.ProcessTests.test_damaged_application_supervisor_does_not_poison_future_launches) ... ok
+68: test_read_only_project_and_git_aliases_stay_read_only_but_private_state_is_writable (__main__.ProcessTests.test_read_only_project_and_git_aliases_stay_read_only_but_private_state_is_writable) ... ok
+68: test_actor_disconnect_does_not_terminate_workspace_application (__main__.ProcessTests.test_actor_disconnect_does_not_terminate_workspace_application) ... ok
+68: test_revocation_terminates_detached_descendants_and_preserves_other_actor_execution (__main__.ProcessTests.test_revocation_terminates_detached_descendants_and_preserves_other_actor_execution) ... ok
+68: test_manager_loss_kills_children_and_never_replays_uncertain_operations (__main__.ProcessTests.test_manager_loss_kills_children_and_never_replays_uncertain_operations) ... ok
+68: test_completed_record_survives_restart_and_v3_migration_preserves_workspaces (__main__.ProcessTests.test_completed_record_survives_restart_and_v3_migration_preserves_workspaces) ... ok
+68: test_malformed_stat_is_not_process_exit (__main__.ProcessWitnessTests.test_malformed_stat_is_not_process_exit) ... ok
+68: test_missing_process_does_not_hide_a_live_process (__main__.ProcessWitnessTests.test_missing_process_does_not_hide_a_live_process) ... ok
+68: test_missing_stat_path_is_gone (__main__.ProcessWitnessTests.test_missing_stat_path_is_gone) ... ok
+68: test_only_dead_process_states_are_gone (__main__.ProcessWitnessTests.test_only_dead_process_states_are_gone) ... ok
+68: test_process_exit_during_stat_read_is_gone (__main__.ProcessWitnessTests.test_process_exit_during_stat_read_is_gone) ... ok
+68: test_unrelated_read_errors_are_not_process_exit (__main__.ProcessWitnessTests.test_unrelated_read_errors_are_not_process_exit) ... ok
+68: 
+68: ----------------------------------------------------------------------
+68: Ran 18 tests in 14.376s
+68: 
+68: OK
+3/3 Test #68: workspace-processes ..............   Passed   14.45 sec
+
+The following tests passed:
+	workspace-authority
+	workspace-context
+	workspace-processes
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =  83.71 sec

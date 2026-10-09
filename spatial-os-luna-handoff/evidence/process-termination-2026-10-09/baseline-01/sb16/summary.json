@@ -1,0 +1,17 @@
+{
+  "host": "sb16",
+  "checks": 4,
+  "passed": 1,
+  "failed": 3,
+  "source_files": 242,
+  "failure_evidence": [
+    "two of five pinned descendant pidfds still not exited when stop returned",
+    "signal denial hangs cleanup",
+    "wait denial returns false success"
+  ],
+  "production": "unchanged baseline process.cpp/process.hpp",
+  "binaries": {
+    "spatial-process-termination-probe": "ef4ab910026d5ce91e4b53a0fa2bfd4661003f046072802f5526fbf92655063a",
+    "spatial-app-init": "ff7a7a79a868cfa5e64c661c17b0f27582ebee23bbe9a0404add1df7ec9ec6ff"
+  }
+}

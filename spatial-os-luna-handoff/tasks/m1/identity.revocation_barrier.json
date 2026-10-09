@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "world_and_broker_effect_settlement",
+  "current_step": "confirmed_process_cleanup_defects_under_isolated_correction",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -46,7 +46,8 @@
     "tasks/m1/identity.participant_registry.json",
     "tasks/m1/identity.participant_session.json",
     "tasks/m1/identity.participant_barrier.json",
-    "tasks/m1/identity.participant_runtime.json"
+    "tasks/m1/identity.participant_runtime.json",
+    "tasks/m1/identity.process_termination.json"
   ],
   "next_component_design": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt"
 }

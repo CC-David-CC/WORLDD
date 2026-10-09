@@ -69,3 +69,17 @@ Event delivery then stopped motion. This is missing runtime integration, not M02
 Require world and broker participation before protected work and acknowledge only settled effects.
 Evidence: spatial-os-luna-handoff/evidence/revocation-barrier-2026-10-09/runtime-participation-gap-01
 Contract: spatial-os-luna-handoff/docs/AUTHORITY_PARTICIPANT_RUNTIME.txt
+
+Process cancellation blocker, 2026-10-09
+The unchanged process cleanup reports success before all descendants exit.
+Independent pidfd evidence found two of five descendants still live after stop returned.
+Kernel-denied wait and signal tests also reproduced false success and an unbounded cleanup wait.
+A pidfd namespace-leader correction is isolated. Its first four Debug checks pass on sb16.
+Full qualification and broker integration remain pending. Do not infer cancellation completion from the old destructor.
+Evidence: spatial-os-luna-handoff/evidence/process-termination-2026-10-09
+The issuer barrier itself is qualified and adopted as1d129f7. World participation remains isolated but passes focused both-host tests.
+
+Process correction verification
+Both hosts passed four new cleanup checks and 51 related checks in each Debug and runtime sanitizer profile.
+The extended candidate passes six cleanup checks and 51 harness checks in sb16 Debug.
+Full candidate02 qualification is running on both hosts. The correction remains isolated pending that qualification.

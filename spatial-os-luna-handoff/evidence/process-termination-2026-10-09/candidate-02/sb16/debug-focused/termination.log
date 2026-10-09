@@ -1,0 +1,39 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-debug-02/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-debug-02/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-debug-02/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-debug-02/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-debug-02/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-debug-02/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: process-termination
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-source-02/tests/core/test_process_termination.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-debug-02/build/spatial-process-termination-probe"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-debug-02/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-debug-02/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-source-02
+1: Test timeout computed to be: 90
+1: test_already_exited_process_can_be_stopped_twice (__main__.ProcessTerminationTests.test_already_exited_process_can_be_stopped_twice) ... ok
+1: test_confirmed_stop_has_already_terminated_detached_descendants (__main__.ProcessTerminationTests.test_confirmed_stop_has_already_terminated_detached_descendants) ... ok
+1: test_destructor_signal_error_cannot_return_broker_success (__main__.ProcessTerminationTests.test_destructor_signal_error_cannot_return_broker_success) ... ok
+1: test_destructor_wait_error_cannot_return_broker_success (__main__.ProcessTerminationTests.test_destructor_wait_error_cannot_return_broker_success) ... ok
+1: test_signal_error_returns_failure_without_waiting_for_live_child (__main__.ProcessTerminationTests.test_signal_error_returns_failure_without_waiting_for_live_child) ... ok
+1: test_wait_error_cannot_be_reported_as_confirmed_stop (__main__.ProcessTerminationTests.test_wait_error_cannot_be_reported_as_confirmed_stop) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 6 tests in 0.282s
+1: 
+1: OK
+1/1 Test #1: process-termination ..............   Passed    0.35 sec
+
+The following tests passed:
+	process-termination
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.35 sec

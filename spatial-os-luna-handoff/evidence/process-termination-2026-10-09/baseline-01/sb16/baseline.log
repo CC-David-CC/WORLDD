@@ -1,0 +1,81 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: process-termination
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/source/tests/core/test_process_termination.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build/spatial-process-termination-probe"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/source
+1: Test timeout computed to be: 90
+1: test_already_exited_process_can_be_stopped_twice (__main__.ProcessTerminationTests.test_already_exited_process_can_be_stopped_twice) ... ok
+1: test_confirmed_stop_has_already_terminated_detached_descendants (__main__.ProcessTerminationTests.test_confirmed_stop_has_already_terminated_detached_descendants) ... FAIL
+1: test_signal_error_returns_failure_without_waiting_for_live_child (__main__.ProcessTerminationTests.test_signal_error_returns_failure_without_waiting_for_live_child) ... FAIL
+1: test_wait_error_cannot_be_reported_as_confirmed_stop (__main__.ProcessTerminationTests.test_wait_error_cannot_be_reported_as_confirmed_stop) ... FAIL
+1: 
+1: ======================================================================
+1: FAIL: test_confirmed_stop_has_already_terminated_detached_descendants (__main__.ProcessTerminationTests.test_confirmed_stop_has_already_terminated_detached_descendants)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/source/tests/core/test_process_termination.py", line 63, in test_confirmed_stop_has_already_terminated_detached_descendants
+1:     self.assertEqual(len(select.select(descriptors,[],[],0)[0]),len(descriptors),'Stop returned before descendant exit')
+1: AssertionError: 3 != 5 : Stop returned before descendant exit
+1: 
+1: ======================================================================
+1: FAIL: test_signal_error_returns_failure_without_waiting_for_live_child (__main__.ProcessTerminationTests.test_signal_error_returns_failure_without_waiting_for_live_child)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/source/tests/core/test_process_termination.py", line 39, in stop
+1:     try:return proc.wait(timeout=3)
+1:                ^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+1:     return self._wait(timeout=timeout)
+1:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1:   File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+1:     raise TimeoutExpired(self.args, timeout)
+1: subprocess.TimeoutExpired: Command '['/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build/spatial-process-termination-probe', '/tmp/tmpzhzttt3i/project', '/tmp/tmpzhzttt3i/repository', '/tmp/tmpzhzttt3i/state', 'deny-signal']' timed out after 3 seconds
+1: 
+1: During handling of the above exception, another exception occurred:
+1: 
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/source/tests/core/test_process_termination.py", line 57, in test_signal_error_returns_failure_without_waiting_for_live_child
+1:     self.assertEqual(self.stop(proc),2)
+1:                      ^^^^^^^^^^^^^^^
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/source/tests/core/test_process_termination.py", line 41, in stop
+1:     proc.kill();proc.wait(timeout=3);self.fail('Cleanup did not report its kernel failure within the deadline')
+1:                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1: AssertionError: Cleanup did not report its kernel failure within the deadline
+1: 
+1: ======================================================================
+1: FAIL: test_wait_error_cannot_be_reported_as_confirmed_stop (__main__.ProcessTerminationTests.test_wait_error_cannot_be_reported_as_confirmed_stop)
+1: ----------------------------------------------------------------------
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/source/tests/core/test_process_termination.py", line 53, in test_wait_error_cannot_be_reported_as_confirmed_stop
+1:     self.assertEqual(self.stop(proc),2)
+1: AssertionError: 0 != 2
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 4 tests in 3.207s
+1: 
+1: FAILED (failures=3)
+1/1 Test #1: process-termination ..............***Failed    3.28 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   3.29 sec
+
+The following tests FAILED:
+	  1 - process-termination (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-process-termination-baseline-01/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

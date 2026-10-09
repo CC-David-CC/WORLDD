@@ -1,0 +1,31 @@
+{
+  "host": "sb16-2",
+  "source_files": 242,
+  "locked_files": 41,
+  "scope": "focused checked termination and workspace regression; full matrix and candidate02 destructor witnesses pending",
+  "integrated": false,
+  "debug": {
+    "termination_checks": 4,
+    "regression_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "workspaced": "4fb9c00282de1890cc882d41767c23f652dd684bd3a74c27ed5abd6c9ecf5b09",
+      "worldd": "4ef888b857cf2fa9cabaa553396616e39aaa6599b8e803e626bd756d44080506",
+      "spatial-process-termination-probe": "6264cc0e72786f3c1249f9ceb555284f00cfd6f7771533e1eed3253664e06190",
+      "spatial-app-init": "9ea6f17ffc3a68f280f1a8019c52d5d4742648882b36cbbb2e7e8723410de450"
+    }
+  },
+  "runtime-sanitize": {
+    "termination_checks": 4,
+    "regression_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "workspaced": "95ffaf361f4a1b1ecf55f1ada62b08e001c8bf09fff4bcf2ce4f872a6433e4c1",
+      "worldd": "738f4ff45eaf0d913990fce8865dbcd2fd3f381eb22b7cbf3a5b876072e87bcd",
+      "spatial-process-termination-probe": "39c71f4b12544063f5fe5cd32949772c745995d67f809fdd52249351a5f9e225",
+      "spatial-app-init": "2fb4304ff53e1b5af2f0617716199be2e5c709369084c99374ca840238634ef0"
+    }
+  }
+}

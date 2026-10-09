@@ -1,0 +1,317 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -170,6 +170,13 @@
+ include(CTest)
+ if(BUILD_TESTING)
+     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
++    add_executable(spatial-process-termination-probe src/testing/process_termination_probe.cpp src/workspace/process.cpp src/workspace/native_launch.cpp)
++    target_link_libraries(spatial-process-termination-probe PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
++    add_dependencies(spatial-process-termination-probe spatial-app-init)
++    add_test(NAME process-termination COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_process_termination.py" $<TARGET_FILE:spatial-process-termination-probe>)
++    set_tests_properties(process-termination PROPERTIES TIMEOUT 90
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-participant-barrier-client COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_barrier_client.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+     set_tests_properties(identity-participant-barrier-client PROPERTIES TIMEOUT 180
+--- /dev/null
++++ b/src/testing/process_termination_probe.cpp
+@@ -0,0 +1,54 @@
++#include "workspace/process.hpp"
++#include "workspace/native_launch.hpp"
++#include "core/protocol.hpp"
++#include <cerrno>
++#include <cstddef>
++#include <iostream>
++#include <linux/filter.h>
++#include <linux/seccomp.h>
++#include <sys/prctl.h>
++#include <sys/syscall.h>
++#include <unistd.h>
++
++// Thin fixture: call the real boundary, then make the kernel reject selected cleanup calls.
++void deny(int syscall_number) {
++    sock_filter instructions[] = {
++        BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(seccomp_data, nr)),
++        BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, static_cast<unsigned>(syscall_number), 0, 1),
++        BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | EPERM),
++        BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW)
++    };
++    sock_fprog program{4,instructions};
++    if (prctl(PR_SET_NO_NEW_PRIVS,1,0,0,0) != 0 || prctl(PR_SET_SECCOMP,SECCOMP_MODE_FILTER,&program) != 0)
++        throw std::runtime_error("Cannot install fixture syscall denial");
++}
++int main(int argc,char** argv) {
++    try {
++        if (argc != 5) throw std::invalid_argument("Expected project, repository, state, and fault mode");
++        const std::string mode=argv[4];
++        if (mode!="normal" && mode!="deny-wait" && mode!="deny-signal" && mode!="destructor-deny-wait" && mode!="destructor-deny-signal")
++            throw std::invalid_argument("Invalid fixture fault");
++        std::string bytes;
++        if (!spatial::read_frame(std::cin,bytes)) throw std::runtime_error("Missing launch request");
++        spatial::wire::ProcessLaunchRequest request;
++        if (!request.ParseFromString(bytes)) throw std::invalid_argument("Invalid launch request");
++        spatial::validate_message(request);
++        spatial::ApplicationProcess process(argv[1],argv[2],argv[3],true,request);
++        spatial::workspace::v1::AppEvent ready;ready.set_protocol_version(1);ready.set_started(true);
++        spatial::write_frame(std::cout,ready);
++        if (!spatial::read_frame(std::cin,bytes)) throw std::runtime_error("Missing stop request");
++        spatial::wire::ActorStopRequest stop;
++        if (!stop.ParseFromString(bytes)) throw std::invalid_argument("Invalid stop request");
++        spatial::validate_message(stop);
++        if (mode=="deny-wait" || mode=="destructor-deny-wait") deny(SYS_wait4);
++        if (mode=="deny-signal" || mode=="destructor-deny-signal") { deny(SYS_pidfd_send_signal);deny(SYS_kill); }
++        if (mode.starts_with("destructor-")) return 0;
++        try { process.stop(); process.stop(); }
++        catch (const std::exception& error) {
++            std::cerr << "cleanup unconfirmed: " << error.what() << '\n';
++            // The kernel denies cleanup for this fixture process. Exit without pretending success.
++            _exit(2);
++        }
++        return 0;
++    } catch (const std::exception& error) { std::cerr << error.what() << '\n';return 3; }
++}
+--- a/src/workspace/process.cpp
++++ b/src/workspace/process.cpp
+@@ -8,12 +8,15 @@
+ #include <csignal>
+ #include <cstddef>
+ #include <fcntl.h>
++#include <fstream>
++#include <iostream>
+ #include <linux/audit.h>
+ #include <linux/filter.h>
+ #include <linux/memfd.h>
+ #include <linux/seccomp.h>
+ #include <poll.h>
+ #include <sched.h>
++#include <sstream>
+ #include <sys/prctl.h>
+ #include <sys/stat.h>
+ #include <sys/syscall.h>
+@@ -92,6 +95,10 @@
+     struct stat trusted{};
+     if (lstat(bwrap, &trusted) != 0 || !S_ISREG(trusted.st_mode) || trusted.st_uid != 0 || (trusted.st_mode & 0022))
+         throw WorldError(wire::UNAVAILABLE, "Install the reviewed execution bootstrap first");
++    // Hold the sandbox before exec until its namespace leader has a pinned pidfd.
++    int launch_pipe[2];
++    if (pipe2(launch_pipe, O_CLOEXEC) != 0) throw std::runtime_error("Cannot hold application startup");
++    File launch_read{launch_pipe[0]}, launch_write{launch_pipe[1]};
+     File project_fd{directory(project)}, repo_fd{directory(repository)}, state_fd{directory(state)}, policy{filter()};
+     const std::string bind = writable ? "--bind-fd" : "--ro-bind-fd";
+     std::vector<std::string> strings{bwrap, "--unshare-all", "--unshare-user", "--disable-userns", "--die-with-parent", "--new-session",
+@@ -112,7 +119,7 @@
+             "--setenv", "DISPLAY", ":"+native_->display_number(), "--setenv", "XAUTHORITY", "/run/spatial/Xauthority"};
+         strings.insert(strings.end(), display.begin(), display.end());
+     }
+-    const std::vector<std::string> tail{"--seccomp", std::to_string(policy.fd), "--remount-ro", "/", "--", "/spatial-app-init"};
++    const std::vector<std::string> tail{"--block-fd", std::to_string(launch_read.fd), "--seccomp", std::to_string(policy.fd), "--remount-ro", "/", "--", "/spatial-app-init"};
+     strings.insert(strings.end(), tail.begin(), tail.end());
+     std::vector<char*> argv;
+     for (auto& value : strings) argv.push_back(value.data());
+@@ -131,19 +138,23 @@
+         if (diagnostic < 0 || dup2(input_read.fd, 0) < 0 || dup2(output_write.fd, 1) < 0 || dup2(diagnostic, 2) < 0) _exit(126);
+         // Only explicit mount and policy descriptors survive into Bubblewrap.
+         if (syscall(SYS_close_range, 3u, ~0u, 4u /* CLOSE_RANGE_CLOEXEC */) != 0) _exit(126);
+-        for (const int fd : {project_fd.fd, repo_fd.fd, state_fd.fd, policy.fd}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
++        for (const int fd : {project_fd.fd, repo_fd.fd, state_fd.fd, policy.fd, launch_read.fd}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
+         if (native_)
+             for (const int fd : {native_->authority_fd(), native_->socket_fd()}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
+         char path[] = "PATH=/usr/bin:/bin"; char* env[]{path, nullptr};
+         execve(bwrap, argv.data(), env); _exit(127);
+     }
+     if (pid_ < 0) throw std::runtime_error("Cannot fork application boundary");
++    close(launch_read.fd); launch_read.fd = -1;
+     close(input_read.fd); input_read.fd = -1; close(output_write.fd); output_write.fd = -1;
+     output_ = output_read.fd; output_read.fd = -1;
+     try {
+         pidfd_ = static_cast<int>(syscall(SYS_pidfd_open, pid_, 0));
+         if (pidfd_ < 0 || fcntl(output_, F_SETFL, O_NONBLOCK) < 0 || fcntl(input_write.fd, F_SETFL, O_NONBLOCK) < 0)
+             throw std::runtime_error("Cannot monitor application boundary");
++        pin_namespace();
++        write_all(launch_write.fd, "1", authority_);
++        close(launch_write.fd); launch_write.fd = -1;
+         workspace::v1::AppStart start; start.set_protocol_version(1); *start.mutable_argv() = request.argv();
+         const auto payload = start.SerializeAsString(); const auto length = static_cast<std::uint32_t>(payload.size());
+         std::string framed{static_cast<char>(length >> 24), static_cast<char>(length >> 16), static_cast<char>(length >> 8), static_cast<char>(length)};
+@@ -151,14 +162,79 @@
+         const auto ready = event(Clock::now() + std::chrono::seconds(5));
+         if (!ready.has_started() || !ready.started()) throw std::runtime_error("Application did not confirm exec");
+         authority_();
+-    } catch (...) { stop(); if (output_ >= 0) close(output_); output_ = -1; throw; }
+-}
+-ApplicationProcess::~ApplicationProcess() { stop(); if (output_ >= 0) close(output_); }
++    } catch (...) { stop_or_exit(); if (output_ >= 0) close(output_); output_ = -1; throw; }
++}
++ApplicationProcess::~ApplicationProcess() { stop_or_exit(); if (output_ >= 0) close(output_); }
++void ApplicationProcess::pin_namespace() {
++    const auto deadline = Clock::now()+std::chrono::seconds(5);
++    while (Clock::now() < deadline) {
++        authority_();
++        std::ifstream children("/proc/"+std::to_string(pid_)+"/task/"+std::to_string(pid_)+"/children");
++        pid_t child = 0, extra = 0;
++        if (children >> child) {
++            if (child <= 0 || (children >> extra)) throw std::runtime_error("Unexpected application namespace children");
++            File selected{static_cast<int>(syscall(SYS_pidfd_open, child, 0))};
++            if (selected.fd < 0) throw std::runtime_error("Cannot pin application namespace leader");
++            std::ifstream status("/proc/"+std::to_string(child)+"/status");
++            std::string line; bool parent_matches = false, namespace_matches = false;
++            while (std::getline(status, line)) {
++                if (line.starts_with("PPid:")) {
++                    std::istringstream value(line.substr(5)); pid_t parent = 0;
++                    parent_matches = static_cast<bool>(value >> parent) && parent == pid_;
++                } else if (line.starts_with("NSpid:")) {
++                    std::istringstream values(line.substr(6)); pid_t current = 0, last = 0; unsigned count = 0;
++                    while (values >> current) { last = current; ++count; }
++                    namespace_matches = count >= 2 && last == 1;
++                }
++            }
++            pollfd state{selected.fd, POLLIN, 0};
++            if (!parent_matches || !namespace_matches || poll(&state, 1, 0) != 0)
++                throw std::runtime_error("Application namespace identity is unavailable");
++            namespace_pidfd_ = selected.fd; selected.fd = -1; return;
++        }
++        pollfd state{pidfd_, POLLIN, 0};
++        const auto result = poll(&state, 1, 5);
++        if (result > 0 || (result < 0 && errno != EINTR)) throw std::runtime_error("Application boundary exited before namespace pinning");
++    }
++    throw std::runtime_error("Application namespace startup deadline expired");
++}
++void ApplicationProcess::stop_or_exit() noexcept {
++    try { stop(); }
++    catch (const std::exception& error) {
++        std::cerr << "workspaced: application cleanup unconfirmed: " << error.what() << '\n';
++        // A failed destructor must never let the broker acknowledge cancelled execution.
++        _exit(2);
++    }
++}
+ void ApplicationProcess::stop() {
+     if (pid_ <= 0) return;
+-    if (pidfd_ >= 0) syscall(SYS_pidfd_send_signal, pidfd_, SIGKILL, nullptr, 0);
+-    else kill(pid_, SIGKILL); // Still our unreaped child.
+-    while (waitpid(pid_, nullptr, 0) < 0 && errno == EINTR) {}
++    const auto signal_fd = [](int fd) {
++        if (syscall(SYS_pidfd_send_signal, fd, SIGKILL, nullptr, 0) < 0 && errno != ESRCH)
++            throw std::runtime_error("Cannot signal application boundary");
++    };
++    if (namespace_pidfd_ >= 0) signal_fd(namespace_pidfd_);
++    if (pidfd_ >= 0) signal_fd(pidfd_);
++    else if (kill(pid_, SIGKILL) < 0 && errno != ESRCH) // Still our unreaped child.
++        throw std::runtime_error("Cannot signal unreaped application boundary");
++    const auto deadline = Clock::now()+std::chrono::seconds(2);
++    if (namespace_pidfd_ >= 0) {
++        for (;;) {
++            pollfd state{namespace_pidfd_, POLLIN, 0};
++            const auto result = poll(&state, 1, 10);
++            if (result > 0 && (state.revents & POLLIN)) break;
++            if (result > 0 || (result < 0 && errno != EINTR) || Clock::now() >= deadline)
++                throw std::runtime_error("Cannot confirm application namespace exit");
++        }
++    }
++    for (;;) {
++        const auto result = waitpid(pid_, nullptr, WNOHANG);
++        if (result == pid_) break;
++        if ((result < 0 && errno != EINTR) || Clock::now() >= deadline)
++            throw std::runtime_error("Cannot confirm application boundary reap");
++        poll(nullptr, 0, 5);
++    }
++    if (namespace_pidfd_ >= 0) close(namespace_pidfd_);
++    namespace_pidfd_ = -1;
+     if (pidfd_ >= 0) close(pidfd_);
+     pidfd_ = -1; pid_ = -1;
+ }
+--- a/src/workspace/process.hpp
++++ b/src/workspace/process.hpp
+@@ -23,10 +23,12 @@
+     std::optional<int> wait(double seconds);
+     void stop();
+ private:
++    void pin_namespace();
++    void stop_or_exit() noexcept;
+     workspace::v1::AppEvent event(std::chrono::steady_clock::time_point deadline);
+     void read_all(char* bytes, std::size_t length, std::chrono::steady_clock::time_point deadline);
+     pid_t pid_ = -1;
+-    int pidfd_ = -1, output_ = -1;
++    int pidfd_ = -1, namespace_pidfd_ = -1, output_ = -1;
+     std::optional<int> result_;
+     std::function<void()> authority_;
+     std::unique_ptr<NativeCredential> native_;
+--- /dev/null
++++ b/tests/core/test_process_termination.py
+@@ -0,0 +1,76 @@
++"""Real process trees and kernel-denied cleanup; no simulated termination result."""
++import os
++from pathlib import Path
++import select
++import subprocess
++import sys
++import tempfile
++import time
++import unittest
++import core_pb2 as core
++import broker_pb2 as broker
++from harness.wire import frame,read_message
++
++PROBE=Path(sys.argv.pop(1))
++
++class ProcessTerminationTests(unittest.TestCase):
++    def setUp(self):
++        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
++        self.root=Path(self.temp.name)
++        for n in ['project','repository','state','state/home','state/tmp','state/cache','state/config','state/data']:
++            (self.root/n).mkdir()
++    def run_boundary(self,mode,code):
++        log=(self.root/'probe.log').open('wb');self.addCleanup(log.close)
++        proc=subprocess.Popen([str(PROBE),str(self.root/'project'),str(self.root/'repository'),str(self.root/'state'),mode],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log)
++        def cleanup():
++            if proc.poll() is None:proc.kill();proc.wait(timeout=3)
++            proc.stdin.close();proc.stdout.close()
++        self.addCleanup(cleanup)
++        request=core.ProcessLaunchRequest(argv=['/usr/bin/python3','-c',code],operation_id='fixture',profile='development')
++        proc.stdin.write(frame(request));proc.stdin.flush()
++        self.assertTrue(select.select([proc.stdout],[],[],8)[0],'Production boundary startup deadline')
++        ready=read_message(proc.stdout,broker.AppEvent);self.assertTrue(ready.started,ready)
++        deadline=time.monotonic()+3
++        while not (self.root/'project/ready').exists():
++            self.assertLess(time.monotonic(),deadline,'Application did not start');time.sleep(.005)
++        return proc
++    def stop(self,proc):
++        proc.stdin.write(frame(core.ActorStopRequest()));proc.stdin.flush()
++        try:return proc.wait(timeout=3)
++        except subprocess.TimeoutExpired:
++            proc.kill();proc.wait(timeout=3);self.fail('Cleanup did not report its kernel failure within the deadline')
++    def descendants(self,parent):
++        found=[];todo=[parent]
++        while todo:
++            p=todo.pop()
++            try:children=[int(n) for n in Path(f'/proc/{p}/task/{p}/children').read_text().split()]
++            except FileNotFoundError:continue
++            for child in children:
++                fd=os.pidfd_open(child);self.addCleanup(os.close,fd);found.append(fd);todo.append(child)
++        return found
++    def test_wait_error_cannot_be_reported_as_confirmed_stop(self):
++        proc=self.run_boundary('deny-wait',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
++        self.assertEqual(self.stop(proc),2)
++        self.assertIn('cleanup unconfirmed:',(self.root/'probe.log').read_text())
++    def test_signal_error_returns_failure_without_waiting_for_live_child(self):
++        proc=self.run_boundary('deny-signal',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
++        self.assertEqual(self.stop(proc),2)
++        self.assertIn('cleanup unconfirmed:',(self.root/'probe.log').read_text())
++    def test_confirmed_stop_has_already_terminated_detached_descendants(self):
++        proc=self.run_boundary('normal',"import os,pathlib,time\npid=os.fork()\nif pid==0:\n os.setsid();pathlib.Path('ready').touch()\n while True: time.sleep(.1)\nelse: os.waitpid(pid,0)")
++        descriptors=self.descendants(proc.pid);self.assertGreaterEqual(len(descriptors),4)
++        self.assertEqual(self.stop(proc),0)
++        self.assertEqual(len(select.select(descriptors,[],[],0)[0]),len(descriptors),'Stop returned before descendant exit')
++    def test_already_exited_process_can_be_stopped_twice(self):
++        proc=self.run_boundary('normal',"import pathlib;pathlib.Path('ready').touch()")
++        time.sleep(.05);self.assertEqual(self.stop(proc),0)
++    def test_destructor_wait_error_cannot_return_broker_success(self):
++        proc=self.run_boundary('destructor-deny-wait',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
++        self.assertEqual(self.stop(proc),2)
++        self.assertIn('application cleanup unconfirmed:',(self.root/'probe.log').read_text())
++    def test_destructor_signal_error_cannot_return_broker_success(self):
++        proc=self.run_boundary('destructor-deny-signal',"import pathlib,time;pathlib.Path('ready').touch();time.sleep(30)")
++        self.assertEqual(self.stop(proc),2)
++        self.assertIn('application cleanup unconfirmed:',(self.root/'probe.log').read_text())
++
++if __name__=='__main__':unittest.main(verbosity=2)

@@ -1,5 +1,24 @@
 # Implementation status
 
+## 2026-10-09: Process cancellation failures reproduced; correction under qualification
+
+The unchanged ApplicationProcess cleanup failed three independent checks on sb16.
+It returned success while two of five pinned descendant pidfds had not reported exit.
+It ignored a kernel-denied wait call. It also hung after a kernel-denied signal call.
+These failures prevent using the old cleanup result as proof of completed broker revocation.
+
+The isolated correction holds application startup until it pins the namespace leader.
+It waits for that leader and checks the outer child reap before returning success.
+Unconfirmed destructor cleanup stops the broker with an error, preserving uncertainty.
+Both hosts passed four new checks and 51 related regressions in each Debug and runtime ASan/UBSan profile.
+Candidate02 retains the same production code and adds two destructor failure tests.
+Its full Debug and sanitizer matrix is running on both hosts.
+On sb16, all six cleanup tests and 51 harness checks have passed; the existing core suites are running.
+All existing tests, protobuf schemas, and 41 locked files remain unchanged.
+No production source or operator session changed.
+See evidence/process-termination-2026-10-09 and docs/PROCESS_TERMINATION.txt.
+
+
 ## 2026-10-09: Durable issuer barrier integrated after both-host qualification
 
 The issuer records active-service obligations in the same transaction as revocation.

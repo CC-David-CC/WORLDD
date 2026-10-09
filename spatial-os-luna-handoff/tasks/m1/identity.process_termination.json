@@ -1,0 +1,51 @@
+{
+  "id": "identity.process_termination",
+  "phase": "M02",
+  "status": "in_progress",
+  "parent": "identity.revocation_barrier",
+  "invariant": "Confirm namespace exit and child reap before reporting successful application cancellation.",
+  "evidence": "evidence/process-termination-2026-10-09",
+  "contract": "docs/PROCESS_TERMINATION.txt",
+  "source": "local/process-termination-draft-01",
+  "candidate": 2,
+  "source_files": 242,
+  "integrated": false,
+  "baseline": {
+    "host": "sb16",
+    "passed": 1,
+    "failed": 3
+  },
+  "remaining": [
+    "Complete focused Debug and sanitizer profiles on both hosts.",
+    "Verify destructor failure checks and all existing regression suites.",
+    "Complete full matrix and primary source review before integration.",
+    "Use checked process termination in broker participation and recovery."
+  ],
+  "current_step": "candidate02_full_matrix_running_both_hosts",
+  "candidate01_focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "new_checks": 4,
+    "regression_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "candidate02_sb16_Debug_focused": {
+    "new_checks": 6,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "full_expected": {
+    "core_checks": 1192,
+    "core_suites": 69,
+    "harness_checks": 51,
+    "P10_cases": 151
+  }
+}
