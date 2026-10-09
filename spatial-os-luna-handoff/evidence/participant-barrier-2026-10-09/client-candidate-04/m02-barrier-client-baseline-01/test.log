@@ -1,0 +1,39 @@
+test_checked_client_completes_real_activation_application_and_release (__main__.BarrierClientTests.test_checked_client_completes_real_activation_application_and_release) ... FAIL
+
+======================================================================
+FAIL: test_checked_client_completes_real_activation_application_and_release (__main__.BarrierClientTests.test_checked_client_completes_real_activation_application_and_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_barrier_client_baseline_01.py", line 32, in activate_client
+    try: reply = client.call(authority_activate=pb.AuthorityActivate(synchronized_revision=revision))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-01/source/tests/core/test_identity_issuer.py", line 61, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-01/source/tests/core/test_identity_issuer.py", line 56, in request
+    reply = self.receive()
+            ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-01/source/tests/core/test_identity_issuer.py", line 49, in receive
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-01/source/tests/core/test_identity_issuer.py", line 46, in exact
+    if not data: raise AssertionError('Issuer transport closed')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Issuer transport closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_barrier_client_baseline_01.py", line 46, in test_checked_client_completes_real_activation_application_and_release
+    client = self.authenticate_client(); state = self.activate_client(client); self.assertEqual(state.generation,1)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_barrier_client_baseline_01.py", line 34, in activate_client
+    with open(client.stderr.name) as log:self.fail('Client closed before activation: '+log.read())
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Client closed before activation: spatial-issuer-client: Issuer reply has the wrong outcome
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.360s
+
+FAILED (failures=1)

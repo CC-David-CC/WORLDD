@@ -1,0 +1,1110 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -170,6 +170,14 @@
+ include(CTest)
+ if(BUILD_TESTING)
+     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
++    add_test(NAME identity-participant-barrier-client COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_barrier_client.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(identity-participant-barrier-client PROPERTIES TIMEOUT 180
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME identity-participant-barrier COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_barrier.py" $<TARGET_FILE:identityd>)
++    set_tests_properties(identity-participant-barrier PROPERTIES TIMEOUT 120
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-participant-session-client COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_session_client.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+     set_tests_properties(identity-participant-session-client PROPERTIES TIMEOUT 180
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -60,6 +60,45 @@
+   bytes service_incarnation = 4;
+   bytes connection_binding = 5;
+   uint64 security_revision = 6;
++}
++
++// Durable participation. Trusted services must finish external cancellation before acknowledging.
++message AuthorityActivate { optional uint64 synchronized_revision = 1; }
++message AuthorityApplied {
++  uint64 generation = 1;
++  optional uint64 from_revision = 2;
++  optional uint64 through_revision = 3;
++}
++message AuthorityRelease { uint64 generation = 1; optional uint64 applied_revision = 2; }
++message AuthorityStateRead {}
++message AuthorityActivationState {
++  bytes issuer_id = 1;
++  AuthorityParticipantRecord registration = 2;
++  uint64 generation = 3;
++  bytes service_incarnation = 4;
++  bytes issuer_incarnation = 5;
++  bytes connection_binding = 6;
++  uint64 applied_revision = 7;
++  uint64 head_revision = 8;
++  bool active = 9;
++}
++message AuthorityBarrierRead { uint64 revision = 1; bytes after_participant_id = 2; uint32 limit = 3; }
++message AuthorityBarrierObligation {
++  AuthorityParticipantRecord registration = 1;
++  uint64 generation = 2;
++  bytes service_incarnation = 3;
++  uint64 applied_revision = 4;
++  bool complete = 5;
++}
++message AuthorityBarrierStatus {
++  bytes issuer_id = 1;
++  uint64 revision = 2;
++  IdentityReference target = 3;
++  uint64 participant_count = 4;
++  uint64 pending_count = 5;
++  bool complete = 6;
++  repeated AuthorityBarrierObligation obligations = 7;
++  bytes next_after = 8;
+ }
+ 
+ enum EnrollmentMode { ENROLLMENT_MODE_UNSPECIFIED = 0; MANUAL = 1; APPROVE_ALWAYS = 2; }
+@@ -82,6 +121,7 @@
+     BootstrapProfilePut profile_put = 8;
+     AuthorityParticipantRegister participant_register = 9;
+     AuthorityRegistryRead registry_read = 10;
++    AuthorityBarrierRead barrier_read = 11;
+   }
+ }
+ enum ActorKind { ACTOR_KIND_UNSPECIFIED = 0; HUMAN = 1; AGENT = 2; }
+@@ -176,7 +216,7 @@
+   bytes channel_binding = 3;
+ }
+ message AdminResult {
+-  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; AuthorityParticipantRecord participant = 5; AuthorityRegistryPage registry = 6; }
++  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; AuthorityParticipantRecord participant = 5; AuthorityRegistryPage registry = 6; AuthorityBarrierStatus barrier = 7; }
+ }
+ message IssuerInfoRequest {}
+ // Trusted supervisor configuration. Paths are absolute and remain outside Git.
+@@ -249,6 +289,10 @@
+     BootstrapProfileRead profile_read = 21;
+     AuthorityAuthenticationBegin authority_authentication_begin = 22;
+     AuthorityAuthenticationComplete authority_authentication_complete = 23;
++    AuthorityActivate authority_activate = 24;
++    AuthorityApplied authority_applied = 25;
++    AuthorityRelease authority_release = 26;
++    AuthorityStateRead authority_state = 27;
+   }
+ }
+ message IssuerReply {
+@@ -269,5 +313,7 @@
+     AuthorityParticipantRecord participant = 21;
+     AuthorityRegistryPage registry = 22;
+     AuthorityAuthenticationResult authority_authentication = 23;
++    AuthorityActivationState authority_activation = 24;
++    AuthorityBarrierStatus authority_barrier = 25;
+   }
+ }
+--- a/src/identity/issuer.cpp
++++ b/src/identity/issuer.cpp
+@@ -80,6 +80,12 @@
+ void validate_operation(const v1::IssuerOperation& operation) {
+     validate_message(operation);
+     if (operation.has_policy_read()) return;
++    if (operation.has_barrier_read()) {
++        const auto& read = operation.barrier_read();
++        require(read.revision() > 0 && read.revision() <= INT64_MAX && read.limit() <= 16 &&
++                (read.after_participant_id().empty() || read.after_participant_id().size() == 32), "Invalid barrier query");
++        return;
++    }
+     if (operation.has_registry_read()) { validate_registry_read(operation.registry_read()); return; }
+     if (operation.has_participant_register()) {
+         const auto& request = operation.participant_register();
+@@ -159,6 +165,25 @@
+             "domain_id BLOB NOT NULL CHECK(length(domain_id)>0 AND length(domain_id)<=256),"
+             "participant_id BLOB NOT NULL REFERENCES authority_participant(id),PRIMARY KEY(kind,domain_id));"
+             "PRAGMA user_version=5");
++}
++void create_barrier_schema(sqlite3* db) {
++    sql(db, "CREATE TABLE authority_activation("
++            "participant_id BLOB NOT NULL REFERENCES authority_participant(id),"
++            "generation INTEGER NOT NULL CHECK(generation>0),"
++            "service_incarnation BLOB NOT NULL CHECK(length(service_incarnation)=32),"
++            "issuer_incarnation BLOB NOT NULL CHECK(length(issuer_incarnation)=32),"
++            "connection_binding BLOB NOT NULL CHECK(length(connection_binding)=32),"
++            "registration BLOB NOT NULL,initial_revision INTEGER NOT NULL CHECK(initial_revision>=0),"
++            "applied_revision INTEGER NOT NULL CHECK(applied_revision>=initial_revision),"
++            "active INTEGER NOT NULL CHECK(active IN(0,1)),PRIMARY KEY(participant_id,generation),"
++            "UNIQUE(participant_id,service_incarnation));"
++            "CREATE UNIQUE INDEX authority_active_participant ON authority_activation(participant_id) WHERE active=1;"
++            "CREATE TABLE authority_barrier(revision INTEGER PRIMARY KEY REFERENCES revocation(revision),"
++            "participant_count INTEGER NOT NULL CHECK(participant_count>=0));"
++            "CREATE TABLE authority_obligation(revision INTEGER NOT NULL REFERENCES authority_barrier(revision),"
++            "participant_id BLOB NOT NULL,generation INTEGER NOT NULL,PRIMARY KEY(revision,participant_id),"
++            "FOREIGN KEY(participant_id,generation) REFERENCES authority_activation(participant_id,generation));"
++            "PRAGMA user_version=6");
+ }
+ } // namespace
+ 
+@@ -212,12 +237,12 @@
+         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
+                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
+         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
+-        sqlite3_int64 schema = 5;
++        sqlite3_int64 schema = 6;
+         if (!owner) {
+             Query version(db.get(), "PRAGMA user_version"); version.step();
+             Query application(db.get(), "PRAGMA application_id"); application.step();
+             schema = version.integer(0);
+-            storage((schema == 5 || ((schema >= 1 && schema <= 4) && migrate)) && application.integer(0) == application_id,
++            storage((schema == 6 || ((schema >= 1 && schema <= 5) && migrate)) && application.integer(0) == application_id,
+                     "Unknown issuer schema; explicit migration is required");
+         }
+         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
+@@ -235,7 +260,7 @@
+             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
+             insert.blob(4, policy.SerializeAsString()); insert.step();
+             create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
+-            create_participant_schema(db.get()); tx.commit();
++            create_participant_schema(db.get()); create_barrier_schema(db.get()); tx.commit();
+             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
+         }
+         { Query integrity(db.get(), "PRAGMA quick_check");
+@@ -246,12 +271,13 @@
+         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
+                 "Issuer key does not match its durable identity");
+         policy();
+-        if (schema < 5) {
++        if (schema < 6) {
+             Transaction migration(db.get());
+             if (schema == 1) create_enrollment_schema(db.get());
+             if (schema < 3) create_security_schema(db.get());
+             if (schema < 4) create_bootstrap_schema(db.get());
+-            create_participant_schema(db.get()); migration.commit();
++            if (schema < 5) create_participant_schema(db.get());
++            create_barrier_schema(db.get()); migration.commit();
+         }
+     }
+ 
+@@ -259,6 +285,78 @@
+         Query row(db.get(), "SELECT revision FROM authority_registry WHERE singleton=1");
+         storage(row.step() == SQLITE_ROW && row.integer(0) >= 0, "Invalid authority registry revision");
+         return static_cast<std::uint64_t>(row.integer(0));
++    }
++    const v1::AuthorityAuthenticationResult& service_context(const IssuerConnection& connection) {
++        if (!connection.authority || connection.binding.size() != 32)
++            throw WorldError(wire::FORBIDDEN, "Authenticated service connection is required");
++        const auto& context = *connection.authority;
++        if (context.issuer_id() != identity.issuer_id() || context.issuer_incarnation() != incarnation ||
++                context.connection_binding() != connection.binding || context.service_incarnation().size() != 32)
++            throw WorldError(wire::UNAUTHORIZED, "Stale service connection context");
++        const auto current = participant_record(context.registration().participant().id(), registry_revision());
++        storage(current.SerializeAsString() == context.registration().SerializeAsString(), "Service registration changed");
++        return context;
++    }
++    v1::AuthorityActivationState activation(const std::string& participant, std::uint64_t generation = 0) {
++        Query row(db.get(), "SELECT generation,service_incarnation,issuer_incarnation,connection_binding,"
++                            "registration,initial_revision,applied_revision,active FROM authority_activation "
++                            "WHERE participant_id=? AND (?=0 OR generation=?) ORDER BY generation DESC LIMIT 1");
++        row.blob(1, participant); row.integer(2, generation); row.integer(3, generation);
++        if (row.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Service generation does not exist");
++        const auto head = security_revision();
++        storage(row.integer(0) > 0 && row.blob(1).size() == 32 && row.blob(2).size() == 32 && row.blob(3).size() == 32 &&
++                row.integer(5) >= 0 && row.integer(6) >= row.integer(5) && static_cast<std::uint64_t>(row.integer(6)) <= head &&
++                (row.integer(7) == 0 || row.integer(7) == 1), "Invalid durable service generation");
++        v1::AuthorityActivationState result; result.set_issuer_id(identity.issuer_id());
++        result.set_generation(row.integer(0)); result.set_service_incarnation(row.blob(1));
++        result.set_issuer_incarnation(row.blob(2)); result.set_connection_binding(row.blob(3));
++        storage(result.mutable_registration()->ParseFromString(row.blob(4)), "Invalid activation registration");
++        const auto registered = participant_record(participant, registry_revision());
++        storage(result.registration().SerializeAsString() == registered.SerializeAsString(), "Activation registration changed");
++        result.set_applied_revision(row.integer(6)); result.set_head_revision(head); result.set_active(row.integer(7) != 0);
++        return result;
++    }
++    v1::AuthorityActivationState bound_activation(const v1::AuthorityAuthenticationResult& context, std::uint64_t generation) {
++        auto state = activation(context.registration().participant().id(), generation);
++        if (state.service_incarnation() != context.service_incarnation() || state.issuer_incarnation() != context.issuer_incarnation() ||
++                state.connection_binding() != context.connection_binding())
++            throw WorldError(wire::UNAUTHORIZED, "Generation belongs to another service connection");
++        return state;
++    }
++    v1::AuthorityBarrierStatus barrier(const v1::AuthorityBarrierRead& request) {
++        Transaction transaction(db.get());
++        Query row(db.get(), "SELECT b.participant_count,r.kind,r.target_id FROM authority_barrier b "
++                            "JOIN revocation r ON r.revision=b.revision WHERE b.revision=?");
++        row.integer(1, request.revision());
++        if (row.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "No recorded cancellation barrier for this revision");
++        storage(row.integer(0) >= 0 && row.blob(2).size() == 32 &&
++                (row.integer(1) == v1::ACTOR_TARGET || row.integer(1) == v1::CREDENTIAL_TARGET), "Invalid durable barrier");
++        v1::AuthorityBarrierStatus result; result.set_issuer_id(identity.issuer_id()); result.set_revision(request.revision());
++        result.set_participant_count(row.integer(0)); result.mutable_target()->set_kind(static_cast<v1::IdentityTargetKind>(row.integer(1)));
++        result.mutable_target()->set_id(row.blob(2));
++        Query count(db.get(), "SELECT COUNT(*),COALESCE(SUM(a.applied_revision<o.revision),0) "
++                              "FROM authority_obligation o JOIN authority_activation a "
++                              "ON a.participant_id=o.participant_id AND a.generation=o.generation WHERE o.revision=?");
++        count.integer(1, request.revision());
++        storage(count.step() == SQLITE_ROW && count.integer(0) == row.integer(0) && count.integer(1) >= 0 &&
++                count.integer(1) <= count.integer(0), "Inconsistent barrier obligation count");
++        result.set_pending_count(count.integer(1)); result.set_complete(count.integer(1) == 0);
++        const auto limit = request.limit() ? request.limit() : 16;
++        Query page(db.get(), "SELECT participant_id,generation FROM authority_obligation WHERE revision=? AND participant_id>? "
++                             "ORDER BY participant_id LIMIT ?");
++        page.integer(1, request.revision()); page.blob(2, request.after_participant_id()); page.integer(3, limit+1);
++        while (page.step() == SQLITE_ROW) {
++            if (static_cast<unsigned>(result.obligations_size()) == limit) {
++                result.set_next_after(result.obligations(result.obligations_size()-1).registration().participant().id()); break;
++            }
++            storage(page.blob(0).size() == 32 && page.integer(1) > 0, "Invalid durable obligation identity");
++            const auto state = activation(page.blob(0), page.integer(1));
++            auto* obligation = result.add_obligations(); *obligation->mutable_registration() = state.registration();
++            obligation->set_generation(state.generation()); obligation->set_service_incarnation(state.service_incarnation());
++            obligation->set_applied_revision(state.applied_revision());
++            obligation->set_complete(state.applied_revision() >= request.revision());
++        }
++        transaction.commit(); return result;
+     }
+     bool participant_key(const std::string& public_key) {
+         Query row(db.get(), "SELECT 1 FROM authority_participant WHERE public_key=?"); row.blob(1, public_key);
+@@ -494,6 +592,12 @@
+             Query insert(db.get(), "INSERT INTO revocation(kind,target_id,revision,reason) VALUES(?,?,?,?)");
+             insert.integer(1, request.target().kind()); insert.blob(2, request.target().id());
+             insert.integer(3, before.security_revision()+1); insert.blob(4, request.reason()); insert.step();
++            Query barrier(db.get(), "INSERT INTO authority_barrier(revision,participant_count) "
++                                    "SELECT ?,COUNT(*) FROM authority_activation WHERE active=1");
++            barrier.integer(1, before.security_revision()+1); barrier.step();
++            Query obligations(db.get(), "INSERT INTO authority_obligation(revision,participant_id,generation) "
++                                        "SELECT ?,participant_id,generation FROM authority_activation WHERE active=1");
++            obligations.integer(1, before.security_revision()+1); obligations.step();
+         }
+         const auto result = identity_status(request.target()); transaction.commit();
+         // Only committed revocation invalidates pending authentication. Independent credentials survive.
+@@ -651,6 +755,7 @@
+     // Execute only the server-stored operation authenticated by this consumed challenge.
+     v1::AdminResult result;
+     if (pending.operation.has_policy_read()) *result.mutable_policy() = impl_->policy();
++    else if (pending.operation.has_barrier_read()) *result.mutable_barrier() = impl_->barrier(pending.operation.barrier_read());
+     else if (pending.operation.has_registry_read()) *result.mutable_registry() = impl_->registry(pending.operation.registry_read());
+     else if (pending.operation.has_participant_register()) *result.mutable_participant() = impl_->register_participant(pending.operation.participant_register());
+     else if (pending.operation.has_policy_set()) *result.mutable_policy() = impl_->set_policy(pending.operation.policy_set());
+@@ -731,6 +836,77 @@
+     v1::AuthenticationResult result; *result.mutable_identity() = current;
+     result.set_audience(pending.authentication.audience()); result.set_channel_binding(pending.authentication.channel_binding());
+     return result;
++}
++v1::AuthorityActivationState Issuer::authority_state(IssuerConnection& connection) {
++    Transaction transaction(impl_->db.get());
++    const auto& context = impl_->service_context(connection);
++    auto result = impl_->activation(context.registration().participant().id());
++    transaction.commit(); return result;
++}
++v1::AuthorityActivationState Issuer::authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection) {
++    validate_message(request);
++    require(request.has_synchronized_revision() && request.synchronized_revision() <= INT64_MAX, "Synchronization revision is required");
++    Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
++    const auto& participant = context.registration().participant().id();
++    Query active(impl_->db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND active=1");
++    active.blob(1, participant);
++    if (active.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "Service already has an active generation; cleanup is required");
++    const auto head = impl_->security_revision();
++    if (request.synchronized_revision() != head) throw WorldError(wire::REVISION_CONFLICT, "Service synchronization is stale");
++    Query reused(impl_->db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND service_incarnation=?");
++    reused.blob(1, participant); reused.blob(2, context.service_incarnation());
++    if (reused.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "A service process incarnation cannot be reused");
++    Query prior(impl_->db.get(), "SELECT COALESCE(MAX(generation),0) FROM authority_activation WHERE participant_id=?");
++    prior.blob(1, participant);
++    storage(prior.step() == SQLITE_ROW && prior.integer(0) >= 0 && prior.integer(0) < INT64_MAX, "Service generation limit reached");
++    const auto generation = prior.integer(0)+1;
++    Query insert(impl_->db.get(), "INSERT INTO authority_activation VALUES(?,?,?,?,?,?,?,?,1)");
++    insert.blob(1, participant); insert.integer(2, generation); insert.blob(3, context.service_incarnation());
++    insert.blob(4, context.issuer_incarnation()); insert.blob(5, context.connection_binding());
++    insert.blob(6, context.registration().SerializeAsString()); insert.integer(7, head); insert.integer(8, head); insert.step();
++    auto result = impl_->activation(participant, generation); transaction.commit(); return result;
++}
++v1::AuthorityActivationState Issuer::authority_applied(const v1::AuthorityApplied& request, IssuerConnection& connection) {
++    validate_message(request);
++    require(request.generation() > 0 && request.generation() <= INT64_MAX && request.has_from_revision() && request.has_through_revision() &&
++            request.from_revision() < INT64_MAX && request.through_revision() == request.from_revision()+1,
++            "Application requires one contiguous revision and a valid generation");
++    Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
++    const auto state = impl_->bound_activation(context, request.generation());
++    if (!state.active()) throw WorldError(wire::UNAUTHORIZED, "Service generation is inactive");
++    if (request.through_revision() > state.head_revision()) throw WorldError(wire::REVISION_CONFLICT, "Cannot apply a future revision");
++    Query original(impl_->db.get(), "SELECT initial_revision FROM authority_activation WHERE participant_id=? AND generation=?");
++    original.blob(1, context.registration().participant().id()); original.integer(2, request.generation());
++    storage(original.step() == SQLITE_ROW, "Service generation disappeared");
++    if (state.applied_revision() == request.through_revision() && request.through_revision() > static_cast<std::uint64_t>(original.integer(0))) {
++        transaction.commit(); return state;
++    }
++    if (state.applied_revision() != request.from_revision()) throw WorldError(wire::REVISION_CONFLICT, "Application revision has a gap or rollback");
++    Query event(impl_->db.get(), "SELECT 1 FROM revocation WHERE revision=?"); event.integer(1, request.through_revision());
++    storage(event.step() == SQLITE_ROW, "Required revocation event is missing");
++    Query update(impl_->db.get(), "UPDATE authority_activation SET applied_revision=? WHERE participant_id=? AND generation=? AND applied_revision=? AND active=1");
++    update.integer(1, request.through_revision()); update.blob(2, context.registration().participant().id());
++    update.integer(3, request.generation()); update.integer(4, request.from_revision()); update.step();
++    storage(sqlite3_changes(impl_->db.get()) == 1, "Service application lost its revision");
++    auto result = impl_->activation(context.registration().participant().id(), request.generation());
++    transaction.commit(); return result;
++}
++v1::AuthorityActivationState Issuer::authority_release(const v1::AuthorityRelease& request, IssuerConnection& connection) {
++    validate_message(request);
++    require(request.generation() > 0 && request.generation() <= INT64_MAX && request.has_applied_revision() && request.applied_revision() <= INT64_MAX,
++            "Release requires generation and applied revision");
++    Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
++    auto state = impl_->bound_activation(context, request.generation());
++    if (state.applied_revision() != request.applied_revision()) throw WorldError(wire::REVISION_CONFLICT, "Release applied revision changed");
++    if (!state.active()) { transaction.commit(); return state; }
++    if (state.applied_revision() != state.head_revision()) throw WorldError(wire::BUSY, "Release has unapplied cancellation effects");
++    Query pending(impl_->db.get(), "SELECT 1 FROM authority_obligation WHERE participant_id=? AND generation=? AND revision>? LIMIT 1");
++    pending.blob(1, context.registration().participant().id()); pending.integer(2, request.generation()); pending.integer(3, state.applied_revision());
++    storage(pending.step() == SQLITE_DONE, "Release has unresolved obligations");
++    Query update(impl_->db.get(), "UPDATE authority_activation SET active=0 WHERE participant_id=? AND generation=? AND active=1");
++    update.blob(1, context.registration().participant().id()); update.integer(2, request.generation()); update.step();
++    storage(sqlite3_changes(impl_->db.get()) == 1, "Release lost its service generation");
++    state.set_active(false); transaction.commit(); return state;
+ }
+ v1::ChallengeReply Issuer::authority_authentication_begin(const v1::AuthorityAuthenticationBegin& request,
+                                                         IssuerConnection& connection) {
+--- a/src/identity/issuer.hpp
++++ b/src/identity/issuer.hpp
+@@ -37,6 +37,10 @@
+                                                      IssuerConnection& connection);
+     v1::AuthorityAuthenticationResult authority_authentication_complete(const v1::AuthorityAuthenticationComplete& request,
+                                                                       IssuerConnection& connection);
++    v1::AuthorityActivationState authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection);
++    v1::AuthorityActivationState authority_applied(const v1::AuthorityApplied& request, IssuerConnection& connection);
++    v1::AuthorityActivationState authority_release(const v1::AuthorityRelease& request, IssuerConnection& connection);
++    v1::AuthorityActivationState authority_state(IssuerConnection& connection);
+ private:
+     struct Impl;
+     std::unique_ptr<Impl> impl_;
+--- a/src/identity/issuer_client.cpp
++++ b/src/identity/issuer_client.cpp
+@@ -44,11 +44,13 @@
+         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin() ||
+             request.has_authority_authentication_begin()) && reply.has_challenge()) ||
+         (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
+-            reply.has_participant() || reply.has_registry())) ||
++            reply.has_participant() || reply.has_registry() || reply.has_authority_barrier())) ||
+         (request.has_profile_read() && reply.has_profile()) ||
+         (request.has_enrollment_complete() && reply.has_enrollment()) ||
+         (request.has_authentication_complete() && reply.has_authentication()) ||
+         (request.has_authority_authentication_complete() && reply.has_authority_authentication()) ||
++        ((request.has_authority_activate() || request.has_authority_applied() || request.has_authority_release() ||
++            request.has_authority_state()) && reply.has_authority_activation()) ||
+         (request.has_credential_check() && reply.has_identity_status()) ||
+         (request.has_revocations() && reply.has_revocations()) ||
+         (request.has_actor_status() && reply.has_actor_status());
+@@ -118,6 +120,130 @@
+     std::map<std::string, ServiceChallenge> service_challenges;
+     std::string service_binding, issuer_incarnation;
+     bool service_authenticated = false;
++    std::optional<v1::AuthorityAuthenticationResult> service_identity;
++    std::optional<v1::AuthorityActivationState> own_activation, latest_activation;
++    std::uint64_t service_head = 0;
++    struct BarrierChallenge {
++        v1::SignRequest signing_request;
++        v1::IssuerChallenge context;
++        Clock::time_point expires;
++    };
++    std::map<std::string, BarrierChallenge> barrier_challenges;
++
++    void remember_barrier_challenge(const v1::IssuerOperation& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
++        require(reply.nonce().size() == 32 && reply.has_signing_request() &&
++                reply.signing_request().purpose() == v1::ISSUER_ADMINISTRATION && reply.signing_request().has_payload(),
++                "Invalid barrier challenge envelope");
++        BarrierChallenge pending; pending.signing_request = reply.signing_request(); auto& value = pending.context;
++        require(value.ParseFromString(pending.signing_request.payload()), "Invalid barrier challenge payload");
++        try { validate_message(value); }
++        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid barrier challenge fields"); }
++        const auto& read = request.barrier_read();
++        require(value.protocol_version() == 1 && value.issuer_id() == config.issuer_id() && value.incarnation().size() == 32 &&
++                value.nonce() == reply.nonce() && value.owner_public_key().size() == 32 &&
++                value.has_operation() && value.operation().SerializeAsString() == request.SerializeAsString() &&
++                value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 && value.audience() == "identityd/admin/v1" &&
++                read.revision() > 0 && read.revision() <= INT64_MAX && read.limit() <= 16 &&
++                (read.after_participant_id().empty() || read.after_participant_id().size() == 32), "Invalid barrier challenge context");
++        require(issuer_incarnation.empty() || issuer_incarnation == value.incarnation(), "Issuer incarnation changed on one connection");
++        require(!barrier_challenges.contains(reply.nonce()), "Duplicate barrier challenge nonce");
++        std::erase_if(barrier_challenges, [](const auto& item) { return item.second.expires <= Clock::now(); });
++        require(barrier_challenges.size() < 256, "Too many barrier challenges");
++        pending.expires = sent + std::chrono::milliseconds(value.lifetime_ms());
++        require(Clock::now() < pending.expires, "Barrier challenge expired in transit");
++        issuer_incarnation = value.incarnation(); barrier_challenges.emplace(reply.nonce(), std::move(pending));
++    }
++    void check_barrier_result(const v1::IssuerExecute& request, const v1::AuthorityBarrierStatus& result,
++                              const std::optional<BarrierChallenge>& pending) {
++        require(pending && Clock::now() < pending->expires, "Unrequested or expired barrier success");
++        const auto& read = pending->context.operation().barrier_read();
++        const auto limit = read.limit() ? read.limit() : 16;
++        require(result.issuer_id() == config.issuer_id() && result.revision() == read.revision() &&
++                result.has_target() && result.target().id().size() == 32 &&
++                (result.target().kind() == v1::ACTOR_TARGET || result.target().kind() == v1::CREDENTIAL_TARGET) &&
++                result.participant_count() <= INT64_MAX && result.pending_count() <= result.participant_count() &&
++                result.complete() == (result.pending_count() == 0) && static_cast<unsigned>(result.obligations_size()) <= limit &&
++                static_cast<std::uint64_t>(result.obligations_size()) <= result.participant_count(), "Invalid barrier status context or counts");
++        std::string previous = read.after_participant_id(); std::set<std::string> keys;
++        std::set<std::uint64_t> registrations; std::set<std::pair<int,std::string>> domains;
++        std::uint64_t pending_count = 0;
++        try {
++            v1::VerifyRequest verification; *verification.mutable_content() = pending->signing_request;
++            *verification.mutable_proof() = request.proof(); verification.set_expected_public_key(pending->context.owner_public_key());
++            require(verify(verification), "Barrier query accepted an invalid owner proof");
++            for (const auto& obligation : result.obligations()) {
++                validate_participant_record(obligation.registration(), config.issuer_id());
++                const auto& record = obligation.registration(); const auto& participant = record.participant();
++                require((previous.empty() || previous < participant.id()) && keys.insert(participant.public_key()).second &&
++                        registrations.insert(record.registered_revision()).second && obligation.generation() > 0 &&
++                        obligation.generation() <= INT64_MAX && obligation.service_incarnation().size() == 32 &&
++                        obligation.applied_revision() <= INT64_MAX && obligation.complete() == (obligation.applied_revision() >= result.revision()),
++                        "Invalid barrier obligation");
++                for (const auto& domain : participant.domains())
++                    require(domains.insert(participant_detail::domain_key(domain)).second, "Conflicting barrier domains");
++                previous = participant.id(); if (!obligation.complete()) ++pending_count;
++            }
++        } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid barrier response or proof"); }
++        const auto complete_count = static_cast<std::uint64_t>(result.obligations_size())-pending_count;
++        require(pending_count <= result.pending_count() && complete_count <= result.participant_count()-result.pending_count(),
++                "Barrier page contradicts global counts");
++        if (!result.next_after().empty())
++            require(static_cast<unsigned>(result.obligations_size()) == limit && result.next_after() == previous &&
++                    result.participant_count() > static_cast<std::uint64_t>(result.obligations_size()), "Invalid barrier continuation");
++        else if (read.after_participant_id().empty())
++            require(static_cast<std::uint64_t>(result.obligations_size()) == result.participant_count() && pending_count == result.pending_count(),
++                    "Incomplete barrier result");
++    }
++    static bool same_generation(const v1::AuthorityActivationState& a, const v1::AuthorityActivationState& b) {
++        return a.generation() == b.generation() && a.service_incarnation() == b.service_incarnation() &&
++            a.issuer_incarnation() == b.issuer_incarnation() && a.connection_binding() == b.connection_binding() &&
++            a.registration().SerializeAsString() == b.registration().SerializeAsString();
++    }
++    void check_activation_result(const v1::IssuerRequest& request, const v1::AuthorityActivationState& state) {
++        require(service_identity.has_value(), "Service activation response without authenticated identity");
++        const auto& identity = *service_identity;
++        require(state.issuer_id() == config.issuer_id() && state.has_registration() &&
++                state.registration().SerializeAsString() == identity.registration().SerializeAsString() &&
++                state.generation() > 0 && state.generation() <= INT64_MAX && state.service_incarnation().size() == 32 &&
++                state.issuer_incarnation().size() == 32 && state.connection_binding().size() == 32 &&
++                state.applied_revision() <= state.head_revision() && state.head_revision() <= INT64_MAX &&
++                state.head_revision() >= service_head, "Invalid activation state context");
++        const bool ours = state.service_incarnation() == identity.service_incarnation() &&
++            state.issuer_incarnation() == identity.issuer_incarnation() && state.connection_binding() == identity.connection_binding();
++        if (!request.has_authority_state()) require(ours, "Mutation result belongs to another service connection");
++        if (request.has_authority_activate()) {
++            require(!own_activation && request.authority_activate().has_synchronized_revision() && state.active() &&
++                    state.applied_revision() == request.authority_activate().synchronized_revision() &&
++                    state.applied_revision() == state.head_revision() &&
++                    (!latest_activation || state.generation() > latest_activation->generation()), "Invalid activation success");
++        } else if (request.has_authority_applied()) {
++            const auto& applied = request.authority_applied();
++            require(own_activation && own_activation->active() && same_generation(*own_activation, state) && state.active() &&
++                    applied.generation() == state.generation() && applied.has_from_revision() && applied.has_through_revision() &&
++                    applied.from_revision() < INT64_MAX && applied.through_revision() == applied.from_revision()+1 &&
++                    state.applied_revision() == applied.through_revision() &&
++                    (own_activation->applied_revision() == applied.from_revision() || own_activation->applied_revision() == applied.through_revision()),
++                    "Invalid service application success");
++        } else if (request.has_authority_release()) {
++            const auto& release = request.authority_release();
++            require(own_activation && same_generation(*own_activation, state) && !state.active() &&
++                    release.generation() == state.generation() && release.has_applied_revision() &&
++                    release.applied_revision() == state.applied_revision() && own_activation->applied_revision() == state.applied_revision() &&
++                    (!own_activation->active() || state.applied_revision() == state.head_revision()), "Invalid service release success");
++        } else if (latest_activation) {
++            require(state.generation() >= latest_activation->generation(), "Activation generation rolled back");
++            if (state.generation() == latest_activation->generation())
++                require(same_generation(*latest_activation,state) && state.applied_revision() >= latest_activation->applied_revision() &&
++                        (latest_activation->active() || !state.active()), "Activation state rolled back or changed identity");
++        }
++        if (ours) {
++            if (own_activation) require(same_generation(*own_activation,state) && state.applied_revision() >= own_activation->applied_revision() &&
++                    (own_activation->active() || !state.active()), "Own activation changed identity or rolled back");
++            own_activation = state;
++        }
++        if (!latest_activation || state.generation() >= latest_activation->generation()) latest_activation = state;
++        service_head = state.head_revision();
++    }
+ 
+     void remember_service_challenge(const v1::AuthorityAuthenticationBegin& request,
+                                     const v1::ChallengeReply& reply, Clock::time_point sent) {
+@@ -176,6 +302,7 @@
+             require(verify(verification), "Service authentication accepted an invalid proof");
+         } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid service authentication result"); }
+         service_authenticated = true;
++        service_identity = result; service_head = result.security_revision();
+         service_challenges.clear();
+     }
+ 
+@@ -258,6 +385,11 @@
+         }
+     }
+     v1::IssuerReply exchange(v1::IssuerRequest request) {
++        std::optional<BarrierChallenge> barrier_pending;
++        if (request.has_execute()) {
++            auto node = barrier_challenges.extract(request.execute().nonce());
++            if (!node.empty()) barrier_pending = std::move(node.mapped());
++        }
+         std::optional<ServiceChallenge> service_pending;
+         if (request.has_authority_authentication_complete()) {
+             // Consume before I/O. A typed denial must not leave a reusable proof context.
+@@ -282,6 +414,11 @@
+         if (reply.has_error()) require(reply.error().code() != 0, "Issuer error lacks a valid code");
+         else {
+             require(outcome_matches(request, reply), "Issuer reply has the wrong outcome");
++            if (request.has_challenge() && request.challenge().has_barrier_read())
++                remember_barrier_challenge(request.challenge(), reply.challenge(), sent);
++            if (barrier_pending) require(reply.has_authority_barrier(), "Barrier query returned another outcome");
++            if (reply.has_authority_barrier()) check_barrier_result(request.execute(), reply.authority_barrier(), barrier_pending);
++            if (reply.has_authority_activation()) check_activation_result(request, reply.authority_activation());
+             if (request.has_authority_authentication_begin())
+                 remember_service_challenge(request.authority_authentication_begin(), reply.challenge(), sent);
+             if (request.has_authority_authentication_complete())
+--- a/src/identity/protocol.cpp
++++ b/src/identity/protocol.cpp
+@@ -20,6 +20,7 @@
+             result->add_capabilities("identity.bootstrap-profile/v1");
+             result->add_capabilities("identity.authority-registry/v1");
+             result->add_capabilities("identity.authority-participation-proof/v1");
++            result->add_capabilities("identity.authority-barrier/v1");
+         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
+         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
+         else if (request.has_execute()) {
+@@ -29,6 +30,7 @@
+             else if (result.has_profile()) *reply.mutable_profile() = result.profile();
+             else if (result.has_participant()) *reply.mutable_participant() = result.participant();
+             else if (result.has_registry()) *reply.mutable_registry() = result.registry();
++            else if (result.has_barrier()) *reply.mutable_authority_barrier() = result.barrier();
+             else *reply.mutable_identity_status() = result.identity_status();
+         } else if (request.has_enrollment_begin()) *reply.mutable_challenge() = issuer.enrollment_begin(request.enrollment_begin());
+         else if (request.has_enrollment_complete()) *reply.mutable_enrollment() = issuer.enrollment_complete(request.enrollment_complete());
+@@ -44,6 +46,13 @@
+             if (request.has_authority_authentication_begin())
+                 *reply.mutable_challenge() = issuer.authority_authentication_begin(request.authority_authentication_begin(), *connection);
+             else *reply.mutable_authority_authentication() = issuer.authority_authentication_complete(request.authority_authentication_complete(), *connection);
++        }
++        else if (request.has_authority_activate() || request.has_authority_applied() || request.has_authority_release() || request.has_authority_state()) {
++            if (!connection) throw spatial::WorldError(spatial::wire::FORBIDDEN, "Service participation requires a TLS connection context");
++            if (request.has_authority_activate()) *reply.mutable_authority_activation() = issuer.authority_activate(request.authority_activate(), *connection);
++            else if (request.has_authority_applied()) *reply.mutable_authority_activation() = issuer.authority_applied(request.authority_applied(), *connection);
++            else if (request.has_authority_release()) *reply.mutable_authority_activation() = issuer.authority_release(request.authority_release(), *connection);
++            else *reply.mutable_authority_activation() = issuer.authority_state(*connection);
+         }
+         else throw spatial::WorldError(spatial::wire::UNKNOWN_METHOD, "No recognized issuer operation");
+     } catch (const spatial::WorldError& error) {
+--- a/tests/core/test_identity_bootstrap.py
++++ b/tests/core/test_identity_bootstrap.py
+@@ -217,7 +217,7 @@
+         self.client.close(); secret = (self.state/'issuer.pem').read_bytes(); policy = self.snapshot()
+         with sqlite3.connect(self.state/'identity.db') as db:
+             before = db.execute('SELECT * FROM credential').fetchall()
+-            db.executescript('DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
++            db.executescript('DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
+         command = [str(BINARY), '--state-dir', str(self.state)]
+         old = subprocess.run(command, input=b'', capture_output=True, timeout=4)
+         self.assertNotEqual(old.returncode, 0); self.assertIn(b'migration', old.stderr.lower())
+@@ -226,7 +226,7 @@
+             self.assertEqual(migrated.returncode, 0, migrated.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(), before)
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 5)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 6)
+         self.assertEqual((self.state/'issuer.pem').read_bytes(), secret); self.assertEqual(self.snapshot(), policy)
+         self.client = self.start(); self.assertEqual(self.enroll(self.client), approved)
+         self.assertEqual(len(self.read('empty-v1').profile.grants), 0)
+--- a/tests/core/test_identity_enrollment.py
++++ b/tests/core/test_identity_enrollment.py
+@@ -246,7 +246,7 @@
+     def test_explicit_schema_migration_preserves_issuer_key_owner_and_policy(self):
+         info=self.init();before=self.snapshot();secret=(self.state/'issuer.pem').read_bytes()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
++            db.executescript('DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
+                              'DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
+         command=[str(BINARY),'--state-dir',str(self.state)]
+         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+--- /dev/null
++++ b/tests/core/test_identity_participant_barrier.py
+@@ -0,0 +1,247 @@
++"""Real issuer persistence and service authority; external effect completion is tested separately."""
++import sqlite3
++import subprocess
++import unittest
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as pb
++from test_identity_tls import TlsFixture
++from test_identity_issuer import BINARY
++
++
++class BarrierTests(TlsFixture):
++    def setUp(self):
++        super().setUp(); self.peer = self.ready(); self.registry_revision = 0
++        self.service = self.register_service()
++
++    def register_service(self, identity=b'p'*32, incarnation=b'i'*32):
++        signer, public = self.key('authority-'+identity.hex())
++        definition = pb.AuthorityParticipant(id=identity, public_key=public,
++            domains=[grants.Domain(kind=grants.WORLD, id=identity.hex())])
++        op = pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(
++            participant=definition, expected_registry_revision=self.registry_revision))
++        result = self.execute(self.peer, self.challenge(self.peer, op))
++        self.assertTrue(result.HasField('participant'), result); self.registry_revision += 1
++        return self.authenticate(identity, self.registry_revision, incarnation, signer, public)
++
++    def authenticate(self, identity, revision, incarnation, signer, public):
++        peer = self.connect()
++        result = peer.call(authority_authentication_begin=pb.AuthorityAuthenticationBegin(
++            participant_id=identity, registered_revision=revision, service_incarnation=incarnation))
++        self.assertTrue(result.HasField('challenge'), result)
++        challenge = result.challenge
++        result = peer.call(authority_authentication_complete=pb.AuthorityAuthenticationComplete(
++            nonce=challenge.nonce, proof=self.proof(challenge, signer, public)))
++        self.assertTrue(result.HasField('authority_authentication'), result)
++        return dict(peer=peer, proof=result.authority_authentication, signer=signer, public=public)
++
++    def activate(self, service=None, revision=0):
++        result = (service or self.service)['peer'].call(authority_activate=pb.AuthorityActivate(synchronized_revision=revision))
++        self.assertTrue(result.HasField('authority_activation'), result)
++        return result.authority_activation
++
++    def applied(self, before, after, service=None, generation=1):
++        return (service or self.service)['peer'].call(authority_applied=pb.AuthorityApplied(
++            generation=generation, from_revision=before, through_revision=after))
++
++    def revoke_actor(self, revision=0):
++        self.actor_key, self.actor_public = self.key('revoke-actor-'+str(revision))
++        record = self.decide(self.peer, self.enroll(self.peer)).enrollment
++        claims = self.claims(record, self.info)
++        target = pb.IdentityReference(kind=pb.ACTOR_TARGET, id=claims.actor_id)
++        op = pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(target=target,
++            expected_security_revision=revision, reason='barrier fixture'))
++        result = self.execute(self.peer, self.challenge(self.peer, op))
++        self.assertTrue(result.HasField('identity_status'), result)
++        self.assertEqual(result.identity_status.security_revision, revision+1)
++        return target
++
++    def barrier(self, revision=1, cursor=b'', limit=0):
++        op = pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(
++            revision=revision, after_participant_id=cursor, limit=limit))
++        result = self.execute(self.peer, self.challenge(self.peer, op))
++        self.assertTrue(result.HasField('authority_barrier'), result)
++        return result.authority_barrier
++
++    def release(self, revision=0, generation=1, service=None):
++        return (service or self.service)['peer'].call(authority_release=pb.AuthorityRelease(
++            generation=generation, applied_revision=revision))
++
++    def snapshot(self):
++        with sqlite3.connect(self.state/'identity.db') as db:
++            names = [r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")]
++            return {n:db.execute('SELECT * FROM '+n).fetchall() for n in names}
++
++    def test_activation_records_original_service_and_connection(self):
++        state = self.activate(); proof = self.service['proof']
++        self.assertEqual(state.issuer_id, self.info.issuer_id)
++        self.assertEqual(state.registration, proof.registration)
++        self.assertEqual(state.service_incarnation, proof.service_incarnation)
++        self.assertEqual(state.issuer_incarnation, proof.issuer_incarnation)
++        self.assertEqual(state.connection_binding, proof.connection_binding)
++        self.assertEqual((state.generation,state.applied_revision,state.head_revision,state.active),(1,0,0,True))
++        self.assertEqual(self.service['peer'].call(authority_state=pb.AuthorityStateRead()).authority_activation,state)
++        self.assertEqual(self.counts(),(0,0,0))
++
++    def test_transport_alone_cannot_activate(self):
++        before = self.snapshot()
++        self.denied(self.peer.call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)),core.FORBIDDEN)
++        self.assertEqual(self.snapshot(),before)
++
++    def test_owner_reads_committed_barrier_with_no_active_participants(self):
++        target = self.revoke_actor(); state = self.barrier()
++        self.assertEqual(state.issuer_id,self.info.issuer_id); self.assertEqual(state.target,target)
++        self.assertEqual((state.revision,state.participant_count,state.pending_count,state.complete),(1,0,0,True))
++        self.assertFalse(state.obligations); self.assertFalse(state.next_after)
++
++    def test_revocation_stays_pending_until_both_generations_apply(self):
++        other = self.register_service(b'q'*32,b'j'*32)
++        self.activate(); self.activate(other); self.revoke_actor()
++        state = self.barrier(); self.assertEqual((state.participant_count,state.pending_count,state.complete),(2,2,False))
++        self.assertEqual(len(state.obligations),2)
++        self.assertTrue(self.applied(0,1).HasField('authority_activation'))
++        state = self.barrier(); self.assertEqual((state.pending_count,state.complete),(1,False))
++        self.assertTrue(self.applied(0,1,other).HasField('authority_activation'))
++        state = self.barrier(); self.assertEqual((state.pending_count,state.complete),(0,True))
++
++    def test_stale_activation_and_missing_revision_do_not_change_state(self):
++        self.revoke_actor(); before = self.snapshot()
++        self.denied(self.service['peer'].call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)),core.REVISION_CONFLICT)
++        self.denied(self.service['peer'].call(authority_activate=pb.AuthorityActivate()),core.INVALID_ARGUMENT)
++        self.assertEqual(self.snapshot(),before); self.assertEqual(self.activate(revision=1).applied_revision,1)
++
++    def test_application_rejects_gaps_future_revisions_and_foreign_generations(self):
++        self.activate(); self.revoke_actor(); self.revoke_actor(1); before = self.snapshot()
++        for start,end,generation in ((0,2,1),(1,2,1),(0,1,2),(2,3,1)):
++            result = self.applied(start,end,generation=generation)
++            self.assertTrue(result.HasField('error'),result)
++        self.assertEqual(self.snapshot(),before)
++        self.assertTrue(self.applied(0,1).HasField('authority_activation'))
++        self.assertTrue(self.applied(1,2).HasField('authority_activation'))
++        self.assertTrue(self.barrier(2).complete)
++
++    def test_duplicate_application_is_idempotent(self):
++        self.activate(); self.revoke_actor()
++        first = self.applied(0,1); self.assertTrue(first.HasField('authority_activation'),first)
++        before = self.snapshot(); self.assertEqual(self.applied(0,1).authority_activation,first.authority_activation)
++        self.assertEqual(self.snapshot(),before)
++
++    def test_clean_release_cannot_skip_pending_cancellation(self):
++        self.activate(); self.revoke_actor(); before = self.snapshot()
++        self.assertTrue(self.release().HasField('error')); self.assertEqual(self.snapshot(),before)
++        self.assertTrue(self.applied(0,1).HasField('authority_activation'))
++        result = self.release(1); self.assertTrue(result.HasField('authority_activation'),result)
++        self.assertFalse(result.authority_activation.active)
++        before = self.snapshot(); duplicate = self.release(1)
++        self.assertEqual(duplicate.authority_activation,result.authority_activation); self.assertEqual(self.snapshot(),before)
++
++    def test_another_connection_cannot_replace_acknowledge_or_release(self):
++        self.activate(); proof = self.service['proof']; other = self.authenticate(b'p'*32,1,b'i'*32,
++            self.service['signer'],self.service['public']); self.revoke_actor(); before = self.snapshot()
++        self.denied(other['peer'].call(authority_activate=pb.AuthorityActivate(synchronized_revision=1)),core.BUSY)
++        self.assertTrue(self.applied(0,1,other).HasField('error')); self.assertTrue(self.release(service=other).HasField('error'))
++        self.assertEqual(self.snapshot(),before); self.assertFalse(self.barrier().complete)
++
++    def test_disconnect_keeps_obligation_and_blocks_replacement(self):
++        self.activate(); self.revoke_actor(); self.service['peer'].close()
++        other = self.authenticate(b'p'*32,1,b'j'*32,self.service['signer'],self.service['public'])
++        self.denied(other['peer'].call(authority_activate=pb.AuthorityActivate(synchronized_revision=1)),core.BUSY)
++        self.assertEqual(self.barrier().pending_count,1)
++
++    def test_issuer_restart_keeps_obligations_and_old_generation(self):
++        self.activate(); self.revoke_actor(); before = self.snapshot()
++        self.peer.close(); self.service['peer'].close(); self.stop_daemons(); self.peer = self.ready()
++        self.assertEqual(self.snapshot(),before); self.assertEqual(self.barrier().pending_count,1)
++        other = self.authenticate(b'p'*32,1,b'j'*32,self.service['signer'],self.service['public'])
++        self.denied(other['peer'].call(authority_activate=pb.AuthorityActivate(synchronized_revision=1)),core.BUSY)
++        self.assertTrue(self.applied(0,1,other).HasField('error'))
++
++    def test_reactivation_requires_new_incarnation_and_generation(self):
++        self.activate(); self.assertTrue(self.release().HasField('authority_activation'))
++        self.assertTrue(self.service['peer'].call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)).HasField('error'))
++        other = self.authenticate(b'p'*32,1,b'j'*32,self.service['signer'],self.service['public'])
++        state = self.activate(other); self.assertEqual(state.generation,2)
++        self.revoke_actor(); barrier = self.barrier(); self.assertEqual(barrier.obligations[0].generation,2)
++        self.assertTrue(self.applied(0,1).HasField('error'))
++        self.assertTrue(self.applied(0,1,other,generation=2).HasField('authority_activation'))
++
++    def test_later_activation_does_not_change_earlier_obligations(self):
++        self.activate(); self.revoke_actor(); other = self.register_service(b'q'*32,b'j'*32)
++        self.activate(other,1); state = self.barrier()
++        self.assertEqual(state.participant_count,1); self.assertEqual(state.pending_count,1)
++        self.assertTrue(self.applied(0,1).HasField('authority_activation')); self.assertTrue(self.barrier().complete)
++
++    def test_pagination_preserves_global_completion_counts(self):
++        other = self.register_service(b'q'*32,b'j'*32); self.activate(); self.activate(other); self.revoke_actor()
++        self.assertTrue(self.applied(0,1).HasField('authority_activation'))
++        first = self.barrier(limit=1); self.assertEqual(first.pending_count,1); self.assertFalse(first.complete)
++        self.assertTrue(first.obligations[0].complete); self.assertEqual(first.next_after,b'p'*32)
++        second = self.barrier(cursor=first.next_after,limit=1)
++        self.assertEqual(second.pending_count,1); self.assertFalse(second.obligations[0].complete); self.assertFalse(second.next_after)
++
++    def test_obligation_failure_rolls_back_revocation_and_revision(self):
++        self.activate()
++        record = self.decide(self.peer,self.enroll(self.peer)).enrollment; claims = self.claims(record,self.info)
++        op = pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(
++            target=pb.IdentityReference(kind=pb.ACTOR_TARGET,id=claims.actor_id),expected_security_revision=0,reason='rollback fixture'))
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.execute("CREATE TRIGGER fail_obligation BEFORE INSERT ON authority_obligation BEGIN SELECT RAISE(ABORT,'fixture'); END")
++        before = self.snapshot(); self.denied(self.execute(self.peer,self.challenge(self.peer,op)),core.STORAGE_ERROR)
++        self.assertEqual(self.snapshot(),before)
++        self.assertTrue(self.peer.call(credential_check=record.credential).identity_status.active)
++        with sqlite3.connect(self.state/'identity.db') as db:db.execute('DROP TRIGGER fail_obligation')
++        result = self.execute(self.peer,self.challenge(self.peer,op)); self.assertEqual(result.identity_status.security_revision,1)
++        self.assertEqual(self.barrier().pending_count,1)
++
++    def test_service_key_cannot_read_owner_barrier_details(self):
++        self.activate(); self.revoke_actor(); before = self.snapshot()
++        op = pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(revision=1))
++        challenge = self.challenge(self.service['peer'],op)
++        proof = self.proof(challenge,self.service['signer'],self.service['public'])
++        self.denied(self.execute(self.service['peer'],challenge,proof))
++        self.denied(self.execute(self.service['peer'],challenge))
++        self.assertEqual(self.snapshot(),before); self.assertFalse(self.barrier().complete)
++
++    def test_malformed_queries_and_missing_application_fields_preserve_state(self):
++        self.activate(); self.revoke_actor(); before = self.snapshot()
++        for read in (pb.AuthorityBarrierRead(),pb.AuthorityBarrierRead(revision=2**63),
++                     pb.AuthorityBarrierRead(revision=1,limit=17),pb.AuthorityBarrierRead(revision=1,after_participant_id=b'x')):
++            self.denied(self.peer.call(challenge=pb.IssuerOperation(barrier_read=read)),core.INVALID_ARGUMENT)
++        for value in (pb.AuthorityApplied(generation=1,through_revision=1),
++                      pb.AuthorityApplied(generation=1,from_revision=0),
++                      pb.AuthorityApplied(generation=0,from_revision=0,through_revision=1)):
++            self.denied(self.service['peer'].call(authority_applied=value),core.INVALID_ARGUMENT)
++        self.denied(self.service['peer'].call(authority_release=pb.AuthorityRelease(generation=1)),core.INVALID_ARGUMENT)
++        self.assertEqual(self.snapshot(),before)
++
++    def test_v5_migration_preserves_state_without_inventing_historical_completion(self):
++        self.revoke_actor(); self.peer.close(); self.service['peer'].close(); self.stop_daemons()
++        secret = (self.state/'issuer.pem').read_bytes()
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.executescript('DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; PRAGMA user_version=5;')
++        before = self.snapshot(); command = [str(BINARY),'--state-dir',str(self.state)]
++        denied = subprocess.run(command,input=b'',capture_output=True,timeout=4)
++        self.assertNotEqual(denied.returncode,0); self.assertIn(b'migration',denied.stderr.lower())
++        for _ in range(2):
++            migrated = subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4)
++            self.assertEqual(migrated.returncode,0,migrated.stderr)
++        after = self.snapshot(); self.assertEqual({n:after[n] for n in before},before)
++        for name in ('authority_activation','authority_barrier','authority_obligation'):self.assertEqual(after[name],[])
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],6)
++        self.assertEqual((self.state/'issuer.pem').read_bytes(),secret); self.peer = self.ready()
++        op = pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(revision=1))
++        self.denied(self.execute(self.peer,self.challenge(self.peer,op)),core.NOT_FOUND)
++
++    def test_failed_v5_migration_rolls_back_tables_and_version(self):
++        self.peer.close(); self.service['peer'].close(); self.stop_daemons()
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.executescript('DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; '
++                'PRAGMA user_version=5; CREATE TABLE authority_obligation(marker INTEGER);')
++        before = self.snapshot()
++        result = subprocess.run([str(BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
++        self.assertNotEqual(result.returncode,0); self.assertEqual(self.snapshot(),before)
++        with sqlite3.connect(self.state/'identity.db') as db:
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
++
++
++if __name__ == '__main__': unittest.main(verbosity=2)
+--- /dev/null
++++ b/tests/core/test_identity_participant_barrier_client.py
+@@ -0,0 +1,201 @@
++"""Real checked participation and bounded owner queries; explicit peers test reply validation."""
++import unittest
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as pb
++import key_pb2 as keys
++from harness.wire import frame
++from test_issuer_client import ClientFixture, FaultPeer
++import test_identity_participant_session_client as session_fixture
++
++
++class BarrierClientTests(ClientFixture):
++    service_request = session_fixture.SessionClientTests.service_request
++    service_begin = session_fixture.SessionClientTests.service_begin
++    completion = session_fixture.SessionClientTests.completion
++    good_challenge = session_fixture.SessionClientTests.good_challenge
++    good_result = session_fixture.SessionClientTests.good_result
++
++    def setUp(self):
++        super().setUp(); self.peer = self.ready(); self.signer,self.public = self.key('registered-service')
++        value = pb.AuthorityParticipant(id=b'p'*32,public_key=self.public,
++            domains=[grants.Domain(kind=grants.WORLD,id='park')])
++        op = pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(participant=value,expected_registry_revision=0))
++        reply = self.execute(self.peer,self.challenge(self.peer,op))
++        self.assertTrue(reply.HasField('participant'),reply); self.registration = reply.participant
++
++    def authenticate_client(self, port=None):
++        client = self.client(port); reply = client.call(authority_authentication_complete=self.completion(self.service_begin(client)))
++        self.assertTrue(reply.HasField('authority_authentication'),reply); return client
++
++    def activate_client(self, client, revision=0):
++        try: reply = client.call(authority_activate=pb.AuthorityActivate(synchronized_revision=revision))
++        except (EOFError,AssertionError):
++            with open(client.stderr.name) as log:self.fail('Client closed before activation: '+log.read())
++        self.assertTrue(reply.HasField('authority_activation'),reply); return reply.authority_activation
++
++    def revoke(self):
++        record = self.decide(self.peer,self.enroll(self.peer)).enrollment; claims = self.claims(record,self.info)
++        op = pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(target=pb.IdentityReference(kind=pb.ACTOR_TARGET,id=claims.actor_id),
++            expected_security_revision=0,reason='client fixture'))
++        self.assertTrue(self.execute(self.peer,self.challenge(self.peer,op)).HasField('identity_status'))
++
++    def barrier_operation(self):return pb.IssuerOperation(barrier_read=pb.AuthorityBarrierRead(revision=1))
++
++    def test_checked_client_completes_real_activation_application_and_release(self):
++        client = self.authenticate_client(); state = self.activate_client(client); self.assertEqual(state.generation,1)
++        self.assertEqual(client.call(authority_state=pb.AuthorityStateRead()).authority_activation,state)
++        self.revoke()
++        applied = pb.AuthorityApplied(generation=1,from_revision=0,through_revision=1)
++        reply = client.call(authority_applied=applied); self.assertTrue(reply.HasField('authority_activation'),reply)
++        self.assertEqual(reply.authority_activation.applied_revision,1)
++        self.assertEqual(client.call(authority_applied=applied).authority_activation,reply.authority_activation)
++        released = client.call(authority_release=pb.AuthorityRelease(generation=1,applied_revision=1))
++        self.assertTrue(released.HasField('authority_activation'),released); self.assertFalse(released.authority_activation.active)
++
++    def test_owner_checked_client_reads_pending_then_complete_barrier(self):
++        service = self.authenticate_client(); self.activate_client(service); self.revoke(); owner = self.client()
++        pending = self.execute(owner,self.challenge(owner,self.barrier_operation()))
++        self.assertTrue(pending.HasField('authority_barrier'),pending); self.assertFalse(pending.authority_barrier.complete)
++        self.assertEqual(pending.authority_barrier.pending_count,1)
++        self.assertTrue(service.call(authority_applied=pb.AuthorityApplied(generation=1,from_revision=0,through_revision=1)).HasField('authority_activation'))
++        done = self.execute(owner,self.challenge(owner,self.barrier_operation()))
++        self.assertTrue(done.HasField('authority_barrier'),done); self.assertTrue(done.authority_barrier.complete)
++
++    def good_activation(self, challenge):
++        proof = self.good_result(challenge)
++        return pb.AuthorityActivationState(issuer_id=proof.issuer_id,registration=proof.registration,generation=1,
++            service_incarnation=proof.service_incarnation,issuer_incarnation=proof.issuer_incarnation,
++            connection_binding=proof.connection_binding,applied_revision=0,head_revision=0,active=True)
++
++    def service_peer(self, mutate):
++        def respond(peer,request,reply):
++            if request.HasField('authority_authentication_begin'):
++                peer.challenge = self.good_challenge(request.authority_authentication_begin)
++                reply.challenge.CopyFrom(peer.challenge)
++            elif request.HasField('authority_authentication_complete'):
++                reply.authority_authentication.CopyFrom(self.good_result(peer.challenge))
++            else:
++                state = self.good_activation(peer.challenge)
++                if request.HasField('authority_applied'):state.applied_revision=1;state.head_revision=1
++                if request.HasField('authority_release'):state.active=False
++                mutate(request,state);reply.authority_activation.CopyFrom(state)
++            peer.stream.sendall(frame(reply))
++        return FaultPeer(self,response=respond)
++
++    def poisoned(self, client, request, peer, count):
++        output,_ = client.proc.communicate(frame(request)*2,timeout=3)
++        self.assertEqual(client.proc.returncode,2);self.assertEqual(output,b'')
++        self.assertEqual(len(peer.requests),count);self.assertEqual(peer.connections,1)
++
++    def malformed_activation(self, mode):
++        def mutate(request,state):
++            if mode=='issuer':state.issuer_id=b'x'*32
++            elif mode=='participant':state.registration.participant.id=b'x'*32
++            elif mode=='domains':state.registration.participant.domains[0].id='other'
++            elif mode=='key':state.registration.participant.public_key=b'x'*32
++            elif mode=='revision':state.registration.registered_revision=2
++            elif mode=='generation':state.generation=0
++            elif mode=='incarnation':state.service_incarnation=b'x'*32
++            elif mode=='issuer-incarnation':state.issuer_incarnation=b'x'*32
++            elif mode=='binding':state.connection_binding=b'x'*32
++            elif mode=='applied':state.applied_revision=1;state.head_revision=1
++            elif mode=='head':state.head_revision=1
++            elif mode=='inactive':state.active=False
++            elif mode=='overflow':state.head_revision=2**63
++            elif mode=='unknown':state.ParseFromString(state.SerializeToString()+b'\xf8\x07\x01')
++        peer=self.service_peer(mutate);client=self.authenticate_client(peer.port)
++        self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_activate=pb.AuthorityActivate(synchronized_revision=0)),peer,5)
++
++    def test_activation_context_and_registration_cannot_be_substituted(self):
++        for mode in ('issuer','participant','domains','key','revision','incarnation','issuer-incarnation','binding'):
++            with self.subTest(mode=mode):self.malformed_activation(mode)
++
++    def test_activation_must_match_synchronized_revision_and_valid_state(self):
++        for mode in ('generation','applied','head','inactive','overflow','unknown'):
++            with self.subTest(mode=mode):self.malformed_activation(mode)
++
++    def test_applied_reply_cannot_claim_wrong_generation_revision_or_inactive_state(self):
++        for mode in ('generation','applied','head','inactive','binding'):
++            with self.subTest(mode=mode):
++                def mutate(request,state):
++                    if not request.HasField('authority_applied'):return
++                    if mode=='generation':state.generation=2
++                    elif mode=='applied':state.applied_revision=0
++                    elif mode=='head':state.head_revision=0
++                    elif mode=='inactive':state.active=False
++                    else:state.connection_binding=b'x'*32
++                peer=self.service_peer(mutate);client=self.authenticate_client(peer.port);self.activate_client(client)
++                self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_applied=pb.AuthorityApplied(
++                    generation=1,from_revision=0,through_revision=1)),peer,6)
++
++    def test_release_cannot_claim_active_or_unsynchronized_state(self):
++        for mode in ('active','head','applied','generation'):
++            with self.subTest(mode=mode):
++                def mutate(request,state):
++                    if not request.HasField('authority_release'):return
++                    if mode=='active':state.active=True
++                    elif mode=='head':state.head_revision=1
++                    elif mode=='applied':state.applied_revision=1;state.head_revision=1
++                    else:state.generation=2
++                peer=self.service_peer(mutate);client=self.authenticate_client(peer.port);self.activate_client(client)
++                self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_release=pb.AuthorityRelease(generation=1,applied_revision=0)),peer,6)
++
++    def test_state_read_cannot_roll_back_an_observed_applied_revision(self):
++        peer=self.service_peer(lambda request,state:None);client=self.authenticate_client(peer.port);self.activate_client(client)
++        reply=client.call(authority_applied=pb.AuthorityApplied(generation=1,from_revision=0,through_revision=1))
++        self.assertTrue(reply.HasField('authority_activation'),reply)
++        self.poisoned(client,pb.IssuerRequest(protocol_version=1,authority_state=pb.AuthorityStateRead()),peer,7)
++
++    def owner_challenge(self, operation):
++        value=pb.IssuerChallenge(protocol_version=1,issuer_id=self.info.issuer_id,incarnation=b'i'*32,nonce=b'n'*32,
++            owner_public_key=self.owner_public,operation=operation,lifetime_ms=30000,audience='identityd/admin/v1')
++        return pb.ChallengeReply(nonce=value.nonce,signing_request=keys.SignRequest(purpose=keys.ISSUER_ADMINISTRATION,payload=value.SerializeToString()))
++
++    def good_barrier(self):
++        return pb.AuthorityBarrierStatus(issuer_id=self.info.issuer_id,revision=1,target=pb.IdentityReference(kind=pb.ACTOR_TARGET,id=b'a'*32),
++            participant_count=1,pending_count=1,complete=False,obligations=[pb.AuthorityBarrierObligation(registration=self.registration,
++                generation=1,service_incarnation=b's'*32,applied_revision=0,complete=False)])
++
++    def bad_barrier(self, mode):
++        def respond(peer,request,reply):
++            if request.HasField('challenge'):reply.challenge.CopyFrom(self.owner_challenge(request.challenge))
++            else:
++                result=self.good_barrier()
++                if mode=='issuer':result.issuer_id=b'x'*32
++                elif mode=='revision':result.revision=2
++                elif mode=='target':result.target.id=b'x'
++                elif mode=='kind':result.target.kind=0
++                elif mode=='complete':result.complete=True
++                elif mode=='pending':result.pending_count=2
++                elif mode=='count':result.participant_count=0
++                elif mode=='missing':result.ClearField('obligations')
++                elif mode=='generation':result.obligations[0].generation=0
++                elif mode=='incarnation':result.obligations[0].service_incarnation=b'x'
++                elif mode=='applied':result.obligations[0].applied_revision=1
++                elif mode=='record':result.obligations[0].registration.issuer_id=b'x'*32
++                elif mode=='duplicate':result.obligations.add().CopyFrom(result.obligations[0]);result.participant_count=2;result.pending_count=2
++                elif mode=='cursor':result.next_after=b'x'*32
++                elif mode=='unknown':result.ParseFromString(result.SerializeToString()+b'\xf8\x07\x01')
++                if mode=='outcome':reply.policy.CopyFrom(pb.PolicyState(revision=1))
++                else:reply.authority_barrier.CopyFrom(result)
++            peer.stream.sendall(frame(reply))
++        peer=FaultPeer(self,response=respond);client=self.client(peer.port);challenge=self.challenge(client,self.barrier_operation())
++        proof=self.proof(challenge)
++        if mode=='proof':proof.signature=b'x'*64
++        self.poisoned(client,pb.IssuerRequest(protocol_version=1,execute=pb.IssuerExecute(nonce=challenge.nonce,proof=proof)),peer,4)
++
++    def test_barrier_identity_and_global_counts_are_checked(self):
++        for mode in ('issuer','revision','target','kind','complete','pending','count','missing'):
++            with self.subTest(mode=mode):self.bad_barrier(mode)
++
++    def test_barrier_obligations_and_pagination_are_checked(self):
++        for mode in ('generation','incarnation','applied','record','duplicate','cursor','unknown'):
++            with self.subTest(mode=mode):self.bad_barrier(mode)
++
++    def test_owner_result_requires_matching_outcome_and_valid_proof(self):
++        for mode in ('outcome','proof'):
++            with self.subTest(mode=mode):self.bad_barrier(mode)
++
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- a/tests/core/test_identity_participants.py
++++ b/tests/core/test_identity_participants.py
+@@ -7,7 +7,7 @@
+ import issuer_pb2 as pb
+ from test_identity_enrollment import EnrollmentFixture,BINARY
+ 
+-DROP_REGISTRY='DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; '
++DROP_REGISTRY='DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; '
+ 
+ class ParticipantTests(EnrollmentFixture):
+     def setUp(self):
+@@ -179,7 +179,7 @@
+         for _ in range(2):
+             result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],6)
+             self.assertEqual({table:db.execute('SELECT * FROM '+table).fetchall() for table in before},before)
+         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+         self.client=self.start();self.assertFalse(self.client.call(credential_check=enrolled.credential).identity_status.active)
+--- a/tests/core/test_identity_revocation.py
++++ b/tests/core/test_identity_revocation.py
+@@ -199,7 +199,7 @@
+         self.client.close();secret=(self.state/'issuer.pem').read_bytes();policy=self.snapshot()
+         with sqlite3.connect(self.state/'identity.db') as db:
+             before=db.execute('SELECT * FROM credential').fetchall()
+-            db.executescript('DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
++            db.executescript('DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
+         command=[str(BINARY),'--state-dir',str(self.state)]
+         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
+@@ -207,7 +207,7 @@
+         self.assertEqual(result.returncode,0,result.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(),before)
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],6)
+         self.assertEqual(self.snapshot(),policy);self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+         self.client=self.start();self.assertTrue(self.authenticate().authentication.identity.active)
+ 

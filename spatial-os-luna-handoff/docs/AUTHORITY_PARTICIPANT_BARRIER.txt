@@ -1,5 +1,5 @@
 Durable service participation and revocation obligations, interface proposal 1
-Status: isolated issuer draft passes focused Debug tests. Client validation, qualification, and runtime wiring remain pending.
+Status: isolated issuer and checked-client draft passes focused Debug tests. Full qualification and runtime wiring remain pending.
 Dependency: identity.participant_session candidate 03. Keep its qualification source frozen.
 
 Invariant
@@ -122,3 +122,17 @@ All41 locked files and87 existing test files remain unchanged.
 Four prior migration fixtures explicitly remove the new tables and expect schema6.
 Their original data-preservation assertions remain intact.
 No production source, active qualification source, operator database, or normal session changed.
+
+Checked-client contract and evidence, candidate04
+Retain the verified service identity and original connection context.
+Check successful activation against the exact synchronized revision and all immutable identity fields.
+Reject application gaps, wrong generations, changed connections, rollback, and contradictory release state.
+A read may expose that service's historical generation. It does not authorize mutation through another connection.
+Bind owner barrier results to an exact retained signed query and verified owner proof.
+Consume query context before completion, including typed denial responses.
+Validate bounded, ordered obligation pages and their consistency with global pending counts.
+Reject unrequested success, substituted challenges, mismatched outcomes, and replay after denial.
+Malformed peer data closes the channel. Do not automatically retry mutations.
+Candidate04 passed33 unique new checks and187 related regressions in Debug on sb16.
+This combines19 server checks and14 client checks. Repeated earlier client checks are not additional coverage.
+Full qualification is prepared and remains pending. Real cancellation effects are not established by these client checks.

@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-09: Durable participation checked client passes focused Debug checks
+
+The isolated barrier client now validates activation, application acknowledgements, release, and owner completion queries.
+It rejects mismatched generations, connections, revisions, page counts, challenges, proofs, and replayed query results.
+Historical state reads do not authorize another connection to acknowledge or release the generation.
+
+On sb16, candidate 04 passed 33 unique new checks and 187 related regression checks in Debug.
+The new total contains 19 server checks and 14 client checks.
+All 240 candidate input hashes match. The earlier wrong-outcome baseline remains preserved.
+The audit preserves 257 messages, 988 fields, 123 enum values, and all 41 locked files.
+All 87 unchanged existing test files and four explicit migration fixture updates remain verified.
+Full barrier qualification is prepared. It will not overlap the preceding native qualification processes.
+This barrier candidate is not integrated. Actual world and broker effect wiring remains required.
+
+The preceding service-session candidate passed complete Debug on both hosts.
+Each passed 1,152 core checks across 66 suites, 51 harness checks, and 151 P10 cases without failure or skips.
+Both runtime sanitizer profiles remain live. Integration is prepared but gated on their final evidence.
+No production source or operator state changed. M02 and Spatial-M1 remain incomplete.
+See evidence/participant-barrier-2026-10-09/client-candidate-04 and evidence/participant-session-2026-10-09/candidate-03.
+
 ## 2026-10-09: Durable revocation-obligation draft passes focused Debug checks
 
 An isolated issuer draft records active service generations and their revocation obligations transactionally.

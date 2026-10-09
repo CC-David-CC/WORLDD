@@ -45,5 +45,18 @@
     "P10_cases": 151,
     "failed": 0,
     "skipped": 0
-  }
+  },
+  "both_host_full_Debug": {
+    "core_checks": 1152,
+    "core_suites": 66,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ]
+  },
+  "full_qualification": "Both Debug profiles passed; both runtime sanitizer profiles running"
 }

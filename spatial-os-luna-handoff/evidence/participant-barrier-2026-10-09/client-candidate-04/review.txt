@@ -1,0 +1,35 @@
+Primary review: durable participation checked client, candidate04
+Status: isolated draft. Full qualification is prepared, not started.
+The primary agent reviewed all changes. No local model or subagent was used.
+
+Reviewed additions since server candidate02
+issuer_client.cpp retains the verified service identity and tracks observed generation, application, and head revisions.
+Activation success must match the original proof context and exact synchronization revision.
+Application success must match the own generation, original connection, and requested contiguous revision.
+Release success must be inactive and synchronized. Historical reads do not authorize mutation on another connection.
+State reads reject changed generation identity, revision rollback, and inactive-to-active restoration.
+Owner barrier queries retain bounded, expiring signed challenges and match the exact query operation.
+Completion consumes the retained context even after a typed denial.
+Successful replies require valid owner proof, pinned issuer, matching revision, valid target, and bounded counts.
+Each page validates distinct ordered participants, registrations, keys, domains, generations, and application flags.
+Global pending counts must agree with page evidence. A partial page cannot imply completion.
+The client rejects wrong outcomes and unrequested successes. Malformed replies poison the channel.
+CMakeLists.txt adds the client suite without removing existing test definitions.
+The new test file uses real TLS issuer authority for positive workflows.
+Explicit fault peers test malformed responses and replay only. They do not establish external cancellation effects.
+
+Evidence
+The previous client rejected a valid activation response as the wrong outcome. That baseline is preserved.
+Candidate03 passed29 new checks plus187 regressions in Debug on sb16.
+Candidate04 has identical C++ source and extends client coverage from10 to14 tests.
+All14 extended client tests passed against the same binaries and240 exact input hashes.
+The combined unique count is33 new checks:19 server and14 client. Repeated checks are not counted twice.
+The schema audit preserves257 messages,988 fields,123 enum values,and41 locked files.
+The87 unchanged existing tests and4 documented migration fixture edits remain verified.
+
+Qualification limits
+Full Debug and runtime sanitizer qualification on both hosts remains required before integration.
+The preceding service-session candidate passed complete Debug on both hosts; both sanitizer runs remain live.
+The full barrier runner refuses overlap with those preceding native qualification processes.
+No production source or operator state changed.
+Runtime effect wiring, independent native/process witnesses, and supervisor fencing remain separate required work.

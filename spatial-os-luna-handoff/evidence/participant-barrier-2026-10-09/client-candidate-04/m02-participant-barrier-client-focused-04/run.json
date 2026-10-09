@@ -1,0 +1,16 @@
+{
+  "source_files": 240,
+  "identityd_sha256": "a0586ce2958d63e53965b6edd9ba02d4a12292e6d40f584d8a0fc0c31f911d66",
+  "results": [
+    {
+      "name": "client",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_identity_participant_barrier_client_04.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-03/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-03/debug/build/spatial-issuer-client"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_barrier_client_baseline_01.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-01/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-01/debug/build/spatial-issuer-client",
+    "BarrierClientTests.test_checked_client_completes_real_activation_application_and_release"
+  ],
+  "exit_code": 1,
+  "test_sha256": "cc3dff2670f3219f617f4fa2d52225a3fc85767204f07182d3f114c6fcb379ed",
+  "binaries": {
+    "identityd": "460f1c4f806558b5ada2e62d6d98bd7fed95029546177bfb7c4db234b311e166",
+    "spatial-issuer-client": "222fee98c2de5de1da01e9e0e5b9f65975af47100255b5f9c9e8413d65c3084e"
+  }
+}

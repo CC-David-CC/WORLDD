@@ -1,0 +1,74 @@
+{
+  "host": "sb16",
+  "source_files": 240,
+  "results": [
+    {
+      "profile": "debug",
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-03/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-03/debug/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "debug",
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-03/debug/build",
+        "--parallel",
+        "1",
+        "--target",
+        "identityd",
+        "spatial-issuer-client",
+        "spatial-key",
+        "spatial-issuer-watch",
+        "python-protobuf",
+        "input-python-protobuf",
+        "security-python-protobuf",
+        "broker-python-protobuf",
+        "key-python-protobuf",
+        "issuer-python-protobuf",
+        "grants-python-protobuf",
+        "world-session-python-protobuf"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "debug",
+      "name": "sessions",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-03/debug/build",
+        "-V",
+        "-R",
+        "^identity-participant-barrier(-client)?$"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "debug",
+      "name": "identity-regression",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-03/debug/build",
+        "-V",
+        "-R",
+        "^(identity-participant-session(-client)?|identity-participants|identity-participant-client|identity-keys|identity-issuer|identity-tls|identity-bootstrap|identity-enrollment|identity-revocation)$"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

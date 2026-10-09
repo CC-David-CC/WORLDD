@@ -1,0 +1,16 @@
+{
+  "host": "sb16",
+  "profile": "Debug",
+  "new_server_checks": 19,
+  "new_client_checks": 14,
+  "new_unique_checks": 33,
+  "regression_checks": 187,
+  "failed": 0,
+  "skipped": 0,
+  "source_files": 240,
+  "binaries": {
+    "identityd": "a0586ce2958d63e53965b6edd9ba02d4a12292e6d40f584d8a0fc0c31f911d66",
+    "spatial-issuer-client": "f4f7757458ab1e91edc0817b6fa7bc9ded610c8acdc4934e88fadfe291f40934"
+  },
+  "scope": "focused issuer and checked-client component; full qualification and actual cancellation effect wiring pending"
+}
