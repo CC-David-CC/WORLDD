@@ -1,0 +1,16 @@
+{
+  "id": "identity.supervisor_world_handoff",
+  "phase": "M02",
+  "status": "in_progress",
+  "parent": "identity.supervisor_recovery",
+  "contract": "docs/SUPERVISOR_WORLD_NATIVE_HANDOFF.txt",
+  "evidence": "evidence/supervisor-world-handoff-2026-10-09",
+  "production_changed": false,
+  "qualification": "One prepared startup baseline. Runtime unrun. Static review passed.",
+  "remaining": [
+    "Confirm missing handoff against unchanged fully qualified binaries on both hosts.",
+    "Implement sealed world/compositor native handoff and independent denial witnesses.",
+    "Test real native identity, application surfaces, held input, and checked cleanup.",
+    "Complete both-host Debug and runtime sanitizer qualification."
+  ]
+}

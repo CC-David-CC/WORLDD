@@ -1,0 +1,18 @@
+{
+  "reviewer": "primary agent",
+  "status": "prepared_runtime_unrun",
+  "test_sha256": "eb79e4eb116c90ac8f57302a442bd1f73d042a49268b2d82832a2b94bddada93",
+  "source_files": 283,
+  "baseline": "Require the actual parser to report missing compositor_native_target_fd in the unchanged broker candidate02.",
+  "invariant": "A supervised world starts its real compositor through its own sealed native credential handoff.",
+  "checks": [
+    "Actual supervisor/world/compositor binaries and protobuf management transport.",
+    "COMPOSITOR native scope, no credential on the supervisor management reply.",
+    "Both reported PIDs belong to the owned cgroup and remain live through pidfds.",
+    "Checked supervisor stop removes the owned cgroup and both pinned processes exit."
+  ],
+  "limitations": [
+    "The baseline does not prove full actor admission, world participation, native credential identity, pixels, or input cleanup.",
+    "Additional independent compositor identity and denial tests remain required for correction."
+  ]
+}

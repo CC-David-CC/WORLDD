@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-09: World/compositor native handoff baseline is prepared
+
+The source audit confirms that worldd and RenderWorker pass only a display argument to spatialwm.
+Existing native compositor fixtures provide XAUTHORITY through the environment.
+The production supervisor restricts its child's environment to PATH and LANG.
+These interfaces do not yet provide a sealed native credential handoff to the world and compositor.
+
+A new startup baseline requests compositor_native_target_fd through the actual supervisor parser.
+It requires real worldd and spatialwm under the owned cgroup, then checked process cleanup.
+Its runtime result remains unrun. Both-host queues wait for the preceding integration diagnostics.
+The proposed additive protobuf contract is explicit in docs/SUPERVISOR_WORLD_NATIVE_HANDOFF.txt.
+Production files and locked acceptance tests remain unchanged.
+
+Broker candidate02 full Debug and sanitizer qualification continues through exact durable drivers.
+Both hosts already passed focused Debug and sanitizer checks: 112 core checks and 51 harness checks per profile.
+Four issuer-backed broker participation tests remain queued ahead of the world startup baseline.
+Do not treat these prepared tests or source findings as runtime qualification.
+Production remains the 281-file supervisor increment at 534a94c. M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-09: Broker focused qualification passes on both hosts
 
 Broker handoff candidate02 passed focused Debug and runtime ASan/UBSan on both hosts.
