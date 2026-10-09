@@ -1,0 +1,124 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -311,6 +311,11 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
+     set_tests_properties(identity-participant-incarnation PROPERTIES TIMEOUT 90
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME identity-participant-channel COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_participant_channel.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
++    set_tests_properties(identity-participant-channel PROPERTIES TIMEOUT 120
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-participant-runtime COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_runtime.py" $<TARGET_FILE:identityd>
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -371,6 +371,9 @@
+   // A supervisor assigns this per launch. Presence with an empty value is invalid.
+   // This identity does not grant launch or recovery authority.
+   optional bytes service_incarnation = 6;
++  // A connected private supervisor socket. This mode never loads service signing material.
++  optional uint32 supervisor_channel_fd = 7;
++  bytes supervisor_issuer_id = 8;
+ }
+ message ParticipantCommand {
+   uint64 request_id = 1;
+--- /dev/null
++++ b/tests/core/test_participant_channel.py
+@@ -0,0 +1,95 @@
++"""An inherited participant channel reaches the real issuer without child signing material."""
++import os
++from pathlib import Path
++import socket
++import struct
++import subprocess
++import time
++import unittest
++from google.protobuf import text_format
++import core_pb2 as core
++import issuer_pb2 as pb
++import test_identity_participant_runtime as existing
++from harness.wire import frame
++
++class PrivateRuntime(existing.RuntimeProcess):
++    def __init__(self,fixture,config,fd):
++        self.fixture=fixture;self.log=fixture.root/('private-participant-'+str(len(fixture.connections))+'.log')
++        self.stderr=self.log.open('wb')
++        self.proc=subprocess.Popen([str(existing.PROBE),str(config),'world','world-one'],stdin=subprocess.PIPE,
++            stdout=subprocess.PIPE,stderr=self.stderr,pass_fds=(fd,))
++        fixture.connections.append(self)
++
++class ParticipantChannelTests(existing.ParticipantRuntimeTests):
++    def private(self,**changes):
++        parent,child=socket.socketpair();parent.settimeout(3);self.addCleanup(parent.close)
++        incarnation=os.urandom(32)
++        config=pb.AuthorityParticipantRuntimeConfig(protocol_version=1,participant_id=self.definition.id,
++            registered_revision=1,service_incarnation=incarnation,supervisor_channel_fd=child.fileno(),
++            supervisor_issuer_id=self.info.issuer_id)
++        for n,v in changes.items():setattr(config,n,v)
++        path=self.root/('private-config-'+str(time.monotonic_ns())+'.textproto')
++        path.write_text(text_format.MessageToString(config));path.chmod(0o600)
++        try:runtime=PrivateRuntime(self,path,child.fileno())
++        finally:child.close()
++        return runtime,parent,incarnation,config
++
++    def service(self,incarnation):
++        peer=self.connect()
++        reply=peer.call(authority_authentication_begin=pb.AuthorityAuthenticationBegin(participant_id=self.definition.id,
++            registered_revision=1,service_incarnation=incarnation))
++        self.assertTrue(reply.HasField('challenge'),reply)
++        challenge=reply.challenge
++        reply=peer.call(authority_authentication_complete=pb.AuthorityAuthenticationComplete(nonce=challenge.nonce,
++            proof=self.proof(challenge,self.signer,self.public)))
++        self.assertTrue(reply.HasField('authority_authentication'),reply)
++        return peer,reply.authority_authentication
++
++    def send_update(self,parent,request_id=0,**operation):
++        parent.sendall(frame(pb.ParticipantUpdate(protocol_version=1,request_id=request_id,**operation)))
++
++    def receive_command(self,parent):
++        def exact(size):
++            data=b''
++            while len(data)<size:
++                part=parent.recv(size-len(data));self.assertTrue(part,'Private child closed before command');data+=part
++            return data
++        size=struct.unpack('!I',exact(4))[0];self.assertLessEqual(size,1048576)
++        return pb.ParticipantCommand.FromString(exact(size))
++
++    def ready_private(self):
++        runtime,parent,incarnation,config=self.private();peer,auth=self.service(incarnation)
++        self.send_update(parent,authenticated=auth)
++        received=runtime.receive();self.assertTrue(received.HasField('authenticated'),received)
++        self.assertEqual(received.authenticated,auth)
++        result=peer.call(revocations=pb.RevocationRead());self.assertTrue(result.HasField('revocations'),result)
++        self.send_update(parent,revocations=result.revocations)
++        received=runtime.receive();self.assertEqual(received.revocations,result.revocations)
++        return runtime,parent,peer,auth,result.revocations,config
++
++    def forward(self,parent,peer):
++        command=self.receive_command(parent);operation=command.WhichOneof('operation')
++        names={'activate':('authority_activate','activated'),'applied':('authority_applied','applied'),'release':('authority_release','released')}
++        request,outcome=names[operation];reply=peer.call(**{request:getattr(command,operation)})
++        if reply.HasField('error'):self.send_update(parent,command.request_id,error=reply.error)
++        else:
++            self.assertTrue(reply.HasField('authority_activation'),reply)
++            self.send_update(parent,command.request_id,**{outcome:reply.authority_activation})
++        return command,reply
++
++    def test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key(self):
++        runtime,parent,peer,auth,batch,config=self.ready_private()
++        self.assertEqual(config.private_key_path,'');self.assertEqual(config.issuer_client_config,'')
++        runtime.send(71,activate=pb.AuthorityActivate(synchronized_revision=batch.through_revision))
++        command,reply=self.forward(parent,peer);self.assertEqual(command.request_id,71)
++        update=runtime.receive();self.assertTrue(update.HasField('activated'),update)
++        self.assertEqual(update.request_id,71);self.assertEqual(update.activated.service_incarnation,auth.service_incarnation)
++        self.assertEqual(self.rows(),[(1,auth.service_incarnation,batch.through_revision,1)])
++        runtime.send(72,release=pb.AuthorityRelease(generation=1,applied_revision=batch.through_revision))
++        self.forward(parent,peer);update=runtime.receive();self.assertTrue(update.HasField('released'),update)
++        self.assertEqual(update.request_id,72);self.assertEqual(runtime.proc.wait(timeout=3),0)
++        self.assertEqual(self.rows(),[(1,auth.service_incarnation,batch.through_revision,0)])
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(ParticipantChannelTests(n) for n in ParticipantChannelTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

@@ -1,5 +1,5 @@
 Supervisor-owned participant connection
-Status: isolated candidate01 passed 339 focused Debug checks on both hosts. Sanitizer qualification is running.
+Status: isolated candidate01 passed both focused profiles on both hosts. Full qualification is running.
 
 Invariant
 
@@ -87,3 +87,6 @@ Output02 builds all targets with native input enabled and supplies the independe
 Source and assertions are unchanged. Both corrected Debug runs passed 339 checks across 21 suites and 51 harness checks.
 No corrected Debug case failed or skipped. Runtime sanitizer and full qualification remain pending.
 All 274 source hashes and 41 locked hashes match. Existing protobuf declarations remain unchanged.
+
+Both focused profiles now passed 339 checks across 21 suites and 51 harness checks on each host.
+No final focused case failed or skipped. Full qualification reuses the frozen output02 binaries.

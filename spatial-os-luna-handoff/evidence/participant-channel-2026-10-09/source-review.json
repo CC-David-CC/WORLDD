@@ -1,0 +1,24 @@
+{
+  "candidate": 1,
+  "source_files": 276,
+  "reviewer": "Primary agent",
+  "integrated": false,
+  "existing_test_files_unchanged": true,
+  "locked_files_unchanged": 41,
+  "review": [
+    "Private AF_UNIX stream validates direct parent PID and effective UID.",
+    "Descriptor ownership is exclusive and close-on-exec.",
+    "Framing, output, startup, and consequential replies have bounds and deadlines.",
+    "Child validates identity, domain, revision, generation, and reply correlation.",
+    "No signing keys or TLS configuration in inherited mode.",
+    "No automatic reconnect or command replay."
+  ],
+  "baseline": "Both hosts reject inherited configuration before authentication. Original BrokenPipe failure and exact child diagnostic preserved.",
+  "qualification": "Candidate01 frozen with17newchecks. Both-host Debug builds started; no candidate pass claimed.",
+  "limitations": [
+    "Production supervisor relay remains unimplemented.",
+    "Parent receipt cannot acknowledge child cancellation.",
+    "World/broker integration, fencing, and checked recovery remain required."
+  ],
+  "patch_reconstruction": "Both patches applied to the recorded base and reproduce every frozen file hash."
+}

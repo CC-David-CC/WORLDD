@@ -12,7 +12,7 @@
     "tests/native/test_authority_owned_participant.py"
   ],
   "review": "Primary agent reviewed retained worker identity, schema1 and schema2 validation, exact signed request construction, durable approval before exec, failed-exec command denial, worker failure, checked stop, and restart without reconstructed handles.",
-  "tests": "Corrected output02 passed339 Debug checks across21suites and51harness on both hosts, with0failures and0skips. Runtime sanitizer builds are running. Original output01 native-input dependency failure remains preserved.",
+  "tests": "Both hosts passed339focusedchecks21suites51harness in Debug and runtime ASan/UBSan. No failures or skips. Full continuation active on the same frozen binaries.",
   "remaining": "Private inherited child channel, production world/broker integration, fencing, checked recovery and retirement.",
   "integrated": false
 }

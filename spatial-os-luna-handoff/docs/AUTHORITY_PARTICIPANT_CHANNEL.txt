@@ -1,0 +1,72 @@
+Private inherited participant channel
+Status: isolated child-transport candidate01. Both-host qualification is running. Production relay remains pending.
+
+Invariant
+
+An authority child uses its inherited supervisor channel without loading a participant signing key or creating a participant TLS connection.
+The trusted supervisor retains the authenticated issuer connection and its launch ownership.
+The child keeps control of application synchronization and acknowledgement.
+Receiving an update at the supervisor does not prove consumption or cancellation at the child.
+
+Configuration
+
+AuthorityParticipantRuntimeConfig adds optional uint32 supervisor_channel_fd, field 7.
+It adds bytes supervisor_issuer_id, field 8.
+The inherited-channel configuration requires explicit participant ID, registration revision, service incarnation, and supervisor issuer ID.
+Issuer client configuration and participant private-key paths must be empty in this mode.
+Direct mode rejects supervisor_issuer_id and otherwise keeps its existing behavior.
+Do not fall back from a failed inherited channel to direct TLS.
+
+Use a connected AF_UNIX SOCK_STREAM descriptor above standard input, output, and error.
+Verify the kernel peer credentials against the direct parent PID and effective UID.
+Take exclusive ownership of the inherited descriptor.
+Mark it nonblocking and close-on-exec before processing messages.
+Do not pass it to application descendants.
+The supervisor creates the pair before launch and passes only the selected child endpoint through ProcessScope.
+
+Protocol
+
+Reuse identity.ParticipantCommand and identity.ParticipantUpdate.
+Use the existing four-byte big-endian frame length and one MiB maximum message size.
+Reject malformed messages, unknown fields, excessive lengths, and truncated frames.
+Bound queued output and incomplete input.
+Expire incomplete frames and blocked output after five seconds.
+Require the initial authentication and baseline within five seconds.
+Expire an unanswered consequential command after five seconds.
+An idle channel does not expire while neither direction has pending data.
+
+The first successful update authenticates the configured participant and exact service incarnation.
+Check issuer identity, registration revision, domains, connection binding, and field lengths.
+Then require a valid initial revocation baseline.
+Later batches must retain the issuer identity and contain contiguous revisions.
+Keep the existing bounded command and update queues.
+Send one consequential command at a time and correlate its result by request ID.
+Validate the command against the child's consumed revision and current generation.
+Validate activation, acknowledgement, and release replies before publishing them to the authority consumer.
+Reject unsolicited replies, changed connection identities, generation changes, and revision rollback.
+Preserve the existing explicit activation retry after a revision conflict.
+Do not replay any command automatically.
+
+Failure and acknowledgement
+
+Channel closure or protocol failure permanently disables the child participant runtime.
+Clear pending work and publish a terminal failure through the existing consumer interface.
+Do not reconnect, restore held input, or infer successful cleanup.
+An explicit release reply can close the runtime normally.
+The parent must route semantic commands through its existing participant worker and issuer checks.
+Parent routing must distinguish transport receipt from the child's consumed revision.
+A stale activation attempt must remain a checked synchronization conflict, not permission to bypass current authority.
+Applied acknowledgements still represent completed child-side effects.
+
+Qualification
+
+First show that the existing runtime rejects the new inherited-channel configuration.
+Use a real issuer and a child runtime to test authentication, activation, revocation, acknowledgement, and release.
+Use independent parent-side fault peers for framing, identity, correlation, replay, and disconnect tests.
+Test descriptor validation and exclusion from later exec.
+Test a revocation arriving between the child's synchronization and activation request.
+Preserve all existing direct-runtime assertions and locked acceptance files.
+Qualify Debug and runtime ASan/UBSan on both hosts before integration.
+
+This child transport does not alone qualify the production supervisor relay.
+Coordinator relay, worldd and workspaced integration, fencing, and checked crash recovery remain required.

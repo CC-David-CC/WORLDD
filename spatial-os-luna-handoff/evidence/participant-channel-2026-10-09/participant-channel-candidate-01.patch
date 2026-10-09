@@ -1,0 +1,618 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -311,6 +311,11 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
+     set_tests_properties(identity-participant-incarnation PROPERTIES TIMEOUT 90
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME identity-participant-channel COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_participant_channel.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
++    set_tests_properties(identity-participant-channel PROPERTIES TIMEOUT 120
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-participant-runtime COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_runtime.py" $<TARGET_FILE:identityd>
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -371,6 +371,9 @@
+   // A supervisor assigns this per launch. Presence with an empty value is invalid.
+   // This identity does not grant launch or recovery authority.
+   optional bytes service_incarnation = 6;
++  // A connected private supervisor socket. This mode never loads service signing material.
++  optional uint32 supervisor_channel_fd = 7;
++  bytes supervisor_issuer_id = 8;
+ }
+ message ParticipantCommand {
+   uint64 request_id = 1;
+--- a/src/identity/participant_runtime.cpp
++++ b/src/identity/participant_runtime.cpp
+@@ -1,4 +1,7 @@
+ #include "identity/participant_runtime.hpp"
++#include "identity/participant_stream.hpp"
++#include <poll.h>
++#include <climits>
+ #include "identity/issuer_client.hpp"
+ #include "identity/keys.hpp"
+ #include "identity/participants.hpp"
+@@ -161,6 +164,137 @@
+             if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Authority participant channel failed; reconciliation is required", current_request);
+         }
+     }
++    void run_private(std::stop_token stop, const v1::AuthorityParticipantRuntimeConfig& config,
++                     const Domains& expected, ParticipantStream& stream) {
++        using Clock = std::chrono::steady_clock;
++        std::uint64_t current_request = 0, head = 0;
++        std::optional<v1::AuthorityAuthenticationResult> identity;
++        std::optional<v1::AuthorityActivationState> active;
++        std::optional<std::uint64_t> cursor;
++        std::optional<v1::ParticipantCommand> waiting;
++        auto deadline = Clock::now()+std::chrono::seconds(5);
++        auto startup = deadline;
++        try {
++            while (!stop.stop_requested()) {
++                check_stop(stop);
++                if (!cursor && Clock::now() >= startup) throw std::runtime_error("Private participant startup deadline exceeded");
++                if (waiting && Clock::now() >= deadline) throw std::runtime_error("Private participant command deadline exceeded");
++                if (cursor && !waiting) {
++                    std::optional<std::uint64_t> delivered;
++                    {
++                        std::lock_guard lock(mutex); delivered = delivered_revision;
++                        if (!commands.empty()) { waiting = std::move(commands.front()); commands.pop_front(); }
++                    }
++                    if (waiting) {
++                        current_request = waiting->request_id();
++                        if (waiting->has_activate()) {
++                            require(!active && delivered && waiting->activate().has_synchronized_revision() &&
++                                waiting->activate().synchronized_revision() == *delivered,
++                                "Activation requires the consumed synchronized revision");
++                        } else if (waiting->has_applied()) {
++                            const auto& applied = waiting->applied();
++                            require(active && active->active() && delivered && applied.generation() == active->generation() &&
++                                applied.has_from_revision() && applied.has_through_revision() &&
++                                applied.from_revision() == active->applied_revision() && applied.from_revision() < INT64_MAX &&
++                                applied.through_revision() == applied.from_revision()+1 && applied.through_revision() <= *delivered,
++                                "Acknowledgement requires one contiguous consumed revision and the active generation");
++                        } else {
++                            const auto& release = waiting->release();
++                            require(active && active->active() && release.generation() == active->generation() &&
++                                release.has_applied_revision() && release.applied_revision() == active->applied_revision(),
++                                "Release requires the active acknowledged generation");
++                        }
++                        stream.send(waiting->SerializeAsString()); deadline = Clock::now()+std::chrono::seconds(5);
++                    }
++                }
++                stream.flush();
++                pollfd fd{stream.descriptor(), static_cast<short>(POLLIN | (stream.pending_output() ? POLLOUT : 0)), 0};
++                const int count = ::poll(&fd,1,5);
++                if (count < 0 && errno == EINTR) continue;
++                require(count >= 0 && !(fd.revents & POLLNVAL), "Private participant poll failed");
++                auto frame = stream.receive();
++                if (!frame) continue;
++                v1::ParticipantUpdate update;
++                require(update.ParseFromString(*frame), "Malformed private participant update"); validate_message(update);
++                require(update.protocol_version() == 1 && update.outcome_case() != v1::ParticipantUpdate::OUTCOME_NOT_SET,
++                    "Invalid private participant update envelope");
++                if (update.has_error()) {
++                    require(core::ErrorCode_IsValid(update.error().code()) && update.error().code() != core::ERROR_CODE_UNSPECIFIED &&
++                        ((waiting && update.request_id() == waiting->request_id()) || update.request_id() == 0),
++                        "Uncorrelated private participant error");
++                    if (waiting && waiting->has_activate() && update.request_id() == waiting->request_id() &&
++                        update.error().code() == core::REVISION_CONFLICT) {
++                        waiting.reset(); current_request = 0;
++                        if (!publish(std::move(update))) return;
++                        continue;
++                    }
++                    std::lock_guard lock(mutex); fail_locked(update.error().code(), update.error().message(), update.request_id()); return;
++                }
++                if (!identity) {
++                    require(update.has_authenticated() && update.request_id() == 0, "Private participant requires authentication first");
++                    const auto& value = update.authenticated();
++                    validate_participant_record(value.registration(), config.supervisor_issuer_id());
++                    require(value.issuer_id() == config.supervisor_issuer_id() && value.issuer_incarnation().size() == 32 &&
++                        value.connection_binding().size() == 32 && value.service_incarnation() == config.service_incarnation() &&
++                        value.security_revision() <= INT64_MAX && value.registration().participant().id() == config.participant_id() &&
++                        value.registration().registered_revision() == config.registered_revision() &&
++                        domain_set(value.registration().participant()) == expected, "Private participant authentication changed identity");
++                    identity = value; head = value.security_revision();
++                } else if (update.has_revocations()) {
++                    const auto& batch = update.revocations();
++                    const auto from = batch.from_revision(), through = batch.through_revision(), latest = batch.head_revision();
++                    require(update.request_id() == 0 && batch.issuer_id() == config.supervisor_issuer_id() &&
++                        from <= through && through <= latest && latest <= INT64_MAX && latest >= head && batch.events_size() <= 128,
++                        "Invalid private revocation range or identity");
++                    if (!cursor) require(batch.initial() && from == latest && through == latest && batch.events_size() == 0,
++                        "Invalid private revocation baseline");
++                    else {
++                        require(!batch.initial() && from == *cursor && through-from == static_cast<std::uint64_t>(batch.events_size()) &&
++                            (batch.events_size() == 128 || through == latest), "Incomplete private revocation batch");
++                        auto revision = from;
++                        for (const auto& event : batch.events()) require(event.revision() == ++revision && event.target().id().size() == 32 &&
++                            (event.target().kind() == v1::ACTOR_TARGET || event.target().kind() == v1::CREDENTIAL_TARGET),
++                            "Invalid private revocation event");
++                    }
++                    cursor = through; head = latest;
++                } else {
++                    require(cursor && waiting && update.request_id() == waiting->request_id(), "Unsolicited private participant result");
++                    require((waiting->has_activate() && update.has_activated()) || (waiting->has_applied() && update.has_applied()) ||
++                        (waiting->has_release() && update.has_released()), "Mismatched private participant operation");
++                    const auto& state = update.has_activated() ? update.activated() : update.has_applied() ? update.applied() : update.released();
++                    require(state.issuer_id() == identity->issuer_id() &&
++                        state.registration().SerializeAsString() == identity->registration().SerializeAsString() &&
++                        state.issuer_incarnation() == identity->issuer_incarnation() && state.connection_binding() == identity->connection_binding() &&
++                        state.service_incarnation() == identity->service_incarnation() && state.generation() > 0 && state.generation() <= INT64_MAX &&
++                        state.applied_revision() <= state.head_revision() && state.head_revision() <= INT64_MAX && state.head_revision() >= head,
++                        "Private participant result changed identity or revision");
++                    if (waiting->has_activate()) require(!active && state.active() &&
++                        state.applied_revision() == waiting->activate().synchronized_revision() && state.applied_revision() == state.head_revision(),
++                        "Invalid private activation success");
++                    else {
++                        require(active && state.generation() == active->generation() && state.applied_revision() >= active->applied_revision(),
++                            "Private participant generation changed");
++                        if (waiting->has_applied()) require(state.active() && state.applied_revision() == waiting->applied().through_revision(),
++                            "Invalid private acknowledgement success");
++                        else require(!state.active() && state.applied_revision() == active->applied_revision() &&
++                            state.applied_revision() == state.head_revision(), "Invalid private release success");
++                    }
++                    active = state; head = state.head_revision(); waiting.reset(); current_request = 0;
++                    if (update.has_released()) {
++                        { std::lock_guard lock(mutex); closed = true; }
++                        publish(std::move(update)); return;
++                    }
++                }
++                if (!publish(std::move(update))) return;
++            }
++        } catch (const std::invalid_argument&) {
++            std::lock_guard lock(mutex);
++            if (!stop.stop_requested()) fail_locked(core::INVALID_ARGUMENT, "Invalid private participant context or command", current_request);
++        } catch (const std::exception&) {
++            std::lock_guard lock(mutex);
++            if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Private participant channel failed; reconciliation is required", current_request);
++        }
++    }
+     Impl(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains) {
+         v1::AuthorityParticipantRuntimeConfig config;
+         require(google::protobuf::TextFormat::ParseFromString(tls_detail::load_config(path), &config),
+@@ -168,13 +302,23 @@
+         validate_message(config);
+         require(config.protocol_version() == 1 && config.participant_id().size() == 32 &&
+                 config.registered_revision() > 0 && config.registered_revision() <= INT64_MAX &&
+-                (!config.has_service_incarnation() || config.service_incarnation().size() == 32) &&
+-                std::filesystem::path(config.issuer_client_config()).is_absolute() &&
++                (!config.has_service_incarnation() || config.service_incarnation().size() == 32),
++                "Invalid authority participant configuration");
++        if (config.has_supervisor_channel_fd()) require(config.supervisor_channel_fd() >= 3 &&
++                config.supervisor_channel_fd() <= INT_MAX && config.supervisor_issuer_id().size() == 32 &&
++                config.has_service_incarnation() && config.issuer_client_config().empty() && config.private_key_path().empty(),
++                "Invalid inherited participant configuration");
++        else require(config.supervisor_issuer_id().empty() && std::filesystem::path(config.issuer_client_config()).is_absolute() &&
+                 std::filesystem::path(config.private_key_path()).is_absolute(), "Invalid authority participant configuration");
+         v1::AuthorityParticipant expected; expected.set_id(config.participant_id()); expected.set_public_key(std::string(32, '\0'));
+         for (const auto& domain : domains) *expected.add_domains() = domain;
+         validate_participant(expected);
+-        worker = std::jthread([this, config, domains = domain_set(expected)](std::stop_token stop) { run(stop, config, domains); });
++        if (config.has_supervisor_channel_fd()) {
++            auto stream = std::make_unique<ParticipantStream>(static_cast<int>(config.supervisor_channel_fd()), getppid());
++            worker = std::jthread([this, config, domains = domain_set(expected), stream = std::move(stream)](std::stop_token stop) {
++                run_private(stop, config, domains, *stream);
++            });
++        } else worker = std::jthread([this, config, domains = domain_set(expected)](std::stop_token stop) { run(stop, config, domains); });
+     }
+ };
+ ParticipantRuntime::ParticipantRuntime(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains)
+--- /dev/null
++++ b/src/identity/participant_stream.hpp
+@@ -0,0 +1,101 @@
++#pragma once
++#include "core/protocol.hpp"
++#include <algorithm>
++#include <array>
++#include <cerrno>
++#include <chrono>
++#include <deque>
++#include <fcntl.h>
++#include <optional>
++#include <stdexcept>
++#include <string>
++#include <sys/socket.h>
++#include <sys/stat.h>
++#include <sys/un.h>
++#include <unistd.h>
++
++namespace spatial::identity {
++// Private, bounded, nonblocking protobuf frames. Takes ownership of fd.
++class ParticipantStream final {
++    using Clock = std::chrono::steady_clock;
++    struct Output { std::string bytes; Clock::time_point deadline; };
++    int fd_ = -1;
++    std::string input_;
++    std::size_t expected_ = 4, sent_ = 0, queued_bytes_ = 0;
++    Clock::time_point input_deadline_;
++    std::deque<Output> output_;
++    static void require(bool okay, const char* message) {
++        if (!okay) throw std::runtime_error(message);
++    }
++public:
++    explicit ParticipantStream(int fd, pid_t expected_peer) : fd_(fd) {
++        try {
++            require(fd >= 3 && expected_peer > 0, "Invalid private participant descriptor");
++            struct stat info{}; sockaddr_un address{}; socklen_t length = sizeof(address);
++            int type = 0; socklen_t type_length = sizeof(type);
++            ucred peer{}; socklen_t peer_length = sizeof(peer);
++            require(fstat(fd_, &info) == 0 && S_ISSOCK(info.st_mode) &&
++                getpeername(fd_, reinterpret_cast<sockaddr*>(&address), &length) == 0 && address.sun_family == AF_UNIX &&
++                getsockopt(fd_, SOL_SOCKET, SO_TYPE, &type, &type_length) == 0 && type == SOCK_STREAM &&
++                getsockopt(fd_, SOL_SOCKET, SO_PEERCRED, &peer, &peer_length) == 0 &&
++                peer_length == sizeof(peer) && peer.pid == expected_peer && peer.uid == geteuid(),
++                "Private participant channel has an unexpected kernel peer");
++            const int flags = fcntl(fd_, F_GETFL);
++            require(flags >= 0 && fcntl(fd_, F_SETFL, flags | O_NONBLOCK) == 0 &&
++                fcntl(fd_, F_SETFD, FD_CLOEXEC) == 0, "Cannot configure private participant channel");
++        } catch (...) { if (fd_ >= 3) close(fd_); fd_ = -1; throw; }
++    }
++    ~ParticipantStream() { if (fd_ >= 0) close(fd_); }
++    ParticipantStream(const ParticipantStream&) = delete;
++    ParticipantStream& operator=(const ParticipantStream&) = delete;
++    int descriptor() const { return fd_; }
++    bool pending_output() const { return !output_.empty(); }
++    void send(std::string bytes) {
++        require(bytes.size() <= spatial::max_frame_bytes && output_.size() < 256 &&
++            queued_bytes_+bytes.size()+4 <= 2*spatial::max_frame_bytes,
++            "Private participant output limit exceeded");
++        const auto size = static_cast<std::uint32_t>(bytes.size());
++        std::string header(4, '\0');
++        for (unsigned i = 0; i < 4; ++i) header[i] = static_cast<char>(size >> (24-8*i));
++        header += bytes; queued_bytes_ += header.size();
++        output_.push_back({std::move(header), Clock::now()+std::chrono::seconds(5)});
++    }
++    void flush() {
++        std::size_t budget = 65536;
++        while (!output_.empty() && budget) {
++            auto& front = output_.front();
++            require(Clock::now() < front.deadline, "Private participant output deadline exceeded");
++            const auto count = ::send(fd_, front.bytes.data()+sent_, std::min(budget, front.bytes.size()-sent_), MSG_NOSIGNAL);
++            if (count < 0 && errno == EINTR) continue;
++            if (count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) return;
++            require(count > 0, "Private participant output closed");
++            sent_ += static_cast<std::size_t>(count); budget -= static_cast<std::size_t>(count);
++            if (sent_ == front.bytes.size()) { queued_bytes_ -= front.bytes.size(); output_.pop_front(); sent_ = 0; }
++        }
++    }
++    std::optional<std::string> receive() {
++        std::array<char,4096> bytes{};
++        for (int pass = 0; pass < 16; ++pass) {
++            require(input_.empty() || Clock::now() < input_deadline_, "Private participant frame deadline exceeded");
++            if (input_.size() == expected_) {
++                if (expected_ == 4) {
++                    std::uint32_t size = 0;
++                    for (unsigned i = 0; i < 4; ++i) size = (size << 8) | static_cast<unsigned char>(input_[i]);
++                    require(size <= spatial::max_frame_bytes, "Excessive private participant frame");
++                    expected_ = 4+size;
++                }
++                if (input_.size() == expected_) {
++                    auto result = input_.substr(4); input_.clear(); expected_ = 4; return result;
++                }
++            }
++            const auto count = recv(fd_, bytes.data(), std::min(bytes.size(), expected_-input_.size()), 0);
++            if (count < 0 && errno == EINTR) continue;
++            if (count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) return {};
++            require(count > 0, input_.empty() ? "Private participant channel closed" : "Truncated private participant frame");
++            if (input_.empty()) input_deadline_ = Clock::now()+std::chrono::seconds(5);
++            input_.append(bytes.data(), static_cast<std::size_t>(count));
++        }
++        return {};
++    }
++};
++}
+--- a/src/testing/participant_runtime_probe.cpp
++++ b/src/testing/participant_runtime_probe.cpp
+@@ -8,6 +8,7 @@
+ #include <poll.h>
+ #include <sstream>
+ #include <sys/stat.h>
++#include <sys/wait.h>
+ #include <unistd.h>
+ 
+ // Thin transport probe: all service state and transitions belong to ParticipantRuntime.
+@@ -19,7 +20,8 @@
+     umask(0077); signal(SIGPIPE, SIG_IGN);
+     try {
+         const bool overflow = argc > 1 && std::string_view(argv[1]) == "--queue-overflow";
+-        const int config_index = overflow ? 2 : 1;
++        const bool check_exec = argc > 1 && std::string_view(argv[1]) == "--check-channel-exec";
++        const int config_index = check_exec ? 3 : overflow ? 2 : 1;
+         require(argc >= config_index+3 && (argc-config_index-1) % 2 == 0,
+                 "Expected CONFIG and one or more world|workspace ID pairs");
+         std::vector<authority::Domain> domains;
+@@ -32,6 +34,19 @@
+         spatial::identity::tls_detail::nonblocking(STDIN_FILENO);
+         spatial::identity::tls_detail::nonblocking(STDOUT_FILENO);
+         spatial::identity::ParticipantRuntime runtime(argv[config_index], domains);
++        if (check_exec) {
++            char executable[] = "/usr/bin/python3";
++            char option[] = "-c";
++            char code[] = "import os,sys\ntry: os.fstat(int(sys.argv[1]))\nexcept OSError: sys.exit(0)\nelse: sys.exit(44)";
++            char* command[]{executable, option, code, argv[2], nullptr};
++            char* environment[]{nullptr};
++            const pid_t child = fork(); require(child >= 0, "Cannot fork descriptor witness");
++            if (!child) { execve(executable, command, environment); _exit(127); }
++            int status = 0; pid_t waited;
++            do { waited = waitpid(child, &status, 0); } while (waited < 0 && errno == EINTR);
++            require(waited == child && WIFEXITED(status) && WEXITSTATUS(status) == 0,
++                "Participant channel survived a later exec");
++        }
+         if (overflow) {
+             // The independent TLS witness stalls the handshake. Exercise the real bounded queue.
+             for (std::uint64_t i = 0; i < 129; ++i) {
+--- /dev/null
++++ b/tests/core/test_participant_channel.py
+@@ -0,0 +1,270 @@
++"""An inherited participant channel reaches the real issuer without child signing material."""
++import os
++import array
++import fcntl
++from pathlib import Path
++import socket
++import struct
++import subprocess
++import time
++import unittest
++from google.protobuf import text_format
++import core_pb2 as core
++import issuer_pb2 as pb
++import test_identity_participant_runtime as existing
++from harness.wire import frame
++
++class PrivateRuntime(existing.RuntimeProcess):
++    def __init__(self,fixture,config,fd,check_exec=False):
++        self.fixture=fixture;self.log=fixture.root/('private-participant-'+str(len(fixture.connections))+'.log')
++        self.stderr=self.log.open('wb')
++        self.proc=subprocess.Popen([str(existing.PROBE),*(['--check-channel-exec',str(fd)] if check_exec else []),str(config),'world','world-one'],stdin=subprocess.PIPE,
++            stdout=subprocess.PIPE,stderr=self.stderr,pass_fds=(fd,))
++        fixture.connections.append(self)
++
++class ParticipantChannelTests(existing.ParticipantRuntimeTests):
++    def private(self,check_exec=False,**changes):
++        parent,child=socket.socketpair();parent.settimeout(3);self.addCleanup(parent.close)
++        if check_exec:
++            moved=socket.socket(fileno=fcntl.fcntl(child.fileno(),fcntl.F_DUPFD_CLOEXEC,128));child.close();child=moved
++        incarnation=os.urandom(32)
++        config=pb.AuthorityParticipantRuntimeConfig(protocol_version=1,participant_id=self.definition.id,
++            registered_revision=1,service_incarnation=incarnation,supervisor_channel_fd=child.fileno(),
++            supervisor_issuer_id=self.info.issuer_id)
++        for n,v in changes.items():setattr(config,n,v)
++        path=self.root/('private-config-'+str(time.monotonic_ns())+'.textproto')
++        path.write_text(text_format.MessageToString(config));path.chmod(0o600)
++        try:runtime=PrivateRuntime(self,path,child.fileno(),check_exec)
++        finally:child.close()
++        return runtime,parent,incarnation,config
++
++    def service(self,incarnation):
++        peer=self.connect()
++        reply=peer.call(authority_authentication_begin=pb.AuthorityAuthenticationBegin(participant_id=self.definition.id,
++            registered_revision=1,service_incarnation=incarnation))
++        self.assertTrue(reply.HasField('challenge'),reply)
++        challenge=reply.challenge
++        reply=peer.call(authority_authentication_complete=pb.AuthorityAuthenticationComplete(nonce=challenge.nonce,
++            proof=self.proof(challenge,self.signer,self.public)))
++        self.assertTrue(reply.HasField('authority_authentication'),reply)
++        return peer,reply.authority_authentication
++
++    def send_update(self,parent,request_id=0,**operation):
++        parent.sendall(frame(pb.ParticipantUpdate(protocol_version=1,request_id=request_id,**operation)))
++
++    def receive_command(self,parent):
++        def exact(size):
++            data=b''
++            while len(data)<size:
++                part=parent.recv(size-len(data));self.assertTrue(part,'Private child closed before command');data+=part
++            return data
++        size=struct.unpack('!I',exact(4))[0];self.assertLessEqual(size,1048576)
++        return pb.ParticipantCommand.FromString(exact(size))
++
++    def ready_private(self,**changes):
++        runtime,parent,incarnation,config=self.private(**changes);peer,auth=self.service(incarnation)
++        self.send_update(parent,authenticated=auth)
++        received=runtime.receive();self.assertTrue(received.HasField('authenticated'),received)
++        self.assertEqual(received.authenticated,auth)
++        result=peer.call(revocations=pb.RevocationRead());self.assertTrue(result.HasField('revocations'),result)
++        self.send_update(parent,revocations=result.revocations)
++        received=runtime.receive();self.assertEqual(received.revocations,result.revocations)
++        return runtime,parent,peer,auth,result.revocations,config
++
++    def forward(self,parent,peer):
++        command=self.receive_command(parent);operation=command.WhichOneof('operation')
++        names={'activate':('authority_activate','activated'),'applied':('authority_applied','applied'),'release':('authority_release','released')}
++        request,outcome=names[operation];reply=peer.call(**{request:getattr(command,operation)})
++        if reply.HasField('error'):self.send_update(parent,command.request_id,error=reply.error)
++        else:
++            self.assertTrue(reply.HasField('authority_activation'),reply)
++            self.send_update(parent,command.request_id,**{outcome:reply.authority_activation})
++        return command,reply
++
++    def test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key(self):
++        runtime,parent,peer,auth,batch,config=self.ready_private()
++        self.assertEqual(config.private_key_path,'');self.assertEqual(config.issuer_client_config,'')
++        runtime.send(71,activate=pb.AuthorityActivate(synchronized_revision=batch.through_revision))
++        command,reply=self.forward(parent,peer);self.assertEqual(command.request_id,71)
++        update=runtime.receive();self.assertTrue(update.HasField('activated'),update)
++        self.assertEqual(update.request_id,71);self.assertEqual(update.activated.service_incarnation,auth.service_incarnation)
++        self.assertEqual(self.rows(),[(1,auth.service_incarnation,batch.through_revision,1)])
++        runtime.send(72,release=pb.AuthorityRelease(generation=1,applied_revision=batch.through_revision))
++        self.forward(parent,peer);update=runtime.receive();self.assertTrue(update.HasField('released'),update)
++        self.assertEqual(update.request_id,72);self.assertEqual(runtime.proc.wait(timeout=3),0)
++        self.assertEqual(self.rows(),[(1,auth.service_incarnation,batch.through_revision,0)])
++
++    def activate_private(self):
++        runtime,parent,peer,auth,batch,config=self.ready_private()
++        runtime.send(1,activate=pb.AuthorityActivate(synchronized_revision=batch.through_revision))
++        self.forward(parent,peer);update=runtime.receive();self.assertTrue(update.HasField('activated'),update)
++        return runtime,parent,peer,auth,update.activated,config
++
++    def test_child_acknowledges_real_revocation_only_after_explicit_command(self):
++        runtime,parent,peer,auth,state,_=self.activate_private()
++        self.revoke();reply=peer.call(revocations=pb.RevocationRead(after_revision=0))
++        self.send_update(parent,revocations=reply.revocations);update=runtime.receive()
++        self.assertEqual(update.revocations.through_revision,1);self.assertEqual(self.barrier().pending_count,1)
++        self.assertEqual(self.rows(),[(1,auth.service_incarnation,0,1)])
++        runtime.send(2,applied=pb.AuthorityApplied(generation=1,from_revision=0,through_revision=1))
++        self.forward(parent,peer);update=runtime.receive();self.assertEqual(update.applied.applied_revision,1)
++        self.assertEqual(self.barrier().pending_count,0)
++        self.assertEqual(self.rows(),[(1,auth.service_incarnation,1,1)])
++
++    def test_activation_race_requires_child_resynchronization_and_explicit_retry(self):
++        runtime,parent,peer,auth,batch,_=self.ready_private()
++        runtime.send(8,activate=pb.AuthorityActivate(synchronized_revision=0));self.revoke()
++        self.forward(parent,peer);reply=runtime.receive();self.assertEqual(reply.error.code,core.REVISION_CONFLICT)
++        self.assertEqual(reply.request_id,8);self.assertIsNone(runtime.proc.poll());self.assertEqual(self.rows(),[])
++        events=peer.call(revocations=pb.RevocationRead(after_revision=0));self.send_update(parent,revocations=events.revocations)
++        self.assertEqual(runtime.receive().revocations.through_revision,1)
++        parent.settimeout(.05)
++        with self.assertRaises(socket.timeout):parent.recv(1)
++        parent.settimeout(3)
++        runtime.send(9,activate=pb.AuthorityActivate(synchronized_revision=1));self.forward(parent,peer)
++        self.assertEqual(runtime.receive().activated.applied_revision,1)
++        self.assertEqual(self.rows(),[(1,auth.service_incarnation,1,1)])
++
++    def test_mixed_signing_configuration_is_rejected_before_channel_use(self):
++        for changes in [dict(private_key_path=str(self.signer)),dict(issuer_client_config=str(self.config_file())),
++                        dict(service_incarnation=b''),dict(supervisor_issuer_id=b'x'),dict(supervisor_channel_fd=2)]:
++            with self.subTest(changes=sorted(changes)):
++                runtime,parent,_,_=self.private(**changes)
++                self.assertEqual(runtime.proc.wait(timeout=3),2);self.assertEqual(runtime.proc.stdout.read(),b'')
++                self.assertEqual(parent.recv(1),b'');self.assertEqual(self.rows(),[])
++
++    def test_regular_file_cannot_be_used_as_private_channel(self):
++        path=self.root/'not-a-socket';path.write_text('private descriptor regression')
++        fd=os.open(path,os.O_RDONLY)
++        try:
++            config=pb.AuthorityParticipantRuntimeConfig(protocol_version=1,participant_id=self.definition.id,
++                registered_revision=1,service_incarnation=b'i'*32,supervisor_channel_fd=fd,supervisor_issuer_id=self.info.issuer_id)
++            config_path=self.root/'file-channel.textproto';config_path.write_text(text_format.MessageToString(config));config_path.chmod(0o600)
++            runtime=PrivateRuntime(self,config_path,fd)
++        finally:os.close(fd)
++        self.assertEqual(runtime.proc.wait(timeout=3),2);self.assertEqual(runtime.proc.stdout.read(),b'')
++        self.assertIn('unexpected kernel peer',runtime.log.read_text());self.assertEqual(self.rows(),[])
++
++    def test_channel_is_nonblocking_and_closed_by_later_exec(self):
++        runtime,parent,peer,auth,_,config=self.ready_private(check_exec=True)
++        info=Path(f'/proc/{runtime.proc.pid}/fdinfo/{config.supervisor_channel_fd}').read_text()
++        flags=int(next(line.split()[1] for line in info.splitlines() if line.startswith('flags:')),8)
++        self.assertTrue(flags & os.O_NONBLOCK);self.assertTrue(flags & os.O_CLOEXEC)
++        self.assertIsNone(runtime.proc.poll());self.assertEqual(self.rows(),[])
++
++    def test_socket_from_another_process_cannot_impersonate_the_direct_parent(self):
++        parent,child=socket.socketpair()
++        maker=os.fork()
++        if maker==0:
++            parent.close();first,second=socket.socketpair()
++            child.sendmsg([b'F'],[(socket.SOL_SOCKET,socket.SCM_RIGHTS,array.array('i',[first.fileno()]))])
++            child.recv(1);os._exit(0)
++        child.close();fd=None
++        try:
++            parent.settimeout(3);_,ancillary,_,_=parent.recvmsg(1,socket.CMSG_SPACE(array.array('i').itemsize))
++            received=array.array('i');received.frombytes(ancillary[0][2][:received.itemsize]);fd=received[0]
++            with socket.socket(fileno=os.dup(fd)) as witness:
++                peer_pid,peer_uid,_=struct.unpack('3i',witness.getsockopt(socket.SOL_SOCKET,socket.SO_PEERCRED,12))
++            self.assertEqual(peer_pid,maker);self.assertEqual(peer_uid,os.geteuid())
++            config=pb.AuthorityParticipantRuntimeConfig(protocol_version=1,participant_id=self.definition.id,
++                registered_revision=1,service_incarnation=b'i'*32,supervisor_channel_fd=fd,supervisor_issuer_id=self.info.issuer_id)
++            path=self.root/'wrong-parent.textproto';path.write_text(text_format.MessageToString(config));path.chmod(0o600)
++            runtime=PrivateRuntime(self,path,fd)
++            self.assertEqual(runtime.proc.wait(timeout=3),2);self.assertEqual(runtime.proc.stdout.read(),b'')
++            self.assertIn('unexpected kernel peer',runtime.log.read_text())
++        finally:
++            if fd is not None:os.close(fd)
++            parent.close();self.assertEqual(os.waitpid(maker,0)[1],0)
++
++    def test_authentication_identity_and_domains_cannot_be_substituted(self):
++        for mode in ['issuer','participant','registration','domain','incarnation','connection','issuer-process']:
++            with self.subTest(mode=mode):
++                runtime,parent,incarnation,_=self.private();peer,auth=self.service(incarnation)
++                if mode=='issuer':auth.issuer_id=b'x'*32
++                elif mode=='participant':auth.registration.participant.id=b'x'*32
++                elif mode=='registration':auth.registration.registered_revision=2
++                elif mode=='domain':auth.registration.participant.domains[0].id='other'
++                elif mode=='incarnation':auth.service_incarnation=b'x'*32
++                elif mode=='connection':auth.connection_binding=b''
++                else:auth.issuer_incarnation=b''
++                self.send_update(parent,authenticated=auth);self.error(runtime,core.INVALID_ARGUMENT)
++                self.assertEqual(self.rows(),[])
++
++    def test_invalid_revocation_batches_never_reach_the_consumer(self):
++        for mode in ['issuer','gap','repeat-baseline','target','future-from']:
++            with self.subTest(mode=mode):
++                runtime,parent,_,_,_,_=self.ready_private()
++                batch=pb.RevocationBatch(issuer_id=self.info.issuer_id,from_revision=0,through_revision=1,head_revision=1,
++                    events=[pb.RevocationEvent(revision=1,target=pb.IdentityReference(kind=pb.ACTOR_TARGET,id=b'a'*32))])
++                if mode=='issuer':batch.issuer_id=b'x'*32
++                elif mode=='gap':batch.events[0].revision=2
++                elif mode=='repeat-baseline':batch.initial=True
++                elif mode=='target':batch.events[0].target.id=b'x'
++                else:batch.from_revision=1
++                self.send_update(parent,revocations=batch);self.error(runtime,core.INVALID_ARGUMENT)
++                self.assertEqual(self.rows(),[])
++
++    def state_for(self,auth):
++        return pb.AuthorityActivationState(issuer_id=auth.issuer_id,registration=auth.registration,generation=1,
++            service_incarnation=auth.service_incarnation,issuer_incarnation=auth.issuer_incarnation,
++            connection_binding=auth.connection_binding,applied_revision=0,head_revision=0,active=True)
++
++    def test_unsolicited_activation_is_rejected(self):
++        runtime,parent,_,auth,_,_=self.ready_private()
++        self.send_update(parent,33,activated=self.state_for(auth));self.error(runtime,core.INVALID_ARGUMENT)
++        self.assertEqual(self.rows(),[])
++
++    def test_correlated_reply_cannot_change_operation_identity_or_revision(self):
++        for mode in ['request-id','operation','connection','incarnation','registration','generation','active','revision']:
++            with self.subTest(mode=mode):
++                runtime,parent,_,auth,_,_=self.ready_private();runtime.send(55,activate=pb.AuthorityActivate(synchronized_revision=0))
++                command=self.receive_command(parent);self.assertEqual(command.request_id,55)
++                state=self.state_for(auth);request_id=55;outcome='activated'
++                if mode=='request-id':request_id=56
++                elif mode=='operation':outcome='applied'
++                elif mode=='connection':state.connection_binding=b'x'*32
++                elif mode=='incarnation':state.service_incarnation=b'x'*32
++                elif mode=='registration':state.registration.registered_revision=2
++                elif mode=='generation':state.generation=0
++                elif mode=='active':state.active=False
++                else:state.applied_revision=1
++                self.send_update(parent,request_id,**{outcome:state});self.error(runtime,core.INVALID_ARGUMENT)
++                self.assertEqual(self.rows(),[])
++
++    def test_replayed_activation_reply_is_rejected_without_releasing_generation(self):
++        runtime,parent,_,auth,state,_=self.activate_private()
++        self.send_update(parent,1,activated=state);self.error(runtime,core.INVALID_ARGUMENT)
++        self.assertEqual(self.rows(),[(1,auth.service_incarnation,0,1)])
++
++    def test_malformed_excessive_and_truncated_frames_fail_closed(self):
++        for payload,code,shutdown in [(struct.pack('!I',1048577),core.UNAVAILABLE,False),
++            (struct.pack('!I',9)+b'x',core.UNAVAILABLE,True),(struct.pack('!I',1)+b'\xff',core.INVALID_ARGUMENT,False)]:
++            with self.subTest(payload=payload):
++                runtime,parent,_,_=self.private();parent.sendall(payload)
++                if shutdown:parent.shutdown(socket.SHUT_WR)
++                self.error(runtime,code);self.assertEqual(self.rows(),[])
++
++    def test_unknown_update_fields_are_rejected(self):
++        runtime,parent,incarnation,_=self.private();_,auth=self.service(incarnation)
++        value=pb.ParticipantUpdate(protocol_version=1,authenticated=auth).SerializeToString()+b'\x98\x06\x01'
++        parent.sendall(struct.pack('!I',len(value))+value);self.error(runtime,core.INVALID_ARGUMENT)
++
++    def test_disconnect_permanently_disables_participation(self):
++        runtime,parent,_,_,_,_=self.ready_private();parent.close()
++        self.error(runtime,core.UNAVAILABLE);self.assertEqual(self.rows(),[])
++
++    def test_incomplete_frame_expires(self):
++        runtime,parent,_,_=self.private();parent.sendall(b'\x00')
++        reply=runtime.receive(timeout=7);self.assertEqual(reply.error.code,core.UNAVAILABLE)
++        self.assertEqual(runtime.proc.wait(timeout=2),2);self.assertEqual(self.rows(),[])
++
++    def test_unanswered_command_expires_without_replay(self):
++        runtime,parent,_,_,_,_=self.ready_private();runtime.send(44,activate=pb.AuthorityActivate(synchronized_revision=0))
++        self.assertEqual(self.receive_command(parent).request_id,44)
++        reply=runtime.receive(timeout=7);self.assertEqual(reply.error.code,core.UNAVAILABLE)
++        self.assertEqual(reply.request_id,44);self.assertEqual(runtime.proc.wait(timeout=2),2)
++        self.assertEqual(parent.recv(1),b'');self.assertEqual(self.rows(),[])
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(ParticipantChannelTests(n) for n in ParticipantChannelTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

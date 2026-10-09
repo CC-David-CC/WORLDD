@@ -1,0 +1,50 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 16
+    Start 16: identity-participant-channel
+
+16: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/source/tests/core/test_participant_channel.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build/spatial-participant-runtime-probe"
+16: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build
+16: Environment variables: 
+16:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/source
+16: Test timeout computed to be: 120
+16: test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key (__main__.ParticipantChannelTests.test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key) ... ERROR
+16: 
+16: ======================================================================
+16: ERROR: test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key (__main__.ParticipantChannelTests.test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key)
+16: ----------------------------------------------------------------------
+16: Traceback (most recent call last):
+16:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/source/tests/core/test_participant_channel.py", line 81, in test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key
+16:     runtime,parent,peer,auth,batch,config=self.ready_private()
+16:                                           ^^^^^^^^^^^^^^^^^^^^
+16:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/source/tests/core/test_participant_channel.py", line 62, in ready_private
+16:     self.send_update(parent,authenticated=auth)
+16:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/source/tests/core/test_participant_channel.py", line 49, in send_update
+16:     parent.sendall(frame(pb.ParticipantUpdate(protocol_version=1,request_id=request_id,**operation)))
+16: BrokenPipeError: [Errno 32] Broken pipe
+16: 
+16: ----------------------------------------------------------------------
+16: Ran 1 test in 0.333s
+16: 
+16: FAILED (errors=1)
+1/1 Test #16: identity-participant-channel .....***Failed    0.48 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.48 sec
+
+The following tests FAILED:
+	 16 - identity-participant-channel (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-channel-baseline-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

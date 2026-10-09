@@ -1,0 +1,7 @@
+{
+  "host": "sb16",
+  "source_files": 275,
+  "exit_code": 2,
+  "stderr": "Invalid authority participant configuration\n",
+  "interpretation": "Baseline rejects inherited configuration before channel authentication; original BrokenPipe failure preserved."
+}

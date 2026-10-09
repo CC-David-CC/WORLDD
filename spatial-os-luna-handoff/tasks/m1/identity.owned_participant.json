@@ -10,9 +10,9 @@
   "integrated": false,
   "evidence": "evidence/owned-participant-2026-10-09",
   "baseline": "Both hosts reproduced missing start protection and unsupported attachment. Independent children confirmed execution in exact owned cgroups without approval.",
-  "focused": "Corrected output02 passed339 Debug checks across21suites and51harness on both hosts. No failures or skips. Runtime sanitizer qualification running.",
+  "focused": "Both hosts passed339checks21suites51harness in Debug and runtime ASan/UBSan;0failures0skips.",
   "remaining": [
-    "Complete both focused profiles and full qualification on both hosts.",
+    "Complete full qualification on both hosts.",
     "Connect worldd and workspaced through a private inherited participant channel.",
     "Implement fencing, checked recovery reconciliation, and exact generation retirement."
   ],

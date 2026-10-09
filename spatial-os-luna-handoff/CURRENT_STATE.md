@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-09: Owned participant sanitizer checks pass; private child channel enters qualification
+
+Owned participant candidate01 passed both focused profiles on both hosts.
+Each profile passed 339 checks across 21 suites and 51 harness checks.
+No case failed or skipped. All 274 source hashes and 41 locked hashes match.
+Full qualification continues on the same frozen binaries. Completed focused tests are not repeated.
+
+Launch authorization candidate03 passed full Debug qualification on both hosts.
+Each host passed 1328 core checks across 86 suites, 51 harness checks, and 151 P10 cases.
+No Debug case failed or skipped. Full runtime sanitizer qualification remains active.
+
+Both hosts reproduced rejection of inherited participant configuration in the old runtime.
+The original broken-pipe test failures remain preserved with independent child exit diagnostics.
+Private child-channel candidate01 adds bounded Protobuf transport without child signing keys or direct TLS.
+Seventeen new checks cover real issuer transitions, revocation, malformed peers, descriptor identity, and exec inheritance.
+Both-host Debug builds have started. No candidate qualification result is claimed yet.
+The candidate preserves all prior test files and 41 locked files.
+
+No new candidate source is integrated.
+The production supervisor relay must distinguish child consumption from parent receipt.
+World and broker integration, fencing, checked recovery, M02, and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Supervisor owns the launch participant; registry full matrix passes
 
 The isolated coordinator now owns the real participant worker and its issuer connection.

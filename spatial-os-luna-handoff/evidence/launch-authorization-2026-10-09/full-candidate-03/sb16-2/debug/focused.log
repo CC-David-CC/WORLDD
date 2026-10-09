@@ -1,0 +1,56 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 12
+    Start 12: identity-launch-authorization
+
+12: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/source/tests/core/test_launch_authorization.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build/spatial-issuer-client"
+12: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build
+12: Environment variables: 
+12:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-full-03/source
+12: Test timeout computed to be: 180
+12: test_supervisor_authorizes_exact_service_connection_through_production_client (__main__.LaunchAuthorizationTests.test_supervisor_authorizes_exact_service_connection_through_production_client) ... ok
+12: test_other_service_connection_cannot_consume_authorization (__main__.LaunchAuthorizationTests.test_other_service_connection_cannot_consume_authorization) ... ok
+12: test_wrong_signers_cannot_authorize_launch (__main__.LaunchAuthorizationTests.test_wrong_signers_cannot_authorize_launch) ... ok
+12: test_completion_cannot_cross_supervisor_connections (__main__.LaunchAuthorizationTests.test_completion_cannot_cross_supervisor_connections) ... ok
+12: test_replayed_nonce_cannot_repeat_authorization (__main__.LaunchAuthorizationTests.test_replayed_nonce_cannot_repeat_authorization) ... ok
+12: test_supervisor_rotation_invalidates_unused_authorization (__main__.LaunchAuthorizationTests.test_supervisor_rotation_invalidates_unused_authorization) ... ok
+12: test_authorization_consumption_and_activation_roll_back_together (__main__.LaunchAuthorizationTests.test_authorization_consumption_and_activation_roll_back_together) ... ok
+12: test_starting_one_generation_invalidates_other_prior_approvals (__main__.LaunchAuthorizationTests.test_starting_one_generation_invalidates_other_prior_approvals) ... ok
+12: test_stale_supervision_or_registration_cannot_authorize (__main__.LaunchAuthorizationTests.test_stale_supervision_or_registration_cannot_authorize) ... ok
+12: test_rotation_between_challenge_and_proof_denies_authorization (__main__.LaunchAuthorizationTests.test_rotation_between_challenge_and_proof_denies_authorization) ... ok
+12: test_new_authorization_cannot_bypass_an_active_generation (__main__.LaunchAuthorizationTests.test_new_authorization_cannot_bypass_an_active_generation) ... ok
+12: test_launch_and_service_incarnation_reuse_cannot_change_approved_context (__main__.LaunchAuthorizationTests.test_launch_and_service_incarnation_reuse_cannot_change_approved_context) ... ok
+12: test_concurrent_identical_proofs_return_one_durable_authorization (__main__.LaunchAuthorizationTests.test_concurrent_identical_proofs_return_one_durable_authorization) ... ok
+12: test_failed_authorization_insert_preserves_state_and_fresh_proof_can_retry (__main__.LaunchAuthorizationTests.test_failed_authorization_insert_preserves_state_and_fresh_proof_can_retry) ... ok
+12: test_restart_rejects_old_challenge_and_unused_service_authorization (__main__.LaunchAuthorizationTests.test_restart_rejects_old_challenge_and_unused_service_authorization) ... ok
+12: test_explicit_v7_migration_preserves_binding_without_granting_launch (__main__.LaunchAuthorizationTests.test_explicit_v7_migration_preserves_binding_without_granting_launch) ... ok
+12: test_failed_v7_migration_rolls_back (__main__.LaunchAuthorizationTests.test_failed_v7_migration_rolls_back) ... ok
+12: test_authorization_retry_does_not_complete_pending_revocation (__main__.LaunchAuthorizationTests.test_authorization_retry_does_not_complete_pending_revocation) ... ok
+12: test_client_rejects_substituted_launch_challenge (__main__.LaunchAuthorizationTests.test_client_rejects_substituted_launch_challenge) ... ok
+12: test_client_rejects_substituted_authorization_or_invalid_proof (__main__.LaunchAuthorizationTests.test_client_rejects_substituted_authorization_or_invalid_proof) ... ok
+12: test_client_denial_consumes_launch_context (__main__.LaunchAuthorizationTests.test_client_denial_consumes_launch_context) ... ok
+12: test_client_unsolicited_authorization_is_rejected (__main__.LaunchAuthorizationTests.test_client_unsolicited_authorization_is_rejected) ... ok
+12: test_client_configuration_remains_private_and_unchanged_for_delayed_readers (__main__.LaunchAuthorizationTests.test_client_configuration_remains_private_and_unchanged_for_delayed_readers) ... ok
+12: 
+12: ----------------------------------------------------------------------
+12: Ran 23 tests in 15.292s
+12: 
+12: OK
+1/1 Test #12: identity-launch-authorization ....   Passed   15.43 sec
+
+The following tests passed:
+	identity-launch-authorization
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  15.44 sec
