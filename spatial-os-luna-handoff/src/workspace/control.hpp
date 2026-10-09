@@ -14,6 +14,8 @@ public:
     workspace::v1::ApplicationControlReleased release(const workspace::v1::ApplicationControlRelease&);
     // Uses already prepared issuer state. Performs no issuer exchange or process reaping.
     void tick();
+    bool cancellation_settled() const;
+    bool empty() const { return leases_.empty(); }
 private:
     struct Reservation { Lease lease; bool revoked = false; };
     ExecutionStore& store_;

@@ -17,14 +17,14 @@ Existing components provide partial implementation where CURRENT_STATE.md record
 The mandatory profile is tasks/spatial-m1.json.
 See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
 
-The latest fully qualified production increment is checked application process termination at 94c6cb6.
-Both hosts passed Debug and runtime ASan/UBSan qualification for that increment.
-Each profile passed 1,192 core checks across 69 suites, 51 harness checks, and 151 P10 cases.
-No final case failed or skipped. All 242 integrated source hashes match both host manifests.
-The issuer registry, service proof, and durable barrier are integrated.
-Combined world and broker participation remains isolated during full qualification.
-Trusted supervisor recovery and cross-host participant witnesses remain subsequent requirements.
-See evidence/process-termination-2026-10-09 for exact sources, commands, and results.
+The latest fully qualified production increment is the reviewed authority supervisor candidate02.
+Both hosts passed full Debug and runtime ASan/UBSan qualification.
+Each profile passed 1,383 core checks across 91 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. All 281 integrated source hashes match the qualified manifests.
+The 77-file increment includes participant runtime, owned scopes, launch authorization, and the supervisor event loop.
+The separate broker native handoff remains isolated during qualification.
+Complete trusted recovery, fencing, and cross-host cancellation remain required.
+See evidence/authority-supervisor-2026-10-09 for exact sources, review, commands, and results.
 The original P00-P10 baseline and walkthrough evidence remain in evidence/walkthroughs-2026-10-07.
 
 Qualified components now include actor identity, persistent grants, confined execution, and several native X isolation boundaries.

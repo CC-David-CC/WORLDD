@@ -19,6 +19,9 @@ public:
     void set_tick(std::function<void()> callback);
     void tick();
     void pump();
+    // Call only from the outer scheduler, after handlers and native cancellation finish.
+    void settle();
+    void shutdown();
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

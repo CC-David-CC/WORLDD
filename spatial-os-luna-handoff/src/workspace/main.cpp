@@ -185,6 +185,9 @@ int main(int argc, char** argv) {
             }
             store.reap();
             controls.tick();
+            // Reconciliation and reaping can destroy credentials and lose their native cleanup reply.
+            // Check that result before this iteration can acknowledge issuer revocation.
+            if (native) native->check();
         };
         for (;;) {
             enforce();
@@ -199,19 +202,32 @@ int main(int argc, char** argv) {
                 if (length > spatial::max_frame_bytes) throw std::runtime_error("Excessive workspace frame");
                 if (input.size() >= length+4) {
                     spatial::workspace::v1::Request request; spatial::workspace::v1::Reply reply;
+                    const auto cancellation = authority ? authority->cancellation_sequence() : 0;
                     if (!request.ParseFromArray(input.data()+4, static_cast<int>(length))) {
                         reply.set_protocol_version(1); reply.mutable_error()->set_code(spatial::wire::INVALID_ARGUMENT);
                         reply.mutable_error()->set_message("Malformed broker protobuf payload");
                     } else reply = dispatch_broker(request, store, authority.get(), controls);
                     enforce();
+                    if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
+                            !request.has_management() && !request.has_control_release()) {
+                        reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+                        reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
+                        reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
+                    }
                     input.erase(0, length+4); input_started = Clock::now();
                     enqueue(reply);
                 }
             }
             if (eof && output.empty()) {
                 if (!input.empty()) throw std::runtime_error("Truncated workspace frame");
+                store.stop_all();
+                if (authority) {
+                    if (!controls.empty()) throw std::runtime_error("Workspace control release remains unresolved");
+                    authority->shutdown(enforce);
+                }
                 return 0;
             }
+            if (authority) authority->settle(output.empty() && controls.cancellation_settled());
             pollfd fds[2]{{!eof && output.empty() ? STDIN_FILENO : -1, POLLIN, 0},
                           {STDOUT_FILENO, static_cast<short>(output.empty() ? 0 : POLLOUT), 0}};
             const int ready = poll(fds, 2, 10);

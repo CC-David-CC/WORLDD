@@ -37,12 +37,12 @@ class NativeClient:
             payload = self.exact(size)
             if prefix[0] != 1: raise Denied(payload[:prefix[1]].decode(errors='replace'))
             self.setup = payload
+            name = b'SPATIAL-SECURITY'
+            header, _ = self.request(98,struct.pack(endian+'HH',len(name),0)+padded(name))
+            if not header[8]: raise AssertionError('SPATIAL-SECURITY is missing')
+            self.opcode = header[9]
         except BaseException:
             self.close(); raise
-        name = b'SPATIAL-SECURITY'
-        header, _ = self.request(98,struct.pack(endian+'HH',len(name),0)+padded(name))
-        if not header[8]: self.close(); raise AssertionError('SPATIAL-SECURITY is missing')
-        self.opcode = header[9]
 
     def exact(self, size):
         result = b''

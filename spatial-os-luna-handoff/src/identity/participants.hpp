@@ -47,6 +47,18 @@ inline void validate_participant_record(const v1::AuthorityParticipantRecord& re
         require(participant_detail::domain_key(record.participant().domains(i-1)) <
                 participant_detail::domain_key(record.participant().domains(i)), "Participant domains are not canonical");
 }
+inline void validate_launch_begin(const v1::AuthorityLaunchBegin& request, const std::string& issuer) {
+    using participant_detail::require;
+    validate_message(request);
+    const auto& service = request.service();
+    require(request.has_service() && service.issuer_id() == issuer && service.issuer_incarnation().size() == 32 &&
+            service.connection_binding().size() == 32 && service.service_incarnation().size() == 32 &&
+            service.security_revision() <= INT64_MAX && request.supervision_revision() > 0 &&
+            request.supervision_revision() <= INT64_MAX && request.launch_id().size() == 32 &&
+            request.has_previous_generation() && request.previous_generation() <= INT64_MAX,
+            "Invalid authority launch context");
+    validate_participant_record(service.registration(), issuer);
+}
 inline void validate_registry_page(const v1::AuthorityRegistryPage& page, const std::string& issuer) {
     using participant_detail::require;
     validate_message(page);

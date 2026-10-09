@@ -1,5 +1,7 @@
 """Real issuer proofs enter worldd and use its native actor implementation."""
 import os
+import io
+import grants_pb2 as grants
 from pathlib import Path
 import select
 import socket
@@ -12,7 +14,7 @@ from google.protobuf import text_format
 import core_pb2 as core
 import issuer_pb2 as pb
 import world_session_pb2 as session
-from harness.wire import frame, make_request, result_value
+from harness.wire import frame, make_request, result_value, read_message
 from harness.oracles import pose
 from harness.probe import Probe
 from test_issuer_client import ClientFixture
@@ -83,15 +85,54 @@ class WorldProcess:
 
 class WorldIdentityFixture(ClientFixture):
     def setUp(self):
-        super().setUp();self.worlds=[]
+        super().setUp();self.worlds=[];self.registered_services={};self.registry_revision=0
         self.addCleanup(lambda:[world.close() for world in reversed(self.worlds)])
         self.owner_peer=self.ready()
         self.record=self.decide(self.owner_peer,self.enroll(self.owner_peer)).enrollment
         self.identity=self.claims(self.record,self.info)
+        def retain_service_logs():
+            if not os.environ.get('SPATIAL_SECURITY_EVIDENCE'):return
+            target=Path(os.environ['SPATIAL_SECURITY_EVIDENCE']);target.mkdir(parents=True,exist_ok=True)
+            for path in self.root.glob('*.log'):
+                (target/(type(self).__name__+'-'+self._testMethodName+'-'+path.name)).write_bytes(path.read_bytes())
+        self.addCleanup(retain_service_logs)
+    def configure_participant(self, config, domains):
+        # Registration is explicit fixture provisioning. Production still rejects missing service configuration.
+        identity=tuple(sorted(domain.SerializeToString() for domain in domains))
+        if identity not in self.registered_services:
+            number=len(self.registered_services)
+            key,public=self.key('service-'+str(number))
+            definition=pb.AuthorityParticipant(id=os.urandom(32),public_key=public,domains=domains)
+            peer=self.connect()
+            try:
+                op=pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(
+                    participant=definition,expected_registry_revision=self.registry_revision))
+                reply=self.execute(peer,self.challenge(peer,op));self.assertTrue(reply.HasField('participant'),reply)
+            finally:peer.close()
+            self.registry_revision=reply.participant.registered_revision
+            self.registered_services[identity]=(number,key,definition.id,self.registry_revision)
+        number,key,participant_id,revision=self.registered_services[identity]
+        client=self.root/('registered-client-'+str(number)+'.textproto')
+        client.write_bytes(Path(config.issuer_client_config).read_bytes());client.chmod(0o600)
+        config.issuer_client_config=str(client)
+        participant=pb.AuthorityParticipantRuntimeConfig(protocol_version=1,issuer_client_config=str(client),
+            private_key_path=str(key),participant_id=participant_id,registered_revision=revision)
+        path=self.root/('registered-participant-'+str(number)+'.textproto')
+        path.write_text(text_format.MessageToString(participant));path.chmod(0o600)
+        config.participant_runtime_config=str(path)
+    def configure_world_participant(self, config, state):
+        # Initialize or read the real stopped world before registering its persisted identity.
+        result=subprocess.run([str(WORLD),'--state-dir',str(state)],input=frame(make_request('world.info',{})),
+            capture_output=True,timeout=6)
+        self.assertEqual(result.returncode,0,result.stderr)
+        reply=read_message(io.BytesIO(result.stdout),core.Reply);self.assertFalse(reply.HasField('error'),reply)
+        self.configure_participant(config,[grants.Domain(kind=grants.WORLD,id=result_value(reply)['world_id'])])
     def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None):
         config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(self.config_file()),admission=admission)
         if admitted:config.admitted_actor_ids.append(self.identity.actor_id)
         if grants:config.actor_grants.add(actor_id=self.identity.actor_id,grants=grants)
+        state=state or self.root/f'world-state-{len(self.worlds)}'
+        self.configure_world_participant(config,state)
         path=self.root/f'world-{len(self.worlds)}.textproto';path.write_text(text_format.MessageToString(config));path.chmod(0o600)
         world=WorldProcess(self,path,state or self.root/f'world-state-{len(self.worlds)}',native)
         self.worlds.append(world);world.management('system.hello');return world

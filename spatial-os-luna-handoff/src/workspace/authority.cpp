@@ -2,7 +2,7 @@
 #include "workspace/store.hpp"
 #include "authority/store.hpp"
 #include "identity/issuer_client.hpp"
-#include "identity/issuer_watch.hpp"
+#include "identity/participant_runtime.hpp"
 #include "identity/tls_support.hpp"
 #include "identity/bootstrap.hpp"
 #include "identity/keys.hpp"
@@ -43,7 +43,7 @@ a::Domain domain(const std::string& workspace) {
 struct WorkspaceAuthority::Impl {
     std::map<std::string, std::unique_ptr<authority::Store>> stores;
     std::unique_ptr<identity::IssuerClient> client;
-    std::unique_ptr<identity::IssuerWatcher> watcher;
+    std::unique_ptr<identity::ParticipantRuntime> participant;
     std::string issuer, issuer_key;
     std::optional<std::string> bootstrap_credential;
     bool bootstrap_revoked = false;
@@ -51,7 +51,10 @@ struct WorkspaceAuthority::Impl {
     std::set<std::string> revoked;
     std::map<std::tuple<std::string, std::string, int, std::vector<std::string>>, bool> decisions;
     std::uint64_t observed_revision = 0;
-    bool ready = false, broken = false, changed = true;
+    std::optional<std::uint64_t> consumed_revision;
+    std::uint64_t acknowledged_revision = 0, generation = 0, command_sequence = 0, cancellation_sequence = 0;
+    id::ParticipantCommand::OperationCase pending_operation = id::ParticipantCommand::OPERATION_NOT_SET;
+    bool ready = false, broken = false, changed = true, closing = false, released = false;
     Clock::time_point last_exchange = Clock::now();
     std::function<void()> observer = [] {};
 
@@ -60,7 +63,10 @@ struct WorkspaceAuthority::Impl {
         require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &config), "Invalid workspace authority configuration");
         validate_message(config);
         require(config.protocol_version() == 1 && config.bindings_size() > 0 && config.bindings_size() <= 64, "Configure one to 64 workspace authorities");
+        require(!config.participant_runtime_config().empty(), "Workspace participant configuration is required");
+        std::vector<a::Domain> domains;
         for (const auto& binding : config.bindings()) {
+            domains.push_back(domain(binding.workspace()));
             require(!stores.contains(binding.workspace()), "Duplicate workspace authority binding");
             execution.workspace_get(binding.workspace());
             stores.emplace(binding.workspace(), std::make_unique<authority::Store>(binding.authority_directory(), domain(binding.workspace()), false));
@@ -70,22 +76,48 @@ struct WorkspaceAuthority::Impl {
         const auto reply = client->call(request);
         require(reply.has_info(), "Workspace issuer is unavailable"); issuer = reply.info().issuer_id();
         issuer_key = reply.info().public_key();
-        watcher = std::make_unique<identity::IssuerWatcher>(config.issuer_client_config());
+        participant = std::make_unique<identity::ParticipantRuntime>(config.participant_runtime_config(), domains);
         client->set_tick([this] { tick(); });
         const auto deadline = Clock::now()+client->timeout()+std::chrono::milliseconds(100);
-        while (!ready && !broken && Clock::now() < deadline) { tick(); std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
-        require(ready && !broken, "Workspace revocation baseline is unavailable");
+        // Construction has no owned jobs or control reservations to cancel.
+        while (!ready && !broken && Clock::now() < deadline) {
+            tick(); changed = false; settle(true); std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        require(ready && !broken, "Workspace participation is unavailable");
     }
     void invalidate() { decisions.clear(); changed = true; }
-    void fail() { broken = true; active.clear(); invalidate(); }
+    void fail() { broken = true; ++cancellation_sequence; active.clear(); invalidate(); }
     void tick() {
-        if (broken || !watcher) { observer(); return; }
-        if (watcher->failed()) { fail(); observer(); return; }
-        while (const auto update = watcher->poll()) {
-            if (update->has_error() || update->batch().issuer_id() != issuer) { fail(); observer(); return; }
-            const auto& batch = update->batch(); observed_revision = std::max(observed_revision, batch.head_revision());
-            if (batch.initial()) ready = true;
+        if (broken || !participant) { observer(); return; }
+        if (participant->failed()) { fail(); observer(); return; }
+        while (auto update = participant->poll()) {
+            if (update->has_authenticated()) {
+                if (update->authenticated().issuer_id() != issuer) { fail(); observer(); return; }
+                continue;
+            }
+            if (!update->has_revocations()) {
+                if (pending_operation == id::ParticipantCommand::OPERATION_NOT_SET || update->request_id() != command_sequence) {
+                    fail(); observer(); return;
+                }
+                const auto expected = pending_operation; pending_operation = id::ParticipantCommand::OPERATION_NOT_SET;
+                if (update->has_error()) {
+                    if (expected == id::ParticipantCommand::kActivate && update->error().code() == wire::REVISION_CONFLICT) continue;
+                    fail(); observer(); return;
+                }
+                if (expected == id::ParticipantCommand::kActivate && update->has_activated()) {
+                    generation = update->activated().generation(); acknowledged_revision = update->activated().applied_revision(); ready = true;
+                } else if (expected == id::ParticipantCommand::kApplied && update->has_applied()) {
+                    acknowledged_revision = update->applied().applied_revision();
+                } else if (expected == id::ParticipantCommand::kRelease && update->has_released()) released = true;
+                else { fail(); observer(); return; }
+                continue;
+            }
+            const auto& batch = update->revocations();
+            if (batch.issuer_id() != issuer) { fail(); observer(); return; }
+            observed_revision = std::max(observed_revision, batch.head_revision());
+            consumed_revision = batch.through_revision();
             for (const auto& event : batch.events()) {
+                ++cancellation_sequence;
                 if (bootstrap_credential && event.target().kind() == id::CREDENTIAL_TARGET &&
                         event.target().id() == *bootstrap_credential) bootstrap_revoked = true;
                 if (event.target().kind() == id::ACTOR_TARGET) {
@@ -94,6 +126,34 @@ struct WorkspaceAuthority::Impl {
             }
         }
         observer();
+    }
+    void settle(bool effects_settled) {
+        // Called only after dispatch, process reconciliation, and control cancellation.
+        // A wait callback can consume another revision after reconciliation. changed blocks that acknowledgement.
+        if (!effects_settled || changed || broken || released || !consumed_revision ||
+                pending_operation != id::ParticipantCommand::OPERATION_NOT_SET) return;
+        id::ParticipantCommand command;
+        if (!ready) {
+            if (*consumed_revision < observed_revision) return;
+            command.mutable_activate()->set_synchronized_revision(*consumed_revision);
+        } else if (acknowledged_revision < *consumed_revision) {
+            auto* applied = command.mutable_applied(); applied->set_generation(generation);
+            applied->set_from_revision(acknowledged_revision); applied->set_through_revision(acknowledged_revision+1);
+        } else if (closing && *consumed_revision >= observed_revision) {
+            command.mutable_release()->set_generation(generation);
+            command.mutable_release()->set_applied_revision(acknowledged_revision);
+        } else return;
+        require(command_sequence < UINT64_MAX, "Workspace participant sequence exhausted");
+        command.set_request_id(++command_sequence); pending_operation = command.operation_case();
+        participant->submit(std::move(command));
+    }
+    void shutdown(const std::function<void()>& reconcile) {
+        closing = true;
+        const auto deadline = Clock::now()+std::max(client->timeout()*2, std::chrono::milliseconds(2000));
+        while (!released && !broken && Clock::now() < deadline) {
+            tick(); reconcile(); settle(true); std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if (!released) throw std::runtime_error("Workspace participant release remains unresolved");
     }
     id::IssuerReply exchange(id::IssuerRequest request) {
         if (broken) throw WorldError(wire::UNAVAILABLE, "Workspace identity service is disabled");
@@ -120,7 +180,7 @@ struct WorkspaceAuthority::Impl {
     }
     bool identity_active(const a::ActorRef& actor) const {
         const auto found = active.find(actor.actor_id());
-        return !broken && actor.issuer_id() == issuer && !revoked.contains(actor.actor_id()) && found != active.end() && found->second;
+        return ready && !broken && !closing && actor.issuer_id() == issuer && !revoked.contains(actor.actor_id()) && found != active.end() && found->second;
     }
     void prepare(const std::string& workspace, const a::ActorRef& actor, const a::ActorRef* extra = nullptr) {
         principal(actor);
@@ -333,6 +393,9 @@ a::BootstrapReport WorkspaceAuthority::apply_bootstrap(const pb::BootstrapApplyR
     impl_->bootstrap_live(request.principal()); return report;
 }
 void WorkspaceAuthority::tick() { impl_->tick(); }
+void WorkspaceAuthority::settle(bool effects_settled) { impl_->settle(effects_settled); }
+void WorkspaceAuthority::shutdown(const std::function<void()>& reconcile) { impl_->shutdown(reconcile); }
+std::uint64_t WorkspaceAuthority::cancellation_sequence() const { return impl_->cancellation_sequence; }
 void WorkspaceAuthority::keepalive() {
     if (!impl_->broken && Clock::now()-impl_->last_exchange >= std::chrono::seconds(1)) {
         id::IssuerRequest request; request.mutable_info();

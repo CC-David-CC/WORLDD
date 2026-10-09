@@ -16,6 +16,7 @@ message NativeLaunchConfig {
 
 message WorkspaceAuthorityBinding { string workspace = 1; string authority_directory = 2; }
 message WorkspaceAuthorityConfig {
+  string participant_runtime_config = 4;
   uint32 protocol_version = 1;
   string issuer_client_config = 2;
   repeated WorkspaceAuthorityBinding bindings = 3;

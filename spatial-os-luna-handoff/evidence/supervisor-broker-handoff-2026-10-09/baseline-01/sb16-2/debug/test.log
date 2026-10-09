@@ -1,0 +1,37 @@
+Running as unit: spatial-broker-handoff-3eba341ebb024fb0b8a67b616cc414cb.service; invocation ID: 01df53e67a574a57afc0a1266f780ebe
+test_supervised_real_broker_receives_native_configuration (__main__.BrokerHandoffTests.test_supervised_real_broker_receives_native_configuration) ... FAIL
+
+======================================================================
+FAIL: test_supervised_real_broker_receives_native_configuration (__main__.BrokerHandoffTests.test_supervised_real_broker_receives_native_configuration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_broker_handoff.py", line 36, in test_supervised_real_broker_receives_native_configuration
+    initial = self.message(channel, launch.AuthorityLaunchReply)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-02/source/tests/native/test_authority_supervisor.py", line 96, in message
+    size = struct.unpack('!I', exact(4))[0]
+                               ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-02/source/tests/native/test_authority_supervisor.py", line 93, in exact
+    self.assertTrue(chunk, 'Supervisor or child closed reply channel')
+AssertionError: b'' is not true : Supervisor or child closed reply channel
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_broker_handoff.py", line 42, in test_supervised_real_broker_receives_native_configuration
+    self.fail('Supervised broker native handoff failed: ' + str(error) + '\n' + diagnostic)
+AssertionError: Supervised broker native handoff failed: b'' is not true : Supervisor or child closed reply channel
+[libprotobuf ERROR google/protobuf/text_format.cc:337] Error parsing text-format spatial.supervisor.v1.AuthoritySupervisorConfig: 34:24: Message type "spatial.supervisor.v1.AuthoritySupervisorConfig" has no field named "broker_native_target_fd".
+authority supervisor: Malformed supervisor configuration
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.489s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 648ms
+CPU time consumed: 479ms
+Memory peak: 1.5M
+Memory swap peak: 0B

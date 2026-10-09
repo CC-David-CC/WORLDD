@@ -10,18 +10,16 @@
   "new_tests": 17,
   "baseline": "Both hosts confirmed the missing executable. Both builds and 51 harness checks passed.",
   "review": "Primary cumulative review of all 77 changed files is recorded in integration-primary-review-02.json. Exact candidate hashes match all 281 files. All 41 locked files remain unchanged. Six existing assertion lists changed explicitly as documented. Complete four-profile qualification remains required before integration.",
-  "qualification": "Both hosts passed focused Debug and runtime sanitizers: 383 checks across 25 suites and 51 harness checks per profile. Both also passed full Debug: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases per host; zero failures or skips.",
-  "integrated": false,
+  "qualification": "Focused and full Debug/runtime ASan/UBSan passed on sb16 and sb16-2.",
+  "integrated": true,
   "remaining": [
-    "Run both-host Debug and runtime sanitizer qualification.",
-    "Resolve every implementation or fixture failure without weakening assertions.",
-    "Run cumulative qualification.",
-    "Wire worldd and workspaced with native credential handoff.",
-    "Implement fencing, checked recovery, and issuer retirement."
+    "Complete real broker participant and world/compositor native credential handoff.",
+    "Implement fencing, checked recovery, and issuer retirement.",
+    "Qualify complete distributed revocation and recovery."
   ],
   "native_scope_review": "Ownership loss confirmed on both hosts in both profiles. The isolated correction passed all three ownership checks on both hosts in Debug and runtime sanitizers.",
-  "cumulative": "Full Debug passed on both hosts. Full runtime sanitizer qualification passed on sb16 and remains active on sb16-2. Each completed profile passed 1383 core checks, 51 harness checks, and 151 P10 cases; zero failures or skips. No source integrated.",
+  "cumulative": "All four full host/profile runs passed: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases each. Zero failures or skips.",
   "broker_handoff_task": "tasks/m1/identity.supervisor_broker_handoff.json",
   "integration_test_audit": "evidence/authority-supervisor-2026-10-09/integration-test-audit-02.json",
-  "integration_preparation": "The guarded 77-file patch reconstructs all 281 candidate hashes. Primary review is complete. Full qualification remains incomplete; --apply is unrun. Post-integration stage audit and host-adoption scripts are prepared and syntax checked, but unrun."
+  "integration_preparation": "The guard applied all 77 reviewed files after verifying both-host full raw evidence. All 281 hashes and 41 locks match. Stage audit and host adoption follow."
 }

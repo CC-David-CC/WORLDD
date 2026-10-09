@@ -4,6 +4,7 @@
 #include <string>
 
 namespace spatial {
+namespace supervisor { class NativeScope; }
 class NativeLaunch;
 class NativeCredential {
 public:
@@ -24,6 +25,7 @@ private:
 // The owner outlives every application credential. A broken channel fails closed.
 class NativeLaunch {
 public:
+    // Consumes sealed_config_fd while reading its configuration.
     explicit NativeLaunch(int sealed_config_fd);
     ~NativeLaunch();
     NativeLaunch(const NativeLaunch&) = delete;
@@ -34,6 +36,7 @@ public:
     const std::string& server_id() const;
 private:
     friend class NativeCredential;
+    friend class supervisor::NativeScope;
     void revoke(const std::string& id) noexcept;
     struct Impl;
     std::unique_ptr<Impl> impl_;

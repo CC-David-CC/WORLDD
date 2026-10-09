@@ -10,6 +10,7 @@ import struct
 import subprocess
 import time
 import unittest
+from unittest.mock import patch
 import broker_pb2 as broker
 import core_pb2 as core
 import security_pb2 as security
@@ -197,12 +198,16 @@ class NativeLaunchTests(unittest.TestCase):
     def test_broker_loss_revokes_native_access(self):
         self.launch_fixture(); process = self.launch(); record = self.record(process)
         self.broker.proc.kill(); self.broker.proc.wait(timeout=3)
+        self.wait_native_denied(bytes.fromhex(record['cookie']), 'Native access survived broker death')
+
+    def wait_native_denied(self, cookie, message):
         deadline = time.monotonic()+3
         while True:
-            try: peer = native.NativeClient(self.display, bytes.fromhex(record['cookie']))
+            try: peer = native.NativeClient(self.display, cookie)
             except native.Denied: break
+            except (ConnectionError, EOFError): pass # Closure is not a successful denial witness.
             else: peer.close()
-            self.assertLess(time.monotonic(), deadline, 'Native access survived broker death')
+            self.assertLess(time.monotonic(), deadline, message)
             time.sleep(.01)
 
     def test_execution_revocation_revokes_native_access(self):
@@ -215,14 +220,30 @@ class NativeLaunchTests(unittest.TestCase):
     def test_exit_revokes_credentials_without_a_wait_request(self):
         self.launch_fixture(); process = self.launch(); record = self.record(process)
         (self.broker.state/'applications'/process.process_id/'data/release').touch()
-        deadline = time.monotonic()+3
-        while True:
-            try: peer = native.NativeClient(self.display, bytes.fromhex(record['cookie']))
-            except native.Denied: break
-            else: peer.close()
-            self.assertLess(time.monotonic(), deadline, 'Exited application retained its native credential')
-            time.sleep(.01)
+        self.wait_native_denied(bytes.fromhex(record['cookie']), 'Exited application retained its native credential')
         self.assertEqual(self.broker.call('process.wait', id=process.process_id, timeout_seconds=0), {'exit_code':0})
+
+    def test_revocation_during_extension_discovery_requires_fresh_denial(self):
+        self.launch_fixture(); process = self.launch(); record = self.record(process)
+        original = native.NativeClient.request; interrupted = []
+        def request(client, opcode, *args, **kwargs):
+            if opcode == 98 and not interrupted:
+                (self.broker.state/'applications'/process.process_id/'data/release').touch()
+                self.assertTrue(select.select([client.stream], [], [], 3)[0])
+                self.assertEqual(client.stream.recv(1), b'')
+                interrupted.append(True)
+            return original(client, opcode, *args, **kwargs)
+        with patch.object(native.NativeClient, 'request', request):
+            self.wait_native_denied(bytes.fromhex(record['cookie']), 'Fresh connection never received protocol denial')
+        self.assertEqual(interrupted, [True])
+        self.assertEqual(self.broker.call('process.wait', id=process.process_id, timeout_seconds=0), {'exit_code':0})
+
+    def test_denial_wait_does_not_accept_a_live_credential(self):
+        self.launch_fixture(); process = self.launch(); record = self.record(process)
+        with self.assertRaisesRegex(AssertionError, 'Live credential never became denied'):
+            self.wait_native_denied(bytes.fromhex(record['cookie']), 'Live credential never became denied')
+        self.assertEqual(self.connect(bytes.fromhex(record['cookie'])).inspect().application, process.process_id.encode())
+        self.release(process)
 
     def test_native_broker_revocation_stops_configured_execution(self):
         self.launch_fixture(); process = self.launch(); record = self.record(process)

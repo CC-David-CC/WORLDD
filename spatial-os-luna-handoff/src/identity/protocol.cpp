@@ -21,6 +21,8 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             result->add_capabilities("identity.authority-registry/v1");
             result->add_capabilities("identity.authority-participation-proof/v1");
             result->add_capabilities("identity.authority-barrier/v1");
+            result->add_capabilities("identity.authority-supervisor-registry/v1");
+            result->add_capabilities("identity.authority-launch-authorization/v1");
         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
         else if (request.has_execute()) {
@@ -30,6 +32,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             else if (result.has_profile()) *reply.mutable_profile() = result.profile();
             else if (result.has_participant()) *reply.mutable_participant() = result.participant();
             else if (result.has_registry()) *reply.mutable_registry() = result.registry();
+            else if (result.has_supervision()) *reply.mutable_supervision() = result.supervision();
             else if (result.has_barrier()) *reply.mutable_authority_barrier() = result.barrier();
             else *reply.mutable_identity_status() = result.identity_status();
         } else if (request.has_enrollment_begin()) *reply.mutable_challenge() = issuer.enrollment_begin(request.enrollment_begin());
@@ -40,6 +43,12 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
         else if (request.has_authentication_begin()) *reply.mutable_challenge() = issuer.authentication_begin(request.authentication_begin());
         else if (request.has_authentication_complete()) *reply.mutable_authentication() = issuer.authentication_complete(request.authentication_complete());
         else if (request.has_revocations()) *reply.mutable_revocations() = issuer.revocations(request.revocations());
+        else if (request.has_authority_launch_begin() || request.has_authority_launch_complete()) {
+            if (!connection || connection->binding.size() != 32)
+                throw spatial::WorldError(spatial::wire::FORBIDDEN, "Launch proof requires a TLS connection context");
+            if (request.has_authority_launch_begin()) *reply.mutable_challenge() = issuer.authority_launch_begin(request.authority_launch_begin(), *connection);
+            else *reply.mutable_authority_launch_authorization() = issuer.authority_launch_complete(request.authority_launch_complete(), *connection);
+        }
         else if (request.has_authority_authentication_begin() || request.has_authority_authentication_complete()) {
             if (!connection || connection->binding.size() != 32)
                 throw spatial::WorldError(spatial::wire::FORBIDDEN, "Service identity proof requires a TLS connection context");

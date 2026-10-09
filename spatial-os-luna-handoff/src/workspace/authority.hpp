@@ -23,6 +23,9 @@ public:
     authority::v1::BootstrapBinding revoke_bootstrap(const workspace::v1::BootstrapRevokeRequest&);
     authority::v1::BootstrapReport apply_bootstrap(const workspace::v1::BootstrapApplyRequest&);
     void tick();
+    void settle(bool effects_settled);
+    void shutdown(const std::function<void()>& reconcile);
+    std::uint64_t cancellation_sequence() const;
     void keepalive();
     bool consume_changes();
     void set_observer(std::function<void()> observer);

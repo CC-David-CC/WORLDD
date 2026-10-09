@@ -1,5 +1,32 @@
 # Implementation status
 
+## 2026-10-09: Reviewed supervisor increment is integrated after all four profiles pass
+
+Supervisor candidate02 passed full Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. The integration guard verified raw reports and all candidate hashes.
+The primary-reviewed 77-file increment is now applied to production source.
+All 281 production source hashes match the qualified candidate. All 41 locked files remain unchanged.
+Read evidence/authority-supervisor-2026-10-09/integration-applied-02.json and full-candidate-02.
+Commit, stage audit, and host adoption complete the integration checkpoint.
+
+Both hosts confirmed the absent broker handoff against unchanged supervisor binaries in both profiles.
+The separate broker candidate02 passed sb16 focused Debug: 112 checks across 11 suites plus 51 harness checks.
+The corrected observer control and both real confined native application tests passed.
+sb16 runtime sanitizer qualification and sb16-2 Debug qualification remain active.
+Full cumulative broker qualification is queued behind each exact focused driver.
+The broker handoff changes are not part of this integrated supervisor source.
+
+Two qualification drivers exited between recorded successful commands and their next commands.
+Remote process checks confirmed their original PIDs were absent before continuation.
+The cause of driver exit remains unproven. No test failure was converted to success.
+Continuations preserved completed build/core results and ran only unrun steps.
+They now use detached processes with persistent log files.
+
+M02 remains incomplete. Broker/world credential handoff, fencing, and checked recovery remain required.
+Physical hardware, shared-world workflows, real model tasks, and full M1 qualification remain unfinished.
+
+
 ## 2026-10-09: sb16 full supervisor passes; broker observer correction starts
 
 Supervisor candidate02 passed full Debug and runtime ASan/UBSan on sb16.

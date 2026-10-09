@@ -50,11 +50,13 @@ class BrokerProcess:
         return reply
 
     def close(self):
-        self.stream.close()
+        if self.stream.fileno()<0:return
         if self.proc.poll() is None:
+            try:self.stream.shutdown(socket.SHUT_WR)
+            except OSError:pass
             try: self.proc.wait(timeout=5)
             except subprocess.TimeoutExpired: self.proc.kill(); self.proc.wait(timeout=3); raise
-        self.log.close()
+        self.stream.close();self.log.close()
 
 
 class WorkspaceAuthorityTests(WorldIdentityFixture):
@@ -91,6 +93,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         client_path.write_bytes(self.config_file(endpoint_port=issuer_port).read_bytes()); client_path.chmod(0o600)
         config = broker.WorkspaceAuthorityConfig(protocol_version=1, issuer_client_config=str(client_path),
             bindings=[broker.WorkspaceAuthorityBinding(workspace='one', authority_directory=str(directory))])
+        self.configure_participant(config,[grant.Domain(kind=grant.WORKSPACE,id=binding.workspace) for binding in config.bindings])
         path = self.root/'workspace-policy.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
         self.broker = BrokerProcess(self, self.execution, path)
         world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)

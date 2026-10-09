@@ -667,6 +667,12 @@ void Actors::step(double target) {
     now_ = target;
 }
 void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic_seconds); }
+bool Actors::cancellation_settled() const {
+    if (flushing_input_ || !control_releases_.empty() || (renderer_ && renderer_->busy()) || (broker_ && broker_->busy())) return false;
+    return std::none_of(actors_.begin(), actors_.end(), [](const auto& item) {
+        return item.second.close_pending || item.second.interaction_reset_pending;
+    });
+}
 void Actors::flush_input() {
     poll_control();
     refresh_authority();

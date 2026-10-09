@@ -29,6 +29,8 @@ class BootstrapWorkspaceFixture(world_bootstrap.BootstrapWorldFixture):
         if domain_id is not None: terms.scope.domain.id=domain_id
         profile=issuer.BootstrapProfile(id=name,grants=[issuer.BootstrapGrantTemplate(id='project',terms=terms)])
         operation=issuer.IssuerOperation(profile_put=issuer.BootstrapProfilePut(profile=profile,expected_revision=revision))
+        # Setup may outlast the issuer's idle limit. Start a new proof, without replaying a mutation.
+        self.owner_peer.close();self.owner_peer=self.connect()
         reply=self.execute(self.owner_peer,self.challenge(self.owner_peer,operation))
         self.assertTrue(reply.HasField('profile'),reply);return reply.profile
 

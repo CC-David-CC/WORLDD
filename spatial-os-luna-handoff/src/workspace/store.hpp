@@ -30,6 +30,7 @@ public:
     void set_native_launch(NativeLaunch* native);
     void reconcile_authority();
     void reap();
+    void stop_all();
     wire::ProcessLaunchReply launch(const workspace::v1::LaunchRequest& request);
     wire::ProcessWaitReply wait(const wire::ProcessWaitRequest& request);
 private:

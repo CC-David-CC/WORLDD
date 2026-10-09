@@ -59,11 +59,11 @@
   "current_supervisor": {
     "candidate": 2,
     "source_files": 281,
-    "integrated": false,
+    "integrated": true,
     "review": "Primary review of all 77 changed files is complete.",
     "focused": "Both hosts passed Debug and runtime sanitizers: 383 checks across 25 suites plus 51 harness checks.",
     "full_debug": "Both hosts passed 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases; zero failures or skips.",
-    "full_runtime_sanitizers": "Active on both hosts. No final result claimed.",
+    "full_runtime_sanitizers": "Passed on both hosts: 1383 core checks, 51 harness checks, and 151 P10 cases per host; zero failures or skips.",
     "evidence": "evidence/authority-supervisor-2026-10-09",
     "next_component": "tasks/m1/identity.supervisor_broker_handoff.json"
   }

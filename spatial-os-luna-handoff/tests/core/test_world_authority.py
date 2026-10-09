@@ -117,6 +117,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
         self.assertEqual(result.returncode, 0, result.stderr)
         config = session.WorldIdentityConfig(protocol_version=1, issuer_client_config=str(self.config_file(endpoint_port=issuer_port)),
             admission=admission, authority_directory=str(directory))
+        self.configure_world_participant(config,state)
         config_path = self.root/f'scoped-{number}.textproto'; config_path.write_text(text_format.MessageToString(config)); config_path.chmod(0o600)
         runtime = core.RuntimeConfig(); text_format.Parse((WORLD.parent/'runtime.textproto').read_text(), runtime)
         runtime.input_timeout = 10

@@ -42,9 +42,10 @@ bool dns_name(const std::string& name) {
 bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& reply) {
     return (request.has_hello() && reply.has_hello()) || (request.has_info() && reply.has_info()) ||
         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin() ||
-            request.has_authority_authentication_begin()) && reply.has_challenge()) ||
+            request.has_authority_authentication_begin() || request.has_authority_launch_begin()) && reply.has_challenge()) ||
         (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
-            reply.has_participant() || reply.has_registry() || reply.has_authority_barrier())) ||
+            reply.has_participant() || reply.has_registry() || reply.has_authority_barrier() || reply.has_supervision())) ||
+        (request.has_authority_launch_complete() && reply.has_authority_launch_authorization()) ||
         (request.has_profile_read() && reply.has_profile()) ||
         (request.has_enrollment_complete() && reply.has_enrollment()) ||
         (request.has_authentication_complete() && reply.has_authentication()) ||
@@ -118,7 +119,7 @@ struct IssuerClient::Impl {
         Clock::time_point expires;
     };
     std::map<std::string, ServiceChallenge> service_challenges;
-    std::string service_binding, issuer_incarnation;
+    std::string service_binding, issuer_incarnation, launch_binding;
     bool service_authenticated = false;
     std::optional<v1::AuthorityAuthenticationResult> service_identity;
     std::optional<v1::AuthorityActivationState> own_activation, latest_activation;
@@ -129,6 +130,104 @@ struct IssuerClient::Impl {
         Clock::time_point expires;
     };
     std::map<std::string, BarrierChallenge> barrier_challenges;
+    std::map<std::string, BarrierChallenge> supervision_challenges;
+
+    struct LaunchChallenge {
+        v1::SignRequest signing_request;
+        v1::AuthorityLaunchChallenge context;
+        Clock::time_point expires;
+    };
+    std::map<std::string, LaunchChallenge> launch_challenges;
+    void remember_launch_challenge(const v1::AuthorityLaunchBegin& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
+        require(reply.nonce().size() == 32 && reply.has_signing_request() &&
+                reply.signing_request().purpose() == v1::AUTHORITY_LAUNCH_AUTHORIZATION && reply.signing_request().has_payload(),
+                "Invalid launch challenge envelope");
+        LaunchChallenge pending; pending.signing_request = reply.signing_request(); auto& value = pending.context;
+        require(value.ParseFromString(pending.signing_request.payload()), "Invalid launch challenge payload");
+        try { validate_message(value); validate_launch_begin(request, config.issuer_id()); }
+        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid launch challenge fields"); }
+        require(value.protocol_version() == 1 && value.issuer_id() == config.issuer_id() &&
+                value.issuer_incarnation() == request.service().issuer_incarnation() && value.issuer_incarnation().size() == 32 &&
+                value.nonce() == reply.nonce() && value.connection_binding().size() == 32 && value.has_request() &&
+                value.request().SerializeAsString() == request.SerializeAsString() && value.supervisor_public_key().size() == 32 &&
+                value.supervisor_public_key() != request.service().registration().participant().public_key() &&
+                value.supervisor_public_key() != config.issuer_public_key() && value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 &&
+                value.audience() == "identityd/authority-launch/v1", "Invalid launch challenge context");
+        require((issuer_incarnation.empty() || issuer_incarnation == value.issuer_incarnation()) &&
+                (launch_binding.empty() || launch_binding == value.connection_binding()) &&
+                (service_binding.empty() || service_binding == value.connection_binding()), "Launch challenge changed connection context");
+        require(!launch_challenges.contains(reply.nonce()), "Duplicate launch challenge nonce");
+        std::erase_if(launch_challenges, [](const auto& item) { return item.second.expires <= Clock::now(); });
+        require(launch_challenges.size() < 256, "Too many launch challenges");
+        pending.expires = sent + std::chrono::milliseconds(value.lifetime_ms());
+        require(Clock::now() < pending.expires, "Launch challenge expired in transit");
+        issuer_incarnation = value.issuer_incarnation(); launch_binding = value.connection_binding();
+        launch_challenges.emplace(reply.nonce(), std::move(pending));
+    }
+    void check_launch_result(const v1::AuthorityLaunchComplete& request, const v1::AuthorityLaunchAuthorization& result,
+                             const std::optional<LaunchChallenge>& pending) {
+        require(pending && Clock::now() < pending->expires, "Unrequested or expired launch success");
+        const auto& expected = pending->context;
+        require(result.has_request() && result.request().SerializeAsString() == expected.request().SerializeAsString() &&
+                result.authorization_id().size() == 32 && result.supervisor_public_key() == expected.supervisor_public_key() &&
+                result.generation() <= INT64_MAX && (result.generation() == 0 || (result.request().previous_generation() < INT64_MAX &&
+                result.generation() == result.request().previous_generation()+1)), "Invalid launch authorization result");
+        try {
+            v1::VerifyRequest verification; *verification.mutable_content() = pending->signing_request;
+            *verification.mutable_proof() = request.proof(); verification.set_expected_public_key(expected.supervisor_public_key());
+            require(verify(verification), "Launch authorization accepted an invalid supervisor proof");
+        } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid launch authorization proof"); }
+    }
+    void remember_supervision_challenge(const v1::IssuerOperation& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
+        require(reply.nonce().size() == 32 && reply.has_signing_request() &&
+                reply.signing_request().purpose() == v1::ISSUER_ADMINISTRATION && reply.signing_request().has_payload(),
+                "Invalid supervisor challenge envelope");
+        BarrierChallenge pending; pending.signing_request = reply.signing_request(); auto& value = pending.context;
+        require(value.ParseFromString(pending.signing_request.payload()), "Invalid supervisor challenge payload");
+        try { validate_message(value); }
+        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid supervisor challenge fields"); }
+        require(value.protocol_version() == 1 && value.issuer_id() == config.issuer_id() && value.incarnation().size() == 32 &&
+                value.nonce() == reply.nonce() && value.owner_public_key().size() == 32 && value.has_operation() &&
+                value.operation().SerializeAsString() == request.SerializeAsString() && value.lifetime_ms() >= 50 &&
+                value.lifetime_ms() <= 60000 && value.audience() == "identityd/admin/v1", "Invalid supervisor challenge context");
+        if (request.has_supervisor_bind()) {
+            const auto& bind = request.supervisor_bind();
+            require(bind.participant_id().size() == 32 && bind.public_key().size() == 32 && bind.registered_revision() > 0 &&
+                    bind.registered_revision() <= INT64_MAX && bind.has_expected_revision() && bind.expected_revision() <= INT64_MAX,
+                    "Invalid supervisor binding request");
+        } else require(request.has_supervisor_read() && request.supervisor_read().participant_id().size() == 32,
+                       "Invalid supervisor read request");
+        require(issuer_incarnation.empty() || issuer_incarnation == value.incarnation(), "Issuer incarnation changed on one connection");
+        require(!supervision_challenges.contains(reply.nonce()), "Duplicate supervisor challenge nonce");
+        std::erase_if(supervision_challenges, [](const auto& item) { return item.second.expires <= Clock::now(); });
+        require(supervision_challenges.size() < 256, "Too many supervisor challenges");
+        pending.expires = sent + std::chrono::milliseconds(value.lifetime_ms());
+        require(Clock::now() < pending.expires, "Supervisor challenge expired in transit");
+        issuer_incarnation = value.incarnation(); supervision_challenges.emplace(reply.nonce(), std::move(pending));
+    }
+    void check_supervision_result(const v1::IssuerExecute& request, const v1::AuthoritySupervisorBinding& result,
+                                  const std::optional<BarrierChallenge>& pending) {
+        require(pending && Clock::now() < pending->expires, "Unrequested or expired supervisor success");
+        try {
+            v1::VerifyRequest verification; *verification.mutable_content() = pending->signing_request;
+            *verification.mutable_proof() = request.proof(); verification.set_expected_public_key(pending->context.owner_public_key());
+            require(verify(verification), "Supervisor operation accepted an invalid owner proof");
+            validate_participant_record(result.registration(), config.issuer_id());
+        } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid supervisor registration or proof"); }
+        require(result.public_key().size() == 32 && result.public_key() != config.issuer_public_key() &&
+                result.public_key() != pending->context.owner_public_key() &&
+                result.public_key() != result.registration().participant().public_key() &&
+                result.revision() > 0 && result.revision() <= INT64_MAX, "Invalid supervisor binding identity or revision");
+        const auto& operation = pending->context.operation();
+        if (operation.has_supervisor_bind()) {
+            const auto& bind = operation.supervisor_bind();
+            require(result.registration().participant().id() == bind.participant_id() &&
+                    result.registration().registered_revision() == bind.registered_revision() && result.public_key() == bind.public_key() &&
+                    bind.expected_revision() < INT64_MAX && result.revision() == bind.expected_revision()+1,
+                    "Supervisor binding does not match owner request");
+        } else require(result.registration().participant().id() == operation.supervisor_read().participant_id(),
+                       "Supervisor read returned another participant");
+    }
 
     void remember_barrier_challenge(const v1::IssuerOperation& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
         require(reply.nonce().size() == 32 && reply.has_signing_request() &&
@@ -266,7 +365,8 @@ struct IssuerClient::Impl {
                 value.request().service_incarnation() == request.service_incarnation() &&
                 value.connection_binding().size() == 32 && value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 &&
                 value.audience() == "identityd/authority-participation/v1", "Invalid service challenge context");
-        require((service_binding.empty() || service_binding == value.connection_binding()) &&
+        require((launch_binding.empty() || launch_binding == value.connection_binding()) &&
+                (service_binding.empty() || service_binding == value.connection_binding()) &&
                 (issuer_incarnation.empty() || issuer_incarnation == value.issuer_incarnation()),
                 "Service challenge changed connection context");
         require(!service_challenges.contains(reply.nonce()), "Duplicate service challenge nonce");
@@ -390,6 +490,17 @@ struct IssuerClient::Impl {
             auto node = barrier_challenges.extract(request.execute().nonce());
             if (!node.empty()) barrier_pending = std::move(node.mapped());
         }
+        std::optional<BarrierChallenge> supervision_pending;
+        if (request.has_execute()) {
+            // Consume even when the issuer denies the operation.
+            auto node = supervision_challenges.extract(request.execute().nonce());
+            if (!node.empty()) supervision_pending = std::move(node.mapped());
+        }
+        std::optional<LaunchChallenge> launch_pending;
+        if (request.has_authority_launch_complete()) {
+            auto node = launch_challenges.extract(request.authority_launch_complete().nonce());
+            if (!node.empty()) launch_pending = std::move(node.mapped());
+        }
         std::optional<ServiceChallenge> service_pending;
         if (request.has_authority_authentication_complete()) {
             // Consume before I/O. A typed denial must not leave a reusable proof context.
@@ -416,8 +527,14 @@ struct IssuerClient::Impl {
             require(outcome_matches(request, reply), "Issuer reply has the wrong outcome");
             if (request.has_challenge() && request.challenge().has_barrier_read())
                 remember_barrier_challenge(request.challenge(), reply.challenge(), sent);
+            if (request.has_challenge() && (request.challenge().has_supervisor_bind() || request.challenge().has_supervisor_read()))
+                remember_supervision_challenge(request.challenge(), reply.challenge(), sent);
+            if (supervision_pending) require(reply.has_supervision(), "Supervisor operation returned another outcome");
+            if (reply.has_supervision()) check_supervision_result(request.execute(), reply.supervision(), supervision_pending);
             if (barrier_pending) require(reply.has_authority_barrier(), "Barrier query returned another outcome");
             if (reply.has_authority_barrier()) check_barrier_result(request.execute(), reply.authority_barrier(), barrier_pending);
+            if (request.has_authority_launch_begin()) remember_launch_challenge(request.authority_launch_begin(), reply.challenge(), sent);
+            if (request.has_authority_launch_complete()) check_launch_result(request.authority_launch_complete(), reply.authority_launch_authorization(), launch_pending);
             if (reply.has_authority_activation()) check_activation_result(request, reply.authority_activation());
             if (request.has_authority_authentication_begin())
                 remember_service_challenge(request.authority_authentication_begin(), reply.challenge(), sent);

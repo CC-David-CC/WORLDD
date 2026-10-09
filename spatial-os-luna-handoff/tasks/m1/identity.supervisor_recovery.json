@@ -63,9 +63,9 @@
   "current_supervisor": {
     "candidate": 2,
     "source_files": 281,
-    "integrated": false,
+    "integrated": true,
     "full_debug": "Passed on both hosts: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases per host.",
-    "full_runtime_sanitizers": "Active on both hosts.",
+    "full_runtime_sanitizers": "Passed on both hosts: 1383 core checks, 51 harness checks, and 151 P10 cases per host; zero failures or skips.",
     "primary_review": "evidence/authority-supervisor-2026-10-09/integration-primary-review-02.json",
     "evidence": "evidence/authority-supervisor-2026-10-09/full-candidate-02",
     "remaining": "Broker and world native handoff, fencing, verified recovery, and issuer retirement remain required."

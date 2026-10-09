@@ -5,16 +5,16 @@
   "status": "in_progress",
   "contract": "docs/SUPERVISOR_BROKER_NATIVE_HANDOFF.txt",
   "evidence": "evidence/supervisor-broker-handoff-2026-10-09",
-  "baseline": "sb16 confirmed the missing broker_native_target_fd parser field in both unchanged-source profiles. sb16-2 baseline remains queued behind its exact supervisor worker.",
+  "baseline": "Both hosts confirmed the missing broker_native_target_fd parser field in Debug and runtime sanitizers against unchanged supervisor candidate02.",
   "production_changed": false,
   "remaining": [
-    "Complete sb16-2 unchanged-source baseline and preserve original candidate01 results.",
+    "Complete both-host corrected candidate02 qualification. Candidate01 was not run on sb16-2 after the known observer defect.",
     "Qualify the isolated sealed broker configuration handoff and corrected descriptor observer.",
     "Verify real native application identity and selective cleanup.",
     "Test both hosts in Debug and runtime sanitizers.",
     "Complete broker participant and world/compositor integration."
   ],
-  "correction_tests": "Candidate01 sb16 Debug: real broker startup and six regression methods passed; two regression methods errored on unprivileged descriptor inspection. Focused102 and runtime sanitizer unrun. Candidate02 adds a reviewed privileged observer and a ninth regression method proving open/closed descriptor observation. Candidate02 qualification is active on sb16.",
+  "correction_tests": "Candidate02 sb16 focused Debug passed 112 checks across 11 suites and 51 harness checks, including all nine regressions. sb16 sanitizer and sb16-2 Debug are active. Full cumulative gates are queued. Candidate01 failure remains preserved.",
   "correction_test_evidence": "evidence/supervisor-broker-handoff-2026-10-09/observer-review-02.json",
   "isolated_candidate": 2
 }

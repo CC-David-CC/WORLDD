@@ -54,6 +54,13 @@ pb::ApplicationControlReleased ControlLeases::release(const pb::ApplicationContr
     groups_.erase(found->second.lease.application().SerializeAsString()); leases_.erase(found);
     pb::ApplicationControlReleased result; result.set_id(request.id()); return result;
 }
+bool ControlLeases::cancellation_settled() const {
+    for (const auto& [id, reservation] : leases_) {
+        (void)id;
+        if (reservation.revoked) return false;
+    }
+    return true;
+}
 void ControlLeases::tick() {
     for (auto& [id, reservation] : leases_) {
         (void)id;

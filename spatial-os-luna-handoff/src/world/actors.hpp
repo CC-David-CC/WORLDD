@@ -32,6 +32,7 @@ public:
     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
     void tick(double monotonic_seconds);
     void flush_input();
+    bool cancellation_settled() const;
     const wire::Entity* find(const std::string& id) const;
     bool room_in_use(const std::string& id) const;
     bool manual_clock() const { return manual_clock_; }

@@ -3,7 +3,7 @@
 #include "world/actor_tls.hpp"
 #include "platform/broker.hpp"
 #include "identity/issuer_client.hpp"
-#include "identity/issuer_watch.hpp"
+#include "identity/participant_runtime.hpp"
 #include "identity/keys.hpp"
 #include "identity/bootstrap.hpp"
 #include "identity/tls_support.hpp"
@@ -15,6 +15,8 @@
 #include <cerrno>
 #include <fcntl.h>
 #include <poll.h>
+#include <iostream>
+#include <source_location>
 #include <sstream>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -25,6 +27,9 @@ namespace {
 namespace pb = identity::v1;
 using Clock = std::chrono::steady_clock;
 struct CancellationFailure : std::runtime_error { using std::runtime_error::runtime_error; };
+struct SupersededAuthorityRead : WorldError {
+    SupersededAuthorityRead() : WorldError(wire::UNAVAILABLE, "Authority read was superseded by a newer security revision") {}
+};
 void require(bool condition, const char* message) { if (!condition) throw std::invalid_argument(message); }
 std::string random_binding() {
     std::string bytes(32, '\0');
@@ -49,6 +54,7 @@ struct Channel {
     std::string input, output, token;
     std::size_t sent = 0;
     bool needs_observation = false;
+    std::uint64_t cancellation_generation = 0;
     Clock::time_point input_started = Clock::now(), output_started = Clock::now();
     std::optional<Pending> pending;
     std::optional<pb::ActorCredential> completing;
@@ -87,7 +93,11 @@ struct IdentitySessions::Impl {
     BrokerClient* broker;
     pb::WorldIdentityConfig config;
     std::unique_ptr<identity::IssuerClient> client;
-    std::unique_ptr<identity::IssuerWatcher> watcher;
+    std::unique_ptr<identity::ParticipantRuntime> participant;
+    std::optional<std::uint64_t> consumed_revision;
+    std::uint64_t generation = 0, acknowledged_revision = 0, command_sequence = 0;
+    pb::ParticipantCommand::OperationCase pending_operation = pb::ParticipantCommand::OPERATION_NOT_SET;
+    bool closing = false, released = false;
     pb::IssuerInfo issuer;
     std::unique_ptr<WorldAuthority> authority;
     std::uint64_t observed_revision = 0;
@@ -130,12 +140,18 @@ struct IdentitySessions::Impl {
         require(info.has_info(), "World issuer identity is unavailable"); issuer = info.info();
         if (!config.authority_directory().empty())
             authority = std::make_unique<WorldAuthority>(config.authority_directory(), world.info().world_id(), issuer.issuer_id());
-        watcher = std::make_unique<identity::IssuerWatcher>(config.issuer_client_config());
-        const auto deadline = Clock::now()+client->timeout()+std::chrono::milliseconds(100);
-        while (!ready && !broken && Clock::now() < deadline) { tick(); std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
-        require(ready && !broken, "World revocation baseline is unavailable");
+        require(std::filesystem::path(config.participant_runtime_config()).is_absolute(), "World authority participant configuration is required");
+        spatial::authority::v1::Domain domain; domain.set_kind(spatial::authority::v1::WORLD); domain.set_id(world.info().world_id());
+        participant = std::make_unique<identity::ParticipantRuntime>(config.participant_runtime_config(),
+            std::vector<spatial::authority::v1::Domain>{domain});
+        const auto deadline = Clock::now()+std::max(client->timeout()*2, std::chrono::milliseconds(2000));
+        while (!ready && !broken && Clock::now() < deadline) {
+            tick(); actors.flush_input(); settle(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        require(ready && !broken, "World authority participation is unavailable");
     }
     void disconnect(Channel& channel) {
+        ++channel.cancellation_generation;
         const auto token = std::move(channel.token); channel.token.clear();
         channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.completing.reset(); channel.needs_observation = false;
         if (!channel.output.empty()) { channel.output.clear(); channel.close_transport(); }
@@ -144,12 +160,13 @@ struct IdentitySessions::Impl {
             catch (const std::exception&) { throw CancellationFailure("Cannot confirm native actor cancellation"); }
         }
     }
-    void fail() {
+    void fail(const std::source_location location = std::source_location::current()) {
+        if (!broken) std::cerr << "worldd: identity service disabled at identity_sessions.cpp:" << location.line() << '\n';
         broken = true;
         for (auto& channel : channels) disconnect(*channel);
     }
     void tick() {
-        if (ticking || broken || !watcher) return;
+        if (ticking || broken || !participant) return;
         ticking = true;
         struct Reset { bool& value; ~Reset() { value = false; } } reset{ticking};
         // Detect controller loss during component waits without dispatching new actions.
@@ -172,12 +189,33 @@ struct IdentitySessions::Impl {
                 disconnect(*channel); channel->close_transport(); channel->input.clear(); channel->output.clear();
             }
         }
-        if (watcher->failed()) { fail(); return; }
-        while (auto update = watcher->poll()) {
-            if (update->has_error() || update->batch().issuer_id() != issuer.issuer_id()) { fail(); return; }
-            observed_revision = std::max(observed_revision, update->batch().head_revision());
-            if (update->batch().initial()) { ready = true; continue; }
-            for (const auto& event : update->batch().events()) {
+        if (participant->failed()) { fail(); return; }
+        while (auto update = participant->poll()) {
+            if (update->has_authenticated()) {
+                if (update->authenticated().issuer_id() != issuer.issuer_id()) { fail(); return; }
+                continue;
+            }
+            if (!update->has_revocations()) {
+                if (pending_operation == pb::ParticipantCommand::OPERATION_NOT_SET || update->request_id() != command_sequence) { fail(); return; }
+                const auto expected = pending_operation; pending_operation = pb::ParticipantCommand::OPERATION_NOT_SET;
+                if (update->has_error()) {
+                    if (expected == pb::ParticipantCommand::kActivate && update->error().code() == wire::REVISION_CONFLICT) continue;
+                    fail(); return;
+                }
+                if (expected == pb::ParticipantCommand::kActivate && update->has_activated()) {
+                    generation = update->activated().generation(); acknowledged_revision = update->activated().applied_revision(); ready = true;
+                } else if (expected == pb::ParticipantCommand::kApplied && update->has_applied()) {
+                    acknowledged_revision = update->applied().applied_revision();
+                } else if (expected == pb::ParticipantCommand::kRelease && update->has_released()) released = true;
+                else { fail(); return; }
+                continue;
+            }
+            const auto& batch = update->revocations();
+            if (batch.issuer_id() != issuer.issuer_id()) { fail(); return; }
+            observed_revision = std::max(observed_revision, batch.head_revision());
+            consumed_revision = batch.through_revision();
+            if (batch.initial()) continue;
+            for (const auto& event : batch.events()) {
                 if (authority && event.target().kind() == pb::ACTOR_TARGET) authority->revoked(event.target().id());
                 const auto affected = [&](const pb::ActorCredential& claims) {
                     return event.target().id() == (event.target().kind() == pb::ACTOR_TARGET ? claims.actor_id() : claims.credential_id());
@@ -190,6 +228,34 @@ struct IdentitySessions::Impl {
             }
             sync_authority();
         }
+    }
+    void settle() {
+        // Never called by an issuer, renderer, or broker wait callback.
+        if (broken || released || !consumed_revision || pending_operation != pb::ParticipantCommand::OPERATION_NOT_SET ||
+                !actors.cancellation_settled()) return;
+        pb::ParticipantCommand command;
+        if (!ready) {
+            if (*consumed_revision < observed_revision) return;
+            command.mutable_activate()->set_synchronized_revision(*consumed_revision);
+        } else if (acknowledged_revision < *consumed_revision) {
+            auto* applied = command.mutable_applied(); applied->set_generation(generation);
+            applied->set_from_revision(acknowledged_revision); applied->set_through_revision(acknowledged_revision+1);
+        } else if (closing && *consumed_revision >= observed_revision) {
+            command.mutable_release()->set_generation(generation);
+            command.mutable_release()->set_applied_revision(acknowledged_revision);
+        } else return;
+        require(command_sequence < UINT64_MAX, "World participant sequence exhausted");
+        command.set_request_id(++command_sequence); pending_operation = command.operation_case();
+        participant->submit(std::move(command));
+    }
+    void shutdown() {
+        closing = true;
+        for (auto& channel : channels) { disconnect(*channel); channel->close_transport(); }
+        const auto deadline = Clock::now()+std::max(client->timeout()*2, std::chrono::milliseconds(2000));
+        while (!released && !broken && Clock::now() < deadline) {
+            tick(); actors.flush_input(); settle(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if (!released) throw CancellationFailure("World participant release remains unresolved");
     }
     pb::IssuerReply exchange(pb::IssuerRequest request) {
         if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
@@ -207,17 +273,19 @@ struct IdentitySessions::Impl {
         }
         return reply;
     }
-    void identity_matches(const pb::IdentityStatus& status, const pb::ActorCredential& claims) {
+    void identity_matches(const pb::IdentityStatus& status, const pb::ActorCredential& claims, std::uint64_t request_revision) {
         if (status.issuer_id() != issuer.issuer_id() || status.actor_id() != claims.actor_id() ||
                 status.credential_id() != claims.credential_id() || status.kind() != claims.kind() || status.security_revision() > INT64_MAX ||
-                status.security_revision() < observed_revision) {
+                status.security_revision() < request_revision) {
             fail(); throw WorldError(wire::UNAVAILABLE, "Issuer returned inconsistent identity context");
         }
+        if (status.security_revision() < observed_revision) throw SupersededAuthorityRead();
         observed_revision = std::max(observed_revision, status.security_revision());
     }
     pb::IdentityStatus current(pb::SignedCredential credential, pb::ActorCredential claims) {
         pb::IssuerRequest request; *request.mutable_credential_check() = credential;
-        const auto status = exchange(std::move(request)).identity_status(); identity_matches(status, claims);
+        const auto request_revision = observed_revision;
+        const auto status = exchange(std::move(request)).identity_status(); identity_matches(status, claims, request_revision);
         if (!status.active() || status.actor_revoked() || status.credential_revoked())
             throw WorldError(wire::UNAUTHORIZED, "Actor credential is revoked");
         return status;
@@ -267,10 +335,13 @@ struct IdentitySessions::Impl {
         while (next != ids.end()) {
             pb::IssuerRequest request; auto* query = request.mutable_actor_status();
             while (next != ids.end() && query->actor_ids_size() < 128) query->add_actor_ids(*next++);
+            const auto request_revision = observed_revision;
             const auto batch = exchange(std::move(request)).actor_status();
-            if ((revision && *revision != batch.security_revision()) || batch.security_revision() < observed_revision) {
-                fail(); throw WorldError(wire::UNAVAILABLE, "Actor status changed during authority preparation");
+            if (batch.security_revision() < request_revision) {
+                fail(); throw WorldError(wire::UNAVAILABLE, "Issuer returned an actor snapshot older than the requested context");
             }
+            if ((revision && *revision != batch.security_revision()) || batch.security_revision() < observed_revision)
+                throw SupersededAuthorityRead();
             revision = batch.security_revision();
             states.insert(states.end(), batch.actors().begin(), batch.actors().end());
         }
@@ -356,7 +427,7 @@ struct IdentitySessions::Impl {
         }
         sync_authority(); bootstrap_live(channel, completing); return report;
     }
-    pb::WorldSessionReply dispatch(Channel& channel, const std::string& bytes) {
+    pb::WorldSessionReply dispatch(Channel& channel, const std::string& bytes, bool& self_revocation_receipt) {
         pb::WorldSessionReply reply; reply.set_protocol_version(1);
         try {
             pb::WorldSessionRequest request;
@@ -364,7 +435,7 @@ struct IdentitySessions::Impl {
             validate_message(request);
             if (request.protocol_version() != 1) throw WorldError(wire::UNSUPPORTED_VERSION, "Unsupported world session protocol");
             if (request.has_close()) { disconnect(channel); reply.mutable_closed()->set_closed(true); return reply; }
-            if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
+            if (broken || !ready || closing) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
             if (request.has_begin()) {
                 if (!channel.token.empty()) throw WorldError(wire::IN_USE, "Channel already has an actor");
                 if (channel.pending && Clock::now() < channel.pending->expires)
@@ -402,8 +473,9 @@ struct IdentitySessions::Impl {
                     ~ClearCompletion() { channel.completing.reset(); }
                 } completion{channel};
                 pb::IssuerRequest complete; *complete.mutable_authentication_complete() = request.complete();
+                const auto request_revision = observed_revision;
                 const auto result = exchange(std::move(complete)).authentication();
-                identity_matches(result.identity(), pending->claims);
+                identity_matches(result.identity(), pending->claims, request_revision);
                 if (result.audience() != audience || result.channel_binding() != pending->binding ||
                         !result.identity().active() || result.identity().actor_revoked() || result.identity().credential_revoked()) {
                     fail(); throw WorldError(wire::UNAVAILABLE, "Issuer authentication context mismatch");
@@ -433,6 +505,7 @@ struct IdentitySessions::Impl {
                 const auto actor = principal(channel.claims);
                 try {
                     current(channel.credential, channel.claims);
+                } catch (const SupersededAuthorityRead&) { throw;
                 } catch (const WorldError&) { disconnect(channel); throw; }
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "World session was revoked");
                 if (request.has_bootstrap_bind()) {
@@ -453,6 +526,7 @@ struct IdentitySessions::Impl {
                 }
                 try {
                     prepare(actor, request.has_delegate() && !request.delegate().has_workspace() ? &request.delegate().terms().subject() : nullptr);
+                } catch (const SupersededAuthorityRead&) { throw;
                 } catch (const WorldError&) { disconnect(channel); throw; }
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "World session was revoked");
                 if (request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
@@ -487,7 +561,7 @@ struct IdentitySessions::Impl {
                         bootstrap_live(channel, false); return reply;
                     }
                     if (!authority) throw WorldError(wire::UNIMPLEMENTED, "Persistent world authority is not configured");
-                    // Copies remain valid if a watcher callback clears the channel during issuer I/O.
+                    // Copies remain valid if a participant callback clears the channel during issuer I/O.
                     const auto credential = channel.credential; const auto claims = channel.claims;
                     if (request.has_bootstrap_bind()) {
                         const auto& operation = request.bootstrap_bind();
@@ -542,6 +616,10 @@ struct IdentitySessions::Impl {
                         const auto& operation = request.revoke();
                         require(operation.has_seq() && operation.has_expected_revision(), "Sequence and authority revision are required");
                         *reply.mutable_grant() = authority->revoke(actor, operation.id(), operation.expected_revision());
+                        // This local commit can remove the caller's own admission or observation.
+                        // Its receipt confirms that completed mutation; it grants no continuing access.
+                        self_revocation_receipt = (config.admission() == pb::EXPLICIT_ACTORS && !authority->allowed(actor, "enter")) ||
+                            (channel.needs_observation && !authority->allowed(actor, "observe"));
                         sync_authority();
                     }
                 } else {
@@ -623,13 +701,22 @@ struct IdentitySessions::Impl {
             if (length > max_frame_bytes) { drop(); continue; }
             if (channel.input.size() < length+4) continue;
             const auto bytes = channel.input.substr(4, length); channel.input.erase(0, length+4); channel.input_started = now;
-            const auto reply = dispatch(channel, bytes);
+            const auto cancellation = channel.cancellation_generation;
+            bool self_revocation_receipt = false;
+            auto reply = dispatch(channel, bytes, self_revocation_receipt);
             if (channel.fd.value < 0) continue;
+            if (cancellation != channel.cancellation_generation && !reply.has_closed() &&
+                    !(self_revocation_receipt && reply.has_grant())) {
+                const auto id = reply.request_id();
+                const auto code = reply.has_error() ? reply.error().code() : wire::UNAUTHORIZED;
+                reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(id);
+                reply.mutable_error()->set_code(code); reply.mutable_error()->set_message("World session changed during operation");
+            }
             std::ostringstream output; write_frame(output, reply); channel.output = output.str(); channel.sent = 0;
             channel.output_started = Clock::now();
         }
         std::erase_if(channels, [](const auto& channel) { return channel->fd.value < 0; });
-        if (listener && !broken) {
+        if (listener && !broken && ready && !closing) {
             const auto fd = listener->accept();
             if (fd >= 0) {
                 auto channel = std::make_unique<Channel>(fd);
@@ -651,4 +738,6 @@ void IdentitySessions::set_tick(std::function<void()> callback) {
 }
 void IdentitySessions::tick() { impl_->tick(); }
 void IdentitySessions::pump() { impl_->pump(); }
+void IdentitySessions::settle() { impl_->settle(); }
+void IdentitySessions::shutdown() { impl_->shutdown(); }
 }

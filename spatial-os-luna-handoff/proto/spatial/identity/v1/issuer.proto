@@ -35,6 +35,18 @@ message AuthorityRegistryPage {
   repeated AuthorityParticipantRecord participants = 3;
   bytes next_after = 4;
 }
+message AuthoritySupervisorBind {
+  bytes participant_id = 1;
+  uint64 registered_revision = 2;
+  bytes public_key = 3;
+  optional uint64 expected_revision = 4;
+}
+message AuthoritySupervisorRead { bytes participant_id = 1; }
+message AuthoritySupervisorBinding {
+  AuthorityParticipantRecord registration = 1;
+  bytes public_key = 2;
+  uint64 revision = 3;
+}
 
 // Service identity proof on the server-derived TLS connection. This does not activate execution.
 message AuthorityAuthenticationBegin {
@@ -122,6 +134,8 @@ message IssuerOperation {
     AuthorityParticipantRegister participant_register = 9;
     AuthorityRegistryRead registry_read = 10;
     AuthorityBarrierRead barrier_read = 11;
+    AuthoritySupervisorBind supervisor_bind = 12;
+    AuthoritySupervisorRead supervisor_read = 13;
   }
 }
 enum ActorKind { ACTOR_KIND_UNSPECIFIED = 0; HUMAN = 1; AGENT = 2; }
@@ -216,7 +230,7 @@ message AuthenticationResult {
   bytes channel_binding = 3;
 }
 message AdminResult {
-  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; AuthorityParticipantRecord participant = 5; AuthorityRegistryPage registry = 6; AuthorityBarrierStatus barrier = 7; }
+  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; AuthorityParticipantRecord participant = 5; AuthorityRegistryPage registry = 6; AuthorityBarrierStatus barrier = 7; AuthoritySupervisorBinding supervision = 8; }
 }
 message IssuerInfoRequest {}
 // Trusted supervisor configuration. Paths are absolute and remain outside Git.
@@ -271,6 +285,31 @@ message RevocationUpdate {
   uint32 protocol_version = 1;
   oneof outcome { RevocationBatch batch = 2; spatial.core.v1.Error error = 3; }
 }
+// Supervisor proof authorizes one exact service connection and retained launch.
+message AuthorityLaunchBegin {
+  AuthorityAuthenticationResult service = 1;
+  uint64 supervision_revision = 2;
+  bytes launch_id = 3;
+  optional uint64 previous_generation = 4;
+}
+message AuthorityLaunchChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes issuer_incarnation = 3;
+  bytes nonce = 4;
+  bytes connection_binding = 5;
+  AuthorityLaunchBegin request = 6;
+  bytes supervisor_public_key = 7;
+  uint32 lifetime_ms = 8;
+  string audience = 9;
+}
+message AuthorityLaunchComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthorityLaunchAuthorization {
+  AuthorityLaunchBegin request = 1;
+  bytes authorization_id = 2;
+  uint64 generation = 3;
+  bytes supervisor_public_key = 4;
+}
 message IssuerRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -293,6 +332,8 @@ message IssuerRequest {
     AuthorityApplied authority_applied = 25;
     AuthorityRelease authority_release = 26;
     AuthorityStateRead authority_state = 27;
+    AuthorityLaunchBegin authority_launch_begin = 28;
+    AuthorityLaunchComplete authority_launch_complete = 29;
   }
 }
 message IssuerReply {
@@ -315,5 +356,42 @@ message IssuerReply {
     AuthorityAuthenticationResult authority_authentication = 23;
     AuthorityActivationState authority_activation = 24;
     AuthorityBarrierStatus authority_barrier = 25;
+    AuthoritySupervisorBinding supervision = 26;
+    AuthorityLaunchAuthorization authority_launch_authorization = 27;
+  }
+}
+
+// Trusted authority component queues. These messages grant no actor access.
+message AuthorityParticipantRuntimeConfig {
+  uint32 protocol_version = 1;
+  string issuer_client_config = 2;
+  string private_key_path = 3;
+  bytes participant_id = 4;
+  uint64 registered_revision = 5;
+  // A supervisor assigns this per launch. Presence with an empty value is invalid.
+  // This identity does not grant launch or recovery authority.
+  optional bytes service_incarnation = 6;
+  // A connected private supervisor socket. This mode never loads service signing material.
+  optional uint32 supervisor_channel_fd = 7;
+  bytes supervisor_issuer_id = 8;
+}
+message ParticipantCommand {
+  uint64 request_id = 1;
+  oneof operation {
+    AuthorityActivate activate = 10;
+    AuthorityApplied applied = 11;
+    AuthorityRelease release = 12;
+  }
+}
+message ParticipantUpdate {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    AuthorityAuthenticationResult authenticated = 10;
+    RevocationBatch revocations = 11;
+    AuthorityActivationState activated = 12;
+    AuthorityActivationState applied = 13;
+    AuthorityActivationState released = 14;
+    spatial.core.v1.Error error = 15;
   }
 }

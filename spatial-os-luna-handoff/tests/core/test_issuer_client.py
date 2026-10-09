@@ -6,6 +6,7 @@ import struct
 import subprocess
 import sys
 import threading
+import tempfile
 import time
 import unittest
 
@@ -110,8 +111,9 @@ class ClientFixture(TlsFixture):
             certificate_path=str(self.service_cert), private_key_path=str(self.service_key),
             issuer_id=self.info.issuer_id, issuer_public_key=self.info.public_key, io_timeout_ms=700)
         for key, value in overrides.items(): setattr(config, key, value)
-        path = self.root/'client.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
-        return path
+        with tempfile.NamedTemporaryFile(mode='w',dir=self.root,prefix='client-',suffix='.textproto',delete=False) as file:
+            file.write(text_format.MessageToString(config))
+        return Path(file.name)
 
     def client(self, endpoint_port=None, **overrides):
         client = ClientProcess(self.config_file(endpoint_port, **overrides), self.root/f'client-{len(self.connections)}.log')

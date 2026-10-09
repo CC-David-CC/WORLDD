@@ -1,0 +1,29 @@
+{
+  "command": [
+    "/usr/bin/systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--unit=spatial-broker-handoff-3eba341ebb024fb0b8a67b616cc414cb",
+    "--property=Delegate=yes",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-02/source",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/supervisor-broker-handoff-baseline-01/debug/server",
+    "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+    "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_broker_handoff.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-02/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-02/debug/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-02/debug/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-02/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-supervisor-02/debug/build/spatial-issuer-client"
+  ],
+  "exit_code": 1,
+  "binaries": {
+    "spatial-authority-supervisor": "6df6ee23e4f28afaadb4bd6d12de8236b3eb809d08dd006cd2226c5df06ac000",
+    "workspaced": "c898a34c27ae744b5ac39db1a4cad43c6a5f1ff18a6f6ffa80ef2f62172fdac2",
+    "identityd": "e6b95ec7c65590697f826d5bcca0ff962a0df4d1260fd3f6f5480a46f8c524fc"
+  }
+}

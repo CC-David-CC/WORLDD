@@ -92,6 +92,7 @@ class ApplicationAccessTests(workspace.WorldIdentityFixture):
         self.assertEqual(result.returncode, 0, result.stderr)
         config = pb.WorkspaceAuthorityConfig(protocol_version=1, issuer_client_config=str(self.config_file()),
             bindings=[pb.WorkspaceAuthorityBinding(workspace='one', authority_directory=str(directory))])
+        self.configure_participant(config,[grant.Domain(kind=grant.WORKSPACE,id=binding.workspace) for binding in config.bindings])
         self.config = self.root/'broker.textproto'; self.config.write_text(text_format.MessageToString(config)); self.config.chmod(0o600)
         self.native_config = None; self.server_id = b'x'*32
         if native_enabled:

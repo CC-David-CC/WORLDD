@@ -79,8 +79,12 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* 
                 output.assign(header.data(), header.size()); output += payload; sent = 0; output_started = Clock::now();
             }
         }
+        // All actor and management handlers have returned. Settle deferred effects before acknowledgement.
+        actors.flush_input();
+        if (sessions) sessions->settle();
         if (eof && output.empty()) {
             if (!input.empty()) throw std::runtime_error("Truncated protobuf frame");
+            if (sessions) sessions->shutdown();
             return;
         }
         if ((!input.empty() && now - input_started > std::chrono::seconds(10)) ||

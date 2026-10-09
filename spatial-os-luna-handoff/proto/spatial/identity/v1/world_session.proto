@@ -15,6 +15,8 @@ message WorldIdentityConfig {
   repeated WorldActorGrants actor_grants = 5;
   // Explicit persistent policy. Cannot be combined with static actor lists.
   string authority_directory = 6;
+  // Required for actor-serving worlds. Private service key configuration.
+  string participant_runtime_config = 7;
 }
 // TLS connection permission is separate from signed actor identity and world admission.
 message WorldActorTlsConfig {

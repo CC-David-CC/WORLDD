@@ -15,16 +15,36 @@ find_package(X11 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 configure_file(config/conformance.textproto runtime.textproto COPYONLY)
-set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
+set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
 protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
 protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
 protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
+protobuf_generate_cpp(native_scope_proto_sources native_scope_proto_headers proto/spatial/supervisor/v1/native_scope.proto)
 protobuf_generate_cpp(broker_proto_sources broker_proto_headers proto/spatial/workspace/v1/broker.proto)
 protobuf_generate_cpp(key_proto_sources key_proto_headers proto/spatial/identity/v1/key.proto)
 protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/identity/v1/issuer.proto)
 protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
 protobuf_generate_cpp(grants_proto_sources grants_proto_headers proto/spatial/authority/v1/grants.proto)
+protobuf_generate_cpp(scope_proto_sources scope_proto_headers proto/spatial/supervisor/v1/process_scope.proto)
+protobuf_generate_cpp(launch_proto_sources launch_proto_headers proto/spatial/supervisor/v1/launch.proto)
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/launch.proto
+    DEPENDS proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
+        proto/spatial/supervisor/v1/native_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+add_custom_target(launch-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/process_scope_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/process_scope.proto
+    DEPENDS proto/spatial/supervisor/v1/process_scope.proto protobuf::protoc VERBATIM)
+add_custom_target(scope-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/process_scope_pb2.py")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/core_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
@@ -45,6 +65,14 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/security_pb2.py"
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1/security.proto
     DEPENDS proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(security-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/security_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/native_scope_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/native_scope.proto
+    DEPENDS proto/spatial/supervisor/v1/native_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+add_custom_target(native-scope-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/native_scope_pb2.py")
+
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
@@ -116,13 +144,25 @@ endforeach()
 string(SHA256 build_hash "${build_material}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
 
-add_library(spatial-protobuf STATIC ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
+add_library(spatial-protobuf STATIC ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
 target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
 target_include_directories(spatial-scene PUBLIC src)
 target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
 add_library(spatial-identity STATIC src/identity/keys.cpp)
+add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp ${scope_proto_sources} ${scope_proto_headers})
+target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
+add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
+target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope SQLite::SQLite3)
+add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
+add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
+target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch)
+target_link_libraries(spatial-authority-launch-probe PRIVATE spatial-authority-launch)
+add_dependencies(spatial-authority-launch-probe launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
+add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
+target_link_libraries(spatial-process-scope-probe PRIVATE spatial-process-scope)
+add_dependencies(spatial-process-scope-probe scope-python-protobuf python-protobuf security-python-protobuf)
 target_link_libraries(spatial-identity PUBLIC spatial-scene OpenSSL::Crypto)
 add_executable(spatial-key src/identity/key_main.cpp)
 target_link_libraries(spatial-key PRIVATE spatial-identity)
@@ -132,6 +172,11 @@ add_library(spatial-issuer-client-lib STATIC src/identity/issuer_client.cpp)
 target_link_libraries(spatial-issuer-client-lib PUBLIC spatial-identity-tls)
 add_executable(spatial-issuer-client src/identity/client_main.cpp)
 target_link_libraries(spatial-issuer-client PRIVATE spatial-issuer-client-lib)
+add_library(spatial-participant-runtime-lib STATIC src/identity/participant_runtime.cpp)
+target_link_libraries(spatial-participant-runtime-lib PUBLIC spatial-issuer-client-lib Threads::Threads)
+target_link_libraries(spatial-authority-launch PUBLIC spatial-participant-runtime-lib)
+add_executable(spatial-participant-runtime-probe src/testing/participant_runtime_probe.cpp)
+target_link_libraries(spatial-participant-runtime-probe PRIVATE spatial-participant-runtime-lib)
 add_library(spatial-issuer-watch-lib STATIC src/identity/issuer_watch.cpp)
 target_link_libraries(spatial-issuer-watch-lib PUBLIC spatial-issuer-client-lib Threads::Threads)
 add_executable(spatial-issuer-watch src/identity/watch_main.cpp)
@@ -155,13 +200,13 @@ target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3 spatial-
 add_executable(spatialwm src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
 target_link_libraries(spatialwm PRIVATE spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
 add_executable(worldd src/world/actor_tls.cpp src/world/main.cpp src/world/server.cpp src/world/identity_sessions.cpp src/world/authority.cpp)
-target_link_libraries(worldd PRIVATE spatial-core spatial-issuer-watch-lib spatial-authority)
+target_link_libraries(worldd PRIVATE spatial-core spatial-issuer-watch-lib spatial-authority spatial-participant-runtime-lib)
 add_dependencies(worldd spatialwm)
 add_executable(spatial-app-init src/workspace/app_init.cpp)
 target_link_libraries(spatial-app-init PRIVATE spatial-scene)
 add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp)
 target_include_directories(workspaced PRIVATE src)
-target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
+target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
 add_dependencies(workspaced spatial-app-init)
 add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)
 target_link_libraries(spatial-test-host PRIVATE spatial-core)
@@ -170,12 +215,143 @@ add_dependencies(spatial-test-host worldd workspaced)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_executable(spatial-native-scope-probe src/testing/native_scope_probe.cpp src/workspace/native_launch.cpp)
+    target_link_libraries(spatial-native-scope-probe PRIVATE spatial-scene)
+    add_dependencies(spatial-native-scope-probe native-scope-python-protobuf security-python-protobuf python-protobuf)
+    add_executable(spatial-native-config-witness src/testing/native_scope_config_witness.cpp)
+    target_link_libraries(spatial-native-config-witness PRIVATE spatial-authority-launch)
+    add_test(NAME authority-native-config COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_scope_config_ownership.py"
+        $<TARGET_FILE:spatial-native-config-witness> "${CMAKE_CURRENT_SOURCE_DIR}" $<TARGET_FILE:spatial-security-auth>)
+    set_tests_properties(authority-native-config PROPERTIES TIMEOUT 30
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+
+    add_test(NAME authority-native-scope COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_native_scope.py"
+        $<TARGET_FILE:spatial-native-scope-probe> $<TARGET_FILE:spatial-security-auth>)
+    set_tests_properties(authority-native-scope PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+
+    add_test(NAME world-revision-interleave COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_revision_interleave.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(world-revision-interleave PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME workspace-bootstrap-owner-idle COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_bootstrap_owner_idle.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-bootstrap-owner-idle PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME authority-supervisor COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-supervisor-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_supervisor.py"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(authority-supervisor PROPERTIES TIMEOUT 120)
+    add_test(NAME authority-participant-relay COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-participant-relay-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_participant_relay.py"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(authority-participant-relay PROPERTIES TIMEOUT 120)
+    add_test(NAME authority-owned-participant COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-owned-participant-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_owned_participant.py"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(authority-owned-participant PROPERTIES TIMEOUT 120)
+    add_test(NAME authority-launch-coordinator COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-coordinator-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_launch.py"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>)
+    set_tests_properties(authority-launch-coordinator PROPERTIES TIMEOUT 120)
+    add_test(NAME authority-prepared-launch COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-prepared-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_prepared_launch.py"
+        $<TARGET_FILE:spatial-process-scope-probe>)
+    set_tests_properties(authority-prepared-launch PROPERTIES TIMEOUT 120)
+    add_test(NAME authority-process-scope COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-scope-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_process_scope.py"
+        $<TARGET_FILE:spatial-process-scope-probe>)
+    set_tests_properties(authority-process-scope PROPERTIES TIMEOUT 120)
     add_executable(spatial-process-termination-probe src/testing/process_termination_probe.cpp src/workspace/process.cpp src/workspace/native_launch.cpp)
     target_link_libraries(spatial-process-termination-probe PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
     add_dependencies(spatial-process-termination-probe spatial-app-init)
     add_test(NAME process-termination COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_process_termination.py" $<TARGET_FILE:spatial-process-termination-probe>)
     set_tests_properties(process-termination PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME workspace-participant-races COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant_races.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-participant-races PROPERTIES TIMEOUT 120
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME workspace-participant COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant.py"
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(workspace-participant PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME world-participant COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_participant.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(world-participant PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME world-revocation-receipts COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_revocation_receipts.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(world-revocation-receipts PROPERTIES TIMEOUT 120
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-launch-authorization COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_launch_authorization.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(identity-launch-authorization PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-supervisor-registry COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_supervisor_registry.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(identity-supervisor-registry PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-participant-incarnation COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_participant_incarnation.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
+    set_tests_properties(identity-participant-incarnation PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-participant-channel COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_participant_channel.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
+    set_tests_properties(identity-participant-channel PROPERTIES TIMEOUT 120
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-participant-runtime COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_runtime.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
+    set_tests_properties(identity-participant-runtime PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME identity-participant-barrier-client COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_barrier_client.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
@@ -393,6 +569,16 @@ if(BUILD_TESTING)
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(broker-control-client-live PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME workspace-participant-native COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant_native.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(workspace-participant-native PROPERTIES TIMEOUT 120
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME workspace-participant-settlement COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant_settlement.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(workspace-participant-settlement PROPERTIES TIMEOUT 120
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME application-control-lease COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_control_lease.py" $<TARGET_FILE:identityd>
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
@@ -460,6 +646,12 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_security_identity.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-security-identity PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME world-participant-native COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_participant_native.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+        set_tests_properties(world-participant-native PROPERTIES TIMEOUT 120
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>")
         add_test(NAME world-identity COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_identity.py" $<TARGET_FILE:identityd>

@@ -80,6 +80,16 @@ void validate_reference(const v1::IdentityReference& target) {
 void validate_operation(const v1::IssuerOperation& operation) {
     validate_message(operation);
     if (operation.has_policy_read()) return;
+    if (operation.has_supervisor_read()) {
+        require(operation.supervisor_read().participant_id().size() == 32, "Supervisor participant identity is required"); return;
+    }
+    if (operation.has_supervisor_bind()) {
+        const auto& bind = operation.supervisor_bind();
+        require(bind.participant_id().size() == 32 && bind.public_key().size() == 32 &&
+                bind.registered_revision() > 0 && bind.registered_revision() <= INT64_MAX &&
+                bind.has_expected_revision() && bind.expected_revision() <= INT64_MAX,
+                "Supervisor identity, registration, key, and expected revision are required"); return;
+    }
     if (operation.has_barrier_read()) {
         const auto& read = operation.barrier_read();
         require(read.revision() > 0 && read.revision() <= INT64_MAX && read.limit() <= 16 &&
@@ -185,6 +195,21 @@ void create_barrier_schema(sqlite3* db) {
             "FOREIGN KEY(participant_id,generation) REFERENCES authority_activation(participant_id,generation));"
             "PRAGMA user_version=6");
 }
+void create_supervisor_schema(sqlite3* db) {
+    sql(db, "CREATE TABLE authority_supervisor("
+            "participant_id BLOB PRIMARY KEY REFERENCES authority_participant(id) CHECK(length(participant_id)=32),"
+            "registration BLOB NOT NULL,public_key BLOB NOT NULL CHECK(length(public_key)=32),"
+            "revision INTEGER NOT NULL CHECK(revision>0)); PRAGMA user_version=7");
+}
+void create_launch_schema(sqlite3* db) {
+    sql(db, "CREATE TABLE authority_launch_authorization("
+            "authorization_id BLOB PRIMARY KEY CHECK(length(authorization_id)=32),"
+            "participant_id BLOB NOT NULL REFERENCES authority_supervisor(participant_id),"
+            "service_incarnation BLOB NOT NULL CHECK(length(service_incarnation)=32),"
+            "launch_id BLOB NOT NULL UNIQUE CHECK(length(launch_id)=32),request BLOB NOT NULL,"
+            "supervisor_public_key BLOB NOT NULL CHECK(length(supervisor_public_key)=32),"
+            "generation INTEGER NOT NULL CHECK(generation>=0),UNIQUE(participant_id,service_incarnation)); PRAGMA user_version=8");
+}
 } // namespace
 
 struct Issuer::Impl {
@@ -198,6 +223,7 @@ struct Issuer::Impl {
         v1::IdentityStatus authenticated_identity;
         v1::AuthorityAuthenticationBegin authority{};
         std::string connection_binding{};
+        v1::AuthorityLaunchBegin launch{};
     };
     File directory, lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
@@ -237,12 +263,12 @@ struct Issuer::Impl {
         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
-        sqlite3_int64 schema = 6;
+        sqlite3_int64 schema = 8;
         if (!owner) {
             Query version(db.get(), "PRAGMA user_version"); version.step();
             Query application(db.get(), "PRAGMA application_id"); application.step();
             schema = version.integer(0);
-            storage((schema == 6 || ((schema >= 1 && schema <= 5) && migrate)) && application.integer(0) == application_id,
+            storage((schema == 8 || ((schema >= 1 && schema <= 7) && migrate)) && application.integer(0) == application_id,
                     "Unknown issuer schema; explicit migration is required");
         }
         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
@@ -260,7 +286,7 @@ struct Issuer::Impl {
             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
             insert.blob(4, policy.SerializeAsString()); insert.step();
             create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
-            create_participant_schema(db.get()); create_barrier_schema(db.get()); tx.commit();
+            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); tx.commit();
             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
         }
         { Query integrity(db.get(), "PRAGMA quick_check");
@@ -271,13 +297,15 @@ struct Issuer::Impl {
         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
                 "Issuer key does not match its durable identity");
         policy();
-        if (schema < 6) {
+        if (schema < 8) {
             Transaction migration(db.get());
             if (schema == 1) create_enrollment_schema(db.get());
             if (schema < 3) create_security_schema(db.get());
             if (schema < 4) create_bootstrap_schema(db.get());
             if (schema < 5) create_participant_schema(db.get());
-            create_barrier_schema(db.get()); migration.commit();
+            if (schema < 6) create_barrier_schema(db.get());
+            if (schema < 7) create_supervisor_schema(db.get());
+            create_launch_schema(db.get()); migration.commit();
         }
     }
 
@@ -358,6 +386,119 @@ struct Issuer::Impl {
         }
         transaction.commit(); return result;
     }
+    v1::AuthoritySupervisorBinding launch_context(const v1::AuthorityLaunchBegin& request) {
+        validate_launch_begin(request, identity.issuer_id());
+        const auto& service = request.service();
+        if (service.issuer_incarnation() != incarnation || service.security_revision() > security_revision())
+            throw WorldError(wire::UNAUTHORIZED, "Launch service context is stale or ahead of issuer history");
+        const auto& participant = service.registration().participant().id();
+        if (!supervised(participant)) throw WorldError(wire::FORBIDDEN, "Participant has no registered supervisor");
+        const auto binding = supervision_record(participant);
+        if (binding.registration().SerializeAsString() != service.registration().SerializeAsString())
+            throw WorldError(wire::UNAUTHORIZED, "Launch service registration does not match supervisor binding");
+        if (binding.revision() != request.supervision_revision())
+            throw WorldError(wire::REVISION_CONFLICT, "Launch supervisor revision changed");
+        return binding;
+    }
+    std::optional<v1::AuthorityLaunchAuthorization> launch_authorization(const std::string& participant, const std::string& service) {
+        Query row(db.get(), "SELECT authorization_id,launch_id,request,supervisor_public_key,generation "
+                            "FROM authority_launch_authorization WHERE participant_id=? AND service_incarnation=?");
+        row.blob(1, participant); row.blob(2, service);
+        if (row.step() != SQLITE_ROW) return {};
+        v1::AuthorityLaunchAuthorization result;
+        storage(row.blob(0).size() == 32 && row.blob(1).size() == 32 && row.blob(3).size() == 32 && row.integer(4) >= 0 &&
+                result.mutable_request()->ParseFromString(row.blob(2)), "Invalid durable launch authorization");
+        try { validate_launch_begin(result.request(), identity.issuer_id()); }
+        catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Invalid durable launch request"); }
+        const auto& request = result.request();
+        storage(request.service().registration().participant().id() == participant && request.service().service_incarnation() == service &&
+                request.launch_id() == row.blob(1) && (row.integer(4) == 0 || (request.previous_generation() < INT64_MAX &&
+                static_cast<std::uint64_t>(row.integer(4)) == request.previous_generation()+1)), "Contradictory durable launch context");
+        result.set_authorization_id(row.blob(0)); result.set_supervisor_public_key(row.blob(3)); result.set_generation(row.integer(4));
+        return result;
+    }
+    v1::AuthorityLaunchAuthorization authorize_launch(const v1::AuthorityLaunchBegin& request, const std::string& public_key) {
+        const auto binding = launch_context(request);
+        if (binding.public_key() != public_key) throw WorldError(wire::UNAUTHORIZED, "Launch supervisor key changed during proof");
+        const auto& participant = request.service().registration().participant().id();
+        const auto existing = launch_authorization(participant, request.service().service_incarnation());
+        if (existing) {
+            if (existing->request().SerializeAsString() != request.SerializeAsString() || existing->supervisor_public_key() != public_key)
+                throw WorldError(wire::ALREADY_EXISTS, "Service incarnation already has another launch authorization");
+            return *existing;
+        }
+        Query active(db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND active=1"); active.blob(1, participant);
+        if (active.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "New launch requires prior generation cleanup");
+        Query prior(db.get(), "SELECT COALESCE(MAX(generation),0) FROM authority_activation WHERE participant_id=?"); prior.blob(1, participant);
+        storage(prior.step() == SQLITE_ROW && prior.integer(0) >= 0, "Invalid previous generation");
+        if (static_cast<std::uint64_t>(prior.integer(0)) != request.previous_generation())
+            throw WorldError(wire::REVISION_CONFLICT, "Launch previous generation changed");
+        Query used(db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND service_incarnation=?");
+        used.blob(1, participant); used.blob(2, request.service().service_incarnation());
+        if (used.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Activated service incarnation cannot receive a new authorization");
+        Query launch(db.get(), "SELECT 1 FROM authority_launch_authorization WHERE launch_id=?"); launch.blob(1, request.launch_id());
+        if (launch.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Launch identity already has an authorization");
+        Query insert(db.get(), "INSERT INTO authority_launch_authorization VALUES(?,?,?,?,?,?,0)");
+        insert.blob(1, random_id()); insert.blob(2, participant); insert.blob(3, request.service().service_incarnation());
+        insert.blob(4, request.launch_id()); insert.blob(5, request.SerializeAsString()); insert.blob(6, public_key); insert.step();
+        const auto result = launch_authorization(participant, request.service().service_incarnation());
+        storage(result.has_value(), "Committed launch authorization is missing"); return *result;
+    }
+    bool supervisor_key(const std::string& public_key) {
+        Query row(db.get(), "SELECT 1 FROM authority_supervisor WHERE public_key=?"); row.blob(1, public_key);
+        return row.step() == SQLITE_ROW;
+    }
+    bool supervised(const std::string& participant) {
+        Query row(db.get(), "SELECT 1 FROM authority_supervisor WHERE participant_id=?"); row.blob(1, participant);
+        return row.step() == SQLITE_ROW;
+    }
+    v1::AuthoritySupervisorBinding supervision_record(const std::string& participant) {
+        Query row(db.get(), "SELECT registration,public_key,revision FROM authority_supervisor WHERE participant_id=?");
+        row.blob(1, participant);
+        if (row.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Supervisor binding does not exist");
+        v1::AuthoritySupervisorBinding result;
+        storage(result.mutable_registration()->ParseFromString(row.blob(0)) && row.blob(1).size() == 32 && row.integer(2) > 0,
+                "Invalid durable supervisor binding");
+        const auto registration = participant_record(participant, registry_revision());
+        storage(result.registration().SerializeAsString() == registration.SerializeAsString(), "Supervisor registration changed");
+        result.set_public_key(row.blob(1)); result.set_revision(row.integer(2));
+        storage(result.public_key() != owner_public && result.public_key() != identity.public_key() &&
+                !participant_key(result.public_key()), "Supervisor key has another authority role");
+        Query actor(db.get(), "SELECT 1 FROM enrollment WHERE public_key=?"); actor.blob(1, result.public_key());
+        storage(actor.step() == SQLITE_DONE, "Supervisor key is enrolled as an actor");
+        return result;
+    }
+    v1::AuthoritySupervisorBinding read_supervisor(const v1::AuthoritySupervisorRead& request) {
+        Transaction transaction(db.get()); auto result = supervision_record(request.participant_id());
+        transaction.commit(); return result;
+    }
+    v1::AuthoritySupervisorBinding bind_supervisor(const v1::AuthoritySupervisorBind& request) {
+        Transaction transaction(db.get());
+        Query exists(db.get(), "SELECT 1 FROM authority_participant WHERE id=?"); exists.blob(1, request.participant_id());
+        if (exists.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Authority participant does not exist");
+        const auto registration = participant_record(request.participant_id(), registry_revision());
+        if (registration.registered_revision() != request.registered_revision())
+            throw WorldError(wire::UNAUTHORIZED, "Supervisor binding names another registration");
+        Query active(db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND active=1");
+        active.blob(1, request.participant_id());
+        if (active.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "Supervisor binding cannot adopt an active generation");
+        const bool existing = supervised(request.participant_id());
+        const auto revision = existing ? supervision_record(request.participant_id()).revision() : 0;
+        if (revision != request.expected_revision()) throw WorldError(wire::REVISION_CONFLICT, "Supervisor binding revision changed");
+        const auto& public_key = request.public_key();
+        if (public_key == owner_public || public_key == identity.public_key() || participant_key(public_key))
+            throw WorldError(wire::FORBIDDEN, "Supervisor key must be separate from issuer and service keys");
+        Query actor(db.get(), "SELECT 1 FROM enrollment WHERE public_key=?"); actor.blob(1, public_key);
+        if (actor.step() == SQLITE_ROW) throw WorldError(wire::FORBIDDEN, "Actor enrollment keys cannot supervise services");
+        storage(revision < INT64_MAX, "Supervisor binding revision limit reached");
+        Query write(db.get(), existing ?
+            "UPDATE authority_supervisor SET registration=?,public_key=?,revision=? WHERE participant_id=?" :
+            "INSERT INTO authority_supervisor(registration,public_key,revision,participant_id) VALUES(?,?,?,?)");
+        write.blob(1, registration.SerializeAsString()); write.blob(2, public_key); write.integer(3, revision+1);
+        write.blob(4, request.participant_id()); write.step();
+        storage(sqlite3_changes(db.get()) == 1, "Supervisor binding mutation was not recorded");
+        auto result = supervision_record(request.participant_id()); transaction.commit(); return result;
+    }
     bool participant_key(const std::string& public_key) {
         Query row(db.get(), "SELECT 1 FROM authority_participant WHERE public_key=?"); row.blob(1, public_key);
         return row.step() == SQLITE_ROW;
@@ -408,6 +549,7 @@ struct Issuer::Impl {
         Transaction transaction(db.get()); const auto head = registry_revision();
         if (head != request.expected_registry_revision()) throw WorldError(wire::REVISION_CONFLICT, "Authority registry revision changed");
         auto participant = request.participant();
+        if (supervisor_key(participant.public_key())) throw WorldError(wire::FORBIDDEN, "Supervisor keys cannot register as services");
         std::sort(participant.mutable_domains()->begin(), participant.mutable_domains()->end(), [](const auto& a, const auto& b) {
             return participant_detail::domain_key(a) < participant_detail::domain_key(b);
         });
@@ -675,6 +817,7 @@ struct Issuer::Impl {
     }
     v1::EnrollmentRecord submit(const v1::EnrollmentIntent& intent) {
         Transaction transaction(db.get());
+        if (supervisor_key(intent.public_key())) throw WorldError(wire::FORBIDDEN, "Supervisor keys cannot enroll as actors");
         if (participant_key(intent.public_key())) throw WorldError(wire::FORBIDDEN, "Authority participant keys cannot enroll as actors");
         std::string existing;
         { Query query(db.get(), "SELECT id FROM enrollment WHERE public_key=?"); query.blob(1, intent.public_key());
@@ -755,6 +898,8 @@ v1::AdminResult Issuer::execute(const v1::IssuerExecute& request) {
     // Execute only the server-stored operation authenticated by this consumed challenge.
     v1::AdminResult result;
     if (pending.operation.has_policy_read()) *result.mutable_policy() = impl_->policy();
+    else if (pending.operation.has_supervisor_bind()) *result.mutable_supervision() = impl_->bind_supervisor(pending.operation.supervisor_bind());
+    else if (pending.operation.has_supervisor_read()) *result.mutable_supervision() = impl_->read_supervisor(pending.operation.supervisor_read());
     else if (pending.operation.has_barrier_read()) *result.mutable_barrier() = impl_->barrier(pending.operation.barrier_read());
     else if (pending.operation.has_registry_read()) *result.mutable_registry() = impl_->registry(pending.operation.registry_read());
     else if (pending.operation.has_participant_register()) *result.mutable_participant() = impl_->register_participant(pending.operation.participant_register());
@@ -770,6 +915,7 @@ v1::AdminResult Issuer::execute(const v1::IssuerExecute& request) {
 }
 v1::ChallengeReply Issuer::enrollment_begin(const v1::EnrollmentIntent& intent) {
     validate_intent(intent);
+    if (impl_->supervisor_key(intent.public_key())) throw WorldError(wire::FORBIDDEN, "Supervisor keys cannot enroll as actors");
     if (impl_->participant_key(intent.public_key())) throw WorldError(wire::FORBIDDEN, "Authority participant keys cannot enroll as actors");
     require(intent.public_key() != impl_->owner_public && intent.public_key() != impl_->identity.public_key(),
             "Administrative keys cannot serve as actor credentials");
@@ -843,11 +989,42 @@ v1::AuthorityActivationState Issuer::authority_state(IssuerConnection& connectio
     auto result = impl_->activation(context.registration().participant().id());
     transaction.commit(); return result;
 }
+v1::ChallengeReply Issuer::authority_launch_begin(const v1::AuthorityLaunchBegin& request, IssuerConnection& connection) {
+    if (connection.binding.size() != 32) throw WorldError(wire::FORBIDDEN, "Launch proof requires a TLS connection identity");
+    Transaction transaction(impl_->db.get()); const auto binding = impl_->launch_context(request); transaction.commit();
+    const auto nonce = impl_->nonce();
+    v1::AuthorityLaunchChallenge payload; payload.set_protocol_version(1); payload.set_issuer_id(impl_->identity.issuer_id());
+    payload.set_issuer_incarnation(impl_->incarnation); payload.set_nonce(nonce); payload.set_connection_binding(connection.binding);
+    *payload.mutable_request() = request; payload.set_supervisor_public_key(binding.public_key());
+    payload.set_lifetime_ms(static_cast<std::uint32_t>(impl_->lifetime.count())); payload.set_audience("identityd/authority-launch/v1");
+    v1::ChallengeReply result; result.set_nonce(nonce); result.mutable_signing_request()->set_purpose(v1::AUTHORITY_LAUNCH_AUTHORIZATION);
+    result.mutable_signing_request()->set_payload(payload.SerializeAsString());
+    Impl::Pending pending; pending.content = result.signing_request(); pending.expected_key = binding.public_key();
+    pending.expires = Clock::now()+impl_->lifetime; pending.connection_binding = connection.binding; pending.launch = request;
+    impl_->pending.emplace(nonce, std::move(pending)); return result;
+}
+v1::AuthorityLaunchAuthorization Issuer::authority_launch_complete(const v1::AuthorityLaunchComplete& request, IssuerConnection& connection) {
+    validate_message(request); require(request.nonce().size() == 32 && request.has_proof(), "Launch nonce and proof are required");
+    if (connection.binding.size() != 32) throw WorldError(wire::FORBIDDEN, "Launch proof requires a TLS connection identity");
+    const auto pending = impl_->consume(request.nonce(), request.proof(), v1::AUTHORITY_LAUNCH_AUTHORIZATION);
+    if (pending.connection_binding != connection.binding) throw WorldError(wire::UNAUTHORIZED, "Launch proof belongs to another connection");
+    Transaction transaction(impl_->db.get()); const auto result = impl_->authorize_launch(pending.launch, pending.expected_key);
+    transaction.commit(); return result;
+}
 v1::AuthorityActivationState Issuer::authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection) {
     validate_message(request);
     require(request.has_synchronized_revision() && request.synchronized_revision() <= INT64_MAX, "Synchronization revision is required");
     Transaction transaction(impl_->db.get()); const auto& context = impl_->service_context(connection);
     const auto& participant = context.registration().participant().id();
+    std::optional<v1::AuthorityLaunchAuthorization> authorization;
+    if (impl_->supervised(participant)) {
+        authorization = impl_->launch_authorization(participant, context.service_incarnation());
+        const auto binding = impl_->supervision_record(participant);
+        if (!authorization || authorization->request().service().SerializeAsString() != context.SerializeAsString() ||
+                authorization->request().supervision_revision() != binding.revision() || authorization->supervisor_public_key() != binding.public_key())
+            throw WorldError(wire::FORBIDDEN, "Matching supervisor launch authorization is required");
+        if (authorization->generation()) throw WorldError(wire::ALREADY_EXISTS, "Launch authorization was already consumed");
+    }
     Query active(impl_->db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND active=1");
     active.blob(1, participant);
     if (active.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "Service already has an active generation; cleanup is required");
@@ -859,11 +1036,18 @@ v1::AuthorityActivationState Issuer::authority_activate(const v1::AuthorityActiv
     Query prior(impl_->db.get(), "SELECT COALESCE(MAX(generation),0) FROM authority_activation WHERE participant_id=?");
     prior.blob(1, participant);
     storage(prior.step() == SQLITE_ROW && prior.integer(0) >= 0 && prior.integer(0) < INT64_MAX, "Service generation limit reached");
+    if (authorization && authorization->request().previous_generation() != static_cast<std::uint64_t>(prior.integer(0)))
+        throw WorldError(wire::REVISION_CONFLICT, "Launch authorization was superseded by another generation");
     const auto generation = prior.integer(0)+1;
     Query insert(impl_->db.get(), "INSERT INTO authority_activation VALUES(?,?,?,?,?,?,?,?,1)");
     insert.blob(1, participant); insert.integer(2, generation); insert.blob(3, context.service_incarnation());
     insert.blob(4, context.issuer_incarnation()); insert.blob(5, context.connection_binding());
     insert.blob(6, context.registration().SerializeAsString()); insert.integer(7, head); insert.integer(8, head); insert.step();
+    if (authorization) {
+        Query consume(impl_->db.get(), "UPDATE authority_launch_authorization SET generation=? WHERE authorization_id=? AND generation=0");
+        consume.integer(1, generation); consume.blob(2, authorization->authorization_id()); consume.step();
+        storage(sqlite3_changes(impl_->db.get()) == 1, "Launch authorization was not consumed");
+    }
     auto result = impl_->activation(participant, generation); transaction.commit(); return result;
 }
 v1::AuthorityActivationState Issuer::authority_applied(const v1::AuthorityApplied& request, IssuerConnection& connection) {

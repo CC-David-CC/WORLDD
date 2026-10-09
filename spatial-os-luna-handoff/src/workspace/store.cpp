@@ -793,6 +793,11 @@ wire::ProcessWaitReply ExecutionStore::wait(const wire::ProcessWaitRequest& requ
     wire::ProcessWaitReply out; out.set_exit_code(*result); return out;
 }
 void ExecutionStore::set_native_launch(NativeLaunch* native) { impl_->native = native; }
+void ExecutionStore::stop_all() {
+    // Checked destruction cannot return after unconfirmed process termination.
+    impl_->jobs.clear();
+    Query q(impl_->db.get(), "UPDATE processes SET state='uncertain' WHERE state='running'"); q.step();
+}
 void ExecutionStore::reap() {
     // Completion is a process lifecycle event, not an actor's wait request.
     std::vector<std::string> running;

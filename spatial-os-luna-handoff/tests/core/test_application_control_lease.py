@@ -14,7 +14,7 @@ from test_world_identity import WorldIdentityFixture, receive
 
 class LeaseBroker(access.Broker):
     def __init__(self,*args,**kwargs):
-        self.events=[]
+        self.events=[];self.owned_leases={}
         super().__init__(*args,**kwargs)
 
     def read_reply(self):
@@ -24,7 +24,17 @@ class LeaseBroker(access.Broker):
             self.fixture.assertEqual(reply.request_id,0)
             self.fixture.assertEqual(len(reply.control_revoked.id),32)
             self.events.append(reply.control_revoked)
+        if reply.HasField('control_lease'):self.owned_leases[reply.control_lease.id]=reply.control_lease
+        if reply.HasField('control_released'):self.owned_leases.pop(reply.control_released.id,None)
         return reply
+
+    def close(self):
+        # This fixture owns reservations without dispatching native input. Release them explicitly before EOF.
+        if self.stream.fileno()>=0 and self.proc.poll() is None:
+            for lease in list(self.owned_leases.values()):
+                reply=self.request(control_release=pb.ApplicationControlRelease(id=lease.id,principal=lease.principal))
+                self.fixture.assertTrue(reply.HasField('control_released'),reply)
+        super().close()
 
     def response(self,sequence):
         while True:
