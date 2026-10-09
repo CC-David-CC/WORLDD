@@ -1,0 +1,22 @@
+{
+  "id": "identity.launch_authorization",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "invariant": "Supervisor proof authorizes only an exact owned launch and service connection at the current generation boundary.",
+  "contract": "docs/AUTHORITY_LAUNCH_AUTHORIZATION.txt",
+  "source_files": 273,
+  "integrated": false,
+  "evidence": "evidence/launch-authorization-2026-10-09",
+  "baseline": "Both hosts built the additive schema and reproduced UNKNOWN_METHOD through the production issuer client.",
+  "implementation": "Not written. Eight integration checks are drafted; only the positive missing-feature baseline has executed.",
+  "remaining": [
+    "Implement explicit schema8 migration and exact durable authorization records.",
+    "Bind a fresh supervisor proof to the target service and supervisor TLS connection.",
+    "Consume authorization atomically with activation and reject superseded approvals.",
+    "Add production client challenge and reply validation.",
+    "Test replay, stale connections, rotation, issuer restart, migration, and storage rollback.",
+    "Connect signing to the coordinator's retained production launch ownership.",
+    "Qualify both profiles on both hosts before integration."
+  ]
+}

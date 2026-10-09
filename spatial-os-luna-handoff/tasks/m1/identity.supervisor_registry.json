@@ -10,13 +10,13 @@
   "integrated": false,
   "evidence": "evidence/supervisor-registry-2026-10-09",
   "baseline": "Both hosts rejected the missing owner operation before implementation.",
-  "focused": "Both hosts passed246 focused Debug checks across14 suites and51 harness checks; no failures or skips. Runtime sanitizer qualification is running.",
+  "focused": "Both hosts passed246 checks across14 suites and51harness in Debug and runtime ASan/UBSan; no failures or skips.",
   "setup_failure": "Output01 omitted spatial-issuer-client-probe. One existing test could not execute. Output02 builds the probe; source and assertions remain unchanged.",
   "migration": "Explicit issuer schema7 migration. Five historical fixtures remove the new table when constructing prior schemas. All41 locked files remain unchanged.",
   "remaining": [
-    "Collect runtime sanitizer focused qualification on both hosts.",
     "Complete full qualification and review before source integration.",
     "Add authenticated per-launch supervisor authorization.",
     "Connect production ownership receipts to fenced generation retirement."
-  ]
+  ],
+  "full": "Fresh output03 qualification running both hosts. Debug focused18checks and51harness passed both hosts. Full expected1305core85suites51harness151P10 perprofile remains pending."
 }

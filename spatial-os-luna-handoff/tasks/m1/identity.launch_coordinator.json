@@ -13,10 +13,10 @@
   "candidate01": "28 focused and51harness passed each profile on both hosts; additional partial-commit failure excludes integration.",
   "candidate02": "42 of43 focused checks passed perhost; one new fixture assertion failed. Full remaining Debug and runtime profiles unrun.",
   "remaining": [
-    "Collect both complete profile results and review before integration.",
+    "Integrate only after the remaining authenticated launch and recovery boundaries are qualified.",
     "Bind service incarnation to authenticated supervisor launch authorization.",
     "Implement restart reconciliation through trusted process/native ownership evidence.",
     "Verify external broker reservation release before issuer retirement."
   ],
-  "candidate03": "Full Debug passed both hosts:1282core83suites51harness151P10, zero failed/skipped. Runtime sanitizers running."
+  "candidate03": "Full Debug and runtime ASan/UBSan passed both hosts:1282core83suites51harness151P10, zero failures or skips."
 }

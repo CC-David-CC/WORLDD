@@ -1,0 +1,180 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -281,6 +281,11 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(world-revocation-receipts PROPERTIES TIMEOUT 120
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME identity-launch-authorization COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_launch_authorization.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(identity-launch-authorization PROPERTIES TIMEOUT 180
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-supervisor-registry COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_supervisor_registry.py" $<TARGET_FILE:identityd>
+         $<TARGET_FILE:spatial-issuer-client>)
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -284,6 +284,31 @@
+ message RevocationUpdate {
+   uint32 protocol_version = 1;
+   oneof outcome { RevocationBatch batch = 2; spatial.core.v1.Error error = 3; }
++}
++// Supervisor proof authorizes one exact service connection and retained launch.
++message AuthorityLaunchBegin {
++  AuthorityAuthenticationResult service = 1;
++  uint64 supervision_revision = 2;
++  bytes launch_id = 3;
++  optional uint64 previous_generation = 4;
++}
++message AuthorityLaunchChallenge {
++  uint32 protocol_version = 1;
++  bytes issuer_id = 2;
++  bytes issuer_incarnation = 3;
++  bytes nonce = 4;
++  bytes connection_binding = 5;
++  AuthorityLaunchBegin request = 6;
++  bytes supervisor_public_key = 7;
++  uint32 lifetime_ms = 8;
++  string audience = 9;
++}
++message AuthorityLaunchComplete { bytes nonce = 1; KeyProof proof = 2; }
++message AuthorityLaunchAuthorization {
++  AuthorityLaunchBegin request = 1;
++  bytes authorization_id = 2;
++  uint64 generation = 3;
++  bytes supervisor_public_key = 4;
+ }
+ message IssuerRequest {
+   uint32 protocol_version = 1;
+@@ -307,6 +332,8 @@
+     AuthorityApplied authority_applied = 25;
+     AuthorityRelease authority_release = 26;
+     AuthorityStateRead authority_state = 27;
++    AuthorityLaunchBegin authority_launch_begin = 28;
++    AuthorityLaunchComplete authority_launch_complete = 29;
+   }
+ }
+ message IssuerReply {
+@@ -330,6 +357,7 @@
+     AuthorityActivationState authority_activation = 24;
+     AuthorityBarrierStatus authority_barrier = 25;
+     AuthoritySupervisorBinding supervision = 26;
++    AuthorityLaunchAuthorization authority_launch_authorization = 27;
+   }
+ }
+ 
+--- a/proto/spatial/identity/v1/key.proto
++++ b/proto/spatial/identity/v1/key.proto
+@@ -10,6 +10,7 @@
+   ISSUER_ADMINISTRATION = 3;
+   ISSUER_CREDENTIAL = 4;
+   AUTHORITY_PARTICIPATION = 5;
++  AUTHORITY_LAUNCH_AUTHORIZATION = 6;
+ }
+ message SignRequest {
+   SignaturePurpose purpose = 1;
+--- /dev/null
++++ b/tests/core/test_launch_authorization.py
+@@ -0,0 +1,102 @@
++"""Supervisor approval is bound to one actual TLS service identity and launch."""
++import sqlite3
++import unittest
++import core_pb2 as core
++import issuer_pb2 as pb
++import key_pb2 as keys
++import test_supervisor_registry as registry
++
++
++class LaunchAuthorizationTests(registry.SupervisorRegistryTests):
++    def setUp(self):
++        super().setUp()
++        self.assertTrue(self.bind().HasField('supervision'))
++        self.supervisor=self.client()
++        self.service=self.authenticate(self.peer)
++
++    def authenticate(self, peer, incarnation=b'i'*32):
++        result=self.service_finish(self.service_begin(peer,self.request(incarnation=incarnation)),peer)
++        self.assertTrue(result.HasField('authority_authentication'),result)
++        return result.authority_authentication
++
++    def launch_request(self, service=None, launch_id=b'l'*32, previous=0, revision=1):
++        return pb.AuthorityLaunchBegin(service=self.service if service is None else service,
++            supervision_revision=revision,launch_id=launch_id,previous_generation=previous)
++
++    def launch_begin(self, request=None, peer=None):
++        result=(peer or self.supervisor).call(authority_launch_begin=request or self.launch_request())
++        self.assertTrue(result.HasField('challenge'),result)
++        self.assertEqual(result.challenge.signing_request.purpose,keys.AUTHORITY_LAUNCH_AUTHORIZATION)
++        return result.challenge
++
++    def launch_complete(self, challenge, peer=None, proof=None):
++        return (peer or self.supervisor).call(authority_launch_complete=pb.AuthorityLaunchComplete(
++            nonce=challenge.nonce,proof=proof or self.proof(challenge,self.supervisor_key,self.supervisor_public)))
++
++    def authorize(self, request=None):
++        result=self.launch_complete(self.launch_begin(request))
++        self.assertTrue(result.HasField('authority_launch_authorization'),result)
++        return result.authority_launch_authorization
++
++    def activate(self, peer=None):
++        return (peer or self.peer).call(authority_activate=pb.AuthorityActivate(synchronized_revision=0))
++
++    def test_supervisor_authorizes_exact_service_connection_through_production_client(self):
++        self.denied(self.activate(),core.FORBIDDEN)
++        request=self.launch_request();authorization=self.authorize(request)
++        self.assertEqual(authorization.request,request);self.assertEqual(len(authorization.authorization_id),32)
++        self.assertEqual(authorization.generation,0);self.assertEqual(authorization.supervisor_public_key,self.supervisor_public)
++        result=self.activate();self.assertTrue(result.HasField('authority_activation'),result)
++        self.assertEqual(result.authority_activation.generation,1)
++        recovered=self.authorize(request)
++        self.assertEqual(recovered.authorization_id,authorization.authorization_id);self.assertEqual(recovered.generation,1)
++
++    def test_other_service_connection_cannot_consume_authorization(self):
++        self.authorize();other=self.connect();self.authenticate(other)
++        before=self.snapshot_all();self.denied(self.activate(other),core.FORBIDDEN)
++        self.assertEqual(self.snapshot_all(),before)
++        self.assertTrue(self.activate().HasField('authority_activation'))
++
++    def test_wrong_signers_cannot_authorize_launch(self):
++        before=self.snapshot_all()
++        for key,public in [(self.owner,self.owner_public),(self.signer,self.public)]:
++            challenge=self.launch_begin();self.denied(self.launch_complete(challenge,proof=self.proof(challenge,key,public)))
++            self.assertEqual(self.snapshot_all(),before)
++        self.denied(self.activate(),core.FORBIDDEN)
++
++    def test_completion_cannot_cross_supervisor_connections(self):
++        challenge=self.launch_begin();other=self.client();before=self.snapshot_all()
++        self.denied(self.launch_complete(challenge,peer=other));self.assertEqual(self.snapshot_all(),before)
++        self.denied(self.launch_complete(challenge));self.assertEqual(self.snapshot_all(),before)
++
++    def test_replayed_nonce_cannot_repeat_authorization(self):
++        challenge=self.launch_begin();result=self.launch_complete(challenge)
++        self.assertTrue(result.HasField('authority_launch_authorization'),result);before=self.snapshot_all()
++        self.denied(self.launch_complete(challenge));self.assertEqual(self.snapshot_all(),before)
++
++    def test_supervisor_rotation_invalidates_unused_authorization(self):
++        self.authorize();_,public=self.key('new-supervisor')
++        self.assertTrue(self.bind(expected=1,public=public).HasField('supervision'));before=self.snapshot_all()
++        self.denied(self.activate(),core.FORBIDDEN);self.assertEqual(self.snapshot_all(),before)
++
++    def test_authorization_consumption_and_activation_roll_back_together(self):
++        self.authorize()
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.execute("CREATE TRIGGER deny_consumption BEFORE UPDATE ON authority_launch_authorization BEGIN SELECT RAISE(ABORT,'launch fault'); END")
++        before=self.snapshot_all();self.denied(self.activate(),core.STORAGE_ERROR);self.assertEqual(self.snapshot_all(),before)
++        with sqlite3.connect(self.state/'identity.db') as db:db.execute('DROP TRIGGER deny_consumption')
++        result=self.activate();self.assertTrue(result.HasField('authority_activation'),result)
++        self.assertEqual(result.authority_activation.generation,1)
++
++    def test_starting_one_generation_invalidates_other_prior_approvals(self):
++        self.authorize();other=self.connect();service=self.authenticate(other,b'n'*32)
++        self.authorize(self.launch_request(service,launch_id=b'm'*32))
++        self.assertTrue(self.activate().HasField('authority_activation'))
++        released=self.peer.call(authority_release=pb.AuthorityRelease(generation=1,applied_revision=0))
++        self.assertTrue(released.HasField('authority_activation'),released);before=self.snapshot_all()
++        self.denied(self.activate(other),core.REVISION_CONFLICT);self.assertEqual(self.snapshot_all(),before)
++
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(LaunchAuthorizationTests(n) for n in LaunchAuthorizationTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

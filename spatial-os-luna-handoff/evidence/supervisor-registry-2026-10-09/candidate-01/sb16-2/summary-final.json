@@ -1,0 +1,89 @@
+{
+  "host": "sb16-2",
+  "candidate": 1,
+  "output": 2,
+  "source_files": 272,
+  "locked_files": 41,
+  "integrated": false,
+  "debug": {
+    "checks": 246,
+    "new_checks": 18,
+    "existing_checks": 228,
+    "suites": 14,
+    "parts": {
+      "identity-supervisor-registry": 18,
+      "identity-participant-incarnation": 5,
+      "identity-participant-runtime": 14,
+      "identity-participant-barrier-client": 14,
+      "identity-participant-barrier": 19,
+      "identity-participant-session-client": 12,
+      "identity-participant-session": 20,
+      "identity-participants": 22,
+      "identity-participant-client": 9,
+      "identity-issuer": 18,
+      "identity-enrollment": 25,
+      "identity-bootstrap": 18,
+      "identity-revocation": 24,
+      "issuer-client": 28
+    },
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "identityd": "f7d662377e56f2b882ddc245db49f81f2d5cc54c0bc166c610392fbc43bc163d",
+      "spatial-issuer-client": "1e0521f15445a8c64065b1b1b728eaf79d70f070a546f8196a0a5c3ec2072d21",
+      "spatial-participant-runtime-probe": "652ba472bdfcce43a1a80bd1d9c63173196693d68daf13811c768b32d6212021"
+    }
+  },
+  "runtime-sanitize": {
+    "checks": 246,
+    "new_checks": 18,
+    "existing_checks": 228,
+    "suites": 14,
+    "parts": {
+      "identity-supervisor-registry": 18,
+      "identity-participant-incarnation": 5,
+      "identity-participant-runtime": 14,
+      "identity-participant-barrier-client": 14,
+      "identity-participant-barrier": 19,
+      "identity-participant-session-client": 12,
+      "identity-participant-session": 20,
+      "identity-participants": 22,
+      "identity-participant-client": 9,
+      "identity-issuer": 18,
+      "identity-enrollment": 25,
+      "identity-bootstrap": 18,
+      "identity-revocation": 24,
+      "issuer-client": 28
+    },
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "identityd": "c8437d166bf3e7f25f1f76c1a836574f5621e78a0d77f67048fc1c1f78def0b8",
+      "spatial-issuer-client": "7cb270976e588488edb788643aa9403dbeb33d9d1e339a300fbfd499ab9ee8f5",
+      "spatial-participant-runtime-probe": "8892d5da68ec2ececdf460a93405013e65b4212b08a05de854e692af4c108c98"
+    }
+  },
+  "schema": {
+    "preserved_files": 5,
+    "added_messages": [
+      "AuthoritySupervisorBind",
+      "AuthoritySupervisorBinding",
+      "AuthoritySupervisorRead"
+    ],
+    "added_fields": {
+      "IssuerOperation": {
+        "supervisor_bind": 12,
+        "supervisor_read": 13
+      },
+      "AdminResult": {
+        "supervision": 8
+      },
+      "IssuerReply": {
+        "supervision": 26
+      }
+    },
+    "existing_descriptors_unchanged": true
+  }
+}

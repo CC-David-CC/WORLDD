@@ -73,7 +73,9 @@ Both hosts then passed all 18 new registry checks in Debug.
 Output01 omitted spatial-issuer-client-probe from the build command.
 One existing client test could not execute. Preserve that setup failure.
 Output02 builds the missing probe without changing source or assertions.
-Output02 passed all 246 focused Debug checks across fourteen suites on both hosts.
-Both hosts also passed 51 harness checks. No corrected Debug case failed or skipped.
+Output02 passed all 246 focused checks across fourteen suites in Debug and runtime ASan/UBSan on both hosts.
+Each profile also passed 51 harness checks. No corrected case failed or skipped.
 Descriptor comparison confirms that existing protobuf descriptors remain unchanged.
-Runtime sanitizer qualification remains in progress. Source integration remains pending.
+Fresh full qualification runs separately in output03 on both hosts.
+Both full-build Debug runs passed the eighteen registry checks and 51 harness checks.
+The remaining full matrix is pending. Source integration remains pending.

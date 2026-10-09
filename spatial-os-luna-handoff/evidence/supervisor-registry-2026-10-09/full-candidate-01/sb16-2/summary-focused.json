@@ -1,0 +1,30 @@
+{
+  "host": "sb16-2",
+  "candidate": 1,
+  "output": 3,
+  "mode": "focused",
+  "source_files": 272,
+  "locked_files": 41,
+  "integrated": false,
+  "debug": {
+    "core_checks": 18,
+    "core_suites": 1,
+    "parts": {
+      "focused": {
+        "identity-supervisor-registry": 18
+      }
+    },
+    "harness_checks": 51,
+    "P10_cases": "uncollected",
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "ce8a9b2e8239863d410c8f820f64c89d883f17be21692ebeeb1e1e29b070fdba",
+      "workspaced": "42c81ddbd2691aaa5cddbb744146d6b392688a73f4002ad791c6c359e23d7716",
+      "identityd": "dc54644640da59c4f353c3fb6a332b90bd1bf0d78f57ee340a32cfc5a6aa5dae",
+      "spatialwm": "cd3069616bd5b18401b9b01005ea94ddb9ee56c1ba26384fc4bc00f0ae8e8e86",
+      "spatial-app-init": "e96aad49247cc534d4aa63bfc5cda8f20d2868636fe598b08e11aadaa3959fdd",
+      "spatial-test-host": "7d2fefd5b8f0b666ec84e3440833fa011c7f769d86c61d441f1cf92151fd6eba"
+    }
+  }
+}

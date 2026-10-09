@@ -91,7 +91,9 @@ Candidate02 also found an incorrect new fixture assertion.
 The cgroup inventory included standard kernel control files.
 Candidate03 requires no child directories and no member processes.
 All fourteen coordinator checks passed with that fixture against unchanged candidate02 production on both hosts.
-Candidate03 changes no production input. Full qualification remains pending.
+Candidate03 changes no production input.
 
-Candidate03 fresh builds passed 43 focused Debug checks and 51 harness checks on each host.
-All source and locked hashes match. Full Debug and runtime sanitizer results remain pending.
+Candidate03 completed full Debug and runtime ASan/UBSan qualification on both hosts.
+Each profile passed 1282 core checks across 83 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. All 270 source hashes and 41 locked hashes match.
+These results qualify the isolated coordinator. Supervisor recovery and source integration remain pending.

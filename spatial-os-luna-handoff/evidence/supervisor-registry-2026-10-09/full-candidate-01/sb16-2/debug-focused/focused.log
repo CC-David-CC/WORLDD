@@ -1,0 +1,51 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 12
+    Start 12: identity-supervisor-registry
+
+12: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source/tests/core/test_supervisor_registry.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build/spatial-issuer-client"
+12: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build
+12: Environment variables: 
+12:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-full-03/source
+12: Test timeout computed to be: 180
+12: test_owner_binds_exact_registration_through_production_client (__main__.SupervisorRegistryTests.test_owner_binds_exact_registration_through_production_client) ... ok
+12: test_stale_revision_cannot_replace_supervisor (__main__.SupervisorRegistryTests.test_stale_revision_cannot_replace_supervisor) ... ok
+12: test_service_and_supervisor_keys_cannot_bind_themselves (__main__.SupervisorRegistryTests.test_service_and_supervisor_keys_cannot_bind_themselves) ... ok
+12: test_active_generation_cannot_be_adopted_or_cleared (__main__.SupervisorRegistryTests.test_active_generation_cannot_be_adopted_or_cleared) ... ok
+12: test_binding_requires_launch_authorization_on_old_and_new_service_connections (__main__.SupervisorRegistryTests.test_binding_requires_launch_authorization_on_old_and_new_service_connections) ... ok
+12: test_key_roles_stay_separate_in_both_directions (__main__.SupervisorRegistryTests.test_key_roles_stay_separate_in_both_directions) ... ok
+12: test_pending_actor_enrollment_cannot_reuse_new_supervisor_key (__main__.SupervisorRegistryTests.test_pending_actor_enrollment_cannot_reuse_new_supervisor_key) ... ok
+12: test_wrong_registration_and_unknown_participant_cannot_bind (__main__.SupervisorRegistryTests.test_wrong_registration_and_unknown_participant_cannot_bind) ... ok
+12: test_binding_survives_restart (__main__.SupervisorRegistryTests.test_binding_survives_restart) ... ok
+12: test_failed_binding_transaction_leaves_revision_and_key_unchanged (__main__.SupervisorRegistryTests.test_failed_binding_transaction_leaves_revision_and_key_unchanged) ... ok
+12: test_client_rejects_substituted_binding_and_invalid_owner_proof (__main__.SupervisorRegistryTests.test_client_rejects_substituted_binding_and_invalid_owner_proof) ... ok
+12: test_client_rejects_substituted_challenge_context (__main__.SupervisorRegistryTests.test_client_rejects_substituted_challenge_context) ... ok
+12: test_client_denial_consumes_context_before_replay_success (__main__.SupervisorRegistryTests.test_client_denial_consumes_context_before_replay_success) ... ok
+12: test_client_unsolicited_binding_is_not_authority (__main__.SupervisorRegistryTests.test_client_unsolicited_binding_is_not_authority) ... ok
+12: test_client_read_cannot_return_another_participant (__main__.SupervisorRegistryTests.test_client_read_cannot_return_another_participant) ... ok
+12: test_malformed_binding_is_rejected_without_mutation (__main__.SupervisorRegistryTests.test_malformed_binding_is_rejected_without_mutation) ... ok
+12: test_explicit_v6_migration_preserves_existing_activation (__main__.SupervisorRegistryTests.test_explicit_v6_migration_preserves_existing_activation) ... ok
+12: test_failed_v6_migration_rolls_back_without_adopting_services (__main__.SupervisorRegistryTests.test_failed_v6_migration_rolls_back_without_adopting_services) ... ok
+12: 
+12: ----------------------------------------------------------------------
+12: Ran 18 tests in 8.954s
+12: 
+12: OK
+1/1 Test #12: identity-supervisor-registry .....   Passed    9.10 sec
+
+The following tests passed:
+	identity-supervisor-registry
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   9.10 sec

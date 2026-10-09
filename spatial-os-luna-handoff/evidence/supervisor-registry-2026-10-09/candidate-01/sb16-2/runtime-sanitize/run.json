@@ -1,0 +1,70 @@
+{
+  "host": "sb16-2",
+  "results": [
+    {
+      "name": "configure",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-01/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-02/runtime-sanitize/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-02/runtime-sanitize/build",
+        "--target",
+        "identityd",
+        "spatial-issuer-client",
+        "spatial-participant-runtime-probe",
+        "spatial-issuer-client-probe",
+        "python-protobuf",
+        "security-python-protobuf",
+        "issuer-python-protobuf",
+        "key-python-protobuf",
+        "grants-python-protobuf",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "harness",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/harness",
+        "-t",
+        ".",
+        "-q"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "focused",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-02/runtime-sanitize/build",
+        "-V",
+        "-R",
+        "^(identity-(supervisor-registry|issuer|enrollment|bootstrap|revocation|participants|participant-(client|incarnation|runtime|barrier|barrier-client|session|session-client))|issuer-client)$"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "source_files": 272,
+  "build": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-02/runtime-sanitize/build"
+}

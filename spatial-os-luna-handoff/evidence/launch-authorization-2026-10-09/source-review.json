@@ -1,0 +1,8 @@
+{
+  "reconstructed_files": 273,
+  "existing_production_unchanged": true,
+  "baseline": "One positive production-client authorization case fails UNKNOWN_METHOD on both hosts.",
+  "additional_drafted_checks": 7,
+  "authorization_implementation": "not written",
+  "integrated": false
+}

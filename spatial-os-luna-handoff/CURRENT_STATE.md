@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-09: Registry focused qualification and coordinator full qualification pass
+
+Supervisor registry candidate01 passed Debug and runtime ASan/UBSan on both hosts.
+Each focused profile passed 246 checks across fourteen suites and 51 harness checks.
+No final case failed or skipped. Source hashes, locked files, and additive protobuf descriptors match.
+Fresh full registry qualification is running separately in output03.
+Both full-build Debug runs passed eighteen registry checks and 51 harness checks.
+The remaining full matrix is pending. No registry source is integrated.
+
+Launch coordinator candidate03 completed both full profiles on both hosts.
+Each profile passed 1282 core checks across 83 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. All 270 source hashes and 41 locked hashes match.
+The coordinator remains isolated while authenticated launch and recovery work continues.
+
+The next launch-authorization baseline built on both hosts.
+Its positive case failed with UNKNOWN_METHOD through the production issuer client.
+The additive contract binds supervisor approval to an exact launch, service connection, and previous generation.
+The authorization implementation is not written. Seven additional drafted checks remain unrun.
+Read docs/AUTHORITY_LAUNCH_AUTHORIZATION.txt and evidence/launch-authorization-2026-10-09.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Owner-controlled supervisor registry enters qualification
 
 The isolated issuer now binds a separate supervisor key through an owner-signed challenge.

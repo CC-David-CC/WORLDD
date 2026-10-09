@@ -1,0 +1,26 @@
+test_supervisor_authorizes_exact_service_connection_through_production_client (counterexample.LaunchAuthorizationTests.test_supervisor_authorizes_exact_service_connection_through_production_client) ... FAIL
+
+======================================================================
+FAIL: test_supervisor_authorizes_exact_service_connection_through_production_client (counterexample.LaunchAuthorizationTests.test_supervisor_authorizes_exact_service_connection_through_production_client)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-baseline-01/source/tests/core/test_launch_authorization.py", line 46, in test_supervisor_authorizes_exact_service_connection_through_production_client
+    request=self.launch_request();authorization=self.authorize(request)
+                                                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-baseline-01/source/tests/core/test_launch_authorization.py", line 37, in authorize
+    result=self.launch_complete(self.launch_begin(request))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-launch-authorization-baseline-01/source/tests/core/test_launch_authorization.py", line 28, in launch_begin
+    self.assertTrue(result.HasField('challenge'),result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 1
+error {
+  code: UNKNOWN_METHOD
+  message: "No recognized issuer operation"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.392s
+
+FAILED (failures=1)
