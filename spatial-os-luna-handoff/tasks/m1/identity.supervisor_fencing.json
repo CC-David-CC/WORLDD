@@ -15,7 +15,7 @@
     "locked_files_unchanged": 41
   },
   "baseline": "One confirmed missing-operation failure per host/profile; four profiles total.",
-  "qualification": "Both hosts passed 10 new Debug checks and 51 harness checks. Related regressions, runtime sanitizers, and cumulative qualification remain active or pending.",
+  "qualification": "Both hosts passed 10 new checks and 51 harness checks in Debug and runtime ASan/UBSan. Cumulative qualification remains active or pending.",
   "live_drivers": {
     "sb16": 1266474,
     "sb16_2": 1047059
@@ -25,5 +25,7 @@
     "Complete cumulative qualification and review before integration.",
     "Keep automatic crash coordination, dependent control cleanup, and issuer retirement as required recovery work."
   ],
-  "debug_review": "evidence/supervisor-fencing-2026-10-09/debug-results-review-01.json"
+  "debug_review": "evidence/supervisor-fencing-2026-10-09/debug-results-review-01.json",
+  "focused_review": "evidence/supervisor-fencing-2026-10-09/focused-results-review-01.json",
+  "integration_dependency": "Resolve world bootstrap authority-channel failure before integrating the candidate chain."
 }

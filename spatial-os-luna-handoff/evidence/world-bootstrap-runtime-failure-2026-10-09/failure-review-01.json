@@ -1,0 +1,22 @@
+{
+  "reviewer": "primary agent",
+  "host": "sb16-2",
+  "profile": "runtime-sanitize",
+  "candidate": "world290 candidate02",
+  "core_checks": 1407,
+  "passed": 1406,
+  "failed": 1,
+  "skipped": 0,
+  "P10": "unrun",
+  "failure": "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority",
+  "symptom": "ParticipantRuntime failed UNAVAILABLE; IdentitySessions disabled at line192. Authentication then failed.",
+  "cause": "Unresolved. The current participant catch discards the underlying exception.",
+  "diagnostic": "Isolated one-file logging change. No deadline, retry, policy, or assertion changes.",
+  "live_diagnostic_drivers": {
+    "sb16": 1293685,
+    "sb16_2": 1083981
+  },
+  "original_world_driver": 906433,
+  "original_driver_terminal": true,
+  "integration_allowed": false
+}

@@ -1,0 +1,17 @@
+--- a/src/identity/participant_runtime.cpp
++++ b/src/identity/participant_runtime.cpp
+@@ -164,9 +164,12 @@
+         } catch (const std::invalid_argument&) {
+             std::lock_guard lock(mutex);
+             if (!stop.stop_requested()) fail_locked(core::INVALID_ARGUMENT, "Invalid authority participant context or command", current_request);
+-        } catch (const std::exception&) {
++        } catch (const std::exception& error) {
+             std::lock_guard lock(mutex);
+-            if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Authority participant channel failed; reconciliation is required", current_request);
++            if (!stop.stop_requested()) {
++                std::cerr << "participant diagnostic: " << error.what() << " request=" << current_request << '\n';
++                fail_locked(core::UNAVAILABLE, "Authority participant channel failed; reconciliation is required", current_request);
++            }
+         }
+     }
+     void run_private(std::stop_token stop, const v1::AuthorityParticipantRuntimeConfig& config,

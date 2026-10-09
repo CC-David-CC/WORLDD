@@ -6,9 +6,9 @@
   "contract": "docs/SUPERVISOR_WORLD_NATIVE_HANDOFF.txt",
   "evidence": "evidence/supervisor-world-handoff-2026-10-09",
   "production_changed": false,
-  "qualification": "sb16 passed full Debug and runtime ASan/UBSan:1407 core checks,95 suites,51 harness checks,151 P10 cases per profile. sb16-2 full Debug and focused sanitizers passed; full sanitizers remain active.",
+  "qualification": "sb16 passed both full profiles. sb16-2 Debug passed; runtime sanitizer core recorded1406 passes and1 bootstrap failure. Runtime P10 is unrun.",
   "remaining": [
-    "Complete both-host full runtime sanitizer cumulative qualification. Full Debug already passed on both hosts.",
+    "Resolve the bootstrap authority-channel failure, preserve original evidence, and complete both-host qualification before integration.",
     "Apply the reviewed schema comment correction with explicit source-delta and descriptor-equivalence evidence. Do not mutate frozen candidate02.",
     "Integrate the reviewed exact290-file candidate and adopt qualified source on both hosts."
   ],
@@ -19,5 +19,6 @@
   "reader_correction": "evidence/supervisor-world-handoff-2026-10-09/reader-correction-review-02.json",
   "participation_task": "tasks/m1/identity.supervised_world_participation.json",
   "schema_comment_review": "evidence/supervisor-world-handoff-2026-10-09/schema-comment-review-03.json",
-  "integration_preparation": "Verified 16-file integration plan with one comment-only source delta. Both hosts produced identical before/after protobuf descriptors. Apply refused missing full qualification evidence before production mutation."
+  "integration_preparation": "Verified 16-file integration plan with one comment-only source delta. Both hosts produced identical before/after protobuf descriptors. Apply refused missing full qualification evidence before production mutation.",
+  "failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/failure-review-01.json"
 }

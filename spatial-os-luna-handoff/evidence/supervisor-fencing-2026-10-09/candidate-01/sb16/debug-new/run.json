@@ -55,6 +55,20 @@
         "^authority-supervisor-fencing$"
       ],
       "exit_code": 0
+    },
+    {
+      "name": "focused",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/debug/build",
+        "-V",
+        "-R",
+        "^authority-",
+        "-E",
+        "^authority-supervisor-fencing$"
+      ],
+      "exit_code": 0
     }
   ],
   "server": {

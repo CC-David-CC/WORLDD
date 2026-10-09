@@ -1,0 +1,51 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 9
+    Start 9: authority-world-handoff-regressions
+
+9: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-world-handoff-regressions-76439f406fde33f3370fb011ee15130e8c41a23f607fb24a6b85403ede30b562" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/server" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/source/tests/native/test_supervisor_world_handoff_regressions.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build/spatial-issuer-client"
+9: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-world-handoff-02/runtime-sanitize/build
+9: Test timeout computed to be: 180
+9: Running as unit: spatial-world-handoff-regressions-76439f406fde33f3370fb011ee15130e8c41a23f607fb24a6b85403ede30b562.service; invocation ID: 375f43d0bfb94efd9201044d416f651d
+9: test_owned_world_renders_real_application_pixels_and_releases_held_input (__main__.WorldHandoffRegressionTests.test_owned_world_renders_real_application_pixels_and_releases_held_input) ... ok
+9: test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application (__main__.WorldHandoffRegressionTests.test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application) ... ok
+9: test_owned_native_credential_revocation_disconnects_compositor_and_preserves_cleanup_uncertainty (__main__.WorldHandoffRegressionTests.test_owned_native_credential_revocation_disconnects_compositor_and_preserves_cleanup_uncertainty) ... ok
+9: test_world_and_compositor_consume_the_native_configuration_descriptor (__main__.WorldHandoffRegressionTests.test_world_and_compositor_consume_the_native_configuration_descriptor) ... ok
+9: test_invalid_compositor_targets_fail_before_scope_ownership (__main__.WorldHandoffRegressionTests.test_invalid_compositor_targets_fail_before_scope_ownership) ... ok
+9: test_compositor_rejects_malformed_and_incomplete_native_configurations (__main__.WorldHandoffRegressionTests.test_compositor_rejects_malformed_and_incomplete_native_configurations) ... ok
+9: test_compositor_rejects_unsealed_native_configuration (__main__.WorldHandoffRegressionTests.test_compositor_rejects_unsealed_native_configuration) ... ok
+9: test_compositor_rejects_wrong_server_pins_and_native_roles (__main__.WorldHandoffRegressionTests.test_compositor_rejects_wrong_server_pins_and_native_roles) ... ok
+9: test_compositor_rejects_display_conflict (__main__.WorldHandoffRegressionTests.test_compositor_rejects_display_conflict) ... ok
+9: test_wrong_server_receives_no_authentication_bytes (__main__.WorldHandoffRegressionTests.test_wrong_server_receives_no_authentication_bytes) ... ok
+9: test_input_aware_reader_preserves_reply_validation (__main__.WorldHandoffRegressionTests.test_input_aware_reader_preserves_reply_validation) ... ok
+9: test_broker_and_compositor_handoffs_cannot_share_one_native_scope (__main__.WorldHandoffRegressionTests.test_broker_and_compositor_handoffs_cannot_share_one_native_scope) ... ok
+9: test_wrong_native_roles_fail_before_scope_ownership (__main__.WorldHandoffRegressionTests.test_wrong_native_roles_fail_before_scope_ownership) ... ok
+9: 
+9: ----------------------------------------------------------------------
+9: Ran 13 tests in 13.482s
+9: 
+9: OK
+9: Finished with result: success
+9: Main processes terminated with: code=exited/status=0
+9: Service runtime: 13.626s
+9: CPU time consumed: 10.647s
+9: Memory peak: 1.5M
+9: Memory swap peak: 0B
+1/1 Test #9: authority-world-handoff-regressions ...   Passed   13.65 sec
+
+The following tests passed:
+	authority-world-handoff-regressions
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  13.65 sec

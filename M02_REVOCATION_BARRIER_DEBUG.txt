@@ -1,3 +1,22 @@
+## 2026-10-09: Supervisor fencing sanitizers pass; world qualification has one unresolved failure
+
+Both hosts passed 10 new supervisor fencing checks and 51 harness checks in both profiles.
+Full cumulative issuer and supervisor fencing qualification remains active.
+
+sb16 passed full world qualification in Debug and runtime ASan/UBSan.
+sb16-2 passed full Debug. Its runtime sanitizer core recorded 1406 passes and one bootstrap failure.
+Runtime P10 is unrun on sb16-2. The original world driver has stopped.
+Authentication failed because the world's authority participant channel became unavailable.
+The service log identifies IdentitySessions line 192 but omits the underlying transport exception.
+The cause is unresolved. No sanitizer memory-error marker appeared in this failing core log.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/failure-review-01.json.
+
+Both hosts have isolated diagnostic jobs that expose the swallowed exception.
+They preserve the original test, deadlines, retries, authority checks, and frozen candidates.
+Passing repetitions alone will not resolve the original qualification failure.
+World integration remains disallowed until the failure is understood and applicable qualification passes.
+Production remains broker283. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Supervisor fence operation implemented in isolated candidate
 
 Both hosts reproduced the missing supervisor operation in Debug and runtime ASan/UBSan.

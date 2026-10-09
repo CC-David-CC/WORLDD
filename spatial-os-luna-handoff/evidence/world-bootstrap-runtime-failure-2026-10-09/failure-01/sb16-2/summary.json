@@ -1,0 +1,26 @@
+{
+  "host": "sb16-2",
+  "candidate": 2,
+  "source_files": 290,
+  "profile": "runtime-sanitize",
+  "core_checks": 1407,
+  "failed": 1,
+  "passed": 1406,
+  "P10": "unrun_after_core_failure",
+  "integrated": false,
+  "failure": "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority: UNAVAILABLE World identity service is disabled",
+  "preserved_files": [
+    "local/world-handoff-driver-02/driver.log",
+    "local/supervisor-world-handoff-candidate-02.json",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/run-full.json",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/core.log",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/harness.log",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/handoff.log",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/regressions.log",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/focused.log",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/server/WorldBootstrapTests-test_public_entry_reports_unbound_template_without_action_authority-world-1.log",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/server/WorldBootstrapTests-test_public_entry_reports_unbound_template_without_action_authority-world-0.log",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/server/WorldBootstrapTests-test_public_entry_reports_unbound_template_without_action_authority-tls-0.log",
+    "local/m02-supervisor-world-handoff-02/runtime-sanitize/build/Testing/Temporary/LastTest.log"
+  ]
+}

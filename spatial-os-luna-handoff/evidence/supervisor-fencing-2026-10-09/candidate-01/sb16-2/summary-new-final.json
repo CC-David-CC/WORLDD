@@ -1,0 +1,60 @@
+{
+  "host": "sb16-2",
+  "candidate": 1,
+  "source_files": 293,
+  "locked_files": 41,
+  "mode": "new-final",
+  "integrated": false,
+  "schema": {
+    "existing_files": 13,
+    "existing_descriptors_unchanged": true,
+    "added_record_field": 10,
+    "added_request_field": 20
+  },
+  "debug": {
+    "core_checks": 10,
+    "core_suites": 1,
+    "harness_checks": 51,
+    "P10_cases": "uncollected",
+    "failed": 0,
+    "skipped": 0,
+    "parts": {
+      "fencing": {
+        "authority-supervisor-fencing": 10
+      }
+    },
+    "binaries": {
+      "worldd": "3b7f1a093c9294da5bad1c990b8f665fa89a59f5136ea78682f1c5f7a2c5408c",
+      "workspaced": "c0e26a392768a7c8c5a7c7de8e32fb45832f71e3fbb460cdcf614d547c33e5ba",
+      "identityd": "7d5f8545b234065e0f4a7c4cc19245b1964c8d5de1e464ce68f17cb99199b30c",
+      "spatialwm": "4b763d9a62e65b40729a89cb490231e536f4b2604b69f237501eb1e6ff9d3bd3",
+      "spatial-test-host": "67e9e8f8e417325d816be67d41da70d38f25d68db462bc344db405890f33070f",
+      "spatial-authority-supervisor": "b6119517b43e8f89994fc3c6e1c61271ff190cebca05a420e538d67b293280d3",
+      "spatial-issuer-client": "6e0bdd595a3ab13af1768fb46c7ad5ee94a0ae8dcefba1dcbfe805d98827047b",
+      "spatial-authority-launch-probe": "27dab1776065608d09d6c619fc795765d635e08119d23416e47428356c396c8a"
+    }
+  },
+  "runtime-sanitize": {
+    "core_checks": 10,
+    "core_suites": 1,
+    "harness_checks": 51,
+    "P10_cases": "uncollected",
+    "failed": 0,
+    "skipped": 0,
+    "parts": {
+      "fencing": {
+        "authority-supervisor-fencing": 10
+      }
+    },
+    "binaries": {
+      "worldd": "7c5d5625066b6a0766ea5d521a84e5fe1ab9469e9c98a276271577c176f0bdf1",
+      "workspaced": "b2b154a7889bb810d0aaba1d2282e606b0fb47fcec30119f1774e9ebfc216777",
+      "identityd": "1411de4c16300a458587cc96f9764c56cde882084d67f6e8152988d94c7f75af",
+      "spatialwm": "c7e4af353985f4dff28536865af83882a206662c0aa6525a7766a5c8e22b9d0e",
+      "spatial-test-host": "f7b8df54bb8de092156b6cf0e07b12edbe939f5c47cc3e97a4ff3ee9b955b01a",
+      "spatial-authority-supervisor": "fb97fa88b86eee3a78012f2449055297495a89d1746b398de460124f6e8c261c",
+      "spatial-issuer-client": "a98f39a835f8d214b6d7c883616f80ef471d3806f5fe05c1b490082ec3ac5645",
+      "spatial-authority-launch-probe": "984520d745a80c55236ff5b96b98f0abb84777ae751c07cc0e994c782ec37787"
+    }
+  }
+}
