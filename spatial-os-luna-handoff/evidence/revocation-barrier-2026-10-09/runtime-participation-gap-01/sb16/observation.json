@@ -1,0 +1,17 @@
+{
+  "status": "gap_reproduced",
+  "meaning": "current world admits protected activity without activation and is absent from issuer obligations",
+  "remote_actor_tls": "TLSv1.3",
+  "issuer_revision": 1,
+  "motion_after_barrier_status": 0.100455821,
+  "barrier_complete": true,
+  "barrier_participant_count": 0,
+  "barrier_pending_count": 0,
+  "position_after_delivery": [
+    0.20292403,
+    0.20292403
+  ],
+  "seconds_since_commit_reply": 0.288807461009128,
+  "relay_scope": "holds one real event reply for at most1000ms; does not forge authority",
+  "M02_complete": false
+}

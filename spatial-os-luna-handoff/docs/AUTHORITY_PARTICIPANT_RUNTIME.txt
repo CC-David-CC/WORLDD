@@ -1,0 +1,121 @@
+Runtime participation and cancellation completion
+Status: required runtime integration. A real world diagnostic reproduces missing participation.
+Dependency: identity.participant_barrier candidate04. Keep all active qualification sources frozen.
+
+Observed gap
+A real TLS actor starts moving in the current world runtime.
+The new issuer commits its revocation and reports a complete barrier with zero participants.
+The diagnostic relay holds the genuine revocation event while the actor continues moving.
+The world never registered or activated an authority participant, so the issuer cannot include it.
+Delivery then stops motion. The issuer's empty obligation set does not establish runtime cancellation.
+This is missing runtime integration, not a passed Spatial-M1 requirement.
+See evidence/revocation-barrier-2026-10-09/runtime-participation-gap-01/sb16.
+
+Required invariant
+Every world or broker that admits protected activity has an active, registered service generation.
+It acknowledges a revision only after its actual cancellation effects and affected handler stack are settled.
+
+Reusable transport component
+Add src/identity/participant_runtime.hpp and participant_runtime.cpp.
+ParticipantRuntime owns its checked issuer TLS client on one worker thread.
+Main-thread poll never waits for network I/O.
+Only activate, applied, and release commands enter its bounded command queue.
+Use existing checked IssuerClient operations. Do not create a second authorization implementation.
+Generate a fresh process incarnation inside the runtime.
+Load the registered service key from an owned private file outside workspace mounts.
+Verify the returned registration matches the configured identity, revision, key, and exact expected authority domains.
+The world derives expected domains from its stable world identity.
+The broker derives expected domains from every configured workspace authority binding.
+Do not infer domains from host names or actor identities.
+
+Proposed additive issuer.proto messages
+AuthorityParticipantRuntimeConfig:
+  uint32 protocol_version=1; string issuer_client_config=2; string private_key_path=3;
+  bytes participant_id=4; uint64 registered_revision=5.
+ParticipantCommand:
+  uint64 request_id=1;
+  oneof operation: AuthorityActivate activate=10; AuthorityApplied applied=11; AuthorityRelease release=12.
+ParticipantUpdate:
+  uint32 protocol_version=1; uint64 request_id=2;
+  oneof outcome: AuthorityAuthenticationResult authenticated=10; RevocationBatch revocations=11;
+  AuthorityActivationState activated=12; AuthorityActivationState applied=13;
+  AuthorityActivationState released=14; spatial.core.v1.Error error=15.
+All messages remain internal trusted component messages. They grant no actor access.
+Do not expose this command channel or service keys to workspace applications.
+Preserve existing protobuf field numbers and meanings.
+
+Worker lifecycle
+Authenticate the service on the actual TLS connection.
+Publish a checked revocation baseline before activation.
+Continue polling contiguous events while the authority synchronizes.
+A matching baseline is observed state. It is not permission to admit protected work.
+The authority explicitly requests activation after synchronization and cleanup.
+A concurrent revocation can reject activation with REVISION_CONFLICT.
+Publish that rejection and new feed events. Require a new explicit synchronized activation request.
+Never automatically retry an uncertain mutation.
+Publish activated only after the issuer confirms the durable generation.
+Keep feed and mutation traffic on that original service connection.
+Bound idle feed waits so queued acknowledgements and stop requests make progress.
+Do not advance applied state merely because a feed batch advertises a newer head.
+Require queued application revisions to be contiguous and no newer than events delivered to the consumer.
+Bound both update and command queues. Overflow permanently disables the channel and reports uncertainty.
+A transport failure permanently disables that instance. Do not silently reconnect or replace its generation.
+Clean release requires the authority's explicit quiescence confirmation.
+Destroying the worker stops I/O without claiming release or deleting issuer obligations.
+
+World integration boundary
+IdentitySessions currently owns an IssuerWatcher and an observed_revision.
+Replace the receive-only watcher for actor-serving configurations with ParticipantRuntime.
+Require participation configuration before admitting local or remote actor sessions.
+Keep trusted initialization and management-only startup separate from actor admission.
+Do not restart XLibre or the compositor to activate a world participant.
+Keep observed, locally settled, and issuer-acknowledged revisions distinct.
+Apply revocations on the existing world authority thread.
+Cancel affected motion, previews, authentication completion, observations, and queued protected replies immediately.
+Wait until affected handlers unwind before requesting an application acknowledgement.
+Actors::release_input already checks native cancellation replies.
+Actors::drain_control_releases can defer release while BrokerClient is busy.
+An actor close therefore must not be treated as proof that the broker reservation has been released.
+Expose a production settlement condition that includes deferred releases and native close/reset state.
+Do not acknowledge if any required native cancellation failed or remains uncertain.
+
+Broker integration boundary
+WorkspaceAuthority currently uses a receive-only watcher and invalidates decisions during callbacks.
+Its observer can run while another issuer request is in flight.
+ExecutionStore::reconcile_authority and process reaping occur separately from event receipt.
+Require participant activation for authority-enabled workspace execution.
+Retain each event until grant decisions, application control changes, process authority, and required termination are settled.
+Do not terminate applications merely because a controller credential was revoked.
+Preserve independently valid credentials, grants, and applications.
+Do not acknowledge from a reentrant callback before the outer launch or control operation finishes.
+Coordinate world and broker completion: broker event delivery alone does not prove native input release.
+
+Configuration and fixture migration
+Document exact new world and workspace configuration fields before implementation.
+Require participation for actor-serving worlds and authority-enabled workspace brokers.
+Do not introduce a production bypass that qualifies unregistered execution as Spatial-M1.
+Update affected core fixture bootstrap helpers to register distinct service keys before starting these authorities.
+Keep all locked acceptance files unchanged.
+Preserve every old denial, confinement, native-isolation, and recovery assertion.
+Test missing configuration and domain mismatches as explicit startup failures.
+Test bootstrap with independent worlds and a broker serving multiple workspace domains.
+
+Recovery
+A disconnected or crashed generation remains unresolved at the issuer.
+A second process with the same service key cannot replace it.
+Add a separately reviewed trusted-supervisor fencing and cleanup path before recovery acceptance.
+Require verified native input, process, lease, and observation cleanup before resolving a stranded generation.
+An owner assertion, elapsed timeout, lost socket, or process exit alone is insufficient.
+Do not clear unknown external effects to obtain a successful barrier.
+
+Required independent evidence
+Demonstrate that the current zero-participant diagnostic fails after runtime integration.
+A running world must appear in the committed obligation set.
+Hold the genuine event: owner status stays pending while previously admitted motion continues.
+Release the event: status completes only after motion and all other required effects stop.
+Hold native input cancellation and broker release replies independently; each must retain pending completion.
+Revoke during launch and delayed replies; stale work cannot restore access after acknowledgement.
+Disconnect and restart the issuer or authority; pending obligations survive and replacement is denied.
+Run real native input and process witnesses and both-host delayed-delivery cases.
+Run complete Debug and runtime sanitizer qualification on both hosts before integration.
+Physical input, GPU timing, models, and full Spatial-M1 remain separate mandatory requirements.

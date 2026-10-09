@@ -1,0 +1,16 @@
+Primary review of runtime participation diagnostic
+The diagnostic uses real issuer, checked-client, and world binaries with recorded hashes.
+The issuer and client match the focused barrier candidate04 binaries.
+The world matches the complete service-session candidate03 Debug qualification on sb16.
+The relay holds a genuine committed event. It does not change the authority reply or world state.
+An independent owner query reports a complete revision1 barrier with zero participants.
+The world admitted a real TLS actor without service activation and thus has no issuer obligation.
+An independent management witness measures continued motion after that completion query.
+Event delivery then produces two matching stopped-position observations.
+The configured ten-second motion expiry does not explain the stop.
+The observed0.100455821metres establishes the missing runtime participation boundary.
+This result is a diagnostic reproduction, not passing cancellation acceptance.
+Require world and broker registration and activation before protected work.
+Then replace this expected-gap diagnostic with independently witnessed pending/completion scenarios.
+Keep issuer, observed, settled, and acknowledged revisions distinct.
+No operator database, normal session, or active qualification source changed.

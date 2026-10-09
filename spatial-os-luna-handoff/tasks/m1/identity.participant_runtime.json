@@ -1,0 +1,20 @@
+{
+  "id": "identity.participant_runtime",
+  "phase": "M02",
+  "status": "in_progress",
+  "current_step": "real_world_participation_gap_reproduced",
+  "parent": "identity.revocation_barrier",
+  "integration_dependency": "identity.participant_barrier",
+  "contract": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt",
+  "invariant": "Every protected world and workspace authority participates before admission and acknowledges only settled cancellation effects.",
+  "baseline_evidence": "evidence/revocation-barrier-2026-10-09/runtime-participation-gap-01/sb16",
+  "integrated": false,
+  "remaining": [
+    "Implement the checked service worker with bounded protobuf command and update queues.",
+    "Require world and broker participation before protected activity.",
+    "Track handler, native input, deferred lease, observation, and process cancellation completion.",
+    "Add independently witnessed delayed-effect and both-host cases.",
+    "Implement verified supervisor fencing for stranded generations.",
+    "Qualify both hosts in Debug and runtime sanitizer profiles."
+  ]
+}

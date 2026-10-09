@@ -1,0 +1,17 @@
+{
+  "host": "sb16",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/probe-runtime-participation-gap-01.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-03/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-barrier-draft-03/debug/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-debug-03/build/worldd"
+  ],
+  "exit_code": 0,
+  "binary_sha256": {
+    "identityd": "a0586ce2958d63e53965b6edd9ba02d4a12292e6d40f584d8a0fc0c31f911d66",
+    "spatial-issuer-client": "f4f7757458ab1e91edc0817b6fa7bc9ded610c8acdc4934e88fadfe291f40934",
+    "worldd": "df977620f06337354d2bcafb95b9d3850f2488d1956afcf224a452cf90d63fca"
+  },
+  "scope": "diagnostic of missing runtime participation; no M02 completion claim"
+}

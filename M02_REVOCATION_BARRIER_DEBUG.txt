@@ -60,3 +60,12 @@ Candidate02 passed19 new and187 related regression checks on sb16 in Debug.
 Its checked-client validation and full qualification remain pending.
 Production world/broker cancellation witnesses and supervisor fencing remain required.
 Evidence: spatial-os-luna-handoff/evidence/participant-barrier-2026-10-09
+
+Runtime participation gap, 2026-10-09
+The barrier issuer draft reported completion with zero active participants.
+The current world had admitted a real TLS actor without activating a service generation.
+While a relay held the genuine event, that actor moved another0.100455821metres after the status query.
+Event delivery then stopped motion. This is missing runtime integration, not M02 acceptance.
+Require world and broker participation before protected work and acknowledge only settled effects.
+Evidence: spatial-os-luna-handoff/evidence/revocation-barrier-2026-10-09/runtime-participation-gap-01
+Contract: spatial-os-luna-handoff/docs/AUTHORITY_PARTICIPANT_RUNTIME.txt

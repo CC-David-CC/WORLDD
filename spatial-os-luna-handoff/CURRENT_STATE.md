@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Real runtime diagnostic confirms mandatory participation gap
+
+The current world runtime admits actors without an activated issuer service generation.
+A real TLS diagnostic combined the barrier issuer draft with the qualified service-session world binary.
+The owner read a complete revocation barrier containing zero participants.
+While a relay held the genuine event, an independent witness measured another 0.100455821 metres of actor motion.
+After event delivery, two position observations matched. Motion expiry did not explain the stop.
+
+This confirms missing runtime participation. The issuer cannot track a world that never activates.
+Require world and workspace broker participation before protected admission or execution.
+Acknowledgements must also wait for native input, deferred leases, observations, handlers, and required process termination.
+The exact worker and integration contract is recorded in docs/AUTHORITY_PARTICIPANT_RUNTIME.txt.
+The reproduction and binary hashes are in evidence/revocation-barrier-2026-10-09/runtime-participation-gap-01.
+This diagnostic is not a passed cancellation requirement. M02 and Spatial-M1 remain incomplete.
+Both service-session sanitizer runs remain live. No production source or operator state changed.
+
 ## 2026-10-09: Durable participation checked client passes focused Debug checks
 
 The isolated barrier client now validates activation, application acknowledgements, release, and owner completion queries.

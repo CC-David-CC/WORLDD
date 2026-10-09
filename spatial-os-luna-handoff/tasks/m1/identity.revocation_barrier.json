@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "service_session_qualification_and_durable_obligation_baseline",
+  "current_step": "service_sanitizer_qualification_and_runtime_participation_gap",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -38,14 +38,15 @@
   "next_test": "An owner observes committed-but-pending revocation while one enrolled authority delays cancellation, then observes completion only after genuine cancellation acknowledgement.",
   "limitations": [
     "The diagnostic reproduces a known missing requirement. It is not passing M02 acceptance.",
-    "Participant registry is integrated. Service proof is under full qualification. Durable obligations remain unimplemented.",
+    "Service authentication is under sanitizer qualification. Durable issuer barriers pass focused checks. Actual runtime participation remains missing.",
     "Native input and multi-host cancellation barrier evidence remains unrun."
   ],
   "implementation_plan": "docs/REVOCATION_BARRIER_PLAN.txt",
   "component_tasks": [
     "tasks/m1/identity.participant_registry.json",
     "tasks/m1/identity.participant_session.json",
-    "tasks/m1/identity.participant_barrier.json"
+    "tasks/m1/identity.participant_barrier.json",
+    "tasks/m1/identity.participant_runtime.json"
   ],
-  "next_component_design": "docs/AUTHORITY_PARTICIPANT_BARRIER.txt"
+  "next_component_design": "docs/AUTHORITY_PARTICIPANT_RUNTIME.txt"
 }
