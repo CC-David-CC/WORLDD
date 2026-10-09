@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-09: Checked application termination qualified and integrated
+
+Application cancellation now pins the namespace leader before application startup.
+Successful cleanup requires namespace exit and a checked reap of the owned outer child.
+Kernel-denied signals, failed waits, and unresolved destructor cleanup cannot report successful cancellation.
+
+Both hosts passed complete Debug and runtime ASan/UBSan qualification.
+Each profile passed 1192 core checks across 69 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. All 242 source hashes and 41 locked hashes match.
+Primary review covered all five changed source and test files. Existing tests and schemas remain unchanged.
+The three original cleanup failures remain preserved as regression evidence.
+The reviewed correction is integrated locally. Commit and host adoption are next.
+See evidence/process-termination-2026-10-09/integration-applied-02.json.
+
+The separate broker/world draft still requires broad qualification and supervisor fencing.
+Its initial focused matrix passed on both hosts, but broader testing found a typed-error regression.
+A corrected isolated draft preserves existing error replies. All 20 workspace-authority checks now pass on sb16.
+The current combined qualification also corrects fixture setup and preserves existing test assertions.
+No operator database was migrated and no native session was restarted. M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-09: Broker participation passes first process and native reservation checks
 
 The unchanged broker reproduced the zero-participant revocation gap in three tests.

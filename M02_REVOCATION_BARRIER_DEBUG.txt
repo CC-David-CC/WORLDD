@@ -92,3 +92,9 @@ Native checks use diagnostic XLibre Xvfb, not an operator session or physical in
 Both-host focused Debug and runtime sanitizer checks are running. Full regression and supervisor fencing remain pending.
 Evidence: spatial-os-luna-handoff/evidence/workspace-participant-2026-10-09
 The separate process correction passed full Debug on both hosts. Its full sanitizer jobs remain live.
+
+Checked process termination integrated, 2026-10-09
+Both hosts passed full Debug and runtime sanitizer profiles:1192 core,51 harness,151 P10 checks per profile.
+The reviewed cleanup correction is integrated. Source and locked-test hashes match the qualified candidate.
+The original process cleanup failures remain in the evidence directory.
+Broker/world integration and supervisor fencing remain pending. This does not complete M02.

@@ -1,7 +1,7 @@
 {
   "id": "identity.process_termination",
   "phase": "M02",
-  "status": "in_progress",
+  "status": "complete",
   "parent": "identity.revocation_barrier",
   "invariant": "Confirm namespace exit and child reap before reporting successful application cancellation.",
   "evidence": "evidence/process-termination-2026-10-09",
@@ -9,19 +9,14 @@
   "source": "local/process-termination-draft-01",
   "candidate": 2,
   "source_files": 242,
-  "integrated": false,
+  "integrated": true,
   "baseline": {
     "host": "sb16",
     "passed": 1,
     "failed": 3
   },
-  "remaining": [
-    "Complete focused Debug and sanitizer profiles on both hosts.",
-    "Verify destructor failure checks and all existing regression suites.",
-    "Complete full matrix and primary source review before integration.",
-    "Use checked process termination in broker participation and recovery."
-  ],
-  "current_step": "both_full_Debug_passed_runtime_sanitizers_running",
+  "remaining": [],
+  "current_step": "full_both_host_profiles_qualified_and_integrated",
   "candidate01_focused": {
     "hosts": [
       "sb16",
@@ -58,5 +53,22 @@
     "P10_cases": 151,
     "failed": 0,
     "skipped": 0
-  }
+  },
+  "full_qualification": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "core_checks": 1192,
+    "core_suites": 69,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "failed": 0,
+    "skipped": 0
+  },
+  "followup": "Broker participation and supervisor recovery remain tracked under identity.revocation_barrier."
 }

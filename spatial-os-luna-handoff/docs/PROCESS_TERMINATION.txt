@@ -40,3 +40,11 @@ Full Debug qualification update
 Candidate02 passed 1192 core checks, 51 harness checks, and 151 P10 cases on both hosts.
 All 242 source hashes and 41 locked hashes match. No Debug check failed or skipped.
 Both full runtime sanitizer matrices remain active. The correction remains isolated.
+
+Integration result
+Candidate02 passed full Debug and runtime ASan/UBSan qualification on both sb16 and sb16-2.
+Each profile passed 1192 core checks across 69 suites, 51 harness checks, and 151 P10 cases.
+The five reviewed source and test files are integrated. All 242 qualification source hashes match.
+The six new tests include direct stop and destructor failures under actual kernel syscall denial.
+Existing tests, schemas, and all 41 locked files remain unchanged.
+This completes the checked process-termination primitive. Distributed participation and recovery remain separate M02 work.

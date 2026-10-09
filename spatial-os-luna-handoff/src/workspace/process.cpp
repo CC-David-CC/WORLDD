@@ -8,12 +8,15 @@
 #include <csignal>
 #include <cstddef>
 #include <fcntl.h>
+#include <fstream>
+#include <iostream>
 #include <linux/audit.h>
 #include <linux/filter.h>
 #include <linux/memfd.h>
 #include <linux/seccomp.h>
 #include <poll.h>
 #include <sched.h>
+#include <sstream>
 #include <sys/prctl.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -92,6 +95,10 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
     struct stat trusted{};
     if (lstat(bwrap, &trusted) != 0 || !S_ISREG(trusted.st_mode) || trusted.st_uid != 0 || (trusted.st_mode & 0022))
         throw WorldError(wire::UNAVAILABLE, "Install the reviewed execution bootstrap first");
+    // Hold the sandbox before exec until its namespace leader has a pinned pidfd.
+    int launch_pipe[2];
+    if (pipe2(launch_pipe, O_CLOEXEC) != 0) throw std::runtime_error("Cannot hold application startup");
+    File launch_read{launch_pipe[0]}, launch_write{launch_pipe[1]};
     File project_fd{directory(project)}, repo_fd{directory(repository)}, state_fd{directory(state)}, policy{filter()};
     const std::string bind = writable ? "--bind-fd" : "--ro-bind-fd";
     std::vector<std::string> strings{bwrap, "--unshare-all", "--unshare-user", "--disable-userns", "--die-with-parent", "--new-session",
@@ -112,7 +119,7 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
             "--setenv", "DISPLAY", ":"+native_->display_number(), "--setenv", "XAUTHORITY", "/run/spatial/Xauthority"};
         strings.insert(strings.end(), display.begin(), display.end());
     }
-    const std::vector<std::string> tail{"--seccomp", std::to_string(policy.fd), "--remount-ro", "/", "--", "/spatial-app-init"};
+    const std::vector<std::string> tail{"--block-fd", std::to_string(launch_read.fd), "--seccomp", std::to_string(policy.fd), "--remount-ro", "/", "--", "/spatial-app-init"};
     strings.insert(strings.end(), tail.begin(), tail.end());
     std::vector<char*> argv;
     for (auto& value : strings) argv.push_back(value.data());
@@ -131,19 +138,23 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         if (diagnostic < 0 || dup2(input_read.fd, 0) < 0 || dup2(output_write.fd, 1) < 0 || dup2(diagnostic, 2) < 0) _exit(126);
         // Only explicit mount and policy descriptors survive into Bubblewrap.
         if (syscall(SYS_close_range, 3u, ~0u, 4u /* CLOSE_RANGE_CLOEXEC */) != 0) _exit(126);
-        for (const int fd : {project_fd.fd, repo_fd.fd, state_fd.fd, policy.fd}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
+        for (const int fd : {project_fd.fd, repo_fd.fd, state_fd.fd, policy.fd, launch_read.fd}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
         if (native_)
             for (const int fd : {native_->authority_fd(), native_->socket_fd()}) if (fcntl(fd, F_SETFD, 0) < 0) _exit(126);
         char path[] = "PATH=/usr/bin:/bin"; char* env[]{path, nullptr};
         execve(bwrap, argv.data(), env); _exit(127);
     }
     if (pid_ < 0) throw std::runtime_error("Cannot fork application boundary");
+    close(launch_read.fd); launch_read.fd = -1;
     close(input_read.fd); input_read.fd = -1; close(output_write.fd); output_write.fd = -1;
     output_ = output_read.fd; output_read.fd = -1;
     try {
         pidfd_ = static_cast<int>(syscall(SYS_pidfd_open, pid_, 0));
         if (pidfd_ < 0 || fcntl(output_, F_SETFL, O_NONBLOCK) < 0 || fcntl(input_write.fd, F_SETFL, O_NONBLOCK) < 0)
             throw std::runtime_error("Cannot monitor application boundary");
+        pin_namespace();
+        write_all(launch_write.fd, "1", authority_);
+        close(launch_write.fd); launch_write.fd = -1;
         workspace::v1::AppStart start; start.set_protocol_version(1); *start.mutable_argv() = request.argv();
         const auto payload = start.SerializeAsString(); const auto length = static_cast<std::uint32_t>(payload.size());
         std::string framed{static_cast<char>(length >> 24), static_cast<char>(length >> 16), static_cast<char>(length >> 8), static_cast<char>(length)};
@@ -151,14 +162,79 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         const auto ready = event(Clock::now() + std::chrono::seconds(5));
         if (!ready.has_started() || !ready.started()) throw std::runtime_error("Application did not confirm exec");
         authority_();
-    } catch (...) { stop(); if (output_ >= 0) close(output_); output_ = -1; throw; }
+    } catch (...) { stop_or_exit(); if (output_ >= 0) close(output_); output_ = -1; throw; }
 }
-ApplicationProcess::~ApplicationProcess() { stop(); if (output_ >= 0) close(output_); }
+ApplicationProcess::~ApplicationProcess() { stop_or_exit(); if (output_ >= 0) close(output_); }
+void ApplicationProcess::pin_namespace() {
+    const auto deadline = Clock::now()+std::chrono::seconds(5);
+    while (Clock::now() < deadline) {
+        authority_();
+        std::ifstream children("/proc/"+std::to_string(pid_)+"/task/"+std::to_string(pid_)+"/children");
+        pid_t child = 0, extra = 0;
+        if (children >> child) {
+            if (child <= 0 || (children >> extra)) throw std::runtime_error("Unexpected application namespace children");
+            File selected{static_cast<int>(syscall(SYS_pidfd_open, child, 0))};
+            if (selected.fd < 0) throw std::runtime_error("Cannot pin application namespace leader");
+            std::ifstream status("/proc/"+std::to_string(child)+"/status");
+            std::string line; bool parent_matches = false, namespace_matches = false;
+            while (std::getline(status, line)) {
+                if (line.starts_with("PPid:")) {
+                    std::istringstream value(line.substr(5)); pid_t parent = 0;
+                    parent_matches = static_cast<bool>(value >> parent) && parent == pid_;
+                } else if (line.starts_with("NSpid:")) {
+                    std::istringstream values(line.substr(6)); pid_t current = 0, last = 0; unsigned count = 0;
+                    while (values >> current) { last = current; ++count; }
+                    namespace_matches = count >= 2 && last == 1;
+                }
+            }
+            pollfd state{selected.fd, POLLIN, 0};
+            if (!parent_matches || !namespace_matches || poll(&state, 1, 0) != 0)
+                throw std::runtime_error("Application namespace identity is unavailable");
+            namespace_pidfd_ = selected.fd; selected.fd = -1; return;
+        }
+        pollfd state{pidfd_, POLLIN, 0};
+        const auto result = poll(&state, 1, 5);
+        if (result > 0 || (result < 0 && errno != EINTR)) throw std::runtime_error("Application boundary exited before namespace pinning");
+    }
+    throw std::runtime_error("Application namespace startup deadline expired");
+}
+void ApplicationProcess::stop_or_exit() noexcept {
+    try { stop(); }
+    catch (const std::exception& error) {
+        std::cerr << "workspaced: application cleanup unconfirmed: " << error.what() << '\n';
+        // A failed destructor must never let the broker acknowledge cancelled execution.
+        _exit(2);
+    }
+}
 void ApplicationProcess::stop() {
     if (pid_ <= 0) return;
-    if (pidfd_ >= 0) syscall(SYS_pidfd_send_signal, pidfd_, SIGKILL, nullptr, 0);
-    else kill(pid_, SIGKILL); // Still our unreaped child.
-    while (waitpid(pid_, nullptr, 0) < 0 && errno == EINTR) {}
+    const auto signal_fd = [](int fd) {
+        if (syscall(SYS_pidfd_send_signal, fd, SIGKILL, nullptr, 0) < 0 && errno != ESRCH)
+            throw std::runtime_error("Cannot signal application boundary");
+    };
+    if (namespace_pidfd_ >= 0) signal_fd(namespace_pidfd_);
+    if (pidfd_ >= 0) signal_fd(pidfd_);
+    else if (kill(pid_, SIGKILL) < 0 && errno != ESRCH) // Still our unreaped child.
+        throw std::runtime_error("Cannot signal unreaped application boundary");
+    const auto deadline = Clock::now()+std::chrono::seconds(2);
+    if (namespace_pidfd_ >= 0) {
+        for (;;) {
+            pollfd state{namespace_pidfd_, POLLIN, 0};
+            const auto result = poll(&state, 1, 10);
+            if (result > 0 && (state.revents & POLLIN)) break;
+            if (result > 0 || (result < 0 && errno != EINTR) || Clock::now() >= deadline)
+                throw std::runtime_error("Cannot confirm application namespace exit");
+        }
+    }
+    for (;;) {
+        const auto result = waitpid(pid_, nullptr, WNOHANG);
+        if (result == pid_) break;
+        if ((result < 0 && errno != EINTR) || Clock::now() >= deadline)
+            throw std::runtime_error("Cannot confirm application boundary reap");
+        poll(nullptr, 0, 5);
+    }
+    if (namespace_pidfd_ >= 0) close(namespace_pidfd_);
+    namespace_pidfd_ = -1;
     if (pidfd_ >= 0) close(pidfd_);
     pidfd_ = -1; pid_ = -1;
 }

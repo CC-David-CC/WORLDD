@@ -23,10 +23,12 @@ public:
     std::optional<int> wait(double seconds);
     void stop();
 private:
+    void pin_namespace();
+    void stop_or_exit() noexcept;
     workspace::v1::AppEvent event(std::chrono::steady_clock::time_point deadline);
     void read_all(char* bytes, std::size_t length, std::chrono::steady_clock::time_point deadline);
     pid_t pid_ = -1;
-    int pidfd_ = -1, output_ = -1;
+    int pidfd_ = -1, namespace_pidfd_ = -1, output_ = -1;
     std::optional<int> result_;
     std::function<void()> authority_;
     std::unique_ptr<NativeCredential> native_;
