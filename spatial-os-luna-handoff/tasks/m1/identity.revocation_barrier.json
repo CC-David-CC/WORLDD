@@ -1,0 +1,44 @@
+{
+  "id": "identity.revocation_barrier",
+  "phase": "M02",
+  "status": "in_progress",
+  "current_step": "real_notification_delay_gap_reproduced",
+  "scope": "Confirm distributed cancellation before reporting completed revocation",
+  "profile": "tasks/spatial-m1.json",
+  "preceding_component": "identity.world_session",
+  "invariant": "A completed revocation requires authenticated confirmation that every obligated authority stopped the affected actions and control.",
+  "existing_semantics": "The current issuer reply confirms a durable revocation commit. It does not claim distributed cancellation completion.",
+  "baseline_evidence": "evidence/revocation-barrier-2026-10-09/baseline-01/sb16",
+  "baseline_result": "A remote actor moved after the issuer commit reply while a relay held the real event. Motion stopped after delivery.",
+  "required_evidence": [
+    "Authenticate each world and workspace authority as its own service participant, distinct from actor identity.",
+    "Bind participant registration and acknowledgements to the issuer, domain, process incarnation, and current connection.",
+    "Include all admitted execution and presentation authorities in the revocation obligations.",
+    "Deny new affected work immediately after authoritative revocation. Drain existing affected work before acknowledging completion.",
+    "Acknowledge only after native input release, motion cancellation, observation withdrawal, lease release, and required process termination are confirmed.",
+    "Credential revocation does not terminate applications with independently valid execution authority.",
+    "Parent and actor revocation invalidate dependent grants while independent grants remain usable.",
+    "A lost connection, expired wait, crashed authority, or issuer restart cannot count as successful cancellation.",
+    "Preserve pending obligations and durable revocation across crashes. Reconcile explicitly without replaying uncertain actions.",
+    "Reject stale, forged, duplicate-conflicting, wrong-domain, and wrong-incarnation acknowledgements.",
+    "New participants synchronize current authority before accepting actions; they cannot escape a concurrent revocation.",
+    "Run delayed delivery, blocked native cancellation, in-flight operation, and multi-host witnesses through production components.",
+    "Qualify complete Debug and runtime sanitizer profiles on both allowed hosts. Preserve locked acceptance tests."
+  ],
+  "implementation_constraints": [
+    "Record additive protobuf interfaces and explicit persistence migration before implementation.",
+    "Keep issuer commit status distinct from distributed cancellation completion.",
+    "A background watcher receiving an event is not a cancellation acknowledgement.",
+    "Use a contiguous applied revision, not the maximum observed feed head.",
+    "Do not treat removal from a socket list as proof that an authority stopped.",
+    "Do not replace missing evidence with sleeps, per-request credential checks, or a successful local database transaction.",
+    "No model inference or additional host is needed for this component.",
+    "Do not modify the active remote-transport candidate."
+  ],
+  "next_test": "An owner observes committed-but-pending revocation while one enrolled authority delays cancellation, then observes completion only after genuine cancellation acknowledgement.",
+  "limitations": [
+    "The diagnostic reproduces a known missing requirement. It is not passing M02 acceptance.",
+    "Participant registration, barrier persistence, and acknowledgement interfaces are not implemented yet.",
+    "Native input and multi-host cancellation barrier evidence remains unrun."
+  ]
+}

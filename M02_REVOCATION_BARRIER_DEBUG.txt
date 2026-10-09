@@ -1,0 +1,36 @@
+Distributed revocation requirement, 2026-10-09
+
+Status: missing requirement reproduced with real production processes.
+This is a Spatial-M1 authority requirement. It is separate from the XLibre timer patches.
+
+The issuer currently confirms that it saved a revocation.
+Worlds receive committed events through a separate TLS watcher.
+That watcher does not acknowledge completed world or native-input cancellation to the issuer.
+The current reply therefore does not establish a distributed cancellation barrier.
+docs/WORLD_IDENTITY.md already records this limitation.
+
+Observed on sb16 using remote transport candidate 02:
+A real actor authenticated through TLS and started moving.
+A TLS relay forwarded genuine issuer traffic and held one committed revocation notification.
+The issuer returned its commit reply through an independent connection.
+The actor moved about 0.10048 metres during the next 100 milliseconds.
+The relay then delivered the genuine event.
+Two subsequent position observations matched after cancellation.
+The runtime used a ten-second motion expiry, so expiry did not explain the stop.
+The relay did not change authority records or manufacture world replies.
+This diagnostic demonstrates the gap. It does not count as passing M02 acceptance.
+
+Required next behavior:
+Track authenticated world and workspace authority participants.
+Keep committed revocation separate from completed cancellation.
+Wait for each obligated authority to confirm its actual cancellation effects.
+Keep unavailable or disconnected participants unresolved until safe fencing or recovery is confirmed.
+Do not acknowledge only because an event was received or a network timeout expired.
+Preserve independently authorized applications and independent grants.
+Test real native input release and process termination with independent witnesses.
+Document protobuf additions and storage migration before implementing them.
+
+Evidence: spatial-os-luna-handoff/evidence/revocation-barrier-2026-10-09/baseline-01/sb16
+Task: spatial-os-luna-handoff/tasks/m1/identity.revocation_barrier.json
+Current remote transport qualification remains a separate active step.
+No active source tree, operator database, or login session changed.

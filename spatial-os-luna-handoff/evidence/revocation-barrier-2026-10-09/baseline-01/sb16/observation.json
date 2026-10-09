@@ -1,0 +1,14 @@
+{
+  "status": "gap_reproduced",
+  "meaning": "issuer commit reply alone is not cancellation completion",
+  "remote_actor_tls": "TLSv1.3",
+  "issuer_revision": 1,
+  "motion_after_commit_reply": 0.100484621,
+  "position_after_delivery": [
+    0.16658424,
+    0.16658424
+  ],
+  "seconds_since_commit_reply": 0.2622378889936954,
+  "relay_scope": "holds one real event reply for at most500ms; does not forge authority",
+  "M02_complete": false
+}

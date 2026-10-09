@@ -1,0 +1,17 @@
+{
+  "host": "sb16",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/probe-revocation-barrier-gap-01.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-debug-02/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-debug-02/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-debug-02/build/worldd"
+  ],
+  "exit_code": 0,
+  "binary_sha256": {
+    "identityd": "1257fd0f76fbe04eb2c6f57852c6cf5522e0ee6059e053e8282f0b2a7c72256b",
+    "spatial-issuer-client": "8d1a2bcd5b1af194d10d75c06f9faf9eebe3a388aec5578289bf17b4ab996697",
+    "worldd": "f80fb535d59e0b191809ce4075a8cfa12eb1ebf09c684ad36a65b686515add19"
+  },
+  "scope": "diagnostic of missing distributed cancellation barrier; not M02 acceptance"
+}
