@@ -1,3 +1,19 @@
+## 2026-10-09: Issuer fencing finishes with a second bootstrap failure
+
+sb16-2 passed full issuer fencing in Debug and runtime ASan/UBSan.
+Each profile passed 1433 core checks, 51 harness checks, and 151 P10 cases.
+sb16 passed Debug. Its runtime core passed 1432 checks and failed one owner-idle bootstrap check.
+Runtime P10 is unrun on sb16 because the driver stopped after that failure.
+The failing world reported an unavailable participant channel. Its broker reported the same error class.
+Both omitted the underlying exception. The cause remains unresolved.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/failure-review-02.json.
+
+Both hosts now exercise this distinct idle scenario with the existing exception-logging diagnostic binaries.
+These runs retain the original assertions and deadlines. They do not qualify the fencing candidate.
+Automatic crash fencing passed ten new Debug checks per host; runtime builds continue.
+Supervisor fencing full sanitizer runs continue. No new source is integrated.
+Production remains broker283. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Automatic crash fencing passes focused Debug on both hosts
 
 Both hosts passed ten new automatic crash-fencing checks and 51 harness checks in Debug.

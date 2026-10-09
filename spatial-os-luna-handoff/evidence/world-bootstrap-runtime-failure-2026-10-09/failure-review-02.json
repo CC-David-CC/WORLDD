@@ -1,0 +1,48 @@
+{
+  "reviewer": "primary agent",
+  "failure": {
+    "host": "sb16",
+    "source_files": 292,
+    "profile": "runtime-sanitize",
+    "core_checks": 1433,
+    "failed": 1,
+    "passed": 1432,
+    "P10": "unrun_after_core_failure",
+    "integrated": false,
+    "failure": "BootstrapOwnerIdleTests.test_idle_owner_does_not_block_workspace_bootstrap: UNAVAILABLE World identity service is disabled",
+    "service_evidence": "Both world and broker recorded participant code26/request0; underlying exception is absent.",
+    "preserved_files": [
+      "local/authority-fencing-driver-01/driver.log",
+      "local/authority-fencing-candidate-01.json",
+      "local/m02-authority-fencing-01/runtime-sanitize/run-full.json",
+      "local/m02-authority-fencing-01/runtime-sanitize/core.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/harness.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/fencing.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/identity.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/baseline.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/server/BootstrapOwnerIdleTests-test_idle_owner_does_not_block_workspace_bootstrap-broker-0.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/server/BootstrapOwnerIdleTests-test_idle_owner_does_not_block_workspace_bootstrap-broker-1.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/server/BootstrapOwnerIdleTests-test_idle_owner_does_not_block_workspace_bootstrap-tls-0.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/server/BootstrapOwnerIdleTests-test_idle_owner_does_not_block_workspace_bootstrap-world-1.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/server/BootstrapOwnerIdleTests-test_idle_owner_does_not_block_workspace_bootstrap-world-0.log",
+      "local/m02-authority-fencing-01/runtime-sanitize/build/Testing/Temporary/LastTest.log"
+    ]
+  },
+  "cause": "unresolved",
+  "relation_to_original": "Same visible participant-channel failure. A common underlying cause is not yet proved.",
+  "distinct_evidence": "Both broker and world report code26/request0 during the owner-idle scenario.",
+  "diagnostic": {
+    "source": "Existing world290 diagnostic01 with exception-only logging.",
+    "limits": "Not a qualification of fencing292. Relevant fixture, TLS server, and world session files match.",
+    "remote_pids": {
+      "sb16": 1428761,
+      "sb16-2": 1225519
+    },
+    "maximum_repetitions": 20,
+    "unchanged": [
+      "Original test assertions",
+      "Original client and server timeouts",
+      "Authority behavior"
+    ]
+  }
+}
