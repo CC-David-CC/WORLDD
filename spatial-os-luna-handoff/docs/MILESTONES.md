@@ -17,7 +17,8 @@ Existing components provide partial implementation where CURRENT_STATE.md record
 The mandatory profile is tasks/spatial-m1.json.
 See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
 
-The latest fully qualified production increment is the reviewed authority supervisor candidate02.
+The latest fully qualified production increment is the reviewed authority supervisor at 534a94c.
+Both hosts adopted all 281 qualified source hashes without restarting sessions or migrating operator state.
 Both hosts passed full Debug and runtime ASan/UBSan qualification.
 Each profile passed 1,383 core checks across 91 suites, 51 harness checks, and 151 P10 cases.
 No final case failed or skipped. All 281 integrated source hashes match the qualified manifests.

@@ -21,5 +21,6 @@
   "cumulative": "All four full host/profile runs passed: 1383 core checks across 91 suites, 51 harness checks, and 151 P10 cases each. Zero failures or skips.",
   "broker_handoff_task": "tasks/m1/identity.supervisor_broker_handoff.json",
   "integration_test_audit": "evidence/authority-supervisor-2026-10-09/integration-test-audit-02.json",
-  "integration_preparation": "The guard applied all 77 reviewed files after verifying both-host full raw evidence. All 281 hashes and 41 locks match. Stage audit and host adoption follow."
+  "integration_preparation": "Integrated at 534a94c after exact review, all four full profiles, and staged-source audit. Both hosts adopted all281 qualified hashes with clean worktrees, no session restart, and no database migration.",
+  "adopted_commit": "534a94c594429b095b8a3ee1e8f99c176e5d6121"
 }

@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Supervisor adopted on both hosts; broker focused sanitizers pass on sb16
+
+Commit 534a94c integrates the fully qualified supervisor increment.
+Both hosts adopted that commit through the guarded fast-forward procedure.
+Their 281 source hashes match, and both worktrees are clean.
+No session restarted. No operator database migrated.
+The adoption reports are in evidence/authority-supervisor-2026-10-09.
+
+Broker candidate02 passed focused Debug and runtime ASan/UBSan on sb16.
+Each profile passed 112 checks across 11 suites and 51 harness checks, without failures or skips.
+The full cumulative broker Debug run is active on sb16.
+sb16-2 passed the startup and nine regression methods in Debug; remaining focused qualification is active.
+Its full cumulative continuation waits for the exact driver and checks final focused evidence before proceeding.
+Broker changes remain isolated. Supervisor recovery, fencing, and full Spatial-M1 qualification remain incomplete.
+
+
 ## 2026-10-09: Reviewed supervisor increment is integrated after all four profiles pass
 
 Supervisor candidate02 passed full Debug and runtime ASan/UBSan on both hosts.

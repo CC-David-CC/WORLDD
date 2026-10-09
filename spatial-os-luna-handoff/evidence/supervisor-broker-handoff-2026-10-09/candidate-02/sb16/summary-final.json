@@ -1,0 +1,30 @@
+{
+  "host": "sb16",
+  "candidate": 2,
+  "source_files": 283,
+  "locked_files": 41,
+  "integrated": false,
+  "debug": {
+    "checks": 112,
+    "suites": 11,
+    "new_checks": 10,
+    "existing_checks": 102,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime-sanitize": {
+    "checks": 112,
+    "suites": 11,
+    "new_checks": 10,
+    "existing_checks": 102,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "schema": {
+    "existing_descriptors_unchanged": true,
+    "added_optional_field": "AuthoritySupervisorConfig.broker_native_target_fd",
+    "field_number": 11
+  }
+}

@@ -14,7 +14,7 @@
     "Test both hosts in Debug and runtime sanitizers.",
     "Complete broker participant and world/compositor integration."
   ],
-  "correction_tests": "Candidate02 sb16 focused Debug passed 112 checks across 11 suites and 51 harness checks, including all nine regressions. sb16 sanitizer and sb16-2 Debug are active. Full cumulative gates are queued. Candidate01 failure remains preserved.",
+  "correction_tests": "Candidate02 sb16 focused Debug and runtime ASan/UBSan each passed112 checks across11 suites plus51 harness checks, zero failures or skips. sb16 full cumulative Debug is active. sb16-2 Debug startup and nine regressions passed; focused continuation remains active. Candidate01 failure remains preserved.",
   "correction_test_evidence": "evidence/supervisor-broker-handoff-2026-10-09/observer-review-02.json",
   "isolated_candidate": 2
 }
