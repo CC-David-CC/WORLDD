@@ -1,0 +1,20 @@
+{
+  "id": "identity.authority_fencing",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "contract": "docs/AUTHORITY_FENCING.txt",
+  "evidence": "evidence/authority-fencing-2026-10-09",
+  "production_changed": false,
+  "invariant": "Only the registered supervisor can fence its exact active authorized generation; fencing preserves unresolved cleanup obligations.",
+  "baseline": "Both hosts returned INVALID_ARGUMENT: Unknown protobuf fields for the new fence request in Debug and runtime ASan/UBSan. Each profile has one expected missing-feature failure. Durable state remained unchanged.",
+  "remaining": [
+    "Implement additive protobuf messages, distinct signature purpose, and exact generation validation.",
+    "Implement explicit version 9 migration and durable fencing without advancing acknowledgement history.",
+    "Reject fenced service mutations and replacement activation.",
+    "Validate fencing challenge and result context in the production issuer client.",
+    "Record necessary historical migration-fixture changes explicitly and preserve their existing assertions.",
+    "Run focused counterexamples and full Debug/runtime sanitizer qualification on both hosts."
+  ],
+  "scope": "Fencing alone does not complete recovery. Verified cleanup receipts and issuer retirement remain required."
+}

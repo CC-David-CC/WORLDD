@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-09: Missing authority fencing confirmed on both hosts
+
+Both hosts rejected the proposed fence request through the real issuer TLS endpoint.
+Debug and runtime ASan/UBSan each recorded one expected missing-feature failure.
+The response was INVALID_ARGUMENT with Unknown protobuf fields. Durable issuer state remained unchanged.
+Read evidence/authority-fencing-2026-10-09/baseline-review-01.json.
+
+The additive fencing contract is recorded in docs/AUTHORITY_FENCING.txt.
+It requires a distinct supervisor proof, exact active launch binding, explicit schema migration, and preserved obligations.
+Fencing implementation, checked cleanup receipts, issuer retirement, and cross-host cancellation remain required.
+World full qualification continues on both hosts. Integrated production remains broker283 at f4c4148.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Broker source adopted; supervised world participation passes
 
 Both hosts adopted broker commit f4c4148 with all 283 source hashes matching and clean worktrees.

@@ -1,0 +1,12 @@
+{
+  "reviewer": "primary agent",
+  "file": "proto/spatial/supervisor/v1/launch.proto",
+  "finding": "Field12 incorrectly labels its issued credential as broker in a source comment. Production enforces COMPOSITOR and runtime denial tests pass.",
+  "correction": "Restore the broker comment on field11 and label field12 as compositor.",
+  "affects_runtime_behavior": false,
+  "applied": false,
+  "frozen_candidate02_changed": false,
+  "before_sha256": "d06b323a4db82451417b51a0344cebf3b5ba1455049c9e6f274f1a916aa175d1",
+  "after_sha256": "4de366bccc234c4f4f3d1371f01d34bfa3dbada5b7926c2e7d70a2348decaa6b",
+  "next": "Apply the reviewed comment-only correction during integration. Record the source delta and verify unchanged protobuf descriptors; preserve exact candidate02 qualification evidence."
+}

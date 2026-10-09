@@ -1,0 +1,28 @@
+{
+  "reviewer": "primary agent",
+  "source_files": 283,
+  "source_changed": false,
+  "files": {
+    "authority_fence_baseline.proto": "175348b6fa622f62c6e2f4edf5647e6a93be71443246bb3969a920796db11474",
+    "test_authority_fencing_baseline.py": "50d471f1c6444aad58c903d881155c46724109638ee973dedc382e883256f3ae",
+    "diagnose-authority-fencing-01.py": "ab52c439c60216cad047dede01a08ea54c30e906182a11c83e4fa6849fd5e5dd"
+  },
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "expected_missing_feature_failures_per_profile": 1,
+  "acceptance_pass": false,
+  "contract": "docs/AUTHORITY_FENCING.txt",
+  "findings": [
+    "The test creates and activates a real supervised launch before making the new request.",
+    "An isolated generated protobuf wrapper sends field30 over a real issuer TLS connection.",
+    "The actual issuer rejects that unknown field. Existing bindings and production source remain unchanged.",
+    "An independent database snapshot requires no durable mutation from the failed challenge request."
+  ],
+  "next": "Implement fencing in an isolated candidate, including production client validation and explicit migration."
+}

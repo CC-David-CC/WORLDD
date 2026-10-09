@@ -1,0 +1,18 @@
+syntax = "proto3";
+package spatial.fencing.baseline;
+
+// Same proposed wire fields, isolated from unchanged production bindings.
+message AuthorityFenceBegin {
+  bytes participant_id = 1;
+  uint64 registered_revision = 2;
+  uint64 generation = 3;
+  bytes service_incarnation = 4;
+  bytes launch_id = 5;
+  uint64 supervision_revision = 6;
+  bytes authorization_id = 7;
+}
+message IssuerRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation { AuthorityFenceBegin authority_fence_begin = 30; }
+}

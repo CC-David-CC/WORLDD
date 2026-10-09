@@ -1,0 +1,20 @@
+test_exact_active_supervised_launch_can_request_fencing (__main__.AuthorityFencingBaseline.test_exact_active_supervised_launch_can_request_fencing) ... FAIL
+
+======================================================================
+FAIL: test_exact_active_supervised_launch_can_request_fencing (__main__.AuthorityFencingBaseline.test_exact_active_supervised_launch_can_request_fencing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_authority_fencing_baseline.py", line 32, in test_exact_active_supervised_launch_can_request_fencing
+    self.assertTrue(reply.HasField('challenge'),
+AssertionError: False is not true : Missing authority fencing challenge from the production issuer: protocol_version: 1
+request_id: 1
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.761s
+
+FAILED (failures=1)

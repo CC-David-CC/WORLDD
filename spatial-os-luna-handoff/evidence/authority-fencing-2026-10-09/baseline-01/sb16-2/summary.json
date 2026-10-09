@@ -1,0 +1,36 @@
+{
+  "host": "sb16-2",
+  "source_files": 283,
+  "production_changed": false,
+  "acceptance_pass": false,
+  "test_sha256": "50d471f1c6444aad58c903d881155c46724109638ee973dedc382e883256f3ae",
+  "schema_sha256": "175348b6fa622f62c6e2f4edf5647e6a93be71443246bb3969a920796db11474",
+  "profiles": {
+    "debug": {
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_authority_fencing_baseline.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/debug/build/spatial-issuer-client"
+      ],
+      "exit_code": 1,
+      "expected_missing_fencing": true,
+      "sanitizer_marker": false,
+      "acceptance_pass": false
+    },
+    "runtime-sanitize": {
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_authority_fencing_baseline.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-broker-handoff-02/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "exit_code": 1,
+      "expected_missing_fencing": true,
+      "sanitizer_marker": false,
+      "acceptance_pass": false
+    }
+  }
+}

@@ -1,3 +1,15 @@
+Current checkpoint, 2026-10-09: authority fencing is absent.
+
+Broker launch ownership and native credential handoff are integrated at f4c4148 on both hosts.
+World candidate02 passed focused Debug and runtime sanitizer tests. Full qualification remains active.
+Real supervised broker and world participation checks passed on both hosts in both profiles.
+The issuer still rejects the proposed fence request with INVALID_ARGUMENT: Unknown protobuf fields.
+Each of four baseline profiles preserved one expected missing-feature failure and unchanged durable state.
+Fencing must block the exact old generation while retaining every unresolved cleanup obligation.
+See spatial-os-luna-handoff/docs/AUTHORITY_FENCING.txt and evidence/authority-fencing-2026-10-09.
+
+Historical baseline follows. Its missing-barrier description predates the implemented local barrier.
+
 Distributed revocation requirement, 2026-10-09
 
 Status: missing requirement reproduced with real production processes.

@@ -9,6 +9,7 @@
   "qualification": "Both hosts passed focused Debug and runtime ASan/UBSan:126 core checks across13 suites plus51 harness checks each. Full cumulative runs remain active.",
   "remaining": [
     "Complete both-host full Debug and runtime sanitizer cumulative qualification.",
+    "Apply the reviewed schema comment correction with explicit source-delta and descriptor-equivalence evidence. Do not mutate frozen candidate02.",
     "Integrate the reviewed exact290-file candidate and adopt qualified source on both hosts."
   ],
   "correction_tests": "evidence/supervisor-world-handoff-2026-10-09/correction-prepared-review-01.json",
@@ -16,5 +17,6 @@
   "draft": "Frozen candidate02:290 files; only new world regression test differs from candidate01. No production change between candidates.",
   "candidate_review": "evidence/supervisor-world-handoff-2026-10-09/candidate-prepared-review-02.json",
   "reader_correction": "evidence/supervisor-world-handoff-2026-10-09/reader-correction-review-02.json",
-  "participation_task": "tasks/m1/identity.supervised_world_participation.json"
+  "participation_task": "tasks/m1/identity.supervised_world_participation.json",
+  "schema_comment_review": "evidence/supervisor-world-handoff-2026-10-09/schema-comment-review-03.json"
 }

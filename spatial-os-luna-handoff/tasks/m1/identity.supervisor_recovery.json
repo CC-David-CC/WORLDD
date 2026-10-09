@@ -71,5 +71,6 @@
   },
   "supervised_broker_participation_task": "tasks/m1/identity.supervised_broker_participation.json",
   "supervisor_world_handoff_task": "tasks/m1/identity.supervisor_world_handoff.json",
-  "supervised_world_participation_task": "tasks/m1/identity.supervised_world_participation.json"
+  "supervised_world_participation_task": "tasks/m1/identity.supervised_world_participation.json",
+  "authority_fencing_task": "tasks/m1/identity.authority_fencing.json"
 }
