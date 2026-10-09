@@ -1,0 +1,16 @@
+Running as unit: spatial-supervised-broker-9a8084cbc78840a1bc5dcaebdf87b46b.service; invocation ID: 623e40e223de45c2abaa16dea7a10b64
+test_real_authority_broker_activates_launches_native_app_and_releases_on_eof (__main__.SupervisedBrokerParticipationTests.test_real_authority_broker_activates_launches_native_app_and_releases_on_eof) ... ok
+test_missing_actor_principal_cannot_use_supervised_broker_launch_authority (__main__.SupervisedBrokerParticipationTests.test_missing_actor_principal_cannot_use_supervised_broker_launch_authority) ... ok
+test_actor_revocation_closes_native_app_before_barrier_acknowledgement (__main__.SupervisedBrokerParticipationTests.test_actor_revocation_closes_native_app_before_barrier_acknowledgement) ... ok
+test_broker_death_cleans_native_scope_but_preserves_unretired_issuer_obligation (__main__.SupervisedBrokerParticipationTests.test_broker_death_cleans_native_scope_but_preserves_unretired_issuer_obligation) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 10.076s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 10.236s
+CPU time consumed: 5.201s
+Memory peak: 1.5M
+Memory swap peak: 0B

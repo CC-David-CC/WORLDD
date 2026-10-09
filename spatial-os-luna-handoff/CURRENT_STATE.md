@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-09: Broker handoff integrated after both-host full qualification
+
+Both hosts passed broker candidate02 in Debug and runtime ASan/UBSan.
+Each profile passed 1393 core checks across 93 suites, 51 harness checks, and 151 P10 cases.
+No check failed or skipped. All 41 locked files remain unchanged.
+The four issuer-backed broker participation checks also passed in all four profiles.
+The five reviewed files now form the integrated 283-file production source.
+Host source adoption follows the commit. This does not restart sessions or migrate operator state.
+Read evidence/supervisor-broker-handoff-2026-10-09/integration-applied-02.json.
+
+World candidate02 passed focused Debug on both hosts. Runtime sanitizer builds remain active.
+The world candidate remains isolated and unintegrated. Full cumulative qualification remains pending.
+Trusted crash recovery, issuer retirement, and cross-host cancellation remain required.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Owned compositor attribution passes; candidate02 full qualification starts
 
 An independent supervisor revoked the recorded native credential on both hosts.

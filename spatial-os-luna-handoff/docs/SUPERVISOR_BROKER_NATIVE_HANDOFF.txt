@@ -1,12 +1,12 @@
 Supervisor broker native handoff
-Status: sb16 baseline confirmed. Isolated implementation and observer correction are in qualification.
+Status: Candidate02 passed both-host full qualification and is integrated.
 
 Invariant
 
 The supervised broker receives only the native broker credential owned by its exact launch.
 The supervisor retains the parent credential and checked revocation ownership.
 
-Current gap
+Original gap, preserved baseline
 
 AuthorityLaunch::prepare returns the new NativeScopeReady credential.
 The production supervisor discards that returned view.
@@ -71,3 +71,11 @@ Candidate02 preserves production code and corrects the observer, with one additi
 Read evidence/supervisor-broker-handoff-2026-10-09/observer-failure-01.txt.
 Both-host qualification remains required.
 Complete issuer-backed broker participation remains separate required work.
+
+Qualification and integration, 2026-10-09
+
+Both hosts passed Debug and runtime ASan/UBSan.
+Each profile passed 1393 core checks, 51 harness checks, and 151 P10 cases.
+All four issuer-backed broker participation checks also passed in each profile.
+The reviewed five-file handoff is integrated. All 41 acceptance locks remain unchanged.
+World handoff and trusted crash recovery remain separate required work.

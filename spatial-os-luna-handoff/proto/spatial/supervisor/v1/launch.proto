@@ -55,6 +55,7 @@ message AuthoritySupervisorConfig {
   string child_participant_config = 8;
   uint32 participant_target_fd = 9;
   repeated uint32 inherited_source_fds = 10;
+  optional uint32 broker_native_target_fd = 11; // Sealed issued broker credential; never the supervisor credential.
 }
 message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
 message AuthorityLaunchQuery {}

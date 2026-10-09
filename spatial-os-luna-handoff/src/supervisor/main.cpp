@@ -1,14 +1,17 @@
 #include "supervisor/launch.hpp"
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
+#include "broker.pb.h"
 #include <google/protobuf/text_format.h>
 #include <charconv>
 #include <chrono>
 #include <climits>
 #include <csignal>
 #include <iostream>
+#include <optional>
 #include <poll.h>
 #include <set>
+#include <sys/mman.h>
 
 namespace {
 namespace pb = spatial::supervisor::v1;
@@ -48,10 +51,15 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         absolute(value.journal_directory()) && absolute(value.delegated_cgroup()) &&
         absolute(value.child_participant_config()) && absolute(value.launch().executable()) &&
         value.participant_target_fd() >= 3 && value.participant_target_fd() <= 255 &&
-        value.inherited_source_fds_size() < 16 &&
+        value.inherited_source_fds_size() + (value.has_broker_native_target_fd() ? 2 : 1) <= 16 &&
         value.inherited_source_fds_size() == value.launch().inherited_fds_size(),
         "Invalid supervisor configuration");
     std::set<std::uint32_t> targets{value.participant_target_fd()}, sources;
+    if (value.has_broker_native_target_fd()) {
+        const auto target = value.broker_native_target_fd();
+        require(target >= 3 && target <= 255 && targets.insert(target).second,
+            "Invalid broker native descriptor target");
+    }
     struct stat native_info{}, management_info{};
     require(fstat(native, &native_info) == 0 && fstat(management, &management_info) == 0,
         "Cannot identify privileged descriptors");
@@ -69,6 +77,46 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
             "Child descriptor aliases privileged supervisor input");
     }
     return value;
+}
+pb::NativeScopeConfig broker_source(int fd) {
+    constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
+    struct stat info{};
+    const int actual = fcntl(fd, F_GET_SEALS);
+    require(actual >= 0 && (actual & seals) == seals && fstat(fd, &info) == 0 &&
+        info.st_size > 0 && info.st_size <= 65536, "Expected sealed broker handoff source");
+    std::string bytes(static_cast<std::size_t>(info.st_size), '\0');
+    require(pread(fd, bytes.data(), bytes.size(), 0) == static_cast<ssize_t>(bytes.size()),
+        "Cannot read broker handoff source");
+    pb::NativeScopeConfig value;
+    require(value.ParseFromString(bytes), "Malformed broker handoff source");
+    spatial::validate_message(value);
+    require(value.role() == spatial::security::v1::BROKER, "Broker handoff requires a broker native scope");
+    // AuthorityLaunch::prepare validates all source pins against the live native server.
+    return value;
+}
+void seal_broker_config(File& file, const pb::NativeScopeConfig& source, const pb::NativeScopeReady& ready) {
+    require(ready.identity().role() == spatial::security::v1::BROKER &&
+        ready.identity().server_id() == source.server_id() &&
+        ready.credential().role() == spatial::security::v1::BROKER &&
+        ready.credential().id() == ready.identity().credential_id() &&
+        ready.credential().cookie().size() == 32 && ready.credential().cookie() != source.supervisor_cookie(),
+        "Broker handoff requires the owned issued native credential");
+    spatial::workspace::v1::NativeLaunchConfig config;
+    config.set_protocol_version(1); config.set_display_number(source.display_number());
+    config.set_broker_cookie(ready.credential().cookie()); config.set_server_id(source.server_id());
+    config.set_server_pid(source.server_pid()); config.set_server_uid(source.server_uid());
+    const auto bytes = config.SerializeAsString();
+    file.reset(memfd_create("supervised-broker-native", MFD_CLOEXEC | MFD_ALLOW_SEALING));
+    require(file.value >= 0, "Cannot allocate sealed broker configuration");
+    std::size_t written = 0;
+    while (written < bytes.size()) {
+        const auto count = write(file.value, bytes.data()+written, bytes.size()-written);
+        if (count < 0 && errno == EINTR) continue;
+        require(count > 0, "Cannot write sealed broker configuration");
+        written += static_cast<std::size_t>(count);
+    }
+    require(fcntl(file.value, F_ADD_SEALS, F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL) == 0,
+        "Cannot seal broker configuration");
 }
 void write_child_config(const std::filesystem::path& path,
                         const spatial::identity::v1::AuthorityParticipantRuntimeConfig& config) {
@@ -115,9 +163,13 @@ int main(int argc, char** argv) {
         auto config = configuration(argv[1], native, control);
         management = std::make_unique<spatial::identity::ParticipantStream>(control, getppid());
         File native_config(native);
+        File broker_config;
+        std::optional<pb::NativeScopeConfig> source;
+        if (config.has_broker_native_target_fd()) source = broker_source(native);
         parent_alive(control);
         launch = std::make_unique<spatial::supervisor::AuthorityLaunch>(config.journal_directory());
-        launch->prepare(config.delegated_cgroup(), config.binding(), native);
+        const auto prepared = launch->prepare(config.delegated_cgroup(), config.binding(), native);
+        if (source) seal_broker_config(broker_config, *source, prepared.ready());
         native_config.reset();
         launch->attach(config.participant());
         bool authenticated = false, baseline = false;
@@ -139,7 +191,12 @@ int main(int argc, char** argv) {
         require(!interrupted, "Supervisor startup interrupted");
         parent_alive(control);
         std::vector<int> inherited(config.inherited_source_fds().begin(), config.inherited_source_fds().end());
+        if (config.has_broker_native_target_fd()) {
+            config.mutable_launch()->add_inherited_fds(config.broker_native_target_fd());
+            inherited.push_back(broker_config.value);
+        }
         view(*management, launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited));
+        broker_config.reset();
         for (;;) {
             require(!interrupted, "Supervisor termination requested");
             // Inspect the private parent channel before accepting more child commands.

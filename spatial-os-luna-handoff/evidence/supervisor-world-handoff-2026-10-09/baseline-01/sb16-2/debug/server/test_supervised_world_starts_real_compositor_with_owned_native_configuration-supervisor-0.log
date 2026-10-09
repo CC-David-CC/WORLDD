@@ -1,0 +1,2 @@
+[libprotobuf ERROR google/protobuf/text_format.cc:337] Error parsing text-format spatial.supervisor.v1.AuthoritySupervisorConfig: 34:28: Message type "spatial.supervisor.v1.AuthoritySupervisorConfig" has no field named "compositor_native_target_fd".
+authority supervisor: Malformed supervisor configuration

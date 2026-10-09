@@ -1,5 +1,5 @@
 Supervised broker participation
-Status: Four reviewed tests are prepared. All remain unrun.
+Status: All four checks passed on both hosts in Debug and runtime ASan/UBSan.
 
 Invariant
 
