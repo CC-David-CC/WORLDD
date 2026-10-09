@@ -35,7 +35,7 @@
     "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
     "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
   ],
-  "current_test_scope": "Domain store c470a4e remains qualified on both hosts. Isolated candidate 04 passed complete sb16 Debug: 1037 core checks across 55 suites, 51 harness checks, and 151 P10 cases. Remaining host and runtime sanitizer qualification are pending. Separately qualified fixture b2ab006 will also run against each completed candidate 04 binary set.",
+  "current_test_scope": "Candidate 04 passed complete sb16 Debug and runtime sanitizer profiles: 1037 core checks across 55 suites, 51 harness checks, and 151 P10 cases each. The corrected witness then passed six new checks and twelve original process cases against both exact binary sets. All 223 proposed integration hashes match. Sb16-2 Debug passed build, harness, and 64 adapter checks; its remaining qualification is pending.",
   "remaining_steps": [
     "Complete candidate 04 Debug and runtime sanitizer qualification on both hosts",
     "Integrate reviewed authenticated adapters while retaining the separately tested process-witness correction",

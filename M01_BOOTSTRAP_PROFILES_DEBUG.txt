@@ -220,3 +220,16 @@ The earlier candidate's success does not qualify the later ordinary-workspace pr
 Both exact-binary corrected-witness follow-ups remain pending.
 Recorded identity.world_session as the next pending component, based on the current local-only socket implementation.
 No remote actor transport or distributed revocation barrier is claimed implemented.
+
+2026-10-09 candidate 04 fully qualified on sb16:
+Debug and runtime sanitizer profiles each passed 1,037 core checks across 55 suites.
+Each profile also passed 51 harness checks and 151 P10 cases. No case failed or skipped.
+The automatic follow-up passed all eighteen corrected-witness and real process checks against each exact binary set.
+Six witness checks are new. Twelve repeat the unchanged original process tests; do not count those twice.
+The integrated source proposal contains 223 files and preserves the separate b2ab006 witness correction.
+All proposed hashes match the sb16 qualification manifest. Exactly eighteen production, schema, build, and test files would change.
+The integration tool checks both complete host matrices and corrected-witness results before writing any production source.
+Its dry preparation succeeded. Integration remains pending until sb16-2 finishes.
+Sb16-2 passed its latest Debug build, 51 harness checks, and all 64 adapter checks.
+Its remaining core and runtime sanitizer qualification still run through the original live handle.
+No operator database, login path, or native session was changed.

@@ -104,3 +104,9 @@ Active candidate source trees remain unchanged. Integration must retain the corr
 Candidate 03 subsequently passed complete sb16-2 runtime sanitizer qualification with the same counts as Debug.
 That result preserves intermediate regression evidence. It does not qualify candidate 04's later correction.
 Candidate 04 is now running on both hosts. Its complete second-host and sanitizer results remain pending.
+
+Candidate 04 subsequently completed both Debug and runtime sanitizer profiles on sb16.
+Each profile passed 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
+The corrected witness passed six new checks and twelve unchanged process cases against each exact binary set.
+All 223 prepared integration hashes match that qualified combination. No production adapter integration is claimed.
+Sb16-2 still requires its complete candidate 04 profiles and corrected-witness follow-up.
