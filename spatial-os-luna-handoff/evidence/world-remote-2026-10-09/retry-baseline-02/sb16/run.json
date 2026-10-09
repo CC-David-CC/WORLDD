@@ -1,0 +1,48 @@
+{
+  "host": "sb16",
+  "build_command": [
+    "c++",
+    "-std=c++20",
+    "-g",
+    "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/src",
+    "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-remote-retry-baseline-02/actor_tls_retry_probe.cpp",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/source/src/world/actor_tls.cpp",
+    "-Wl,--wrap=SSL_read_ex",
+    "-Wl,--wrap=SSL_get_error",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/libspatial-identity-tls.a",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/libspatial-scene.a",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-draft-01/build/libspatial-protobuf.a",
+    "-lprotobuf",
+    "-lssl",
+    "-lcrypto",
+    "-pthread",
+    "-o",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-remote-retry-baseline-02/probe"
+  ],
+  "results": [
+    {
+      "case": "retry-stalls",
+      "exit_code": 1
+    },
+    {
+      "case": "retry-wants-read",
+      "exit_code": 1
+    },
+    {
+      "case": "retry-progress",
+      "exit_code": 1
+    },
+    {
+      "case": "retry-recovers",
+      "exit_code": 0
+    },
+    {
+      "case": "authenticated-idle",
+      "exit_code": 0
+    }
+  ],
+  "actor_tls_sha256": "66ba6fa12f4c49a1e464ec16ce6282077a76cc87803589c74a5a60a6c1309202",
+  "probe_sha256": "5e523341e06381be2a71152c9a2d5c04effdff6d8ef13d34934958606fe62806",
+  "scope": "Controlled OpenSSL retry fault injection after real mutual TLS. Not a reproduced network attack."
+}

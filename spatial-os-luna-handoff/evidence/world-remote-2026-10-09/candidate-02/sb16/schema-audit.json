@@ -1,0 +1,46 @@
+{
+  "status": "passed",
+  "host": "sb16",
+  "source_files": 233,
+  "preserved": {
+    "messages": 227,
+    "fields": 849,
+    "enum_values": 111
+  },
+  "unchanged_existing_test_files": 80,
+  "locked_files": 41,
+  "commands": [
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-audit-02/before.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/workspace/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/authority/v1/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/world_session.proto"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-audit-02/candidate.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-source-02/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-source-02/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-source-02/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-source-02/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-source-02/proto/spatial/workspace/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-source-02/proto/spatial/authority/v1/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-source-02/proto/spatial/workspace/v1/broker.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-source-02/proto/spatial/identity/v1/world_session.proto"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

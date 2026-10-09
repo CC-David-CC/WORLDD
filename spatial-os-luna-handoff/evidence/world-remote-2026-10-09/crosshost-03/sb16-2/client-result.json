@@ -1,0 +1,24 @@
+{
+  "host": "sb16",
+  "status": "passed",
+  "world_id": "f4b39bcc4e4780974e01ca0bbd22dfae",
+  "actor_id": "identity:109ec94dad81db6992229dfb853894434162b18ae3e6c714a48d3c37ccc84687:0caad232372a1e254ca5508c07f68339abfd4051772ad7b7736dc87de2a51f42",
+  "identity_actor_id": "0caad232372a1e254ca5508c07f68339abfd4051772ad7b7736dc87de2a51f42",
+  "client_endpoint": [
+    "10.0.7.49",
+    59208
+  ],
+  "server_endpoint": [
+    "10.0.7.94",
+    54999
+  ],
+  "tls_version": "TLSv1.3",
+  "cipher": "TLS_AES_256_GCM_SHA384",
+  "transport_only_identity_denied": true,
+  "final_position": [
+    0.15650665100000083,
+    0.0,
+    0.0
+  ],
+  "world_session_schema_sha256": "ad3f62ee9f36ad3c93110ca2ad65d17d67156874a3161e6f3264a55e7717f0a5"
+}

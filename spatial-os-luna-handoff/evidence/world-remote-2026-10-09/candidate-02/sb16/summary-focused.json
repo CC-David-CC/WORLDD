@@ -1,0 +1,36 @@
+{
+  "debug": {
+    "core_checks": 46,
+    "core_suites": 7,
+    "partitions": {
+      "remote": {
+        "suites": {
+          "world-remote-retries": 5,
+          "world-remote-security": 13,
+          "world-remote-lifecycle": 6,
+          "world-remote-native": 3,
+          "world-remote-races": 2,
+          "world-remote-config": 12,
+          "world-remote": 5
+        },
+        "checks": 46
+      }
+    },
+    "harness_checks": 51,
+    "P10_cases": "not collected",
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "f80fb535d59e0b191809ce4075a8cfa12eb1ebf09c684ad36a65b686515add19",
+      "workspaced": "1861ac33eb32303dc1cfdc6bbb10d626be6fc5f2e99e57990b597d01049a2aff",
+      "identityd": "1257fd0f76fbe04eb2c6f57852c6cf5522e0ee6059e053e8282f0b2a7c72256b",
+      "spatialwm": "b3f9699cde74a35d2bb9d27b1cc1eb8d362f3755713729db90d148ac897d968e",
+      "spatial-test-host": "0351d00d5fc937781db169db0b9addbde2a295984f51da34471b5253576143c7",
+      "spatial-actor-tls-retry-probe": "bb330dac7ec4c9e6a49bc963e39de6ad89266f19f42af41253dd17b018db7e35"
+    }
+  },
+  "host": "sb16",
+  "source_files": 233,
+  "scope": "focused",
+  "production_integration": "pending"
+}

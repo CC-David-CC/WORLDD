@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "authority_host": "sb16",
+  "remote_actor_host": "sb16-2",
+  "world_id": "f79a3a9c39e1845e60a26091c2b9fdd2",
+  "distinct_actor_identities": true,
+  "same_authoritative_actor_state": true,
+  "independent_local_actor_usable": true,
+  "checkpoint_completed": true,
+  "remote_application_streaming": false,
+  "worldd_sha256": "f80fb535d59e0b191809ce4075a8cfa12eb1ebf09c684ad36a65b686515add19",
+  "limits": "One cross-host transport scenario; not complete shared-world or milestone qualification."
+}

@@ -21,10 +21,12 @@
     "src/world/actors.hpp"
   ],
   "current_evidence": [
-    "Production source uses inherited local actor descriptors.",
-    "The isolated remote draft uses TLS1.3 and the existing signed actor and protobuf handlers.",
-    "sb16 passed97 focused Debug checks and111 focused runtime ASan/UBSan checks; zero failed/skipped.",
-    "Remote revocation and disconnect during delayed issuer replies prevent grant creation and preserve an independent actor."
+    "Production remains at qualified local actor transport; remote candidate 02 is isolated.",
+    "Both hosts passed complete Debug:1089 core checks/62 suites,51 harness,151 P10;zero failed/skipped.",
+    "Direct cross-host TLS actor scenarios passed with each host as authority; distinct identities and a real checkpoint.",
+    "All46 remote cases passed on both hosts, including five retry and twelve configuration cases.",
+    "Both source audits match233 files;80 existing tests and41 locked files remain unchanged.",
+    "Three injected retry deadline failures reproduced against draft01; candidate02 passes all five retry probes."
   ],
   "required_evidence": [
     "Explicit protected listener configuration; no network access to trusted management operations",
@@ -48,18 +50,18 @@
     "Record interface changes before implementation. Keep locked acceptance assertions unchanged."
   ],
   "limitations": [
-    "No remote draft production integration, full cumulative qualification, second-host qualification, or cross-host evidence yet.",
-    "TLS read-to-write retry deadlines need review and targeted counterexamples.",
-    "Malformed listener configuration rejection tests remain required.",
-    "Transport qualification alone does not complete shared-world persistence, world transitions, or M01.",
-    "Issuer revocation acknowledgement still does not prove a distributed cancellation barrier."
+    "Complete runtime sanitizer profiles remain active on both hosts. Production integration awaits both results.",
+    "Cross-host transport tests do not complete shared-world persistence, world transitions, or M01.",
+    "Issuer revocation acknowledgement still does not prove a distributed cancellation barrier.",
+    "Retry counterexamples use controlled OpenSSL fault injection after real TLS; they are not a reproduced network exploit."
   ],
   "next_components": [
     "identity.revocation_barrier",
     "M05",
     "M06"
   ],
-  "current_step": "focused_qualification_passed_review_followups",
+  "current_step": "both_host_debug_passed_runtime_sanitizers_active",
   "baseline_evidence": "evidence/world-remote-2026-10-09/baseline-01/sb16",
-  "focused_evidence": "evidence/world-remote-2026-10-09/draft-review-01.txt"
+  "focused_evidence": "evidence/world-remote-2026-10-09/draft-review-01.txt",
+  "candidate_evidence": "evidence/world-remote-2026-10-09/candidate-review-02.txt"
 }

@@ -1,0 +1,8 @@
+{
+  "host": "sb16",
+  "world_id": "f79a3a9c39e1845e60a26091c2b9fdd2",
+  "address": "10.0.7.49",
+  "port": 34049,
+  "bundle": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-crosshost-server-02/private/bundle.tar",
+  "worldd_sha256": "f80fb535d59e0b191809ce4075a8cfa12eb1ebf09c684ad36a65b686515add19"
+}

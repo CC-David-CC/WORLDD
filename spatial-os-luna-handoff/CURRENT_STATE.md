@@ -1,5 +1,34 @@
 # Implementation status
 
+## 2026-10-09: Remote actor candidate 02 passes both-host Debug and cross-host checks
+
+Candidate 02 remains outside production while both runtime sanitizer profiles run.
+Both hosts passed complete Debug: 1,089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
+No Debug case failed or skipped. Both hosts passed all 46 remote cases across seven suites.
+Direct LAN TLS scenarios passed with each host acting as world authority in turn.
+Each scenario used distinct authenticated actors, real movement, inspection, and a durable world checkpoint.
+Transport certificates alone did not grant actor authority. Entry did not select a workspace.
+
+Primary review found a TLS read-retry deadline defect in draft 01.
+Three controlled retry cases reproduced it after a real mutual TLS handshake.
+Candidate 02 preserves the original deadline across retries and checks frame deadlines before retrying.
+Five retry cases and twelve listener configuration cases pass on both hosts in Debug.
+The test wrappers exist only in the dedicated probe executable.
+The production world daemon contains no retry-injection wrappers.
+
+Both audits match all 233 candidate source hashes.
+The schema audit preserves 227 messages, 849 fields, and 111 enum values.
+All 80 existing test files and 41 locked files remain unchanged.
+The first retry fixture rejected unsafe certificate permissions before reaching the assertion.
+The first cross-host supervisor read an incomplete copied result file.
+Both failures remain preserved. Corrected fixtures passed without weakening production checks.
+
+Complete runtime ASan/UBSan qualification remains active on sb16 and sb16-2.
+Integration requires both complete profiles, exact source hashes, and the preserved cross-host results.
+Distributed revocation acknowledgement remains the next separate component.
+These results do not complete M01, M02, M05, physical acceptance, or Spatial-M1.
+See evidence/world-remote-2026-10-09/candidate-review-02.txt and candidate-02 for commands and results.
+
 ## 2026-10-09: Authenticated enrollment delivery integrated after both-host qualification
 
 The world and workspace adapters now use signed enrollment profiles to create explicitly delegated grants.

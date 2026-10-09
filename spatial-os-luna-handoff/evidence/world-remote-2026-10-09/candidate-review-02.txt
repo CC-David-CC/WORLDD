@@ -1,0 +1,78 @@
+Remote actor candidate 02: primary review and qualification status
+
+Candidate 02 remains outside production. Both active qualification sources are immutable.
+The primary agent reviewed this candidate. No local model or delegated agent participated.
+
+Production changes from draft 01:
+src/world/actor_tls.cpp records the start of a TLS read that needs a write retry.
+The deadline survives another retry and a transition back to WANT_READ.
+A completed read clears the deadline. An authenticated idle actor does not receive an I/O deadline.
+The read buffer and requested length remain stable while this retry is pending.
+src/world/identity_sessions.cpp checks frame deadlines before resuming the pending TLS read.
+This prevents that retry path from bypassing an already expired frame deadline.
+All other production behavior matches the previously reviewed draft 01.
+See draft-review-01.txt for the original transport and actor-mode review.
+
+Confirmed counterexamples:
+The first retry probe stopped at material loading because generated certificates had mode 0664.
+The production loader correctly rejected writable certificate material. Those failures are preserved as baseline 01.
+The corrected fixture uses mode 0644 for certificates and 0600 for private keys.
+Against draft 01, stalled retries, read-direction changes, and repeated retries fail their deadline assertions.
+Recovery and authenticated idle controls pass. See retry-baseline-02.
+The five probe cases pass against candidate 02 on both hosts in Debug.
+This is controlled fault injection after a real mutually authenticated TLS connection.
+It does not claim an independently reproduced network attack against OpenSSL.
+
+Test and build review:
+src/testing/actor_tls_retry_probe.cpp links the exact production TLS adapter.
+Only this test executable wraps SSL_read_ex and SSL_get_error.
+The production world daemon has no retry injection path or linker wrappers.
+tests/core/test_actor_tls_retries.py generates temporary certificate material and executes five bounded cases.
+tests/core/test_world_remote_config.py adds twelve rejection cases, including limit subcases.
+They cover missing configuration, descriptor reuse, UDP, non-listening sockets, unsupported limits,
+unsafe keys, invalid trust, mismatched keys, symlinks, and unknown fields.
+The earlier functional, security, lifecycle, native, and delayed-issuer cases now enter CTest directly.
+The functional fixture uses the generated WorldActorTlsConfig message.
+CMake retains every existing suite and registers all seven remote suites.
+No existing test body or locked acceptance input changed.
+
+Both-host evidence:
+Both Debug builds passed all 46 remote cases across seven suites and all 51 harness checks.
+Both schema audits preserved 227 messages, 849 fields, and 111 enum values.
+All 80 existing test files and 41 locked files remain unchanged.
+All 233 candidate source hashes match on both hosts.
+Both complete Debug profiles passed: 1,089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
+No Debug case failed or skipped. Runtime sanitizer qualification remains active through the original runner handles.
+The runtime sanitizer profiles require the same totals before integration.
+
+Cross-host evidence:
+Crosshost 02 runs authority on sb16 and the remote actor on sb16-2.
+Crosshost 03 reverses those roles. Both scenarios passed.
+Independent actor keys prove distinct actor identities through the existing signed protocol.
+TLS transport credentials alone cannot inspect actor state.
+The real world processes remote motion and stop actions without selecting a workspace.
+The supervisor checks the same authoritative actor position and continued operation of the other actor.
+Both scenarios complete a real world checkpoint.
+Windows SSH copies only temporary fixture material between the authorized hosts.
+The world traffic itself uses a direct LAN TLS connection, not SSH forwarding.
+Private test material stays outside evidence and Git.
+The first scenario's final verification failed when SCP exposed an incomplete result file.
+The corrected orchestration transfers a temporary file and publishes it with an atomic rename.
+The initial failure remains in crosshost-01. Its client result alone was not called scenario success.
+
+Runner setup note:
+The first sb16-2 runner launch preceded completion of its script transfer.
+Python reported that qualify-world-remote-02.py did not exist. No qualification test ran in that attempt.
+After the transfer completed, one runner started on sb16-2. The live run was not replaced.
+
+Remaining work:
+Finish and audit all complete profiles on both hosts.
+Integrate only the exact reviewed and qualified candidate.
+Distributed revocation acknowledgement remains a separate required component.
+These transport results do not complete M01, M02, shared-world qualification, or Spatial-M1.
+Native-server GLX sanitizer qualification and physical hardware acceptance remain separate.
+
+OpenSSL references reviewed:
+https://docs.openssl.org/3.0/man3/SSL_read/
+https://docs.openssl.org/3.0/man3/SSL_get_error/
+https://docs.openssl.org/3.0/man3/SSL_key_update/

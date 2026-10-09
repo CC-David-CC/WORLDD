@@ -1,0 +1,28 @@
+{
+  "source_files": 233,
+  "changed_from_production": [
+    "CMakeLists.txt",
+    "proto/spatial/identity/v1/world_session.proto",
+    "src/world/actors.cpp",
+    "src/world/actors.hpp",
+    "src/world/identity_sessions.cpp",
+    "src/world/identity_sessions.hpp",
+    "src/world/main.cpp",
+    "src/world/actor_tls.hpp",
+    "src/world/actor_tls.cpp",
+    "tests/core/test_world_remote.py",
+    "tests/core/test_world_remote_security.py",
+    "tests/core/test_world_remote_lifecycle.py",
+    "tests/core/test_world_remote_native.py",
+    "tests/core/test_world_remote_races.py",
+    "tests/core/test_world_remote_config.py",
+    "src/testing/actor_tls_retry_probe.cpp",
+    "tests/core/test_actor_tls_retries.py"
+  ],
+  "production_commit": "d4b025e3705fabad151c97e60de010187a85ed7e",
+  "Debug_remote_checks_per_host": 46,
+  "harness_checks_per_host": 51,
+  "cross_host_directions_passed": 2,
+  "full_qualification": "pending",
+  "production_integration": "pending"
+}
