@@ -21,6 +21,7 @@ Add optional compositor_native_target_fd to AuthoritySupervisorConfig at field 1
 Preserve broker_native_target_fd at field 11.
 Reject configurations that request both native roles from one launch scope.
 Require a COMPOSITOR scope for the compositor handoff.
+Reject another role before ownership with: Compositor handoff requires a compositor native scope.
 Apply the same descriptor range, collision, privileged-source, and capacity checks as the broker handoff.
 Reserve capacity for the participant channel and the selected native configuration.
 
@@ -35,6 +36,8 @@ Store the protobuf only in a fully sealed private memfd.
 Worldd accepts --native-security-fd and forwards the sealed configuration to its actual compositor child.
 Spatialwm accepts --native-security-fd and consumes the configuration before ordinary rendering.
 Validate the sealed size, protocol, required fields, live native server pins, and native role.
+Limit the configuration to 1 MiB. Reject empty, malformed, unknown-field, and incomplete configurations.
+Prefix configuration rejection diagnostics with: Native compositor configuration.
 Do not infer the server generation from a display number.
 Use the configured local display and reject a conflicting explicit display argument.
 Close configuration descriptors in both processes after the handoff.
@@ -50,6 +53,14 @@ Pin both processes and verify checked cleanup.
 Add independent native identity, wrong-role, wrong-server, malformed-config, and descriptor-leak counterexamples.
 Verify genuine rendered application surfaces and held-input cleanup under the owned compositor credential.
 Qualify both hosts in Debug and runtime sanitizers before integration.
+
+Ten correction tests are prepared in evidence/supervisor-world-handoff-2026-10-09/scripts.
+All ten remain unrun. They do not alter the queued baseline or frozen broker candidate.
+Each direct compositor denial test first requires successful startup with a valid sealed configuration.
+The descriptor witness tracks the memfd device and inode across live, pidfd-pinned processes.
+A retained parent descriptor provides a positive observation control.
+The pixel and input witnesses use the independently compiled native application probe.
+They use trusted management fixtures, not issuer-backed actor admission.
 
 Scope
 

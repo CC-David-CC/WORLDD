@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Both hosts pass full broker Debug; world correction witnesses prepared
+
+Broker candidate02 passed full Debug on both hosts.
+Each host passed 1393 core checks across 93 suites, 51 harness checks, and 151 P10 cases.
+Raw logs confirm zero failures or skips. All 283 source hashes and 41 locked files match.
+Read evidence/supervisor-broker-handoff-2026-10-09/full-candidate-02 for both Debug reports.
+Full runtime sanitizer qualification remains active on both hosts. Broker integration remains unrun.
+
+Ten world/compositor correction tests are prepared and statically reviewed. All ten remain runtime unrun.
+They cover real pixels, held-input cleanup, independent application survival, sealed descriptor lifetime, and configuration rejection.
+The descriptor witness tracks device and inode, with a retained parent descriptor as its positive control.
+Each direct denial test first requires successful compositor startup with a valid configuration.
+Read evidence/supervisor-world-handoff-2026-10-09/correction-prepared-review-01.json.
+The queued missing-field baseline and frozen broker source remain unchanged.
+Production remains the supervisor increment at 534a94c. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Full broker candidate Debug qualification passes on sb16
 
 Broker handoff candidate02 passed full Debug on sb16.

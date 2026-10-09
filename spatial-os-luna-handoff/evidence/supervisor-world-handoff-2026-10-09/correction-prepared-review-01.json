@@ -1,0 +1,34 @@
+{
+  "reviewer": "primary agent",
+  "status": "prepared_runtime_unrun",
+  "test_sha256": "52d947bfc04b3ff5f99f2cc189264db65e25b246772636b8e28cb9b05603e808",
+  "test_methods": [
+    "test_owned_world_renders_real_application_pixels_and_releases_held_input",
+    "test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application",
+    "test_world_and_compositor_consume_the_native_configuration_descriptor",
+    "test_invalid_compositor_targets_fail_before_scope_ownership",
+    "test_compositor_rejects_malformed_and_incomplete_native_configurations",
+    "test_compositor_rejects_unsealed_native_configuration",
+    "test_compositor_rejects_wrong_server_pins_and_native_roles",
+    "test_compositor_rejects_display_conflict",
+    "test_broker_and_compositor_handoffs_cannot_share_one_native_scope",
+    "test_wrong_native_roles_fail_before_scope_ownership"
+  ],
+  "static_review": [
+    "Actual production binaries, protobuf transport, and independent compiled native application probe.",
+    "Pinned world/compositor processes and exact owned cgroup membership; selective checked cleanup.",
+    "Real rendered pixels and balanced held input after normal stop and world SIGKILL.",
+    "Descriptor witness observes device/inode, requires live pidfds, and detects retained parent positive control.",
+    "Direct rejection methods first require valid sealed configuration startup; no ready reply on denial.",
+    "Explicit diagnostics distinguish configuration validation from unsupported command-line arguments.",
+    "Rejected malformed, incomplete, unknown-field, oversized, unsealed, wrong-role, wrong-server, and conflicting-display configurations.",
+    "Child cleanup and preserved diagnostic logs include sanitizer-marker checks."
+  ],
+  "limitations": [
+    "No correction test has executed; compositor_native_pb2 does not exist in production yet.",
+    "The queued missing-field baseline and frozen 283-file candidate remain unchanged.",
+    "Trusted management fixture tests do not qualify issuer-backed actor admission or world participation.",
+    "Independent attribution of the actual compositor connection still requires runtime evidence.",
+    "These tests do not qualify native GPU scanout, physical input, model tasks, or full Spatial-M1."
+  ]
+}
