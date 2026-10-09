@@ -1,0 +1,181 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 3
+    Start  3: identity-participants
+
+3: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source/tests/core/test_identity_participants.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/identityd"
+3: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build
+3: Environment variables: 
+3:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source
+3: Test timeout computed to be: 120
+3: test_actor_cannot_register_and_bad_proof_consumes_challenge (__main__.ParticipantTests.test_actor_cannot_register_and_bad_proof_consumes_challenge) ... ok
+3: test_all_64_domains_are_preserved (__main__.ParticipantTests.test_all_64_domains_are_preserved) ... ok
+3: test_binary_participant_ids_have_stable_pagination_order (__main__.ParticipantTests.test_binary_participant_ids_have_stable_pagination_order) ... ok
+3: test_corrupt_record_and_domain_index_fail_closed (__main__.ParticipantTests.test_corrupt_record_and_domain_index_fail_closed) ... ok
+3: test_domain_insert_failure_rolls_back_registration_and_revision (__main__.ParticipantTests.test_domain_insert_failure_rolls_back_registration_and_revision) ... ok
+3: test_domains_are_canonical_and_support_multiple_workspaces (__main__.ParticipantTests.test_domains_are_canonical_and_support_multiple_workspaces) ... ok
+3: test_duplicate_identity_key_and_domain_do_not_replace_record (__main__.ParticipantTests.test_duplicate_identity_key_and_domain_do_not_replace_record) ... ok
+3: test_empty_registry_is_explicit_and_owner_protected (__main__.ParticipantTests.test_empty_registry_is_explicit_and_owner_protected) ... ok
+3: test_failed_migration_rolls_back_new_tables_and_version (__main__.ParticipantTests.test_failed_migration_rolls_back_new_tables_and_version) ... ok
+3: test_malformed_registration_is_rejected_before_owner_challenge (__main__.ParticipantTests.test_malformed_registration_is_rejected_before_owner_challenge) ... ok
+3: test_owner_challenge_cannot_replay_after_restart (__main__.ParticipantTests.test_owner_challenge_cannot_replay_after_restart) ... ok
+3: test_owner_registers_distinct_service_without_actor_grants (__main__.ParticipantTests.test_owner_registers_distinct_service_without_actor_grants) ... ok
+3: test_pagination_is_ordered_and_bounded (__main__.ParticipantTests.test_pagination_is_ordered_and_bounded) ... ok
+3: test_registration_invalidates_pending_actor_enrollment_for_same_key (__main__.ParticipantTests.test_registration_invalidates_pending_actor_enrollment_for_same_key) ... ok
+3: test_registry_requires_owner_proof (__main__.ParticipantTests.test_registry_requires_owner_proof) ... ok
+3: test_reserved_owner_issuer_and_actor_keys_cannot_be_services (__main__.ParticipantTests.test_reserved_owner_issuer_and_actor_keys_cannot_be_services) ... ok
+3: test_restart_preserves_registration (__main__.ParticipantTests.test_restart_preserves_registration) ... ok
+3: test_revision_update_failure_rolls_back_all_domain_claims (__main__.ParticipantTests.test_revision_update_failure_rolls_back_all_domain_claims) ... ok
+3: test_same_domain_text_with_different_kind_is_distinct (__main__.ParticipantTests.test_same_domain_text_with_different_kind_is_distinct) ... ok
+3: test_service_key_cannot_enroll_as_actor (__main__.ParticipantTests.test_service_key_cannot_enroll_as_actor) ... ok
+3: test_stale_registry_revision_cannot_add_second_service (__main__.ParticipantTests.test_stale_registry_revision_cannot_add_second_service) ... ok
+3: test_v4_migration_preserves_credential_and_issuer_state (__main__.ParticipantTests.test_v4_migration_preserves_credential_and_issuer_state) ... ok
+3: 
+3: ----------------------------------------------------------------------
+3: Ran 22 tests in 3.108s
+3: 
+3: OK
+1/5 Test  #3: identity-participants ............   Passed    3.18 sec
+test 4
+    Start  4: identity-participant-client
+
+4: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source/tests/core/test_identity_participant_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/spatial-issuer-client"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build
+4: Environment variables: 
+4:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source
+4: Test timeout computed to be: 120
+4: test_checked_client_registers_and_reads_real_owner_signed_records (__main__.ParticipantClientTests.test_checked_client_registers_and_reads_real_owner_signed_records) ... ok
+4: test_conflicting_registry_entries_poison_client (__main__.ParticipantClientTests.test_conflicting_registry_entries_poison_client) ... ok
+4: test_duplicate_registration_revision_poison_client (__main__.ParticipantClientTests.test_duplicate_registration_revision_poison_client) ... ok
+4: test_invalid_record_domains_poison_client (__main__.ParticipantClientTests.test_invalid_record_domains_poison_client) ... ok
+4: test_invalid_record_identity_and_revision_poison_client (__main__.ParticipantClientTests.test_invalid_record_identity_and_revision_poison_client) ... ok
+4: test_invalid_registry_context_poison_client (__main__.ParticipantClientTests.test_invalid_registry_context_poison_client) ... ok
+4: test_invalid_registry_continuation_poison_client (__main__.ParticipantClientTests.test_invalid_registry_continuation_poison_client) ... ok
+4: test_rejected_registration_preserves_checked_connection (__main__.ParticipantClientTests.test_rejected_registration_preserves_checked_connection) ... ok
+4: test_transport_certificate_and_actor_key_do_not_authorize_registration (__main__.ParticipantClientTests.test_transport_certificate_and_actor_key_do_not_authorize_registration) ... ok
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 9 tests in 4.070s
+4: 
+4: OK
+2/5 Test  #4: identity-participant-client ......   Passed    4.16 sec
+test 23
+    Start 23: identity-keys
+
+23: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source/tests/core/test_identity_keys.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/spatial-key"
+23: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build
+23: Environment variables: 
+23:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source
+23: Test timeout computed to be: 60
+23: test_concurrent_creation_has_one_winner_and_a_complete_key (__main__.IdentityKeyTests.test_concurrent_creation_has_one_winner_and_a_complete_key) ... ok
+23: test_corrupt_oversized_and_trailing_key_data_are_rejected (__main__.IdentityKeyTests.test_corrupt_oversized_and_trailing_key_data_are_rejected) ... ok
+23: test_distinct_keys_persist_with_private_permissions_and_external_public_keys (__main__.IdentityKeyTests.test_distinct_keys_persist_with_private_permissions_and_external_public_keys) ... ok
+23: test_empty_and_maximum_payload_are_explicit_and_bounded (__main__.IdentityKeyTests.test_empty_and_maximum_payload_are_explicit_and_bounded) ... ok
+23: test_exposed_key_permissions_are_rejected_and_read_only_private_key_works (__main__.IdentityKeyTests.test_exposed_key_permissions_are_rejected_and_read_only_private_key_works) ... ok
+23: test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected (__main__.IdentityKeyTests.test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected) ... ok
+23: test_generation_never_overwrites_an_existing_identity (__main__.IdentityKeyTests.test_generation_never_overwrites_an_existing_identity) ... ok
+23: test_independent_signatures_verify_but_payload_key_and_signature_changes_fail (__main__.IdentityKeyTests.test_independent_signatures_verify_but_payload_key_and_signature_changes_fail) ... ok
+23: test_key_symlink_hardlink_fifo_and_directory_are_rejected_without_hanging (__main__.IdentityKeyTests.test_key_symlink_hardlink_fifo_and_directory_are_rejected_without_hanging) ... ok
+23: test_missing_and_relative_paths_do_not_create_implicit_keys (__main__.IdentityKeyTests.test_missing_and_relative_paths_do_not_create_implicit_keys) ... ok
+23: test_production_signatures_match_independent_openssl_for_every_purpose (__main__.IdentityKeyTests.test_production_signatures_match_independent_openssl_for_every_purpose) ... ok
+23: test_shared_or_symlinked_key_directory_is_rejected (__main__.IdentityKeyTests.test_shared_or_symlinked_key_directory_is_rejected) ... ok
+23: test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed (__main__.IdentityKeyTests.test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed) ... ok
+23: test_signing_input_requires_exactly_one_complete_protobuf_frame (__main__.IdentityKeyTests.test_signing_input_requires_exactly_one_complete_protobuf_frame) ... ok
+23: test_unknown_fields_unknown_purposes_and_missing_proof_fields_fail_closed (__main__.IdentityKeyTests.test_unknown_fields_unknown_purposes_and_missing_proof_fields_fail_closed) ... ok
+23: test_wrong_key_and_signature_lengths_are_rejected (__main__.IdentityKeyTests.test_wrong_key_and_signature_lengths_are_rejected) ... ok
+23: 
+23: ----------------------------------------------------------------------
+23: Ran 16 tests in 0.811s
+23: 
+23: OK
+3/5 Test #23: identity-keys ....................   Passed    0.88 sec
+test 24
+    Start 24: identity-issuer
+
+24: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source/tests/core/test_identity_issuer.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/identityd"
+24: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build
+24: Environment variables: 
+24:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source
+24: Test timeout computed to be: 60
+24: test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed (__main__.IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed) ... ok
+24: test_challenge_binds_issuer_incarnation_owner_operation_and_audience (__main__.IssuerTests.test_challenge_binds_issuer_incarnation_owner_operation_and_audience) ... ok
+24: test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation (__main__.IssuerTests.test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation) ... ok
+24: test_competing_revision_updates_have_one_winner (__main__.IssuerTests.test_competing_revision_updates_have_one_winner) ... ok
+24: test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy (__main__.IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy) ... ok
+24: test_initialization_and_startup_never_replace_missing_or_existing_identity (__main__.IssuerTests.test_initialization_and_startup_never_replace_missing_or_existing_identity) ... ok
+24: test_invalid_policy_and_unknown_fields_do_not_change_state (__main__.IssuerTests.test_invalid_policy_and_unknown_fields_do_not_change_state) ... ok
+24: test_issuer_instances_do_not_accept_each_others_challenges (__main__.IssuerTests.test_issuer_instances_do_not_accept_each_others_challenges) ... ok
+24: test_only_one_process_can_own_one_issuer_directory (__main__.IssuerTests.test_only_one_process_can_own_one_issuer_directory) ... ok
+24: test_owner_policy_change_is_durable_and_observed_through_real_sqlite (__main__.IssuerTests.test_owner_policy_change_is_durable_and_observed_through_real_sqlite) ... ok
+24: test_pending_challenges_are_bounded_and_restart_clears_them (__main__.IssuerTests.test_pending_challenges_are_bounded_and_restart_clears_them) ... ok
+24: test_proof_for_one_challenge_does_not_complete_another (__main__.IssuerTests.test_proof_for_one_challenge_does_not_complete_another) ... ok
+24: test_protocol_errors_preserve_request_identity_and_connection_usability (__main__.IssuerTests.test_protocol_errors_preserve_request_identity_and_connection_usability) ... ok
+24: test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works (__main__.IssuerTests.test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works) ... ok
+24: test_restart_invalidates_pending_challenges_without_changing_policy (__main__.IssuerTests.test_restart_invalidates_pending_challenges_without_changing_policy) ... ok
+24: test_successful_proof_cannot_be_replayed (__main__.IssuerTests.test_successful_proof_cannot_be_replayed) ... ok
+24: test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly (__main__.IssuerTests.test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly) ... ok
+24: test_unsafe_state_files_and_directory_are_rejected (__main__.IssuerTests.test_unsafe_state_files_and_directory_are_rejected) ... ok
+24: 
+24: ----------------------------------------------------------------------
+24: Ran 18 tests in 1.943s
+24: 
+24: OK
+4/5 Test #24: identity-issuer ..................   Passed    2.01 sec
+test 28
+    Start 28: identity-tls
+
+28: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source/tests/core/test_identity_tls.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/identityd"
+28: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build
+28: Environment variables: 
+28:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-session-draft-03/source
+28: Test timeout computed to be: 90
+28: test_connection_limit_rejects_excess_peer_then_recovers (__main__.TlsTests.test_connection_limit_rejects_excess_peer_then_recovers) ... ok
+28: test_connections_share_enrollment_authentication_and_revocation (__main__.TlsTests.test_connections_share_enrollment_authentication_and_revocation) ... ok
+28: test_disconnect_mid_payload_does_not_kill_issuer (__main__.TlsTests.test_disconnect_mid_payload_does_not_kill_issuer) ... ok
+28: test_encrypted_private_key_fails_without_prompting (__main__.TlsTests.test_encrypted_private_key_fails_without_prompting) ... ok
+28: test_excessive_frame_closes_only_offending_peer (__main__.TlsTests.test_excessive_frame_closes_only_offending_peer) ... ok
+28: test_expired_service_certificate_rejected (__main__.TlsTests.test_expired_service_certificate_rejected) ... ok
+28: test_idle_timeout_reclaims_peer (__main__.TlsTests.test_idle_timeout_reclaims_peer) ... ok
+28: test_independent_client_rejects_wrong_server_name_and_trust (__main__.TlsTests.test_independent_client_rejects_wrong_server_name_and_trust) ... ok
+28: test_invalid_configuration_and_key_mismatch_fail_before_accept (__main__.TlsTests.test_invalid_configuration_and_key_mismatch_fail_before_accept) ... ok
+28: test_listener_requires_tcp_listening_socket (__main__.TlsTests.test_listener_requires_tcp_listening_socket) ... ok
+28: test_malformed_unknown_and_wrong_version_preserve_channel (__main__.TlsTests.test_malformed_unknown_and_wrong_version_preserve_channel) ... ok
+28: test_maximum_frame_crosses_tls_record_boundaries (__main__.TlsTests.test_maximum_frame_crosses_tls_record_boundaries) ... ok
+28: test_missing_service_certificate_rejected (__main__.TlsTests.test_missing_service_certificate_rejected) ... ok
+28: test_mutual_tls_reaches_production_issuer (__main__.TlsTests.test_mutual_tls_reaches_production_issuer) ... ok
+28: test_partial_and_pipelined_frames_keep_request_identity (__main__.TlsTests.test_partial_and_pipelined_frames_keep_request_identity) ... ok
+28: test_partial_frame_deadline_is_not_refreshed_by_progress (__main__.TlsTests.test_partial_frame_deadline_is_not_refreshed_by_progress) ... ok
+28: test_private_key_permissions_and_links_fail_closed (__main__.TlsTests.test_private_key_permissions_and_links_fail_closed) ... ok
+28: test_service_certificate_does_not_replace_owner_proof (__main__.TlsTests.test_service_certificate_does_not_replace_owner_proof) ... ok
+28: test_stalled_handshake_does_not_block_other_peers (__main__.TlsTests.test_stalled_handshake_does_not_block_other_peers) ... ok
+28: test_stalled_reader_hits_write_deadline_without_blocking_other_peer (__main__.TlsTests.test_stalled_reader_hits_write_deadline_without_blocking_other_peer) ... ok
+28: test_supervisor_eof_stops_listener_and_all_peers (__main__.TlsTests.test_supervisor_eof_stops_listener_and_all_peers) ... ok
+28: test_tls12_and_plaintext_rejected (__main__.TlsTests.test_tls12_and_plaintext_rejected) ... ok
+28: test_untrusted_service_certificate_rejected (__main__.TlsTests.test_untrusted_service_certificate_rejected) ... ok
+28: 
+28: ----------------------------------------------------------------------
+28: Ran 23 tests in 9.322s
+28: 
+28: OK
+5/5 Test #28: identity-tls .....................   Passed    9.41 sec
+
+The following tests passed:
+	identity-participants
+	identity-participant-client
+	identity-keys
+	identity-issuer
+	identity-tls
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =  19.64 sec

@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-09: Checked service authentication candidate under full qualification
+
+The isolated service-session candidate now includes strict TLS client response validation.
+The client binds each proof to the requested participant, registration revision, process incarnation, issuer, and connection.
+It consumes pending proof context before completion, including typed denial responses.
+Malformed or substituted replies close the channel. No completion is automatically replayed.
+
+On sb16, candidate 03 passed 32 new checks and 88 related regression checks in Debug.
+The new suites contain 20 server checks and 12 checked-client checks.
+Both schema audits preserve 253 messages, 966 fields, and 122 enum values.
+All 89 existing test files and 41 locked files remain unchanged.
+All 238 candidate source hashes are pinned. The failed baselines and review remain archived.
+Complete Debug and runtime ASan/UBSan qualification is running on both hosts.
+No full profile result is claimed yet. This candidate is not integrated.
+
+Service proof does not activate execution or acknowledge completed cancellation.
+Durable activation, fencing, cancellation obligations, and effect acknowledgement remain required.
+M02 and complete Spatial-M1 remain unfinished.
+See evidence/participant-session-2026-10-09/candidate-03 and docs/AUTHORITY_PARTICIPANT_SESSION.txt.
+
 ## 2026-10-09: Authority participant registry qualified and integrated
 
 The issuer now supports owner-signed registration of separate service keys and explicit authority domains.
@@ -15,7 +35,8 @@ All 41 locked files and 84 existing test files remain unchanged.
 Three migration fixtures have explicit, reviewed schema-5 updates.
 Primary review and the failed duplicate-revision counterexample remain archived.
 
-The registry component is complete. Commit publication and host source adoption are next.
+The registry component is complete. Commit 2f86927 is pushed to box-git and adopted on both hosts.
+Both adoption audits match all 236 source hashes and report clean worktrees.
 Registration alone does not authenticate services, activate execution, or acknowledge cancellation.
 The separate service-session candidate now passes focused server and checked-client tests on sb16.
 Its full qualification remains pending. M02 and Spatial-M1 remain incomplete.

@@ -1,0 +1,37 @@
+Primary review: service-session candidate 03
+Status: isolated; full Debug and runtime sanitizer qualification is running on both hosts.
+The primary agent reviewed this change. No local model or subagent reviewed it.
+
+Invariant
+A registered service proves its own key on the issuer TLS connection that receives its authenticated context.
+Authentication grants no actor rights, execution activation, or cancellation acknowledgement.
+
+Files reviewed
+CMakeLists.txt adds server and client suites without replacing existing tests.
+key.proto adds a distinct signature purpose. issuer.proto adds service proof messages and operation fields.
+issuer.hpp declares connection-local context and service operations.
+issuer.cpp resolves immutable registered keys, consumes challenges, and checks the actual connection binding.
+It checks expiry, signature purpose, process incarnation, registration revision, and immutable connection identity.
+protocol.hpp and protocol.cpp pass explicit context. The management pipe cannot supply it.
+tls_server.cpp creates context only after a successful TLS handshake and destroys it with the Peer.
+issuer_client.cpp checks the pinned issuer, request, nonce, audience, lifetime, and consistent connection context.
+It retains bounded challenges. Completion removes its challenge before I/O, including typed denials.
+Success requires a retained unexpired challenge and independently verified proof against the returned registration key.
+Malformed peer data closes the channel. Typed authorization errors preserve it without reusing a consumed proof.
+The client counts request transit time against challenge lifetime. It never automatically retries completion.
+The two new test files use real issuer processes and separate signing keys.
+Explicit TLS fault peers test malformed-response handling only. They do not prove service authority.
+
+Evidence
+The earlier server baseline reached unsupported operations. Its fixture correction remains archived.
+The checked-client baseline reached the old wrong-outcome failure on a valid service challenge.
+An earlier baseline diagnostic caught the wrong fixture exception; preserve that failed runner too.
+Candidate 03 passed32 new checks and88 related regression checks in Debug on sb16.
+Both schema audits preserve253 messages,966 fields,and122 enum values.
+All89 existing test files and41 locked files are unchanged.
+All238 candidate source hashes are pinned.
+
+Limits
+Full qualification remains running. Do not integrate based on focused results alone.
+No durable activation, fencing, cancellation obligation, or applied-revision acknowledgement exists in this component.
+No operator database or normal login session changed.

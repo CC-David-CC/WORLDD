@@ -2,7 +2,7 @@
   "id": "identity.participant_registry",
   "phase": "M02",
   "status": "complete",
-  "current_step": "qualified_integrated_commit_and_host_adoption_next",
+  "current_step": "qualified_integrated_and_adopted",
   "parent": "identity.revocation_barrier",
   "invariant": "Only issuer-owner proof registers a distinct service key and explicit authority domains atomically, without actor grants.",
   "contract": "docs/AUTHORITY_PARTICIPANT_REGISTRY.txt",
@@ -77,5 +77,10 @@
   "follow_on_components": [
     "identity.participant_session",
     "Durable service activation, obligations, and cancellation acknowledgements"
+  ],
+  "integration_commit": "2f86927d059caadf412c2c4f3e2f603edf1ab203",
+  "adopted_hosts": [
+    "sb16",
+    "sb16-2"
   ]
 }

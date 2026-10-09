@@ -1,6 +1,6 @@
 Authority participant sessions: next component design
-Status: isolated server draft passes focused Debug tests. Checked-client support and full qualification remain pending.
-Integration dependency: qualify and integrate identity.participant_registry first.
+Status: isolated server and checked-client candidate passes focused Debug tests. Full two-host qualification is running.
+Integration dependency: identity.participant_registry is qualified, integrated, and adopted at 2f86927.
 Independent baseline tests may run while that frozen registry candidate is under qualification.
 This document does not claim an active execution authority or completed cancellation barrier.
 
@@ -120,3 +120,15 @@ The server draft passed 20 service-session checks and 88 related regression chec
 The three baseline failures and the corrected fixture-helper error remain preserved.
 No production source, operator database, or active registry qualification source changed.
 See evidence/participant-session-2026-10-09.
+
+Checked-client candidate 03, 2026-10-09
+The client retains bounded, expiring challenges and verifies all issuer, connection, and request context.
+Completion consumes local challenge context before sending the request, including typed authorization denials.
+A successful result must match the retained challenge and pass independent service-key proof verification.
+The client counts transit time against the advertised challenge lifetime.
+Malformed responses close the channel. No completion is automatically replayed.
+Candidate 03 passed 32 new checks and 88 related regression checks on sb16 in Debug.
+Both schema audits preserve 253 messages, 966 fields, and 122 enum values.
+All 89 existing test files and 41 locked files remain unchanged.
+Full Debug and runtime sanitizer qualification is running on both hosts.
+The candidate remains isolated. Authentication does not establish execution activation or cancellation completion.

@@ -1,0 +1,14 @@
+{
+  "host": "sb16",
+  "profile": "Debug",
+  "new_checks": 32,
+  "regression_checks": 88,
+  "failed": 0,
+  "skipped": 0,
+  "source_files": 238,
+  "binaries": {
+    "identityd": "b15d2775a30502c0d08396568a6ec95af5e5a7b3e909fe8674c969358c864060",
+    "spatial-issuer-client": "3ca0f028329dfebaa08eec3f58ba1fddeb4106730131e3544a1b82123486318e"
+  },
+  "scope": "focused service authentication;full qualification pending"
+}

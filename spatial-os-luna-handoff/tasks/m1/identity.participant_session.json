@@ -2,30 +2,40 @@
   "id": "identity.participant_session",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "server_focused_Debug_passed_checked_client_next",
+  "current_step": "candidate_03_full_both_host_qualification",
   "parent": "identity.revocation_barrier",
   "integration_dependency": "identity.participant_registry",
   "contract": "docs/AUTHORITY_PARTICIPANT_SESSION.txt",
   "evidence": "evidence/participant-session-2026-10-09",
   "invariant": "A service proves its registered key on the actual TLS connection that receives its authenticated context.",
   "isolated_source": "local/participant-session-draft-01",
-  "candidate": 2,
-  "source_files": 237,
+  "candidate": 3,
+  "source_files": 238,
   "focused_Debug": {
     "host": "sb16",
-    "new_checks": 20,
+    "new_checks": 32,
     "regression_checks": 88,
     "failed": 0,
     "skipped": 0
   },
   "integrated": false,
   "remaining": [
-    "Implement checked-client service-proof handling and strict response validation.",
-    "Add real checked-client and malformed-response tests.",
-    "Run schema preservation and full both-host Debug/runtime sanitizer profiles."
+    "Complete Debug and runtime ASan/UBSan qualification on both hosts.",
+    "Review all raw results and exact source hashes before integration."
   ],
   "limitations": [
     "A proof-only session does not activate execution or acknowledge cancellation.",
     "Durable activation, fencing, obligations, and cancellation acknowledgements remain pending."
-  ]
+  ],
+  "schema_audit": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "preserved_messages": 253,
+    "preserved_fields": 966,
+    "preserved_enum_values": 122,
+    "unchanged_existing_tests": 89,
+    "locked_files": 41
+  }
 }
