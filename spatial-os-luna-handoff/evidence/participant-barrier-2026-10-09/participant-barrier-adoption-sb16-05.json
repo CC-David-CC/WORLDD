@@ -1,0 +1,10 @@
+{
+  "host": "sb16",
+  "before": "69d661810b1faa0bcd947b825c03fb157630bf32",
+  "commit": "1d129f7827478de20bdd5896b077ced33f2aab78",
+  "source_hashes_matched": 240,
+  "worktree_clean": true,
+  "status": "adopted qualified source",
+  "runtime_restarted": false,
+  "operator_state_migrated": false
+}

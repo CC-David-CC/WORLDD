@@ -150,3 +150,6 @@ The schema adds explicit service generations and per-revocation obligations with
 Both-host qualification and corrected fixture receipts match the selected binaries and source hashes.
 Commit and host source adoption follow. Operator databases and running sessions remain untouched.
 This component cannot prove world or broker effect completion without their production participation.
+
+Commit 1d129f7 is pushed to box-git and adopted on sb16 and sb16-2.
+All 240 hashes match. Both worktrees are clean. No runtime restart or operator migration occurred.

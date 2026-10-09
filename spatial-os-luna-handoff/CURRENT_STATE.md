@@ -12,7 +12,8 @@ The integrated source retains the corrected workspace fixture.
 Both hosts qualify 1186 core checks, 51 harness checks, and 151 P10 cases in each Debug and runtime sanitizer profile.
 This count combines the preserved full barrier run with the complete corrected workspace suite.
 All 240 source hashes and 41 locked files match. Schema6 migration was tested only on disposable databases.
-Commit and source adoption are pending. No operator database was migrated and no native session was restarted.
+Commit 1d129f7 is pushed to box-git and adopted on both hosts with all 240 source hashes verified.
+Both worktrees are clean. No operator database was migrated and no native session was restarted.
 See evidence/participant-barrier-2026-10-09/integration-applied-05.json.
 
 The isolated world draft also passed focused checks on both hosts in both profiles.
