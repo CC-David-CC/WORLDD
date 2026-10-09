@@ -1,0 +1,11 @@
+test_credential_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+test_credential_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt) ... ok
+test_independent_grant_survives_bootstrap_parent_revocation (__main__.WorldBootstrapRaceTests.test_independent_grant_survives_bootstrap_parent_revocation) ... ok
+test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+test_parent_actor_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_profile_read_creates_no_receipt) ... ok
+test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry (__main__.WorldBootstrapRaceTests.test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 10.614s
+
+OK

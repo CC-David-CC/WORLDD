@@ -1,0 +1,50 @@
+{
+  "debug": {
+    "suites": {
+      "world-bootstrap": 15,
+      "workspace-authority": 19,
+      "world-identity": 20,
+      "world-authority": 27
+    },
+    "regression_checks": 81,
+    "additional_checks": 6,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "identityd": "2616170f23ec59b6c4980841db4e62a81c50ae8dc3209005b8f846aba89dc7dd",
+      "spatial-issuer-client": "6b3c224e4c94502fa8800fa96dbed0c8a086774a1875f4d7a1c222cc5fbd14e8",
+      "worldd": "ed069df1991e6cc44749cd6945f22fce1c9bef522ae605d367004b8deaa8e07f",
+      "workspaced": "e1e122c104f1de0496e8e41f50189532439491cfd9262abd35b239c2ca3da35a",
+      "spatialwm": "9e7fe4829b427463a40d0d2616acf1109aca9def3f2a39bb56c7b530e8fa19c5"
+    }
+  },
+  "runtime-sanitize": {
+    "suites": {
+      "world-bootstrap": 15,
+      "workspace-authority": 19,
+      "world-identity": 20,
+      "world-authority": 27
+    },
+    "regression_checks": 81,
+    "additional_checks": 6,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "identityd": "ae670c01525e537caf3cad065397bd434257641783a9cae410543d1e6892ec01",
+      "spatial-issuer-client": "5f00b10cc2a003f98ff9ebecc4e1386e1444eebfd129347d2aa095844c691986",
+      "worldd": "3d692db03ae8fb1accb58a7a38561bbe212c465138b41651b997a046738d742d",
+      "workspaced": "28381249cb8f73608af1518f233a937a12451a9d853ffffc89bbdf130541cf5d",
+      "spatialwm": "19b6228298dcda5c89dc1154da5cc708b859ecda806549c6c00a89c4f05fc99b"
+    }
+  },
+  "host": "sb16",
+  "source_files": 216,
+  "scope": "Isolated focused world adapter qualification",
+  "limitations": [
+    "Full cumulative matrix not run for adapter",
+    "Second-host adapter qualification pending",
+    "Workspace bootstrap delivery unimplemented",
+    "Native-server GLX sanitizer unqualified",
+    "No adapter production integration"
+  ]
+}

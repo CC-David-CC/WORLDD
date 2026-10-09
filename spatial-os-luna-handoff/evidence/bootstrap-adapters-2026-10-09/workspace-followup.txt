@@ -1,0 +1,28 @@
+Workspace bootstrap implementation review, 2026-10-09
+
+The five baseline tests remain failing. The workspace adapter is not implemented.
+The world adapter passed focused sb16 Debug and runtime sanitizer qualification.
+Use local/bootstrap-adapter-draft as the next working candidate.
+Preserve the frozen world source in local/m01-world-bootstrap-draft-01/source.
+
+Required contract refinement before workspace implementation:
+The draft broker apply request carries a signed credential. Bind and revoke currently carry only an actor reference.
+All three new bootstrap broker operations need the authenticated channel's signed credential.
+Worldd must derive that credential from the channel. An actor request must not choose another credential or recipient.
+The broker must check credential registration and match the signed actor to the forwarded principal.
+Binding administration may select another profile. It must not require the administrator's enrollment profile to match that selector.
+Application must use the recipient credential's exact enrollment profile and revision.
+
+The broker performs external profile and identity reads before mutation.
+Credential revocation during those reads must prevent the pending bootstrap mutation.
+A post-response check in worldd alone cannot undo a binding already committed by the broker.
+Extend the broker watcher to protect the in-flight credential without revoking independently authorized applications.
+Use one observed issuer revision for current credential and complete parent ancestry preparation.
+Check the actor channel again after each broker wait before exporting a result.
+
+Implement through WorkspaceAuthority, dispatch_broker, the checked BrokerClient, and world identity sessions.
+Keep ordinary workspace availability, selection, geometry, and execution rules unchanged.
+Reject wrong broker report domains, principals, selectors, and outcomes before accepting the reply.
+Add real issuer relay tests for credential and parent revocation during broker profile and status reads.
+Retain baseline failures and record the additive draft interface refinement explicitly.
+Run complete both-host qualification before adapter production integration.

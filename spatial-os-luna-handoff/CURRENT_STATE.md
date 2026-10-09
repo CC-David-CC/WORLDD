@@ -2,7 +2,8 @@
 
 ## 2026-10-09: Domain bootstrap store qualified on both hosts
 
-The reviewed domain store passed complete production qualification on both hosts.
+The domain store is committed as c470a4e and pushed to box-git.
+Both hosts adopted that commit. All 214 tested source hashes still matched after integration.
 Bindings require parent ownership and explicit delegation rights. They do not create root grants.
 Materialization records the delegated grant and durable receipt in one authority-store transaction.
 Retries return the original grant. Changed profiles or parents cannot replace an existing receipt.
@@ -30,7 +31,10 @@ Neither the store nor its fixture probe authenticates an actor.
 An isolated sb16 world adapter passed 15 authenticated login cases and six additional counterexamples.
 The additional cases cover revocation during real issuer waits, independent grants, and partial profile results.
 The first six-case attempt had fixture errors. The original failed log remains preserved.
-The world adapter remains outside production. Broader regressions and runtime sanitizer checks are running.
+The world adapter remains outside production.
+Its focused sb16 Debug and runtime sanitizer profiles each passed 81 regression checks and six additional cases.
+The profiles include existing world identity, world authority, and workspace authority checks.
+Neither profile failed or skipped a case. Full cumulative and second-host adapter qualification remain pending.
 The five workspace adapter baseline cases remain failing because that adapter is unimplemented.
 See evidence/bootstrap-adapters-2026-10-09. These focused results do not qualify complete domain delivery.
 The next implementation must use the existing authenticated actor path and checked issuer transport.

@@ -35,7 +35,7 @@
     "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
     "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
   ],
-  "current_test_scope": "Issuer and domain store qualified in complete Debug and runtime sanitizer profiles on both hosts. Domain profiles passed 973 core checks, 51 harness checks, and 151 P10 cases. Isolated world adapter passed 21 focused sb16 checks; broader qualification is running. Workspace adapter remains unimplemented.",
+  "current_test_scope": "Domain commit c470a4e is qualified and adopted on both hosts. Each Debug and runtime sanitizer profile passed 973 core checks, 51 harness checks, and 151 P10 cases. Isolated world adapter passed 81 regression and six additional checks per sb16 Debug and runtime sanitizer profile. Full cumulative and second-host adapter qualification remain pending. Workspace adapter remains unimplemented.",
   "remaining_steps": [
     "Implement and qualify authenticated world/workspace profile lookup and delivery through existing actor channels",
     "Validate credential and parent revocation during external I/O, and checked broker response context",

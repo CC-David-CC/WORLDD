@@ -161,3 +161,14 @@ The six final cases also verify independent surviving grants and partial profile
 Broader world adapter regressions and sanitizer checks remain running in an isolated source tree.
 The workspace adapter remains unimplemented. Its five failing baseline cases remain preserved.
 M01, M02, and complete Spatial-M1 remain incomplete.
+
+2026-10-09 domain integration and world adapter focused qualification:
+Domain commit c470a4e079b0e07009af5fcff7b491214bf63bec is pushed to box-git.
+Both hosts adopted the commit and matched all 214 tested source hashes.
+Each host preserved its qualified source edits in stash ef4918a999dc438dae7f70fb9184e1a2f00b129d.
+The identical stash identity reflects identical source content and metadata. Older stashes remain preserved.
+The world adapter's isolated sb16 Debug and runtime sanitizer profiles each passed 81 regression checks and six additional cases.
+Those checks include 15 bootstrap, 19 existing workspace authority, 20 world identity, and 27 world authority cases.
+The six additional cases cover issuer revocation waits, independent grants, and partial application.
+No final focused case failed or skipped. Full cumulative and second-host adapter qualification remain pending.
+No adapter production integration is claimed. Workspace bootstrap delivery remains unimplemented.

@@ -147,7 +147,9 @@ Issuer integration completed at 9e21cdf on both hosts, with matching source hash
 The domain store passed complete Debug and runtime sanitizer qualification on both hosts.
 Each profile passed 973 core checks across 50 suites, 51 harness checks, and 151 P10 cases.
 No final profile failed or skipped a case. All 214 tested source hashes match.
-Authenticated world delivery has 21 passing isolated sb16 checks. Broader qualification remains pending.
+Domain commit c470a4e is pushed to box-git and adopted on both hosts, with unchanged tested source hashes.
+The isolated world adapter passed 81 regression checks and six additional cases per sb16 profile.
+Both focused Debug and runtime sanitizer profiles passed. Full cumulative and second-host adapter qualification remain pending.
 Workspace delivery remains unimplemented. Neither adapter is integrated into production.
 These results do not complete bootstrap delivery, M01, M02, or Spatial-M1.
 
