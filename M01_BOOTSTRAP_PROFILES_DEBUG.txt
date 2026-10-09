@@ -233,3 +233,17 @@ Its dry preparation succeeded. Integration remains pending until sb16-2 finishes
 Sb16-2 passed its latest Debug build, 51 harness checks, and all 64 adapter checks.
 Its remaining core and runtime sanitizer qualification still run through the original live handle.
 No operator database, login path, or native session was changed.
+
+2026-10-09 remote actor transport baseline on the idle qualified sb16 host:
+Added five draft tests with real issuer credentials, persistent authority, and the qualified candidate 04 worldd.
+All five fail because worldd rejects the proposed --actor-listen-fd and --actor-tls-config arguments.
+Their later TLS, admission, action, management-isolation, and proof assertions remain unrun.
+This establishes the missing transport entry point; it does not qualify those security behaviors.
+Recorded the proposed interface and OpenSSL retry requirements in evidence/world-remote-2026-10-09/world-remote-contract.txt.
+No production source or active sb16-2 qualification file changed.
+
+2026-10-09 candidate 04 complete Debug passed on sb16-2:
+Collector verified 1,037 core checks across 55 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. The 223 frozen source hashes match.
+The runtime sanitizer profile and final corrected-witness follow-up remain pending.
+The original qualification and follow-up handles remain active. No replacement run was started.

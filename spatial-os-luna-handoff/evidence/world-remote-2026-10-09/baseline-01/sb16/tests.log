@@ -1,0 +1,155 @@
+test_remote_authentication_proof_is_bound_to_its_channel (__main__.RemoteWorldTests.test_remote_authentication_proof_is_bound_to_its_channel) ... FAIL
+test_remote_channel_cannot_execute_trusted_management_request (__main__.RemoteWorldTests.test_remote_channel_cannot_execute_trusted_management_request) ... FAIL
+test_remote_private_admission_remains_separate_from_valid_identity (__main__.RemoteWorldTests.test_remote_private_admission_remains_separate_from_valid_identity) ... FAIL
+test_remote_proof_uses_persistent_world_authority_and_real_actor (__main__.RemoteWorldTests.test_remote_proof_uses_persistent_world_authority_and_real_actor) ... FAIL
+test_tls_identity_alone_does_not_authenticate_an_actor (__main__.RemoteWorldTests.test_tls_identity_alone_does_not_authenticate_an_actor) ... FAIL
+
+======================================================================
+FAIL: test_remote_authentication_proof_is_bound_to_its_channel (__main__.RemoteWorldTests.test_remote_authentication_proof_is_bound_to_its_channel)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 77, in remote_world
+    try:world.management('system.hello')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 70, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 34, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 31, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 119, in test_remote_authentication_proof_is_bound_to_its_channel
+    world=self.remote_world();first=world.connect(self);second=world.connect(self)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 79, in remote_world
+    self.fail('Remote listener failed before an actor could connect: '+world.log_path.read_text())
+AssertionError: Remote listener failed before an actor could connect: worldd: Unknown or incomplete worldd argument
+
+
+======================================================================
+FAIL: test_remote_channel_cannot_execute_trusted_management_request (__main__.RemoteWorldTests.test_remote_channel_cannot_execute_trusted_management_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 77, in remote_world
+    try:world.management('system.hello')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 70, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 34, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 31, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 108, in test_remote_channel_cannot_execute_trusted_management_request
+    world=self.remote_world();peer=world.connect(self)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 79, in remote_world
+    self.fail('Remote listener failed before an actor could connect: '+world.log_path.read_text())
+AssertionError: Remote listener failed before an actor could connect: worldd: Unknown or incomplete worldd argument
+
+
+======================================================================
+FAIL: test_remote_private_admission_remains_separate_from_valid_identity (__main__.RemoteWorldTests.test_remote_private_admission_remains_separate_from_valid_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 77, in remote_world
+    try:world.management('system.hello')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 70, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 34, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 31, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 102, in test_remote_private_admission_remains_separate_from_valid_identity
+    world=self.remote_world();actor=self.enroll_bootstrap(name='remote-guest',profile='empty-v1')
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 79, in remote_world
+    self.fail('Remote listener failed before an actor could connect: '+world.log_path.read_text())
+AssertionError: Remote listener failed before an actor could connect: worldd: Unknown or incomplete worldd argument
+
+
+======================================================================
+FAIL: test_remote_proof_uses_persistent_world_authority_and_real_actor (__main__.RemoteWorldTests.test_remote_proof_uses_persistent_world_authority_and_real_actor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 77, in remote_world
+    try:world.management('system.hello')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 70, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 34, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 31, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 83, in test_remote_proof_uses_persistent_world_authority_and_real_actor
+    world=self.remote_world();peer=world.connect(self)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 79, in remote_world
+    self.fail('Remote listener failed before an actor could connect: '+world.log_path.read_text())
+AssertionError: Remote listener failed before an actor could connect: worldd: Unknown or incomplete worldd argument
+
+
+======================================================================
+FAIL: test_tls_identity_alone_does_not_authenticate_an_actor (__main__.RemoteWorldTests.test_tls_identity_alone_does_not_authenticate_an_actor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 77, in remote_world
+    try:world.management('system.hello')
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 70, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 34, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-adapters-source-04/tests/core/test_world_identity.py", line 31, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 96, in test_tls_identity_alone_does_not_authenticate_an_actor
+    world=self.remote_world();peer=world.connect(self)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-baseline-01/test_world_remote.py", line 79, in remote_world
+    self.fail('Remote listener failed before an actor could connect: '+world.log_path.read_text())
+AssertionError: Remote listener failed before an actor could connect: worldd: Unknown or incomplete worldd argument
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 3.723s
+
+FAILED (failures=5)

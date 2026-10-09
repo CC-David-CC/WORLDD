@@ -1,0 +1,18 @@
+Remote actor baseline review
+
+The primary agent reviewed the five draft cases and fixture setup.
+They use real identityd, independently signed actor proofs, persistent authority, and the qualified candidate 04 worldd.
+The test executable hash matches the complete sb16 qualification record.
+The TLS client checks its configured server name and trust before sending actor requests.
+Its bounded framed reader consumes OpenSSL-buffered plaintext through recv.
+The fixture's management pipe remains private to the test supervisor.
+The attempted management injection uses the remote actor channel and checks for unchanged world state.
+
+All five cases failed because the proposed listener arguments are unsupported.
+No later TLS, admission, action, management-isolation, or proof-binding assertion executed.
+These results establish a missing entry point only. They do not validate those unexecuted assertions.
+The draft requires negative TLS, framing, cancellation, restart, and cross-host counterexamples before qualification.
+No existing acceptance assertion, production source, or active qualification tree changed.
+
+The proposed interface and referenced OpenSSL retry requirements are in world-remote-contract.txt.
+Production integration remains separate from this failing baseline.

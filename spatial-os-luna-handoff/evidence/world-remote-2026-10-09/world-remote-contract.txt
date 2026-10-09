@@ -1,0 +1,57 @@
+Remote actor transport draft, 2026-10-09
+Status: interface proposal and failing baseline. No remote listener is implemented or qualified yet.
+
+Invariant:
+Remote actors authenticate over protected transport and use the existing world actor and authority handlers.
+
+Proposed startup interface:
+Add --actor-listen-fd FD and --actor-tls-config ABSOLUTE_FILE together.
+Keep --identity-config mandatory when any actor transport is configured.
+Permit a remote listener without inherited local actor channels.
+Keep existing local actor channels available.
+Validate a listening TCP descriptor, IPv4 or IPv6, above stderr.
+Reject reused actor, broker, and listener descriptors.
+Set close-on-exec before starting the compositor or application workers.
+Keep trusted management on stdin/stdout. Never relay that interface to a network connection.
+
+Proposed protobuf configuration:
+Add WorldActorTlsConfig to world_session.proto.
+Use protocol_version, certificate_path, private_key_path, client_ca_path,
+io_timeout_ms, idle_timeout_ms, and connection_limit.
+Reuse the checked private material loader and TLS 1.3 context implementation.
+The draft fixture emits equivalent text fields through IssuerTlsServerConfig until bindings exist.
+TLS peer certificates permit transport connection only. They do not identify or authorize an actor.
+Clients verify the server certificate and expected name before sending signed actor credentials.
+Fresh actor proof, explicit admission, and current grants remain mandatory.
+
+Transport behavior:
+Bound the connection count, handshake duration, unauthenticated idle time, frame size, and partial I/O duration.
+An authenticated idle human can remain connected. Motion commands retain their existing expiry.
+Process a bounded amount of transport work per peer per loop.
+Handle buffered TLS plaintext without waiting for another socket event.
+Keep write buffers and lengths stable while OpenSSL requests a retry.
+Read SSL_get_error immediately after failed TLS I/O on the same thread.
+Keep its error queue empty before each TLS operation.
+Do not mix another TLS I/O operation into a pending SSL_write WANT_WRITE retry.
+Cancel actor control through the existing disconnect path on peer loss or fatal transport failure.
+Allow watcher cancellation during issuer and broker waits without dispatching another actor request.
+Close and reclaim completed remote channels. Do not accumulate dead connections indefinitely.
+Keep world admission, workspace access, and application authority separate.
+Remote application streaming and remote application input remain outside M1 scope.
+Do not export application pixels or route remote application input merely because TLS is available.
+
+Baseline:
+Five draft tests use real identityd, signed credentials, persistent world grants, and worldd.
+All five currently fail at startup because the proposed listener arguments are unsupported.
+Their later TLS and action assertions have not run. They are not passing security evidence.
+The first cases cover real actor actions, transport-only identity denial, private admission,
+management-interface isolation, and proof binding to the actor channel.
+Add negative TLS, framing, slow-peer, cancellation, restart, and cross-host cases during implementation.
+Keep complete both-host qualification mandatory before integration.
+
+Primary source references:
+https://docs.openssl.org/3.0/man3/SSL_read/
+https://docs.openssl.org/3.0/man3/SSL_write/
+https://docs.openssl.org/3.0/man3/SSL_get_error/
+Existing implementations: src/identity/tls_server.cpp and src/identity/tls_support.cpp.
+Existing actor authority: src/world/identity_sessions.cpp, including candidate 04 bootstrap delivery.

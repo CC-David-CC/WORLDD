@@ -1,7 +1,7 @@
 {
   "id": "identity.world_session",
   "phase": "M01",
-  "status": "pending",
+  "status": "in_progress",
   "scope": "Protected remote actor channels for the authoritative world runtime",
   "profile": "tasks/spatial-m1.json",
   "contract": "docs/WORLD_IDENTITY.md",
@@ -21,7 +21,8 @@
     "worldd currently requires identity configuration and inherited actor descriptors together.",
     "IdentitySessions currently requires one through 32 inherited actor channels.",
     "The issuer already has a bounded TLS 1.3 listener and private TLS material loader.",
-    "No existing issuer listener qualifies remote world actor transport."
+    "No existing issuer listener qualifies remote world actor transport.",
+    "Five draft tests failed on qualified sb16 candidate 04 because worldd rejects the proposed remote-listener arguments. Later TLS and action assertions remain unrun."
   ],
   "required_evidence": [
     "Explicit protected listener configuration; no network access to trusted management operations",
@@ -49,5 +50,11 @@
     "Transport qualification alone does not complete shared-world persistence, world transitions, or M01.",
     "Issuer revocation acknowledgement still does not prove a distributed cancellation barrier."
   ],
-  "next_components": ["identity.revocation_barrier", "M05", "M06"]
+  "next_components": [
+    "identity.revocation_barrier",
+    "M05",
+    "M06"
+  ],
+  "current_step": "baseline_and_interface_review",
+  "baseline_evidence": "evidence/world-remote-2026-10-09/baseline-01/sb16"
 }

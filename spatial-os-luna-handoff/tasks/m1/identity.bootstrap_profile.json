@@ -35,7 +35,7 @@
     "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
     "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
   ],
-  "current_test_scope": "Candidate 04 passed complete sb16 Debug and runtime sanitizer profiles: 1037 core checks across 55 suites, 51 harness checks, and 151 P10 cases each. The corrected witness then passed six new checks and twelve original process cases against both exact binary sets. All 223 proposed integration hashes match. Sb16-2 Debug passed build, harness, and 64 adapter checks; its remaining qualification is pending.",
+  "current_test_scope": "Candidate 04 passed complete Debug on both hosts and runtime sanitizer on sb16: 1037 core checks/55 suites,51 harness,151 P10 per profile,zero failed/skipped. Sb16 also passed the corrected witness with both exact binary sets. Sb16-2 runtime sanitizer and corrected-witness follow-up remain pending.",
   "remaining_steps": [
     "Complete candidate 04 Debug and runtime sanitizer qualification on both hosts",
     "Integrate reviewed authenticated adapters while retaining the separately tested process-witness correction",

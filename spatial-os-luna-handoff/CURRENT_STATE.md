@@ -32,8 +32,8 @@ Candidate 04 extends that correction. Its sb16 focused Debug run passed 52 works
 Its sb16 complete Debug and runtime sanitizer profiles each passed 1,037 core checks across 55 suites.
 Each profile also passed 51 harness checks and 151 P10 cases. No case failed or skipped.
 The corrected process witness then passed six new checks and twelve unchanged process cases against both exact binary sets.
-The sb16-2 candidate 04 run passed its Debug build, 51 harness checks, and 64 adapter checks.
-Its remaining core checks and runtime sanitizer profile are pending.
+The sb16-2 candidate 04 complete Debug profile passed 1,037 core checks, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. Its runtime sanitizer profile and corrected-witness follow-up remain pending.
 Candidate 04 still includes the original process witness. Active source trees remain immutable.
 Integration must preserve the separately qualified b2ab006 witness correction.
 An automatic follow-up waits for each candidate 04 matrix to finish successfully.
@@ -47,6 +47,11 @@ The initial full snapshot omitted four locked documents. The harness rejected it
 The corrected snapshot includes those unchanged documents. All original failures remain preserved.
 See docs/BOOTSTRAP_DELIVERY.md and evidence/bootstrap-workspace-adapters-2026-10-09.
 M01, M02, native-server GLX sanitizer qualification, and full Spatial-M1 remain incomplete.
+
+Five remote actor transport baseline tests now fail against the exact qualified sb16 candidate 04 binary.
+Worldd rejects the proposed listener arguments before the later TLS and actor-action assertions execute.
+The baseline and draft interface are recorded in evidence/world-remote-2026-10-09.
+No remote listener implementation or passing remote-world qualification is claimed.
 
 ## 2026-10-09: Domain bootstrap store qualified on both hosts
 
