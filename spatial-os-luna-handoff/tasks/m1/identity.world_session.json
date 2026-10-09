@@ -58,9 +58,14 @@
     "M05",
     "M06"
   ],
-  "current_step": "qualified_and_integrated_commit_and_host_adoption_pending",
+  "current_step": "integrated_and_adopted",
   "baseline_evidence": "evidence/world-remote-2026-10-09/baseline-01/sb16",
   "focused_evidence": "evidence/world-remote-2026-10-09/draft-review-01.txt",
   "candidate_evidence": "evidence/world-remote-2026-10-09/candidate-review-02.txt",
-  "final_evidence": "evidence/world-remote-2026-10-09/candidate-02"
+  "final_evidence": "evidence/world-remote-2026-10-09/candidate-02",
+  "integration_commit": "62a617af79dbb7a282dc11f96e17a143fe086774",
+  "adoption_evidence": [
+    "evidence/world-remote-2026-10-09/candidate-02/sb16/adoption.json",
+    "evidence/world-remote-2026-10-09/candidate-02/sb16-2/adoption.json"
+  ]
 }

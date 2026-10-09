@@ -1,7 +1,7 @@
 Remote actor candidate 02: primary review and qualification status
 
 Final status: candidate 02 passed both complete profiles on both hosts and is integrated.
-The frozen qualification sources remain immutable. Commit and host adoption follow integration.
+The frozen qualification sources remain immutable. Commit 62a617a is pushed and adopted on both hosts.
 The primary agent reviewed this candidate. No local model or delegated agent participated.
 
 Production changes from draft 01:
@@ -67,7 +67,7 @@ After the transfer completed, one runner started on sb16-2. The live run was not
 
 Remaining work:
 All four complete profiles and both cross-host scenarios passed. Integration matched all 233 qualified source hashes.
-Commit and verify host adoption of that exact source.
+Both clean host worktrees match all 233 qualified source hashes after adoption.
 Distributed revocation acknowledgement remains a separate required component.
 These transport results do not complete M01, M02, shared-world qualification, or Spatial-M1.
 Native-server GLX sanitizer qualification and physical hardware acceptance remain separate.

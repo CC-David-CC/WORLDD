@@ -1,6 +1,7 @@
 Remote actor transport status, 2026-10-09
 
-Candidate 02 is qualified and integrated. Commit and host adoption follow this integration.
+Candidate 02 is qualified, integrated, and adopted on both hosts at commit 62a617a.
+Both adoption audits match all 233 source hashes. Both host worktrees were clean.
 Both hosts passed complete Debug and runtime ASan/UBSan qualification. Each profile passed:
 1,089 core checks across 62 suites, including 46 remote checks.
 51 harness checks and 151 P10 acceptance cases.
@@ -26,7 +27,6 @@ The first certificate fixture and first cross-host result-copy failures remain p
 Neither failed attempt counts as a pass.
 
 Remaining:
-Complete the reviewed commit and verify both hosts adopt the exact qualified source.
 Implement and qualify distributed revocation acknowledgement.
 Complete shared-world, transition, cabinet, restoration, and real-model requirements.
 Complete physical input, native GPU, performance, and native-session soak evidence.

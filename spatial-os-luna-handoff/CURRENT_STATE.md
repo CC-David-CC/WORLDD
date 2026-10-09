@@ -20,7 +20,8 @@ The schema audit preserves 227 messages, 849 fields, and 111 enum values.
 All 80 existing test files and 41 locked files remain unchanged.
 Primary review corrected TLS read-retry deadline handling before qualification.
 The original retry counterexamples and fixture failures remain preserved.
-Commit and host adoption follow this guarded source integration.
+Commit 62a617a is pushed to box-git. Both hosts adopted it with clean worktrees.
+Both adoption audits match all 233 qualified source hashes.
 
 The remote actor transport component is complete. Full M01, M02, and M05 remain incomplete.
 Distributed cancellation acknowledgement is the next required component.

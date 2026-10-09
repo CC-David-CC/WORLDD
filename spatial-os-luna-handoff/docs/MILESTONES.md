@@ -30,7 +30,7 @@ Control loss cancels native input without terminating independently authorized a
 These component results do not establish complete milestone qualification.
 
 Authenticated bootstrap grant delivery is qualified, committed, and adopted on both hosts at d4b025e.
-Remote actor transport is qualified and integrated from candidate 02.
+Remote actor transport is qualified, integrated, and adopted on both hosts at 62a617a.
 Both hosts passed complete Debug and runtime ASan/UBSan profiles.
 Each profile passed 1,089 core checks across 62 suites, 51 harness checks, and 151 P10 cases.
 No final case failed or skipped. Direct cross-host actor scenarios passed in both directions.
