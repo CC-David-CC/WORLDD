@@ -1,5 +1,29 @@
 # Implementation status
 
+## 2026-10-09: Authority participant registry candidate under qualification
+
+The service registry is implemented in an isolated candidate. Production has not adopted it.
+It uses owner-signed administration and separate service keys for explicit world and workspace domains.
+Registration persists atomically without creating actors, credentials, grants, or active service sessions.
+The proposed protobuf and schema-5 migration contract is in docs/AUTHORITY_PARTICIPANT_REGISTRY.txt.
+
+Candidate 01 passed 28 new checks and 190 existing identity checks on sb16 in each profile.
+The profiles were Debug and runtime ASan/UBSan. No focused case failed or skipped.
+Review then reproduced a missing duplicate-registration-revision check in the TLS client.
+Candidate 02 fixes that check and strengthens rollback, binary-ID pagination, and migration tests.
+The failed counterexample and two earlier fixture failures remain preserved.
+
+Candidate 02 passed all 31 new checks and 51 harness checks on both hosts in Debug.
+The remaining full Debug and runtime sanitizer qualification is running on both hosts.
+Both schema audits preserve 248 messages, 946 fields, and 122 enum values across all proto files.
+Both audits preserve 41 locked files and 84 existing test files.
+Three migration fixtures have explicit, reviewed changes for schema 5. Their preservation assertions remain intact.
+Do not treat these audits or the earlier focused result as complete candidate-02 qualification.
+
+Distributed cancellation remains incomplete. Registration alone does not enforce a cancellation barrier.
+No operator database or normal login session changed. Spatial-M1 remains incomplete.
+See evidence/participant-registry-2026-10-09 and tasks/m1/identity.participant_registry.json.
+
 ## 2026-10-09: Remote actor transport qualified and integrated
 
 The world daemon now accepts explicitly configured actor connections through mutual TLS 1.3.

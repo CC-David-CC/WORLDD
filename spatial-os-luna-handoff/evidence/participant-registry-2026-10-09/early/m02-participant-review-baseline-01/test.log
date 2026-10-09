@@ -1,0 +1,17 @@
+test_duplicate_registration_revision_poison_client (__main__.ParticipantClientTests.test_duplicate_registration_revision_poison_client) ... FAIL
+
+======================================================================
+FAIL: test_duplicate_registration_revision_poison_client (__main__.ParticipantClientTests.test_duplicate_registration_revision_poison_client)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_participant_client_review_01.py", line 96, in test_duplicate_registration_revision_poison_client
+    self.malformed('page-revision')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_participant_client_review_01.py", line 78, in malformed
+    self.assertEqual(client.proc.returncode,2,mode);self.assertEqual(output,b'',mode)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2 : page-revision
+
+----------------------------------------------------------------------
+Ran 1 test in 0.262s
+
+FAILED (failures=1)

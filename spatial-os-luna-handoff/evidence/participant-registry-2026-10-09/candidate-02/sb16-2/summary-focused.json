@@ -1,0 +1,31 @@
+{
+  "debug": {
+    "core_checks": 31,
+    "core_suites": 2,
+    "partitions": {
+      "participants": {
+        "suites": {
+          "identity-participants": 22,
+          "identity-participant-client": 9
+        },
+        "checks": 31
+      }
+    },
+    "harness_checks": 51,
+    "P10_cases": "not collected",
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "worldd": "7f623c721e07dbb4f6d9f982973eaec37d73021129461af32cbcb807d07a85b8",
+      "workspaced": "66300a01b52b8a7262997a3e3a2199a26791abc3d69bfa404fa9306cbbe8e4d4",
+      "identityd": "592713275779dbcb5d124e23cc8e1c997acf84d9c4d21d58e4b0ad39f6c99196",
+      "spatialwm": "33a4c1afcb1ae9a1ed630d6e05a397719ad6b7a6a13aef0473fc1a23640c8bdf",
+      "spatial-test-host": "18f94aa57eb7e34abfcfbf6fbc9395142175c25d0d9a02db9bb0be062f443078",
+      "spatial-actor-tls-retry-probe": "b9b267d1b6f2f859ed87cd22b4daf87e99e2fba92295ce63ccd1879495154e32"
+    }
+  },
+  "host": "sb16-2",
+  "source_files": 236,
+  "scope": "focused",
+  "production_integration": "pending"
+}

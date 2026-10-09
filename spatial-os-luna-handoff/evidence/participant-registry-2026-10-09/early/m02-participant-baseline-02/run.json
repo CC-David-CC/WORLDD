@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-baseline-02/source/tests/core/test_identity_participants.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m01-world-remote-debug-02/build/identityd",
+    "ParticipantTests.test_empty_registry_is_explicit_and_owner_protected",
+    "ParticipantTests.test_owner_registers_distinct_service_without_actor_grants",
+    "ParticipantTests.test_registry_requires_owner_proof"
+  ],
+  "exit_code": 1,
+  "tests_requested": [
+    "test_empty_registry_is_explicit_and_owner_protected",
+    "test_owner_registers_distinct_service_without_actor_grants",
+    "test_registry_requires_owner_proof"
+  ],
+  "source_files": 234,
+  "world_remote_identityd_sha256": "1257fd0f76fbe04eb2c6f57852c6cf5522e0ee6059e053e8282f0b2a7c72256b"
+}

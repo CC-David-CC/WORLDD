@@ -1,0 +1,16 @@
+[0/2] Re-checking globbed directories...
+[1/15] Building CXX object CMakeFiles/spatial-issuer-client-probe.dir/src/testing/issuer_client_probe.cpp.o
+[2/15] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[3/15] Linking CXX static library libspatial-issuer.a
+[4/15] Linking CXX executable spatial-issuer-client-probe
+[5/15] Linking CXX executable identityd
+[6/15] Generating python/core_pb2.py
+[7/15] Generating python/input_pb2.py
+[8/15] Generating python/security_pb2.py
+[9/15] Generating python/broker_pb2.py
+[10/15] Generating python/key_pb2.py
+[11/15] Generating python/issuer_pb2.py
+[12/15] Generating python/world_session_pb2.py
+[13/15] Generating python/grants_pb2.py
+[14/15] Building CXX object CMakeFiles/spatial-issuer-watch-probe.dir/src/testing/issuer_watch_probe.cpp.o
+[15/15] Linking CXX executable spatial-issuer-watch-probe

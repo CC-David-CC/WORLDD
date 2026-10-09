@@ -1,0 +1,53 @@
+{
+  "id": "identity.participant_registry",
+  "phase": "M02",
+  "status": "in_progress",
+  "current_step": "candidate_02_full_both_host_qualification",
+  "parent": "identity.revocation_barrier",
+  "invariant": "Only issuer-owner proof registers a distinct service key and explicit authority domains atomically, without actor grants.",
+  "contract": "docs/AUTHORITY_PARTICIPANT_REGISTRY.txt",
+  "evidence": "evidence/participant-registry-2026-10-09",
+  "candidate": "candidate-02",
+  "source_files": 236,
+  "changed_files": 11,
+  "new_suites": [
+    "identity-participants",
+    "identity-participant-client"
+  ],
+  "expected_new_checks": 31,
+  "focused_candidate_01": {
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "new_checks": 28,
+    "identity_regression_checks": 190,
+    "failed": 0,
+    "skipped": 0
+  },
+  "review_correction": "A real client counterexample confirmed duplicate registration revisions were accepted. Candidate 02 rejects them.",
+  "full_qualification": "running; no completion claim",
+  "integrated": false,
+  "remaining": [
+    "Finish candidate-02 full Debug and runtime sanitizer qualification on both hosts.",
+    "Review exact source hashes and logs before production integration.",
+    "Authenticate service incarnations and persist cancellation obligations in following increments."
+  ],
+  "limitations": [
+    "Registration does not activate a service or complete a revocation barrier.",
+    "Physical, GPU, real-model and complete Spatial-M1 acceptance remain unqualified."
+  ],
+  "candidate_02_focused_Debug": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "new_checks": 31,
+    "suites": 2,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "source_files": 236
+  }
+}

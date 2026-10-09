@@ -1,0 +1,49 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: identity-participants
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/source/tests/core/test_identity_participants.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/identityd"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/source
+1: Test timeout computed to be: 120
+1: Traceback (most recent call last):
+1:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/source/tests/core/test_identity_participants.py", line 5, in <module>
+1:     import core_pb2 as core
+1: ModuleNotFoundError: No module named 'core_pb2'
+1/2 Test #1: identity-participants ............***Failed    0.10 sec
+test 2
+    Start 2: identity-participant-client
+
+2: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/source/tests/core/test_identity_participant_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/spatial-issuer-client"
+2: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build
+2: Environment variables: 
+2:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/source
+2: Test timeout computed to be: 120
+2: Traceback (most recent call last):
+2:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/source/tests/core/test_identity_participant_client.py", line 3, in <module>
+2:     import core_pb2 as core
+2: ModuleNotFoundError: No module named 'core_pb2'
+2/2 Test #2: identity-participant-client ......***Failed    0.10 sec
+
+0% tests passed, 2 tests failed out of 2
+
+Total Test time (real) =   0.21 sec
+
+The following tests FAILED:
+	  1 - identity-participants (Failed)
+	  2 - identity-participant-client (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-draft-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

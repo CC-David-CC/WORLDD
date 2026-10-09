@@ -1,0 +1,743 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -170,6 +170,14 @@
+ include(CTest)
+ if(BUILD_TESTING)
+     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
++    add_test(NAME identity-participants COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participants.py" $<TARGET_FILE:identityd>)
++    set_tests_properties(identity-participants PROPERTIES TIMEOUT 120
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME identity-participant-client COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_participant_client.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(identity-participant-client PROPERTIES TIMEOUT 120
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_executable(spatial-actor-tls-retry-probe src/testing/actor_tls_retry_probe.cpp src/world/actor_tls.cpp)
+     target_link_libraries(spatial-actor-tls-retry-probe PRIVATE spatial-identity-tls)
+     target_link_options(spatial-actor-tls-retry-probe PRIVATE -Wl,--wrap=SSL_read_ex -Wl,--wrap=SSL_get_error)
+--- a/tests/core/test_identity_bootstrap.py
++++ b/tests/core/test_identity_bootstrap.py
+@@ -217,7 +217,7 @@
+         self.client.close(); secret = (self.state/'issuer.pem').read_bytes(); policy = self.snapshot()
+         with sqlite3.connect(self.state/'identity.db') as db:
+             before = db.execute('SELECT * FROM credential').fetchall()
+-            db.executescript('DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
++            db.executescript('DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; PRAGMA user_version=3;')
+         command = [str(BINARY), '--state-dir', str(self.state)]
+         old = subprocess.run(command, input=b'', capture_output=True, timeout=4)
+         self.assertNotEqual(old.returncode, 0); self.assertIn(b'migration', old.stderr.lower())
+@@ -226,7 +226,7 @@
+             self.assertEqual(migrated.returncode, 0, migrated.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(), before)
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 4)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 5)
+         self.assertEqual((self.state/'issuer.pem').read_bytes(), secret); self.assertEqual(self.snapshot(), policy)
+         self.client = self.start(); self.assertEqual(self.enroll(self.client), approved)
+         self.assertEqual(len(self.read('empty-v1').profile.grants), 0)
+--- a/tests/core/test_identity_enrollment.py
++++ b/tests/core/test_identity_enrollment.py
+@@ -246,7 +246,7 @@
+     def test_explicit_schema_migration_preserves_issuer_key_owner_and_policy(self):
+         info=self.init();before=self.snapshot();secret=(self.state/'issuer.pem').read_bytes()
+         with sqlite3.connect(self.state/'identity.db') as db:
+-            db.executescript('DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
++            db.executescript('DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS revocation; DROP TABLE IF EXISTS security_state; '
+                              'DROP TABLE credential; DROP TABLE enrollment; DROP TABLE actor; PRAGMA user_version=1;')
+         command=[str(BINARY),'--state-dir',str(self.state)]
+         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+--- /dev/null
++++ b/tests/core/test_identity_participants.py
+@@ -0,0 +1,199 @@
++"""Owner-signed, durable authority service registration without actor grants."""
++import sqlite3
++import subprocess
++import unittest
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as pb
++from test_identity_enrollment import EnrollmentFixture,BINARY
++
++DROP_REGISTRY='DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; '
++
++class ParticipantTests(EnrollmentFixture):
++    def setUp(self):
++        super().setUp();self.info=self.init();self.client=self.start()
++        self.service,self.service_public=self.key('authority-service')
++    def participant(self,identity=b'a'*32,public=None,domains=None):
++        return pb.AuthorityParticipant(id=identity,public_key=public or self.service_public,
++            domains=domains if domains is not None else [grants.Domain(kind=grants.WORLD,id='park')])
++    def registration_operation(self,value=None,revision=0):
++        return pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(
++            participant=value or self.participant(),expected_registry_revision=revision))
++    def register(self,value=None,revision=0):
++        return self.execute(self.client,self.challenge(self.client,self.registration_operation(value,revision)))
++    def registry(self,after=b'',limit=0):
++        operation=pb.IssuerOperation(registry_read=pb.AuthorityRegistryRead(after_id=after,limit=limit))
++        reply=self.execute(self.client,self.challenge(self.client,operation))
++        self.assertTrue(reply.HasField('registry'),reply);return reply.registry
++    def test_owner_registers_distinct_service_without_actor_grants(self):
++        before=self.policy(self.client);record=self.register()
++        self.assertTrue(record.HasField('participant'),record)
++        self.assertEqual(record.participant.participant,self.participant())
++        self.assertEqual(record.participant.issuer_id,self.info.issuer_id)
++        self.assertEqual(record.participant.registered_revision,1)
++        page=self.registry();self.assertEqual(page.registry_revision,1)
++        self.assertEqual(list(page.participants),[record.participant]);self.assertFalse(page.next_after)
++        self.assertEqual(self.policy(self.client),before);self.assertEqual(self.counts(),(0,0,0))
++        with sqlite3.connect(self.state/'identity.db') as db:
++            self.assertEqual(db.execute('SELECT revision FROM security_state').fetchone()[0],0)
++    def test_empty_registry_is_explicit_and_owner_protected(self):
++        page=self.registry();self.assertEqual(page.issuer_id,self.info.issuer_id)
++        self.assertEqual(page.registry_revision,0);self.assertFalse(page.participants);self.assertFalse(page.next_after)
++    def test_registry_requires_owner_proof(self):
++        challenge=self.challenge(self.client,pb.IssuerOperation(registry_read=pb.AuthorityRegistryRead()))
++        forged=self.proof(challenge,self.actor_key,self.actor_public)
++        self.denied(self.execute(self.client,challenge,proof=forged))
++        self.denied(self.execute(self.client,challenge))
++        self.assertEqual(self.registry().registry_revision,0)
++    def test_actor_cannot_register_and_bad_proof_consumes_challenge(self):
++        challenge=self.challenge(self.client,self.registration_operation())
++        self.denied(self.execute(self.client,challenge,proof=self.proof(challenge,self.actor_key,self.actor_public)))
++        self.denied(self.execute(self.client,challenge));self.assertFalse(self.registry().participants)
++    def test_stale_registry_revision_cannot_add_second_service(self):
++        self.assertTrue(self.register().HasField('participant'));_,key=self.key('second')
++        second=self.participant(b'b'*32,key,[grants.Domain(kind=grants.WORLD,id='home')])
++        self.denied(self.register(second,0),core.REVISION_CONFLICT)
++        self.assertEqual(self.registry().registry_revision,1)
++        self.assertTrue(self.register(second,1).HasField('participant'))
++    def test_duplicate_identity_key_and_domain_do_not_replace_record(self):
++        original=self.register().participant;_,key=self.key('other')
++        examples=[(self.participant(public=key),core.ALREADY_EXISTS),
++            (self.participant(b'b'*32,domains=[grants.Domain(kind=grants.WORLD,id='other')]),core.ALREADY_EXISTS),
++            (self.participant(b'c'*32,key),core.IN_USE)]
++        for value,code in examples:self.denied(self.register(value,1),code)
++        self.assertEqual(list(self.registry().participants),[original])
++    def test_same_domain_text_with_different_kind_is_distinct(self):
++        self.assertTrue(self.register().HasField('participant'));_,key=self.key('workspace')
++        value=self.participant(b'b'*32,key,[grants.Domain(kind=grants.WORKSPACE,id='park')])
++        self.assertTrue(self.register(value,1).HasField('participant'))
++    def test_domains_are_canonical_and_support_multiple_workspaces(self):
++        domains=[grants.Domain(kind=grants.WORKSPACE,id='z'),grants.Domain(kind=grants.WORLD,id='b'),
++            grants.Domain(kind=grants.WORKSPACE,id='a')]
++        record=self.register(self.participant(domains=domains)).participant
++        self.assertEqual([(d.kind,d.id) for d in record.participant.domains],[(grants.WORLD,'b'),(grants.WORKSPACE,'a'),(grants.WORKSPACE,'z')])
++    def test_malformed_registration_is_rejected_before_owner_challenge(self):
++        examples=[self.participant(identity=b'x'),self.participant(public=b'x'),self.participant(domains=[]),
++            self.participant(domains=[grants.Domain(kind=grants.DOMAIN_UNSPECIFIED,id='x')]),
++            self.participant(domains=[grants.Domain(kind=grants.WORLD,id='')]),
++            self.participant(domains=[grants.Domain(kind=grants.WORLD,id='x\0y')]),
++            self.participant(domains=[grants.Domain(kind=grants.WORLD,id='x'*257)]),
++            self.participant(domains=[grants.Domain(kind=grants.WORLD,id='x')]*2),
++            self.participant(domains=[grants.Domain(kind=grants.WORLD,id=str(i)) for i in range(65)])]
++        for value in examples:self.denied(self.client.call(challenge=self.registration_operation(value)),core.INVALID_ARGUMENT)
++        missing=self.registration_operation();missing.participant_register.ClearField('expected_registry_revision')
++        self.denied(self.client.call(challenge=missing),core.INVALID_ARGUMENT)
++        too_large=self.registration_operation(revision=2**63);self.denied(self.client.call(challenge=too_large),core.INVALID_ARGUMENT)
++        self.assertEqual(self.registry().registry_revision,0)
++    def test_all_64_domains_are_preserved(self):
++        value=self.participant(domains=[grants.Domain(kind=grants.WORKSPACE,id=f'project-{i:02}') for i in range(64)])
++        self.assertEqual(self.register(value).participant.participant,value)
++    def test_reserved_owner_issuer_and_actor_keys_cannot_be_services(self):
++        self.enroll(self.client)
++        for public in (self.owner_public,self.info.public_key,self.actor_public):
++            self.denied(self.register(self.participant(public=public)),core.FORBIDDEN)
++        self.assertFalse(self.registry().participants)
++    def test_service_key_cannot_enroll_as_actor(self):
++        self.assertTrue(self.register().HasField('participant'))
++        self.denied(self.client.call(enrollment_begin=self.intent(self.service_public)),core.FORBIDDEN)
++        self.assertEqual(self.counts(),(0,0,0))
++    def test_registration_invalidates_pending_actor_enrollment_for_same_key(self):
++        challenge=self.begin(self.client,self.intent(self.service_public))
++        self.assertTrue(self.register().HasField('participant'))
++        self.denied(self.finish(self.client,challenge,self.service,self.service_public),core.FORBIDDEN)
++        self.assertEqual(self.counts(),(0,0,0));self.assertEqual(self.registry().registry_revision,1)
++    def test_restart_preserves_registration(self):
++        record=self.register().participant;self.client.close();self.client=self.start()
++        self.assertEqual(list(self.registry().participants),[record])
++        self.denied(self.register(revision=1),core.ALREADY_EXISTS)
++    def test_owner_challenge_cannot_replay_after_restart(self):
++        challenge=self.challenge(self.client,self.registration_operation());proof=self.proof(challenge)
++        self.client.close();self.client=self.start();self.denied(self.execute(self.client,challenge,proof=proof))
++        self.assertFalse(self.registry().participants)
++    def test_pagination_is_ordered_and_bounded(self):
++        for revision,letter in enumerate((b'c',b'a',b'b')):
++            _,public=self.key('page-'+letter.decode())
++            value=self.participant(letter*32,public,[grants.Domain(kind=grants.WORLD,id=letter.decode())])
++            self.assertTrue(self.register(value,revision).HasField('participant'))
++        first=self.registry(limit=2);self.assertEqual([r.participant.id for r in first.participants],[b'a'*32,b'b'*32])
++        self.assertEqual(first.next_after,b'b'*32);second=self.registry(first.next_after,2)
++        self.assertEqual([r.participant.id for r in second.participants],[b'c'*32]);self.assertFalse(second.next_after)
++        self.assertEqual(first.registry_revision,second.registry_revision)
++        for query in (pb.AuthorityRegistryRead(limit=17),pb.AuthorityRegistryRead(after_id=b'x')):
++            self.denied(self.client.call(challenge=pb.IssuerOperation(registry_read=query)),core.INVALID_ARGUMENT)
++    def test_domain_insert_failure_rolls_back_registration_and_revision(self):
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.execute("CREATE TRIGGER registry_failure BEFORE INSERT ON authority_participant_domain BEGIN SELECT RAISE(ABORT,'fault'); END")
++        self.denied(self.register(),core.STORAGE_ERROR)
++        self.assertEqual(self.registry().registry_revision,0);self.assertFalse(self.registry().participants)
++        with sqlite3.connect(self.state/'identity.db') as db:db.execute('DROP TRIGGER registry_failure')
++        self.assertEqual(self.register().participant.registered_revision,1)
++    def test_revision_update_failure_rolls_back_all_domain_claims(self):
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.execute("CREATE TRIGGER registry_failure BEFORE UPDATE ON authority_registry BEGIN SELECT RAISE(ABORT,'fault'); END")
++        value=self.participant(domains=[grants.Domain(kind=grants.WORLD,id='park'),grants.Domain(kind=grants.WORKSPACE,id='project')])
++        self.denied(self.register(value),core.STORAGE_ERROR)
++        self.assertEqual(self.registry().registry_revision,0);self.assertFalse(self.registry().participants)
++        with sqlite3.connect(self.state/'identity.db') as db:
++            self.assertEqual(db.execute('SELECT count(*) FROM authority_participant_domain').fetchone()[0],0)
++            db.execute('DROP TRIGGER registry_failure')
++        self.assertEqual(self.register(value).participant.registered_revision,1)
++    def test_binary_participant_ids_have_stable_pagination_order(self):
++        for revision,value in enumerate((255,0,128)):
++            _,public=self.key('binary-'+str(value))
++            participant=self.participant(bytes([value])*32,public,[grants.Domain(kind=grants.WORLD,id=str(value))])
++            self.assertTrue(self.register(participant,revision).HasField('participant'))
++        cursor=b'';found=[]
++        for _ in range(3):
++            page=self.registry(cursor,1);self.assertEqual(len(page.participants),1)
++            found.append(page.participants[0].participant.id);cursor=page.next_after
++        self.assertEqual(found,[bytes([i])*32 for i in (0,128,255)]);self.assertFalse(cursor)
++    def test_corrupt_record_and_domain_index_fail_closed(self):
++        self.assertTrue(self.register().HasField('participant'))
++        with sqlite3.connect(self.state/'identity.db') as db:
++            original=db.execute('SELECT definition FROM authority_participant').fetchone()[0]
++            db.execute('UPDATE authority_participant SET definition=?',(b'broken',))
++        operation=pb.IssuerOperation(registry_read=pb.AuthorityRegistryRead())
++        self.denied(self.execute(self.client,self.challenge(self.client,operation)),core.STORAGE_ERROR)
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.execute('UPDATE authority_participant SET definition=?',(original,));db.execute('DELETE FROM authority_participant_domain')
++        self.denied(self.execute(self.client,self.challenge(self.client,operation)),core.STORAGE_ERROR)
++    def test_v4_migration_preserves_credential_and_issuer_state(self):
++        enrolled=self.decide(self.client,self.enroll(self.client)).enrollment
++        claims=self.claims(enrolled,self.info)
++        revoke=pb.IssuerOperation(identity_revoke=pb.IdentityRevoke(
++            target=pb.IdentityReference(kind=pb.CREDENTIAL_TARGET,id=claims.credential_id),
++            expected_security_revision=0,reason='preserve migration history'))
++        self.assertFalse(self.execute(self.client,self.challenge(self.client,revoke)).identity_status.active)
++        profile=pb.BootstrapProfile(id='preserved',grants=[pb.BootstrapGrantTemplate(id='enter',
++            terms=grants.GrantTerms(scope=grants.Scope(domain=grants.Domain(kind=grants.WORLD,id='park')),
++                rights=[grants.WORLD_ENTER]))])
++        publish=pb.IssuerOperation(profile_put=pb.BootstrapProfilePut(profile=profile,expected_revision=0))
++        self.assertTrue(self.execute(self.client,self.challenge(self.client,publish)).HasField('profile'))
++        self.client.close();secret=(self.state/'issuer.pem').read_bytes()
++        with sqlite3.connect(self.state/'identity.db') as db:
++            before={table:db.execute('SELECT * FROM '+table).fetchall() for table in ('issuer','actor','credential','enrollment','security_state','revocation','bootstrap_profile')}
++            db.executescript(DROP_REGISTRY+'PRAGMA user_version=4;')
++        command=[str(BINARY),'--state-dir',str(self.state)]
++        denied=subprocess.run(command,input=b'',capture_output=True,timeout=4)
++        self.assertNotEqual(denied.returncode,0);self.assertIn(b'migration',denied.stderr.lower())
++        for _ in range(2):
++            result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
++        with sqlite3.connect(self.state/'identity.db') as db:
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
++            self.assertEqual({table:db.execute('SELECT * FROM '+table).fetchall() for table in before},before)
++        self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
++        self.client=self.start();self.assertFalse(self.client.call(credential_check=enrolled.credential).identity_status.active)
++        self.assertEqual(self.client.call(profile_read=pb.BootstrapProfileRead(id='preserved',revision=1)).profile.profile,profile)
++        self.assertEqual(self.registry().registry_revision,0)
++    def test_failed_migration_rolls_back_new_tables_and_version(self):
++        self.client.close()
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.executescript(DROP_REGISTRY+'PRAGMA user_version=4; CREATE TABLE authority_participant_domain(marker INTEGER);')
++        result=subprocess.run([str(BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
++        self.assertNotEqual(result.returncode,0)
++        with sqlite3.connect(self.state/'identity.db') as db:
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],4)
++            names={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
++            self.assertNotIn('authority_registry',names);self.assertNotIn('authority_participant',names)
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- /dev/null
++++ b/tests/core/test_identity_participant_client.py
+@@ -0,0 +1,98 @@
++"""Real owner administration over TLS, plus explicit malformed-response witnesses."""
++import unittest
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as pb
++from harness.wire import frame
++from test_issuer_client import ClientFixture,FaultPeer
++
++class ParticipantClientTests(ClientFixture):
++    def value(self):
++        return pb.AuthorityParticipant(id=b'p'*32,public_key=b'k'*32,
++            domains=[grants.Domain(kind=grants.WORLD,id='park')])
++    def register_op(self):
++        return pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(
++            participant=self.value(),expected_registry_revision=0))
++    def test_checked_client_registers_and_reads_real_owner_signed_records(self):
++        self.ready();client=self.client();_,key=self.key('participant')
++        operation=self.register_op();operation.participant_register.participant.public_key=key
++        reply=self.execute(client,self.challenge(client,operation))
++        self.assertEqual(reply.participant.participant,operation.participant_register.participant)
++        page=self.execute(client,self.challenge(client,pb.IssuerOperation(registry_read=pb.AuthorityRegistryRead()))).registry
++        self.assertEqual(list(page.participants),[reply.participant]);self.assertEqual(page.registry_revision,1)
++        self.assertEqual(page.issuer_id,self.info.issuer_id);self.assertEqual(self.counts(),(0,0,0))
++    def test_transport_certificate_and_actor_key_do_not_authorize_registration(self):
++        self.ready();client=self.client();challenge=self.challenge(client,self.register_op())
++        proof=self.proof(challenge,self.actor_key,self.actor_public)
++        self.denied(self.execute(client,challenge,proof=proof))
++        page=self.execute(client,self.challenge(client,pb.IssuerOperation(registry_read=pb.AuthorityRegistryRead()))).registry
++        self.assertEqual(page.registry_revision,0);self.assertFalse(page.participants)
++    def test_rejected_registration_preserves_checked_connection(self):
++        self.ready();client=self.client();self.assertTrue(self.execute(client,self.challenge(client,self.register_op())).HasField('participant'))
++        self.denied(self.execute(client,self.challenge(client,self.register_op())),core.REVISION_CONFLICT)
++        self.assertEqual(client.call(info=pb.IssuerInfoRequest()).info,self.info)
++    def malformed(self,mode):
++        def respond(peer,request,reply):
++            record=pb.AuthorityParticipantRecord(participant=self.value(),registered_revision=1,issuer_id=self.info.issuer_id)
++            if mode=='issuer':record.issuer_id=b'x'*32
++            elif mode=='missing':record.ClearField('participant')
++            elif mode=='id':record.participant.id=b'x'
++            elif mode=='key':record.participant.public_key=b'x'
++            elif mode=='zero':record.registered_revision=0
++            elif mode=='overflow':record.registered_revision=2**63
++            elif mode=='no-domains':record.participant.ClearField('domains')
++            elif mode=='kind':record.participant.domains[0].kind=grants.DOMAIN_UNSPECIFIED
++            elif mode=='domain-text':record.participant.domains[0].id='bad\0id'
++            elif mode=='domain-duplicate':record.participant.domains.add().CopyFrom(record.participant.domains[0])
++            elif mode=='domain-order':record.participant.domains.add(kind=grants.WORLD,id='aaa')
++            elif mode=='unknown':record.ParseFromString(record.SerializeToString()+b'\xf8\x07\x01')
++            if mode.startswith('page-'):
++                page=pb.AuthorityRegistryPage(issuer_id=self.info.issuer_id,registry_revision=1,participants=[record])
++                if mode=='page-issuer':page.issuer_id=b'x'*32
++                elif mode=='page-head':page.registry_revision=0
++                elif mode=='page-overflow':page.registry_revision=2**63
++                elif mode=='page-order':page.participants.add().CopyFrom(record)
++                elif mode in ('page-key','page-domain','page-revision'):
++                    second=page.participants.add();second.CopyFrom(record);second.participant.id=b'z'*32
++                    page.registry_revision=2;second.registered_revision=2
++                    if mode=='page-key':second.participant.domains[0].id='other'
++                    elif mode=='page-domain':second.participant.public_key=b'q'*32
++                    else:
++                        second.participant.public_key=b'q'*32;second.participant.domains[0].id='other'
++                        second.registered_revision=1
++                elif mode=='page-cursor':page.next_after=b'x'*32
++                elif mode=='page-empty-cursor':page.ClearField('participants');page.next_after=b'x'*32
++                elif mode=='page-size':
++                    page.ClearField('participants');page.registry_revision=17
++                    for i in range(17):
++                        item=page.participants.add();item.CopyFrom(record)
++                        item.registered_revision=i+1
++                        item.participant.id=bytes([i])*32;item.participant.public_key=bytes([i+32])*32;item.participant.domains[0].id=str(i)
++                reply.registry.CopyFrom(page)
++            else:reply.participant.CopyFrom(record)
++            peer.stream.sendall(frame(reply))
++        peer=FaultPeer(self,response=respond);client=self.client(peer.port)
++        # The fault peer supplies no authority. This probes checked-client response validation only.
++        request=pb.IssuerRequest(protocol_version=1,execute=pb.IssuerExecute(nonce=b'n'*32))
++        output,_=client.proc.communicate(frame(request)*2,timeout=3)
++        self.assertEqual(client.proc.returncode,2,mode);self.assertEqual(output,b'',mode)
++        self.assertEqual(len(peer.requests),3);self.assertEqual(peer.connections,1)
++    def test_invalid_record_identity_and_revision_poison_client(self):
++        for mode in ('issuer','missing','id','key','zero','overflow','unknown'):
++            with self.subTest(mode=mode):self.malformed(mode)
++    def test_invalid_record_domains_poison_client(self):
++        for mode in ('no-domains','kind','domain-text','domain-duplicate','domain-order'):
++            with self.subTest(mode=mode):self.malformed(mode)
++    def test_invalid_registry_context_poison_client(self):
++        for mode in ('page-issuer','page-head','page-overflow'):
++            with self.subTest(mode=mode):self.malformed(mode)
++    def test_conflicting_registry_entries_poison_client(self):
++        for mode in ('page-order','page-key','page-domain','page-size'):
++            with self.subTest(mode=mode):self.malformed(mode)
++    def test_invalid_registry_continuation_poison_client(self):
++        for mode in ('page-cursor','page-empty-cursor'):
++            with self.subTest(mode=mode):self.malformed(mode)
++    def test_duplicate_registration_revision_poison_client(self):
++        self.malformed('page-revision')
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- a/tests/core/test_identity_revocation.py
++++ b/tests/core/test_identity_revocation.py
+@@ -199,7 +199,7 @@
+         self.client.close();secret=(self.state/'issuer.pem').read_bytes();policy=self.snapshot()
+         with sqlite3.connect(self.state/'identity.db') as db:
+             before=db.execute('SELECT * FROM credential').fetchall()
+-            db.executescript('DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
++            db.executescript('DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE bootstrap_profile; DROP TABLE revocation; DROP TABLE security_state; PRAGMA user_version=2;')
+         command=[str(BINARY),'--state-dir',str(self.state)]
+         result=subprocess.run(command,input=b'',capture_output=True,timeout=4)
+         self.assertNotEqual(result.returncode,0);self.assertIn(b'migration',result.stderr.lower())
+@@ -207,7 +207,7 @@
+         self.assertEqual(result.returncode,0,result.stderr)
+         with sqlite3.connect(self.state/'identity.db') as db:
+             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(),before)
+-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],4)
++            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
+         self.assertEqual(self.snapshot(),policy);self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
+         self.client=self.start();self.assertTrue(self.authenticate().authentication.identity.active)
+ 
+--- a/src/identity/issuer.cpp
++++ b/src/identity/issuer.cpp
+@@ -1,5 +1,6 @@
+ #include "identity/issuer.hpp"
+ #include "identity/bootstrap.hpp"
++#include "identity/participants.hpp"
+ #include "identity/keys.hpp"
+ #include "world/store.hpp"
+ #include <openssl/rand.h>
+@@ -79,6 +80,13 @@
+ void validate_operation(const v1::IssuerOperation& operation) {
+     validate_message(operation);
+     if (operation.has_policy_read()) return;
++    if (operation.has_registry_read()) { validate_registry_read(operation.registry_read()); return; }
++    if (operation.has_participant_register()) {
++        const auto& request = operation.participant_register();
++        require(request.has_participant() && request.has_expected_registry_revision() &&
++                request.expected_registry_revision() <= INT64_MAX, "Participant and registry revision are required");
++        validate_participant(request.participant()); return;
++    }
+     if (operation.has_profile_read()) { validate_bootstrap_read(operation.profile_read(), false); return; }
+     if (operation.has_profile_put()) {
+         const auto& request = operation.profile_put();
+@@ -140,6 +148,17 @@
+ void create_bootstrap_schema(sqlite3* db) {
+     sql(db, "CREATE TABLE bootstrap_profile(id BLOB NOT NULL,revision INTEGER NOT NULL CHECK(revision>0),"
+             "profile BLOB NOT NULL,PRIMARY KEY(id,revision)); PRAGMA user_version=4");
++}
++void create_participant_schema(sqlite3* db) {
++    sql(db, "CREATE TABLE authority_registry(singleton INTEGER PRIMARY KEY CHECK(singleton=1),"
++            "revision INTEGER NOT NULL CHECK(revision>=0)); INSERT INTO authority_registry VALUES(1,0);"
++            "CREATE TABLE authority_participant(id BLOB PRIMARY KEY CHECK(length(id)=32),"
++            "public_key BLOB NOT NULL UNIQUE CHECK(length(public_key)=32),"
++            "registered_revision INTEGER NOT NULL UNIQUE CHECK(registered_revision>0),definition BLOB NOT NULL);"
++            "CREATE TABLE authority_participant_domain(kind INTEGER NOT NULL CHECK(kind IN(1,2)),"
++            "domain_id BLOB NOT NULL CHECK(length(domain_id)>0 AND length(domain_id)<=256),"
++            "participant_id BLOB NOT NULL REFERENCES authority_participant(id),PRIMARY KEY(kind,domain_id));"
++            "PRAGMA user_version=5");
+ }
+ } // namespace
+ 
+@@ -191,12 +210,12 @@
+         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
+                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
+         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
+-        sqlite3_int64 schema = 4;
++        sqlite3_int64 schema = 5;
+         if (!owner) {
+             Query version(db.get(), "PRAGMA user_version"); version.step();
+             Query application(db.get(), "PRAGMA application_id"); application.step();
+             schema = version.integer(0);
+-            storage((schema == 4 || ((schema >= 1 && schema <= 3) && migrate)) && application.integer(0) == application_id,
++            storage((schema == 5 || ((schema >= 1 && schema <= 4) && migrate)) && application.integer(0) == application_id,
+                     "Unknown issuer schema; explicit migration is required");
+         }
+         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
+@@ -213,7 +232,8 @@
+             Query insert(db.get(), "INSERT INTO issuer VALUES(1,?,?,?,1,?)");
+             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
+             insert.blob(4, policy.SerializeAsString()); insert.step();
+-            create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get()); tx.commit();
++            create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
++            create_participant_schema(db.get()); tx.commit();
+             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
+         }
+         { Query integrity(db.get(), "PRAGMA quick_check");
+@@ -224,14 +244,98 @@
+         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
+                 "Issuer key does not match its durable identity");
+         policy();
+-        if (schema < 4) {
++        if (schema < 5) {
+             Transaction migration(db.get());
+             if (schema == 1) create_enrollment_schema(db.get());
+             if (schema < 3) create_security_schema(db.get());
+-            create_bootstrap_schema(db.get()); migration.commit();
++            if (schema < 4) create_bootstrap_schema(db.get());
++            create_participant_schema(db.get()); migration.commit();
+         }
+     }
+ 
++    std::uint64_t registry_revision() {
++        Query row(db.get(), "SELECT revision FROM authority_registry WHERE singleton=1");
++        storage(row.step() == SQLITE_ROW && row.integer(0) >= 0, "Invalid authority registry revision");
++        return static_cast<std::uint64_t>(row.integer(0));
++    }
++    bool participant_key(const std::string& public_key) {
++        Query row(db.get(), "SELECT 1 FROM authority_participant WHERE public_key=?"); row.blob(1, public_key);
++        return row.step() == SQLITE_ROW;
++    }
++    v1::AuthorityParticipantRecord participant_record(const std::string& id, std::uint64_t head) {
++        Query row(db.get(), "SELECT public_key,registered_revision,definition FROM authority_participant WHERE id=?");
++        row.blob(1, id);
++        storage(row.step() == SQLITE_ROW, "Required authority participant is missing");
++        v1::AuthorityParticipantRecord record; record.set_issuer_id(identity.issuer_id());
++        storage(row.integer(1) > 0 && static_cast<std::uint64_t>(row.integer(1)) <= head,
++                "Invalid authority participant revision");
++        record.set_registered_revision(static_cast<std::uint64_t>(row.integer(1)));
++        storage(record.mutable_participant()->ParseFromString(row.blob(2)), "Corrupt authority participant");
++        try { validate_participant_record(record, identity.issuer_id()); }
++        catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Invalid durable authority participant"); }
++        storage(record.participant().id() == id && record.participant().public_key() == row.blob(0) &&
++                row.blob(0) != owner_public && row.blob(0) != identity.public_key(), "Contradictory authority participant identity");
++        Query actor(db.get(), "SELECT 1 FROM enrollment WHERE public_key=?"); actor.blob(1, row.blob(0));
++        storage(actor.step() == SQLITE_DONE, "Service key is also registered for actor enrollment");
++        Query domains(db.get(), "SELECT kind,domain_id FROM authority_participant_domain WHERE participant_id=? ORDER BY kind,domain_id");
++        domains.blob(1, id); int index = 0;
++        while (domains.step() == SQLITE_ROW) {
++            storage(index < record.participant().domains_size(), "Excess authority participant domain");
++            const auto& expected = record.participant().domains(index++);
++            storage(domains.integer(0) == expected.kind() && domains.blob(1) == expected.id(),
++                    "Contradictory authority participant domain");
++        }
++        storage(index == record.participant().domains_size(), "Missing authority participant domain");
++        return record;
++    }
++    v1::AuthorityRegistryPage registry(const v1::AuthorityRegistryRead& request) {
++        Transaction transaction(db.get());
++        const auto head = registry_revision(); const auto limit = request.limit() ? request.limit() : 16;
++        v1::AuthorityRegistryPage page; page.set_issuer_id(identity.issuer_id()); page.set_registry_revision(head);
++        Query rows(db.get(), "SELECT id FROM authority_participant WHERE id>? ORDER BY id LIMIT ?");
++        rows.blob(1, request.after_id()); rows.integer(2, limit+1);
++        while (rows.step() == SQLITE_ROW) {
++            if (static_cast<unsigned>(page.participants_size()) == limit) {
++                page.set_next_after(page.participants(page.participants_size()-1).participant().id()); break;
++            }
++            *page.add_participants() = participant_record(rows.blob(0), head);
++        }
++        try { validate_registry_page(page, identity.issuer_id()); }
++        catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Invalid durable authority registry"); }
++        transaction.commit(); return page;
++    }
++    v1::AuthorityParticipantRecord register_participant(const v1::AuthorityParticipantRegister& request) {
++        Transaction transaction(db.get()); const auto head = registry_revision();
++        if (head != request.expected_registry_revision()) throw WorldError(wire::REVISION_CONFLICT, "Authority registry revision changed");
++        auto participant = request.participant();
++        std::sort(participant.mutable_domains()->begin(), participant.mutable_domains()->end(), [](const auto& a, const auto& b) {
++            return participant_detail::domain_key(a) < participant_detail::domain_key(b);
++        });
++        if (participant.public_key() == owner_public || participant.public_key() == identity.public_key())
++            throw WorldError(wire::FORBIDDEN, "Issuer keys cannot serve as authority participant keys");
++        Query actor(db.get(), "SELECT 1 FROM enrollment WHERE public_key=?"); actor.blob(1, participant.public_key());
++        if (actor.step() == SQLITE_ROW) throw WorldError(wire::FORBIDDEN, "Actor enrollment keys cannot serve as authority participant keys");
++        Query existing(db.get(), "SELECT 1 FROM authority_participant WHERE id=? OR public_key=?");
++        existing.blob(1, participant.id()); existing.blob(2, participant.public_key());
++        if (existing.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Authority participant identity or key is already registered");
++        for (const auto& domain : participant.domains()) {
++            Query claimed(db.get(), "SELECT 1 FROM authority_participant_domain WHERE kind=? AND domain_id=?");
++            claimed.integer(1, domain.kind()); claimed.blob(2, domain.id());
++            if (claimed.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Authority domain already has a registered participant");
++        }
++        storage(head < INT64_MAX, "Authority registry revision limit reached");
++        Query insert(db.get(), "INSERT INTO authority_participant(id,public_key,registered_revision,definition) VALUES(?,?,?,?)");
++        insert.blob(1, participant.id()); insert.blob(2, participant.public_key()); insert.integer(3, head+1);
++        insert.blob(4, participant.SerializeAsString()); insert.step();
++        for (const auto& domain : participant.domains()) {
++            Query claim(db.get(), "INSERT INTO authority_participant_domain(kind,domain_id,participant_id) VALUES(?,?,?)");
++            claim.integer(1, domain.kind()); claim.blob(2, domain.id()); claim.blob(3, participant.id()); claim.step();
++        }
++        Query update(db.get(), "UPDATE authority_registry SET revision=? WHERE singleton=1 AND revision=?");
++        update.integer(1, head+1); update.integer(2, head); update.step();
++        storage(sqlite3_changes(db.get()) == 1, "Authority registry lost its revision");
++        const auto result = participant_record(participant.id(), head+1); transaction.commit(); return result;
++    }
+     v1::BootstrapProfileState profile(const v1::BootstrapProfileRead& request) {
+         v1::BootstrapProfileState result; result.set_issuer_id(identity.issuer_id());
+         if (request.id() == "empty-v1") {
+@@ -465,6 +569,7 @@
+     }
+     v1::EnrollmentRecord submit(const v1::EnrollmentIntent& intent) {
+         Transaction transaction(db.get());
++        if (participant_key(intent.public_key())) throw WorldError(wire::FORBIDDEN, "Authority participant keys cannot enroll as actors");
+         std::string existing;
+         { Query query(db.get(), "SELECT id FROM enrollment WHERE public_key=?"); query.blob(1, intent.public_key());
+           if (query.step() == SQLITE_ROW) existing = query.blob(0); }
+@@ -544,6 +649,8 @@
+     // Execute only the server-stored operation authenticated by this consumed challenge.
+     v1::AdminResult result;
+     if (pending.operation.has_policy_read()) *result.mutable_policy() = impl_->policy();
++    else if (pending.operation.has_registry_read()) *result.mutable_registry() = impl_->registry(pending.operation.registry_read());
++    else if (pending.operation.has_participant_register()) *result.mutable_participant() = impl_->register_participant(pending.operation.participant_register());
+     else if (pending.operation.has_policy_set()) *result.mutable_policy() = impl_->set_policy(pending.operation.policy_set());
+     else if (pending.operation.has_profile_read()) *result.mutable_profile() = impl_->profile(pending.operation.profile_read());
+     else if (pending.operation.has_profile_put()) *result.mutable_profile() = impl_->put_profile(pending.operation.profile_put());
+@@ -556,6 +663,7 @@
+ }
+ v1::ChallengeReply Issuer::enrollment_begin(const v1::EnrollmentIntent& intent) {
+     validate_intent(intent);
++    if (impl_->participant_key(intent.public_key())) throw WorldError(wire::FORBIDDEN, "Authority participant keys cannot enroll as actors");
+     require(intent.public_key() != impl_->owner_public && intent.public_key() != impl_->identity.public_key(),
+             "Administrative keys cannot serve as actor credentials");
+     const auto nonce = impl_->nonce();
+--- a/src/identity/issuer_client.cpp
++++ b/src/identity/issuer_client.cpp
+@@ -1,5 +1,6 @@
+ #include "identity/issuer_client.hpp"
+ #include "identity/bootstrap.hpp"
++#include "identity/participants.hpp"
+ #include "identity/tls_support.hpp"
+ #include "core/protocol.hpp"
+ #include <google/protobuf/text_format.h>
+@@ -38,7 +39,8 @@
+ bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& reply) {
+     return (request.has_hello() && reply.has_hello()) || (request.has_info() && reply.has_info()) ||
+         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin()) && reply.has_challenge()) ||
+-        (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile())) ||
++        (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
++            reply.has_participant() || reply.has_registry())) ||
+         (request.has_profile_read() && reply.has_profile()) ||
+         (request.has_enrollment_complete() && reply.has_enrollment()) ||
+         (request.has_authentication_complete() && reply.has_authentication()) ||
+@@ -206,6 +208,10 @@
+                     "Issuer identity does not match configured pins");
+             if (reply.has_revocations()) check_revocations(request.revocations(), reply.revocations(), config.issuer_id());
+             if (reply.has_actor_status()) check_actor_status(request.actor_status(), reply.actor_status(), config.issuer_id());
++            try {
++                if (reply.has_participant()) validate_participant_record(reply.participant(), config.issuer_id());
++                if (reply.has_registry()) validate_registry_page(reply.registry(), config.issuer_id());
++            } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid authority participant response"); }
+             if (reply.has_profile()) {
+                 const auto& state = reply.profile();
+                 require(state.has_profile() && state.issuer_id() == config.issuer_id() &&
+--- /dev/null
++++ b/src/identity/participants.hpp
+@@ -0,0 +1,70 @@
++#pragma once
++#include "core/protocol.hpp"
++#include "issuer.pb.h"
++#include <cstdint>
++#include <set>
++#include <stdexcept>
++#include <string>
++#include <utility>
++
++namespace spatial::identity {
++namespace participant_detail {
++inline void require(bool valid, const char* message) {
++    if (!valid) throw std::invalid_argument(message);
++}
++inline auto domain_key(const authority::v1::Domain& domain) {
++    return std::pair{static_cast<int>(domain.kind()), domain.id()};
++}
++}
++inline void validate_participant(const v1::AuthorityParticipant& participant) {
++    using participant_detail::require;
++    validate_message(participant);
++    require(participant.id().size() == 32 && participant.public_key().size() == 32,
++            "Participant identity and service key must contain 32 bytes");
++    require(participant.domains_size() > 0 && participant.domains_size() <= 64,
++            "Participant requires one to 64 domains");
++    std::set<std::pair<int, std::string>> domains;
++    for (const auto& domain : participant.domains()) {
++        require((domain.kind() == authority::v1::WORLD || domain.kind() == authority::v1::WORKSPACE) &&
++                !domain.id().empty() && domain.id().size() <= 256 && domain.id().find('\0') == std::string::npos,
++                "Participant requires a valid authority domain");
++        require(domains.insert(participant_detail::domain_key(domain)).second, "Duplicate participant domain");
++    }
++}
++inline void validate_registry_read(const v1::AuthorityRegistryRead& read) {
++    validate_message(read);
++    participant_detail::require((read.after_id().empty() || read.after_id().size() == 32) && read.limit() <= 16,
++                                "Invalid registry cursor or page limit");
++}
++inline void validate_participant_record(const v1::AuthorityParticipantRecord& record, const std::string& issuer) {
++    using participant_detail::require;
++    validate_message(record);
++    require(record.has_participant() && issuer.size() == 32 && record.issuer_id() == issuer &&
++            record.registered_revision() > 0 && record.registered_revision() <= INT64_MAX,
++            "Invalid participant record context");
++    validate_participant(record.participant());
++    for (int i = 1; i < record.participant().domains_size(); ++i)
++        require(participant_detail::domain_key(record.participant().domains(i-1)) <
++                participant_detail::domain_key(record.participant().domains(i)), "Participant domains are not canonical");
++}
++inline void validate_registry_page(const v1::AuthorityRegistryPage& page, const std::string& issuer) {
++    using participant_detail::require;
++    validate_message(page);
++    require(issuer.size() == 32 && page.issuer_id() == issuer && page.registry_revision() <= INT64_MAX &&
++            page.participants_size() <= 16, "Invalid authority registry context");
++    std::string prior;
++    std::set<std::string> keys;
++    std::set<std::uint64_t> revisions;
++    std::set<std::pair<int, std::string>> domains;
++    for (const auto& record : page.participants()) {
++        validate_participant_record(record, issuer);
++        require(record.registered_revision() <= page.registry_revision() && (prior.empty() || prior < record.participant().id()) &&
++                keys.insert(record.participant().public_key()).second && revisions.insert(record.registered_revision()).second,
++                "Invalid registry record order or revision");
++        prior = record.participant().id();
++        for (const auto& domain : record.participant().domains())
++            require(domains.insert(participant_detail::domain_key(domain)).second, "Conflicting registry domains");
++    }
++    require(page.next_after().empty() || (!prior.empty() && page.next_after() == prior), "Invalid registry continuation");
++}
++}
+--- a/src/identity/protocol.cpp
++++ b/src/identity/protocol.cpp
+@@ -18,6 +18,7 @@
+             result->add_capabilities("identity.revocation-feed/v1");
+             result->add_capabilities("identity.actor-status/v1");
+             result->add_capabilities("identity.bootstrap-profile/v1");
++            result->add_capabilities("identity.authority-registry/v1");
+         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
+         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
+         else if (request.has_execute()) {
+@@ -25,6 +26,8 @@
+             if (result.has_policy()) *reply.mutable_policy() = result.policy();
+             else if (result.has_enrollment()) *reply.mutable_enrollment() = result.enrollment();
+             else if (result.has_profile()) *reply.mutable_profile() = result.profile();
++            else if (result.has_participant()) *reply.mutable_participant() = result.participant();
++            else if (result.has_registry()) *reply.mutable_registry() = result.registry();
+             else *reply.mutable_identity_status() = result.identity_status();
+         } else if (request.has_enrollment_begin()) *reply.mutable_challenge() = issuer.enrollment_begin(request.enrollment_begin());
+         else if (request.has_enrollment_complete()) *reply.mutable_enrollment() = issuer.enrollment_complete(request.enrollment_complete());
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -13,6 +13,29 @@
+ // Service reads require an exact positive revision. Signed owner reads may request the latest.
+ message BootstrapProfileRead { string id = 1; optional uint64 revision = 2; }
+ 
++// Owner-managed service registry. Registration grants no actor authority.
++message AuthorityParticipant {
++  bytes id = 1;
++  bytes public_key = 2;
++  repeated spatial.authority.v1.Domain domains = 3;
++}
++message AuthorityParticipantRegister {
++  AuthorityParticipant participant = 1;
++  optional uint64 expected_registry_revision = 2;
++}
++message AuthorityRegistryRead { bytes after_id = 1; uint32 limit = 2; }
++message AuthorityParticipantRecord {
++  AuthorityParticipant participant = 1;
++  uint64 registered_revision = 2;
++  bytes issuer_id = 3;
++}
++message AuthorityRegistryPage {
++  bytes issuer_id = 1;
++  uint64 registry_revision = 2;
++  repeated AuthorityParticipantRecord participants = 3;
++  bytes next_after = 4;
++}
++
+ enum EnrollmentMode { ENROLLMENT_MODE_UNSPECIFIED = 0; MANUAL = 1; APPROVE_ALWAYS = 2; }
+ message EnrollmentPolicy {
+   EnrollmentMode mode = 1;
+@@ -31,6 +54,8 @@
+     IdentityRevoke identity_revoke = 6;
+     BootstrapProfileRead profile_read = 7;
+     BootstrapProfilePut profile_put = 8;
++    AuthorityParticipantRegister participant_register = 9;
++    AuthorityRegistryRead registry_read = 10;
+   }
+ }
+ enum ActorKind { ACTOR_KIND_UNSPECIFIED = 0; HUMAN = 1; AGENT = 2; }
+@@ -125,7 +150,7 @@
+   bytes channel_binding = 3;
+ }
+ message AdminResult {
+-  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; }
++  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; AuthorityParticipantRecord participant = 5; AuthorityRegistryPage registry = 6; }
+ }
+ message IssuerInfoRequest {}
+ // Trusted supervisor configuration. Paths are absolute and remain outside Git.
+@@ -213,5 +238,7 @@
+     RevocationBatch revocations = 18;
+     ActorStatusBatch actor_status = 19;
+     BootstrapProfileState profile = 20;
++    AuthorityParticipantRecord participant = 21;
++    AuthorityRegistryPage registry = 22;
+   }
+ }

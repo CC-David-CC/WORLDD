@@ -32,5 +32,14 @@ Document protobuf additions and storage migration before implementing them.
 
 Evidence: spatial-os-luna-handoff/evidence/revocation-barrier-2026-10-09/baseline-01/sb16
 Task: spatial-os-luna-handoff/tasks/m1/identity.revocation_barrier.json
-Current remote transport qualification remains a separate active step.
+Remote actor transport qualification is complete and integrated.
 No active source tree, operator database, or login session changed.
+
+Registry progress, 2026-10-09
+Owner-signed service registration is isolated in candidate 02. Production has not adopted it.
+The first draft passed 28 new and 190 existing identity checks in Debug and runtime sanitizer profiles on sb16.
+Review reproduced a duplicate-registration-revision validation defect. Candidate 02 contains the correction.
+Candidate 02 also strengthens transactional rollback and migration-preservation tests.
+Full qualification is running on both hosts. Complete distributed cancellation remains pending.
+Preserved failures, exact source manifests, candidate patches, scripts, and review:
+spatial-os-luna-handoff/evidence/participant-registry-2026-10-09

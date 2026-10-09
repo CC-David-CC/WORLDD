@@ -1,0 +1,22 @@
+{
+  "debug": {
+    "participants": {
+      "checks": 28,
+      "suites": 2
+    },
+    "identity-regression": {
+      "checks": 190,
+      "suites": 9
+    }
+  },
+  "runtime-sanitize": {
+    "participants": {
+      "checks": 28,
+      "suites": 2
+    },
+    "identity-regression": {
+      "checks": 190,
+      "suites": 9
+    }
+  }
+}

@@ -1,0 +1,96 @@
+Authority participant registry, proposed interface version 1
+Status: isolated implementation and qualification pending.
+This is the first increment of docs/REVOCATION_BARRIER_PLAN.txt.
+Registration does not activate a participant or complete a revocation barrier.
+
+Invariant
+
+Only an issuer-owner proof may register a distinct service key for explicit authoritative domains.
+Registration must persist atomically without creating actors, credentials, or grants.
+
+Additive protobuf contract
+
+All messages use package spatial.identity.v1 in issuer.proto.
+Preserve every existing message field and enum value.
+
+AuthorityParticipant:
+  bytes id = 1: exactly 32 opaque bytes, chosen explicitly by the owner.
+  bytes public_key = 2: exactly 32 Ed25519 public-key bytes.
+  repeated spatial.authority.v1.Domain domains = 3: one through 64 distinct domains.
+Each domain has kind WORLD or WORKSPACE and an identity of one through 256 nonzero bytes.
+Store domains in canonical kind/identity order. Domain order does not grant priority.
+
+AuthorityParticipantRegister:
+  AuthorityParticipant participant = 1.
+  optional uint64 expected_registry_revision = 2: required, zero is valid initially.
+AuthorityRegistryRead:
+  bytes after_id = 1: empty or exactly 32 bytes, exclusive pagination cursor.
+  uint32 limit = 2: zero defaults to 16; explicit values must be one through 16.
+AuthorityParticipantRecord:
+  AuthorityParticipant participant = 1.
+  uint64 registered_revision = 2: positive registration revision.
+  bytes issuer_id = 3: independently pinned issuer identity.
+AuthorityRegistryPage:
+  bytes issuer_id = 1.
+  uint64 registry_revision = 2.
+  repeated AuthorityParticipantRecord participants = 3.
+  bytes next_after = 4: last returned identity when another page exists; otherwise empty.
+
+Add participant_register = 9 and registry_read = 10 to IssuerOperation.action.
+Both operations use the existing fresh owner challenge and ISSUER_ADMINISTRATION signature purpose.
+Add participant = 5 and registry = 6 to AdminResult.outcome.
+Add participant = 21 and registry = 22 to IssuerReply.outcome.
+Advertise identity.authority-registry/v1.
+Do not add a public unsigned registry-read or registration request.
+Ordinary TLS credentials and actor signatures do not authorize either owner operation.
+
+Validation and persistence
+
+The registry has its own monotonic revision. Enrollment policy and security revisions remain unchanged.
+Registration compares expected_registry_revision before mutation.
+It creates a new immutable record and increments the registry revision once.
+Duplicate identities and keys fail. A domain already registered to another participant fails.
+Creation does not replace an earlier record, even when the owner repeats its identity.
+After an uncertain reply, read the signed owner registry view before deciding what to do next.
+No automatic administrative replay occurs.
+Key rotation, retirement, participant activation, and replacement require later explicit operations with fencing rules.
+
+Reject issuer-owner keys, issuer-signing keys, and keys already recorded for actor enrollment.
+Reject enrollment with a registered participant key.
+Repeat that check when a previously issued enrollment challenge completes.
+This closes the race between an enrollment challenge and service registration.
+Keep service keys, actor keys, and issuer keys separate.
+
+Store the record, unique domain ownership rows, and registry revision in one issuer SQLite transaction.
+Validate stored records and domain ownership on reads.
+Do not return partially decoded or contradictory records after corruption.
+Roll back the complete registration if any domain insert or revision update fails.
+Returned pages use stable binary participant identity ordering.
+Each page represents one database transaction. Separate pages can observe different registry revisions.
+Clients must detect that change when they need a complete consistent registry view.
+
+Schema migration
+
+Advance the issuer database schema from 4 to 5.
+Add authority_registry, authority_participant, and authority_participant_domain tables.
+Normal startup rejects schemas older than 5.
+The existing explicit --migrate command creates the new empty registry.
+Preserve all existing issuer keys, identities, policy, credentials, profiles, and revocation history.
+Migration remains atomic and repeatable. Do not migrate operator databases automatically.
+
+Test-contract changes
+
+Three existing migration fixtures construct schemas 1, 2, and 3 by dropping newer tables.
+They must also drop the new registry tables before labeling the fixture as an older schema.
+The schema-2 and schema-3 cases must expect final schema 5 instead of 4.
+Preserve their original assertions about identity, private keys, credentials, policy, and recovered operation.
+No locked acceptance test, oracle, native witness, or acceptance.lock.json entry changes.
+Add a genuine schema-4 migration fixture and failed-migration rollback checks.
+
+Qualification boundary
+
+Run real owner signatures through identityd and the checked TLS issuer client.
+Test forged owner proofs, consumed nonces, stale revisions, reserved keys, and conflicting domain ownership.
+Test rollback, corruption, pagination, and exact preservation across restart and migration.
+Qualify the complete baseline on both allowed hosts before integrating production changes.
+This increment supplies registry records only. Distributed cancellation remains incomplete.

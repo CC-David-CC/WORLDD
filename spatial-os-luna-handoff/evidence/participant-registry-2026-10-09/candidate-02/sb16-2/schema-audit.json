@@ -1,0 +1,65 @@
+{
+  "status": "passed",
+  "host": "sb16-2",
+  "source_files": 236,
+  "preserved": {
+    "messages": 248,
+    "fields": 946,
+    "enum_values": 122
+  },
+  "unchanged_existing_test_files": 84,
+  "migration_fixture_changes": [
+    "tests/core/test_identity_bootstrap.py",
+    "tests/core/test_identity_enrollment.py",
+    "tests/core/test_identity_revocation.py"
+  ],
+  "locked_files": 41,
+  "commands": [
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-audit-02/before.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/workspace/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/input/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/core/v1/core.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/workspace/v1/broker.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/authority/v1/grants_probe.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/authority/v1/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/input/v1/input.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/security/v1/security.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/world_session.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/issuer.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/proto/spatial/identity/v1/key.proto"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-audit-02/candidate.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/workspace/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/input/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/core/v1/core.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/workspace/v1/broker.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/authority/v1/grants_probe.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/authority/v1/grants.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/input/v1/input.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/security/v1/security.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/identity/v1/world_session.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/identity/v1/issuer.proto",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-source-02/proto/spatial/identity/v1/key.proto"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

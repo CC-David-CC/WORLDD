@@ -1,0 +1,51 @@
+Primary review: authority participant registry candidate 02
+Reviewer: primary agent. No local-model review or subagent review.
+Status: isolated candidate. Full two-host qualification is running.
+Production remains at commit 226bb9f.
+
+Reviewed invariant
+Only an issuer-owner proof may register a distinct service key for explicit authority domains.
+Registration persists atomically. It does not create actors, credentials, grants, or active service sessions.
+
+Reviewed files
+CMakeLists.txt: Adds two suites. It preserves existing test definitions.
+proto/spatial/identity/v1/issuer.proto: Adds five messages and owner-operation/result fields. Existing field meanings remain intact.
+src/identity/issuer.cpp: Uses consumed owner challenges, registry CAS, unique keys and domains, and transactional schema migration.
+Registration rejects issuer and actor keys. Enrollment rechecks registered service keys after challenge completion.
+Read validation compares stored protobuf definitions with indexed identities, keys, revisions, and domain rows.
+src/identity/participants.hpp: Bounds domains and pages. Checks canonical ordering, issuer pins, keys, and unique registration revisions.
+src/identity/issuer_client.cpp: Validates registry responses and closes the channel after malformed peer data.
+The generic owner-execute client does not bind its response kind to a locally retained challenge operation.
+This increment preserves that existing interface. Callers must inspect the expected response outcome.
+src/identity/protocol.cpp: Dispatches the two owner results and advertises the registry capability.
+tests/core/test_identity_participants.py: Uses real identityd and owner signatures. Covers durability, rollback, reserved keys, and migration.
+tests/core/test_identity_participant_client.py: Uses real mutual TLS for owner operations. Uses explicit fault peers only for response validation.
+tests/core/test_identity_enrollment.py: Adds registry-table removal to the schema-1 fixture. Original preservation assertions remain.
+tests/core/test_identity_revocation.py: Updates the schema-2 fixture and expected final version. Original preservation assertions remain.
+tests/core/test_identity_bootstrap.py: Updates the schema-3 fixture and expected final version. Original preservation assertions remain.
+
+Review correction
+Candidate 01 accepted different registry entries with the same registration revision.
+A new fault-peer counterexample reached the checked client and failed with exit 0 instead of exit 2.
+Candidate 02 rejects duplicate registration revisions.
+Other malformed-page fixtures use distinct revisions so they still isolate their intended defects.
+Candidate 02 also adds binary-ID pagination and revision-update rollback checks.
+The schema-4 migration fixture now preserves a populated revocation history and bootstrap profile.
+
+Preserved evidence
+The first baseline fixture omitted the input proto search directory. It failed before assertions.
+The corrected baseline reached three expected unsupported-operation failures against the previous qualified issuer.
+Later registration and owner-proof assertions were unrun in those baseline cases.
+The first focused build omitted generated Python bindings. Both suites failed during import.
+The corrected focused runner generated the required bindings without changing candidate 01.
+Candidate 01 then passed 28 new checks and 190 identity regression checks in each profile on sb16.
+Profiles: Debug and runtime ASan/UBSan. No focused case failed or skipped.
+That focused result does not include candidate 02's correction or its three additional tests.
+
+Qualification limits
+Candidate 02 requires full Debug and runtime sanitizer profiles on sb16 and sb16-2.
+Preserve all 41 locked acceptance files and the 84 unchanged existing test files.
+Record the three migration-fixture edits explicitly.
+Registration is only the first cancellation-barrier component.
+Service authentication, incarnations, durable obligations, and genuine cancellation acknowledgements remain pending.
+No operator database or normal login session changed.
