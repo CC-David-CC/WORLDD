@@ -1,0 +1,191 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -281,6 +281,11 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(world-revocation-receipts PROPERTIES TIMEOUT 120
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME identity-supervisor-registry COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_supervisor_registry.py" $<TARGET_FILE:identityd>
++        $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(identity-supervisor-registry PROPERTIES TIMEOUT 180
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME identity-participant-incarnation COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_participant_incarnation.py" $<TARGET_FILE:identityd>
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-participant-runtime-probe>)
+--- a/proto/spatial/identity/v1/issuer.proto
++++ b/proto/spatial/identity/v1/issuer.proto
+@@ -34,6 +34,18 @@
+   uint64 registry_revision = 2;
+   repeated AuthorityParticipantRecord participants = 3;
+   bytes next_after = 4;
++}
++message AuthoritySupervisorBind {
++  bytes participant_id = 1;
++  uint64 registered_revision = 2;
++  bytes public_key = 3;
++  optional uint64 expected_revision = 4;
++}
++message AuthoritySupervisorRead { bytes participant_id = 1; }
++message AuthoritySupervisorBinding {
++  AuthorityParticipantRecord registration = 1;
++  bytes public_key = 2;
++  uint64 revision = 3;
+ }
+ 
+ // Service identity proof on the server-derived TLS connection. This does not activate execution.
+@@ -122,6 +134,8 @@
+     AuthorityParticipantRegister participant_register = 9;
+     AuthorityRegistryRead registry_read = 10;
+     AuthorityBarrierRead barrier_read = 11;
++    AuthoritySupervisorBind supervisor_bind = 12;
++    AuthoritySupervisorRead supervisor_read = 13;
+   }
+ }
+ enum ActorKind { ACTOR_KIND_UNSPECIFIED = 0; HUMAN = 1; AGENT = 2; }
+@@ -216,7 +230,7 @@
+   bytes channel_binding = 3;
+ }
+ message AdminResult {
+-  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; AuthorityParticipantRecord participant = 5; AuthorityRegistryPage registry = 6; AuthorityBarrierStatus barrier = 7; }
++  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; AuthorityParticipantRecord participant = 5; AuthorityRegistryPage registry = 6; AuthorityBarrierStatus barrier = 7; AuthoritySupervisorBinding supervision = 8; }
+ }
+ message IssuerInfoRequest {}
+ // Trusted supervisor configuration. Paths are absolute and remain outside Git.
+@@ -315,6 +329,7 @@
+     AuthorityAuthenticationResult authority_authentication = 23;
+     AuthorityActivationState authority_activation = 24;
+     AuthorityBarrierStatus authority_barrier = 25;
++    AuthoritySupervisorBinding supervision = 26;
+   }
+ }
+ 
+--- /dev/null
++++ b/tests/core/test_supervisor_registry.py
+@@ -0,0 +1,127 @@
++"""Owner proofs bind supervisor keys; real service connections cannot adopt active generations."""
++import sqlite3
++import subprocess
++import unittest
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as pb
++import test_identity_participant_session as sessions
++import test_issuer_client as clients
++
++class SupervisorRegistryTests(sessions.ParticipantSessionTests,clients.ClientFixture):
++    def setUp(self):
++        super().setUp();self.supervisor_key,self.supervisor_public=self.key('supervisor')
++
++    def binding_operation(self, expected=0, public=None, registration=1, participant=None):
++        return pb.IssuerOperation(supervisor_bind=pb.AuthoritySupervisorBind(
++            participant_id=self.registration.participant.id if participant is None else participant,
++            registered_revision=registration,public_key=self.supervisor_public if public is None else public,expected_revision=expected))
++
++    def bind(self,peer=None,**changes):
++        peer=peer or self.peer;op=self.binding_operation(**changes)
++        return self.execute(peer,self.challenge(peer,op))
++
++    def read_binding(self,peer=None):
++        peer=peer or self.peer
++        op=pb.IssuerOperation(supervisor_read=pb.AuthoritySupervisorRead(participant_id=self.registration.participant.id))
++        return self.execute(peer,self.challenge(peer,op))
++
++    def test_owner_binds_exact_registration_through_production_client(self):
++        client=self.client();before=self.snapshot_all();reply=self.bind(client)
++        self.assertTrue(reply.HasField('supervision'),reply);binding=reply.supervision
++        self.assertEqual(binding.registration,self.registration);self.assertEqual(binding.public_key,self.supervisor_public)
++        self.assertEqual(binding.revision,1);self.assertEqual(self.read_binding(client).supervision,binding)
++        after=self.snapshot_all();self.assertEqual(len(after['authority_supervisor']),1)
++        for name in before:
++            if name!='authority_supervisor':self.assertEqual(after[name],before[name],name)
++
++    def test_stale_revision_cannot_replace_supervisor(self):
++        self.assertTrue(self.bind().HasField('supervision'));before=self.snapshot_all()
++        _,public=self.key('replacement');self.denied(self.bind(public=public),core.REVISION_CONFLICT)
++        self.assertEqual(self.snapshot_all(),before)
++        result=self.bind(expected=1,public=public);self.assertEqual(result.supervision.revision,2)
++        self.assertEqual(result.supervision.public_key,public)
++
++    def test_service_and_supervisor_keys_cannot_bind_themselves(self):
++        before=self.snapshot_all()
++        for key,public in [(self.signer,self.public),(self.supervisor_key,self.supervisor_public)]:
++            challenge=self.challenge(self.peer,self.binding_operation())
++            self.denied(self.execute(self.peer,challenge,self.proof(challenge,key,public)))
++            self.assertEqual(self.snapshot_all(),before)
++
++    def test_active_generation_cannot_be_adopted_or_cleared(self):
++        self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
++        reply=self.peer.call(authority_activate=pb.AuthorityActivate(synchronized_revision=0))
++        self.assertTrue(reply.HasField('authority_activation'),reply);before=self.snapshot_all()
++        self.denied(self.bind(),core.BUSY);self.assertEqual(self.snapshot_all(),before)
++
++    def test_binding_requires_launch_authorization_on_old_and_new_service_connections(self):
++        self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
++        self.assertTrue(self.bind().HasField('supervision'));before=self.snapshot_all()
++        self.denied(self.peer.call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)),core.FORBIDDEN)
++        peer=self.connect();challenge=self.service_begin(peer,self.request(incarnation=b'n'*32))
++        self.assertTrue(self.service_finish(challenge,peer).HasField('authority_authentication'))
++        self.denied(peer.call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)),core.FORBIDDEN)
++        self.assertEqual(self.snapshot_all(),before)
++
++    def test_key_roles_stay_separate_in_both_directions(self):
++        self.enroll(self.peer)
++        for public in [self.owner_public,self.info.public_key,self.public,self.actor_public]:
++            before=self.snapshot_all();self.denied(self.bind(public=public),core.FORBIDDEN);self.assertEqual(self.snapshot_all(),before)
++        self.assertTrue(self.bind().HasField('supervision'))
++        intent=pb.EnrollmentIntent(public_key=self.supervisor_public,kind=pb.AGENT,label='invalid role reuse')
++        self.denied(self.peer.call(enrollment_begin=intent),core.FORBIDDEN)
++        participant=pb.AuthorityParticipant(id=b'q'*32,public_key=self.supervisor_public,domains=[grants.Domain(kind=grants.WORLD,id='other')])
++        op=pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(participant=participant,expected_registry_revision=1))
++        self.denied(self.execute(self.peer,self.challenge(self.peer,op)),core.FORBIDDEN)
++
++    def test_pending_actor_enrollment_cannot_reuse_new_supervisor_key(self):
++        intent=pb.EnrollmentIntent(public_key=self.supervisor_public,kind=pb.AGENT,label='pending role race')
++        reply=self.peer.call(enrollment_begin=intent);self.assertTrue(reply.HasField('challenge'),reply)
++        proof=self.proof(reply.challenge,self.supervisor_key,self.supervisor_public)
++        self.assertTrue(self.bind().HasField('supervision'));before=self.snapshot_all()
++        complete=pb.EnrollmentComplete(nonce=reply.challenge.nonce,proof=proof)
++        self.denied(self.peer.call(enrollment_complete=complete),core.FORBIDDEN);self.assertEqual(self.snapshot_all(),before)
++
++    def test_wrong_registration_and_unknown_participant_cannot_bind(self):
++        before=self.snapshot_all();self.denied(self.bind(registration=2),core.UNAUTHORIZED)
++        self.denied(self.bind(participant=b'x'*32),core.NOT_FOUND);self.assertEqual(self.snapshot_all(),before)
++
++    def test_binding_survives_restart(self):
++        binding=self.bind().supervision;self.peer.close();self.stop_daemons();self.peer=self.ready()
++        self.assertEqual(self.read_binding().supervision,binding)
++
++    def test_failed_binding_transaction_leaves_revision_and_key_unchanged(self):
++        self.assertTrue(self.bind().HasField('supervision'))
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.execute("CREATE TRIGGER deny_binding BEFORE UPDATE ON authority_supervisor BEGIN SELECT RAISE(ABORT,'binding fault'); END")
++        before=self.snapshot_all();self.denied(self.bind(expected=1),core.STORAGE_ERROR);self.assertEqual(self.snapshot_all(),before)
++        with sqlite3.connect(self.state/'identity.db') as db:db.execute('DROP TRIGGER deny_binding')
++        self.assertEqual(self.bind(expected=1).supervision.revision,2)
++
++    def test_explicit_v6_migration_preserves_existing_activation(self):
++        self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
++        self.assertTrue(self.peer.call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)).HasField('authority_activation'))
++        self.peer.close();self.stop_daemons();secret=(self.state/'issuer.pem').read_bytes()
++        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_supervisor; PRAGMA user_version=6;')
++        before=self.snapshot_all();command=[str(sessions.BINARY),'--state-dir',str(self.state)]
++        denied=subprocess.run(command,input=b'',capture_output=True,timeout=4);self.assertNotEqual(denied.returncode,0)
++        self.assertIn(b'migration',denied.stderr.lower())
++        for _ in range(2):
++            result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
++        after=self.snapshot_all();self.assertEqual({n:after[n] for n in before},before);self.assertEqual(after['authority_supervisor'],[])
++        self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],7)
++        self.peer=self.ready();self.denied(self.bind(),core.BUSY)
++
++    def test_failed_v6_migration_rolls_back_without_adopting_services(self):
++        self.peer.close();self.stop_daemons()
++        with sqlite3.connect(self.state/'identity.db') as db:
++            db.executescript('DROP TABLE authority_supervisor; PRAGMA user_version=6; CREATE TABLE authority_supervisor(marker INTEGER);')
++        before=self.snapshot_all();result=subprocess.run([str(sessions.BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
++        self.assertNotEqual(result.returncode,0);self.assertEqual(self.snapshot_all(),before)
++        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],6)
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(SupervisorRegistryTests(n) for n in SupervisorRegistryTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

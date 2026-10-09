@@ -1,0 +1,26 @@
+test_owner_binds_exact_registration_through_production_client (counterexample.SupervisorRegistryTests.test_owner_binds_exact_registration_through_production_client) ... FAIL
+
+======================================================================
+FAIL: test_owner_binds_exact_registration_through_production_client (counterexample.SupervisorRegistryTests.test_owner_binds_exact_registration_through_production_client)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-baseline-01/source/tests/core/test_supervisor_registry.py", line 30, in test_owner_binds_exact_registration_through_production_client
+    client=self.client();before=self.snapshot_all();reply=self.bind(client)
+                                                          ^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-baseline-01/source/tests/core/test_supervisor_registry.py", line 22, in bind
+    return self.execute(peer,self.challenge(peer,op))
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-registry-baseline-01/source/tests/core/test_identity_issuer.py", line 117, in challenge
+    self.assertTrue(reply.HasField('challenge'), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 1
+error {
+  code: INVALID_ARGUMENT
+  message: "Issuer operation is required"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.379s
+
+FAILED (failures=1)

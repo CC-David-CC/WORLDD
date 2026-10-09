@@ -1,0 +1,57 @@
+{
+  "reconstructed_files": 272,
+  "locked_files": 41,
+  "changed": [
+    "CMakeLists.txt",
+    "proto/spatial/identity/v1/issuer.proto",
+    "src/identity/issuer.cpp",
+    "src/identity/issuer_client.cpp",
+    "src/identity/protocol.cpp",
+    "tests/core/test_identity_bootstrap.py",
+    "tests/core/test_identity_enrollment.py",
+    "tests/core/test_identity_participant_barrier.py",
+    "tests/core/test_identity_participants.py",
+    "tests/core/test_identity_revocation.py",
+    "tests/core/test_supervisor_registry.py"
+  ],
+  "migration_fixtures": [
+    {
+      "file": "tests/core/test_identity_bootstrap.py",
+      "changed_methods": [
+        "test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
+      ],
+      "changes": "Remove schema7 table when constructing historical database; expected current version6 becomes7. Other assertions unchanged."
+    },
+    {
+      "file": "tests/core/test_identity_enrollment.py",
+      "changed_methods": [
+        "test_explicit_schema_migration_preserves_issuer_key_owner_and_policy"
+      ],
+      "changes": "Remove schema7 table when constructing historical database; expected current version6 becomes7. Other assertions unchanged."
+    },
+    {
+      "file": "tests/core/test_identity_participant_barrier.py",
+      "changed_methods": [
+        "test_v5_migration_preserves_state_without_inventing_historical_completion",
+        "test_failed_v5_migration_rolls_back_tables_and_version"
+      ],
+      "changes": "Remove schema7 table when constructing historical database; expected current version6 becomes7. Other assertions unchanged."
+    },
+    {
+      "file": "tests/core/test_identity_participants.py",
+      "changed_methods": [
+        "test_v4_migration_preserves_credential_and_issuer_state"
+      ],
+      "changes": "Remove schema7 table when constructing historical database; expected current version6 becomes7. Other assertions unchanged."
+    },
+    {
+      "file": "tests/core/test_identity_revocation.py",
+      "changed_methods": [
+        "test_explicit_v2_migration_preserves_all_existing_credential_bytes"
+      ],
+      "changes": "Remove schema7 table when constructing historical database; expected current version6 becomes7. Other assertions unchanged."
+    }
+  ],
+  "review": "Primary agent reviewed ownership, transaction rollback, key separation, activation gate, consumed challenge correlation, and explicit migration. Runtime qualification pending.",
+  "integrated": false
+}

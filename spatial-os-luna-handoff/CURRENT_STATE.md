@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-09: Owner-controlled supervisor registry enters qualification
+
+The isolated issuer now binds a separate supervisor key through an owner-signed challenge.
+The binding names an exact participant registration and persists with a checked revision.
+Active generations cannot be adopted. Binding does not clear revocation obligations.
+Bound participants cannot activate through a service key alone.
+Explicit supervisor launch authorization remains unimplemented.
+
+Both hosts reproduced the missing operation before implementation.
+Both hosts passed all eighteen new Debug checks and 51 harness checks.
+One existing client test could not run because the first build command omitted its probe executable.
+The corrected command builds that probe. Source and assertions remain unchanged.
+The corrected command passed all 246 focused Debug checks across fourteen suites on both hosts.
+Both hosts also passed 51 harness checks. No corrected Debug case failed or skipped.
+Runtime sanitizer qualification continues.
+
+All 272 candidate hashes reconstruct from the saved patch. All 41 locked hashes remain unchanged.
+Five historical migration fixtures explicitly remove the schema7 table when constructing older databases.
+Their data-preservation and rollback assertions remain intact.
+Read docs/AUTHORITY_SUPERVISOR_REGISTRY.txt and evidence/supervisor-registry-2026-10-09.
+This source is isolated. Supervisor recovery, M02, and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Preassigned service incarnation passes both focused profiles
 
 The isolated runtime now accepts an explicit 32-byte service incarnation in private configuration.
@@ -13,10 +35,9 @@ Each profile also passed 51 harness checks. No final case failed or skipped.
 All 271 source hashes and 41 locked hashes match.
 Descriptor comparison confirms that all existing protobuf fields remain unchanged.
 The source remains isolated. Read docs/AUTHORITY_SERVICE_INCARNATION.txt.
-Fresh full builds passed 48 focused Debug checks and 51 harness checks on both hosts in output03.
-The remaining full Debug and runtime sanitizer qualification continues.
-Expected totals are 1287 core checks, 51 harness checks, and 151 P10 cases per profile.
-Those expected totals are not completed results.
+Fresh output03 builds completed full Debug qualification on both hosts.
+Each host passed 1287 core checks across 84 suites, 51 harness checks, and 151 P10 cases.
+No full Debug case failed or skipped. Runtime sanitizer qualification continues.
 
 The first focused command omitted generated Python bindings and failed harness imports on both hosts.
 The corrected command generated the bindings without changing production code or test assertions.

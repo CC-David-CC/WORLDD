@@ -24,7 +24,7 @@
     "failed": 0,
     "skipped": 0
   },
-  "full": "Running on both hosts; expected1287core84suites51harness151P10 each profile",
+  "full": "Full Debug passed both hosts:1287core84suites51harness151P10; runtime sanitizer qualification running.",
   "remaining": [
     "Complete full qualification.",
     "Require authenticated supervisor authorization for supervised issuer activation.",
