@@ -1,5 +1,5 @@
 Supervisor world and compositor native handoff
-Status: Missing-field failure reproduced on both qualified Debug builds. Correction remains partial and unrun.
+Status: Missing-field failure reproduced on both qualified Debug builds. Candidate01 Debug qualification is active.
 
 Invariant
 
@@ -54,13 +54,23 @@ Add independent native identity, wrong-role, wrong-server, malformed-config, and
 Verify genuine rendered application surfaces and held-input cleanup under the owned compositor credential.
 Qualify both hosts in Debug and runtime sanitizers before integration.
 
-Ten correction tests are prepared in evidence/supervisor-world-handoff-2026-10-09/scripts.
-All ten remain unrun. They do not alter the queued baseline or frozen broker candidate.
+Candidate01 adds eleven correction tests. They do not alter the queued baseline or frozen broker candidate.
 Each direct compositor denial test first requires successful startup with a valid sealed configuration.
 The descriptor witness tracks the memfd device and inode across live, pidfd-pinned processes.
 A retained parent descriptor provides a positive observation control.
 The pixel and input witnesses use the independently compiled native application probe.
 They use trusted management fixtures, not issuer-backed actor admission.
+
+Candidate01 connection boundary
+
+The compositor exports a narrow adapter for xcb_connect_to_display_with_auth_info.
+The native path opens the configured Unix socket and checks its SO_PEERCRED before authentication.
+Then xcb_connect_to_fd supplies that exact connection to Xlib.
+Xlib receives a non-secret placeholder instead of the compositor credential.
+Require proof that the adapter ran. A missing adapter must fail startup.
+Inspect the actual connection's native role and server ID before rendering.
+The existing display fixture path calls the original libxcb function.
+The independent fake-server test requires an accepted connection with zero received authentication bytes.
 
 Scope
 

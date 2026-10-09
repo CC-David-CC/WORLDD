@@ -1,0 +1,37 @@
+{
+  "status": "debug_qualification_active_not_integrated",
+  "source_files": 290,
+  "changed_files": 16,
+  "locked_files_unchanged": 41,
+  "existing_test_files_unchanged": true,
+  "prior_ten_test_methods_unchanged": true,
+  "added_test": "test_wrong_server_receives_no_authentication_bytes",
+  "hosts": {
+    "sb16": 1108117,
+    "sb16-2": 880849
+  },
+  "dependency_review": {
+    "installed_libX11": "2:1.8.7-1build1",
+    "installed_libxcb": "1.15-1ubuntu2",
+    "actual_symbols": "readelf confirms libX11 imports and libxcb exports xcb_connect_to_display_with_auth_info.",
+    "sources": [
+      "https://raw.githubusercontent.com/mirror/libX11/master/src/xcb_disp.c",
+      "https://xcb.freedesktop.org/manual/group__XCB__Core__API.html",
+      "https://sourceware.org/binutils/docs/ld.html"
+    ]
+  },
+  "review": [
+    "No preflight-only server identity claim; the adapter checks the exact authenticated socket.",
+    "Xlib placeholder contains no native credential; adapter failure cannot disclose it.",
+    "C++ exceptions remain inside the XCB adapter and become a failed connection before rethrow in C++.",
+    "Private configuration closes on normal and exceptional paths; invalid standard descriptors are not closed.",
+    "Renderer child inherits the sealed configuration and standard channels; other inherited descriptors close.",
+    "Qualification uses distinct source, build, output, and delegated units; two build jobs per host."
+  ],
+  "limitations": [
+    "Build and runtime outcomes remain pending.",
+    "Xlib/XCB compatibility and callback selection require actual execution evidence.",
+    "Full broker sanitizer and queued integration diagnostics remain separate required work.",
+    "No native GPU, physical device, real-model, or complete M02/M1 qualification claimed."
+  ]
+}

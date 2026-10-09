@@ -1,0 +1,1171 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -12,10 +12,13 @@
+ find_package(OpenSSL 3.0 REQUIRED COMPONENTS Crypto SSL)
+ find_package(Threads REQUIRED)
+ find_package(X11 REQUIRED)
++find_package(PkgConfig REQUIRED)
++pkg_check_modules(XCB REQUIRED IMPORTED_TARGET xcb)
+ find_package(OpenGL REQUIRED)
+ find_package(GLEW REQUIRED)
+ configure_file(config/conformance.textproto runtime.textproto COPYONLY)
+ set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
++protobuf_generate_cpp(compositor_proto_sources compositor_proto_headers proto/spatial/render/v1/compositor_native.proto)
+ protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
+ protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
+ protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
+@@ -28,6 +31,12 @@
+ protobuf_generate_cpp(scope_proto_sources scope_proto_headers proto/spatial/supervisor/v1/process_scope.proto)
+ protobuf_generate_cpp(launch_proto_sources launch_proto_headers proto/spatial/supervisor/v1/launch.proto)
+ file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
++add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/compositor_native_pb2.py"
++    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
++        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1/compositor_native.proto
++    DEPENDS proto/spatial/render/v1/compositor_native.proto protobuf::protoc VERBATIM)
++add_custom_target(compositor-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/compositor_native_pb2.py")
+ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py"
+     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+@@ -144,12 +153,14 @@
+ string(SHA256 build_hash "${build_material}")
+ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
+ 
+-add_library(spatial-protobuf STATIC ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
++add_library(spatial-protobuf STATIC ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
+ target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
+ target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+ add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
+ target_include_directories(spatial-scene PUBLIC src)
+ target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
++add_library(spatial-compositor-config STATIC src/platform/compositor_config.cpp)
++target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
+ add_library(spatial-identity STATIC src/identity/keys.cpp)
+ add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp ${scope_proto_sources} ${scope_proto_headers})
+ target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
+@@ -197,10 +208,11 @@
+ add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
+ target_include_directories(spatial-core PUBLIC src)
+ target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3 spatial-authority)
+-add_executable(spatialwm src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
+-target_link_libraries(spatialwm PRIVATE spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
++add_executable(spatialwm src/x11/compositor_connection.cpp src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
++target_link_options(spatialwm PRIVATE "LINKER:--export-dynamic-symbol=xcb_connect_to_display_with_auth_info")
++target_link_libraries(spatialwm PRIVATE spatial-compositor-config PkgConfig::XCB ${CMAKE_DL_LIBS} spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
+ add_executable(worldd src/world/actor_tls.cpp src/world/main.cpp src/world/server.cpp src/world/identity_sessions.cpp src/world/authority.cpp)
+-target_link_libraries(worldd PRIVATE spatial-core spatial-issuer-watch-lib spatial-authority spatial-participant-runtime-lib)
++target_link_libraries(worldd PRIVATE spatial-compositor-config spatial-core spatial-issuer-watch-lib spatial-authority spatial-participant-runtime-lib)
+ add_dependencies(worldd spatialwm)
+ add_executable(spatial-app-init src/workspace/app_init.cpp)
+ target_link_libraries(spatial-app-init PRIVATE spatial-scene)
+@@ -275,6 +287,28 @@
+         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+     set_tests_properties(authority-broker-handoff-regressions PROPERTIES TIMEOUT 180)
++    add_test(NAME authority-world-handoff COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-world-handoff-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_supervisor_world_handoff.py" "${CMAKE_CURRENT_SOURCE_DIR}"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(authority-world-handoff PROPERTIES TIMEOUT 120)
++    add_test(NAME authority-world-handoff-regressions COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-world-handoff-regressions-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_supervisor_world_handoff_regressions.py" "${CMAKE_CURRENT_SOURCE_DIR}"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(authority-world-handoff-regressions PROPERTIES TIMEOUT 180)
+     add_test(NAME authority-participant-relay COMMAND systemd-run --user --wait --pipe --collect
+         --unit=spatial-participant-relay-${build_hash} --property=Delegate=yes
+         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+--- /dev/null
++++ b/proto/spatial/render/v1/compositor_native.proto
+@@ -0,0 +1,12 @@
++syntax = "proto3";
++package spatial.render.v1;
++
++// Private sealed handoff. Never expose this message through management replies.
++message NativeCompositorConfig {
++  uint32 protocol_version = 1;
++  optional uint32 display_number = 2;
++  bytes compositor_cookie = 3;
++  bytes server_id = 4;
++  optional uint32 server_pid = 5;
++  optional uint32 server_uid = 6;
++}
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -55,7 +55,8 @@
+   string child_participant_config = 8;
+   uint32 participant_target_fd = 9;
+   repeated uint32 inherited_source_fds = 10;
+-  optional uint32 broker_native_target_fd = 11; // Sealed issued broker credential; never the supervisor credential.
++  optional uint32 broker_native_target_fd = 11;
++  optional uint32 compositor_native_target_fd = 12; // Sealed issued broker credential; never the supervisor credential.
+ }
+ message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
+ message AuthorityLaunchQuery {}
+--- /dev/null
++++ b/src/platform/compositor_config.cpp
+@@ -0,0 +1,66 @@
++#include "platform/compositor_config.hpp"
++#include "core/protocol.hpp"
++#include <cerrno>
++#include <climits>
++#include <cstring>
++#include <fcntl.h>
++#include <stdexcept>
++#include <sys/prctl.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++namespace spatial {
++namespace {
++void require(bool okay, const char* message) {
++    if (!okay) throw std::invalid_argument(std::string("Native compositor configuration: ") + message);
++}
++void erase(std::string& bytes) {
++    if (!bytes.empty()) explicit_bzero(bytes.data(), bytes.size());
++    bytes.clear();
++}
++}
++CompositorConfig::CompositorConfig(int descriptor) {
++    require(descriptor > STDERR_FILENO, "expected private descriptor");
++    descriptor_ = descriptor;
++    std::string bytes;
++    try {
++        require(prctl(PR_SET_DUMPABLE, 0) == 0, "cannot disable process inspection");
++        constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
++        const int actual = fcntl(descriptor_, F_GET_SEALS);
++        struct stat info{};
++        require(actual >= 0 && (actual & seals) == seals && fstat(descriptor_, &info) == 0 &&
++                S_ISREG(info.st_mode) && info.st_size > 0 && info.st_size <= 1048576,
++                "expected sealed bounded protobuf");
++        const int flags = fcntl(descriptor_, F_GETFD);
++        require(flags >= 0 && fcntl(descriptor_, F_SETFD, flags | FD_CLOEXEC) == 0,
++                "cannot restrict descriptor inheritance");
++        bytes.resize(static_cast<std::size_t>(info.st_size));
++        std::size_t used = 0;
++        while (used < bytes.size()) {
++            const auto count = pread(descriptor_, bytes.data() + used, bytes.size() - used, used);
++            if (count < 0 && errno == EINTR) continue;
++            require(count > 0, "cannot read sealed protobuf");
++            used += static_cast<std::size_t>(count);
++        }
++        require(value_.ParseFromString(bytes), "malformed protobuf");
++        try { validate_message(value_); }
++        catch (const std::exception&) { require(false, "unsupported protobuf fields"); }
++        require(value_.protocol_version() == 1 && value_.has_display_number() && value_.display_number() <= 65535 &&
++                value_.compositor_cookie().size() == 32 && value_.server_id().size() == 32 &&
++                value_.has_server_pid() && value_.server_pid() > 0 && value_.server_pid() <= INT_MAX &&
++                value_.has_server_uid(), "invalid protocol, credential, or server pins");
++        erase(bytes);
++    } catch (...) {
++        erase(bytes);
++        consume();
++        throw;
++    }
++}
++CompositorConfig::~CompositorConfig() { consume(); }
++std::string CompositorConfig::display() const { return ":" + std::to_string(value_.display_number()); }
++void CompositorConfig::consume() {
++    if (descriptor_ >= 0) close(descriptor_);
++    descriptor_ = -1;
++    erase(*value_.mutable_compositor_cookie());
++}
++}
+--- /dev/null
++++ b/src/platform/compositor_config.hpp
+@@ -0,0 +1,22 @@
++#pragma once
++#include "compositor_native.pb.h"
++#include <string>
++
++namespace spatial {
++// This owner keeps the sealed descriptor until the compositor fork completes.
++// It disables unprivileged inspection before reading any credential bytes.
++class CompositorConfig {
++public:
++    explicit CompositorConfig(int descriptor);
++    ~CompositorConfig();
++    CompositorConfig(const CompositorConfig&) = delete;
++    CompositorConfig& operator=(const CompositorConfig&) = delete;
++    int descriptor() const { return descriptor_; }
++    std::string display() const;
++    const render::v1::NativeCompositorConfig& value() const { return value_; }
++    void consume();
++private:
++    int descriptor_ = -1;
++    render::v1::NativeCompositorConfig value_;
++};
++}
+--- a/src/platform/render_worker.cpp
++++ b/src/platform/render_worker.cpp
+@@ -15,16 +15,27 @@
+ #include <unistd.h>
+ namespace spatial {
+ using Clock = std::chrono::steady_clock;
+-RenderWorker::RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display)
++RenderWorker::RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display, int native_fd)
+     : display_(std::move(display)) {
+     int pair[2];
+     if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0) throw std::runtime_error("Cannot create renderer channel");
+     const auto parent = getpid();
++    const auto native_argument = std::to_string(native_fd);
+     pid_ = fork();
+     if (pid_ == 0) {
+         if (prctl(PR_SET_PDEATHSIG, SIGKILL) != 0 || getppid() != parent) _exit(126);
+         if (dup2(pair[1], STDIN_FILENO) < 0 || dup2(pair[1], STDOUT_FILENO) < 0) _exit(126);
+         close(pair[0]); close(pair[1]);
++        if (native_fd >= 0) {
++            if (native_fd <= STDERR_FILENO) _exit(126);
++            if (native_fd > 3 && syscall(SYS_close_range, 3u, static_cast<unsigned>(native_fd - 1), 0u) != 0) _exit(126);
++            if (syscall(SYS_close_range, static_cast<unsigned>(native_fd) + 1u, ~0u, 0u) != 0) _exit(126);
++            const int flags = fcntl(native_fd, F_GETFD);
++            if (flags < 0 || fcntl(native_fd, F_SETFD, flags & ~FD_CLOEXEC) < 0) _exit(126);
++            execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--display", display_.c_str(),
++                  "--native-security-fd", native_argument.c_str(), static_cast<char*>(nullptr));
++            _exit(127);
++        }
+         execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--display", display_.c_str(),
+               static_cast<char*>(nullptr));
+         _exit(127);
+--- a/src/platform/render_worker.hpp
++++ b/src/platform/render_worker.hpp
+@@ -8,7 +8,7 @@
+ // Owned production compositor; one bounded in-flight scene, scheduler serviced while waiting.
+ class RenderWorker {
+ public:
+-    RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display);
++    RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display, int native_fd = -1);
+     ~RenderWorker();
+     RenderWorker(const RenderWorker&) = delete;
+     RenderWorker& operator=(const RenderWorker&) = delete;
+--- a/src/render/main.cpp
++++ b/src/render/main.cpp
+@@ -1,4 +1,6 @@
+ #include "render/renderer.hpp"
++#include "platform/compositor_config.hpp"
++#include <charconv>
+ #include "world/store.hpp"
+ #include <cerrno>
+ #include <iostream>
+@@ -11,15 +13,30 @@
+     try {
+         std::filesystem::path state;
+         std::string display;
++        int native_fd = -1;
+         for (int i = 1; i < argc; ++i) {
+             const std::string_view argument(argv[i]);
+             if (argument == "--state-dir" && state.empty() && i + 1 < argc) state = argv[++i];
+             else if (argument == "--display" && display.empty() && i + 1 < argc) display = argv[++i];
++            else if (argument == "--native-security-fd" && native_fd == -1 && i + 1 < argc) {
++                const std::string_view number(argv[++i]);
++                const auto parsed = std::from_chars(number.data(), number.data()+number.size(), native_fd);
++                if (parsed.ec != std::errc{} || parsed.ptr != number.data()+number.size() || native_fd <= STDERR_FILENO)
++                    throw std::invalid_argument("Native compositor configuration: invalid inherited descriptor");
++            }
+             else throw std::invalid_argument("Unknown or incomplete compositor argument");
++        }
++        std::unique_ptr<spatial::CompositorConfig> native;
++        if (native_fd >= 0) {
++            native = std::make_unique<spatial::CompositorConfig>(native_fd);
++            if (!display.empty() && display != native->display())
++                throw std::invalid_argument("Native compositor configuration: conflicting display");
++            display = native->display();
+         }
+         if (!state.is_absolute() || display.empty()) throw std::invalid_argument("Explicit state and display are required");
+         umask(0077);
+-        spatial::Renderer renderer(display, state);
++        spatial::Renderer renderer(display, state, native ? &native->value() : nullptr);
++        if (native) native->consume();
+         spatial::wire::RenderResult ready; ready.set_protocol_version(1); *ready.mutable_ready() = renderer.ready();
+         spatial::write_frame(std::cout, ready);
+         std::uint64_t sequence=0;
+--- a/src/render/renderer.cpp
++++ b/src/render/renderer.cpp
+@@ -1,4 +1,5 @@
+ #include "render/renderer.hpp"
++#include "x11/compositor_connection.hpp"
+ #include "core/scene.hpp"
+ #include "x11/surfaces.hpp"
+ #include "x11/input_router.hpp"
+@@ -101,7 +102,7 @@
+         glFinish(); check_gl(); check_x(display);
+     }
+ };
+-Renderer::Renderer(const std::string& name, const std::filesystem::path& state) : impl_(std::make_unique<Impl>()) {
++Renderer::Renderer(const std::string& name, const std::filesystem::path& state, const render::v1::NativeCompositorConfig* native) : impl_(std::make_unique<Impl>()) {
+     auto& r = *impl_;
+     if (name.empty()) throw std::invalid_argument("An explicit X display is required");
+     r.captures = state / "captures";
+@@ -109,7 +110,7 @@
+     if (std::filesystem::is_symlink(status) || (std::filesystem::exists(status) && !std::filesystem::is_directory(status)))
+         throw std::invalid_argument("Unsafe capture directory");
+     std::filesystem::create_directory(r.captures);
+-    r.display = XOpenDisplay(name.c_str());
++    r.display = native ? open_compositor_display(name, *native) : XOpenDisplay(name.c_str());
+     if (!r.display) throw std::runtime_error("Cannot open explicit X display");
+     XSetErrorHandler(record_x_error);
+     const auto root = DefaultRootWindow(r.display);
+--- a/src/render/renderer.hpp
++++ b/src/render/renderer.hpp
+@@ -1,11 +1,12 @@
+ #pragma once
+ #include "core/protocol.hpp"
++#include "compositor_native.pb.h"
+ #include <filesystem>
+ #include <memory>
+ namespace spatial {
+ class Renderer {
+ public:
+-    Renderer(const std::string& display, const std::filesystem::path& state);
++    Renderer(const std::string& display, const std::filesystem::path& state, const render::v1::NativeCompositorConfig* native = nullptr);
+     ~Renderer();
+     wire::RendererReady ready() const;
+     wire::FrameReply draw(const wire::RenderCommand& command);
+--- a/src/supervisor/main.cpp
++++ b/src/supervisor/main.cpp
+@@ -2,6 +2,7 @@
+ #include "identity/participant_stream.hpp"
+ #include "identity/tls_support.hpp"
+ #include "broker.pb.h"
++#include "compositor_native.pb.h"
+ #include <google/protobuf/text_format.h>
+ #include <charconv>
+ #include <chrono>
+@@ -51,7 +52,8 @@
+         absolute(value.journal_directory()) && absolute(value.delegated_cgroup()) &&
+         absolute(value.child_participant_config()) && absolute(value.launch().executable()) &&
+         value.participant_target_fd() >= 3 && value.participant_target_fd() <= 255 &&
+-        value.inherited_source_fds_size() + (value.has_broker_native_target_fd() ? 2 : 1) <= 16 &&
++        !(value.has_broker_native_target_fd() && value.has_compositor_native_target_fd()) &&
++        value.inherited_source_fds_size() + ((value.has_broker_native_target_fd() || value.has_compositor_native_target_fd()) ? 2 : 1) <= 16 &&
+         value.inherited_source_fds_size() == value.launch().inherited_fds_size(),
+         "Invalid supervisor configuration");
+     std::set<std::uint32_t> targets{value.participant_target_fd()}, sources;
+@@ -59,6 +61,11 @@
+         const auto target = value.broker_native_target_fd();
+         require(target >= 3 && target <= 255 && targets.insert(target).second,
+             "Invalid broker native descriptor target");
++    }
++    if (value.has_compositor_native_target_fd()) {
++        const auto target = value.compositor_native_target_fd();
++        require(target >= 3 && target <= 255 && targets.insert(target).second,
++            "Invalid compositor native descriptor target");
+     }
+     struct stat native_info{}, management_info{};
+     require(fstat(native, &native_info) == 0 && fstat(management, &management_info) == 0,
+@@ -78,7 +85,7 @@
+     }
+     return value;
+ }
+-pb::NativeScopeConfig broker_source(int fd) {
++pb::NativeScopeConfig handoff_source(int fd, bool compositor) {
+     constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
+     struct stat info{};
+     const int actual = fcntl(fd, F_GET_SEALS);
+@@ -90,7 +97,8 @@
+     pb::NativeScopeConfig value;
+     require(value.ParseFromString(bytes), "Malformed broker handoff source");
+     spatial::validate_message(value);
+-    require(value.role() == spatial::security::v1::BROKER, "Broker handoff requires a broker native scope");
++    require(value.role() == (compositor ? spatial::security::v1::COMPOSITOR : spatial::security::v1::BROKER),
++        compositor ? "Compositor handoff requires a compositor native scope" : "Broker handoff requires a broker native scope");
+     // AuthorityLaunch::prepare validates all source pins against the live native server.
+     return value;
+ }
+@@ -118,6 +126,30 @@
+     require(fcntl(file.value, F_ADD_SEALS, F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL) == 0,
+         "Cannot seal broker configuration");
+ }
++void seal_compositor_config(File& file, const pb::NativeScopeConfig& source, const pb::NativeScopeReady& ready) {
++    require(ready.identity().role() == spatial::security::v1::COMPOSITOR &&
++        ready.identity().server_id() == source.server_id() &&
++        ready.credential().role() == spatial::security::v1::COMPOSITOR &&
++        ready.credential().id() == ready.identity().credential_id() &&
++        ready.credential().cookie().size() == 32 && ready.credential().cookie() != source.supervisor_cookie(),
++        "Compositor handoff requires the owned issued native credential");
++    spatial::render::v1::NativeCompositorConfig config;
++    config.set_protocol_version(1); config.set_display_number(source.display_number());
++    config.set_compositor_cookie(ready.credential().cookie()); config.set_server_id(source.server_id());
++    config.set_server_pid(source.server_pid()); config.set_server_uid(source.server_uid());
++    const auto bytes = config.SerializeAsString();
++    file.reset(memfd_create("supervised-compositor-native", MFD_CLOEXEC | MFD_ALLOW_SEALING));
++    require(file.value >= 0, "Cannot allocate sealed compositor configuration");
++    std::size_t written = 0;
++    while (written < bytes.size()) {
++        const auto count = write(file.value, bytes.data()+written, bytes.size()-written);
++        if (count < 0 && errno == EINTR) continue;
++        require(count > 0, "Cannot write sealed compositor configuration");
++        written += static_cast<std::size_t>(count);
++    }
++    require(fcntl(file.value, F_ADD_SEALS, F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL) == 0,
++        "Cannot seal compositor configuration");
++}
+ void write_child_config(const std::filesystem::path& path,
+                         const spatial::identity::v1::AuthorityParticipantRuntimeConfig& config) {
+     require(!path.filename().empty() && path.filename() != "." && path.filename() != "..",
+@@ -164,12 +196,15 @@
+         management = std::make_unique<spatial::identity::ParticipantStream>(control, getppid());
+         File native_config(native);
+         File broker_config;
++        File compositor_config;
+         std::optional<pb::NativeScopeConfig> source;
+-        if (config.has_broker_native_target_fd()) source = broker_source(native);
++        if (config.has_broker_native_target_fd() || config.has_compositor_native_target_fd())
++            source = handoff_source(native, config.has_compositor_native_target_fd());
+         parent_alive(control);
+         launch = std::make_unique<spatial::supervisor::AuthorityLaunch>(config.journal_directory());
+         const auto prepared = launch->prepare(config.delegated_cgroup(), config.binding(), native);
+-        if (source) seal_broker_config(broker_config, *source, prepared.ready());
++        if (config.has_broker_native_target_fd()) seal_broker_config(broker_config, *source, prepared.ready());
++        if (config.has_compositor_native_target_fd()) seal_compositor_config(compositor_config, *source, prepared.ready());
+         native_config.reset();
+         launch->attach(config.participant());
+         bool authenticated = false, baseline = false;
+@@ -195,8 +230,13 @@
+             config.mutable_launch()->add_inherited_fds(config.broker_native_target_fd());
+             inherited.push_back(broker_config.value);
+         }
++        if (config.has_compositor_native_target_fd()) {
++            config.mutable_launch()->add_inherited_fds(config.compositor_native_target_fd());
++            inherited.push_back(compositor_config.value);
++        }
+         view(*management, launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited));
+         broker_config.reset();
++        compositor_config.reset();
+         for (;;) {
+             require(!interrupted, "Supervisor termination requested");
+             // Inspect the private parent channel before accepting more child commands.
+--- a/src/world/main.cpp
++++ b/src/world/main.cpp
+@@ -4,8 +4,10 @@
+ #include "world/actor_tls.hpp"
+ #include "world/surfaces.hpp"
+ #include "platform/render_worker.hpp"
++#include "platform/compositor_config.hpp"
+ #include "platform/broker.hpp"
+ #include <charconv>
++#include <algorithm>
+ #include <csignal>
+ #include <set>
+ #include <sys/stat.h>
+@@ -18,7 +20,7 @@
+     std::vector<int> actor_channels;
+     std::string display;
+     bool fixture_clock = false, fixture_faults = false, migration = false;
+-    int broker_fd = -1, broker_pid = -1, actor_listener = -1;
++    int broker_fd = -1, broker_pid = -1, actor_listener = -1, native_fd = -1;
+     try {
+         signal(SIGPIPE, SIG_IGN);
+         for (int i = 1; i < argc; ++i) {
+@@ -32,6 +34,12 @@
+             else if (argument == "--init-authority" && authority_seed.empty() && i + 1 < argc) authority_seed = argv[++i];
+             else if (argument == "--identity-config" && identity_config.empty() && i + 1 < argc) identity_config = argv[++i];
+             else if (argument == "--actor-tls-config" && actor_tls_config.empty() && i + 1 < argc) actor_tls_config = argv[++i];
++            else if (argument == "--native-security-fd" && native_fd == -1 && i + 1 < argc) {
++                const std::string_view number(argv[++i]);
++                const auto parsed = std::from_chars(number.data(), number.data()+number.size(), native_fd);
++                if (parsed.ec != std::errc{} || parsed.ptr != number.data()+number.size() || native_fd <= STDERR_FILENO)
++                    throw std::invalid_argument("Native compositor configuration: invalid inherited descriptor");
++            }
+             else if (argument == "--actor-listen-fd" && actor_listener == -1 && i + 1 < argc) {
+                 const std::string_view number(argv[++i]);
+                 const auto parsed = std::from_chars(number.data(), number.data()+number.size(), actor_listener);
+@@ -59,6 +67,9 @@
+         if ((actor_listener == -1) != actor_tls_config.empty()) throw std::invalid_argument("Actor TLS listener and configuration are required together");
+         if (identity_config.empty() != (actor_channels.empty() && actor_listener == -1))
+             throw std::invalid_argument("World identity configuration and actor transport are required together");
++        if (native_fd >= 0 && (native_fd == broker_fd || native_fd == actor_listener ||
++                std::find(actor_channels.begin(), actor_channels.end(), native_fd) != actor_channels.end()))
++            throw std::invalid_argument("Native compositor configuration: descriptor shares another channel");
+         if (actor_listener >= 0) {
+             if (actor_listener == broker_fd) throw std::invalid_argument("Actor listener cannot share the broker descriptor");
+             spatial::prepare_actor_listener(actor_listener);
+@@ -69,19 +80,26 @@
+             spatial::prepare_actor_channel(fd);
+         }
+         if (!authority_seed.empty()) {
+-            if (migration || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
++            if (native_fd >= 0 || migration || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
+                 throw std::invalid_argument("Authority initialization only accepts --state-dir and --init-authority");
+             umask(0077); spatial::WorldStore world(state);
+             spatial::initialize_world_authority(authority_seed, world.info().world_id());
+             std::cerr << "World authority initialization complete\n"; return 0;
+         }
+         if (migration) {
+-            if (fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
++            if (native_fd >= 0 || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
+                 throw std::invalid_argument("World migration only accepts --state-dir and --migrate-v1");
+             umask(0077); spatial::WorldStore world(state, true);
+             std::cerr << "World context schema migration complete\n"; return 0;
+         }
+         if ((broker_fd == -1) != (broker_pid == -1)) throw std::invalid_argument("Incomplete broker connection");
++        std::unique_ptr<spatial::CompositorConfig> native;
++        if (native_fd >= 0) {
++            native = std::make_unique<spatial::CompositorConfig>(native_fd);
++            if (!display.empty() && display != native->display())
++                throw std::invalid_argument("Native compositor configuration: conflicting display");
++            display = native->display();
++        }
+         if (config.empty()) config = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "runtime.textproto";
+         // Management pipes and actor-only sockets have separate protobuf interfaces.
+         const auto settings = spatial::load_runtime_config(config);
+@@ -92,7 +110,8 @@
+         if (broker_fd >= 0) broker = std::make_unique<spatial::BrokerClient>(broker_fd, broker_pid);
+         std::unique_ptr<spatial::RenderWorker> renderer;
+         if (!display.empty()) renderer = std::make_unique<spatial::RenderWorker>(
+-            std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display);
++            std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display, native ? native->descriptor() : -1);
++        if (native) native->consume();
+         spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get());
+         std::unique_ptr<spatial::IdentitySessions> sessions;
+         if (!identity_config.empty()) sessions = std::make_unique<spatial::IdentitySessions>(identity_config, actor_channels, world, actors, broker.get(), actor_listener, actor_tls_config);
+--- /dev/null
++++ b/src/x11/compositor_connection.cpp
+@@ -0,0 +1,147 @@
++#include "x11/compositor_connection.hpp"
++#include "core/protocol.hpp"
++#include "security.pb.h"
++#include <X11/Xlibint.h>
++#include <xcb/xcb.h>
++#include <array>
++#include <cerrno>
++#include <cstring>
++#include <dlfcn.h>
++#include <exception>
++#include <poll.h>
++#include <stdexcept>
++#include <sys/socket.h>
++#include <sys/un.h>
++#include <unistd.h>
++
++namespace {
++using Config = spatial::render::v1::NativeCompositorConfig;
++struct File {
++    int value = -1;
++    ~File() { if (value >= 0) close(value); }
++};
++void require(bool okay, const char* message) {
++    if (!okay) throw std::runtime_error(std::string("Native compositor configuration: ") + message);
++}
++struct Pending {
++    const Config& config;
++    const std::string& display;
++    bool used = false;
++    std::exception_ptr failure;
++};
++thread_local Pending* pending = nullptr;
++thread_local bool startup_error = false;
++int record_startup_error(Display*, XErrorEvent*) { startup_error = true; return 0; }
++
++xcb_connection_t* authenticated_connection(Pending& value, const char* display, int* screen) {
++    require(!value.used && display && display == value.display, "unexpected Xlib connection");
++    value.used = true;
++    File socket_fd{socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0)};
++    require(socket_fd.value >= 0, "cannot allocate native socket");
++    sockaddr_un address{};
++    address.sun_family = AF_UNIX;
++    const auto path = "/tmp/.X11-unix/X" + std::to_string(value.config.display_number());
++    require(path.size() < sizeof(address.sun_path), "invalid local display");
++    std::memcpy(address.sun_path, path.c_str(), path.size() + 1);
++    require(connect(socket_fd.value, reinterpret_cast<const sockaddr*>(&address), sizeof(address)) == 0,
++            "cannot connect to configured server");
++    ucred peer{}; socklen_t size = sizeof(peer);
++    require(getsockopt(socket_fd.value, SOL_SOCKET, SO_PEERCRED, &peer, &size) == 0 && size == sizeof(peer) &&
++            peer.pid == static_cast<pid_t>(value.config.server_pid()) && peer.uid == value.config.server_uid(),
++            "native server process identity mismatch");
++    // No authentication data has been sent before this exact socket is verified.
++    char method[] = "MIT-MAGIC-COOKIE-1";
++    xcb_auth_info_t auth{18, method, static_cast<int>(value.config.compositor_cookie().size()),
++                        const_cast<char*>(value.config.compositor_cookie().data())};
++    const int fd = socket_fd.value;
++    socket_fd.value = -1; // xcb_connect_to_fd takes ownership, including failure.
++    if (screen) *screen = 0;
++    return xcb_connect_to_fd(fd, &auth);
++}
++
++spatial::security::v1::Identity inspect(Display* display) {
++    int opcode = 0, event = 0, error = 0;
++    require(XQueryExtension(display, "SPATIAL-SECURITY", &opcode, &event, &error), "native security extension absent");
++    spatial::security::v1::Request request;
++    request.set_protocol_version(1); request.set_request_id(1); request.mutable_inspect();
++    const auto bytes = request.SerializeAsString();
++    struct Header { CARD8 opcode, operation; CARD16 length; CARD32 bytes; };
++    struct Reply { BYTE type, pad; CARD16 sequence; CARD32 length, bytes, unused[5]; } reply{};
++    static_assert(sizeof(Header) == 8 && sizeof(Reply) == 32);
++    constexpr std::size_t bound = 4096;
++    std::array<char, bound> payload{};
++    bool valid = false;
++    Display* dpy = display;
++    LockDisplay(dpy);
++    auto* header = static_cast<Header*>(_XGetRequest(dpy, opcode, sizeof(Header) + ((bytes.size()+3) & ~std::size_t(3))));
++    if (header) {
++        header->operation = 0; header->bytes = bytes.size();
++        std::memset(header + 1, 0, (bytes.size()+3) & ~std::size_t(3));
++        std::memcpy(header + 1, bytes.data(), bytes.size());
++        if (_XReply(dpy, reinterpret_cast<xReply*>(&reply), 0, False)) {
++            if (reply.bytes <= bound && reply.length == (reply.bytes+3)/4) {
++                _XReadPad(dpy, payload.data(), reply.bytes); valid = true;
++            } else _XEatDataWords(dpy, reply.length);
++        }
++    }
++    UnlockDisplay(dpy);
++    SyncHandle();
++    require(valid, "invalid native identity framing");
++    spatial::security::v1::Reply result;
++    require(result.ParseFromArray(payload.data(), reply.bytes) && result.protocol_version() == 1 &&
++            result.request_id() == 1, "invalid native identity reply");
++    try { spatial::validate_message(result); }
++    catch (const std::exception&) { require(false, "unsupported native identity fields"); }
++    require(result.code() == spatial::security::v1::OK && result.has_identity(), "native identity denied");
++    return result.identity();
++}
++}
++
++// Xlib calls this public XCB entry point. Export only this symbol from spatialwm.
++// The normal fixture path forwards to libxcb. The native path uses its exact verified socket.
++extern "C" xcb_connection_t* xcb_connect_to_display_with_auth_info(
++    const char* display, xcb_auth_info_t* auth, int* screen) {
++    if (pending) {
++        try { return authenticated_connection(*pending, display, screen); }
++        catch (...) {
++            pending->failure = std::current_exception();
++            return xcb_connect_to_fd(-1, nullptr);
++        }
++    }
++    using Function = xcb_connection_t* (*)(const char*, xcb_auth_info_t*, int*);
++    static const auto original = reinterpret_cast<Function>(dlsym(RTLD_NEXT, "xcb_connect_to_display_with_auth_info"));
++    return original ? original(display, auth, screen) : xcb_connect_to_fd(-1, nullptr);
++}
++
++namespace spatial {
++Display* open_compositor_display(const std::string& display, const Config& config) {
++    require(!pending, "nested display startup");
++    Pending value{config, display, false, {}};
++    pending = &value;
++    startup_error = false;
++    const auto previous_handler = XSetErrorHandler(record_startup_error);
++    struct Reset {
++        XErrorHandler previous;
++        ~Reset() { pending = nullptr; XSetAuthorization(nullptr, 0, nullptr, 0); XSetErrorHandler(previous); }
++    } reset{previous_handler};
++    // The library receives a non-secret placeholder. A missing adapter cannot leak the credential.
++    char method[] = "MIT-MAGIC-COOKIE-1";
++    std::array<char, 32> placeholder{};
++    XSetAuthorization(method, 18, placeholder.data(), placeholder.size());
++    Display* result = XOpenDisplay(display.c_str());
++    try {
++        if (value.failure) std::rethrow_exception(value.failure);
++        require(value.used && result, "verified Xlib connection failed");
++        const auto identity = inspect(result);
++        XSync(result, False);
++        require(!startup_error, "native startup request denied");
++        require(identity.role() == security::v1::COMPOSITOR && identity.server_id() == config.server_id() &&
++                identity.credential_id().size() == 32 && identity.connection_id() > 0 &&
++                identity.workspace().empty() && identity.application().empty(), "native compositor identity mismatch");
++        return result;
++    } catch (...) {
++        if (result) XCloseDisplay(result);
++        throw;
++    }
++}
++}
+--- /dev/null
++++ b/src/x11/compositor_connection.hpp
+@@ -0,0 +1,7 @@
++#pragma once
++#include "compositor_native.pb.h"
++#include <X11/Xlib.h>
++namespace spatial {
++// The caller owns the returned display and serializes startup on its X thread.
++Display* open_compositor_display(const std::string& display, const render::v1::NativeCompositorConfig& config);
++}
+--- /dev/null
++++ b/tests/native/test_supervisor_world_handoff.py
+@@ -0,0 +1,91 @@
++"""A real supervised world must start its compositor through a sealed native handoff."""
++import os
++from pathlib import Path
++import select
++import sys
++import unittest
++from unittest.mock import patch
++from google.protobuf import text_format
++
++SOURCE = Path(sys.argv.pop(1)).resolve()
++sys.path.insert(0, str(SOURCE / 'tests/native'))
++import core_pb2 as core
++import launch_pb2 as launch
++import process_scope_pb2 as process
++import security_pb2 as security
++import test_authority_supervisor as supervisor
++from harness.wire import frame
++
++
++class WorldNativeHandoffTests(supervisor.AuthoritySupervisorTests):
++    def setUp(self):
++        super().setUp()
++        def preserve_logs():
++            if os.environ.get('SPATIAL_SECURITY_EVIDENCE'):
++                target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])
++                target.mkdir(parents=True, exist_ok=True)
++                for index, path in enumerate(sorted(self.root.glob('supervisor-*.log'))):
++                    (target / (self._testMethodName + '-supervisor-' + str(index) + '.log')).write_bytes(path.read_bytes())
++        self.addCleanup(preserve_logs)
++
++    def test_supervised_world_starts_real_compositor_with_owned_native_configuration(self):
++        config = self.config()
++        config.launch.CopyFrom(process.AuthorityProcessLaunch(
++            executable=str(supervisor.owned.existing.PROBE.with_name('worldd')),
++            arguments=['--state-dir', str(self.root / 'world'), '--native-security-fd', '38']))
++        original_text = text_format.MessageToString
++        original_native = supervisor.native_pb.NativeScopeConfig
++
++        def text(value, *args, **kwargs):
++            result = original_text(value, *args, **kwargs)
++            if value.DESCRIPTOR.full_name == 'spatial.supervisor.v1.AuthoritySupervisorConfig':
++                result += '\ncompositor_native_target_fd: 38\n'
++            return result
++
++        def native(*args, **kwargs):
++            kwargs['role'] = security.COMPOSITOR
++            return original_native(*args, **kwargs)
++
++        with patch.object(text_format, 'MessageToString', side_effect=text), \
++             patch.object(supervisor.native_pb, 'NativeScopeConfig', side_effect=native):
++            proc, channel = self.supervisor_process(config)
++        try:
++            initial = self.message(channel, launch.AuthorityLaunchReply)
++        except AssertionError as error:
++            if proc.poll() is None:
++                proc.wait(timeout=5)
++            diagnostic = '\n'.join(path.read_text(errors='replace') for path in self.root.glob('supervisor-*.log'))
++            self.fail('Supervised world native handoff failed: ' + str(error) + '\n' + diagnostic)
++        self.assertTrue(initial.HasField('view'), initial)
++        self.assertEqual(initial.view.record.stage, launch.START_ATTEMPTED)
++        self.assertEqual(initial.view.record.native.role, security.COMPOSITOR)
++        self.assertFalse(initial.view.HasField('ready'))
++        proc.stdin.write(frame(core.Request(protocol_version=1, request_id=91,
++            runtime_identities=core.RuntimeIdentitiesRequest())))
++        proc.stdin.flush()
++        reply = self.message(proc.stdout, core.Reply)
++        self.assertEqual(reply.request_id, 91)
++        self.assertTrue(reply.HasField('identities'), reply)
++        ids = reply.identities
++        self.assertGreater(ids.worldd_pid, 1)
++        self.assertGreater(ids.spatialwm_pid, 1)
++        self.assertNotEqual(ids.worldd_pid, ids.spatialwm_pid)
++        self.assertEqual(ids.display, ':' + str(self.display))
++        members = (self.cgroup / initial.view.record.process.scope_name / 'cgroup.procs').read_text().split()
++        self.assertEqual(set(map(int, members)), {ids.worldd_pid, ids.spatialwm_pid})
++        pins = [os.pidfd_open(pid) for pid in (ids.worldd_pid, ids.spatialwm_pid)]
++        for pin in pins:
++            self.addCleanup(os.close, pin)
++            self.assertEqual(select.select([pin], [], [], 0)[0], [])
++        stopped = self.control(channel, stop=launch.AuthorityLaunchQuery())
++        self.assertEqual(stopped.view.record.stage, launch.OWNED_SCOPES_STOPPED)
++        self.assertEqual(proc.wait(timeout=5), 0)
++        self.checked_cleanup()
++        for pin in pins:
++            self.assertEqual(select.select([pin], [], [], 0)[0], [pin])
++
++
++if __name__ == '__main__':
++    suite = unittest.TestSuite(WorldNativeHandoffTests(name)
++        for name in WorldNativeHandoffTests.__dict__ if name.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())
+--- /dev/null
++++ b/tests/native/test_supervisor_world_handoff_regressions.py
+@@ -0,0 +1,381 @@
++"""Prepared correction witnesses for sealed world/compositor startup and cleanup."""
++import fcntl
++import errno
++import json
++import os
++from pathlib import Path
++import select
++import signal
++import socket
++import struct
++import subprocess
++import time
++import unittest
++from unittest.mock import patch
++
++import test_supervisor_world_handoff as baseline
++import core_pb2 as core
++import launch_pb2 as launch
++import process_scope_pb2 as process
++import security_pb2 as security
++from harness.oracles import PPM, pose
++from harness.probe import Probe
++from harness.wire import frame, make_request, result_value
++
++
++class WorldHandoffRegressionTests(baseline.WorldNativeHandoffTests):
++    def configuration(self, target=38):
++        config = self.config()
++        config.compositor_native_target_fd = target
++        config.launch.CopyFrom(process.AuthorityProcessLaunch(
++            executable=str(baseline.supervisor.owned.existing.PROBE.with_name('worldd')),
++            arguments=['--state-dir', str(self.root / 'world'), '--native-security-fd', str(target)]))
++        return config
++
++    def launch_world(self, config=None, role=security.COMPOSITOR, start_server=True):
++        config = config or self.configuration()
++        original = baseline.supervisor.native_pb.NativeScopeConfig
++        def native(*args, **kwargs):
++            kwargs['role'] = role
++            return original(*args, **kwargs)
++        with patch.object(baseline.supervisor.native_pb, 'NativeScopeConfig', side_effect=native):
++            return self.supervisor_process(config, start_server=start_server)
++
++    def world_call(self, method, **arguments):
++        self.sequence += 1
++        request = make_request(method, arguments)
++        request.request_id = self.sequence
++        self.world.stdin.write(frame(request)); self.world.stdin.flush()
++        reply = self.message(self.world.stdout, core.Reply)
++        self.assertEqual(reply.request_id, self.sequence)
++        self.assertFalse(reply.HasField('error'), reply)
++        return result_value(reply)
++
++    def started_world(self):
++        self.world, self.channel = self.launch_world()
++        self.sequence = 0
++        reply = self.message(self.channel, launch.AuthorityLaunchReply)
++        self.assertTrue(reply.HasField('view'), reply)
++        self.assertEqual(reply.view.record.stage, launch.START_ATTEMPTED)
++        self.assertEqual(reply.view.record.native.role, security.COMPOSITOR)
++        self.assertFalse(reply.view.HasField('ready'))
++        self.ids = self.world_call('runtime.identities')
++        self.assertEqual(self.ids['display'], ':' + str(self.display))
++        pids = {self.ids['worldd_pid'], self.ids['spatialwm_pid']}
++        self.assertEqual(len(pids), 2)
++        self.assertTrue(all(pid > 1 for pid in pids))
++        members = (self.cgroup / reply.view.record.process.scope_name / 'cgroup.procs').read_text().split()
++        self.assertEqual(set(map(int, members)), pids)
++        self.pins = {pid: os.pidfd_open(pid) for pid in pids}
++        for pin in self.pins.values():
++            self.addCleanup(os.close, pin)
++            self.assertEqual(select.select([pin], [], [], 0)[0], [])
++        return reply.view.record
++
++    def stop_world(self):
++        reply = self.control(self.channel, stop=launch.AuthorityLaunchQuery())
++        self.assertEqual(reply.view.record.stage, launch.OWNED_SCOPES_STOPPED)
++        self.assertEqual(self.world.wait(timeout=5), 0)
++        self.checked_cleanup()
++        for pin in self.pins.values():
++            self.assertEqual(select.select([pin], [], [], 0)[0], [pin])
++
++    def until(self, function, predicate):
++        deadline = time.monotonic() + 5
++        while True:
++            value = function()
++            if predicate(value):
++                return value
++            self.assertLess(time.monotonic(), deadline, repr(value))
++            time.sleep(.01)
++
++    def application_scene(self):
++        grant = self.supervisor.issue(workspace=b'one', application=b'independent-witness')
++        data = b'\xff\xff'
++        for part in (b'', str(self.display).encode(), b'MIT-MAGIC-COOKIE-1', grant.cookie):
++            data += struct.pack('!H', len(part)) + part
++        auth = self.root / 'independent-application.auth'
++        auth.write_bytes(data); auth.chmod(0o600)
++        # This authority belongs only to the independently launched application witness.
++        # The already-running supervisor/world/compositor never receives this environment.
++        with patch.dict(os.environ, XAUTHORITY=str(auth),
++                        SPATIAL_XPROBE=str(baseline.supervisor.owned.existing.PROBE.with_name('spatial-xprobe'))):
++            self.probe = Probe(self.root, display=':' + str(self.display))
++        self.addCleanup(self.probe.close)
++        surface = self.until(lambda: self.world_call('surface.find', probe_id=self.probe.id),
++                             lambda value: value['surface'] is not None)['surface']
++        self.assertEqual(surface['pixels'], [320, 240])
++        self.assertTrue(surface['mapped'])
++        room = self.world_call('world.info')['entry_room']
++        self.world_call('surface.place', id=surface['id'], room=room, pose=pose([0, 0, -2]), size=[2, 2])
++        actor = self.world_call('actor.open', id='witness-controller', grants=['interact'])
++        self.actor = actor['token']; self.actor_sequence = 0
++        self.application_cookie = grant.cookie
++        self.native_witness = self.connect(grant.cookie)
++        native = self.native_witness.inspect()
++        self.assertEqual(native.role, security.APPLICATION)
++        self.assertEqual((native.workspace, native.application), (b'one', b'independent-witness'))
++        return surface
++
++    def act(self, operation, **arguments):
++        self.actor_sequence += 1
++        return self.world_call('actor.act', token=self.actor, seq=self.actor_sequence, op=operation, args=arguments)
++
++    def hold_input(self, surface):
++        self.assertEqual(self.act('aim', direction=[0, 0, -1])['hit']['id'], surface['id'])
++        self.act('pointer', button=1, pressed=True)
++        self.act('key', keysym='a', pressed=True)
++        self.world_call('runtime.fence')
++        events = self.probe.input_events()
++        self.assertEqual([event['pressed'] for event in events if event['event'] == 'key'], [True])
++        self.assertEqual([event['pressed'] for event in events if event['event'] == 'button'], [True])
++
++    def released_input(self):
++        # Checked native cleanup has already completed. No sleep grants extra cleanup time.
++        events = self.probe.input_events()
++        self.assertEqual([event['pressed'] for event in events if event['event'] == 'key'], [True, False])
++        self.assertEqual([event['pressed'] for event in events if event['event'] == 'button'], [True, False])
++        self.assertEqual(self.native_witness.inspect().role, security.APPLICATION)
++        self.assertIsNone(self.probe.proc.poll(), 'Independent application must survive world cleanup')
++
++    def test_owned_world_renders_real_application_pixels_and_releases_held_input(self):
++        self.started_world()
++        surface = self.application_scene()
++        color = [19, 117, 231]
++        self.probe.command('paint', *color)
++        self.world_call('runtime.fence')
++        capture = self.world_call('render.capture', token=self.actor, width=128, height=128)
++        path = Path(capture['path']).resolve()
++        self.assertTrue(path.is_relative_to((self.root / 'world').resolve()))
++        image = PPM(path)
++        self.assertEqual((image.width, image.height), (128, 128))
++        self.assertTrue(all(abs(a-b) <= 3 for a, b in zip(image.mean_patch(64, 64), color)))
++        self.hold_input(surface)
++        self.stop_world()
++        self.released_input()
++
++    def test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application(self):
++        self.started_world()
++        surface = self.application_scene(); self.hold_input(surface)
++        os.kill(self.ids['worldd_pid'], signal.SIGKILL)
++        reply = self.message(self.channel, launch.AuthorityLaunchReply)
++        self.assertTrue(reply.HasField('error'), reply)
++        self.assertEqual(self.world.wait(timeout=5), 2)
++        self.checked_cleanup()
++        for pin in self.pins.values():
++            self.assertEqual(select.select([pin], [], [], 0)[0], [pin])
++        self.released_input()
++
++    def test_world_and_compositor_consume_the_native_configuration_descriptor(self):
++        import compositor_native_pb2 as compositor
++        self.start()
++        credential = self.supervisor.issue(security.COMPOSITOR, b'', b'')
++        config = compositor.NativeCompositorConfig(protocol_version=1, display_number=self.display,
++            compositor_cookie=credential.cookie, server_id=self.supervisor.inspect().server_id,
++            server_pid=self.server.pid, server_uid=os.getuid())
++        fd = os.memfd_create('world-config-observer', os.MFD_CLOEXEC | os.MFD_ALLOW_SEALING)
++        self.addCleanup(os.close, fd)
++        os.write(fd, config.SerializeToString())
++        fcntl.fcntl(fd, fcntl.F_ADD_SEALS, fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
++        info = os.fstat(fd); identity = [info.st_dev, info.st_ino]
++        logpath = self.root / 'direct-world.log'; log = logpath.open('wb')
++        self.world = subprocess.Popen([
++            str(baseline.supervisor.owned.existing.PROBE.with_name('worldd')),
++            '--state-dir', str(self.root / 'world'), '--native-security-fd', str(fd)],
++            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log, pass_fds=(fd,),
++            env={name: os.environ[name] for name in ('PATH', 'LANG', 'ASAN_OPTIONS', 'UBSAN_OPTIONS') if name in os.environ})
++        def cleanup():
++            if self.world.stdin is not None:
++                self.world.stdin.close(); self.world.stdin = None
++            if self.world.poll() is None:
++                try:
++                    self.world.wait(timeout=5)
++                except subprocess.TimeoutExpired:
++                    self.world.kill(); self.world.wait(timeout=3)
++            self.world.stdout.close(); log.close()
++            text = logpath.read_text(errors='replace')
++            if os.environ.get('SPATIAL_SECURITY_EVIDENCE'):
++                target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE']); target.mkdir(parents=True, exist_ok=True)
++                (target / (self._testMethodName + '-direct-world.log')).write_text(text)
++            for marker in ('AddressSanitizer', 'LeakSanitizer', 'runtime error:'):
++                self.assertNotIn(marker, text)
++        self.addCleanup(cleanup)
++        self.sequence = 0
++        ids = self.world_call('runtime.identities')
++        self.assertEqual(ids['worldd_pid'], self.world.pid)
++        self.assertGreater(ids['spatialwm_pid'], 1)
++        self.assertNotEqual(ids['spatialwm_pid'], self.world.pid)
++        observer_code = '''import json,os,sys
++root='/proc/'+str(int(sys.argv[1]))+'/fd/'
++rows={}
++for name in os.listdir(root):
++ try:
++  info=os.stat(root+name)
++ except FileNotFoundError:
++  continue
++ rows[name]=[info.st_dev,info.st_ino]
++print(json.dumps(rows))
++'''
++        pins = {}
++        for pid in (os.getpid(), ids['worldd_pid'], ids['spatialwm_pid']):
++            pin = os.pidfd_open(pid); self.addCleanup(os.close, pin); pins[pid] = pin
++            self.assertEqual(select.select([pin], [], [], 0)[0], [])
++            observer = subprocess.run(['sudo', '-n', 'python3', '-c', observer_code,
++                str(pid)], capture_output=True, text=True, timeout=5, check=True)
++            self.assertEqual(select.select([pin], [], [], 0)[0], [])
++            descriptors = json.loads(observer.stdout)
++            self.assertTrue({'0', '1', '2'}.issubset(descriptors))
++            if pid == os.getpid():
++                self.assertIn(identity, descriptors.values(), 'Observer must detect the retained parent control descriptor')
++            else:
++                self.assertNotIn(identity, descriptors.values(), 'Native configuration survived in a child under some descriptor number')
++        self.world.stdin.close(); self.world.stdin = None
++        self.assertEqual(self.world.wait(timeout=5), 0)
++        for pid in (ids['worldd_pid'], ids['spatialwm_pid']):
++            self.assertEqual(select.select([pins[pid]], [], [], 0)[0], [pins[pid]])
++
++    def test_invalid_compositor_targets_fail_before_scope_ownership(self):
++        for target in (0, 1, 2, 37, 256):
++            with self.subTest(target=target):
++                proc, _ = self.launch_world(self.configuration(target), start_server=not hasattr(self, 'server'))
++                self.assertEqual(proc.wait(timeout=5), 2)
++                self.assertFalse((self.journal / 'launch.db').exists())
++                self.assertFalse(self.child_config.exists())
++
++    def native_configuration(self):
++        import compositor_native_pb2 as compositor
++        credential = self.supervisor.issue(security.COMPOSITOR, b'', b'')
++        return compositor.NativeCompositorConfig(protocol_version=1, display_number=self.display,
++            compositor_cookie=credential.cookie, server_id=self.supervisor.inspect().server_id,
++            server_pid=self.server.pid, server_uid=os.getuid())
++
++    def direct_compositor(self, payload, *, sealed=True, display=None, ready=False):
++        fd = os.memfd_create('compositor-validation', os.MFD_CLOEXEC | os.MFD_ALLOW_SEALING)
++        os.write(fd, payload)
++        if sealed:
++            fcntl.fcntl(fd, fcntl.F_ADD_SEALS,
++                fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
++        argv = [str(baseline.supervisor.owned.existing.PROBE.with_name('spatialwm')),
++                '--state-dir', str(self.root / 'direct-renderer'), '--native-security-fd', str(fd)]
++        if display is not None:
++            argv += ['--display', display]
++        try:
++            proc = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
++                stderr=subprocess.PIPE, pass_fds=(fd,),
++                env={name: os.environ[name] for name in ('PATH', 'LANG', 'ASAN_OPTIONS', 'UBSAN_OPTIONS') if name in os.environ})
++        finally:
++            os.close(fd)
++        try:
++            if ready:
++                self.assertTrue(self.message(proc.stdout, core.RenderResult).HasField('ready'))
++        finally:
++            try:
++                stdout, stderr = proc.communicate(timeout=10)
++            except subprocess.TimeoutExpired:
++                proc.kill(); stdout, stderr = proc.communicate(timeout=3)
++            diagnostic = stderr.decode(errors='replace')
++            if os.environ.get('SPATIAL_SECURITY_EVIDENCE'):
++                target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE']); target.mkdir(parents=True, exist_ok=True)
++                with (target / (self._testMethodName + '-direct-compositor.log')).open('a') as log:
++                    log.write(diagnostic + '\n')
++            for marker in ('AddressSanitizer', 'LeakSanitizer', 'runtime error:'):
++                self.assertNotIn(marker, diagnostic)
++        self.assertEqual(proc.returncode, 0 if ready else 2, diagnostic)
++        self.assertEqual(stdout, b'', 'Rejected configuration must not publish renderer readiness')
++        if not ready:
++            self.assertIn('Native compositor configuration', diagnostic)
++
++    def direct_control(self):
++        self.start()
++        (self.root / 'direct-renderer').mkdir()
++        self.direct_compositor(self.native_configuration().SerializeToString(), ready=True)
++
++    def test_compositor_rejects_malformed_and_incomplete_native_configurations(self):
++        self.direct_control()
++        valid = self.native_configuration()
++        payloads = [('empty', b''), ('truncated', b'\x0a\xff'),
++                    ('oversized', b'\x00' * 1048577),
++                    ('unknown-field', valid.SerializeToString() + b'\xf8\x07\x01')]
++        for field in ('protocol_version', 'display_number', 'compositor_cookie', 'server_id', 'server_pid', 'server_uid'):
++            item = type(valid)(); item.CopyFrom(valid); item.ClearField(field)
++            payloads.append(('missing-' + field, item.SerializeToString()))
++        for field, value in (('protocol_version', 2), ('compositor_cookie', b'x'),
++                             ('server_id', b'x'), ('server_pid', 0)):
++            item = type(valid)(); item.CopyFrom(valid); setattr(item, field, value)
++            payloads.append(('invalid-' + field, item.SerializeToString()))
++        for name, payload in payloads:
++            with self.subTest(case=name):
++                self.direct_compositor(payload)
++
++    def test_compositor_rejects_unsealed_native_configuration(self):
++        self.direct_control()
++        self.direct_compositor(self.native_configuration().SerializeToString(), sealed=False)
++
++    def test_compositor_rejects_wrong_server_pins_and_native_roles(self):
++        self.direct_control()
++        valid = self.native_configuration()
++        for field, value in (('server_id', os.urandom(32)), ('server_pid', os.getpid()),
++                             ('server_uid', os.getuid() + 1)):
++            with self.subTest(field=field):
++                item = type(valid)(); item.CopyFrom(valid); setattr(item, field, value)
++                self.direct_compositor(item.SerializeToString())
++        for role in (security.BROKER, security.SUPERVISOR, security.APPLICATION):
++            with self.subTest(role=role):
++                item = type(valid)(); item.CopyFrom(valid)
++                item.compositor_cookie = self.cookie if role == security.SUPERVISOR else self.supervisor.issue(
++                    role, b'one' if role == security.APPLICATION else b'',
++                    b'witness' if role == security.APPLICATION else b'').cookie
++                self.direct_compositor(item.SerializeToString())
++
++    def test_compositor_rejects_display_conflict(self):
++        self.direct_control()
++        self.direct_compositor(self.native_configuration().SerializeToString(), display=':' + str(self.display + 1))
++
++    def test_wrong_server_receives_no_authentication_bytes(self):
++        self.direct_control()
++        listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
++        self.addCleanup(listener.close)
++        listener.settimeout(5)
++        for number in range(60000, 65536):
++            path = Path('/tmp/.X11-unix') / ('X' + str(number))
++            try:
++                listener.bind(str(path))
++                break
++            except OSError as error:
++                if error.errno != errno.EADDRINUSE:
++                    raise
++        else:
++            self.fail('No free disposable fake-server socket')
++        self.addCleanup(lambda: path.unlink(missing_ok=True))
++        listener.listen(1)
++        config = self.native_configuration()
++        config.display_number = number
++        # Keep the actual X server PID and UID. This listener belongs to the witness.
++        self.direct_compositor(config.SerializeToString())
++        peer, _ = listener.accept()
++        with peer:
++            peer.settimeout(5)
++            self.assertEqual(peer.recv(4096), b'', 'Credentials reached the wrong native server')
++
++    def test_broker_and_compositor_handoffs_cannot_share_one_native_scope(self):
++        config = self.configuration(); config.broker_native_target_fd = 39
++        proc, _ = self.launch_world(config)
++        self.assertEqual(proc.wait(timeout=5), 2)
++        self.assertFalse((self.journal / 'launch.db').exists())
++        self.assertFalse(self.child_config.exists())
++
++    def test_wrong_native_roles_fail_before_scope_ownership(self):
++        for role in (security.BROKER, security.SUPERVISOR, security.APPLICATION):
++            with self.subTest(role=role):
++                proc, _ = self.launch_world(role=role, start_server=not hasattr(self, 'server'))
++                self.assertEqual(proc.wait(timeout=5), 2)
++                self.assertFalse((self.journal / 'launch.db').exists())
++                self.assertFalse(self.child_config.exists())
++        diagnostic = '\n'.join(path.read_text(errors='replace') for path in self.root.glob('supervisor-*.log'))
++        self.assertEqual(diagnostic.count('Compositor handoff requires a compositor native scope'), 3)
++
++
++if __name__ == '__main__':
++    suite = unittest.TestSuite(WorldHandoffRegressionTests(name)
++        for name in WorldHandoffRegressionTests.__dict__ if name.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

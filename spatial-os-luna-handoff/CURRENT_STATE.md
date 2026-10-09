@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-09: World native handoff candidate01 enters Debug qualification
+
+The isolated world/compositor correction now contains 290 files, with 16 changed or added files.
+It preserves all existing tests and 41 locked files.
+The supervisor issues a sealed COMPOSITOR configuration. Worldd forwards it to spatialwm.
+The new XCB adapter checks the exact socket peer before sending authentication data.
+The compositor then checks native role and server ID before rendering.
+These implementation claims describe unqualified candidate source, not integrated production behavior.
+
+Both-host Debug drivers are active. Each builds with two jobs, then runs harness and new handoff tests.
+Candidate01 contains one startup test and eleven regression methods.
+The additional fake-server witness requires zero received authentication bytes.
+Read evidence/supervisor-world-handoff-2026-10-09/candidate-prepared-review-01.json and candidate-01.patch.
+The earlier partial draft and missing-feature failures remain preserved.
+
+Both full broker sanitizer runs continue independently. Broker and world candidates remain unintegrated.
+Production remains the supervisor increment at 534a94c. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Both hosts reproduce the missing world native handoff
 
 The unchanged, qualified Debug binaries fail the new startup baseline on both hosts.
