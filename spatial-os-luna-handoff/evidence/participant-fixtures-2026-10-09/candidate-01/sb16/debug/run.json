@@ -1,0 +1,45 @@
+{
+  "host": "sb16",
+  "results": [
+    {
+      "name": "workspace-authority",
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-01/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-focus-02/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-focus-02/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-focus-02/debug/build/worldd"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "selected": [
+    "workspace-authority",
+    "world-authority",
+    "application-control-lease",
+    "broker-control-client-live",
+    "world-identity",
+    "application-access",
+    "application-observation",
+    "world-application-control",
+    "workspace-bootstrap",
+    "workspace-bootstrap-races",
+    "world-bootstrap",
+    "world-bootstrap-races",
+    "world-remote",
+    "world-remote-config",
+    "world-remote-races",
+    "world-remote-lifecycle",
+    "world-remote-security",
+    "world-remote-native",
+    "world-participant",
+    "workspace-participant",
+    "workspace-participant-native"
+  ],
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "source_files": 250,
+  "production_binaries": "unchanged workspace02 Debug"
+}

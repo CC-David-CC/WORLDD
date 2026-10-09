@@ -1,0 +1,45 @@
+Registered-service fixture migration and broker error preservation, 2026-10-09
+
+Existing actor-serving world and authority-enabled broker fixtures need explicit service registration.
+The isolated migration creates distinct signing keys and exact domain registrations through real issuer operations.
+It reads the persisted world identity before registration. Clean restarts reuse the same service identity and key.
+The fixture snapshots client configuration so later endpoint setup cannot redirect another service.
+Broker fixture EOF uses a half-close. Direct lease fixtures explicitly release their own reservations before shutdown.
+Those fixtures do not dispatch native input. Production native world tests retain their own checked input-release path.
+No original test method or assertion changed. The independent AST audit covers all existing main tests.
+
+Preserved results
+The unmigrated restart test failed during setup because service configuration was missing.
+Migrated candidate01 ran all 20 workspace-authority tests: 17 passed and 3 failed.
+Two failures exposed a production regression: the new late-reply guard replaced an existing UNAVAILABLE error.
+Candidate03 adds !reply.has_error() to the guard. Existing typed failures remain unchanged.
+This preserves broker Reply's error-only outcome. Successful stale results are still invalidated.
+All 20 workspace-authority tests then passed without changing any assertion.
+One candidate01 setup reported a disabled identity service. Eight unchanged diagnostic repetitions passed.
+Its cause remains unconfirmed. Candidate04 retains service stderr logs for future diagnosis.
+
+Five new tests cover wrong domains, incomplete domain sets, correct multi-workspace registration, and delayed issuer replies.
+The first domain fixture tried to reuse repository authority already assigned to a workspace.
+Candidate03 uses a separate repository. Its remaining failure tried to register an already-owned authority domain twice.
+Candidate04 registers both domains together during setup. No issuer or workspace authority check was weakened.
+The new delayed-reply tests require UNAVAILABLE for stale snapshots, consistent with existing typed-error behavior.
+They verify pending obligations during real delayed replies, process exit for actor revocation, and credential independence.
+Candidate03 passed 60 of 61 focused tests. The only failure was the duplicate-domain fixture setup.
+
+Qualification launcher correction
+The initial output04 launcher still selected the candidate03 archive and manifest.
+On sb16-2 it failed before extraction because that archive was absent. No tests ran.
+On sb16 the owned build and its pinned descendants were stopped. Its partial logs remain preserved.
+Output05 now uses the correct candidate04 archive and manifest. Both hosts are running complete qualification.
+The stopped or failed output04 launches are not qualification results.
+
+The primary agent reviewed all changes. Candidate04 has 251 frozen files and unchanged locked acceptance files.
+Full Debug and runtime sanitizer qualification, remote participation witnesses, and supervisor fencing remain pending.
+No operator database or desktop session changed. M02 and Spatial-M1 remain incomplete.
+
+Candidate04 focused result
+Both hosts passed all 61 checks across eight focused suites in Debug, plus 51 harness checks.
+This includes all five domain and delayed-reply checks and all 20 unchanged workspace-authority checks.
+The production error correction and corrected multi-domain fixture now pass on both hosts.
+All 251 source hashes and 41 locked hashes match. Remaining core suites and P10 are running.
+Runtime sanitizer qualification remains pending in the same full runners.

@@ -1,0 +1,50 @@
+{
+  "host": "sb16-2",
+  "source_files": 250,
+  "locked_files": 41,
+  "integrated": false,
+  "debug": {
+    "checks": 36,
+    "suites": {
+      "process-termination": 6,
+      "workspace-participant": 6,
+      "world-participant": 6,
+      "identity-participant-runtime": 14,
+      "workspace-participant-native": 2,
+      "world-participant-native": 2
+    },
+    "harness": 51,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "workspaced": "455d55eb69b049ca674109d47dbdb02502aa9605dff87883f29e568b7eeb2d1d",
+      "worldd": "a3bbee233390ba4d5fedbf317fa194b6752309548a92c8de0440c5587859d08d",
+      "identityd": "b68227173279076efaca86bcbbf25ef647ccea7b079dc70214e24270f1e97c84",
+      "spatialwm": "0e78fd58c2db8754544d2ca086763d3212890d459dc8a0dfe6cb7485769b229c",
+      "spatial-app-init": "06fa3fc659c084c2532de8de78c50a1340e6a0086f59bef00cc7dff5a85b4cdb",
+      "spatial-test-host": "6a2d857b924eb22b22f229e03e041969072b361405b443c802ad7714018ac4f2"
+    }
+  },
+  "runtime-sanitize": {
+    "checks": 36,
+    "suites": {
+      "process-termination": 6,
+      "workspace-participant": 6,
+      "world-participant": 6,
+      "identity-participant-runtime": 14,
+      "workspace-participant-native": 2,
+      "world-participant-native": 2
+    },
+    "harness": 51,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "workspaced": "fee2b70e68644c3a4139ea2b32410e8cd85c8410d76b14ff37f22625db3ee259",
+      "worldd": "62ffc91cbc25292c41a038487b912399fdb5b738f9ed9c240525338078abe54f",
+      "identityd": "a0f4c5970e5b7f4654705751513b7ba7053032baa3724e6c7cabf773f3bc3a94",
+      "spatialwm": "53229aad9fde3cb3e721d26698be0b6b77ffe057c4b60abf55a032df5e48730d",
+      "spatial-app-init": "7353ef15274261af1572e6a52c18dbdc01c6827c8e16491ec13a065181cff611",
+      "spatial-test-host": "aef0cc740f06f69c5429b5afff5680613d4f385d112efd90f85cb038129aafa1"
+    }
+  }
+}

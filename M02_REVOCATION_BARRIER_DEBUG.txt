@@ -98,3 +98,14 @@ Both hosts passed full Debug and runtime sanitizer profiles:1192 core,51 harness
 The reviewed cleanup correction is integrated. Source and locked-test hashes match the qualified candidate.
 The original process cleanup failures remain in the evidence directory.
 Broker/world integration and supervisor fencing remain pending. This does not complete M02.
+
+Fixture and broker integration diagnostics, 2026-10-09
+Broader tests found that the draft late-reply guard replaced a correct UNAVAILABLE error with UNAUTHORIZED.
+The guard now preserves error outcomes. All 20 workspace-authority checks pass unchanged on the corrected draft.
+One setup reported a disabled identity service. Eight diagnostic repetitions passed; its cause remains unconfirmed.
+Candidate04 retains service stderr logs. Original failure and repetition logs are preserved.
+Multi-workspace fixture setup now uses separate repositories and a single registration for both domains.
+A launcher initially referenced candidate03 instead of04. Its owned build was stopped; it produced no qualification result.
+Corrected output05 runs the full candidate04 matrix on both hosts.
+Evidence:spatial-os-luna-handoff/evidence/participant-fixtures-2026-10-09
+Process correction 94c6cb6 is adopted on both hosts with 242 matching source hashes and no session restart.

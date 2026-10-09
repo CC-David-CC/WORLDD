@@ -181,3 +181,11 @@ Clean shutdown records interrupted jobs as uncertain, requires no reservations, 
 Native broker witnesses confirm that process exit alone does not clear an unreleased control reservation.
 Candidate01 and candidate02 focused Debug results are recorded in evidence/workspace-participant-2026-10-09.
 Both-host Debug and runtime sanitizer focused qualification is running. Integration and full M02 remain pending.
+
+Broad integration correction
+The late-reply guard invalidates successful protected outcomes after revocation.
+Preserve an existing typed error outcome. Do not replace UNAVAILABLE with UNAUTHORIZED after a failed operation.
+The broker Reply schema has one outcome, so an error does not retain a protected success payload.
+Existing workspace retry assertions exposed this regression and now pass unchanged on the corrected draft.
+Registered-service fixtures preserve distinct keys, exact domains, and service identity across clean restarts.
+All original test methods remain unchanged. The full combined qualification uses candidate04 in output05.

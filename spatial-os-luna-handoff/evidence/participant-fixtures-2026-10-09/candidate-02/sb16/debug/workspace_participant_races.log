@@ -1,0 +1,79 @@
+test_actor_revocation_during_delayed_reply_waits_for_handler_and_process_exit (__main__.WorkspaceParticipantRaceTests.test_actor_revocation_during_delayed_reply_waits_for_handler_and_process_exit) ... ok
+test_credential_revocation_rejects_late_reply_without_killing_actor_execution (__main__.WorkspaceParticipantRaceTests.test_credential_revocation_rejects_late_reply_without_killing_actor_execution) ... ok
+test_exact_multi_workspace_registration_allows_both_bindings (__main__.WorkspaceParticipantRaceTests.test_exact_multi_workspace_registration_allows_both_bindings) ... FAIL
+test_registered_service_rejects_a_different_workspace (__main__.WorkspaceParticipantRaceTests.test_registered_service_rejects_a_different_workspace) ... FAIL
+test_registration_must_cover_every_configured_workspace (__main__.WorkspaceParticipantRaceTests.test_registration_must_cover_every_configured_workspace) ... FAIL
+
+======================================================================
+FAIL: test_exact_multi_workspace_registration_allows_both_bindings (__main__.WorkspaceParticipantRaceTests.test_exact_multi_workspace_registration_allows_both_bindings)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_participant_races.py", line 39, in test_exact_multi_workspace_registration_allows_both_bindings
+    other=self.second_binding();one=broker.WorkspaceAuthorityBinding(workspace='one',authority_directory=str(self.directory))
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_participant_races.py", line 17, in second_binding
+    first.call('git.worktree.create',repo='repo',id='second-tree',branch='second-app',start='main',operation_id='second-tree')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_authority.py", line 42, in call
+    raise AssertionError(reply)
+AssertionError: protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: IN_USE
+    message: "Repository execution authority belongs to a workspace"
+  }
+}
+
+
+======================================================================
+FAIL: test_registered_service_rejects_a_different_workspace (__main__.WorkspaceParticipantRaceTests.test_registered_service_rejects_a_different_workspace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_participant_races.py", line 31, in test_registered_service_rejects_a_different_workspace
+    other=self.second_binding();item=self.start_broker(bindings=[other])
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_participant_races.py", line 17, in second_binding
+    first.call('git.worktree.create',repo='repo',id='second-tree',branch='second-app',start='main',operation_id='second-tree')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_authority.py", line 42, in call
+    raise AssertionError(reply)
+AssertionError: protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: IN_USE
+    message: "Repository execution authority belongs to a workspace"
+  }
+}
+
+
+======================================================================
+FAIL: test_registration_must_cover_every_configured_workspace (__main__.WorkspaceParticipantRaceTests.test_registration_must_cover_every_configured_workspace)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_participant_races.py", line 35, in test_registration_must_cover_every_configured_workspace
+    other=self.second_binding();one=broker.WorkspaceAuthorityBinding(workspace='one',authority_directory=str(self.directory))
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_participant_races.py", line 17, in second_binding
+    first.call('git.worktree.create',repo='repo',id='second-tree',branch='second-app',start='main',operation_id='second-tree')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_authority.py", line 42, in call
+    raise AssertionError(reply)
+AssertionError: protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: IN_USE
+    message: "Repository execution authority belongs to a workspace"
+  }
+}
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 7.941s
+
+FAILED (failures=3)

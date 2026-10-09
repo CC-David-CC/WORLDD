@@ -1,0 +1,289 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -181,6 +181,11 @@
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_process_termination.py" $<TARGET_FILE:spatial-process-termination-probe>)
+     set_tests_properties(process-termination PROPERTIES TIMEOUT 90
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME workspace-participant-races COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant_races.py"
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
++    set_tests_properties(workspace-participant-races PROPERTIES TIMEOUT 120
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+     add_test(NAME workspace-participant COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant.py"
+         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+--- a/src/workspace/main.cpp
++++ b/src/workspace/main.cpp
+@@ -205,7 +205,7 @@
+                         reply.mutable_error()->set_message("Malformed broker protobuf payload");
+                     } else reply = dispatch_broker(request, store, authority.get(), controls);
+                     enforce();
+-                    if (authority && cancellation != authority->cancellation_sequence() &&
++                    if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
+                             !request.has_management() && !request.has_control_release()) {
+                         reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+                         reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
+--- a/tests/core/test_application_access.py
++++ b/tests/core/test_application_access.py
+@@ -92,6 +92,7 @@
+         self.assertEqual(result.returncode, 0, result.stderr)
+         config = pb.WorkspaceAuthorityConfig(protocol_version=1, issuer_client_config=str(self.config_file()),
+             bindings=[pb.WorkspaceAuthorityBinding(workspace='one', authority_directory=str(directory))])
++        self.configure_participant(config,[grant.Domain(kind=grant.WORKSPACE,id=binding.workspace) for binding in config.bindings])
+         self.config = self.root/'broker.textproto'; self.config.write_text(text_format.MessageToString(config)); self.config.chmod(0o600)
+         self.native_config = None; self.server_id = b'x'*32
+         if native_enabled:
+--- a/tests/core/test_application_control_lease.py
++++ b/tests/core/test_application_control_lease.py
+@@ -14,7 +14,7 @@
+ 
+ class LeaseBroker(access.Broker):
+     def __init__(self,*args,**kwargs):
+-        self.events=[]
++        self.events=[];self.owned_leases={}
+         super().__init__(*args,**kwargs)
+ 
+     def read_reply(self):
+@@ -24,7 +24,17 @@
+             self.fixture.assertEqual(reply.request_id,0)
+             self.fixture.assertEqual(len(reply.control_revoked.id),32)
+             self.events.append(reply.control_revoked)
++        if reply.HasField('control_lease'):self.owned_leases[reply.control_lease.id]=reply.control_lease
++        if reply.HasField('control_released'):self.owned_leases.pop(reply.control_released.id,None)
+         return reply
++
++    def close(self):
++        # This fixture owns reservations without dispatching native input. Release them explicitly before EOF.
++        if self.stream.fileno()>=0 and self.proc.poll() is None:
++            for lease in list(self.owned_leases.values()):
++                reply=self.request(control_release=pb.ApplicationControlRelease(id=lease.id,principal=lease.principal))
++                self.fixture.assertTrue(reply.HasField('control_released'),reply)
++        super().close()
+ 
+     def response(self,sequence):
+         while True:
+--- a/tests/core/test_workspace_authority.py
++++ b/tests/core/test_workspace_authority.py
+@@ -50,11 +50,13 @@
+         return reply
+ 
+     def close(self):
+-        self.stream.close()
++        if self.stream.fileno()<0:return
+         if self.proc.poll() is None:
++            try:self.stream.shutdown(socket.SHUT_WR)
++            except OSError:pass
+             try: self.proc.wait(timeout=5)
+             except subprocess.TimeoutExpired: self.proc.kill(); self.proc.wait(timeout=3); raise
+-        self.log.close()
++        self.stream.close();self.log.close()
+ 
+ 
+ class WorkspaceAuthorityTests(WorldIdentityFixture):
+@@ -91,6 +93,7 @@
+         client_path.write_bytes(self.config_file(endpoint_port=issuer_port).read_bytes()); client_path.chmod(0o600)
+         config = broker.WorkspaceAuthorityConfig(protocol_version=1, issuer_client_config=str(client_path),
+             bindings=[broker.WorkspaceAuthorityBinding(workspace='one', authority_directory=str(directory))])
++        self.configure_participant(config,[grant.Domain(kind=grant.WORKSPACE,id=binding.workspace) for binding in config.bindings])
+         path = self.root/'workspace-policy.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
+         self.broker = BrokerProcess(self, self.execution, path)
+         world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)
+--- a/tests/core/test_workspace_participant.py
++++ b/tests/core/test_workspace_participant.py
+@@ -54,21 +54,23 @@
+         result=subprocess.run([str(workspace.BROKER),'--state-dir',str(self.execution),'--init-authority',str(path)],capture_output=True,timeout=8)
+         self.assertEqual(result.returncode,0,result.stderr)
+         self.signer,public=self.key('broker-service')
+-        self.definition=issuer.AuthorityParticipant(id=b'b'*32,public_key=public,domains=[grants.Domain(kind=grants.WORKSPACE,id='one')])
++        self.definition=issuer.AuthorityParticipant(id=b'b'*32,public_key=public,domains=self.service_domains())
+         peer=self.connect()
+         try:
+             op=issuer.IssuerOperation(participant_register=issuer.AuthorityParticipantRegister(participant=self.definition,expected_registry_revision=0))
+             result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('participant'),result)
+         finally:peer.close()
++    def service_domains(self):
++        return [grants.Domain(kind=grants.WORKSPACE,id='one')]
+     def write(self,name,message):
+         path=self.root/(name+'.textproto');path.write_text(text_format.MessageToString(message),encoding='utf-8');path.chmod(0o600);return path
+-    def start_broker(self,relay=None,participate=True,factory=BrokerProcess):
+-        query=self.root/'query.textproto';query.write_bytes(self.config_file().read_bytes());query.chmod(0o600)
++    def start_broker(self,relay=None,participate=True,factory=BrokerProcess,bindings=None,query_relay=None):
++        query=self.root/'query.textproto';query.write_bytes(self.config_file(endpoint_port=query_relay.port if query_relay else None).read_bytes());query.chmod(0o600)
+         service=self.root/'service.textproto';service.write_bytes(self.config_file(endpoint_port=relay.port if relay else None,io_timeout_ms=3000).read_bytes());service.chmod(0o600)
+         participant=self.write('participant',issuer.AuthorityParticipantRuntimeConfig(protocol_version=1,
+-            issuer_client_config=str(service),private_key_path=str(self.signer),participant_id=self.definition.id,registered_revision=1))
++            issuer_client_config=str(service),private_key_path=str(self.signer),participant_id=self.definition.id,registered_revision=getattr(self,'service_revision',1)))
+         config=broker.WorkspaceAuthorityConfig(protocol_version=1,issuer_client_config=str(query),
+-            bindings=[broker.WorkspaceAuthorityBinding(workspace='one',authority_directory=str(self.directory))])
++            bindings=bindings if bindings is not None else [broker.WorkspaceAuthorityBinding(workspace='one',authority_directory=str(self.directory))])
+         # Old binaries have no participant field. This permits an unchanged-source counterexample.
+         if participate and 'participant_runtime_config' in config.DESCRIPTOR.fields_by_name:config.participant_runtime_config=str(participant)
+         elif relay:config.issuer_client_config=str(service)
+--- /dev/null
++++ b/tests/core/test_workspace_participant_races.py
+@@ -0,0 +1,80 @@
++"""Exact broker authority domains and genuine revocation during issuer replies."""
++from pathlib import Path
++import subprocess
++import time
++import unittest
++import broker_pb2 as broker
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as issuer
++from harness.git_fixture import GitRepo
++from test_workspace_participant import WorkspaceParticipantFixture,BrokerProcess
++from test_world_bootstrap_races import BootstrapRelay
++import test_workspace_authority as workspace
++
++class WorkspaceParticipantRaceTests(WorkspaceParticipantFixture):
++    def second_binding(self):
++        first=BrokerProcess(self,self.execution)
++        repository=GitRepo(self.root/'second-project')
++        first.call('git.repo.import',id='second-repo',path=str(repository.path))
++        first.call('git.worktree.create',repo='second-repo',id='second-tree',branch='second-app',start='main',operation_id='second-tree')
++        first.call('workspace.create',id='two',worktree='second-tree',policy=workspace.POLICY)
++        first.close();self.assertEqual(first.proc.returncode,0)
++        directory=self.root/'second-authority';directory.mkdir(mode=0o700)
++        terms=self.workspace_terms();terms.scope.domain.id='two'
++        seed=broker.WorkspaceAuthoritySeed(protocol_version=1,workspace='two',authority_directory=str(directory),roots=[terms])
++        path=self.write('second-seed',seed)
++        result=subprocess.run([str(workspace.BROKER),'--state-dir',str(self.execution),'--init-authority',str(path)],capture_output=True,timeout=8)
++        self.assertEqual(result.returncode,0,result.stderr)
++        return broker.WorkspaceAuthorityBinding(workspace='two',authority_directory=str(directory))
++    def access(self,workspace_id='one'):
++        principal=self.principal();actor='identity:'+principal.issuer_id.hex()+':'+principal.actor_id.hex()
++        return self.broker.request(access=broker.AccessRequest(workspace=workspace_id,actor=actor,principal=principal))
++    def test_registered_service_rejects_a_different_workspace(self):
++        other=self.second_binding();item=self.start_broker(bindings=[other])
++        self.assertEqual(item.proc.wait(timeout=4),2);self.assertEqual(self.activations(),[])
++        self.assertIn('Workspace participation is unavailable',Path(item.log.name).read_text())
++    def test_registration_must_cover_every_configured_workspace(self):
++        other=self.second_binding();one=broker.WorkspaceAuthorityBinding(workspace='one',authority_directory=str(self.directory))
++        item=self.start_broker(bindings=[one,other]);self.assertEqual(item.proc.wait(timeout=4),2)
++        self.assertEqual(self.activations(),[])
++    def delayed_status(self,kind):
++        pending=[]
++        def revoke():
++            self.revoke_now(kind)
++            self.assertTrue(relay.delivered.wait(.3))
++            time.sleep(.08)
++            pending.append(self.barrier())
++            self.assertEqual((pending[-1].participant_count,pending[-1].pending_count,pending[-1].complete),(1,1,False))
++        relay=BootstrapRelay(self,revoke,'actor_status')
++        item=self.start_broker(relay=relay,query_relay=relay);item.call('system.hello')
++        poll,count=self.launch_application();relay.armed.set()
++        result=self.access();self.assertTrue(result.HasField('error'),result)
++        self.assertEqual(result.error.code,core.UNAVAILABLE)
++        self.assertEqual(len(pending),1);self.assertTrue(relay.delivered.is_set())
++        completed=self.until(self.barrier,lambda value:value.complete);self.assertEqual(completed.participant_count,1)
++        if kind==issuer.ACTOR_TARGET:self.assertEqual(len(poll.poll(0)),count)
++        else:
++            self.assertEqual(poll.poll(0),[])
++            self.assertTrue(self.access().HasField('access'))
++        item.close();self.assertEqual(item.proc.returncode,0);self.assertEqual(len(poll.poll(0)),count)
++    def test_actor_revocation_during_delayed_reply_waits_for_handler_and_process_exit(self):
++        self.delayed_status(issuer.ACTOR_TARGET)
++    def test_credential_revocation_rejects_late_reply_without_killing_actor_execution(self):
++        self.delayed_status(issuer.CREDENTIAL_TARGET)
++
++class WorkspaceParticipantMultiTests(WorkspaceParticipantFixture):
++    second_binding=WorkspaceParticipantRaceTests.second_binding
++    access=WorkspaceParticipantRaceTests.access
++    def service_domains(self):
++        return [grants.Domain(kind=grants.WORKSPACE,id='one'),grants.Domain(kind=grants.WORKSPACE,id='two')]
++    def test_exact_multi_workspace_registration_allows_both_bindings(self):
++        other=self.second_binding();one=broker.WorkspaceAuthorityBinding(workspace='one',authority_directory=str(self.directory))
++        item=self.start_broker(bindings=[other,one]);item.call('system.hello')
++        for name in ['one','two']:
++            result=self.access(name);self.assertTrue(result.HasField('access'),result)
++            self.assertIn(core.PROCESS_LAUNCH,result.access.rights)
++        self.assertEqual(self.activations(),[(1,0,1)])
++        item.close();self.assertEqual(item.proc.returncode,0);self.assertEqual(self.activations(),[(1,0,0)])
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- a/tests/core/test_world_authority.py
++++ b/tests/core/test_world_authority.py
+@@ -117,6 +117,7 @@
+         self.assertEqual(result.returncode, 0, result.stderr)
+         config = session.WorldIdentityConfig(protocol_version=1, issuer_client_config=str(self.config_file(endpoint_port=issuer_port)),
+             admission=admission, authority_directory=str(directory))
++        self.configure_world_participant(config,state)
+         config_path = self.root/f'scoped-{number}.textproto'; config_path.write_text(text_format.MessageToString(config)); config_path.chmod(0o600)
+         runtime = core.RuntimeConfig(); text_format.Parse((WORLD.parent/'runtime.textproto').read_text(), runtime)
+         runtime.input_timeout = 10
+--- a/tests/core/test_world_identity.py
++++ b/tests/core/test_world_identity.py
+@@ -1,5 +1,7 @@
+ """Real issuer proofs enter worldd and use its native actor implementation."""
+ import os
++import io
++import grants_pb2 as grants
+ from pathlib import Path
+ import select
+ import socket
+@@ -12,7 +14,7 @@
+ import core_pb2 as core
+ import issuer_pb2 as pb
+ import world_session_pb2 as session
+-from harness.wire import frame, make_request, result_value
++from harness.wire import frame, make_request, result_value, read_message
+ from harness.oracles import pose
+ from harness.probe import Probe
+ from test_issuer_client import ClientFixture
+@@ -83,15 +85,54 @@
+ 
+ class WorldIdentityFixture(ClientFixture):
+     def setUp(self):
+-        super().setUp();self.worlds=[]
++        super().setUp();self.worlds=[];self.registered_services={};self.registry_revision=0
+         self.addCleanup(lambda:[world.close() for world in reversed(self.worlds)])
+         self.owner_peer=self.ready()
+         self.record=self.decide(self.owner_peer,self.enroll(self.owner_peer)).enrollment
+         self.identity=self.claims(self.record,self.info)
++        def retain_service_logs():
++            if not os.environ.get('SPATIAL_SECURITY_EVIDENCE'):return
++            target=Path(os.environ['SPATIAL_SECURITY_EVIDENCE']);target.mkdir(parents=True,exist_ok=True)
++            for path in self.root.glob('*.log'):
++                (target/(type(self).__name__+'-'+self._testMethodName+'-'+path.name)).write_bytes(path.read_bytes())
++        self.addCleanup(retain_service_logs)
++    def configure_participant(self, config, domains):
++        # Registration is explicit fixture provisioning. Production still rejects missing service configuration.
++        identity=tuple(sorted(domain.SerializeToString() for domain in domains))
++        if identity not in self.registered_services:
++            number=len(self.registered_services)
++            key,public=self.key('service-'+str(number))
++            definition=pb.AuthorityParticipant(id=os.urandom(32),public_key=public,domains=domains)
++            peer=self.connect()
++            try:
++                op=pb.IssuerOperation(participant_register=pb.AuthorityParticipantRegister(
++                    participant=definition,expected_registry_revision=self.registry_revision))
++                reply=self.execute(peer,self.challenge(peer,op));self.assertTrue(reply.HasField('participant'),reply)
++            finally:peer.close()
++            self.registry_revision=reply.participant.registered_revision
++            self.registered_services[identity]=(number,key,definition.id,self.registry_revision)
++        number,key,participant_id,revision=self.registered_services[identity]
++        client=self.root/('registered-client-'+str(number)+'.textproto')
++        client.write_bytes(Path(config.issuer_client_config).read_bytes());client.chmod(0o600)
++        config.issuer_client_config=str(client)
++        participant=pb.AuthorityParticipantRuntimeConfig(protocol_version=1,issuer_client_config=str(client),
++            private_key_path=str(key),participant_id=participant_id,registered_revision=revision)
++        path=self.root/('registered-participant-'+str(number)+'.textproto')
++        path.write_text(text_format.MessageToString(participant));path.chmod(0o600)
++        config.participant_runtime_config=str(path)
++    def configure_world_participant(self, config, state):
++        # Initialize or read the real stopped world before registering its persisted identity.
++        result=subprocess.run([str(WORLD),'--state-dir',str(state)],input=frame(make_request('world.info',{})),
++            capture_output=True,timeout=6)
++        self.assertEqual(result.returncode,0,result.stderr)
++        reply=read_message(io.BytesIO(result.stdout),core.Reply);self.assertFalse(reply.HasField('error'),reply)
++        self.configure_participant(config,[grants.Domain(kind=grants.WORLD,id=result_value(reply)['world_id'])])
+     def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None):
+         config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(self.config_file()),admission=admission)
+         if admitted:config.admitted_actor_ids.append(self.identity.actor_id)
+         if grants:config.actor_grants.add(actor_id=self.identity.actor_id,grants=grants)
++        state=state or self.root/f'world-state-{len(self.worlds)}'
++        self.configure_world_participant(config,state)
+         path=self.root/f'world-{len(self.worlds)}.textproto';path.write_text(text_format.MessageToString(config));path.chmod(0o600)
+         world=WorldProcess(self,path,state or self.root/f'world-state-{len(self.worlds)}',native)
+         self.worlds.append(world);world.management('system.hello');return world

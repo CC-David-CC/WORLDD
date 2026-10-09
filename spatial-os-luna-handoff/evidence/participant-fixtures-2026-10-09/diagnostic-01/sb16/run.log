@@ -1,0 +1,13 @@
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.Diagnostic.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.Diagnostic.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.Diagnostic.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.Diagnostic.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.Diagnostic.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.Diagnostic.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.Diagnostic.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.Diagnostic.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 25.536s
+
+OK

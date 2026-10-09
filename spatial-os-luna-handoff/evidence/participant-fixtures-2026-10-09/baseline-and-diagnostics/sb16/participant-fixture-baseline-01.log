@@ -1,0 +1,33 @@
+test_persistent_grants_and_selection_survive_broker_and_world_restart (__main__.WorkspaceAuthorityTests.test_persistent_grants_and_selection_survive_broker_and_world_restart) ... ERROR
+
+======================================================================
+ERROR: test_persistent_grants_and_selection_survive_broker_and_world_restart (__main__.WorkspaceAuthorityTests.test_persistent_grants_and_selection_survive_broker_and_world_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/source/tests/core/test_workspace_authority.py", line 271, in test_persistent_grants_and_selection_survive_broker_and_world_restart
+    self.enroll_second(); world = self.workspace(); peer = world.peers[1]
+                                  ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/source/tests/core/test_workspace_authority.py", line 96, in workspace
+    world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/source/tests/core/test_world_authority.py", line 110, in scoped_world
+    initial = self.world(state=state)
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/source/tests/core/test_world_identity.py", line 97, in world
+    self.worlds.append(world);world.management('system.hello');return world
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/source/tests/core/test_world_identity.py", line 70, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/source/tests/core/test_world_identity.py", line 34, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-01/source/tests/core/test_world_identity.py", line 31, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+----------------------------------------------------------------------
+Ran 1 test in 1.183s
+
+FAILED (errors=1)

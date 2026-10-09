@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-09: Registered world and broker fixtures enter combined qualification
+
+The broker/world candidate02 passed 36 focused checks and 51 harness checks in both profiles on both hosts.
+Broader migrated fixtures then exposed a typed-error regression. The guard now preserves existing failure replies.
+All 20 workspace-authority tests pass on that corrected draft, including process retry and clean restart cases.
+One earlier setup failure remains unexplained. Eight exact diagnostic repetitions passed; future runs now retain service logs.
+
+The new tests check exact workspace domains and revocation during real delayed replies.
+The multi-workspace fixture now registers both domains once and gives each workspace a separate repository.
+All existing main test methods remain unchanged. The AST audit and original failed runs are preserved.
+The current candidate04 contains 251 frozen files. Full Debug and sanitizer qualification is running on both hosts.
+Output05 selects this candidate. The mistaken output04 launches are preserved and excluded from qualification.
+Both hosts passed 61 focused Debug checks across eight suites and 51 harness checks on candidate04.
+The remaining core suites are running. Runtime sanitizer and full P10 results remain pending.
+See evidence/participant-fixtures-2026-10-09 for the patch, review, diagnostics, and source manifests.
+
+Checked process termination is separately integrated and adopted as 94c6cb6.
+Remote participation and supervisor fencing remain pending. M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-09: Checked application termination qualified and integrated
 
 Application cancellation now pins the namespace leader before application startup.
@@ -11,7 +31,7 @@ Each profile passed 1192 core checks across 69 suites, 51 harness checks, and 15
 No case failed or skipped. All 242 source hashes and 41 locked hashes match.
 Primary review covered all five changed source and test files. Existing tests and schemas remain unchanged.
 The three original cleanup failures remain preserved as regression evidence.
-The reviewed correction is integrated locally. Commit and host adoption are next.
+Commit 94c6cb6 is pushed to box-git and adopted on both hosts. All 242 source hashes match and both worktrees are clean.
 See evidence/process-termination-2026-10-09/integration-applied-02.json.
 
 The separate broker/world draft still requires broad qualification and supervisor fencing.

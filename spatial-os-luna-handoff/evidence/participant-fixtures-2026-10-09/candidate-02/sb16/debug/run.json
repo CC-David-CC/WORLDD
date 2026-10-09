@@ -1,0 +1,18 @@
+{
+  "host": "sb16",
+  "results": [
+    {
+      "name": "workspace_participant_races",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-fixtures-02/source/tests/core/test_workspace_participant_races.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-focus-02/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-focus-02/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-workspace-participant-focus-02/debug/build/worldd"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "source_files": 251,
+  "production_binaries": "workspace02 Debug"
+}
