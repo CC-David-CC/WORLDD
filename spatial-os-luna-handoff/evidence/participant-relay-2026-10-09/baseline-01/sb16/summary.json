@@ -1,0 +1,9 @@
+{
+  "host": "sb16",
+  "source_files": 277,
+  "locked_files": 41,
+  "missing_operation": "prepare_channel",
+  "expected_failures": 1,
+  "harness_checks": 51,
+  "acceptance_pass": false
+}

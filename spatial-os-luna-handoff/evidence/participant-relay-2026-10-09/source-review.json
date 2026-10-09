@@ -1,0 +1,26 @@
+{
+  "source_files": 277,
+  "locked_files": 41,
+  "candidate": 1,
+  "integrated": false,
+  "existing_tests_unchanged": true,
+  "patch_reconstruction": "Both baseline and candidate patches reproduce every frozen hash.",
+  "review": [
+    "Reserved inherited endpoint passes only through retained ProcessScope startup.",
+    "Durable approval and authentication precede channel preparation.",
+    "External polling and command APIs cannot compete with private relay ownership.",
+    "The parent checks live child scope before accepting commands.",
+    "Private forwarded submission preserves child revision; the real issuer checks current state.",
+    "The existing direct submit revision equality remains unchanged.",
+    "Messages and bootstrap queues are bounded.",
+    "Failure closes routing and retains unresolved issuer obligations.",
+    "Clean release drains its reply before endpoint closure."
+  ],
+  "baseline": "Both hosts reject prepare_channel with Unknown launch operation;51harness passed.",
+  "qualification": "Candidate01 builds are running on both hosts. Ten new checks and all prior focused checks are pending.",
+  "remaining": [
+    "Complete Debug/runtime sanitizer qualification and cumulative gate.",
+    "Wire worldd and workspaced through the supervisor event loop.",
+    "Implement checked fencing, recovery, and generation retirement."
+  ]
+}

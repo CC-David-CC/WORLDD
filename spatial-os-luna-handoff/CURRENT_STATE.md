@@ -1,5 +1,31 @@
 # Implementation status
 
+## 2026-10-09: Private child channel passes both profiles; supervisor relay enters qualification
+
+Private child-channel candidate02 passed focused Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 356 checks across 22 suites and 51 harness checks.
+No final case failed or skipped. All 276 source hashes and 41 locked hashes match.
+The original fixture failure and corrected diagnostic remain preserved.
+
+Launch authorization candidate03 completed full Debug and runtime ASan/UBSan on both hosts.
+Each profile passed 1328 core checks across 86 suites, 51 harness checks, and 151 P10 cases.
+No case failed or skipped. All 273 source hashes and 41 locked hashes match.
+
+Both hosts reproduced the supervisor's unsupported private-channel preparation operation.
+The isolated relay now reserves the child endpoint, passes it through the owned process launch, and forwards exact commands.
+It retains durable approval, authenticated issuer ownership, bounded transport, and checked child lifetime.
+External participant polling and command injection cannot compete with the relay.
+A forwarded stale revision remains unchanged for the real issuer to reject.
+Parent receipt and child delivery do not acknowledge completed revocation effects.
+
+Relay candidate01 contains 277 files and ten new tests.
+Its Debug builds are running on both hosts. No relay qualification result is claimed yet.
+All previous test files and 41 locked files remain unchanged.
+Read docs/AUTHORITY_PARTICIPANT_RELAY.txt and evidence/participant-relay-2026-10-09.
+
+Owned participant full Debug passed both hosts; its runtime sanitizer matrix continues.
+No new source is integrated. World/broker wiring, fencing, checked recovery, M02, and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Child-channel fixture corrected; owned participant full Debug passes
 
 Private channel candidate01 ran 356 Debug checks across 22 suites on each host.

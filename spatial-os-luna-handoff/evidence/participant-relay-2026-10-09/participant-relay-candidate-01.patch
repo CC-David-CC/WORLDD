@@ -1,0 +1,595 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -232,6 +232,17 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(workspace-bootstrap-owner-idle PROPERTIES TIMEOUT 60
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME authority-participant-relay COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-participant-relay-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_participant_relay.py"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(authority-participant-relay PROPERTIES TIMEOUT 120)
+     add_test(NAME authority-owned-participant COMMAND systemd-run --user --wait --pipe --collect
+         --unit=spatial-owned-participant-${build_hash} --property=Delegate=yes
+         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -43,6 +43,7 @@
+   uint64 supervision_revision = 3;
+   optional uint64 previous_generation = 4;
+ }
++message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
+ message AuthorityLaunchQuery {}
+ message AuthorityLaunchRequest {
+   uint32 protocol_version = 1;
+@@ -56,6 +57,8 @@
+     AuthorityLaunchQuery participant_poll = 15;
+     AuthorityLaunchAuthorize authorize = 16;
+     spatial.identity.v1.ParticipantCommand participant_command = 17;
++    AuthorityParticipantChannelPrepare prepare_channel = 18;
++    AuthorityLaunchQuery pump_channel = 19;
+   }
+ }
+ message AuthorityLaunchView {
+@@ -70,5 +73,6 @@
+     AuthorityLaunchView view = 10;
+     AuthorityLaunchError error = 11;
+     spatial.identity.v1.ParticipantUpdate participant_update = 12;
++    spatial.identity.v1.AuthorityParticipantRuntimeConfig participant_config = 13;
+   }
+ }
+--- a/src/identity/participant_runtime.cpp
++++ b/src/identity/participant_runtime.cpp
+@@ -30,7 +30,8 @@
+     mutable std::mutex mutex;
+     std::deque<v1::ParticipantCommand> commands;
+     std::deque<v1::ParticipantUpdate> updates;
+-    std::set<std::uint64_t> pending;
++    std::set<std::uint64_t> pending, forwarded_requests;
++    bool inherited_channel = false;
+     std::optional<std::uint64_t> delivered_revision;
+     bool broken = false, closed = false, releasing = false;
+     // Destruction requests stop and joins before destroying shared state.
+@@ -39,7 +40,7 @@
+     void fail_locked(core::ErrorCode code, const std::string& message, std::uint64_t request = 0) {
+         if (broken) return;
+         std::cerr << "authority participant failed: code=" << static_cast<int>(code) << " request=" << request << '\n';
+-        broken = true; commands.clear(); updates.clear(); pending.clear();
++        broken = true; commands.clear(); updates.clear(); pending.clear(); forwarded_requests.clear();
+         auto& update = updates.emplace_back(); update.set_protocol_version(1); update.set_request_id(request);
+         update.mutable_error()->set_code(code); update.mutable_error()->set_message(message);
+     }
+@@ -95,11 +96,14 @@
+                 check_stop(stop);
+                 std::optional<v1::ParticipantCommand> command;
+                 std::optional<std::uint64_t> delivered;
+-                bool queued = false;
++                bool queued = false, forwarded = false;
+                 {
+                     std::lock_guard lock(mutex); delivered = delivered_revision;
+                     // Publish the initial feed before accepting mutations.
+-                    if (cursor && !commands.empty()) { command = std::move(commands.front()); commands.pop_front(); }
++                    if (cursor && !commands.empty()) {
++                        command = std::move(commands.front()); commands.pop_front();
++                        forwarded = forwarded_requests.erase(command->request_id()) != 0;
++                    }
+                     queued = !commands.empty();
+                 }
+                 if (command) {
+@@ -107,7 +111,8 @@
+                     v1::IssuerRequest request; request.set_protocol_version(1);
+                     if (command->has_activate()) {
+                         require(!active && delivered && command->activate().has_synchronized_revision() &&
+-                                command->activate().synchronized_revision() == *delivered,
++                                (forwarded ? command->activate().synchronized_revision() <= *delivered :
++                                    command->activate().synchronized_revision() == *delivered),
+                                 "Activation requires the consumed synchronized revision");
+                         *request.mutable_authority_activate() = command->activate();
+                     } else if (command->has_applied()) {
+@@ -314,6 +319,7 @@
+         for (const auto& domain : domains) *expected.add_domains() = domain;
+         validate_participant(expected);
+         if (config.has_supervisor_channel_fd()) {
++            inherited_channel = true;
+             auto stream = std::make_unique<ParticipantStream>(static_cast<int>(config.supervisor_channel_fd()), getppid());
+             worker = std::jthread([this, config, domains = domain_set(expected), stream = std::move(stream)](std::stop_token stop) {
+                 run_private(stop, config, domains, *stream);
+@@ -324,7 +330,10 @@
+ ParticipantRuntime::ParticipantRuntime(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains)
+     : impl_(std::make_unique<Impl>(path, domains)) {}
+ ParticipantRuntime::~ParticipantRuntime() = default;
+-void ParticipantRuntime::submit(v1::ParticipantCommand command) {
++void ParticipantRuntime::submit(v1::ParticipantCommand command) { submit_impl(std::move(command), false); }
++void ParticipantRuntime::submit_forwarded(v1::ParticipantCommand command) { submit_impl(std::move(command), true); }
++void ParticipantRuntime::submit_impl(v1::ParticipantCommand command, bool forwarded) {
++    require(!forwarded || !impl_->inherited_channel, "Only a direct issuer connection can forward child commands");
+     validate_message(command);
+     require(command.operation_case() != v1::ParticipantCommand::OPERATION_NOT_SET, "Participant command requires an operation");
+     std::lock_guard lock(impl_->mutex);
+@@ -337,7 +346,9 @@
+         require(impl_->pending.empty(), "Consume all command results before requesting release");
+         impl_->releasing = true;
+     }
+-    impl_->pending.insert(command.request_id()); impl_->commands.push_back(std::move(command));
++    impl_->pending.insert(command.request_id());
++    if (forwarded) impl_->forwarded_requests.insert(command.request_id());
++    impl_->commands.push_back(std::move(command));
+ }
+ std::optional<v1::ParticipantUpdate> ParticipantRuntime::poll() {
+     std::lock_guard lock(impl_->mutex);
+--- a/src/identity/participant_runtime.hpp
++++ b/src/identity/participant_runtime.hpp
+@@ -5,6 +5,7 @@
+ #include <optional>
+ #include <vector>
+ 
++namespace spatial::supervisor { class AuthorityLaunch; }
+ namespace spatial::identity {
+ // The authority thread consumes events, settles effects, then explicitly acknowledges.
+ // poll() and submit() never wait for network I/O. Failure is permanent.
+@@ -20,6 +21,10 @@
+     std::optional<v1::ParticipantUpdate> poll();
+     bool failed() const;
+ private:
++    friend class spatial::supervisor::AuthorityLaunch;
++    // Preserve the child's revision. The issuer resolves synchronization races.
++    void submit_forwarded(v1::ParticipantCommand command);
++    void submit_impl(v1::ParticipantCommand command, bool forwarded);
+     struct Impl;
+     std::unique_ptr<Impl> impl_;
+ };
+--- a/src/supervisor/launch.cpp
++++ b/src/supervisor/launch.cpp
+@@ -3,6 +3,9 @@
+ #include "supervisor/process_scope.hpp"
+ #include "core/protocol.hpp"
+ #include "identity/participant_runtime.hpp"
++#include "identity/participant_stream.hpp"
++#include <deque>
++#include <utility>
+ #include "identity/participants.hpp"
+ #include "identity/issuer_client.hpp"
+ #include "identity/keys.hpp"
+@@ -121,6 +124,12 @@
+     std::unique_ptr<identity::ParticipantRuntime> participant;
+     std::optional<identity::v1::AuthorityAuthenticationResult> authenticated;
+     bool attached = false, stopping = false, started = false;
++    bool relay_prepared = false, relay_terminal = false, relay_finished = false, relay_failed = false;
++    std::uint32_t relay_target = 0;
++    File relay_child;
++    std::unique_ptr<identity::ParticipantStream> relay;
++    std::deque<identity::v1::ParticipantUpdate> bootstrap;
++    std::optional<std::uint64_t> relay_request;
+     void prepared_participant() const {
+         require(record.binding().supervised() && record.stage() == v1::PREPARED && process && native && !stopping,
+             "No live prepared supervised ownership");
+@@ -227,9 +236,25 @@
+     if (impl_->record.binding().supervised())
+         require(impl_->record.has_authorization() && impl_->participant && !impl_->participant->failed(),
+             "Supervised launch requires a live approved participant connection");
++    auto actual = request; auto descriptors = inherited;
++    if (impl_->relay_prepared) {
++        require(impl_->relay && !impl_->relay_failed && impl_->relay_child.fd >= 3 && inherited.size() < 16 &&
++            static_cast<std::size_t>(request.inherited_fds_size()) == inherited.size(), "Invalid private channel launch descriptors");
++        for (const auto target : request.inherited_fds())
++            require(target != impl_->relay_target, "Inherited descriptor collides with participant channel");
++        actual.add_inherited_fds(impl_->relay_target); descriptors.push_back(impl_->relay_child.fd);
++    } else impl_->bootstrap.clear();
+     auto next = impl_->record; next.set_stage(v1::START_ATTEMPTED);
+     impl_->persist(next); // A crash after this point must never replay execution.
+-    impl_->process->start(request, streams, inherited);
++    try { impl_->process->start(actual, streams, descriptors); }
++    catch (...) {
++        if (impl_->relay_prepared) {
++            impl_->relay_failed = true; impl_->relay.reset(); impl_->participant.reset();
++            close(std::exchange(impl_->relay_child.fd, -1));
++        }
++        throw;
++    }
++    if (impl_->relay_child.fd >= 0) close(std::exchange(impl_->relay_child.fd, -1));
+     impl_->started = true;
+     return impl_->record;
+ }
+@@ -237,6 +262,8 @@
+     if (impl_->record.stage() == v1::OWNED_SCOPES_STOPPED) return impl_->record;
+     require(impl_->record.revision() && impl_->process && impl_->native, "Live ownership is unavailable; cleanup remains unresolved");
+     impl_->stopping = true;
++    impl_->relay.reset(); impl_->bootstrap.clear();
++    if (impl_->relay_child.fd >= 0) close(std::exchange(impl_->relay_child.fd, -1));
+     impl_->participant.reset(); // Closing a connection does not retire its issuer generation.
+     if (impl_->record.stage() != v1::CLEANUP_PENDING) {
+         auto next = impl_->record;
+@@ -276,6 +303,7 @@
+         std::vector<authority::v1::Domain>(request.domains().begin(), request.domains().end()));
+ }
+ std::optional<identity::v1::ParticipantUpdate> AuthorityLaunch::poll_participant() {
++    require(!impl_->relay_prepared, "Private relay owns participant consumption");
+     require(impl_->participant && !impl_->stopping, "No retained participant connection");
+     auto update = impl_->participant->poll();
+     if (update && update->has_authenticated()) {
+@@ -287,6 +315,13 @@
+             impl_->participant.reset(); throw std::runtime_error("Retained participant identity differs from owned launch");
+         }
+         impl_->authenticated = service;
++    }
++    if (update && !impl_->started && (update->has_authenticated() || update->has_revocations())) {
++        if (impl_->bootstrap.size() >= 256) {
++            impl_->participant.reset(); impl_->bootstrap.clear();
++            throw std::runtime_error("Participant bootstrap consumer fell behind");
++        }
++        impl_->bootstrap.push_back(*update);
+     }
+     return update;
+ }
+@@ -321,6 +356,7 @@
+     return impl_->record;
+ }
+ void AuthorityLaunch::submit_participant(identity::v1::ParticipantCommand command) {
++    require(!impl_->relay_prepared, "Private relay owns participant commands");
+     require(impl_->record.stage() == v1::START_ATTEMPTED && impl_->record.has_authorization() &&
+         impl_->participant && !impl_->participant->failed() && !impl_->stopping && impl_->started,
+         "Participant commands require a started owned supervised launch");
+@@ -328,9 +364,75 @@
+     require(process.populated() && !process.direct_child_exited(), "Authority child is no longer running");
+     impl_->participant->submit(std::move(command));
+ }
++identity::v1::AuthorityParticipantRuntimeConfig AuthorityLaunch::prepare_channel(std::uint32_t target_fd) {
++    impl_->prepared_participant();
++    require(!impl_->relay_prepared && impl_->record.has_authorization() && impl_->participant &&
++        !impl_->participant->failed() && impl_->authenticated && target_fd >= 3 && target_fd <= 255,
++        "Private channel requires a live approved participant and valid target descriptor");
++    require(impl_->bootstrap.size() >= 2 && impl_->bootstrap.front().has_authenticated() &&
++        impl_->bootstrap[1].has_revocations() && impl_->bootstrap[1].revocations().initial(),
++        "Private channel requires the retained authentication and initial feed");
++    int pair[2]; require(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) == 0,
++        "Cannot create private participant channel");
++    File parent, child; parent.fd = pair[0]; child.fd = pair[1];
++    auto stream = std::make_unique<identity::ParticipantStream>(std::exchange(parent.fd, -1), getpid());
++    identity::v1::AuthorityParticipantRuntimeConfig config;
++    const auto& binding = impl_->record.binding();
++    config.set_protocol_version(1); config.set_participant_id(binding.participant_id());
++    config.set_registered_revision(binding.registered_revision()); config.set_service_incarnation(binding.service_incarnation());
++    config.set_supervisor_issuer_id(binding.issuer_id()); config.set_supervisor_channel_fd(target_fd);
++    impl_->relay = std::move(stream); impl_->relay_child.fd = std::exchange(child.fd, -1);
++    impl_->relay_target = target_fd; impl_->relay_prepared = true;
++    return config;
++}
++void AuthorityLaunch::pump_channel() {
++    require(impl_->relay_prepared && !impl_->relay_failed && !impl_->stopping, "No usable private participant relay");
++    if (impl_->relay_finished) return;
++    require(impl_->started && impl_->record.stage() == v1::START_ATTEMPTED,
++        "Private participant relay requires successful child execution");
++    try {
++        require(impl_->relay && impl_->participant && impl_->process, "Private relay lost live ownership");
++        const auto process = impl_->process->state();
++        require(process.populated() && !process.direct_child_exited(), "Authority child exited before relay completion");
++        while (!impl_->bootstrap.empty()) {
++            impl_->relay->send(impl_->bootstrap.front().SerializeAsString()); impl_->bootstrap.pop_front();
++        }
++        for (int count = 0; count < 16 && !impl_->relay_terminal; ++count) {
++            auto update = impl_->participant->poll(); if (!update) break;
++            require(!update->has_authenticated(), "Private relay received repeated authentication");
++            if (!update->has_revocations()) {
++                require((impl_->relay_request && update->request_id() == *impl_->relay_request) ||
++                    (update->has_error() && update->request_id() == 0), "Private relay received an uncorrelated result");
++                impl_->relay_request.reset();
++            }
++            impl_->relay->send(update->SerializeAsString());
++            if (update->has_released() || (update->has_error() && impl_->participant->failed())) impl_->relay_terminal = true;
++        }
++        impl_->relay->flush();
++        if (impl_->relay_terminal) {
++            if (!impl_->relay->pending_output()) {
++                impl_->relay_finished = true; impl_->relay.reset(); impl_->participant.reset();
++            }
++            return;
++        }
++        if (auto bytes = impl_->relay->receive()) {
++            require(!impl_->relay_request, "Private relay already has a consequential command");
++            identity::v1::ParticipantCommand command;
++            require(command.ParseFromString(*bytes), "Malformed private participant command"); validate_message(command);
++            require(command.operation_case() != identity::v1::ParticipantCommand::OPERATION_NOT_SET,
++                "Private participant command requires an operation");
++            impl_->participant->submit_forwarded(command); impl_->relay_request = command.request_id();
++        }
++    } catch (...) {
++        impl_->relay_failed = true; impl_->relay.reset(); impl_->participant.reset(); impl_->bootstrap.clear();
++        throw;
++    }
++}
+ AuthorityLaunch::~AuthorityLaunch() {
+     // Destructors still stop owned effects. Only a successful explicit stop persists receipts.
+     // Preserve the record on partial preparation or any journal/cleanup failure.
++    impl_->relay.reset();
++    if (impl_->relay_child.fd >= 0) close(std::exchange(impl_->relay_child.fd, -1));
+     impl_->participant.reset();
+     impl_->process.reset();
+     impl_->native.reset();
+--- a/src/supervisor/launch.hpp
++++ b/src/supervisor/launch.hpp
+@@ -24,6 +24,9 @@
+     std::optional<identity::v1::ParticipantUpdate> poll_participant();
+     v1::AuthorityLaunchRecord authorize(const v1::AuthorityLaunchAuthorize& request);
+     void submit_participant(identity::v1::ParticipantCommand command);
++    identity::v1::AuthorityParticipantRuntimeConfig prepare_channel(std::uint32_t target_fd);
++    // The supervisor event loop pumps this channel. Failure requires checked cleanup.
++    void pump_channel();
+     v1::AuthorityLaunchRecord inspect() const;
+     v1::AuthorityLaunchRecord stop();
+ private:
+--- a/src/testing/authority_launch_probe.cpp
++++ b/src/testing/authority_launch_probe.cpp
+@@ -9,11 +9,13 @@
+     namespace pb = spatial::supervisor::v1;
+     std::signal(SIGPIPE, SIG_IGN);
+     try {
+-        if (argc != 4) throw std::runtime_error("Expected journal directory, delegated root, and sealed native config");
++        if (argc != 4 && argc != 6) throw std::runtime_error("Expected journal directory, delegated root, sealed native config, and optional child streams");
+         spatial::supervisor::AuthorityLaunch launch(argv[1]);
+         const int config = std::stoi(argv[3]);
+         const int empty = open("/dev/null", O_RDWR | O_CLOEXEC);
+         if (empty < 0) throw std::runtime_error("Cannot open child streams");
++        const int child_input = argc == 6 ? std::stoi(argv[4]) : empty;
++        const int child_output = argc == 6 ? std::stoi(argv[5]) : empty;
+         std::string bytes;
+         while (spatial::read_frame(std::cin, bytes)) {
+             pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
+@@ -23,7 +25,7 @@
+                 reply.set_request_id(request.request_id()); spatial::validate_message(request);
+                 if (request.protocol_version() != 1) throw std::runtime_error("Unsupported launch version");
+                 if (request.has_prepare()) *reply.mutable_view() = launch.prepare(argv[2], request.prepare(), config);
+-                else if (request.has_start()) *reply.mutable_view()->mutable_record() = launch.start(request.start(), {empty,empty,empty});
++                else if (request.has_start()) *reply.mutable_view()->mutable_record() = launch.start(request.start(), {child_input,child_output,STDERR_FILENO});
+                 else if (request.has_attach()) { launch.attach(request.attach()); *reply.mutable_view()->mutable_record() = launch.inspect(); }
+                 else if (request.has_participant_poll()) {
+                     if (auto update = launch.poll_participant()) *reply.mutable_participant_update() = *update;
+@@ -33,6 +35,8 @@
+                 else if (request.has_participant_command()) {
+                     launch.submit_participant(request.participant_command()); *reply.mutable_view()->mutable_record() = launch.inspect();
+                 }
++                else if (request.has_prepare_channel()) *reply.mutable_participant_config() = launch.prepare_channel(request.prepare_channel().target_fd());
++                else if (request.has_pump_channel()) { launch.pump_channel(); *reply.mutable_view()->mutable_record() = launch.inspect(); }
+                 else if (request.has_inspect()) *reply.mutable_view()->mutable_record() = launch.inspect();
+                 else if (request.has_stop()) *reply.mutable_view()->mutable_record() = launch.stop();
+                 else throw std::runtime_error("Unknown launch operation");
+--- /dev/null
++++ b/tests/native/test_authority_participant_relay.py
+@@ -0,0 +1,232 @@
++"""The supervisor passes exact approved identity through its owned child channel."""
++import unittest
++import os
++from pathlib import Path
++import select
++import signal
++import struct
++import subprocess
++import time
++from unittest.mock import patch
++from google.protobuf import text_format
++import core_pb2 as core
++import grants_pb2 as grants
++import issuer_pb2 as identity
++import process_scope_pb2 as process_pb
++from harness.wire import frame
++import test_authority_owned_participant as owned
++import launch_pb2 as pb
++
++class ParticipantRelayTests(owned.OwnedParticipantTests):
++    def test_channel_configuration_requires_owned_approval_and_contains_no_signing_material(self):
++        proc,_,auth,_=self.connected()
++        self.assertTrue(self.authorize(proc).HasField('view'))
++        result=self.call(proc,prepare_channel=pb.AuthorityParticipantChannelPrepare(target_fd=37))
++        self.assertTrue(result.HasField('participant_config'),result)
++        config=result.participant_config
++        self.assertEqual(config.protocol_version,1)
++        self.assertEqual(config.participant_id,auth.registration.participant.id)
++        self.assertEqual(config.registered_revision,auth.registration.registered_revision)
++        self.assertEqual(config.service_incarnation,auth.service_incarnation)
++        self.assertEqual(config.supervisor_issuer_id,auth.issuer_id)
++        self.assertEqual(config.supervisor_channel_fd,37)
++        self.assertEqual(config.private_key_path,'');self.assertEqual(config.issuer_client_config,'')
++        self.assertEqual(self.activation_rows(),[]);self.stopped(proc)
++
++    def probe(self, start_server=True):
++        if not getattr(self,'child_streams',False):
++            return super().probe(start_server)
++        incoming,writer=os.pipe();reader,outgoing=os.pipe()
++        self.child_input=os.fdopen(writer,'wb',buffering=0)
++        self.child_output=os.fdopen(reader,'rb',buffering=0)
++        self.addCleanup(self.child_input.close);self.addCleanup(self.child_output.close)
++        original=subprocess.Popen
++        def launch(args,*rest,**options):
++            if str(args[0])==str(owned.existing.PROBE):
++                args=[*args,str(incoming),str(outgoing)]
++                options['pass_fds']=(*options.get('pass_fds',()),incoming,outgoing)
++            return original(args,*rest,**options)
++        try:
++            with patch.object(subprocess,'Popen',side_effect=launch):
++                return super().probe(start_server)
++        finally:os.close(incoming);os.close(outgoing)
++
++    def configured(self):
++        self.child_streams=True
++        proc,view,auth,batch=self.connected()
++        approved=self.authorize(proc);self.assertTrue(approved.HasField('view'),approved)
++        result=self.call(proc,prepare_channel=pb.AuthorityParticipantChannelPrepare(target_fd=37))
++        self.assertTrue(result.HasField('participant_config'),result)
++        config=result.participant_config;path=self.root/'child-participant.textproto'
++        path.write_text(text_format.MessageToString(config));path.chmod(0o600)
++        return proc,view,auth,batch,config,path
++
++    def start_channel(self,raw=False):
++        proc,view,auth,batch,config,path=self.configured()
++        if raw:
++            # Independent byte peer. It does not implement issuer or participant state.
++            code=('import os,select,socket\ns=socket.socket(fileno=37)\n'
++                  'while True:\n'
++                  ' ready,_,_=select.select([0,s],[],[],3)\n'
++                  ' for source in ready:\n'
++                  '  data=os.read(0,65536) if source==0 else s.recv(65536)\n'
++                  '  if not data:raise SystemExit(0)\n'
++                  '  if source==0:s.sendall(data)\n'
++                  '  else:os.write(1,data)\n')
++            request=process_pb.AuthorityProcessLaunch(executable='/usr/bin/python3',arguments=['-c',code])
++        else:
++            domains=[]
++            for domain in self.issuer.registration.participant.domains:
++                domains+=['world' if domain.kind==grants.WORLD else 'workspace',domain.id]
++            request=process_pb.AuthorityProcessLaunch(executable=str(owned.existing.PROBE.with_name('spatial-participant-runtime-probe')),
++                arguments=[str(path),*domains])
++        result=self.call(proc,start=request);self.assertTrue(result.HasField('view'),result)
++        pids=(self.cgroup/view.record.process.scope_name/'cgroup.procs').read_text().split()
++        self.assertEqual(len(pids),1);self.authority_pid=int(pids[0])
++        status=Path(f'/proc/{self.authority_pid}/status').read_text()
++        self.assertEqual(int(next(line.split()[1] for line in status.splitlines() if line.startswith('PPid:'))),proc.pid)
++        self.assertEqual(self.child_update(proc,'authenticated').authenticated,auth)
++        self.assertEqual(self.child_update(proc,'revocations').revocations,batch)
++        return proc,view,auth
++
++    def tick(self,proc):
++        reply=self.call(proc,pump_channel=pb.AuthorityLaunchQuery())
++        self.assertFalse(reply.HasField('error'),reply);return reply
++
++    def child_update(self,proc,field):
++        deadline=time.monotonic()+5
++        def exact(size):
++            value=b''
++            while len(value)<size:
++                self.tick(proc);self.assertLess(time.monotonic(),deadline,'Child relay update deadline')
++                if not select.select([self.child_output],[],[],.005)[0]:continue
++                data=os.read(self.child_output.fileno(),size-len(value));self.assertTrue(data,'Child output closed')
++                value+=data
++            return value
++        size=struct.unpack('!I',exact(4))[0];self.assertLessEqual(size,1048576)
++        result=identity.ParticipantUpdate.FromString(exact(size));self.assertEqual(result.protocol_version,1)
++        self.assertTrue(result.HasField(field),result);return result
++
++    def command(self,request_id=1,**operation):
++        self.child_input.write(frame(identity.ParticipantCommand(request_id=request_id,**operation)))
++
++    def activate_child(self,proc,revision=0):
++        self.command(1,activate=identity.AuthorityActivate(synchronized_revision=revision))
++        result=self.child_update(proc,'activated')
++        self.assertEqual(result.request_id,1);self.assertEqual(result.activated.applied_revision,revision)
++        return result.activated
++
++    def revoke(self):
++        peer=self.issuer.peer
++        record=self.issuer.decide(peer,self.issuer.enroll(peer)).enrollment
++        claims=self.issuer.claims(record,self.issuer.info)
++        operation=identity.IssuerOperation(identity_revoke=identity.IdentityRevoke(
++            target=identity.IdentityReference(kind=identity.ACTOR_TARGET,id=claims.actor_id),
++            expected_security_revision=0,reason='supervisor relay regression'))
++        result=self.issuer.execute(peer,self.issuer.challenge(peer,operation))
++        self.assertTrue(result.HasField('identity_status'),result)
++
++    def barrier(self):
++        peer=self.issuer.peer
++        operation=identity.IssuerOperation(barrier_read=identity.AuthorityBarrierRead(revision=1))
++        result=self.issuer.execute(peer,self.issuer.challenge(peer,operation))
++        self.assertTrue(result.HasField('authority_barrier'),result);return result.authority_barrier
++
++    def relay_error(self,proc):
++        deadline=time.monotonic()+5
++        while True:
++            reply=self.call(proc,pump_channel=pb.AuthorityLaunchQuery())
++            if reply.HasField('error'):return reply
++            self.assertLess(time.monotonic(),deadline,'Relay did not fail closed');time.sleep(.005)
++
++    def test_channel_requires_approval_and_a_valid_unique_target(self):
++        proc,view,_,_=self.connected()
++        self.assertTrue(self.call(proc,prepare_channel=pb.AuthorityParticipantChannelPrepare(target_fd=37)).HasField('error'))
++        self.assertTrue(self.authorize(proc).HasField('view'))
++        for target in [0,1,2,256]:
++            self.assertTrue(self.call(proc,prepare_channel=pb.AuthorityParticipantChannelPrepare(target_fd=target)).HasField('error'))
++        self.assertTrue(self.call(proc,prepare_channel=pb.AuthorityParticipantChannelPrepare(target_fd=37)).HasField('participant_config'))
++        self.assertTrue(self.call(proc,prepare_channel=pb.AuthorityParticipantChannelPrepare(target_fd=38)).HasField('error'))
++        self.assertTrue(self.call(proc,pump_channel=pb.AuthorityLaunchQuery()).HasField('error'))
++        self.assertEqual(self.activation_rows(),[]);self.stopped(proc)
++
++    def test_relay_excludes_external_polling_and_commands(self):
++        proc,_,_,_,_,_=self.configured()
++        self.assertTrue(self.call(proc,participant_poll=pb.AuthorityLaunchQuery()).HasField('error'))
++        self.assertTrue(self.activate(proc).HasField('error'))
++        self.assertEqual(self.activation_rows(),[]);self.stopped(proc)
++
++    def test_real_owned_child_activates_and_releases_exact_approved_generation(self):
++        proc,view,auth=self.start_channel()
++        info=Path(f'/proc/{self.authority_pid}/fdinfo/37').read_text()
++        flags=int(next(line.split()[1] for line in info.splitlines() if line.startswith('flags:')),8)
++        self.assertTrue(flags & os.O_CLOEXEC);self.assertTrue(flags & os.O_NONBLOCK)
++        state=self.activate_child(proc);self.assertEqual(state.service_incarnation,auth.service_incarnation)
++        self.assertEqual(state.connection_binding,auth.connection_binding)
++        record=self.read_record();self.assertEqual(record.authorization.request.service,auth)
++        self.assertEqual(record.process,view.record.process);self.assertEqual(len(self.activation_rows()),1)
++        self.command(2,release=identity.AuthorityRelease(generation=state.generation,applied_revision=0))
++        result=self.child_update(proc,'released');self.assertEqual(result.request_id,2);self.assertFalse(result.released.active)
++        self.tick(proc);self.stopped(proc)
++
++    def test_parent_receipt_and_child_delivery_do_not_acknowledge_revocation(self):
++        proc,_,_=self.start_channel();state=self.activate_child(proc);self.revoke()
++        update=self.child_update(proc,'revocations');self.assertEqual(update.revocations.through_revision,1)
++        self.assertEqual(self.barrier().pending_count,1)
++        self.tick(proc);self.assertEqual(self.barrier().pending_count,1)
++        self.command(2,applied=identity.AuthorityApplied(generation=state.generation,from_revision=0,through_revision=1))
++        result=self.child_update(proc,'applied');self.assertEqual(result.applied.applied_revision,1)
++        self.assertEqual(self.barrier().pending_count,0)
++        self.command(3,release=identity.AuthorityRelease(generation=state.generation,applied_revision=1))
++        self.child_update(proc,'released');self.stopped(proc)
++
++    def test_stale_child_revision_reaches_issuer_unchanged_and_requires_explicit_retry(self):
++        proc,_,_=self.start_channel(raw=True);self.revoke()
++        self.assertEqual(self.child_update(proc,'revocations').revocations.through_revision,1)
++        self.command(8,activate=identity.AuthorityActivate(synchronized_revision=0))
++        result=self.child_update(proc,'error')
++        self.assertEqual((result.request_id,result.error.code),(8,core.REVISION_CONFLICT))
++        self.assertEqual(self.activation_rows(),[])
++        self.tick(proc);self.assertEqual(self.activation_rows(),[])
++        self.command(9,activate=identity.AuthorityActivate(synchronized_revision=1))
++        result=self.child_update(proc,'activated')
++        self.assertEqual(result.request_id,9);self.assertEqual(result.activated.applied_revision,1)
++        self.command(10,release=identity.AuthorityRelease(generation=1,applied_revision=1))
++        self.child_update(proc,'released');self.stopped(proc)
++
++    def test_malformed_child_frame_permanently_disables_relay_without_activation(self):
++        proc,_,_=self.start_channel(raw=True)
++        self.child_input.write(struct.pack('!I',1048577))
++        self.relay_error(proc)
++        self.assertTrue(self.call(proc,pump_channel=pb.AuthorityLaunchQuery()).HasField('error'))
++        self.assertTrue(self.activate(proc).HasField('error'))
++        self.assertEqual(self.activation_rows(),[]);self.stopped(proc)
++
++    def test_failed_exec_cannot_retain_or_reuse_prepared_channel(self):
++        proc,_,_,_,_,_=self.configured()
++        result=self.call(proc,start=process_pb.AuthorityProcessLaunch(executable='/missing-relay-authority'))
++        self.assertTrue(result.HasField('error'))
++        self.assertEqual(self.read_record().stage,pb.START_ATTEMPTED)
++        self.assertTrue(self.call(proc,pump_channel=pb.AuthorityLaunchQuery()).HasField('error'))
++        self.assertTrue(self.run_child(proc,'pass').HasField('error'))
++        self.assertEqual(self.activation_rows(),[]);self.stopped(proc)
++
++    def test_child_death_preserves_pending_generation_and_revocation(self):
++        proc,_,_=self.start_channel();self.activate_child(proc);self.revoke()
++        self.child_update(proc,'revocations');self.assertEqual(self.barrier().pending_count,1)
++        before=self.activation_rows();os.kill(self.authority_pid,signal.SIGKILL);self.relay_error(proc)
++        self.assertEqual(self.activation_rows(),before);self.assertEqual(self.barrier().pending_count,1)
++        self.stopped(proc);self.assertEqual(self.activation_rows(),before);self.assertEqual(self.barrier().pending_count,1)
++
++    def test_restart_cannot_recreate_private_endpoint(self):
++        proc,_,_,_,_,_=self.configured();record=self.read_record()
++        proc.stdin.close();self.assertEqual(proc.wait(timeout=5),0)
++        self.child_streams=False;other=self.probe(start_server=False)
++        self.assertEqual(self.call(other,inspect=pb.AuthorityLaunchQuery()).view.record,record)
++        self.assertTrue(self.call(other,prepare_channel=pb.AuthorityParticipantChannelPrepare(target_fd=37)).HasField('error'))
++        self.assertTrue(self.call(other,pump_channel=pb.AuthorityLaunchQuery()).HasField('error'))
++        self.assertEqual(self.activation_rows(),[])
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(ParticipantRelayTests(n) for n in ParticipantRelayTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

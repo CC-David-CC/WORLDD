@@ -1,0 +1,55 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 4
+    Start 4: authority-participant-relay
+
+4: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-participant-relay-2a06706380628a74df7293d2794734a4085e335ecc28e0d519692a1406cf3c0c" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/server" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/source/tests/native/test_authority_participant_relay.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/spatial-issuer-client"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build
+4: Test timeout computed to be: 120
+4: Running as unit: spatial-participant-relay-2a06706380628a74df7293d2794734a4085e335ecc28e0d519692a1406cf3c0c.service; invocation ID: 207712ea299f485c8bdab3694c704ead
+4: test_channel_configuration_requires_owned_approval_and_contains_no_signing_material (__main__.ParticipantRelayTests.test_channel_configuration_requires_owned_approval_and_contains_no_signing_material) ... FAIL
+4: 
+4: ======================================================================
+4: FAIL: test_channel_configuration_requires_owned_approval_and_contains_no_signing_material (__main__.ParticipantRelayTests.test_channel_configuration_requires_owned_approval_and_contains_no_signing_material)
+4: ----------------------------------------------------------------------
+4: Traceback (most recent call last):
+4:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/source/tests/native/test_authority_participant_relay.py", line 11, in test_channel_configuration_requires_owned_approval_and_contains_no_signing_material
+4:     self.assertTrue(result.HasField('participant_config'),result)
+4: AssertionError: False is not true : protocol_version: 1
+4: request_id: 55
+4: error {
+4:   message: "Unknown launch operation"
+4: }
+4: 
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 1 test in 0.813s
+4: 
+4: FAILED (failures=1)
+4: Finished with result: exit-code
+4: Main processes terminated with: code=exited/status=1
+4: Service runtime: 956ms
+4: CPU time consumed: 358ms
+4: Memory peak: 256.0K
+4: Memory swap peak: 0B
+1/1 Test #4: authority-participant-relay ......***Failed    0.98 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.98 sec
+
+The following tests FAILED:
+	  4 - authority-participant-relay (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-relay-baseline-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

@@ -1,0 +1,17 @@
+{
+  "id": "identity.participant_relay",
+  "phase": "M02",
+  "status": "in_progress",
+  "parent": "identity.supervisor_recovery",
+  "contract": "docs/AUTHORITY_PARTICIPANT_RELAY.txt",
+  "candidate": 1,
+  "source_files": 277,
+  "new_tests": 10,
+  "integrated": false,
+  "evidence": "evidence/participant-relay-2026-10-09",
+  "remaining": [
+    "Complete both-host focused and cumulative qualification.",
+    "Wire worldd and workspaced.",
+    "Implement fencing and checked recovery."
+  ]
+}

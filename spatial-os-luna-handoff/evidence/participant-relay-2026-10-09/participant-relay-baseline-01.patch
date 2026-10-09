@@ -1,0 +1,73 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -232,6 +232,17 @@
+         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+     set_tests_properties(workspace-bootstrap-owner-idle PROPERTIES TIMEOUT 60
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++    add_test(NAME authority-participant-relay COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-participant-relay-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_authority_participant_relay.py"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(authority-participant-relay PROPERTIES TIMEOUT 120)
+     add_test(NAME authority-owned-participant COMMAND systemd-run --user --wait --pipe --collect
+         --unit=spatial-owned-participant-${build_hash} --property=Delegate=yes
+         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -43,6 +43,7 @@
+   uint64 supervision_revision = 3;
+   optional uint64 previous_generation = 4;
+ }
++message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
+ message AuthorityLaunchQuery {}
+ message AuthorityLaunchRequest {
+   uint32 protocol_version = 1;
+@@ -56,6 +57,8 @@
+     AuthorityLaunchQuery participant_poll = 15;
+     AuthorityLaunchAuthorize authorize = 16;
+     spatial.identity.v1.ParticipantCommand participant_command = 17;
++    AuthorityParticipantChannelPrepare prepare_channel = 18;
++    AuthorityLaunchQuery pump_channel = 19;
+   }
+ }
+ message AuthorityLaunchView {
+@@ -70,5 +73,6 @@
+     AuthorityLaunchView view = 10;
+     AuthorityLaunchError error = 11;
+     spatial.identity.v1.ParticipantUpdate participant_update = 12;
++    spatial.identity.v1.AuthorityParticipantRuntimeConfig participant_config = 13;
+   }
+ }
+--- /dev/null
++++ b/tests/native/test_authority_participant_relay.py
+@@ -0,0 +1,24 @@
++"""The supervisor passes exact approved identity through its owned child channel."""
++import unittest
++import test_authority_owned_participant as owned
++import launch_pb2 as pb
++
++class ParticipantRelayTests(owned.OwnedParticipantTests):
++    def test_channel_configuration_requires_owned_approval_and_contains_no_signing_material(self):
++        proc,_,auth,_=self.connected()
++        self.assertTrue(self.authorize(proc).HasField('view'))
++        result=self.call(proc,prepare_channel=pb.AuthorityParticipantChannelPrepare(target_fd=37))
++        self.assertTrue(result.HasField('participant_config'),result)
++        config=result.participant_config
++        self.assertEqual(config.protocol_version,1)
++        self.assertEqual(config.participant_id,auth.registration.participant.id)
++        self.assertEqual(config.registered_revision,auth.registration.registered_revision)
++        self.assertEqual(config.service_incarnation,auth.service_incarnation)
++        self.assertEqual(config.supervisor_issuer_id,auth.issuer_id)
++        self.assertEqual(config.supervisor_channel_fd,37)
++        self.assertEqual(config.private_key_path,'');self.assertEqual(config.issuer_client_config,'')
++        self.assertEqual(self.activation_rows(),[]);self.stopped(proc)
++
++if __name__=='__main__':
++    suite=unittest.TestSuite(ParticipantRelayTests(n) for n in ParticipantRelayTests.__dict__ if n.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

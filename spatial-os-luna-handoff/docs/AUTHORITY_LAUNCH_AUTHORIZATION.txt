@@ -1,5 +1,5 @@
 Supervisor authorization for one authority launch
-Status: isolated candidate03 passed both focused profiles on both hosts. Full qualification is running.
+Status: isolated candidate03 passed full Debug and runtime ASan/UBSan on both hosts. Source integration remains pending.
 
 Invariant
 
@@ -148,3 +148,6 @@ Candidate03 passed 285 focused checks and 51 harness checks on both hosts in Deb
 No final case failed or skipped. Full qualification is running separately in output03.
 The original failure and diagnostic logs remain preserved.
 The coordinator signing bridge, fencing, external cleanup reconciliation, and retirement remain required before integration.
+
+Full qualification passed 1328 core checks across 86 suites, 51 harness checks, and 151 P10 cases per profile on both hosts.
+No final case failed or skipped. All 273 source hashes and 41 locked hashes match.

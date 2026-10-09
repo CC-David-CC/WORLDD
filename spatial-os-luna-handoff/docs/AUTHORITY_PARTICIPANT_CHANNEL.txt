@@ -1,5 +1,5 @@
 Private inherited participant channel
-Status: isolated child-transport candidate02. Both-host qualification is running. Production relay remains pending.
+Status: isolated child-transport candidate02 passed both focused profiles on both hosts. Production relay qualification is pending.
 
 Invariant
 
@@ -75,3 +75,6 @@ Candidate01 exposed a new fixture connection-lifetime error on both hosts.
 Candidate02 closes completed subcases without changing production or assertions.
 All seventeen corrected checks passed on both hosts using original production binaries.
 Fresh both-profile qualification remains active.
+
+Both profiles passed 356 focused checks across 22 suites and 51 harness checks on each host.
+No final case failed or skipped. All 276 source hashes and 41 locked hashes match.

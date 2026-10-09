@@ -14,7 +14,7 @@
     "No automatic reconnect or command replay."
   ],
   "baseline": "Both hosts reject inherited configuration before authentication. Original BrokenPipe failure and exact child diagnostic preserved.",
-  "qualification": "Candidate01 Debug356checks had1newfixture error on bothhosts. Candidate02 changes only completed subcase cleanup. Corrected17checks pass original binaries on bothhosts. Fresh both-profile qualification active.",
+  "qualification": "Candidate02 passed356checks22suites51harness in bothprofiles on bothhosts. No failures or skips. Original failure preserved.",
   "limitations": [
     "Production supervisor relay remains unimplemented.",
     "Parent receipt cannot acknowledge child cancellation.",
