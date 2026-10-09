@@ -44,5 +44,6 @@
   "implementation_plan": "docs/REVOCATION_BARRIER_PLAN.txt",
   "component_tasks": [
     "tasks/m1/identity.participant_registry.json"
-  ]
+  ],
+  "next_component_design": "docs/AUTHORITY_PARTICIPANT_SESSION.txt"
 }

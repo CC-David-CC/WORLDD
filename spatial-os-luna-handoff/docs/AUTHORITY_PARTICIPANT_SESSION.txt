@@ -1,0 +1,115 @@
+Authority participant sessions: next component design
+Status: design reviewed against current source. Implementation and tests are pending.
+Dependency: qualify and integrate identity.participant_registry first.
+This document does not claim an active execution authority or completed cancellation barrier.
+
+Invariant
+A service proves its registered key on the exact authenticated TLS connection that receives its service session.
+Actor proofs, issuer-owner proofs, and transport certificates do not substitute for the service proof.
+
+Confirmed source boundary
+src/identity/tls_server.cpp owns one Peer per mutual-TLS connection.
+Peer::respond currently calls handle_issuer_frame without connection context.
+The issuer dispatcher also serves the private management pipe.
+Issuer pending challenges are nonce-keyed and already have bounded lifetime and count.
+Their current actor authentication binding comes from the request.
+Do not reuse that client-supplied actor binding for service sessions.
+
+Proposed additive protobuf contract
+Keep existing field numbers and meanings.
+Add AUTHORITY_PARTICIPATION = 5 to SignaturePurpose in key.proto.
+Add the following messages to issuer.proto in spatial.identity.v1.
+
+AuthorityAuthenticationBegin:
+  bytes participant_id = 1: exactly 32 bytes.
+  uint64 registered_revision = 2: exact positive immutable registration revision.
+  bytes service_incarnation = 3: exactly 32 fresh bytes from this service process.
+No request field supplies the transport connection binding.
+
+AuthorityAuthenticationChallenge:
+  uint32 protocol_version = 1: must equal 1.
+  bytes issuer_id = 2: pinned issuer identity.
+  bytes issuer_incarnation = 3: this issuer process incarnation, exactly 32 bytes.
+  bytes nonce = 4: fresh single-use nonce, exactly 32 bytes.
+  AuthorityAuthenticationBegin request = 5: the validated request.
+  bytes connection_binding = 6: fresh opaque identity from this server-side TLS connection.
+  uint32 lifetime_ms = 7: bounded by the existing issuer challenge policy.
+  string audience = 8: identityd/authority-participation/v1.
+The challenge does not disclose registered domain names before proof succeeds.
+
+AuthorityAuthenticationComplete:
+  bytes nonce = 1.
+  KeyProof proof = 2: AUTHORITY_PARTICIPATION signature by the registered service key.
+
+AuthorityAuthenticationResult:
+  bytes issuer_id = 1.
+  bytes issuer_incarnation = 2.
+  AuthorityParticipantRecord registration = 3.
+  bytes service_incarnation = 4.
+  bytes connection_binding = 5.
+  uint64 security_revision = 6: current committed issuer revision, not an applied revision.
+
+Add authority_authentication_begin = 22 to IssuerRequest.operation.
+Add authority_authentication_complete = 23 to IssuerRequest.operation.
+Use the existing ChallengeReply for the begin result.
+Add authority_authentication = 23 to IssuerReply.outcome.
+Advertise identity.authority-participation-proof/v1 only after implementation.
+
+Transport and proof rules
+Create the connection binding inside the server after the TLS handshake succeeds.
+Pass a connection context directly through the production dispatcher.
+Never reconstruct that context from protobuf fields or a client certificate name.
+The management pipe has no service TLS context. Reject service-session operations there.
+Keep existing owner and actor operations available through their existing boundaries.
+
+Resolve the service key from the owner-managed registry.
+Match the requested participant identity and exact registration revision.
+Sign the entire challenge with the new signature purpose.
+Validate the pinned issuer, audience, nonce, incarnation, and connection binding before accepting the result.
+Consume a challenge on completion attempts, including invalid proofs and wrong connections.
+Do not permit a proof issued on connection A to authenticate connection B.
+Do not return registered domains before successful registered-key proof.
+Apply existing bounded challenge storage and expiry.
+
+Store the authenticated service context on its TLS connection.
+Do not issue a bearer token that another connection can reuse.
+Close the session when that connection closes.
+Do not automatically replay authentication completion after a lost reply.
+Reject a second authentication that would silently replace that connection's service identity.
+A new connection requires a fresh challenge and proof.
+Old issuer-process challenges cannot survive issuer restart.
+
+Authentication and execution remain separate
+The result proves service identity on one connection. It does not activate an execution authority.
+The result's security_revision is an observed issuer revision. It proves no cancellation effects.
+An incarnation in this proof is a signed process claim. It is not external fencing evidence.
+Multiple identity proofs must never replace a later active execution incarnation.
+The subsequent activation component must preserve active incarnations and pending obligations durably.
+It must require explicit synchronization before admitting protected work.
+A disconnect must never erase those durable obligations or count as cancellation success.
+Do not wire world or broker execution permission to this proof-only result.
+
+No schema migration is needed for the proof-only connection context.
+Durable activation and cancellation obligations require the next explicit schema migration.
+
+Required production tests
+Use the real TLS issuer and independently generated service and actor keys.
+Prove a correctly registered service on its original connection.
+Reject an unknown participant, wrong registration revision, malformed incarnation, and unknown protobuf fields.
+Reject an actor key, owner key, transport key, and wrong signature purpose.
+Reject replay after successful completion, failed proof, expiry, disconnect, and issuer restart.
+Complete a connection-A challenge on connection B. Both attempts must leave B unauthenticated.
+Prove that a second connection has no inherited service session.
+Reject a second authentication that would switch the first connection's service identity.
+Reject service authentication on the management pipe.
+Verify that successful authentication leaves registry, actor, credential, grant, and security revisions unchanged.
+Verify that a revocation during the challenge is reflected in the completion result's current revision.
+Test malformed production-client challenge and result validation separately with explicit fault peers.
+The fault peers prove response validation only. They do not prove service authority.
+
+Integration boundary
+Keep this component isolated while the registry candidate remains under qualification.
+Capture a failing baseline before implementation.
+Qualify complete Debug and runtime sanitizer profiles on both hosts before integration.
+Record all further contract changes explicitly.
+Distributed cancellation remains incomplete until durable activation, obligations, effects, and acknowledgements all pass.
