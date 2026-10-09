@@ -23,6 +23,10 @@ Expected totals are not completed results.
 Read docs/AUTHORITY_LAUNCH_COORDINATOR.txt for scope, state transitions, and restart limitations.
 No coordinator source is integrated. Full supervisor recovery remains pending.
 
+The older combined 264-file scopes candidate also completed both full profiles on sb16.
+Each profile passed 1260 core checks, 51 harness checks, and 151 P10 cases with no failures or skips.
+Its sb16-2 sanitizer job remains live; that host has already passed full Debug.
+
 ## 2026-10-09: Prepared authority launch passes both focused profiles
 
 The isolated prepared-launch candidate01 passed eighteen focused checks on both hosts in Debug and runtime ASan/UBSan.

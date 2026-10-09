@@ -22,3 +22,8 @@ This combination is not integrated and does not implement complete supervisor re
 The primitives still need coordinated launch ownership, explicit descriptor passing, and durable launch records.
 Native and process receipts alone cannot clear broker reservation obligations or issuer generations.
 Issuer supervision proofs, fencing, replay checks, supervisor restart, and cross-host recovery remain required.
+
+2026-10-09 final sb16 result
+Both full profiles passed on sb16: 1260 core checks across 81 suites, 51 harness checks, 151 P10 cases per profile.
+All 264 source hashes and 41 locked hashes match. Zero failures and skips.
+sb16-2 full Debug passed; its runtime sanitizer job remains live. No source integration yet.
