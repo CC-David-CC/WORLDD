@@ -27,3 +27,9 @@ Issuer supervision proofs, fencing, replay checks, supervisor restart, and cross
 Both full profiles passed on sb16: 1260 core checks across 81 suites, 51 harness checks, 151 P10 cases per profile.
 All 264 source hashes and 41 locked hashes match. Zero failures and skips.
 sb16-2 full Debug passed; its runtime sanitizer job remains live. No source integration yet.
+
+2026-10-09 final two-host result
+Both hosts completed both full profiles. Each passed 1260 core checks across 81 suites, 51 harness checks, and 151 P10 cases.
+All 264 source hashes and 41 locked hashes match. Zero failures and skips.
+This complete result qualifies the combined scopes candidate only. The newer coordinator candidate remains in qualification.
+No combined scopes source is integrated yet.

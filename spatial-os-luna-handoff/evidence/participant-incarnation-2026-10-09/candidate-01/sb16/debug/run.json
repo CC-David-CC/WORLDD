@@ -1,0 +1,54 @@
+{
+  "host": "sb16",
+  "results": [
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/debug/build",
+        "--target",
+        "identityd",
+        "spatial-issuer-client",
+        "spatial-participant-runtime-probe",
+        "python-protobuf",
+        "security-python-protobuf",
+        "issuer-python-protobuf",
+        "key-python-protobuf",
+        "grants-python-protobuf",
+        "--parallel",
+        "2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "harness",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/harness",
+        "-t",
+        ".",
+        "-q"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "focused",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/debug/build",
+        "-V",
+        "-R",
+        "^identity-participant-(incarnation|runtime|barrier|barrier-client|session|session-client)$"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "source_files": 271,
+  "build": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/debug/build"
+}

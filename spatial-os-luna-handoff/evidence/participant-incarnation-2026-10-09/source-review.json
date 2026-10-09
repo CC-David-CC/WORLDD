@@ -1,0 +1,13 @@
+{
+  "source_files": 271,
+  "changed_files": [
+    "CMakeLists.txt",
+    "proto/spatial/identity/v1/issuer.proto",
+    "src/identity/participant_runtime.cpp",
+    "tests/core/test_participant_incarnation.py"
+  ],
+  "existing_tests_unchanged": true,
+  "locked_files": 41,
+  "integrated": false,
+  "proto_change": "Optional bytes AuthorityParticipantRuntimeConfig.service_incarnation field6; all existing descriptors preserved."
+}

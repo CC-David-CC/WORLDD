@@ -1,0 +1,41 @@
+{
+  "commands": [
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-02/descriptor-audit/before.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/proto/spatial/input/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/proto/spatial/supervisor/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/proto/spatial/workspace/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/proto/spatial/identity/v1/issuer.proto"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "protoc",
+        "--include_imports",
+        "--descriptor_set_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-02/descriptor-audit/after.descriptor",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/proto/spatial/authority/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/proto/spatial/core/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/proto/spatial/identity/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/proto/spatial/input/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/proto/spatial/security/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/proto/spatial/supervisor/v1",
+        "-I/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/proto/spatial/workspace/v1",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/proto/spatial/identity/v1/issuer.proto"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "result": {
+    "preserved_files": 5,
+    "only_added_field": "AuthorityParticipantRuntimeConfig.service_incarnation=6",
+    "explicit_presence": true
+  }
+}

@@ -1,0 +1,6 @@
+[0/2] Re-checking globbed directories...
+[1/5] Generating python/security_pb2.py
+[2/5] Generating python/core_pb2.py
+[3/5] Generating python/key_pb2.py
+[4/5] Generating python/grants_pb2.py
+[5/5] Generating python/issuer_pb2.py

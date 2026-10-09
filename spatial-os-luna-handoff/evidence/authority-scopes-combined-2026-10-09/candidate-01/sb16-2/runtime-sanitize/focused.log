@@ -1,0 +1,74 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: authority-native-scope
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/source/tests/native/test_authority_native_scope.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build/spatial-native-scope-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build/spatial-security-auth"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/source
+1: Test timeout computed to be: 90
+1: test_broker_stop_closes_descendants_preserves_independent_application (__main__.NativeScopeTests.test_broker_stop_closes_descendants_preserves_independent_application) ... ok
+1: test_compositor_stop_closes_only_owned_connections (__main__.NativeScopeTests.test_compositor_stop_closes_only_owned_connections) ... ok
+1: test_compositor_stop_releases_real_native_key_and_button (__main__.NativeScopeTests.test_compositor_stop_releases_real_native_key_and_button) ... ok
+1: test_missing_credential_is_not_accepted_as_a_cleanup_receipt (__main__.NativeScopeTests.test_missing_credential_is_not_accepted_as_a_cleanup_receipt) ... ok
+1: test_stop_waits_for_disposable_server_resume (__main__.NativeScopeTests.test_stop_waits_for_disposable_server_resume) ... ok
+1: test_stopped_server_timeout_cannot_report_cleanup (__main__.NativeScopeTests.test_stopped_server_timeout_cannot_report_cleanup) ... ok
+1: test_server_exit_cannot_replace_a_cleanup_reply (__main__.NativeScopeTests.test_server_exit_cannot_replace_a_cleanup_reply) ... ok
+1: test_checked_stop_retry_needs_no_new_server_operation (__main__.NativeScopeTests.test_checked_stop_retry_needs_no_new_server_operation) ... ok
+1: test_unsealed_config_does_not_issue_a_credential (__main__.NativeScopeTests.test_unsealed_config_does_not_issue_a_credential) ... ok
+1: test_application_role_is_not_an_authority_scope (__main__.NativeScopeTests.test_application_role_is_not_an_authority_scope) ... ok
+1: test_wrong_server_identity_does_not_issue_a_credential (__main__.NativeScopeTests.test_wrong_server_identity_does_not_issue_a_credential) ... ok
+1: 
+1: ----------------------------------------------------------------------
+1: Ran 11 tests in 4.608s
+1: 
+1: OK
+1/2 Test #1: authority-native-scope ...........   Passed    4.72 sec
+test 4
+    Start 4: authority-process-scope
+
+4: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-scope-835aaf5e8184b4762cf40a907a463cc1b2354b68df5c4891a125d492cef93bdb" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/source" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/source/tests/core/test_authority_process_scope.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build/spatial-process-scope-probe"
+4: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-scopes-01/runtime-sanitize/build
+4: Test timeout computed to be: 120
+4: Running as unit: spatial-scope-835aaf5e8184b4762cf40a907a463cc1b2354b68df5c4891a125d492cef93bdb.service; invocation ID: 2bebe69e954f4cd8a14bdb18231ffd26
+4: test_detached_descendants_exit_before_receipt (__main__.ProcessScopeTests.test_detached_descendants_exit_before_receipt) ... ok
+4: test_exec_failure_removes_scope (__main__.ProcessScopeTests.test_exec_failure_removes_scope) ... ok
+4: test_invalid_executable_rejected_without_scope (__main__.ProcessScopeTests.test_invalid_executable_rejected_without_scope) ... ok
+4: test_kernel_denied_kill_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_kill_never_returns_stopped) ... ok
+4: test_kernel_denied_wait_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_wait_never_returns_stopped) ... ok
+4: test_leader_exit_does_not_hide_live_detached_child (__main__.ProcessScopeTests.test_leader_exit_does_not_hide_live_detached_child) ... ok
+4: test_ordinary_directory_rejected_before_execution (__main__.ProcessScopeTests.test_ordinary_directory_rejected_before_execution) ... ok
+4: test_parent_environment_is_not_exported (__main__.ProcessScopeTests.test_parent_environment_is_not_exported) ... ok
+4: test_stop_preserves_independent_scope (__main__.ProcessScopeTests.test_stop_preserves_independent_scope) ... ok
+4: test_unknown_protobuf_fields_rejected (__main__.ProcessScopeTests.test_unknown_protobuf_fields_rejected) ... ok
+4: 
+4: ----------------------------------------------------------------------
+4: Ran 10 tests in 0.389s
+4: 
+4: OK
+4: Finished with result: success
+4: Main processes terminated with: code=exited/status=0
+4: Service runtime: 475ms
+4: CPU time consumed: 406ms
+4: Memory peak: 1.5M
+4: Memory swap peak: 0B
+2/2 Test #4: authority-process-scope ..........   Passed    0.49 sec
+
+The following tests passed:
+	authority-native-scope
+	authority-process-scope
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   5.22 sec

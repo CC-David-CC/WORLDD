@@ -1,0 +1,471 @@
+======================================================================
+ERROR: tests.harness.test_recovery_wire (unittest.loader._FailedTest.tests.harness.test_recovery_wire)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.harness.test_recovery_wire
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/harness/test_recovery_wire.py", line 3, in <module>
+    from harness.wire import make_request, result_value, OUTCOMES, pb
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+
+======================================================================
+ERROR: test_baseline_intact (tests.harness.test_tools.ToolTests.test_baseline_intact)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/harness/test_tools.py", line 11, in test_baseline_intact
+    def test_baseline_intact(self):self.assertEqual(verify(ROOT,[t.id() for t in collect()]),[])
+                                                                                 ^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tools/gate.py", line 25, in collect
+    if loader.errors:raise RuntimeError("\n".join(loader.errors))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Failed to import test module: tests.acceptance.test_00_protocol
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_00_protocol.py", line 1, in <module>
+    from harness.base import Acceptance, case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_01_geometry
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_01_geometry.py", line 3, in <module>
+    from harness.base import Acceptance, case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_02_world
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_02_world.py", line 2, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_03_actors
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_03_actors.py", line 2, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_04_render
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_04_render.py", line 1, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_05_xsurfaces
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_05_xsurfaces.py", line 2, in <module>
+    from harness.base import case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_06_input
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_06_input.py", line 2, in <module>
+    from harness.base import case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_07_rooms_objects
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_07_rooms_objects.py", line 3, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_08_git_processes
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_08_git_processes.py", line 5, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_09_recovery
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_09_recovery.py", line 4, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_10_walkthrough
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_10_walkthrough.py", line 5, in <module>
+    from harness.base import case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+
+======================================================================
+ERROR: test_suite_has_unique_ids_and_metadata (tests.harness.test_tools.ToolTests.test_suite_has_unique_ids_and_metadata)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/harness/test_tools.py", line 10, in test_suite_has_unique_ids_and_metadata
+    tests=collect();self.assertGreaterEqual(len(tests),140);self.assertEqual(len(tests),len({t.id() for t in tests}))
+          ^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tools/gate.py", line 25, in collect
+    if loader.errors:raise RuntimeError("\n".join(loader.errors))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Failed to import test module: tests.acceptance.test_00_protocol
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_00_protocol.py", line 1, in <module>
+    from harness.base import Acceptance, case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_01_geometry
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_01_geometry.py", line 3, in <module>
+    from harness.base import Acceptance, case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_02_world
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_02_world.py", line 2, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_03_actors
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_03_actors.py", line 2, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_04_render
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_04_render.py", line 1, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_05_xsurfaces
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_05_xsurfaces.py", line 2, in <module>
+    from harness.base import case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_06_input
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_06_input.py", line 2, in <module>
+    from harness.base import case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_07_rooms_objects
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_07_rooms_objects.py", line 3, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_08_git_processes
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_08_git_processes.py", line 5, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_09_recovery
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_09_recovery.py", line 4, in <module>
+    from harness.base import Acceptance,case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+Failed to import test module: tests.acceptance.test_10_walkthrough
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_10_walkthrough.py", line 5, in <module>
+    from harness.base import case
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>
+    from .rpc import Client, RpcError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+
+======================================================================
+ERROR: tests.harness.test_transport (unittest.loader._FailedTest.tests.harness.test_transport)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.harness.test_transport
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/harness/test_transport.py", line 4, in <module>
+    from harness.rpc import Client, RpcError, TransportError
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>
+    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+
+======================================================================
+ERROR: tests.harness.test_workspace_wire (unittest.loader._FailedTest.tests.harness.test_workspace_wire)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: tests.harness.test_workspace_wire
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name
+    __import__(name)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/harness/test_workspace_wire.py", line 3, in <module>
+    from harness.wire import make_request, result_value, pb
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>
+    import core_pb2 as pb
+ModuleNotFoundError: No module named 'core_pb2'
+
+
+======================================================================
+FAIL: test_fixture_cannot_certify_product (tests.harness.test_tools.ToolTests.test_fixture_cannot_certify_product)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/harness/test_tools.py", line 31, in test_fixture_cannot_certify_product
+    self.assertEqual(r.returncode,1);self.assertEqual(json.loads((Path(d)/"report.json").read_text())["status"],"failed")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_no_sut_is_blocked_not_passed (tests.harness.test_tools.ToolTests.test_no_sut_is_blocked_not_passed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/harness/test_tools.py", line 25, in test_no_sut_is_blocked_not_passed
+    self.assertEqual(r.returncode,2);self.assertIn("no production SUT",r.stderr)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'no production SUT' not found in 'BLOCKED: Failed to import test module: tests.acceptance.test_00_protocol\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_00_protocol.py", line 1, in <module>\n    from harness.base import Acceptance, case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_01_geometry\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_01_geometry.py", line 3, in <module>\n    from harness.base import Acceptance, case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_02_world\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_02_world.py", line 2, in <module>\n    from harness.base import Acceptance,case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_03_actors\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_03_actors.py", line 2, in <module>\n    from harness.base import Acceptance,case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_04_render\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_04_render.py", line 1, in <module>\n    from harness.base import Acceptance,case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_05_xsurfaces\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_05_xsurfaces.py", line 2, in <module>\n    from harness.base import case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_06_input\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_06_input.py", line 2, in <module>\n    from harness.base import case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_07_rooms_objects\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_07_rooms_objects.py", line 3, in <module>\n    from harness.base import Acceptance,case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_08_git_processes\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_08_git_processes.py", line 5, in <module>\n    from harness.base import Acceptance,case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_09_recovery\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_09_recovery.py", line 4, in <module>\n    from harness.base import Acceptance,case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\nFailed to import test module: tests.acceptance.test_10_walkthrough\nTraceback (most recent call last):\n  File "/usr/lib/python3.12/unittest/loader.py", line 394, in _find_test_path\n    module = self._get_module_from_name(name)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/lib/python3.12/unittest/loader.py", line 337, in _get_module_from_name\n    __import__(name)\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/tests/acceptance/test_10_walkthrough.py", line 5, in <module>\n    from harness.base import case\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/base.py", line 8, in <module>\n    from .rpc import Client, RpcError\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/rpc.py", line 12, in <module>\n    from .wire import pb, frame, read_message, validate_reply, make_request, result_value, OUTCOMES\n  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-01/source/harness/wire.py", line 4, in <module>\n    import core_pb2 as pb\nModuleNotFoundError: No module named \'core_pb2\'\n\n'
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.218s
+
+FAILED (failures=2, errors=5)

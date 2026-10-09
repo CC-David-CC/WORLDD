@@ -1,0 +1,41 @@
+{
+  "host": "sb16",
+  "candidate": 1,
+  "output": 2,
+  "source_files": 271,
+  "locked_files": 41,
+  "integrated": false,
+  "debug": {
+    "checks": 84,
+    "new_checks": 5,
+    "existing_checks": 79,
+    "suites": 6,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "identityd": "4f9d99fdfed9c37b7af8045765d4360fe381e7e9292197b6b0f49a8f0715429b",
+      "spatial-issuer-client": "c3daaa66b81e85033a03ef673d24a65f7a4bc2fed3af3347dea255df3550b22a",
+      "spatial-participant-runtime-probe": "77b05ac0b2a81f9abd5649883a3e6a260fe31b209fcd5cef25d52d885a83364a"
+    }
+  },
+  "runtime-sanitize": {
+    "checks": 84,
+    "new_checks": 5,
+    "existing_checks": 79,
+    "suites": 6,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0,
+    "binaries": {
+      "identityd": "e7f1d0ef408d8d3aadb31ebd8bd9d93b4a6be5e87515b9eda547932c15e0ab40",
+      "spatial-issuer-client": "5e5c4c35c845d596ad3301c0875585502e0018cfa19411641c4d7ec90a45cb00",
+      "spatial-participant-runtime-probe": "23e9c3f53360f3844af5056893a2485222a853ea2d479206c43cd015a4e8e221"
+    }
+  },
+  "schema": {
+    "preserved_files": 5,
+    "only_added_field": "AuthorityParticipantRuntimeConfig.service_incarnation=6",
+    "explicit_presence": true
+  }
+}

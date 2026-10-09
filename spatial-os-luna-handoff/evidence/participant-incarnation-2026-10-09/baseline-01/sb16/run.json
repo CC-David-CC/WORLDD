@@ -1,0 +1,13 @@
+{
+  "host": "sb16",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-incarnation-baseline-01/baseline_driver.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_participant_incarnation_baseline_01.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/debug/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/debug/build/spatial-participant-runtime-probe"
+  ],
+  "exit_code": 1,
+  "test_sha256": "33aff65741bc034da340b3832f3f84412f4f175ea91e8541fc7a32c5a4b532e1"
+}

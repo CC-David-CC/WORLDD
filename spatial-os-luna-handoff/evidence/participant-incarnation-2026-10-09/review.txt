@@ -1,0 +1,46 @@
+Primary review: preassigned service incarnation
+
+Four files change relative to the 270-file coordinator candidate03.
+The protobuf adds optional bytes service_incarnation as field 6 of the private runtime configuration.
+The runtime validates explicit presence before constructing its network worker.
+A present value must contain exactly 32 bytes.
+An explicit empty value cannot silently request a different random identity.
+The worker uses that exact configured value in its existing authentication request.
+An absent value preserves the existing random-incarnation behavior for unsupervised configuration.
+
+Existing service-key proof and exact registered-domain validation remain unchanged.
+The issuer already rejects reuse of an activated incarnation after release.
+No issuer mutation, signing purpose, challenge validation, or recovery permission changes.
+No actor-facing API accepts this configuration.
+The field does not authenticate a supervisor or authorize launch.
+Supervised activation must later require a matching authenticated supervisor authorization.
+
+The new test file uses the real runtime, TLS issuer, and independent SQLite inspection.
+It checks exact authentication and activation identity, malformed values before network access, and reuse after clean release.
+It also checks that assigned identity cannot bypass domain validation or service-key proof.
+The malformed-value witness observes a real listening socket and requires no incoming connection.
+The existing unsupervised runtime regressions remain in the focused matrix.
+All existing test files and 41 locked files remain unchanged.
+
+Both hosts first reproduced the unsupported field against the predecessor binary.
+The first focused build then omitted Python protobuf binding targets.
+Both harness runs reported 30 tests with two failures and five import errors.
+Feature tests and the sanitizer profile were unrun in that attempt.
+The corrected qualifier explicitly builds the required bindings and retains the original failed logs.
+This build-command correction changes no production source or test assertion.
+
+Both hosts passed 84 focused checks across six suites in Debug and runtime ASan/UBSan.
+Each profile also passed 51 harness checks. No final test failed or skipped.
+All 271 source hashes and 41 locked hashes match.
+Descriptor comparison removes only the added optional field and its synthetic presence oneof.
+The remaining imported file descriptors match the predecessor byte for byte.
+
+Full qualification is running on both hosts in output03.
+Expected totals are 1287 core checks across 84 suites, 51 harness checks, and 151 P10 cases per profile.
+Expected totals are not completed results. No source is integrated.
+Coordinator launch configuration wiring, supervisor authorization, restart reconciliation, and issuer retirement remain pending.
+M02 and Spatial-M1 remain incomplete.
+
+The fresh full builds also passed 48 focused Debug checks across five suites and 51 harness checks on each host.
+Those checks combine the coordinator, native scope, process scope, prepared launch, and five incarnation cases.
+The remaining full Debug and runtime sanitizer profiles continue.

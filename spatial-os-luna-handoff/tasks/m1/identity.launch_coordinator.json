@@ -18,5 +18,5 @@
     "Implement restart reconciliation through trusted process/native ownership evidence.",
     "Verify external broker reservation release before issuer retirement."
   ],
-  "candidate03": "43 focused Debug checks across4 suites and51 harness passed both hosts.270source and41locked hashes match. Full qualification running."
+  "candidate03": "Full Debug passed both hosts:1282core83suites51harness151P10, zero failed/skipped. Runtime sanitizers running."
 }

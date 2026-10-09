@@ -178,3 +178,11 @@ Candidate02 stopped after one fixture failure on both hosts: cgroup control file
 Candidate03 checks child directories and cgroup.procs. All14 checks pass against unchanged candidate02 binaries.
 New full coordinator qualification sessions: sb16=65657, sb16-2=59785. Candidate02 sessions28002/29111 are terminal failures.
 The original logs and explicit fixture correction are preserved. No failed run is reported as passing.
+
+2026-10-09: Preassigned service incarnation
+Both hosts reproduced the unsupported configuration field before implementation.
+Candidate01 passed 84 focused checks and 51 harness checks per profile on both hosts, including runtime ASan/UBSan.
+The first qualifier omitted Python protobuf binding targets. Both setup failures are preserved.
+Full 271-file qualification now runs as sb16 session34786 and sb16-2 session3576.
+Coordinator03 sessions65657/59785 remain active. Combined scopes264 finished both profiles on both hosts.
+No issuer retirement or authenticated supervisor launch authority is implemented by this identity field.

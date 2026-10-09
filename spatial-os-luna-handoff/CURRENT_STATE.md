@@ -1,5 +1,29 @@
 # Implementation status
 
+## 2026-10-09: Preassigned service incarnation passes both focused profiles
+
+The isolated runtime now accepts an explicit 32-byte service incarnation in private configuration.
+The exact value reaches issuer authentication and durable activation.
+An empty or malformed explicit value fails before network access.
+Existing service-key, domain, and used-incarnation checks remain active.
+This identity field does not authorize launch or supervisor recovery.
+
+Both hosts passed 84 focused checks across six suites in Debug and runtime ASan/UBSan.
+Each profile also passed 51 harness checks. No final case failed or skipped.
+All 271 source hashes and 41 locked hashes match.
+Descriptor comparison confirms that all existing protobuf fields remain unchanged.
+The source remains isolated. Read docs/AUTHORITY_SERVICE_INCARNATION.txt.
+Fresh full builds passed 48 focused Debug checks and 51 harness checks on both hosts in output03.
+The remaining full Debug and runtime sanitizer qualification continues.
+Expected totals are 1287 core checks, 51 harness checks, and 151 P10 cases per profile.
+Those expected totals are not completed results.
+
+The first focused command omitted generated Python bindings and failed harness imports on both hosts.
+The corrected command generated the bindings without changing production code or test assertions.
+The original missing-feature baseline and setup failures remain preserved in evidence/participant-incarnation-2026-10-09.
+
+Authenticated supervisor launch authorization, recovery reconciliation, and M02 remain incomplete.
+
 ## 2026-10-09: Participant corrections complete both full profiles
 
 Combined participant candidate09 passed full Debug and runtime ASan/UBSan on both hosts.
@@ -17,15 +41,16 @@ The assertion counted standard cgroup control files as child scopes. Candidate03
 All fourteen coordinator checks passed against unchanged candidate02 production on both hosts.
 Candidate03 passed 43 focused Debug checks across four suites and 51 harness checks on both hosts.
 All 270 source hashes and 41 locked hashes match. No focused case failed or skipped.
-Its remaining full Debug and runtime sanitizer qualification continues on both hosts.
+It subsequently passed full Debug on both hosts: 1282 core checks, 51 harness checks, and 151 P10 cases each.
+No full Debug case failed or skipped. Runtime sanitizer qualification continues.
 The expected full matrix is 1282 core checks, 51 harness checks, and 151 P10 cases per profile.
 Expected totals are not completed results.
 Read docs/AUTHORITY_LAUNCH_COORDINATOR.txt for scope, state transitions, and restart limitations.
 No coordinator source is integrated. Full supervisor recovery remains pending.
 
-The older combined 264-file scopes candidate also completed both full profiles on sb16.
+The older combined 264-file scopes candidate also completed both full profiles on both hosts.
 Each profile passed 1260 core checks, 51 harness checks, and 151 P10 cases with no failures or skips.
-Its sb16-2 sanitizer job remains live; that host has already passed full Debug.
+All 264 source hashes and 41 locked hashes match. The source remains isolated.
 
 ## 2026-10-09: Prepared authority launch passes both focused profiles
 

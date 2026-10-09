@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.revocation_barrier",
   "status": "in_progress",
-  "current_step": "durable_coordinator_candidate03_full_qualification",
+  "current_step": "service_incarnation_focused_passed_authorization_next",
   "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
   "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "evidence": "evidence/participant-recovery-2026-10-09",
@@ -48,9 +48,10 @@
     "candidate": 1,
     "source_files": 264,
     "evidence": "evidence/authority-scopes-combined-2026-10-09",
-    "status": "full qualification running on both hosts",
+    "status": "Both full profiles passed on both hosts:1260core81suites51harness151P10 perprofile",
     "integrated": false
   },
   "prepared_launch_task": "tasks/m1/identity.prepared_launch.json",
-  "launch_coordinator_task": "tasks/m1/identity.launch_coordinator.json"
+  "launch_coordinator_task": "tasks/m1/identity.launch_coordinator.json",
+  "service_incarnation_task": "tasks/m1/identity.service_incarnation.json"
 }

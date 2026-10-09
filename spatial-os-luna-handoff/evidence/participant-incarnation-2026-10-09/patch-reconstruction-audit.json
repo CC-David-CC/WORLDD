@@ -1,0 +1,9 @@
+{
+  "command": "python local/audit-participant-incarnation-01.py",
+  "exit_code": 0,
+  "reconstructed_files": 271,
+  "existing_tests_unchanged": true,
+  "focused_both_profiles_both_hosts": "passed",
+  "combined_scopes_full_both_profiles_both_hosts": "passed",
+  "full_incarnation": "pending"
+}

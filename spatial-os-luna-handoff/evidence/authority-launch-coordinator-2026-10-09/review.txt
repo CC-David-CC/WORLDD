@@ -68,3 +68,8 @@ No coordinator source is integrated into main.
 Authenticated supervisor launch authorization and preassigned service incarnation remain pending.
 Restart reconciliation and external broker reservation cleanup remain pending.
 Full supervisor recovery, M02, and Spatial-M1 remain incomplete.
+
+2026-10-09 complete Debug result
+Candidate03 passed 1282 core checks across 83 suites, 51 harness checks, and 151 P10 cases on each host.
+Both full Debug profiles have zero failures and skips. Exact source and locked hashes match.
+Runtime sanitizer qualification continues on both hosts. Source remains isolated.

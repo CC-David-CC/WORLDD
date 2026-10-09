@@ -1,0 +1,47 @@
+Preassigned authority service incarnation
+Status: isolated candidate01. Focused qualification passed. Full qualification is running. Source is not integrated.
+
+Invariant
+
+A configured service incarnation must reach issuer authentication and activation unchanged.
+An invalid explicit incarnation must fail before the runtime starts its network worker.
+
+Private configuration contract
+
+AuthorityParticipantRuntimeConfig adds optional bytes service_incarnation as field 6.
+Existing fields and wire numbers remain unchanged.
+When present, the value must contain exactly 32 bytes.
+An explicitly empty value is invalid. It must not request a random replacement identity.
+When absent, the existing unsupervised runtime still generates a fresh random incarnation.
+
+The supervisor will assign this value per launch and record it before execution.
+The runtime uses the same value in its existing service authentication request.
+Existing registered-domain checks and service-key proof remain mandatory.
+The issuer's existing rule still rejects reuse of an activated incarnation, including after clean release.
+A replacement requires a different incarnation and a separately authorized launch.
+
+This field is an identity, not a credential or launch authorization.
+Knowing it does not grant actor authority, service authority, or supervisor recovery authority.
+The supervisor authorization protocol must enforce the recorded binding at issuer activation.
+That protocol and its production integration remain pending.
+Do not claim this configuration field authenticates the supervisor.
+
+Evidence
+
+Both hosts reproduced the missing field against the predecessor's real runtime and issuer.
+The new counterexample requires exact authentication and durable activation identities.
+Additional checks cover malformed values before network access, reuse after release, domain mismatch, and an invalid service key.
+All existing tests remain unchanged.
+Full coordinator qualification does not qualify this later source change.
+
+The first focused build omitted Python protobuf binding targets.
+Both hosts stopped during harness imports before running feature checks.
+The corrected qualification command explicitly builds the required generated bindings.
+Preserve the failed setup logs. No production source or test assertion changed for that correction.
+
+M02, supervisor recovery, and Spatial-M1 remain incomplete.
+
+Both hosts passed 84 focused checks across six suites in Debug and runtime ASan/UBSan.
+Each profile also passed 51 harness checks. No final case failed or skipped.
+All 271 source hashes and 41 locked hashes match. Descriptor comparison confirms the additive field only.
+Full qualification runs separately in output03 and remains pending.

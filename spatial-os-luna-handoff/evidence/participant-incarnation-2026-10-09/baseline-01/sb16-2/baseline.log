@@ -1,0 +1,26 @@
+test_exact_preassigned_incarnation_reaches_durable_activation (counterexample.IncarnationTests.test_exact_preassigned_incarnation_reaches_durable_activation) ... FAIL
+
+======================================================================
+FAIL: test_exact_preassigned_incarnation_reaches_durable_activation (counterexample.IncarnationTests.test_exact_preassigned_incarnation_reaches_durable_activation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_participant_incarnation_baseline_01.py", line 31, in test_exact_preassigned_incarnation_reaches_durable_activation
+    incarnation=os.urandom(32);runtime,auth,batch=self.ready_assigned(incarnation)
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_participant_incarnation_baseline_01.py", line 23, in ready_assigned
+    runtime=self.start_assigned(incarnation,**changes);auth=runtime.receive()
+                                                            ^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/tests/core/test_identity_participant_runtime.py", line 41, in receive
+    size=struct.unpack('!I',exact(4))[0]
+                            ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-authority-launch-coordinator-03/source/tests/core/test_identity_participant_runtime.py", line 38, in exact
+    if not part:raise AssertionError('Participant closed: '+self.log.read_text())
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Participant closed: [libprotobuf ERROR google/protobuf/text_format.cc:337] Error parsing text-format spatial.identity.v1.AuthorityParticipantRuntimeConfig: 6:20: Message type "spatial.identity.v1.AuthorityParticipantRuntimeConfig" has no field named "service_incarnation".
+Invalid authority participant runtime configuration
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.264s
+
+FAILED (failures=1)

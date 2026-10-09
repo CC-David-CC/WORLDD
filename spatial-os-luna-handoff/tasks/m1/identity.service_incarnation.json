@@ -1,0 +1,34 @@
+{
+  "id": "identity.service_incarnation",
+  "phase": "M02",
+  "parent": "identity.supervisor_recovery",
+  "status": "in_progress",
+  "invariant": "Use the configured launch incarnation unchanged through service authentication and activation.",
+  "contract": "docs/AUTHORITY_SERVICE_INCARNATION.txt",
+  "candidate": 1,
+  "source_files": 271,
+  "integrated": false,
+  "evidence": "evidence/participant-incarnation-2026-10-09",
+  "focused": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "checks": 84,
+    "new_checks": 5,
+    "harness_checks": 51,
+    "failed": 0,
+    "skipped": 0
+  },
+  "full": "Running on both hosts; expected1287core84suites51harness151P10 each profile",
+  "remaining": [
+    "Complete full qualification.",
+    "Require authenticated supervisor authorization for supervised issuer activation.",
+    "Deliver each coordinator binding through the real authority launch configuration."
+  ],
+  "full_focused_debug": "48 checks across5suites and51harness passed both hosts;271 source and41locked hashes match"
+}
