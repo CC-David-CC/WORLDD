@@ -181,6 +181,19 @@ void view(spatial::identity::ParticipantStream& channel, const pb::AuthorityLaun
 void drain(spatial::identity::ParticipantStream& channel) {
     while (channel.pending_output()) { channel.flush(); if (channel.pending_output()) tick(); }
 }
+void release_child_sources(const pb::AuthoritySupervisorConfig& config) {
+    // Keep standard descriptor slots occupied while releasing the original child pipes.
+    File null_file(open("/dev/null", O_RDWR | O_CLOEXEC | O_NOFOLLOW));
+    struct stat info{};
+    require(null_file.value >= 3 && fstat(null_file.value, &info) == 0 && S_ISCHR(info.st_mode),
+        "Cannot reserve supervisor standard descriptor slots");
+    for (const int target : {STDIN_FILENO, STDOUT_FILENO}) {
+        int result;
+        do { result = dup2(null_file.value, target); } while (result < 0 && errno == EINTR);
+        require(result == target, "Cannot release supervisor child stream copy");
+    }
+    for (const auto source : config.inherited_source_fds()) close(static_cast<int>(source));
+}
 }
 
 int main(int argc, char** argv) {
@@ -235,7 +248,9 @@ int main(int argc, char** argv) {
             config.mutable_launch()->add_inherited_fds(config.compositor_native_target_fd());
             inherited.push_back(compositor_config.value);
         }
-        view(*management, launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited));
+        const auto started = launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited);
+        release_child_sources(config);
+        view(*management, started);
         broker_config.reset();
         compositor_config.reset();
         for (;;) {

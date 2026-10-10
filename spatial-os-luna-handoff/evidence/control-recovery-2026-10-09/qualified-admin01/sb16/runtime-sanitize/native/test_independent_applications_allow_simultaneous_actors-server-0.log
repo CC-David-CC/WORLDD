@@ -1,0 +1,79 @@
+Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )
+Sync Extension 3.1
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-0.xkm"', fp = 0x63656682c600
+Pclose: fp = 0x63656682c600
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-0.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(2370584).
+client(0): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb) and cmdargs(-displayfd 11 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 6).
+client(200000): Reserved pid(2368660).
+client(200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/source/tests/core/test_world_application_control.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/identityd /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/spatial-issuer-client /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/worldd /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/spatial-security-auth).
+AllocNewConnection: client index = 1, socket fd = 8, local = 1
+client(400000): Reserved pid(2370587).
+client(400000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/workspaced) and cmdargs(--state-dir /tmp/spatial-issuer-hbx74d49/execution --authority-config /tmp/spatial-issuer-hbx74d49/broker.textproto --native-security-fd 14).
+AllocNewConnection: client index = 2, socket fd = 9, local = 1
+client(600000): Reserved pid(2370618).
+client(600000): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/spatialwm) and cmdargs(--state-dir /tmp/spatial-issuer-hbx74d49/scoped-world-0 --display :0).
+AllocNewConnection: client index = 3, socket fd = 10, local = 1
+client(800000): Reserved pid(2370653).
+client(800000): Reserved cmdname(/project/probe) and cmdargs(--id controlled-1).
+AllocNewConnection: client index = 4, socket fd = 11, local = 1
+client(a00000): Reserved pid(2370669).
+client(a00000): Reserved cmdname(/project/probe) and cmdargs(--id controlled-2).
+AllocNewConnection: client index = 5, socket fd = 12, local = 1
+(dix) removing device 18
+(dix) removing device 19
+(dix) removing device 17
+(dix) removing device 16
+(dix) removing device 14
+(dix) removing device 15
+(dix) removing device 13
+(dix) removing device 12
+client(600000): Released pid(2370618).
+client(600000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/spatialwm) and cmdargs(--state-dir /tmp/spatial-issuer-hbx74d49/scoped-world-0 --display :0).
+(dix) removing device 11
+(dix) removing device 10
+client(a00000): Released pid(2370669).
+client(a00000): Released cmdline(/project/probe) and cmdargs(--id controlled-2).
+(dix) removing device 9
+(dix) removing device 8
+client(800000): Released pid(2370653).
+client(800000): Released cmdline(/project/probe) and cmdargs(--id controlled-1).
+client(400000): Released pid(2370587).
+client(400000): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/workspaced) and cmdargs(--state-dir /tmp/spatial-issuer-hbx74d49/execution --authority-config /tmp/spatial-issuer-hbx74d49/broker.textproto --native-security-fd 14).
+client(200000): Released pid(2368660).
+client(200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/source/tests/core/test_world_application_control.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/identityd /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/spatial-issuer-client /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/worldd /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/runtime-sanitize/build/spatial-security-auth).
+(dix) removing device 2
+(dix) removing device 3
+(dix) removing device 5
+(dix) removing device 4
+(dix) removing device 7
+(dix) removing device 6
+client(0): Released pid(2370584).
+client(0): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb) and cmdargs(-displayfd 11 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 6).

@@ -1,0 +1,40 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 6
+    Start 6: supervisor-handoff-lifetime
+
+6: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-handoff-lifetime-779c1f034a63577836936642db81b183b36deb7e7d79765fcb7a262fd227354a" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/qualification/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/source/tests/native/test_supervisor_handoff_lifetime.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build/spatial-issuer-client"
+6: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-handoff-01/runtime-sanitize/build
+6: Test timeout computed to be: 180
+6: Running as unit: spatial-handoff-lifetime-779c1f034a63577836936642db81b183b36deb7e7d79765fcb7a262fd227354a.service; invocation ID: 95e594062fd54b3e9ca3e6343b638ff6
+6: test_selected_endpoint_has_no_supervisor_copy_after_handoff (__main__.HandoffTests.test_selected_endpoint_has_no_supervisor_copy_after_handoff) ... ok
+6: test_child_stdout_has_no_supervisor_writer_after_handoff (__main__.HandoffTests.test_child_stdout_has_no_supervisor_writer_after_handoff) ... ok
+6: 
+6: ----------------------------------------------------------------------
+6: Ran 2 tests in 3.061s
+6: 
+6: OK
+6: Finished with result: success
+6: Main processes terminated with: code=exited/status=0
+6: Service runtime: 3.221s
+6: CPU time consumed: 1.903s
+6: Memory peak: 1.5M
+6: Memory swap peak: 0B
+1/1 Test #6: supervisor-handoff-lifetime ......   Passed    3.25 sec
+
+The following tests passed:
+	supervisor-handoff-lifetime
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   3.25 sec

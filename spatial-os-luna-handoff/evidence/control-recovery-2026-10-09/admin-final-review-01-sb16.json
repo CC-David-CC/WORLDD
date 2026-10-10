@@ -1,0 +1,14 @@
+{
+  "host": "sb16",
+  "reviewer": "primary agent",
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "attachment_hashes_verified": true,
+  "raw_core_counts_verified": true,
+  "summary_sha256": "f721edc2f2a18b356376730466a8af7c39bdedc279b96e96c8b1be07812ffb6f",
+  "integration_ready": false,
+  "remaining": "second-host full qualification",
+  "production_coordinator_implemented": false
+}

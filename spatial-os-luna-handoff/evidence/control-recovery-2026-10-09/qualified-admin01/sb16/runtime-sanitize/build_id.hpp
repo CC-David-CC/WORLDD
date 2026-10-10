@@ -1,0 +1,2 @@
+#pragma once
+#define SPATIAL_BUILD_ID "sha256:4661f9da085947afeb5a7ac87471a4e8a159c9b86f845bf5aa988b827decb847"
