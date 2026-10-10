@@ -1,0 +1,94 @@
+Running as unit: spatial-binding-baseline-runtime-sanitize-1774639.service; invocation ID: c2a640f9d86c42d19c2fb8176942f34d
+test_prepared_owner_matches_activation_and_exact_issuer_fence (__main__.BindingTests.test_prepared_owner_matches_activation_and_exact_issuer_fence) ... FAIL
+test_reopened_authorized_record_cannot_reconstruct_control_owner (__main__.BindingTests.test_reopened_authorized_record_cannot_reconstruct_control_owner) ... FAIL
+test_failed_authorization_commit_cannot_expose_owner (__main__.BindingTests.test_failed_authorization_commit_cannot_expose_owner) ... FAIL
+test_query_rejects_nested_unknown_owner_selector_without_mutation (__main__.BindingTests.test_query_rejects_nested_unknown_owner_selector_without_mutation) ... FAIL
+test_broker_native_role_cannot_become_world_control_owner (__main__.BrokerBindingTests.test_broker_native_role_cannot_become_world_control_owner) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.SupervisorBindingTests.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... FAIL
+
+======================================================================
+FAIL: test_prepared_owner_matches_activation_and_exact_issuer_fence (__main__.BindingTests.test_prepared_owner_matches_activation_and_exact_issuer_fence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py", line 66, in test_prepared_owner_matches_activation_and_exact_issuer_fence
+    owner = self.owner(proc)
+            ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py", line 56, in owner
+    self.assertFalse(reply.HasField('error'), 'Missing owned control binding: ' + str(reply))
+AssertionError: True is not false : Missing owned control binding: protocol_version: 1
+request_id: 55
+error {
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_reopened_authorized_record_cannot_reconstruct_control_owner (__main__.BindingTests.test_reopened_authorized_record_cannot_reconstruct_control_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py", line 87, in test_reopened_authorized_record_cannot_reconstruct_control_owner
+    self.owner(proc)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py", line 56, in owner
+    self.assertFalse(reply.HasField('error'), 'Missing owned control binding: ' + str(reply))
+AssertionError: True is not false : Missing owned control binding: protocol_version: 1
+request_id: 55
+error {
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_failed_authorization_commit_cannot_expose_owner (__main__.BindingTests.test_failed_authorization_commit_cannot_expose_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py", line 107, in test_failed_authorization_commit_cannot_expose_owner
+    assert_owner(self, self.owner(proc), self.read_record())
+                       ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py", line 56, in owner
+    self.assertFalse(reply.HasField('error'), 'Missing owned control binding: ' + str(reply))
+AssertionError: True is not false : Missing owned control binding: protocol_version: 1
+request_id: 55
+error {
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_query_rejects_nested_unknown_owner_selector_without_mutation (__main__.BindingTests.test_query_rejects_nested_unknown_owner_selector_without_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py", line 116, in test_query_rejects_nested_unknown_owner_selector_without_mutation
+    assert_owner(self, self.owner(proc), before)
+                       ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py", line 56, in owner
+    self.assertFalse(reply.HasField('error'), 'Missing owned control binding: ' + str(reply))
+AssertionError: True is not false : Missing owned control binding: protocol_version: 1
+request_id: 55
+error {
+  message: "Unknown protobuf fields"
+}
+
+
+======================================================================
+FAIL: test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.SupervisorBindingTests.test_production_supervisor_returns_exact_owned_binding_without_stopping_child)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py", line 148, in test_production_supervisor_returns_exact_owned_binding_without_stopping_child
+    self.assertFalse(reply.HasField('error'), 'Missing production control binding: ' + str(reply))
+AssertionError: True is not false : Missing production control binding: protocol_version: 1
+request_id: 77
+error {
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 6 tests in 5.878s
+
+FAILED (failures=5)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 5.990s
+CPU time consumed: 2.542s
+Memory peak: 1.5M
+Memory swap peak: 0B

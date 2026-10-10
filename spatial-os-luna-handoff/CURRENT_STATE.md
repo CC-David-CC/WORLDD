@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-10: Qualified owner source adopted on both hosts
+
+Both hosts adopted commit 4779f731 with all 297 qualified source hashes.
+Both checkouts remained clean. No operator session restarted or runtime state migrated.
+Active and queued qualification helper inputs remained unchanged.
+Read evidence/control-recovery-2026-10-09/adoption-review-04.json.
+The initial adoption attempt stopped before checkout changes because its manifest path was incorrect.
+The corrected attempt uses the deployed frozen manifest. Its failure evidence remains preserved.
+
+Binding01 passed full Debug on sb16: 1,480 core checks across 101 suites, 51 harness, and 151 P10 cases.
+Three native-world checks also passed. No Debug case failed or skipped.
+Read evidence/control-recovery-2026-10-09/qualified-binding01/sb16/summary-debug.json.
+sb16 runs binding sanitizers. sb16-2 runs binding Debug after passing both baseline and focused checks.
+Reply validation remains queued. Complete production control recovery and M02 remain unfinished.
+
 ## 2026-10-09: Qualified owner channels integrated
 
 The exact eight-file owner04 change is integrated into project source.

@@ -56,7 +56,7 @@
   "candidate03_integration_ready": false,
   "validation_order_correction": {
     "candidate": 4,
-    "state": "Both hosts passed full Debug and sanitizer qualification. Exact owner04 source is integrated; host adoption follows the reviewed commit.",
+    "state": "Both hosts passed complete Debug and sanitizer qualification. Exact owner04 source is integrated and adopted on both hosts at 4779f731.",
     "total_owner_checks": 21,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-validation-review-04.json",
     "drivers": {
@@ -71,12 +71,13 @@
     "sb16_full_evidence": "evidence/control-recovery-2026-10-09/full-review-04-sb16.json",
     "adoption_script": "local/adopt-control-owner-04.py",
     "integrated": true,
-    "integration_evidence": "evidence/control-recovery-2026-10-09/integration-applied-04.json"
+    "integration_evidence": "evidence/control-recovery-2026-10-09/integration-applied-04.json",
+    "adoption_evidence": "evidence/control-recovery-2026-10-09/adoption-review-04.json"
   },
   "retained_launch_binding": {
     "candidate": "binding01",
     "base": "owner04",
-    "state": "sb16 reproduced five expected baseline failures among six checks in both profiles. Both corrected builds passed. Debug passed six binding checks, three native-world checks, and 51 harness checks; full Debug regression remains active. sb16-2 waits for owner04.",
+    "state": "Both hosts reproduced both baseline profiles and passed focused Debug checks. sb16 passed full Debug and runs sanitizers. sb16-2 runs full Debug.",
     "source_files": 298,
     "changed_files": 7,
     "new_checks": 6,
@@ -89,7 +90,8 @@
     "integration_guard": "local/integrate-control-binding-01.py",
     "guard_rejection_evidence": "evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json",
     "sb16_baseline_evidence": "evidence/control-recovery-2026-10-09/binding-baseline-01/sb16/baseline-review.json",
-    "sb16_focused_debug_evidence": "evidence/control-recovery-2026-10-09/binding-focused-01/sb16/debug/focused-review.json"
+    "sb16_focused_debug_evidence": "evidence/control-recovery-2026-10-09/binding-focused-01/sb16/debug/focused-review.json",
+    "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/qualified-binding01/sb16/summary-debug.json"
   },
   "session_coordinator_contract": "docs/SESSION_CONTROL_COORDINATOR.txt",
   "control_reply_validation": {

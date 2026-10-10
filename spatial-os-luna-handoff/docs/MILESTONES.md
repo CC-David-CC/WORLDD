@@ -21,7 +21,8 @@ The latest qualified source increment adds immutable owner channels and scoped c
 Both hosts passed Debug and runtime sanitizers: 1,474 core checks, 51 harness checks, and 151 P10 cases per profile.
 Three native-world checks also passed per profile. No final case failed or skipped.
 Read evidence/control-recovery-2026-10-09/integration-primary-review-04.json.
-Exact host source adoption follows the reviewed integration commit.
+Both hosts adopted all 297 qualified source hashes at 4779f731 without session restarts or state migration.
+Read evidence/control-recovery-2026-10-09/adoption-review-04.json.
 Production supervisor binding, session coordination, selective recovery release, and issuer retirement remain required.
 
 The previous qualified increment is native world handoff and authority crash fencing at a3a926d.

@@ -538,3 +538,9 @@ Host checkout adoption follows the reviewed source commit and protects active qu
 FileNotFoundError: local/control-owner-candidate-04.json.
 The helper used the packaging filename instead of the deployed manifest path.
 Corrected it to read local/m02-control-owner-04/manifest.json. Adoption retry follows the reviewed fix.
+
+2026-10-10: Both hosts adopted qualified owner04 source at 4779f731. All 297 source hashes match.
+Both checkouts are clean. Sessions and operator state were preserved. Active qualification helpers were unchanged.
+Adoption evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/adoption-review-04.json.
+Binding01 full Debug passed on sb16: 1480 core / 101 suites, 51 harness, 151 P10, and three native-world checks.
+Binding sanitizer qualification on sb16 and full Debug on sb16-2 remain active. Complete recovery remains pending.

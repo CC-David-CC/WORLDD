@@ -1,0 +1,33 @@
+{
+  "reviewer": "primary agent",
+  "hosts": {
+    "sb16": {
+      "host": "sb16",
+      "before": "fa98501b13eedd9e66065d9b394d73f619496580",
+      "commit": "4779f731af1dc632b1d1c4e18bbd5a5eadc99896",
+      "source_hashes_matched": 297,
+      "qualified_source_exact": true,
+      "worktree_clean": true,
+      "runtime_restarted": false,
+      "operator_state_migrated": false
+    },
+    "sb16-2": {
+      "host": "sb16-2",
+      "before": "fa98501b13eedd9e66065d9b394d73f619496580",
+      "commit": "4779f731af1dc632b1d1c4e18bbd5a5eadc99896",
+      "source_hashes_matched": 297,
+      "qualified_source_exact": true,
+      "worktree_clean": true,
+      "runtime_restarted": false,
+      "operator_state_migrated": false
+    }
+  },
+  "qualified_source_hashes": 297,
+  "receipt_hashes": {
+    "sb16": "5112bf0d717f4349d009b097d76700302d9eabb9e32e33c513fe4330a52eb581",
+    "sb16-2": "cd670f107f618292132e968b46ee3d17d8629d8309fd14e0c44b020eff3b6afc"
+  },
+  "qualification_helpers_preserved": true,
+  "source_integration_commit": "89132bbe42a6f984232f41dd00c40982c54605f0",
+  "production_recovery_complete": false
+}
