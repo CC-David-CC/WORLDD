@@ -1,0 +1,2 @@
+control supervisor channel fenced: Control supervisor sender disconnected or changed
+workspaced: Workspace control release remains unresolved
