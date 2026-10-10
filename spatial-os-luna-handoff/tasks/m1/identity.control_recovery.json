@@ -81,7 +81,9 @@
       "sb16-2": 1540587
     },
     "evidence": "evidence/control-recovery-2026-10-09/control-binding-review-01.json",
-    "production_changed": false
+    "production_changed": false,
+    "integration_guard": "local/integrate-control-binding-01.py",
+    "guard_rejection_evidence": "evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json"
   },
   "session_coordinator_contract": "docs/SESSION_CONTROL_COORDINATOR.txt",
   "control_reply_validation": {

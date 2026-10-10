@@ -1,0 +1,363 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -17,7 +17,7 @@
+ find_package(OpenGL REQUIRED)
+ find_package(GLEW REQUIRED)
+ configure_file(config/conformance.textproto runtime.textproto COPYONLY)
+-set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
++set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
+ protobuf_generate_cpp(compositor_proto_sources compositor_proto_headers proto/spatial/render/v1/compositor_native.proto)
+ protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
+ protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
+@@ -40,12 +40,13 @@
+ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py"
+     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/launch.proto
+-    DEPENDS proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
++    DEPENDS proto/spatial/workspace/v1/broker.proto proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
+         proto/spatial/supervisor/v1/native_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+ add_custom_target(launch-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py")
+ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/process_scope_pb2.py"
+@@ -171,7 +172,7 @@
+ add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
+ target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch)
+ target_link_libraries(spatial-authority-launch-probe PRIVATE spatial-authority-launch)
+-add_dependencies(spatial-authority-launch-probe launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
++add_dependencies(spatial-authority-launch-probe broker-python-protobuf launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
+ add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
+ target_link_libraries(spatial-process-scope-probe PRIVATE spatial-process-scope)
+ add_dependencies(spatial-process-scope-probe scope-python-protobuf python-protobuf security-python-protobuf)
+@@ -321,6 +322,17 @@
+         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+     set_tests_properties(authority-supervisor-fencing PROPERTIES TIMEOUT 180)
++    add_test(NAME authority-control-binding COMMAND systemd-run --user --wait --pipe --collect
++        --unit=spatial-control-binding-${build_hash} --property=Delegate=yes
++        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
++        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
++        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
++        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
++        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
++        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_control_owner_binding.py" "${CMAKE_CURRENT_SOURCE_DIR}"
++        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
++        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
++    set_tests_properties(authority-control-binding PROPERTIES TIMEOUT 180)
+     add_test(NAME authority-supervisor-crash-fencing COMMAND systemd-run --user --wait --pipe --collect
+         --unit=spatial-supervisor-crash-fencing-${build_hash} --property=Delegate=yes
+         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+--- a/proto/spatial/supervisor/v1/launch.proto
++++ b/proto/spatial/supervisor/v1/launch.proto
+@@ -4,6 +4,7 @@
+ import "native_scope.proto";
+ import "issuer.proto";
+ import "grants.proto";
++import "broker.proto";
+ 
+ // Private supervisor context. Recording this does not authorize issuer activation.
+ message AuthorityLaunchBinding {
+@@ -76,6 +77,7 @@
+     AuthorityParticipantChannelPrepare prepare_channel = 18;
+     AuthorityLaunchQuery pump_channel = 19;
+     AuthorityLaunchQuery fence = 20;
++    AuthorityLaunchQuery control_owner = 21;
+   }
+ }
+ message AuthorityLaunchView {
+@@ -91,5 +93,6 @@
+     AuthorityLaunchError error = 11;
+     spatial.identity.v1.ParticipantUpdate participant_update = 12;
+     spatial.identity.v1.AuthorityParticipantRuntimeConfig participant_config = 13;
++    spatial.workspace.v1.ControlOwner control_owner = 14;
+   }
+ }
+--- a/src/supervisor/launch.cpp
++++ b/src/supervisor/launch.cpp
+@@ -127,6 +127,22 @@
+         value.native_stopped().identity().SerializeAsString() == native.SerializeAsString()), "Invalid native cleanup record");
+     require(value.stage() != v1::OWNED_SCOPES_STOPPED || (value.has_process_stopped() && value.has_native_stopped()),
+         "Incomplete owned scope cleanup");
++}
++identity::v1::AuthorityFenceBegin owned_generation(const v1::AuthorityLaunchRecord& record) {
++    const auto& binding = record.binding();
++    const auto& approval = record.authorization();
++    const auto& authorized = approval.request();
++    require(binding.supervised() && record.has_authorization() && authorized.previous_generation() < INT64_MAX,
++        "Owned generation requires a bounded supervised authorization");
++    identity::v1::AuthorityFenceBegin result;
++    result.set_participant_id(binding.participant_id());
++    result.set_registered_revision(binding.registered_revision());
++    result.set_generation(authorized.previous_generation()+1);
++    result.set_service_incarnation(binding.service_incarnation());
++    result.set_launch_id(record.process().launch_id());
++    result.set_supervision_revision(authorized.supervision_revision());
++    result.set_authorization_id(approval.authorization_id());
++    return result;
+ }
+ }
+ 
+@@ -381,6 +397,25 @@
+     // The issuer, not this local eligibility check, proves exact activation.
+     fence();
+ }
++workspace::v1::ControlOwner AuthorityLaunch::control_owner() const {
++    require(impl_->record.binding().supervised() && impl_->record.has_authorization() &&
++        impl_->process && impl_->native && impl_->participant && !impl_->participant->failed() &&
++        impl_->authorization_config && !impl_->stopping && !impl_->relay_failed && !impl_->relay_released &&
++        (impl_->record.stage() == v1::PREPARED ||
++            (impl_->record.stage() == v1::START_ATTEMPTED && impl_->started)),
++        "Control owner requires retained live authorized launch ownership");
++    require(impl_->record.native().role() == security::v1::COMPOSITOR,
++        "Control owner requires an owned compositor scope");
++    if (impl_->started) {
++        const auto state = impl_->process->state();
++        require(state.populated() && !state.direct_child_exited(), "Control owner child is no longer running");
++    }
++    workspace::v1::ControlOwner owner;
++    owner.set_issuer_id(impl_->record.binding().issuer_id());
++    *owner.mutable_launch() = owned_generation(impl_->record);
++    *owner.mutable_native() = impl_->record.native();
++    return owner;
++}
+ v1::AuthorityLaunchRecord AuthorityLaunch::fence() {
+     require(impl_->record.binding().supervised() && impl_->record.has_authorization() &&
+         impl_->record.stage() >= v1::START_ATTEMPTED && impl_->process && impl_->native &&
+@@ -391,21 +426,11 @@
+     if (impl_->relay_child.fd >= 0) close(std::exchange(impl_->relay_child.fd, -1));
+     impl_->participant.reset();
+     const auto& approval = impl_->record.authorization();
+-    const auto& authorized = approval.request();
+-    require(authorized.previous_generation() < INT64_MAX, "Fence candidate generation overflows");
+     auto key = identity::KeyPair::load(impl_->authorization_config->private_key_path());
+     require(key.public_key() == approval.supervisor_public_key(), "Fence signing key differs from owned authorization");
+     identity::IssuerClient client(impl_->authorization_config->issuer_client_config());
+     identity::v1::IssuerRequest begin; begin.set_protocol_version(1);
+-    auto* request = begin.mutable_authority_fence_begin();
+-    const auto& binding = impl_->record.binding();
+-    request->set_participant_id(binding.participant_id());
+-    request->set_registered_revision(binding.registered_revision());
+-    request->set_generation(authorized.previous_generation()+1);
+-    request->set_service_incarnation(binding.service_incarnation());
+-    request->set_launch_id(impl_->record.process().launch_id());
+-    request->set_supervision_revision(authorized.supervision_revision());
+-    request->set_authorization_id(approval.authorization_id());
++    *begin.mutable_authority_fence_begin() = owned_generation(impl_->record);
+     auto result = client.call(std::move(begin));
+     require(result.has_challenge(), "Issuer rejected owned authority fence challenge");
+     identity::v1::IssuerRequest complete; complete.set_protocol_version(1);
+--- a/src/supervisor/launch.hpp
++++ b/src/supervisor/launch.hpp
+@@ -30,6 +30,8 @@
+     // True only after an explicit release and exit of the retained direct child.
+     bool child_completed() const;
+     v1::AuthorityLaunchRecord inspect() const;
++    // Registration identity from retained live ownership. This does not prove activation or cleanup.
++    workspace::v1::ControlOwner control_owner() const;
+     v1::AuthorityLaunchRecord stop();
+     // Fence the exact authorized generation. This does not retire issuer obligations.
+     v1::AuthorityLaunchRecord fence();
+--- a/src/supervisor/main.cpp
++++ b/src/supervisor/main.cpp
+@@ -249,7 +249,8 @@
+                     require(request.ParseFromString(*bytes), "Malformed supervisor request");
+                     reply.set_request_id(request.request_id()); spatial::validate_message(request);
+                     require(request.protocol_version() == 1, "Unsupported supervisor request version");
+-                    require(request.has_inspect() || request.has_stop() || request.has_fence(), "Supervisor supports only inspect, stop, and fence");
++                    require(request.has_inspect() || request.has_stop() || request.has_fence() || request.has_control_owner(),
++                        "Supervisor supports only inspect, stop, fence, and control owner");
+                     stop = request.has_stop() || request.has_fence();
+                 } catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
+                 if (!reply.has_error()) {
+@@ -257,7 +258,11 @@
+                     explicit_shutdown = stop;
+                     // Cleanup errors are fatal and cannot resume child routing.
+                     if (request.has_fence()) launch->fence();
+-                    *reply.mutable_view()->mutable_record() = stop ? launch->stop() : launch->inspect();
++                    if (request.has_control_owner()) {
++                        try { *reply.mutable_control_owner() = launch->control_owner(); }
++                        catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
++                    }
++                    else *reply.mutable_view()->mutable_record() = stop ? launch->stop() : launch->inspect();
+                 }
+                 management->send(reply.SerializeAsString());
+                 if (stop) { drain(*management); return 0; }
+--- a/src/testing/authority_launch_probe.cpp
++++ b/src/testing/authority_launch_probe.cpp
+@@ -38,6 +38,7 @@
+                 else if (request.has_prepare_channel()) *reply.mutable_participant_config() = launch.prepare_channel(request.prepare_channel().target_fd());
+                 else if (request.has_pump_channel()) { launch.pump_channel(); *reply.mutable_view()->mutable_record() = launch.inspect(); }
+                 else if (request.has_inspect()) *reply.mutable_view()->mutable_record() = launch.inspect();
++                else if (request.has_control_owner()) *reply.mutable_control_owner() = launch.control_owner();
+                 else if (request.has_stop()) *reply.mutable_view()->mutable_record() = launch.stop();
+                 else if (request.has_fence()) *reply.mutable_view()->mutable_record() = launch.fence();
+                 else throw std::runtime_error("Unknown launch operation");
+--- /dev/null
++++ b/tests/native/test_control_owner_binding.py
+@@ -0,0 +1,162 @@
++"""Derive control owners from retained real supervisor launches, without caller-selected identities."""
++from pathlib import Path
++import sqlite3
++import struct
++import sys
++import unittest
++from unittest.mock import patch
++
++SOURCE = Path(sys.argv.pop(1)).resolve()
++sys.path.insert(0, str(SOURCE / 'tests/native'))
++import test_authority_supervisor as supervisor
++import launch_pb2 as pb
++import security_pb2 as security
++
++
++def query_bytes(request_id, payload=b''):
++    # Empty additive operation 21 also runs against the baseline generated schema.
++    assert len(payload) < 128
++    return (pb.AuthorityLaunchRequest(protocol_version=1, request_id=request_id).SerializeToString()
++            + b'\xaa\x01' + bytes([len(payload)]) + payload)
++
++
++def assert_owner(test, owner, record):
++    test.assertEqual(owner.issuer_id, record.binding.issuer_id)
++    test.assertEqual(owner.native, record.native)
++    test.assertEqual(owner.native.role, security.COMPOSITOR)
++    expected = dict(participant_id=record.binding.participant_id,
++        registered_revision=record.binding.registered_revision,
++        generation=record.authorization.request.previous_generation + 1,
++        service_incarnation=record.binding.service_incarnation,
++        launch_id=record.process.launch_id,
++        supervision_revision=record.authorization.request.supervision_revision,
++        authorization_id=record.authorization.authorization_id)
++    for name, value in expected.items():
++        test.assertEqual(getattr(owner.launch, name), value, name)
++    test.assertEqual(owner.native.launch_id, owner.launch.launch_id)
++
++
++class BindingTests(supervisor.owned.OwnedParticipantTests):
++    def probe(self, *args, **kwargs):
++        original = supervisor.native_pb.NativeScopeConfig
++        def compositor(*args, **kwargs):
++            kwargs['role'] = security.COMPOSITOR
++            return original(*args, **kwargs)
++        with patch.object(supervisor.native_pb, 'NativeScopeConfig', side_effect=compositor):
++            return super().probe(*args, **kwargs)
++
++    def owner_reply(self, proc, payload=b''):
++        data = query_bytes(55, payload)
++        proc.stdin.write(struct.pack('!I', len(data)) + data)
++        proc.stdin.flush()
++        return self.reply(proc)
++
++    def owner(self, proc):
++        reply = self.owner_reply(proc)
++        self.assertFalse(reply.HasField('error'), 'Missing owned control binding: ' + str(reply))
++        self.assertTrue(reply.HasField('control_owner'), reply)
++        return reply.control_owner
++
++    def test_prepared_owner_matches_activation_and_exact_issuer_fence(self):
++        proc, _, _, batch = self.connected()
++        self.assertTrue(self.owner_reply(proc).HasField('error'))
++        approved = self.authorize(proc)
++        self.assertTrue(approved.HasField('view'), approved)
++        before = self.read_record()
++        owner = self.owner(proc)
++        assert_owner(self, owner, before)
++        self.assertEqual(self.owner(proc), owner)
++        self.assertEqual(self.read_record(), before)
++        self.assertEqual(self.activation_rows(), [])
++        self.assertTrue(self.run_child(proc, 'import time;time.sleep(30)').HasField('view'))
++        self.assertTrue(self.activate(proc, batch.through_revision).HasField('view'))
++        active = self.update(proc, 'activated').activated
++        self.assertEqual(owner.launch.generation, active.generation)
++        self.assertEqual(self.owner(proc), owner)
++        fenced = self.call(proc, fence=pb.AuthorityLaunchQuery())
++        self.assertTrue(fenced.HasField('view'), fenced)
++        for name in ('generation', 'service_incarnation', 'launch_id', 'supervision_revision', 'authorization_id'):
++            self.assertEqual(getattr(fenced.view.record.fence, name), getattr(owner.launch, name))
++        self.assertTrue(self.owner_reply(proc).HasField('error'))
++        self.stopped(proc)
++        self.assertTrue(self.owner_reply(proc).HasField('error'))
++
++    def test_reopened_authorized_record_cannot_reconstruct_control_owner(self):
++        proc, _, _, _ = self.connected()
++        self.assertTrue(self.authorize(proc).HasField('view'))
++        self.owner(proc)
++        before = self.read_record()
++        proc.stdin.close()
++        self.assertEqual(proc.wait(timeout=5), 0)
++        reopened = self.probe(start_server=False)
++        self.assertEqual(self.call(reopened, inspect=pb.AuthorityLaunchQuery()).view.record, before)
++        self.assertTrue(self.owner_reply(reopened).HasField('error'))
++        self.assertEqual(self.read_record(), before)
++
++    def test_failed_authorization_commit_cannot_expose_owner(self):
++        proc, _, _, _ = self.connected()
++        before = self.read_record()
++        with sqlite3.connect(self.journal / 'launch.db') as db:
++            db.execute("CREATE TRIGGER deny_owner BEFORE UPDATE ON launch BEGIN SELECT RAISE(ABORT,'owner journal fault'); END")
++        self.assertTrue(self.authorize(proc).HasField('error'))
++        self.assertTrue(self.owner_reply(proc).HasField('error'))
++        self.assertEqual(self.read_record(), before)
++        with sqlite3.connect(self.journal / 'launch.db') as db:
++            db.execute('DROP TRIGGER deny_owner')
++        self.assertTrue(self.authorize(proc).HasField('view'))
++        assert_owner(self, self.owner(proc), self.read_record())
++        self.stopped(proc)
++
++    def test_query_rejects_nested_unknown_owner_selector_without_mutation(self):
++        proc, _, _, _ = self.connected()
++        self.assertTrue(self.authorize(proc).HasField('view'))
++        before = self.read_record()
++        self.assertTrue(self.owner_reply(proc, b'\xf8\x07\x01').HasField('error'))
++        self.assertEqual(self.read_record(), before)
++        assert_owner(self, self.owner(proc), before)
++        self.stopped(proc)
++
++
++class BrokerBindingTests(supervisor.owned.OwnedParticipantTests):
++    def test_broker_native_role_cannot_become_world_control_owner(self):
++        proc, _, _, _ = self.connected()
++        self.assertTrue(self.authorize(proc).HasField('view'))
++        before = self.read_record()
++        data = query_bytes(55)
++        proc.stdin.write(struct.pack('!I', len(data)) + data)
++        proc.stdin.flush()
++        reply = self.reply(proc)
++        self.assertTrue(reply.HasField('error'), reply)
++        self.assertEqual(self.read_record(), before)
++        self.stopped(proc)
++
++
++class SupervisorBindingTests(supervisor.AuthoritySupervisorTests):
++    def test_production_supervisor_returns_exact_owned_binding_without_stopping_child(self):
++        original = supervisor.native_pb.NativeScopeConfig
++        def compositor(*args, **kwargs):
++            kwargs['role'] = security.COMPOSITOR
++            return original(*args, **kwargs)
++        with patch.object(supervisor.native_pb, 'NativeScopeConfig', side_effect=compositor):
++            proc, channel = self.running()
++        active = self.activate_child(proc)
++        before = self.read_record()
++        data = query_bytes(77)
++        channel.sendall(struct.pack('!I', len(data)) + data)
++        reply = self.message(channel, pb.AuthorityLaunchReply)
++        self.assertEqual(reply.request_id, 77)
++        self.assertFalse(reply.HasField('error'), 'Missing production control binding: ' + str(reply))
++        self.assertTrue(reply.HasField('control_owner'), reply)
++        assert_owner(self, reply.control_owner, before)
++        self.assertEqual(reply.control_owner.launch.generation, active.generation)
++        self.assertEqual(self.read_record(), before)
++        self.assertIsNone(proc.poll())
++        self.assertTrue(self.control(channel, fence=pb.AuthorityLaunchQuery()).HasField('view'))
++        self.assertEqual(proc.wait(timeout=5), 0)
++        self.checked_cleanup()
++
++
++if __name__ == '__main__':
++    suite = unittest.TestSuite(cls(name) for cls in (BindingTests, BrokerBindingTests, SupervisorBindingTests)
++        for name in cls.__dict__ if name.startswith('test_'))
++    raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

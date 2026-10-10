@@ -49,3 +49,12 @@ Do not pass that endpoint to another process and bypass the per-packet sender ch
 An inherited endpoint identifies its creator. It does not identify the later world process.
 The coordinator must preserve this exact endpoint-to-launch mapping.
 Selective release and durable dependent receipts remain separate required recovery operations.
+
+Integration guard
+
+local/integrate-control-binding-01.py prepares the exact seven-file patch from the frozen owner04 base.
+The apply path requires owner04 integration, both hosts' full binding profiles, and final primary review.
+It checks raw logs, baseline failures, unchanged locks, binary hashes, and compiler monitoring.
+The rejection check preserved all 294 current production source hashes.
+Read evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json.
+This preparation does not integrate the draft or satisfy runtime qualification.

@@ -1,0 +1,10 @@
+{
+  "command": "python local/integrate-control-binding-01.py --apply",
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Integration refused: exact owner04 production base is not integrated\n",
+  "production_source_unchanged": true,
+  "source_files_verified": 294,
+  "integration_ready": false,
+  "rejection_reason": "Owner04 is not integrated; full binding qualification and final primary review remain required."
+}

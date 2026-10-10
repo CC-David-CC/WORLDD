@@ -508,3 +508,8 @@ Owner04 full Debug passed on both hosts: each passed 1474 core / 100 suites, 51 
 No failures or skips. Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/debug-matrix-review-04.json.
 Both sanitizer harnesses and focused owner/native checks passed. Both full sanitizer core runs remain active.
 Binding01 and reply01 remain queued. The collector supports reply01; that collection branch remains unrun.
+
+Binding01 integration guard prepared and reviewed. Apply refused the missing owner04 production base.
+All 294 production source hashes remained unchanged. Full binding qualification and final review remain required.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json.
+Both owner04 sanitizer drivers remain live; binding01 and reply01 remain queued.

@@ -1,5 +1,16 @@
 # Implementation status
 
+## 2026-10-09: Retained-launch binding integration guard prepared
+
+The primary agent reviewed the seven-file binding change against its retained-ownership contract.
+The guard requires exact owner04 production integration and both hosts' full Debug and sanitizer binding results.
+It also requires preserved baseline failures, raw native evidence, unchanged locks, and final primary review.
+An apply attempt correctly refused the unintegrated base. All 294 production source hashes remained unchanged.
+Read evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json.
+
+Owner04 sanitizer qualification remains active on both hosts. Binding01 and reply01 still wait.
+No binding test result or production integration is claimed.
+
 ## 2026-10-09: Corrected owner04 passes full Debug on both hosts
 
 Each host passed 1,474 core checks across 100 suites, 51 harness checks, and 151 P10 cases.
