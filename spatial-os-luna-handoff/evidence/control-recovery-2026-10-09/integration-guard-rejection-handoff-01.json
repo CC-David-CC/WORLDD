@@ -1,0 +1,9 @@
+{
+  "guard": "local/integrate-supervisor-handoff-01.py",
+  "preparation_exit": 0,
+  "apply_exit": 1,
+  "reason": "Exact reply01 production base is not integrated",
+  "production_changed": false,
+  "requires_both_hosts_full_profiles": true,
+  "requires_preserved_baseline": true
+}
