@@ -13,6 +13,8 @@
 #include <iostream>
 #include <mutex>
 #include <set>
+#include <string_view>
+#include <syncstream>
 #include <thread>
 
 namespace spatial::identity {
@@ -23,6 +25,12 @@ using Domains = std::set<std::pair<int, std::string>>;
 Domains domain_set(const v1::AuthorityParticipant& participant) {
     Domains result;
     for (const auto& domain : participant.domains()) result.insert(participant_detail::domain_key(domain));
+    return result;
+}
+std::string diagnostic_cause(std::string_view text) {
+    std::string result;
+    for (const unsigned char byte : text.substr(0, 240))
+        result.push_back(byte >= 32 && byte <= 126 ? static_cast<char>(byte) : '?');
     return result;
 }
 }
@@ -37,9 +45,12 @@ struct ParticipantRuntime::Impl {
     // Destruction requests stop and joins before destroying shared state.
     std::jthread worker;
 
-    void fail_locked(core::ErrorCode code, const std::string& message, std::uint64_t request = 0) {
+    void fail_locked(core::ErrorCode code, const std::string& message, std::uint64_t request = 0,
+                     const char* stage = "consumer", std::string_view cause = {}) {
         if (broken) return;
-        std::cerr << "authority participant failed: code=" << static_cast<int>(code) << " request=" << request << '\n';
+        std::osyncstream(std::cerr) << "authority participant failed: code=" << static_cast<int>(code)
+            << " request=" << request << " stage=" << stage << " cause="
+            << diagnostic_cause(cause.empty() ? std::string_view(message) : cause) << '\n';
         broken = true; commands.clear(); updates.clear(); pending.clear(); forwarded_requests.clear();
         auto& update = updates.emplace_back(); update.set_protocol_version(1); update.set_request_id(request);
         update.mutable_error()->set_code(code); update.mutable_error()->set_message(message);
@@ -56,14 +67,16 @@ struct ParticipantRuntime::Impl {
         std::lock_guard lock(mutex);
         if (stop.stop_requested() || broken) throw std::runtime_error("Authority participant stopped");
     }
-    bool reply_error(const v1::IssuerReply& reply, std::uint64_t request = 0) {
+    bool reply_error(const v1::IssuerReply& reply, const char* stage, std::uint64_t request = 0) {
         if (!reply.has_error()) return false;
-        std::lock_guard lock(mutex); fail_locked(reply.error().code(), reply.error().message(), request); return true;
+        std::lock_guard lock(mutex); fail_locked(reply.error().code(), reply.error().message(), request, stage); return true;
     }
     void run(std::stop_token stop, const v1::AuthorityParticipantRuntimeConfig& config, const Domains& expected) {
         std::uint64_t current_request = 0;
+        const char* stage = "key_load";
         try {
             auto key = KeyPair::load(config.private_key_path());
+            stage = "issuer_connect";
             IssuerClient client(config.issuer_client_config(), [this, stop] { check_stop(stop); });
             v1::IssuerRequest begin; begin.set_protocol_version(1);
             auto* auth = begin.mutable_authority_authentication_begin();
@@ -74,11 +87,14 @@ struct ParticipantRuntime::Impl {
                 require(RAND_bytes(reinterpret_cast<unsigned char*>(incarnation.data()), 32) == 1, "Service incarnation generation failed");
             }
             auth->set_service_incarnation(incarnation);
-            auto reply = client.call(std::move(begin)); if (reply_error(reply)) return;
+            stage = "authentication_begin";
+            auto reply = client.call(std::move(begin)); if (reply_error(reply, stage)) return;
             v1::IssuerRequest complete; complete.set_protocol_version(1);
             auto* proof = complete.mutable_authority_authentication_complete();
             proof->set_nonce(reply.challenge().nonce()); *proof->mutable_proof() = key.sign(reply.challenge().signing_request());
-            reply = client.call(std::move(complete)); if (reply_error(reply)) return;
+            stage = "authentication_complete";
+            reply = client.call(std::move(complete)); if (reply_error(reply, stage)) return;
+            stage = "identity_check";
             const auto& identity = reply.authority_authentication();
             const auto& registration = identity.registration();
             require(registration.participant().id() == config.participant_id() &&
@@ -108,6 +124,7 @@ struct ParticipantRuntime::Impl {
                 }
                 if (command) {
                     current_request = command->request_id();
+                    stage = command->has_activate() ? "activate" : command->has_applied() ? "applied" : "release";
                     v1::IssuerRequest request; request.set_protocol_version(1);
                     if (command->has_activate()) {
                         require(!active && delivered && command->activate().has_synchronized_revision() &&
@@ -136,7 +153,7 @@ struct ParticipantRuntime::Impl {
                         // Fetch new events; the consumer must synchronize and explicitly request activation again.
                         *update.mutable_error() = reply.error();
                     } else {
-                        if (reply_error(reply, command->request_id())) return;
+                        if (reply_error(reply, stage, command->request_id())) return;
                         active = reply.authority_activation();
                         if (command->has_activate()) *update.mutable_activated() = *active;
                         else if (command->has_applied()) *update.mutable_applied() = *active;
@@ -153,7 +170,8 @@ struct ParticipantRuntime::Impl {
                 auto* read = request.mutable_revocations();
                 if (cursor) read->set_after_revision(*cursor);
                 read->set_wait_ms(!cursor || backlog || queued ? 0 : wait);
-                reply = client.call(std::move(request)); if (reply_error(reply)) return;
+                stage = "revocations";
+                reply = client.call(std::move(request)); if (reply_error(reply, stage)) return;
                 auto batch = std::move(*reply.mutable_revocations());
                 const bool initial = !cursor; cursor = batch.through_revision(); backlog = *cursor < batch.head_revision();
                 if (initial || batch.events_size()) {
@@ -161,12 +179,14 @@ struct ParticipantRuntime::Impl {
                     if (!publish(std::move(update))) return;
                 }
             }
-        } catch (const std::invalid_argument&) {
+        } catch (const std::invalid_argument& error) {
             std::lock_guard lock(mutex);
-            if (!stop.stop_requested()) fail_locked(core::INVALID_ARGUMENT, "Invalid authority participant context or command", current_request);
-        } catch (const std::exception&) {
+            if (!stop.stop_requested()) fail_locked(core::INVALID_ARGUMENT, "Invalid authority participant context or command",
+                current_request, stage, error.what());
+        } catch (const std::exception& error) {
             std::lock_guard lock(mutex);
-            if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Authority participant channel failed; reconciliation is required", current_request);
+            if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Authority participant channel failed; reconciliation is required",
+                current_request, stage, error.what());
         }
     }
     void run_private(std::stop_token stop, const v1::AuthorityParticipantRuntimeConfig& config,
@@ -233,7 +253,8 @@ struct ParticipantRuntime::Impl {
                         if (!publish(std::move(update))) return;
                         continue;
                     }
-                    std::lock_guard lock(mutex); fail_locked(update.error().code(), update.error().message(), update.request_id()); return;
+                    std::lock_guard lock(mutex);
+                    fail_locked(update.error().code(), update.error().message(), update.request_id(), "private_channel"); return;
                 }
                 if (!identity) {
                     require(update.has_authenticated() && update.request_id() == 0, "Private participant requires authentication first");
@@ -292,12 +313,14 @@ struct ParticipantRuntime::Impl {
                 }
                 if (!publish(std::move(update))) return;
             }
-        } catch (const std::invalid_argument&) {
+        } catch (const std::invalid_argument& error) {
             std::lock_guard lock(mutex);
-            if (!stop.stop_requested()) fail_locked(core::INVALID_ARGUMENT, "Invalid private participant context or command", current_request);
-        } catch (const std::exception&) {
+            if (!stop.stop_requested()) fail_locked(core::INVALID_ARGUMENT, "Invalid private participant context or command",
+                current_request, "private_channel", error.what());
+        } catch (const std::exception& error) {
             std::lock_guard lock(mutex);
-            if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Private participant channel failed; reconciliation is required", current_request);
+            if (!stop.stop_requested()) fail_locked(core::UNAVAILABLE, "Private participant channel failed; reconciliation is required",
+                current_request, "private_channel", error.what());
         }
     }
     Impl(const std::filesystem::path& path, const std::vector<authority::v1::Domain>& domains) {

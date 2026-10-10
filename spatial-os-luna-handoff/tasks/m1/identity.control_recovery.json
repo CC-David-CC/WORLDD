@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "failure_qualification_and_startup_diagnosis",
+  "current_step": "approval_interruption_and_recovery_failure_qualification",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -381,6 +381,21 @@
     ],
     "failed": 0,
     "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "participant_failure_diagnostics": {
+    "state": "Bounded diagnostics and log retention passed focused checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/participant-diagnostics-02/sb16/primary-review.json",
+    "contract": "docs/PARTICIPANT_FAILURE_DIAGNOSTICS.txt",
+    "cases_per_profile": 53,
+    "new_cases": 2,
+    "startup_repetitions_per_profile": 10,
+    "historical_startup_cause": "unconfirmed",
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
     "full_phase_gate": "pending on both hosts"
   }
 }

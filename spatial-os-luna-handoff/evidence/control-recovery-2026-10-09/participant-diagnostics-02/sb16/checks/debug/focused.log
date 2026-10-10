@@ -1,0 +1,141 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 7
+    Start  7: authority-supervisor
+
+7: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-supervisor-2a228cc72cf39a74dcb2a8a31918842df4f2b826b95e2347267ea707af1a7dea" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/source/tests/native/test_authority_supervisor.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-issuer-client"
+7: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build
+7: Test timeout computed to be: 120
+7: Running as unit: spatial-supervisor-2a228cc72cf39a74dcb2a8a31918842df4f2b826b95e2347267ea707af1a7dea.service; invocation ID: 2b8a3a2bdfc24f9f8b9d2ea35c349326
+7: test_production_supervisor_is_available_for_owned_authority_execution (__main__.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution) ... ok
+7: test_real_child_activates_releases_and_exits_without_manual_pumping (__main__.AuthoritySupervisorTests.test_real_child_activates_releases_and_exits_without_manual_pumping) ... ok
+7: test_revocation_requires_child_acknowledgement_with_automatic_delivery (__main__.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery) ... ok
+7: test_management_cannot_inject_participant_commands_or_repeat_start (__main__.AuthoritySupervisorTests.test_management_cannot_inject_participant_commands_or_repeat_start) ... ok
+7: test_explicit_stop_preserves_unresolved_issuer_generation (__main__.AuthoritySupervisorTests.test_explicit_stop_preserves_unresolved_issuer_generation) ... ok
+7: test_management_loss_stops_owned_child_and_records_cleanup (__main__.AuthoritySupervisorTests.test_management_loss_stops_owned_child_and_records_cleanup) ... ok
+7: test_child_death_is_failure_with_checked_cleanup (__main__.AuthoritySupervisorTests.test_child_death_is_failure_with_checked_cleanup) ... ok
+7: test_nonzero_exit_after_release_is_not_successful_completion (__main__.AuthoritySupervisorTests.test_nonzero_exit_after_release_is_not_successful_completion) ... ok
+7: test_excessive_management_frame_stops_owned_execution (__main__.AuthoritySupervisorTests.test_excessive_management_frame_stops_owned_execution) ... ok
+7: test_termination_signal_stops_owned_child_and_records_cleanup (__main__.AuthoritySupervisorTests.test_termination_signal_stops_owned_child_and_records_cleanup) ... ok
+7: test_existing_child_configuration_is_preserved_and_prevents_execution (__main__.AuthoritySupervisorTests.test_existing_child_configuration_is_preserved_and_prevents_execution) ... ok
+7: test_privileged_descriptor_mapping_is_rejected_before_ownership (__main__.AuthoritySupervisorTests.test_privileged_descriptor_mapping_is_rejected_before_ownership) ... ok
+7: test_privileged_descriptor_alias_is_rejected_before_ownership (__main__.AuthoritySupervisorTests.test_privileged_descriptor_alias_is_rejected_before_ownership) ... ok
+7: test_reopened_journal_cannot_replay_execution (__main__.AuthoritySupervisorTests.test_reopened_journal_cannot_replay_execution) ... ok
+7: 
+7: ----------------------------------------------------------------------
+7: Ran 14 tests in 12.199s
+7: 
+7: OK
+7: Finished with result: success
+7: Main processes terminated with: code=exited/status=0
+7: Service runtime: 12.353s
+7: CPU time consumed: 3.083s
+7: Memory peak: 1.5M
+7: Memory swap peak: 0B
+1/4 Test  #7: authority-supervisor .............   Passed   12.37 sec
+test 13
+    Start 13: authority-control-binding
+
+13: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-control-binding-2a228cc72cf39a74dcb2a8a31918842df4f2b826b95e2347267ea707af1a7dea" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/source/tests/native/test_control_owner_binding.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-issuer-client"
+13: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build
+13: Test timeout computed to be: 180
+13: Running as unit: spatial-control-binding-2a228cc72cf39a74dcb2a8a31918842df4f2b826b95e2347267ea707af1a7dea.service; invocation ID: 5e5790f870014ac1b8863ede505458b0
+13: test_prepared_owner_matches_activation_and_exact_issuer_fence (__main__.BindingTests.test_prepared_owner_matches_activation_and_exact_issuer_fence) ... ok
+13: test_reopened_authorized_record_cannot_reconstruct_control_owner (__main__.BindingTests.test_reopened_authorized_record_cannot_reconstruct_control_owner) ... ok
+13: test_failed_authorization_commit_cannot_expose_owner (__main__.BindingTests.test_failed_authorization_commit_cannot_expose_owner) ... ok
+13: test_query_rejects_nested_unknown_owner_selector_without_mutation (__main__.BindingTests.test_query_rejects_nested_unknown_owner_selector_without_mutation) ... ok
+13: test_broker_native_role_cannot_become_world_control_owner (__main__.BrokerBindingTests.test_broker_native_role_cannot_become_world_control_owner) ... ok
+13: test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.SupervisorBindingTests.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+13: 
+13: ----------------------------------------------------------------------
+13: Ran 6 tests in 5.498s
+13: 
+13: OK
+13: Finished with result: success
+13: Main processes terminated with: code=exited/status=0
+13: Service runtime: 5.611s
+13: CPU time consumed: 1.419s
+13: Memory peak: 1.5M
+13: Memory swap peak: 0B
+2/4 Test #13: authority-control-binding ........   Passed    5.65 sec
+test 32
+    Start 32: identity-participant-channel
+
+32: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/source/tests/core/test_participant_channel.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-participant-runtime-probe"
+32: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build
+32: Environment variables: 
+32:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/source
+32: Test timeout computed to be: 120
+32: test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key (__main__.ParticipantChannelTests.test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key) ... ok
+32: test_child_acknowledges_real_revocation_only_after_explicit_command (__main__.ParticipantChannelTests.test_child_acknowledges_real_revocation_only_after_explicit_command) ... ok
+32: test_activation_race_requires_child_resynchronization_and_explicit_retry (__main__.ParticipantChannelTests.test_activation_race_requires_child_resynchronization_and_explicit_retry) ... ok
+32: test_mixed_signing_configuration_is_rejected_before_channel_use (__main__.ParticipantChannelTests.test_mixed_signing_configuration_is_rejected_before_channel_use) ... ok
+32: test_regular_file_cannot_be_used_as_private_channel (__main__.ParticipantChannelTests.test_regular_file_cannot_be_used_as_private_channel) ... ok
+32: test_channel_is_nonblocking_and_closed_by_later_exec (__main__.ParticipantChannelTests.test_channel_is_nonblocking_and_closed_by_later_exec) ... ok
+32: test_socket_from_another_process_cannot_impersonate_the_direct_parent (__main__.ParticipantChannelTests.test_socket_from_another_process_cannot_impersonate_the_direct_parent) ... ok
+32: test_authentication_identity_and_domains_cannot_be_substituted (__main__.ParticipantChannelTests.test_authentication_identity_and_domains_cannot_be_substituted) ... ok
+32: test_invalid_revocation_batches_never_reach_the_consumer (__main__.ParticipantChannelTests.test_invalid_revocation_batches_never_reach_the_consumer) ... ok
+32: test_unsolicited_activation_is_rejected (__main__.ParticipantChannelTests.test_unsolicited_activation_is_rejected) ... ok
+32: test_correlated_reply_cannot_change_operation_identity_or_revision (__main__.ParticipantChannelTests.test_correlated_reply_cannot_change_operation_identity_or_revision) ... ok
+32: test_replayed_activation_reply_is_rejected_without_releasing_generation (__main__.ParticipantChannelTests.test_replayed_activation_reply_is_rejected_without_releasing_generation) ... ok
+32: test_malformed_excessive_and_truncated_frames_fail_closed (__main__.ParticipantChannelTests.test_malformed_excessive_and_truncated_frames_fail_closed) ... ok
+32: test_unknown_update_fields_are_rejected (__main__.ParticipantChannelTests.test_unknown_update_fields_are_rejected) ... ok
+32: test_disconnect_permanently_disables_participation (__main__.ParticipantChannelTests.test_disconnect_permanently_disables_participation) ... ok
+32: test_incomplete_frame_expires (__main__.ParticipantChannelTests.test_incomplete_frame_expires) ... ok
+32: test_unanswered_command_expires_without_replay (__main__.ParticipantChannelTests.test_unanswered_command_expires_without_replay) ... ok
+32: 
+32: ----------------------------------------------------------------------
+32: Ran 17 tests in 17.518s
+32: 
+32: OK
+3/4 Test #32: identity-participant-channel .....   Passed   17.62 sec
+test 33
+    Start 33: identity-participant-runtime
+
+33: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/source/tests/core/test_identity_participant_runtime.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/spatial-participant-runtime-probe"
+33: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build
+33: Environment variables: 
+33:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02/source
+33: Test timeout computed to be: 180
+33: test_activation_race_requires_explicit_resynchronization_and_new_request (__main__.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request) ... ok
+33: test_application_acknowledgement_cannot_skip_committed_events (__main__.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events) ... ok
+33: test_authentication_and_baseline_do_not_activate_execution (__main__.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution) ... ok
+33: test_clean_release_allows_new_incarnation_and_generation (__main__.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation) ... ok
+33: test_command_queue_overflow_is_permanent_before_activation (__main__.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation) ... ok
+33: test_destructor_preserves_pending_obligation_and_blocks_replacement (__main__.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement) ... ok
+33: test_domain_mismatch_never_activates (__main__.ParticipantRuntimeTests.test_domain_mismatch_never_activates) ... ok
+33: test_exposed_private_key_is_rejected_before_service_authentication (__main__.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication) ... ok
+33: test_future_revision_cannot_be_acknowledged (__main__.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged) ... ok
+33: test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines (__main__.ParticipantRuntimeTests.test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines) ... ok
+33: test_real_barrier_waits_for_explicit_application_acknowledgement (__main__.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement) ... ok
+33: test_release_cannot_discard_unapplied_revocation (__main__.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation) ... ok
+33: test_stalled_transport_records_operation_and_cause_without_reconnect (__main__.ParticipantRuntimeTests.test_stalled_transport_records_operation_and_cause_without_reconnect) ... ok
+33: test_transport_loss_never_releases_or_reconnects (__main__.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects) ... ok
+33: test_wrong_registration_revision_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates) ... ok
+33: test_wrong_service_key_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates) ... ok
+33: 
+33: ----------------------------------------------------------------------
+33: Ran 16 tests in 10.610s
+33: 
+33: OK
+4/4 Test #33: identity-participant-runtime .....   Passed   10.70 sec
+
+The following tests passed:
+	authority-supervisor
+	authority-control-binding
+	identity-participant-channel
+	identity-participant-runtime
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =  46.35 sec

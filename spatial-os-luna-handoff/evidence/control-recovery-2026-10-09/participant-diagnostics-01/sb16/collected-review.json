@@ -1,0 +1,17 @@
+{
+  "status": "missing_diagnostics_reproduced",
+  "host": "sb16",
+  "profiles": {},
+  "attachments": {
+    "checks/baseline.log": "a0c4ce919f8b6cf526e17a97c84df075036eb407e7ba1602f90852458a972c5c",
+    "checks/review.json": "a2f3e66402b687e9141411b49b39fc178c2e0d4cacfcb2ac121c627c51daf360",
+    "checks/native/test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines-participant-0.log": "30777f7847a836b0495fab33d5b8263052df0d33ef0c4c0eac63315e3632d71a",
+    "checks/native/test_stalled_transport_records_operation_and_cause_without_reconnect-participant-0.log": "81bae0664d915b2bdbbf9224431f536bfefcabb0c2949fbc44f6c046e79a718d"
+  },
+  "source_files": 344,
+  "locked_files": 41,
+  "selected_cases_per_profile": 0,
+  "startup_repetitions_per_profile": 0,
+  "historical_startup_cause": "unconfirmed",
+  "full_phase_gate": "pending on both hosts"
+}

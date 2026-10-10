@@ -808,3 +808,13 @@ Interrupted execution is uncertain and cannot replay. New applications require a
 Failure races, the earlier startup defect, cross-host cancellation, and the full both-host gate remain pending.
 Automatic placement restoration and shared compositor lifetime remain required for M1.
 No normal host session or database changed. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: Participant diagnostics passed 53 selected cases per profile on sb16.
+The original startup assertion passed ten Debug and ten runtime-sanitizer repetitions.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/participant-diagnostics-02/sb16/primary-review.json.
+Two missing-diagnostic baseline failures remain preserved in participant-diagnostics-01/sb16.
+Worker stderr now identifies the failed operation and a bounded cause. Public errors and deadlines did not change.
+Supervisor and participant logs survive test cleanup. The historical startup cause remains unconfirmed.
+Current passing startup repetitions show expected private-channel closure during checked shutdown.
+Controlled approval interruptions, recovery races, cross-host cancellation, and the full M02 gate remain pending.
+No normal session or database changed. M02 and Spatial-M1 remain incomplete.

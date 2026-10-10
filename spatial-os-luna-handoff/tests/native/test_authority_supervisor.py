@@ -77,6 +77,10 @@ class AuthoritySupervisorTests(owned.OwnedParticipantTests):
                     proc.kill(); proc.wait(timeout=3)
             proc.stdin.close(); proc.stdout.close(); log.close()
             text = logpath.read_text(errors='replace')
+            target = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+            if target:
+                Path(target).mkdir(parents=True, exist_ok=True)
+                (Path(target) / (self._testMethodName + '-' + logpath.name)).write_bytes(logpath.read_bytes())
             for marker in ('AddressSanitizer', 'LeakSanitizer', 'runtime error:'):
                 self.assertNotIn(marker, text)
         self.addCleanup(cleanup)

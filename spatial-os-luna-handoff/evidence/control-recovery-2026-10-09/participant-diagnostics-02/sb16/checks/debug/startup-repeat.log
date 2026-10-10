@@ -1,0 +1,22 @@
+Running as unit: spatial-diagnostic-repeat-2a228cc72cf39a74dcb2a8a31918842df4f2b826b95e2347267ea707af1a7dea.service; invocation ID: 1e52243580a94da38899b144208bb1d7
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 10.671s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 10.784s
+CPU time consumed: 2.353s
+Memory peak: 1.5M
+Memory swap peak: 0B

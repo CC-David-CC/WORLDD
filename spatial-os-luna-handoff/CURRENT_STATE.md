@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: Participant failure diagnostics preserve the cause
+
+The participant worker now records the failed operation and a bounded cause on stderr.
+Control characters become question marks. Cause text is limited to 240 bytes.
+Public errors, deadlines, permanent failure behavior, and authorization rules remain unchanged.
+Native supervisor and participant fixtures now preserve stderr before cleanup.
+Two baseline tests reproduced missing diagnostics against unchanged production binaries.
+
+All 53 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+The original native startup assertion also passed ten repetitions per profile with complete logs.
+All 344 tested source files match. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/participant-diagnostics-02/sb16/primary-review.json.
+The baseline failures remain in participant-diagnostics-01/sb16.
+
+The historical participant-approval failure did not recur. Its original cause remains unconfirmed.
+Successful repetition does not establish a fix for that failure.
+Next: controlled approval interruptions, recovery races, and cross-host cancellation.
+Full M02 qualification remains pending on both hosts. M02 and Spatial-M1 remain incomplete.
+No normal host session or database changed.
+
+
 ## 2026-10-10: Actual broker replacement passes focused native checks
 
 Fresh production sessions recover the original world and workspace after checked cleanup and issuer retirement.

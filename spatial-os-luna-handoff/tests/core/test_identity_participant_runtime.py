@@ -48,7 +48,12 @@ class RuntimeProcess:
             except subprocess.TimeoutExpired:self.proc.kill();self.proc.wait(timeout=2);raise
         for stream in (self.proc.stdin,self.proc.stdout,self.stderr):
             if not stream.closed:stream.close()
-        log=self.log.read_text();self.fixture.assertNotIn('Sanitizer',log);self.fixture.assertNotIn('runtime error:',log)
+        log=self.log.read_text()
+        target=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if target:
+            Path(target).mkdir(parents=True,exist_ok=True)
+            (Path(target)/(self.fixture._testMethodName+'-'+self.log.name)).write_bytes(self.log.read_bytes())
+        self.fixture.assertNotIn('Sanitizer',log);self.fixture.assertNotIn('runtime error:',log)
 
 class ActivationRaceRelay:
     """Forward real issuer traffic; commit one revocation before forwarding activation."""
@@ -203,5 +208,33 @@ class ParticipantRuntimeTests(ClientFixture):
         self.launch();self.assertEqual(runtime.proc.poll(),2);self.assertEqual(len(self.rows()),1)
     def test_exposed_private_key_is_rejected_before_service_authentication(self):
         self.signer.chmod(0o644);self.error(self.start(),core.UNAVAILABLE);self.assertEqual(self.rows(),[])
+
+    def test_stalled_transport_records_operation_and_cause_without_reconnect(self):
+        peer = FaultPeer(self, stall_handshake=True)
+        runtime = self.start(endpoint_port=peer.port)
+        update = self.error(runtime, core.UNAVAILABLE)
+        self.assertEqual(update.error.message, 'Authority participant channel failed; reconciliation is required')
+        self.assertEqual(peer.connections, 1); self.assertEqual(self.rows(), [])
+        lines = runtime.log.read_text().splitlines()
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn('stage=issuer_connect', lines[0])
+        self.assertIn('cause=Issuer client deadline exceeded', lines[0])
+
+    def test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines(self):
+        message = 'peer rejection\n\r\t' + 'x' * 600
+        def reject(peer, request, reply):
+            self.assertTrue(request.HasField('authority_authentication_begin'))
+            reply.error.CopyFrom(core.Error(code=core.FORBIDDEN, message=message))
+            peer.stream.sendall(frame(reply))
+        peer = FaultPeer(self, response=reject)
+        runtime = self.start(endpoint_port=peer.port)
+        update = self.error(runtime, core.FORBIDDEN)
+        self.assertEqual(update.error.message, message)
+        self.assertEqual(peer.connections, 1); self.assertEqual(self.rows(), [])
+        lines = runtime.log.read_text().splitlines()
+        self.assertEqual(len(lines), 1, lines)
+        self.assertIn('stage=authentication_begin', lines[0])
+        self.assertIn('cause=peer rejection???', lines[0])
+        self.assertLessEqual(len(lines[0]), 400)
 
 if __name__=='__main__':unittest.main(verbosity=2)

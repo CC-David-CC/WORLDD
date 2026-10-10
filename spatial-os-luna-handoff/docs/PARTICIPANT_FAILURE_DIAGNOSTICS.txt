@@ -1,0 +1,29 @@
+Participant failure diagnostics
+
+Observed gap
+The preserved native startup failure reports Participant failed during supervisor approval.
+The participant worker discards the underlying exception.
+Later passing runs do not establish the original cause.
+Evidence: evidence/control-recovery-2026-10-09/connected-01/sb16/checks-retry02/runtime-sanitize/related.log.
+
+Required behavior
+Keep the existing error codes, public messages, deadlines, and permanent failure behavior.
+Record the current operation and bounded failure cause on stderr.
+Replace nonprintable bytes. Limit the cause to 240 bytes.
+Do not log requests, proofs, credentials, keys, or raw transport frames.
+Preserve native supervisor stderr before fixture cleanup.
+
+Focused checks
+Reproduce missing diagnostics with the unchanged qualified runtime binaries.
+Use a stalled TLS handshake and a rejected authentication request.
+Require one connection, no activation, and the existing public error result.
+Check that a peer error cannot create extra log lines or unbounded output.
+Run identity-participant-runtime, identity-participant-channel, authority-supervisor,
+and authority-control-binding in Debug and runtime ASan/UBSan after implementation.
+Repeat the original native startup assertion with complete stderr capture.
+Record any new failure before changing behavior.
+
+Limits
+Diagnostics do not prove the historical startup failure is fixed.
+No timeout increase or automatic retry is authorized by this diagnostic change.
+The full M02 gate and cross-host cancellation remain pending.
