@@ -1,7 +1,7 @@
 #include "workspace/control_channels.hpp"
+#include "workspace/control_owner.hpp"
 #include "identity/participant_stream.hpp"
 #include "world/store.hpp"
-#include <climits>
 #include <cstring>
 #include <iostream>
 #include <poll.h>
@@ -16,19 +16,6 @@ using Clock = std::chrono::steady_clock;
 constexpr std::size_t packet_limit = 65536;
 void require(bool okay, const char* message) {
     if (!okay) throw std::invalid_argument(message);
-}
-void owner_valid(const pb::ControlOwner& owner) {
-    validate_message(owner);
-    const auto& launch = owner.launch();
-    const auto& native = owner.native();
-    require(owner.issuer_id().size() == 32 && launch.participant_id().size() == 32 &&
-        launch.registered_revision() > 0 && launch.registered_revision() <= INT64_MAX &&
-        launch.generation() > 0 && launch.generation() <= INT64_MAX &&
-        launch.service_incarnation().size() == 32 && launch.launch_id().size() == 32 &&
-        launch.supervision_revision() > 0 && launch.supervision_revision() <= INT64_MAX &&
-        launch.authorization_id().size() == 32 && native.launch_id() == launch.launch_id() &&
-        native.server_id().size() == 32 && native.credential_id().size() == 32 &&
-        native.role() == security::v1::COMPOSITOR, "Invalid control owner binding");
 }
 struct Received {
     std::vector<int> fds;
@@ -96,7 +83,7 @@ struct ControlChannels::Impl {
         else if (request.has_inspect()) binding = &request.inspect();
         else if (request.has_fence()) binding = &request.fence();
         else throw WorldError(wire::UNKNOWN_METHOD, "No control supervisor operation");
-        owner_valid(*binding);
+        validate_control_owner(*binding);
         const auto key = binding->SerializeAsString();
         if (request.has_register_()) {
             require(received.fds.size() == 1, "Register requires exactly one descriptor");

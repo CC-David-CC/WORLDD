@@ -1,0 +1,4029 @@
+{
+  "backtraceGraph" : 
+  {
+    "commands" : 
+    [
+      "add_test"
+    ],
+    "files" : 
+    [
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/CMakeLists.txt"
+    ],
+    "nodes" : 
+    [
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 242,
+        "parent" : 0
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 246,
+        "parent" : 2
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 252,
+        "parent" : 4
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 258,
+        "parent" : 6
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 263,
+        "parent" : 8
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 268,
+        "parent" : 10
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 279,
+        "parent" : 12
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 290,
+        "parent" : 14
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 301,
+        "parent" : 16
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 312,
+        "parent" : 18
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 323,
+        "parent" : 20
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 334,
+        "parent" : 22
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 345,
+        "parent" : 24
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 356,
+        "parent" : 26
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 367,
+        "parent" : 28
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 378,
+        "parent" : 30
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 388,
+        "parent" : 32
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 396,
+        "parent" : 34
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 407,
+        "parent" : 36
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 411,
+        "parent" : 38
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 416,
+        "parent" : 40
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 421,
+        "parent" : 42
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 426,
+        "parent" : 44
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 431,
+        "parent" : 46
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 436,
+        "parent" : 48
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 441,
+        "parent" : 50
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 446,
+        "parent" : 52
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 451,
+        "parent" : 54
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 456,
+        "parent" : 56
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 461,
+        "parent" : 58
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 466,
+        "parent" : 60
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 470,
+        "parent" : 62
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 474,
+        "parent" : 64
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 478,
+        "parent" : 66
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 482,
+        "parent" : 68
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 486,
+        "parent" : 70
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 493,
+        "parent" : 72
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 496,
+        "parent" : 74
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 501,
+        "parent" : 76
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 506,
+        "parent" : 78
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 511,
+        "parent" : 80
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 516,
+        "parent" : 82
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 521,
+        "parent" : 84
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 526,
+        "parent" : 86
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 531,
+        "parent" : 88
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 536,
+        "parent" : 90
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 541,
+        "parent" : 92
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 545,
+        "parent" : 94
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 550,
+        "parent" : 96
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 555,
+        "parent" : 98
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 561,
+        "parent" : 100
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 580,
+        "parent" : 102
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 584,
+        "parent" : 104
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 589,
+        "parent" : 106
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 594,
+        "parent" : 108
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 598,
+        "parent" : 110
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 602,
+        "parent" : 112
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 606,
+        "parent" : 114
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 610,
+        "parent" : 116
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 614,
+        "parent" : 118
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 618,
+        "parent" : 120
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 624,
+        "parent" : 122
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 631,
+        "parent" : 124
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 652,
+        "parent" : 126
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 658,
+        "parent" : 128
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 664,
+        "parent" : 130
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 670,
+        "parent" : 132
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 677,
+        "parent" : 134
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 682,
+        "parent" : 136
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 687,
+        "parent" : 138
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 692,
+        "parent" : 140
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 697,
+        "parent" : 142
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 702,
+        "parent" : 144
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 707,
+        "parent" : 146
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 712,
+        "parent" : 148
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 717,
+        "parent" : 150
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 723,
+        "parent" : 152
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 723,
+        "parent" : 154
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 723,
+        "parent" : 156
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 728,
+        "parent" : 158
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 732,
+        "parent" : 160
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 736,
+        "parent" : 162
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 740,
+        "parent" : 164
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 744,
+        "parent" : 166
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 748,
+        "parent" : 168
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 752,
+        "parent" : 170
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 756,
+        "parent" : 172
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 760,
+        "parent" : 174
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 764,
+        "parent" : 176
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 770,
+        "parent" : 178
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 776,
+        "parent" : 180
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 782,
+        "parent" : 182
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 788,
+        "parent" : 184
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 794,
+        "parent" : 186
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 801,
+        "parent" : 188
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 805,
+        "parent" : 190
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 809,
+        "parent" : 192
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 813,
+        "parent" : 194
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 817,
+        "parent" : 196
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 821,
+        "parent" : 198
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 825,
+        "parent" : 200
+      },
+      {
+        "file" : 0
+      },
+      {
+        "command" : 0,
+        "file" : 0,
+        "line" : 834,
+        "parent" : 202
+      }
+    ]
+  },
+  "kind" : "ctestInfo",
+  "tests" : 
+  [
+    {
+      "backtrace" : 1,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_control_reply.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-control-reply-probe"
+      ],
+      "name" : "control-supervisor-reply",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 3,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_native_scope_config_ownership.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-native-config-witness",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "authority-native-config",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 30.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 5,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_authority_native_scope.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-native-scope-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "authority-native-scope",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 7,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_revision_interleave.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-revision-interleave",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 9,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "workspace-bootstrap-owner-idle",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 11,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-supervisor-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_authority_supervisor.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-supervisor",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 13,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-broker-handoff-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_supervisor_broker_handoff.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-broker-handoff",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 15,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-broker-handoff-regressions-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_supervisor_broker_handoff_regressions.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-broker-handoff-regressions",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 17,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-world-handoff-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_supervisor_world_handoff.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-world-handoff",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 19,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-world-handoff-regressions-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_supervisor_world_handoff_regressions.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-world-handoff-regressions",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 21,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-supervisor-fencing-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_supervisor_fencing.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-supervisor-fencing",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 23,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-control-binding-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_control_owner_binding.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-control-binding",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 25,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-supervisor-crash-fencing-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_supervisor_crash_fencing.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-supervisor-crash-fencing",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 27,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-participant-relay-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_authority_participant_relay.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-participant-relay",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 29,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-owned-participant-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_authority_owned_participant.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "authority-owned-participant",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 31,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-coordinator-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/qualification/runtime-sanitize/native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_authority_launch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "authority-launch-coordinator",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 33,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-prepared-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_authority_prepared_launch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-process-scope-probe"
+      ],
+      "name" : "authority-prepared-launch",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 35,
+      "command" : 
+      [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-scope-81d644385bd5efd072c3b6d3fb2f7df8ef5d819d0aac179780b052dc531aa667",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_authority_process_scope.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-process-scope-probe"
+      ],
+      "name" : "authority-process-scope",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 37,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_process_termination.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-process-termination-probe"
+      ],
+      "name" : "process-termination",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 39,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspace_participant_races.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "workspace-participant-races",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 41,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspace_participant.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "workspace-participant",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 43,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_participant.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-participant",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 45,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_revocation_receipts.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-revocation-receipts",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 47,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_authority_fencing.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "identity-authority-fencing",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 49,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_authority_fencing_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "identity-authority-fencing-client",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 51,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_launch_authorization.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "identity-launch-authorization",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 53,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_supervisor_registry.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "identity-supervisor-registry",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 55,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_participant_incarnation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-participant-runtime-probe"
+      ],
+      "name" : "identity-participant-incarnation",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 57,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_participant_channel.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-participant-runtime-probe"
+      ],
+      "name" : "identity-participant-channel",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 59,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_participant_runtime.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-participant-runtime-probe"
+      ],
+      "name" : "identity-participant-runtime",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 61,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_participant_barrier_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "identity-participant-barrier-client",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 63,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_participant_barrier.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd"
+      ],
+      "name" : "identity-participant-barrier",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 65,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_participant_session_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "identity-participant-session-client",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 67,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_participant_session.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd"
+      ],
+      "name" : "identity-participant-session",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 69,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_participants.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd"
+      ],
+      "name" : "identity-participants",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 71,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_participant_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "identity-participant-client",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 73,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_actor_tls_retries.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-actor-tls-retry-probe"
+      ],
+      "name" : "world-remote-retries",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 30.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 75,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_remote_security.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-remote-security",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 77,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_remote_lifecycle.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-remote-lifecycle",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 79,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_remote_native.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "world-remote-native",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 81,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_remote_races.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-remote-races",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 83,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_remote_config.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-remote-config",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 85,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_remote.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-remote",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 87,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspace_bootstrap_races.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "workspace-bootstrap-races",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 89,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspace_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "workspace-bootstrap",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 91,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_bootstrap_races.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-bootstrap-races",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 93,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_broker_bootstrap_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-broker-control-client-probe"
+      ],
+      "name" : "broker-bootstrap-client",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 95,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-bootstrap",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 97,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_display_ready.py"
+      ],
+      "name" : "native-display-ready",
+      "properties" : 
+      [
+        {
+          "name" : "TIMEOUT",
+          "value" : 10.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 99,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_render_observation_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-render-observation-probe"
+      ],
+      "name" : "render-observation-client",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 101,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_broker_control_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-broker-control-client-probe"
+      ],
+      "name" : "broker-control-client",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 103,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-probe"
+      ],
+      "name" : "authority-store",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 105,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_authority_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-authority-migrate"
+      ],
+      "name" : "authority-bootstrap",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 107,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "workspace-authority",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 109,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_keys.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-key"
+      ],
+      "name" : "identity-keys",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 111,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_issuer.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd"
+      ],
+      "name" : "identity-issuer",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 113,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_enrollment.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd"
+      ],
+      "name" : "identity-enrollment",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 115,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_bootstrap.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd"
+      ],
+      "name" : "identity-bootstrap",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 117,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_revocation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd"
+      ],
+      "name" : "identity-revocation",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 119,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_tls.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd"
+      ],
+      "name" : "identity-tls",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 121,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_actor_status.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "actor-status",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 123,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_issuer_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "name" : "issuer-client",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 125,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_identity_watch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-watch"
+      ],
+      "name" : "identity-watch",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 127,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_render.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+      ],
+      "name" : "render-runtime",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 129,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_surfaces.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+      ],
+      "name" : "surface-runtime",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 131,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_observation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+      ],
+      "name" : "actor-observation",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 133,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_collision.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+      ],
+      "name" : "actor-collision",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 135,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_broker_control_client_live.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "broker-control-client-live",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 137,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspace_participant_native.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "workspace-participant-native",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 139,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspace_participant_settlement.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "workspace-participant-settlement",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 141,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_control_owner_channels.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "control-owner-channels",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 143,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_application_control_lease.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "application-control-lease",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 145,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_application_observation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "application-observation",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 147,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_application_control.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "world-application-control",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 240.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 149,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_actor_pixels.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "actor-pixels",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 240.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 151,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_application_access.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "application-access",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 153,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_surface_identity.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-surface_identity",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 155,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_compositor_identity.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-compositor_identity",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 157,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_world_surface_groups.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-world_surface_groups",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 159,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_native_launch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-application-launch",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 161,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_actor_binding.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-actor-binding",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 163,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_application_input.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-application-input",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 165,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_device_administration.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-device-administration",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 167,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_global_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-global-isolation",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 169,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_selection_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-selection-isolation",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 171,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_extension_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-extension-isolation",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 173,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_resource_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-resource-isolation",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 175,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/native/test_security_identity.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-security-auth"
+      ],
+      "name" : "native-security-identity",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 177,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_participant_native.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-participant-native",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+            "SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 179,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_identity.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-identity",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+            "SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 181,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_world_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "world-authority",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source",
+            "SPATIAL_XPROBE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 180.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 183,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_objects.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+      ],
+      "name" : "actor-objects",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 185,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_portals.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+      ],
+      "name" : "actor-portals",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 187,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_input.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-xprobe"
+      ],
+      "name" : "native-actor-input",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 189,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_protocol.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host"
+      ],
+      "name" : "core-protocol",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 30.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 191,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_worldd.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "worldd-lifecycle",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 193,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_actors.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "actor-runtime",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 195,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_recovery.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "recovery-boundaries",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 197,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspace_git.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/workspaced",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-git-job-probe"
+      ],
+      "name" : "workspace-git",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 199,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_workspaces.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/workspaced",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "workspace-context",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 90.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 201,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_processes.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-test-host",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/workspaced",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd"
+      ],
+      "name" : "workspace-processes",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 120.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    },
+    {
+      "backtrace" : 203,
+      "command" : 
+      [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_storage.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-storage-vfs-probe"
+      ],
+      "name" : "storage-faults",
+      "properties" : 
+      [
+        {
+          "name" : "ENVIRONMENT",
+          "value" : 
+          [
+            "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source"
+          ]
+        },
+        {
+          "name" : "TIMEOUT",
+          "value" : 60.0
+        },
+        {
+          "name" : "WORKING_DIRECTORY",
+          "value" : "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build"
+        }
+      ]
+    }
+  ],
+  "version" : 
+  {
+    "major" : 1,
+    "minor" : 0
+  }
+}

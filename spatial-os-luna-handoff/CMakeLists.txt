@@ -161,6 +161,11 @@ target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}"
 add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
 target_include_directories(spatial-scene PUBLIC src)
 target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
+add_library(spatial-control-reply STATIC src/supervisor/control_reply.cpp)
+target_link_libraries(spatial-control-reply PUBLIC spatial-scene)
+add_executable(spatial-control-reply-probe src/testing/control_reply_probe.cpp)
+target_link_libraries(spatial-control-reply-probe PRIVATE spatial-control-reply)
+add_dependencies(spatial-control-reply-probe broker-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
 add_library(spatial-compositor-config STATIC src/platform/compositor_config.cpp)
 target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
 add_library(spatial-identity STATIC src/identity/keys.cpp)
@@ -234,6 +239,10 @@ if(BUILD_TESTING)
     add_dependencies(spatial-native-scope-probe native-scope-python-protobuf security-python-protobuf python-protobuf)
     add_executable(spatial-native-config-witness src/testing/native_scope_config_witness.cpp)
     target_link_libraries(spatial-native-config-witness PRIVATE spatial-authority-launch)
+    add_test(NAME control-supervisor-reply COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_control_reply.py" $<TARGET_FILE:spatial-control-reply-probe>)
+    set_tests_properties(control-supervisor-reply PROPERTIES
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python" TIMEOUT 180)
     add_test(NAME authority-native-config COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_scope_config_ownership.py"
         $<TARGET_FILE:spatial-native-config-witness> "${CMAKE_CURRENT_SOURCE_DIR}" $<TARGET_FILE:spatial-security-auth>)

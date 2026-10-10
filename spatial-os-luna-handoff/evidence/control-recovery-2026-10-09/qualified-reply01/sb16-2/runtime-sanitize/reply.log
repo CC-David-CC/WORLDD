@@ -1,0 +1,33 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: control-supervisor-reply
+
+1: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/source/tests/core/test_control_reply.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/spatial-control-reply-probe"
+1: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build
+1: Environment variables: 
+1:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/runtime-sanitize/build/python
+1: Test timeout computed to be: 180
+1: ................
+1: ----------------------------------------------------------------------
+1: Ran 16 tests in 1.811s
+1: 
+1: OK
+1/1 Test #1: control-supervisor-reply .........   Passed    1.89 sec
+
+The following tests passed:
+	control-supervisor-reply
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   1.89 sec
