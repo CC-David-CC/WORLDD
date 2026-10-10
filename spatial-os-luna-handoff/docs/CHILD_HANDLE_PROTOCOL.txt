@@ -1,7 +1,7 @@
 Private broker handle transfer
 Status: Development branch. Eight transfer checks passed in Debug and runtime sanitizers on sb16.
 One related participant-approval startup failure remains unresolved after five passing targeted repetitions.
-The coordinator receiver and full phase qualification remain incomplete.
+The coordinator receiver now passes focused checks. Full phase qualification remains incomplete.
 
 Contract change, 2026-10-10
 
@@ -37,7 +37,8 @@ Run existing checked process and native cleanup after that failure.
 The coordinator must authenticate the responding supervisor with its own retained process handle.
 It must validate reply correlation, launch identity, descriptor count, and live pidfd type.
 Receiving a descriptor does not prove launch activation or completed cleanup.
-The production coordinator and its receiving interface remain separate unfinished work.
+ChildHandleClient now implements reception. SessionBroker uses it for the retained supervised broker.
+World coordination and the complete recovery path remain unfinished.
 
 Focused selection
 
@@ -48,3 +49,20 @@ Run authority-control-binding because both queries inspect retained launch owner
 Run control-administrative-transport because the coordinator will consume the transferred broker handle there.
 Run these checks in Debug and runtime sanitizers on the available build host.
 Run the complete required qualification on both hosts at the coherent M02 gate.
+
+Coordinator receiver and ownership checks, 2026-10-10
+
+The coordinator retains its actual supervisor child before requesting a broker handle.
+Authenticate each reply with that retained supervisor and SCM_CREDENTIALS.
+Require the exact expected launch record and one live close-on-exec pidfd.
+Verify that the transferred process is a live direct child of that supervisor.
+Reject unrelated, dead, missing, duplicate, ordinary-file, or truncated descriptors.
+Close all received descriptors after rejection.
+Reject unknown protobuf fields, wrong versions, wrong requests, malformed packets, and foreign senders.
+Bound the complete exchange to five seconds.
+
+Run supervisor-child-handle-client for its 15 independent packet cases.
+Run session-broker for four real supervisor and broker ownership scenarios.
+Run authority-supervisor, supervisor-child-handle, control-administrative-transport, and workspace-context for connected behavior.
+All 65 selected cases passed in Debug and runtime sanitizers on sb16.
+The complete M02 gate remains pending on both hosts.

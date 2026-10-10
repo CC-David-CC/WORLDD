@@ -614,3 +614,16 @@ Do not claim a clean integration gate or M02 completion. Main and running host s
 Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/connected-01/sb16.
 The obsolete sb16-2 handle queue was canceled while its verified process was waiting, with no children or completed build.
 The active sb16-2 administrative transport run continues. Its canceled successor's source inputs remain unchanged.
+
+2026-10-10: SessionBroker and ChildHandleClient implemented on the development branch.
+The real supervisor launches and retains the broker. The session owns root and administrative connections.
+All 65 selected cases passed each of Debug and runtime sanitizers on sb16: 19 new and 46 related.
+The original Debug run had one fixture error: it expected a cleanup journal after rejection before ownership existed.
+The correction checks the exact wrong-role diagnostic, no journal, no child configuration, and no activation.
+The original failure remains preserved. Production source and Debug binaries did not change. All 41 locked files match.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/connected-02/sb16.
+Administrative transport finished on sb16-2: 1509 core, 51 harness, 151 P10, and three native-world checks per profile.
+Both hosts passed that component qualification. No new full cumulative queue was started.
+The earlier participant-approval startup failure remains unresolved despite five passing unchanged repetitions.
+World registration, selective release, dependent receipt, issuer retirement, and the complete M02 gate remain pending.
+No production session adopted this development branch. Physical, model, and complete Spatial-M1 evidence remain pending.

@@ -28,6 +28,8 @@ private:
 class BrokerClient {
 public:
     BrokerClient(int inherited_channel, pid_t pid);
+    // Production coordinators supply the verified handle transferred by their retained supervisor.
+    BrokerClient(int inherited_channel, pid_t pid, int borrowed_pidfd);
     ~BrokerClient();
     BrokerClient(const BrokerClient&) = delete;
     BrokerClient& operator=(const BrokerClient&) = delete;
@@ -53,6 +55,7 @@ public:
     void check_alive() const;
     pid_t pid() const { return pid_; }
 private:
+    BrokerClient(int inherited_channel, pid_t pid, int borrowed_pidfd, bool retained);
     broker_wire::Reply exchange(broker_wire::Request request);
     void wait(short events);
     void pump();

@@ -1,4 +1,5 @@
 #include "platform/broker.hpp"
+#include "platform/process_handle.hpp"
 #include "world/store.hpp"
 #include "authority/store.hpp"
 #include <set>
@@ -93,10 +94,14 @@ BrokerProcess::~BrokerProcess() {
     while (waitpid(pid_, nullptr, 0) < 0 && errno == EINTR) {}
     close(pidfd_);
 }
-BrokerClient::BrokerClient(int inherited_channel, pid_t pid) : channel_(inherited_channel), pid_(pid) {
+BrokerClient::BrokerClient(int inherited_channel, pid_t pid) : BrokerClient(inherited_channel, pid, -1, false) {}
+BrokerClient::BrokerClient(int inherited_channel, pid_t pid, int borrowed_pidfd) : BrokerClient(inherited_channel, pid, borrowed_pidfd, true) {}
+BrokerClient::BrokerClient(int inherited_channel, pid_t pid, int borrowed_pidfd, bool retained) : channel_(inherited_channel), pid_(pid) {
     if (channel_ <= STDERR_FILENO || pid_ <= 1) throw std::invalid_argument("Invalid inherited broker identity");
     try {
-        pidfd_ = static_cast<int>(syscall(SYS_pidfd_open, pid_, 0));
+        if (retained && borrowed_pidfd < 3) throw std::invalid_argument("Missing retained broker process handle");
+        pidfd_ = retained ? ProcessHandle::duplicate(borrowed_pidfd, pid).release() :
+            static_cast<int>(syscall(SYS_pidfd_open, pid_, 0));
         const auto flags = fcntl(channel_, F_GETFL);
         if (pidfd_ < 0 || flags < 0 || fcntl(channel_, F_SETFL, flags | O_NONBLOCK) < 0 ||
             fcntl(channel_, F_SETFD, FD_CLOEXEC) < 0) throw std::runtime_error("Cannot configure broker channel");

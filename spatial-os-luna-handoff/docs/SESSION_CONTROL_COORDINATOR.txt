@@ -1,5 +1,5 @@
 Session control coordinator
-Status: Implementation contract. The production coordinator is not implemented.
+Status: Partial production implementation. SessionBroker owns the supervised broker. World coordination remains incomplete.
 
 Invariant
 
@@ -133,5 +133,27 @@ Do not replay an uncertain registration with another identity.
 
 The development branch contains the administrative client in src/supervisor/control_admin.cpp.
 Its packet tests do not prove the coordinator's endpoint-to-launch mapping.
-The private supervisor handle server is implemented. Coordinator reception remains incomplete.
+The private handle server and coordinator receiver are implemented on the development branch.
 Do not report the complete recovery path as implemented from these component checks.
+
+Broker ownership implementation, 2026-10-10
+
+SessionBroker starts the real authorized supervisor and retains its kernel process handle.
+It creates the root, administrative, lifecycle, and handle-transfer channels in the coordinator process.
+Only explicit child endpoints survive supervisor exec.
+ChildHandleClient verifies the supervisor sender, exact launch record, and one live direct-child pidfd.
+BrokerClient and ControlAdmin duplicate that retained broker handle.
+They do not reopen a broker PID on this production path.
+The session validates checked process and native cleanup before accepting explicit shutdown.
+Neither EOF nor shutdown acknowledges issuer retirement.
+
+The library is production code. The probe only drives it with real supervisor and broker processes.
+The new tests cover authenticated broker ownership and rejection paths.
+They do not yet prove world endpoint registration, selective recovery, or application survival after world failure.
+Those connected scenarios remain the next implementation work.
+
+Focused checks passed 65 cases in each of Debug and runtime sanitizers on sb16.
+This includes 15 receiver cases, four session-broker cases, and 46 related cases.
+An incorrect early-rejection journal assertion was corrected without changing production binaries.
+The original failed assertion and corrected evidence remain preserved.
+Complete M02 qualification on both hosts remains pending.

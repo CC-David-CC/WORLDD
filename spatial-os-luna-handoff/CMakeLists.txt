@@ -171,7 +171,7 @@ target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
 add_library(spatial-identity STATIC src/identity/keys.cpp)
 add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp ${scope_proto_sources} ${scope_proto_headers})
 target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
-add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/supervisor/child_handle.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
+add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/supervisor/child_handle.cpp src/supervisor/child_handle_client.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
 target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope SQLite::SQLite3)
 add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
 add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
@@ -851,6 +851,8 @@ endif()
 # Private administrative transport; the fixture launches only an independent packet witness.
 add_library(spatial-control-admin STATIC src/supervisor/control_admin.cpp)
 target_link_libraries(spatial-control-admin PUBLIC spatial-control-reply)
+add_library(spatial-session-broker STATIC src/supervisor/session_broker.cpp)
+target_link_libraries(spatial-session-broker PUBLIC spatial-authority-launch spatial-core spatial-control-admin)
 if(BUILD_TESTING)
     add_executable(spatial-control-admin-probe src/testing/control_admin_probe.cpp)
     target_link_libraries(spatial-control-admin-probe PRIVATE spatial-control-admin)
@@ -882,4 +884,23 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(supervisor-child-handle PROPERTIES TIMEOUT 180)
+    add_executable(spatial-session-broker-probe src/testing/session_broker_probe.cpp)
+    target_link_libraries(spatial-session-broker-probe PRIVATE spatial-session-broker)
+    add_test(NAME session-broker COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-session-broker-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_broker.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(session-broker PROPERTIES TIMEOUT 180)
+    add_executable(spatial-child-handle-client-probe src/testing/child_handle_client_probe.cpp)
+    target_link_libraries(spatial-child-handle-client-probe PRIVATE spatial-authority-launch)
+    add_test(NAME supervisor-child-handle-client COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_child_handle_client.py" $<TARGET_FILE:spatial-child-handle-client-probe>)
+    set_tests_properties(supervisor-child-handle-client PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
 endif()

@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "implement_coordinator_handle_receiver_and_connected_control_recovery",
+  "current_step": "connect_retained_world_launch_ownership_and_broker_registration",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,11 +12,10 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Connect qualified retained-launch owner registration to the production session coordinator.",
-    "Connect the private handle server to the coordinator receiver and exact retained supervisor identity.",
-    "Retain production broker communication independently of the world process.",
+    "Connect retained world supervisor ownership and exact broker endpoint registration to the session coordinator.",
     "Verify selective recovery release after checked native cancellation; preserve unrelated reservations and applications.",
     "Persist a checked dependent receipt before issuer retirement.",
+    "Resolve the preserved participant-approval startup failure before the complete gate.",
     "Qualify the complete recovery path and cumulative profiles on both hosts."
   ],
   "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
@@ -152,13 +151,17 @@
     "candidate": "admin01",
     "source_files": 309,
     "new_checks": 11,
-    "state": "sb16 passed full Debug and sanitizer qualification. Second-host qualification remains required before integration.",
+    "state": "Both hosts passed full Debug and sanitizer qualification for admin01. Its source is on the development branch. Complete M02 integration remains pending.",
     "drivers": {
       "sb16": 2148249,
       "sb16-2": 1839205
     },
     "production_changed": false,
-    "evidence": "evidence/control-recovery-2026-10-09/control-admin-transport-draft-review-01.json"
+    "evidence": "evidence/control-recovery-2026-10-09/control-admin-transport-draft-review-01.json",
+    "final_evidence": [
+      "evidence/control-recovery-2026-10-09/admin-final-review-01-sb16.json",
+      "evidence/control-recovery-2026-10-09/admin-final-review-01-sb16-2.json"
+    ]
   },
   "retained_child_handle": {
     "candidate": "handle01",
@@ -173,11 +176,11 @@
     },
     "production_changed": false,
     "evidence": "evidence/control-recovery-2026-10-09/retained-child-handle-draft-review-01.json",
-    "secure_supervisor_transfer_implemented": false,
+    "secure_supervisor_transfer_implemented": true,
     "canceled_queue_evidence": "evidence/control-recovery-2026-10-09/retained-handle-obsolete-queue-canceled-01.json"
   },
   "private_handle_server": {
-    "state": "Implemented on the development branch. Eight new checks passed per profile on sb16. Coordinator reception remains incomplete.",
+    "state": "Server and receiver implemented on the development branch. Eight server and 15 receiver cases passed both profiles on sb16.",
     "contract": "docs/CHILD_HANDLE_PROTOCOL.txt",
     "evidence": "evidence/control-recovery-2026-10-09/connected-01/sb16/primary-review.json",
     "integrated_to_main": false,
@@ -185,5 +188,19 @@
     "related_sanitizer_passed": 38,
     "related_sanitizer_failed": 1,
     "unresolved": "Existing participant startup failed during supervisor approval. Five unchanged targeted repetitions passed. Root cause remains unproven."
+  },
+  "session_broker": {
+    "state": "Production library starts a real supervised broker and retains root, administrative, lifecycle, and handle channels. World coordination remains incomplete.",
+    "new_receiver_cases": 15,
+    "new_session_cases": 4,
+    "selected_cases_per_profile": 65,
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ],
+    "host": "sb16",
+    "evidence": "evidence/control-recovery-2026-10-09/connected-02/sb16/primary-review.json",
+    "integrated_to_main": false,
+    "complete_M02_qualified": false
   }
 }

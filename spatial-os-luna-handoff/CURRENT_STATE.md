@@ -1,5 +1,32 @@
 # Implementation status
 
+## 2026-10-10: Session broker ownership and receiving interface pass focused checks
+
+The M02 development branch now contains ChildHandleClient, ProcessHandle, and SessionBroker.
+The session starts a real authorized supervisor and retains the broker root and administrative channels.
+The receiver authenticates the supervisor and validates the exact launch and transferred live process handle.
+Explicit shutdown requires matching process and native cleanup receipts.
+World registration and selective recovery remain incomplete. No running host session adopted this branch.
+
+All 65 selected cases passed in Debug and runtime sanitizers on sb16.
+These comprise 15 new receiver cases, four new session-broker cases, and 46 related cases.
+The original Debug run passed 64 cases and failed one incorrect test expectation.
+That fixture expected a cleanup journal after native-role rejection before ownership creation.
+The correction requires the exact rejection diagnostic and no journal, child configuration, or activation.
+Production source and Debug binaries remained unchanged. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/connected-02/sb16/primary-review.json and its raw logs.
+
+Administrative transport also completed full Debug and sanitizer qualification on sb16-2.
+Both hosts passed 1,509 core checks, 51 harness checks, 151 P10 cases, and three native-world checks per profile.
+Read evidence/control-recovery-2026-10-09/admin-final-review-01-sb16-2.json.
+These component results do not qualify the complete M02 recovery path.
+The earlier connected01 participant-approval startup failure remains unexplained.
+
+Next: retain each world supervisor and register its dedicated broker endpoint against the verified launch owner.
+Then implement selective release, durable dependent receipts, and issuer retirement.
+Run complete qualification on both hosts at the M02 phase gate.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Private broker handle server on the M02 development branch
 
 Branch m02/control-recovery contains the private supervisor handle server and its protobuf messages.

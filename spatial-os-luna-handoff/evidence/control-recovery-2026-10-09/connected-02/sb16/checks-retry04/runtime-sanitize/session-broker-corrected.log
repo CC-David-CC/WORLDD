@@ -1,0 +1,16 @@
+Running as unit: spatial-session-broker-retry04-runtime-sanitize.service; invocation ID: c6e0d40841c94fd28bfd98a4bd0fac64
+test_real_broker_root_and_administration_share_verified_live_child (__main__.SessionBrokerTests.test_real_broker_root_and_administration_share_verified_live_child) ... ok
+test_coordinator_rejects_supplied_administrative_endpoint_arguments (__main__.SessionBrokerTests.test_coordinator_rejects_supplied_administrative_endpoint_arguments) ... ok
+test_failed_broker_exec_preserves_checked_owned_cleanup (__main__.SessionBrokerTests.test_failed_broker_exec_preserves_checked_owned_cleanup) ... ok
+test_wrong_native_role_cannot_supply_a_broker_handle (__main__.SessionBrokerTests.test_wrong_native_role_cannot_supply_a_broker_handle) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 3.558s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 3.691s
+CPU time consumed: 1.832s
+Memory peak: 1.5M
+Memory swap peak: 0B

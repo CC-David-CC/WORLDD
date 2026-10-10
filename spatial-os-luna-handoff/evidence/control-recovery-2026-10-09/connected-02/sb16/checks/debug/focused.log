@@ -1,0 +1,194 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 7
+    Start   7: authority-supervisor
+
+7: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-supervisor-9c48e5531c3a3be27622aa64b9709f0683303ac7c7568bc0808c117acf18b4e1" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source/tests/native/test_authority_supervisor.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-issuer-client"
+7: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build
+7: Test timeout computed to be: 120
+7: Running as unit: spatial-supervisor-9c48e5531c3a3be27622aa64b9709f0683303ac7c7568bc0808c117acf18b4e1.service; invocation ID: ed178f1996f2481582081e3f13e8499d
+7: test_production_supervisor_is_available_for_owned_authority_execution (__main__.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution) ... ok
+7: test_real_child_activates_releases_and_exits_without_manual_pumping (__main__.AuthoritySupervisorTests.test_real_child_activates_releases_and_exits_without_manual_pumping) ... ok
+7: test_revocation_requires_child_acknowledgement_with_automatic_delivery (__main__.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery) ... ok
+7: test_management_cannot_inject_participant_commands_or_repeat_start (__main__.AuthoritySupervisorTests.test_management_cannot_inject_participant_commands_or_repeat_start) ... ok
+7: test_explicit_stop_preserves_unresolved_issuer_generation (__main__.AuthoritySupervisorTests.test_explicit_stop_preserves_unresolved_issuer_generation) ... ok
+7: test_management_loss_stops_owned_child_and_records_cleanup (__main__.AuthoritySupervisorTests.test_management_loss_stops_owned_child_and_records_cleanup) ... ok
+7: test_child_death_is_failure_with_checked_cleanup (__main__.AuthoritySupervisorTests.test_child_death_is_failure_with_checked_cleanup) ... ok
+7: test_nonzero_exit_after_release_is_not_successful_completion (__main__.AuthoritySupervisorTests.test_nonzero_exit_after_release_is_not_successful_completion) ... ok
+7: test_excessive_management_frame_stops_owned_execution (__main__.AuthoritySupervisorTests.test_excessive_management_frame_stops_owned_execution) ... ok
+7: test_termination_signal_stops_owned_child_and_records_cleanup (__main__.AuthoritySupervisorTests.test_termination_signal_stops_owned_child_and_records_cleanup) ... ok
+7: test_existing_child_configuration_is_preserved_and_prevents_execution (__main__.AuthoritySupervisorTests.test_existing_child_configuration_is_preserved_and_prevents_execution) ... ok
+7: test_privileged_descriptor_mapping_is_rejected_before_ownership (__main__.AuthoritySupervisorTests.test_privileged_descriptor_mapping_is_rejected_before_ownership) ... ok
+7: test_privileged_descriptor_alias_is_rejected_before_ownership (__main__.AuthoritySupervisorTests.test_privileged_descriptor_alias_is_rejected_before_ownership) ... ok
+7: test_reopened_journal_cannot_replay_execution (__main__.AuthoritySupervisorTests.test_reopened_journal_cannot_replay_execution) ... ok
+7: 
+7: ----------------------------------------------------------------------
+7: Ran 14 tests in 12.165s
+7: 
+7: OK
+7: Finished with result: success
+7: Main processes terminated with: code=exited/status=0
+7: Service runtime: 12.324s
+7: CPU time consumed: 3.037s
+7: Memory peak: 1.5M
+7: Memory swap peak: 0B
+1/6 Test   #7: authority-supervisor ...............   Passed   12.34 sec
+test 101
+    Start 101: workspace-context
+
+101: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source/tests/core/test_workspaces.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/worldd"
+101: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build
+101: Environment variables: 
+101:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source
+101: Test timeout computed to be: 90
+101: .............
+101: ----------------------------------------------------------------------
+101: Ran 13 tests in 9.801s
+101: 
+101: OK
+2/6 Test #101: workspace-context ..................   Passed    9.88 sec
+test 104
+    Start 104: control-administrative-transport
+
+104: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source/tests/core/test_control_admin.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-control-admin-probe"
+104: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build
+104: Environment variables: 
+104:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source
+104: Test timeout computed to be: 180
+104: test_child_exit_is_uncertain (__main__.TransportTests.test_child_exit_is_uncertain) ... ok
+104: test_exact_child_reply (__main__.TransportTests.test_exact_child_reply) ... ok
+104: test_malformed_rejected (__main__.TransportTests.test_malformed_rejected) ... ok
+104: test_other_process_cannot_reply (__main__.TransportTests.test_other_process_cannot_reply) ... ok
+104: test_oversize_rejected (__main__.TransportTests.test_oversize_rejected) ... ok
+104: test_remote_error_stays_error (__main__.TransportTests.test_remote_error_stays_error) ... ok
+104: test_reply_descriptors_rejected (__main__.TransportTests.test_reply_descriptors_rejected) ... ok
+104: test_reply_timeout_is_uncertain (__main__.TransportTests.test_reply_timeout_is_uncertain) ... ok
+104: test_wrong_owner_rejected (__main__.TransportTests.test_wrong_owner_rejected) ... ok
+104: test_wrong_request_rejected (__main__.TransportTests.test_wrong_request_rejected) ... ok
+104: test_wrong_version_rejected (__main__.TransportTests.test_wrong_version_rejected) ... ok
+104: 
+104: ----------------------------------------------------------------------
+104: Ran 11 tests in 5.405s
+104: 
+104: OK
+3/6 Test #104: control-administrative-transport ...   Passed    5.47 sec
+test 106
+    Start 106: supervisor-child-handle
+
+106: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-child-handle-9c48e5531c3a3be27622aa64b9709f0683303ac7c7568bc0808c117acf18b4e1" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source/tests/native/test_supervisor_child_handle.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-issuer-client"
+106: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build
+106: Test timeout computed to be: 180
+106: Running as unit: spatial-child-handle-9c48e5531c3a3be27622aa64b9709f0683303ac7c7568bc0808c117acf18b4e1.service; invocation ID: 211e700980ba413ead467cd6df019896
+106: test_transferred_pidfd_matches_real_broker_and_observes_cleanup (__main__.ChildHandleTests.test_transferred_pidfd_matches_real_broker_and_observes_cleanup) ... ok
+106: test_other_launch_snapshot_is_rejected_without_a_descriptor (__main__.ChildHandleTests.test_other_launch_snapshot_is_rejected_without_a_descriptor) ... ok
+106: test_unknown_field_and_version_are_rejected_without_a_descriptor (__main__.ChildHandleTests.test_unknown_field_and_version_are_rejected_without_a_descriptor) ... ok
+106: test_child_mapping_cannot_alias_private_handle_channel (__main__.ChildHandleTests.test_child_mapping_cannot_alias_private_handle_channel) ... ok
+106: test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned (__main__.ChildHandleTests.test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned) ... ok
+106: test_request_descriptors_are_rejected_and_owned_broker_is_cleaned (__main__.ChildHandleTests.test_request_descriptors_are_rejected_and_owned_broker_is_cleaned) ... ok
+106: test_truncated_request_is_rejected_and_owned_broker_is_cleaned (__main__.ChildHandleTests.test_truncated_request_is_rejected_and_owned_broker_is_cleaned) ... ok
+106: test_handle_channel_loss_records_checked_broker_cleanup (__main__.ChildHandleTests.test_handle_channel_loss_records_checked_broker_cleanup) ... ok
+106: 
+106: ----------------------------------------------------------------------
+106: Ran 8 tests in 6.764s
+106: 
+106: OK
+106: Finished with result: success
+106: Main processes terminated with: code=exited/status=0
+106: Service runtime: 6.893s
+106: CPU time consumed: 1.818s
+106: Memory peak: 1.5M
+106: Memory swap peak: 0B
+4/6 Test #106: supervisor-child-handle ............   Passed    6.92 sec
+test 107
+    Start 107: session-broker
+
+107: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-broker-9c48e5531c3a3be27622aa64b9709f0683303ac7c7568bc0808c117acf18b4e1" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source/tests/native/test_session_broker.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-issuer-client"
+107: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build
+107: Test timeout computed to be: 180
+107: Running as unit: spatial-session-broker-9c48e5531c3a3be27622aa64b9709f0683303ac7c7568bc0808c117acf18b4e1.service; invocation ID: 74ce8620b15d412bac8a8398959175c6
+107: test_real_broker_root_and_administration_share_verified_live_child (__main__.SessionBrokerTests.test_real_broker_root_and_administration_share_verified_live_child) ... ok
+107: test_coordinator_rejects_supplied_administrative_endpoint_arguments (__main__.SessionBrokerTests.test_coordinator_rejects_supplied_administrative_endpoint_arguments) ... ok
+107: test_failed_broker_exec_preserves_checked_owned_cleanup (__main__.SessionBrokerTests.test_failed_broker_exec_preserves_checked_owned_cleanup) ... ok
+107: test_wrong_native_role_cannot_supply_a_broker_handle (__main__.SessionBrokerTests.test_wrong_native_role_cannot_supply_a_broker_handle) ... ERROR
+107: 
+107: ======================================================================
+107: ERROR: test_wrong_native_role_cannot_supply_a_broker_handle (__main__.SessionBrokerTests.test_wrong_native_role_cannot_supply_a_broker_handle)
+107: ----------------------------------------------------------------------
+107: Traceback (most recent call last):
+107:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source/tests/native/test_session_broker.py", line 72, in test_wrong_native_role_cannot_supply_a_broker_handle
+107:     self.checked_cleanup()
+107:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source/tests/native/test_authority_supervisor.py", line 142, in checked_cleanup
+107:     record = self.read_record()
+107:              ^^^^^^^^^^^^^^^^^^
+107:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source/tests/native/test_authority_launch.py", line 85, in read_record
+107:     with sqlite3.connect('file:'+str(self.journal/'launch.db')+'?mode=ro',uri=True) as db:
+107:          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+107: sqlite3.OperationalError: unable to open database file
+107: 
+107: ----------------------------------------------------------------------
+107: Ran 4 tests in 2.651s
+107: 
+107: FAILED (errors=1)
+107: Finished with result: exit-code
+107: Main processes terminated with: code=exited/status=1
+107: Service runtime: 2.763s
+107: CPU time consumed: 905ms
+107: Memory peak: 1.5M
+107: Memory swap peak: 0B
+5/6 Test #107: session-broker .....................***Failed    2.79 sec
+test 108
+    Start 108: supervisor-child-handle-client
+
+108: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source/tests/core/test_child_handle_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/spatial-child-handle-client-probe"
+108: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build
+108: Environment variables: 
+108:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/source
+108: Test timeout computed to be: 90
+108: test_dead_handle_rejected (__main__.ReceiverTests.test_dead_handle_rejected) ... ok
+108: test_duplicate_descriptors (__main__.ReceiverTests.test_duplicate_descriptors) ... ok
+108: test_error_cannot_carry_rights (__main__.ReceiverTests.test_error_cannot_carry_rights) ... ok
+108: test_foreign_parent_rejected (__main__.ReceiverTests.test_foreign_parent_rejected) ... ok
+108: test_foreign_sender (__main__.ReceiverTests.test_foreign_sender) ... ok
+108: test_malformed_packet (__main__.ReceiverTests.test_malformed_packet) ... ok
+108: test_missing_descriptor (__main__.ReceiverTests.test_missing_descriptor) ... ok
+108: test_oversize_packet (__main__.ReceiverTests.test_oversize_packet) ... ok
+108: test_plain_file_is_not_process_handle (__main__.ReceiverTests.test_plain_file_is_not_process_handle) ... ok
+108: test_timeout (__main__.ReceiverTests.test_timeout) ... ok
+108: test_unknown_field (__main__.ReceiverTests.test_unknown_field) ... ok
+108: test_valid_live_direct_child (__main__.ReceiverTests.test_valid_live_direct_child) ... ok
+108: test_wrong_launch (__main__.ReceiverTests.test_wrong_launch) ... ok
+108: test_wrong_request (__main__.ReceiverTests.test_wrong_request) ... ok
+108: test_wrong_version (__main__.ReceiverTests.test_wrong_version) ... ok
+108: 
+108: ----------------------------------------------------------------------
+108: Ran 15 tests in 5.615s
+108: 
+108: OK
+6/6 Test #108: supervisor-child-handle-client .....   Passed    5.68 sec
+
+The following tests passed:
+	authority-supervisor
+	workspace-context
+	control-administrative-transport
+	supervisor-child-handle
+	supervisor-child-handle-client
+
+83% tests passed, 1 tests failed out of 6
+
+Total Test time (real) =  43.09 sec
+
+The following tests FAILED:
+	107 - session-broker (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-02/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

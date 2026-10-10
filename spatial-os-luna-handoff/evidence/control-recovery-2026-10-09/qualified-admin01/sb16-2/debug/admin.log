@@ -1,0 +1,44 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 104
+    Start 104: control-administrative-transport
+
+104: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/source/tests/core/test_control_admin.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/debug/build/spatial-control-admin-probe"
+104: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/debug/build
+104: Environment variables: 
+104:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-admin-01/source
+104: Test timeout computed to be: 180
+104: test_child_exit_is_uncertain (__main__.TransportTests.test_child_exit_is_uncertain) ... ok
+104: test_exact_child_reply (__main__.TransportTests.test_exact_child_reply) ... ok
+104: test_malformed_rejected (__main__.TransportTests.test_malformed_rejected) ... ok
+104: test_other_process_cannot_reply (__main__.TransportTests.test_other_process_cannot_reply) ... ok
+104: test_oversize_rejected (__main__.TransportTests.test_oversize_rejected) ... ok
+104: test_remote_error_stays_error (__main__.TransportTests.test_remote_error_stays_error) ... ok
+104: test_reply_descriptors_rejected (__main__.TransportTests.test_reply_descriptors_rejected) ... ok
+104: test_reply_timeout_is_uncertain (__main__.TransportTests.test_reply_timeout_is_uncertain) ... ok
+104: test_wrong_owner_rejected (__main__.TransportTests.test_wrong_owner_rejected) ... ok
+104: test_wrong_request_rejected (__main__.TransportTests.test_wrong_request_rejected) ... ok
+104: test_wrong_version_rejected (__main__.TransportTests.test_wrong_version_rejected) ... ok
+104: 
+104: ----------------------------------------------------------------------
+104: Ran 11 tests in 5.466s
+104: 
+104: OK
+1/1 Test #104: control-administrative-transport ...   Passed    5.55 sec
+
+The following tests passed:
+	control-administrative-transport
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   5.55 sec

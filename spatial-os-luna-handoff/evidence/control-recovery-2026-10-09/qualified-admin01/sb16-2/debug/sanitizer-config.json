@@ -1,0 +1,7 @@
+{
+  "profile": "debug",
+  "cmake_sanitizers": "OFF",
+  "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+  "qualifier_sha256": "b40569b4feb84d3ad0393676d5e770068572d0ded669b9579745f92db1407e54"
+}

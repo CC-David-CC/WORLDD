@@ -1,0 +1,16 @@
+Running as unit: spatial-session-broker-retry04-debug.service; invocation ID: 95019ea2d1334082ab74db37d7646894
+test_real_broker_root_and_administration_share_verified_live_child (__main__.SessionBrokerTests.test_real_broker_root_and_administration_share_verified_live_child) ... ok
+test_coordinator_rejects_supplied_administrative_endpoint_arguments (__main__.SessionBrokerTests.test_coordinator_rejects_supplied_administrative_endpoint_arguments) ... ok
+test_failed_broker_exec_preserves_checked_owned_cleanup (__main__.SessionBrokerTests.test_failed_broker_exec_preserves_checked_owned_cleanup) ... ok
+test_wrong_native_role_cannot_supply_a_broker_handle (__main__.SessionBrokerTests.test_wrong_native_role_cannot_supply_a_broker_handle) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 2.568s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 2.680s
+CPU time consumed: 893ms
+Memory peak: 1.5M
+Memory swap peak: 0B

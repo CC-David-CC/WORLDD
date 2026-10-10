@@ -1,5 +1,5 @@
 Retained child handle: coordinator integration prerequisite
-Status: The development branch implements the private handle server. Coordinator reception remains incomplete.
+Status: The development branch implements the private handle server. Coordinator reception is implemented through ChildHandleClient.
 
 Observed source
 
@@ -44,3 +44,10 @@ Reject recovery from serialized journal identity alone.
 Run the coordinator, supervised broker, and supervised world through production paths.
 The existing packet witness is transport evidence only.
 It does not establish this coordinator mapping or prove selective cleanup.
+
+2026-10-10 implementation update
+
+ChildHandleClient receives the retained supervisor's broker pidfd through the private protobuf channel.
+SessionBroker owns that handle and both broker management channels independently of future world launches.
+Fifteen receiver cases and four real broker lifecycle cases passed both focused build profiles on sb16.
+World registration, selective recovery, and complete M02 qualification remain pending.
