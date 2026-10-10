@@ -1,0 +1,38 @@
+{
+  "checked_at": 1791676192.0799315,
+  "units": [
+    {
+      "unit": "spatial-m03-resources-29d02dbd4a7d48128365e38134a39bfd.service",
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "returncode": 0
+    },
+    {
+      "unit": "spatial-m03-resources-686eddee764e476b972e4bbc78f12b6b.service",
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "returncode": 0
+    },
+    {
+      "unit": "spatial-m03-resources-713f6f0f83124868a5938f976c3689b1.service",
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "returncode": 0
+    },
+    {
+      "unit": "spatial-m03-resources-85dc250178ed47798a930a2b080fcd6f.service",
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "returncode": 0
+    },
+    {
+      "unit": "spatial-m03-resources-87e0fd31f6254d7eb6ae71b5f43f0194.service",
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "returncode": 0
+    },
+    {
+      "unit": "spatial-m03-resources-a20ae8d7052b499e950fc11eba793c20.service",
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "returncode": 0
+    }
+  ],
+  "root_controllers": "cpu memory pids\n",
+  "user_delegate": "DelegateControllers=cpu memory pids\n",
+  "ssh_route_live": true
+}

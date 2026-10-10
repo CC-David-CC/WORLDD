@@ -22,6 +22,21 @@ message ProcessScopeState {
 }
 message ProcessScopeStopped { ProcessScopeIdentity identity = 1; }
 message ProcessScopeQuery {}
+// Trusted owner input. Top-level scalars are explicit; only swap may be zero.
+// CPU uses a fixed 100000 microsecond period. These limits do not grant authority.
+message ProcessScopeBudget {
+  optional uint64 memory_bytes = 1;
+  optional uint64 swap_bytes = 2;
+  optional uint32 processes = 3;
+  optional uint64 cpu_microseconds = 4;
+  message IoLimit {
+    optional uint32 major = 1;
+    optional uint32 minor = 2;
+    uint64 read_bytes_per_second = 3;
+    uint64 write_bytes_per_second = 4;
+  }
+  repeated IoLimit io = 5;
+}
 message ProcessScopeRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -31,6 +46,7 @@ message ProcessScopeRequest {
     ProcessScopeQuery stop = 12;
     ProcessScopeQuery prepare = 13;
     AuthorityProcessLaunch start = 14;
+    ProcessScopeBudget prepare_budget = 15;
   }
 }
 message ProcessScopeError {

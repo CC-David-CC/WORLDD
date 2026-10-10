@@ -67,7 +67,32 @@ void tick() { poll(nullptr, 0, 5); }
 }
 }
 
-std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path& root) {
+std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path& root,
+                                                  const v1::ProcessScopeBudget* budget) {
+    if (budget) {
+        validate_message(*budget);
+        const auto page = sysconf(_SC_PAGESIZE);
+        valid(page > 0, "Cannot determine memory page size");
+        constexpr std::uint64_t maximum = 1ULL << 50;
+        valid(budget->has_memory_bytes() && budget->memory_bytes() >= static_cast<std::uint64_t>(page) &&
+              budget->memory_bytes() <= maximum && budget->memory_bytes() % page == 0,
+              "Memory budget must be an explicit positive page multiple");
+        valid(budget->has_swap_bytes() && budget->swap_bytes() <= maximum && budget->swap_bytes() % page == 0,
+              "Swap budget must be an explicit nonnegative page multiple");
+        valid(budget->has_processes() && budget->processes() > 0 && budget->processes() <= 1048576,
+              "Process budget must be explicit and bounded");
+        valid(budget->has_cpu_microseconds() && budget->cpu_microseconds() >= 1000 &&
+              budget->cpu_microseconds() <= 6400000, "CPU budget must be explicit and bounded");
+        valid(budget->io_size() > 0 && budget->io_size() <= 64, "Expected explicit I/O device budgets");
+        std::set<std::pair<unsigned, unsigned>> devices;
+        for (const auto& io : budget->io()) {
+            valid(io.has_major() && io.has_minor() && io.major() > 0 && io.major() <= 4095 && io.minor() <= 1048575 &&
+                  devices.emplace(io.major(), io.minor()).second, "Invalid or duplicate I/O device");
+            valid(io.read_bytes_per_second() > 0 && io.read_bytes_per_second() <= maximum &&
+                  io.write_bytes_per_second() > 0 && io.write_bytes_per_second() <= maximum,
+                  "I/O rates must be positive and bounded");
+        }
+    }
     auto result = std::unique_ptr<ProcessScope>(new ProcessScope);
     result->parent_ = open(root.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
     check(result->parent_ >= 0, "Cannot open delegated cgroup");
@@ -96,6 +121,18 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path&
     check(result->scope_ >= 0, "Cannot retain authority scope");
     struct stat owned{}; check(fstat(result->scope_, &owned) == 0, "Cannot identify authority scope");
     result->identity_.set_device(owned.st_dev); result->identity_.set_inode(owned.st_ino);
+    if (budget) {
+        // This empty scope cannot run a child until every required controller accepts its limit.
+        control(result->scope_, "memory.max", std::to_string(budget->memory_bytes()) + "\n");
+        control(result->scope_, "memory.swap.max", std::to_string(budget->swap_bytes()) + "\n");
+        control(result->scope_, "memory.oom.group", "1\n");
+        control(result->scope_, "pids.max", std::to_string(budget->processes()) + "\n");
+        control(result->scope_, "cpu.max", std::to_string(budget->cpu_microseconds()) + " 100000\n");
+        for (const auto& io : budget->io())
+            control(result->scope_, "io.max", std::to_string(io.major()) + ":" + std::to_string(io.minor()) +
+                    " rbps=" + std::to_string(io.read_bytes_per_second()) +
+                    " wbps=" + std::to_string(io.write_bytes_per_second()) + "\n");
+    }
     return result;
 }
 

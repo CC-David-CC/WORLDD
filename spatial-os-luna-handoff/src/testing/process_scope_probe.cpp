@@ -66,6 +66,12 @@ int main(int argc, char** argv) {
                         process = spatial::supervisor::ProcessScope::prepare(argv[1]);
                         *reply.mutable_state() = process->state();
                     }
+                } else if (request.has_prepare_budget()) {
+                    if (process) reply.mutable_error()->set_code(pb::ProcessScopeError::INVALID_STATE);
+                    else {
+                        process = spatial::supervisor::ProcessScope::prepare(argv[1], &request.prepare_budget());
+                        *reply.mutable_state() = process->state();
+                    }
                 } else if (request.has_start() && process) {
                     process->start(request.start(), {empty, empty, empty}, inherited);
                     *reply.mutable_state() = process->state();

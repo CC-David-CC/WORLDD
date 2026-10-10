@@ -1,0 +1,36 @@
+{"unit": "spatial-m03-resources-29d02dbd4a7d48128365e38134a39bfd.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-29d02dbd4a7d48128365e38134a39bfd.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-01/source", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-01/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-01/baseline-witnesses", "--", "python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-01/source/tests/core/test_process_scope_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/spatial-process-scope-probe", "ResourceScopeTests.test_controls_exist_before_child_execution"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-29d02dbd4a7d48128365e38134a39bfd.service"]}
+Running as unit: spatial-m03-resources-29d02dbd4a7d48128365e38134a39bfd.service; invocation ID: 284ec90182bc40c89e7598f428c7e0fe
+test_controls_exist_before_child_execution (__main__.ResourceScopeTests.test_controls_exist_before_child_execution) ... FAIL
+
+======================================================================
+FAIL: test_controls_exist_before_child_execution (__main__.ResourceScopeTests.test_controls_exist_before_child_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-01/source/tests/core/test_process_scope_resources.py", line 73, in test_controls_exist_before_child_execution
+    proc = self.probe(); scope = self.prepare(proc)
+                                 ^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-resource-boundary-01/source/tests/core/test_process_scope_resources.py", line 57, in prepare
+    self.assertEqual(reply.WhichOneof('outcome'), 'state', reply)
+AssertionError: 'error' != 'state'
+- error
++ state
+ : protocol_version: 1
+request_id: 77
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.006s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 126ms
+CPU time consumed: 92ms
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-29d02dbd4a7d48128365e38134a39bfd.service: Unit spatial-m03-resources-29d02dbd4a7d48128365e38134a39bfd.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

@@ -10,7 +10,8 @@ namespace spatial::supervisor {
 // Owns one authority process subtree. Native cleanup and issuer retirement are separate.
 class ProcessScope final {
 public:
-    static std::unique_ptr<ProcessScope> prepare(const std::filesystem::path& delegated_root);
+    static std::unique_ptr<ProcessScope> prepare(const std::filesystem::path& delegated_root,
+                                               const v1::ProcessScopeBudget* budget = nullptr);
     void start(const v1::AuthorityProcessLaunch& request, const std::array<int, 3>& streams,
                const std::vector<int>& inherited = {});
     static std::unique_ptr<ProcessScope> launch(const std::filesystem::path& delegated_root,

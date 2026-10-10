@@ -1,5 +1,33 @@
 # Implementation status
 
+## 2026-10-10: Aggregate process-scope limits passed focused qualification
+
+The production process-scope primitive now accepts explicit memory, swap, process, CPU, and per-device I/O budgets.
+It applies every limit before child startup. Missing controllers and incomplete device identities fail without executing a child.
+The owner cannot replace a prepared scope's budget through this interface.
+
+Candidate02 passed 27 checks per host/profile: nine resource checks and eighteen existing lifecycle checks.
+Both hosts passed Debug and runtime sanitizers: 108 checks, zero failures, and zero skips.
+All 91 collected attachments verified. Sixty logs lacked selected sanitizer markers.
+The witnesses measured detached fork limits, group memory exhaustion, sibling survival, CPU throttling, and real disk writes.
+Each 16 MiB write used the configured 4 MiB/s limit and matching kernel I/O accounting.
+Read evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json.
+
+Review found omitted-minor acceptance after candidate01's initial 104 focused passes.
+Both hosts reproduced that defect against the old binary. Candidate02 requires both device components explicitly.
+Candidate01's exact changed source bytes, logs, and passing results remain preserved beside the final evidence.
+All 41 locked files remain unchanged.
+
+The tests used six transient resource services per host across both candidates.
+All twelve services are unloaded and inactive. Root and user controller delegation returned to their prior values.
+Normal login and SSH recovery remain available. No persistent unit or root filesystem change was made.
+
+M03 remains incomplete. The production broker does not yet assign these aggregate budgets to workspace applications.
+Next: derive effective budgets, create workspace parents, and attach applications before held startup.
+Bounded persistent storage, escape attempts, contention recovery, and the complete M03 gate remain mandatory.
+The existing five-second issuer timeout and durability settings remain unchanged.
+M01 and M02 are qualified at their recorded earlier pins. Spatial-M1 remains incomplete.
+
 ## 2026-10-10: M01 identity qualification reassessed and complete
 
 All nine M01 components now have reviewed evidence at the adopted M02 source.

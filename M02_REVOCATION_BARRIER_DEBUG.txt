@@ -1324,3 +1324,15 @@ M02 is qualified at the recorded runtime and source pins. Full Spatial-M1 remain
 No new current-HEAD runtime build was run for the additive CMake test registration.
 700 ms and 2000 ms pressure clients failed; the 5000 ms default passed one trial only.
 Storage-contention availability remains mandatory M03/M15 work. Original untraced failure causes remain unknown.
+
+2026-10-10: M01 audit closed; first M03 aggregate primitive qualified.
+M01 reused complete frozen gate evidence and the adopted M02 cancellation dependency. No personal credentials were provisioned.
+The M03 process-scope primitive passed 108 focused checks across both hosts in Debug and runtime sanitizers.
+Actual kernel witnesses recorded fork denial, group OOM containment, sibling survival, CPU throttling, and I/O accounting.
+Review found omitted device-minor acceptance in candidate01 despite its 104 initial passes.
+Both hosts reproduced the missing-presence defect before candidate02 passed the added regression.
+See spatial-os-luna-handoff/evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json.
+Twelve exact transient test services are unloaded. Root/user delegation returned to prior values. SSH remains live.
+Limits: budget policy, broker integration, workspace aggregation, storage quotas, and M03 full gates are not yet complete.
+No new physical-device, GPU, or issuer storage-pressure latency qualification was performed by this increment.
+The five-second production timeout remains; cgroup I/O throttling alone is not a latency guarantee.

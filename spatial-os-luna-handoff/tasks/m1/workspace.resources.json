@@ -28,8 +28,20 @@
     "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json"
   ],
   "remaining": [
-    "Select the aggregate resource and bounded storage design from verified host capabilities.",
-    "Implement one coherent enforcement boundary and its independent regression witnesses."
+    "Derive immutable effective budgets from workspace policy, actor authority, and requested application profile.",
+    "Create aggregate workspace parents and attach every application before its held startup releases.",
+    "Include broker Git/file effects and all writable workspace paths in resource and storage accounting.",
+    "Qualify bounded persistent storage, independent escape attempts, and failure recovery.",
+    "Measure issuer availability under bounded competing writes, then run the full M03 gate on both hosts."
   ],
-  "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json"
+  "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json",
+  "current_step": "aggregate_process_scope_qualified_broker_integration_pending",
+  "qualified_primitive": {
+    "evidence": "evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json",
+    "passed": 108,
+    "failed": 0,
+    "skipped": 0,
+    "phase_complete": false,
+    "broker_integrated": false
+  }
 }

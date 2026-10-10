@@ -1,0 +1,55 @@
+M03 resource increment 01
+
+Scope
+Add immutable aggregate limits to the production process-scope primitive.
+Apply limits before any child starts. Reject missing controllers without executing the child.
+Keep existing authority scopes available without application limits.
+This increment does not yet integrate application budgets into workspaced.
+M03 remains incomplete until the broker enforces workspace, actor, and profile intersections.
+
+Required design
+Keep the authority and broker outside application exhaustion groups.
+Create one aggregate parent for each authoritative workspace.
+Create a child group for each application and all its descendants.
+Keep CPU, memory, process, and I/O limits on the workspace parent and application children.
+Do not expose writable cgroup paths or descriptors to applications.
+Use a separately bounded filesystem for workspace storage when root project quotas are unavailable.
+Account for project data, Git objects, application state, cache, temporary files, and trash.
+Qualify that storage backend before adopting it. A candidate design is a preallocated, size-limited filesystem image.
+Do not claim that cgroup limits impose a disk-space quota.
+Do not claim that I/O bandwidth limits guarantee issuer latency.
+
+Selected checks before integration
+Use the real kernel and independent child processes on sb16 and sb16-2.
+Run Debug and runtime sanitizers sequentially within each host.
+Run both hosts in parallel. Do not overlap compilation and execution within a host.
+Retain one missing-feature baseline against the frozen M02 probe.
+Verify controls before child execution and reject malformed or incomplete budgets.
+Verify missing-controller failure leaves no executable child or populated scope.
+Exhaust a bounded process count with fork and detached descendants.
+Exhaust a small aggregate memory budget without harming a sibling.
+Verify measured CPU throttling with multiple busy children.
+Verify I/O throttling with bounded real writes and independent kernel accounting.
+Run the existing authority-process-scope suite for lifecycle and cleanup regressions.
+Preserve raw logs, exact source hashes, binaries, and failures.
+
+Host setup for these checks
+Use a uniquely named transient systemd service on each authorized host.
+Run its test process as dflanag3. Delegate cpu, memory, pids, and io to that service only.
+Place the manager in a separate subgroup before enabling child controllers.
+Set an outer memory and process cap. Stop the exact unit on failure.
+Record the exact unit and recovery command in each run manifest before starting it.
+Do not install persistent units, change login, remount root, or modify user-wide delegation.
+systemd can enable required ancestor controllers while the transient service exists.
+Record those observations and final unit cleanup.
+
+References
+https://docs.kernel.org/admin-guide/cgroup-v2.html
+https://raw.githubusercontent.com/systemd/systemd/v255/man/systemd.resource-control.xml
+The kernel defines inherited hierarchical limits and warns about shared-inode writeback attribution.
+systemd 255 documents explicit controller delegation and DelegateSubgroup.
+
+Remaining after this increment
+Broker integration, budget policy, workspace aggregation, storage accounting, and recovery.
+Independent application escape attempts and cross-workspace exhaustion tests.
+Issuer availability under bounded competing writes and complete M03 qualification on both hosts.

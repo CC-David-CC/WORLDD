@@ -1,0 +1,22 @@
+{
+  "status": "superseded_after_review_found_device_presence_gap",
+  "focused_checks_passed": 104,
+  "failed_qualification_checks": 0,
+  "phase_complete": false,
+  "baseline": "Frozen M02 binary rejected the unimplemented budget request on both hosts.",
+  "review_finding": "Absent I/O device minor was accepted as zero. The initial eight checks did not cover this case.",
+  "resolution": "Candidate02 reproduced that omission against both candidate01 Debug binaries and passed the added regression after requiring explicit components.",
+  "source_base_commit": "66e323df4469a8b45969965a3bc56aceed3d8c54",
+  "source_delta": {
+    "CMakeLists.txt": "ed6220fd58722f319caada82bab490553269752c69251750e4bfa77472f91f88",
+    "docs/M03_RESOURCE_INCREMENT_01.txt": "bee6c2f43ed53648a4e441d69036d7772c5c2b8cddda2d9e3a4107eafda521fa",
+    "proto/spatial/supervisor/v1/process_scope.proto": "99f20a99f91bb8d1c895b76fc91ba3708d114cfa24fe332dc587b8f340a077e7",
+    "src/supervisor/process_scope.cpp": "563b0defdbc9e1fc55e6ebb236e6f4abedbea87a68da837afa25b14cb0e1a0b3",
+    "src/supervisor/process_scope.hpp": "d355f064da72cf89019b919f62016792fa3d56d08aa6fbefa075e6631b7878bf",
+    "src/testing/process_scope_probe.cpp": "70989ab1b28e9f399177b188c9bbfd908d25171653b86a79ee34ab48d2298210",
+    "tests/core/test_process_scope_resources.py": "88797a648868161d251728e4ad8cc179acbfaa9c258fdea957905b25df42f55d",
+    "tools/with_resource_delegate.py": "80083776db2664f3c63aefc48900de08b3574a7af9fcb7033e17b3a3cc5fc96a"
+  },
+  "remaining_source": "All other frozen source bytes match the pinned base commit.",
+  "followup": "../candidate-02/primary-review.json"
+}

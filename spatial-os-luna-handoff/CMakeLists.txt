@@ -441,6 +441,12 @@ if(BUILD_TESTING)
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_process_scope.py"
         $<TARGET_FILE:spatial-process-scope-probe>)
     set_tests_properties(authority-process-scope PROPERTIES TIMEOUT 120)
+    add_test(NAME process-scope-resources COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_process_scope_resources.py"
+        $<TARGET_FILE:spatial-process-scope-probe>)
+    set_tests_properties(process-scope-resources PROPERTIES TIMEOUT 150
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_executable(spatial-process-termination-probe src/testing/process_termination_probe.cpp src/workspace/process.cpp src/workspace/native_launch.cpp)
     target_link_libraries(spatial-process-termination-probe PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
     add_dependencies(spatial-process-termination-probe spatial-app-init)

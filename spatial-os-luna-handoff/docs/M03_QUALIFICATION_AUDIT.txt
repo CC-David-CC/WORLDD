@@ -1,3 +1,17 @@
+Focused process-scope resource qualification, 2026-10-10
+
+The production primitive applies explicit aggregate limits before startup.
+Candidate02 passed 108 focused checks across both hosts and both build profiles.
+The kernel witnesses cover bounded process and memory exhaustion, sibling survival, CPU throttling, and disk writes.
+Review reproduced and corrected omitted I/O device-minor acceptance before integration.
+All earlier source and failure evidence remains preserved.
+Read evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json.
+
+This is a qualified primitive, not completed workspace resource enforcement.
+Workspaced still needs policy intersection, workspace parents, application attachment, and bounded persistent storage.
+Broker Git and file effects must use the same workspace budgets.
+Retain independent escape, recovery, availability, and complete M03 phase-gate requirements.
+
 Read-only I/O delegation inspection, 2026-10-10
 
 M02 source adoption and its scoped qualification are complete. M03 resource implementation is now active.
