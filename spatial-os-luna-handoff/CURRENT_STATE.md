@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-09: Control reply validation prepared in isolation
+
+The reply01 draft adds a production validator for private broker control replies.
+It checks correlation, exact ownership, fencing acknowledgements, reservation identity, and bounded snapshots.
+The shared owner validator preserves the preceding broker's checks.
+Sixteen new checks cover valid replies, typed errors, substitutions, malformed fields, duplicates, and limits.
+All sixteen checks remain unrun. No production administrative transport or coordinator is claimed.
+
+Both frozen drivers wait for binding01 qualification before building or testing.
+The draft contains 303 source files. All 41 locked files remain unchanged.
+Read docs/CONTROL_REPLY_VALIDATION.txt and evidence/control-recovery-2026-10-09/control-reply-review-01.json.
+Owner04 still runs full sanitizers on sb16 and full Debug on sb16-2.
+Production remains a3a926d. M02 remains incomplete.
+
 ## 2026-10-09: Corrected owner04 passes full Debug on sb16
 
 sb16 passed 1,474 core checks across 100 suites, 51 harness checks, and 151 P10 cases.
