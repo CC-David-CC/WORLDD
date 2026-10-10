@@ -1204,3 +1204,11 @@ session-deferred-fence also failed five setups at test_deferred_fence.py line 47
 Those failures have the same exclusive evidence-directory collision.
 The eight affected test bodies did not execute in this untraced attempt.
 Debug acceptance and runtime sanitizer tests remain unrun in the failed original attempt.
+
+The sb16-2 terminal archive and all 6716 verified attachments are preserved in commit 58e2de0.
+The isolated retry is live as PID 2392884, start ticks 32682265, retained tool session 60054.
+Its sync succeeded in 0.065 seconds. Its Debug inventory verified exactly 26 native log-path changes.
+All 51 Debug harness checks passed. Original source and binaries are unchanged.
+sb16 retains PID 2852219 and session 13868. Its full Debug sequence passed; runtime sanitizers are active.
+After full local review, crosshost03 must select m02-untraced-03 on both hosts.
+The old sb16-2 session 66553 is terminal and must not be polled or restarted.

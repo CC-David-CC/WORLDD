@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-10: sb16 sanitizer active; sb16-2 isolated retry active
+
+The complete failed sb16-2 attempt and all 6716 verified attachments are preserved in commit 58e2de0.
+Its two failed suites encountered eight evidence-directory collisions before their test bodies ran.
+All colliding directories have verified files in the earlier complete diagnostic checkpoint.
+The terminal archive contains no selected sanitizer markers. Its Debug failures remain recorded as failures.
+
+The prepared sb16-2 retry now reuses the unchanged candidate02 source and binaries.
+Its filesystem synchronization succeeded in 0.065 seconds.
+Its Debug inventory verified exactly 26 native evidence-path changes and no other metadata changes.
+All 51 Debug harness checks passed. Full core, acceptance, and sanitizer results remain pending.
+Read evidence/m02-gate-2026-10-10/untraced03-launch-sb16-2.json.
+
+sb16 passed its full untraced Debug sequence and continues runtime sanitizer qualification.
+Cross-host qualification must select m02-untraced-03 for both hosts after complete local review.
+Neither host has completed the full gate. Historical issuer failures still require individual disposition.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: sb16 Debug passed; sb16-2 evidence setup failed
 
 sb16 passed all 124 untraced Debug core suites and all 151 acceptance cases without skips.
