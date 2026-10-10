@@ -1,0 +1,15 @@
+{
+  "host": "sb16",
+  "candidate": "reply01",
+  "reviewer": "primary agent",
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "summary_sha256": "a89844a6219809f1c59d8a4b8b211d0424b7aeb7c528b0c2efcde2f1afad362e",
+  "attachment_hashes_verified": true,
+  "core_counts_independently_checked": true,
+  "integration_ready": false,
+  "reason": "Second host full qualification remains required",
+  "production_recovery_complete": false
+}

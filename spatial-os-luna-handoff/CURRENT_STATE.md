@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-10: Reply validation passes both profiles on sb16
+
+sb16 passed full Debug and runtime sanitizer qualification for reply01.
+Each profile passed 1,496 core checks across 102 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed per profile. No case failed or skipped.
+All evidence attachment hashes and raw core counts were checked independently.
+Read evidence/control-recovery-2026-10-09/reply-final-review-01-sb16.json.
+Second-host full qualification remains required before integration.
+
+sb16 reproduced both expected retained-descriptor failures against the preceding supervisor.
+Its handoff01 build has started. Corrected handoff checks remain unrun.
+Administrative transport qualification waits behind handoff01 on both hosts.
+No reply, handoff, or administrative transport source is integrated.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Qualified retained-launch binding integrated
 
 The exact seven-file binding01 source change is integrated.
