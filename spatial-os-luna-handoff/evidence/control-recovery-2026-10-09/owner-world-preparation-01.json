@@ -1,0 +1,17 @@
+{
+  "reviewer": "primary agent",
+  "status": "prepared; unrun",
+  "checks_per_profile": 3,
+  "production_changed": false,
+  "files": {
+    "local/test_control_owner_world_01.py": "d1b3ff2cb9f3a8ffd8777ee5aa6abb920323563026653628aa9c26a5a303efec",
+    "local/qualify-control-owner-world-01.py": "0a844677032a9c1d13c35b64b688b9a9980215892cc6c43c1d76285cbd293112"
+  },
+  "prerequisite": "The exact current full candidate03 qualification must pass on the same host.",
+  "scope": [
+    "Real-world ordinary revocation releases managed reservations after native cancellation.",
+    "World crash closes its owner channel, preserves its unresolved reservations, and preserves another owner and applications.",
+    "Explicit channel fencing stops the world and releases native input while its independently authorized application survives."
+  ],
+  "limitation": "The fixture provisions owner bindings. This does not qualify production supervisor binding, recovery release, or issuer retirement."
+}

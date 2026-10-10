@@ -60,6 +60,8 @@ Administrative transport failure fences all managed channels and preserves their
 It does not stop otherwise authorized applications.
 
 Existing actor and application authority checks still apply to every operation.
+Validate each world request recursively before checking application attribution.
+Reject unsupported protocol versions before checking the native server binding.
 Same-actor acquisition on another owner channel cannot reuse the first owner's reservation.
 Revocation events go only to the reservation's owning channel.
 Pending fenced reservations prevent cancellation from being acknowledged as settled.

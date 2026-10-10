@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Native owner checks queued; strict-validation correction prepared
+
+Candidate03 full qualification remains active on both hosts.
+Three extra checks will exercise owner channels through real world actors and native application input.
+They cover ordinary revocation, world crash, and explicit channel fencing.
+They run after successful full qualification on the same host.
+
+Static review found that native attribution precedes strict message validation on managed channels.
+A wrong native server ID can hide an invalid message or unsupported version behind FORBIDDEN.
+Candidate04 moves attribution into the existing validated dispatch and adds two regression checks.
+The exact runtime reproducer remains unrun. It must fail as expected before candidate04 builds.
+Candidate03 must not be integrated, even if its existing checks pass.
+Read evidence/control-recovery-2026-10-09/control-owner-validation-review-04.json.
+
+No active source inputs changed. Production remains a3a926d.
+
 ## 2026-10-09: Owner-channel Debug checks pass on both hosts
 
 Candidate03 passed all19 owner-channel checks and51 harness checks on sb16 and sb16-2.

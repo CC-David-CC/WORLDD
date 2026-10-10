@@ -1,0 +1,93 @@
+--- a/tests/core/test_control_owner_channels.py
++++ b/tests/core/test_control_owner_channels.py
+@@ -418,5 +418,33 @@
+         self.assertEqual(self.broker.response(sequence).management.process_wait.exit_code, 0)
+ 
+ 
++    def check_validation_precedes_attribution(self, version, extra, expected):
++        owner, world = self.register()
++        application = pb.ApplicationRef()
++        application.CopyFrom(self.app)
++        application.server_id = os.urandom(32)
++        self.assertNotEqual(application.server_id, self.server_id)
++        request = pb.Request(protocol_version=version, request_id=101,
++            control_acquire=pb.ApplicationControlRequest(principal=self.principal(), application=application))
++        payload = request.SerializeToString()+extra
++        world.sendall(len(payload).to_bytes(4, 'big')+payload)
++        reply = receive(world.recv, world, pb.Reply)
++        self.assertEqual(reply.protocol_version, 1)
++        self.assertEqual(reply.request_id, 101)
++        self.assertTrue(reply.HasField('error'), reply)
++        self.assertEqual(reply.error.code, expected,
++            f'Expected {core.ErrorCode.Name(expected)} before native attribution: {reply}')
++        state = self.inspect(owner)
++        self.assertFalse(state.channel_fenced)
++        self.assertFalse(state.reservations)
++        self.lease(world)
++
++    def test_unsupported_version_precedes_native_attribution(self):
++        self.check_validation_precedes_attribution(2, b'', core.UNSUPPORTED_VERSION)
++
++    def test_unknown_fields_precede_native_attribution(self):
++        self.check_validation_precedes_attribution(1, b'\xf8\x07\x01', core.INVALID_ARGUMENT)
++
++
+ if __name__ == '__main__':
+     unittest.main(defaultTest='ControlOwnerTests', verbosity=2)
+--- a/src/workspace/control_channels.cpp
++++ b/src/workspace/control_channels.cpp
+@@ -205,10 +205,7 @@
+             if (!request.ParseFromString(*bytes)) {
+                 reply.set_protocol_version(1); reply.mutable_error()->set_code(wire::INVALID_ARGUMENT);
+                 reply.mutable_error()->set_message("Malformed broker protobuf payload");
+-            } else if (request.has_control_acquire() && request.control_acquire().application().server_id() != owner.binding.native().server_id()) {
+-                reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+-                reply.mutable_error()->set_code(wire::FORBIDDEN); reply.mutable_error()->set_message("Control owner native server mismatch");
+-            } else reply = dispatch(request, key);
++            } else reply = dispatch(request, key, owner.binding.native().server_id());
+             if (owner.channel) { channel->send(reply.SerializeAsString()); channel->flush(); }
+         } catch (const std::exception& error) {
+             std::cerr << "control owner channel fenced: " << error.what() << '\n';
+--- a/src/workspace/control_channels.hpp
++++ b/src/workspace/control_channels.hpp
+@@ -6,7 +6,7 @@
+ // Owns a separate supervisor transport and the channels admitted through it.
+ class ControlChannels final {
+ public:
+-    using Dispatch = std::function<workspace::v1::Reply(const workspace::v1::Request&, const std::string&)>;
++    using Dispatch = std::function<workspace::v1::Reply(const workspace::v1::Request&, const std::string&, const std::string&)>;
+     ControlChannels(int fd, int peer, ControlLeases&);
+     ~ControlChannels();
+     ControlChannels(const ControlChannels&) = delete;
+--- a/src/workspace/main.cpp
++++ b/src/workspace/main.cpp
+@@ -58,13 +58,16 @@
+ }
+ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store,
+                                             spatial::WorkspaceAuthority* authority, spatial::ControlLeases& controls,
+-                                            const std::string& owner = {}) {
++                                            const std::string& owner = {}, const std::string& native_server = {}) {
+     namespace broker = spatial::workspace::v1;
+     namespace wire = spatial::wire;
+     broker::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+     try {
+         spatial::validate_message(request);
+         if (request.protocol_version() != 1) throw spatial::WorldError(wire::UNSUPPORTED_VERSION, "Unsupported private broker protocol version");
++        // Transport validation precedes attribution on every private channel.
++        if (!owner.empty() && request.has_control_acquire() && request.control_acquire().application().server_id() != native_server)
++            throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
+         if (request.has_management()) {
+             if (request.management().request_id() != request.request_id()) throw std::invalid_argument("Broker management identity mismatch");
+             *reply.mutable_management() = dispatch(request.management(), store);
+@@ -210,9 +213,9 @@
+         for (;;) {
+             enforce();
+             if (authority) { authority->keepalive(); enforce(); }
+-            if (channels) channels->serve([&](const auto& request, const std::string& owner) {
++            if (channels) channels->serve([&](const auto& request, const std::string& owner, const std::string& native_server) {
+                 const auto cancellation = authority ? authority->cancellation_sequence() : 0;
+-                auto reply = dispatch_broker(request, store, authority.get(), controls, owner);
++                auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server);
+                 enforce();
+                 if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
+                         !request.has_management() && !request.has_control_release()) {

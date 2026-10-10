@@ -439,3 +439,18 @@ Each host also passed51 harness checks. Both runtime sanitizer builds completed.
 Full cumulative Debug and sanitizer qualification remains active under1679232 and1463045.
 Read spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/owner-debug-03.
 The candidate is not integrated. Production source remains a3a926d.
+
+2026-10-09: Owner protocol validation-order defect found in review
+The managed channel checks native server identity before strict protobuf/version validation.
+A malformed message or unsupported version can therefore receive FORBIDDEN instead of its protocol error.
+Candidate04 moves attribution behind the common validation boundary and adds two regression cases.
+Runtime reproduction is pending. Candidate03 is not integration-ready even if its current suites pass.
+Three native-world checks are queued behind full candidate03 qualification.
+World-check driver PIDs:1693702(sb16),1475338(sb16-2).
+The original full qualifier PIDs remain1679232 and1463045. Do not overlap compiler workloads.
+No production or frozen active-source change occurred.
+Correction04 driver PIDs:1713719(sb16),1490463(sb16-2).
+Each waits for its native-world predecessor. It must reproduce both strict-validation failures before compilation.
+Candidate04 contains21 owner checks and keeps all41 locked files unchanged.
+Its expected full profile is1474 core checks,51 harness checks,151 P10 cases,plus3 native-world checks.
+These new totals are planned qualification counts, not passes.

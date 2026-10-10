@@ -1,0 +1,31 @@
+{
+  "reviewer": "primary agent",
+  "status": "static defect identified; runtime reproducer and correction unrun",
+  "defect": "Owner-channel native attribution precedes recursive message and protocol-version validation.",
+  "consequence": "A mismatched server ID returns FORBIDDEN instead of the required INVALID_ARGUMENT or UNSUPPORTED_VERSION.",
+  "correction": "Move native attribution into the existing validated broker dispatch. Obtain the server binding only from the admitted channel.",
+  "changed_from_candidate03": [
+    "tests/core/test_control_owner_channels.py",
+    "src/workspace/control_channels.cpp",
+    "src/workspace/control_channels.hpp",
+    "src/workspace/main.cpp"
+  ],
+  "new_checks": 2,
+  "total_owner_checks": 21,
+  "locked_files_unchanged": 41,
+  "production_changed": false,
+  "prerequisites": [
+    "Complete the frozen candidate03 qualification and extra native checks.",
+    "Reproduce both exact protocol errors on candidate03 in Debug and runtime sanitizers.",
+    "Only then build candidate04 and execute all new, native, harness, core, and P10 checks."
+  ],
+  "candidate03_integration_ready": false,
+  "queued_drivers": {
+    "sb16": 1713719,
+    "sb16-2": 1490463
+  },
+  "native_prerequisite_drivers": {
+    "sb16": 1693702,
+    "sb16-2": 1475338
+  }
+}

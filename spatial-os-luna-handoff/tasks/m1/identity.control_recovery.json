@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "qualify_immutable_owner_channels",
+  "current_step": "qualify_owner_channels_and_correct_protocol_validation_order",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
   "invariant": "Release only a fenced generation's owned control reservations after verified native cancellation, while preserving independently authorized applications.",
   "baseline": "Both hosts reproduced native release with a surviving application and an unreleased broker reservation. One corrected Debug diagnostic passed per host.",
@@ -35,5 +35,25 @@
   "preserved_failures": [
     "Both hosts:103 existing checks and51 harness passed;12 new checks errored on a fixture helper collision.",
     "Both hosts:18 new checks and51 harness passed;1 descriptor-count witness errored on protected procfs."
-  ]
+  ],
+  "native_integration": {
+    "state": "Queued after candidate03 full qualification; unrun",
+    "checks_per_profile": 3,
+    "drivers": {
+      "sb16": 1693702,
+      "sb16-2": 1475338
+    },
+    "evidence": "evidence/control-recovery-2026-10-09/owner-world-preparation-01.json"
+  },
+  "candidate03_integration_ready": false,
+  "validation_order_correction": {
+    "candidate": 4,
+    "state": "Queued after full candidate03 and native-world checks; runtime reproducer unrun.",
+    "total_owner_checks": 21,
+    "evidence": "evidence/control-recovery-2026-10-09/control-owner-validation-review-04.json",
+    "drivers": {
+      "sb16": 1713719,
+      "sb16-2": 1490463
+    }
+  }
 }
