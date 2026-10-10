@@ -1,0 +1,547 @@
+[
+  {
+    "name": "actor-pixels",
+    "method": "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_actor_pixels.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation"
+    ],
+    "start": 1791589941.7516682,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589947.679512,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-bootstrap",
+    "method": "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access"
+    ],
+    "start": 1791589947.6798308,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589952.805128,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-bootstrap",
+    "method": "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority"
+    ],
+    "start": 1791589952.80552,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589955.476023,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-bootstrap-races",
+    "method": "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap_races.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt"
+    ],
+    "start": 1791589955.4765859,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589958.3472683,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-bootstrap-owner-idle",
+    "method": null,
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+    ],
+    "start": 1791589958.347711,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589966.5305119,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-application-control",
+    "method": "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_application_control.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels"
+    ],
+    "start": 1791589966.5309477,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589972.6083553,
+    "build_live_at_end": true
+  },
+  {
+    "name": "actor-pixels",
+    "method": "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_actor_pixels.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation"
+    ],
+    "start": 1791589972.6088152,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589979.338641,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-bootstrap",
+    "method": "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access"
+    ],
+    "start": 1791589979.3393614,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589984.214614,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-bootstrap",
+    "method": "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority"
+    ],
+    "start": 1791589984.2150757,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589986.7848048,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-bootstrap-races",
+    "method": "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap_races.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt"
+    ],
+    "start": 1791589986.7852297,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589989.6559126,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-bootstrap-owner-idle",
+    "method": null,
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+    ],
+    "start": 1791589989.6564171,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791589998.0903416,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-application-control",
+    "method": "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_application_control.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels"
+    ],
+    "start": 1791589998.0908153,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590004.0187027,
+    "build_live_at_end": true
+  },
+  {
+    "name": "actor-pixels",
+    "method": "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_actor_pixels.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation"
+    ],
+    "start": 1791590004.0192943,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590009.9970212,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-bootstrap",
+    "method": "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access"
+    ],
+    "start": 1791590009.9974978,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590015.021893,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-bootstrap",
+    "method": "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority"
+    ],
+    "start": 1791590015.0224388,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590017.642516,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-bootstrap-races",
+    "method": "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap_races.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt"
+    ],
+    "start": 1791590017.643378,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590020.6138084,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-bootstrap-owner-idle",
+    "method": null,
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+    ],
+    "start": 1791590020.6147497,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590028.697719,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-application-control",
+    "method": "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_application_control.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels"
+    ],
+    "start": 1791590028.6984522,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590034.3239381,
+    "build_live_at_end": true
+  },
+  {
+    "name": "actor-pixels",
+    "method": "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_actor_pixels.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation"
+    ],
+    "start": 1791590034.3244648,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590040.4522896,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-bootstrap",
+    "method": "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access"
+    ],
+    "start": 1791590040.4531653,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590045.5290236,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-bootstrap",
+    "method": "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority"
+    ],
+    "start": 1791590045.529631,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590049.1526995,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-bootstrap-races",
+    "method": "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap_races.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt"
+    ],
+    "start": 1791590049.1537466,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590051.9733799,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-bootstrap-owner-idle",
+    "method": null,
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+    ],
+    "start": 1791590051.974268,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590060.2576647,
+    "build_live_at_end": true
+  },
+  {
+    "name": "world-application-control",
+    "method": "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels",
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_application_control.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels"
+    ],
+    "start": 1791590060.2582884,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590065.9351463,
+    "build_live_at_end": true
+  },
+  {
+    "name": "actor-pixels",
+    "method": "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation",
+    "phase": "after-build",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_actor_pixels.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "ActorPixelTests.test_live_paint_changes_the_next_pixel_observation"
+    ],
+    "start": 1791590136.7753346,
+    "build_live_at_start": false,
+    "exit_code": 0,
+    "end": 1791590142.512485,
+    "build_live_at_end": false
+  },
+  {
+    "name": "workspace-bootstrap",
+    "method": "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access",
+    "phase": "after-build",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access"
+    ],
+    "start": 1791590142.5131576,
+    "build_live_at_start": false,
+    "exit_code": 0,
+    "end": 1791590147.499544,
+    "build_live_at_end": false
+  },
+  {
+    "name": "world-bootstrap",
+    "method": "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority",
+    "phase": "after-build",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapTests.test_public_entry_reports_unbound_template_without_action_authority"
+    ],
+    "start": 1791590147.5001903,
+    "build_live_at_start": false,
+    "exit_code": 0,
+    "end": 1791590150.1772373,
+    "build_live_at_end": false
+  },
+  {
+    "name": "world-bootstrap-races",
+    "method": "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt",
+    "phase": "after-build",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_bootstrap_races.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt"
+    ],
+    "start": 1791590150.177808,
+    "build_live_at_start": false,
+    "exit_code": 0,
+    "end": 1791590152.9544823,
+    "build_live_at_end": false
+  },
+  {
+    "name": "workspace-bootstrap-owner-idle",
+    "method": null,
+    "phase": "after-build",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_bootstrap_owner_idle.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+    ],
+    "start": 1791590152.9551442,
+    "build_live_at_start": false,
+    "exit_code": 0,
+    "end": 1791590160.9065952,
+    "build_live_at_end": false
+  },
+  {
+    "name": "world-application-control",
+    "method": "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels",
+    "phase": "after-build",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_application_control.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-security-auth",
+      "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels"
+    ],
+    "start": 1791590160.9072025,
+    "build_live_at_start": false,
+    "exit_code": 0,
+    "end": 1791590167.046821,
+    "build_live_at_end": false
+  }
+]

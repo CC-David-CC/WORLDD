@@ -1,0 +1,44 @@
+{
+  "host": "sb16",
+  "source_files": 294,
+  "locked_files": 41,
+  "profile": "debug",
+  "core_checks": 1453,
+  "failed_test_methods": 1,
+  "passed_test_methods": 1452,
+  "failed_suites": [
+    "36:workspace-authority"
+  ],
+  "failed_methods": [
+    "test_partial_private_frame_does_not_block_revocation"
+  ],
+  "reported_failure_or_error_records": 1,
+  "P10": "unrun_after_debug_core_failure",
+  "runtime_full": "unrun_after_debug_core_failure",
+  "harness_checks": 51,
+  "integrated": false,
+  "cause": "unresolved",
+  "compiler_log_birth_and_modify_times": {
+    "local/m02-authority-fencing-01/runtime-sanitize/build.log": "2026-10-09 18:31:49.682381727 -0400|2026-10-09 18:35:15.741546150 -0400",
+    "local/m02-authority-fencing-01/debug/build.log": "2026-10-09 18:26:51.093024734 -0400|2026-10-09 18:29:01.553873022 -0400",
+    "local/m02-supervisor-crash-fencing-01/runtime-sanitize/build.log": "2026-10-09 19:25:47.993431358 -0400|2026-10-09 19:29:15.286773269 -0400",
+    "local/m02-supervisor-crash-fencing-01/debug/build.log": "2026-10-09 19:21:01.755590736 -0400|2026-10-09 19:23:46.214283612 -0400",
+    "local/transport-diagnostic-run-05/build.log": "2026-10-09 19:36:52.889009816 -0400|2026-10-09 19:40:28.559121112 -0400"
+  },
+  "files": {
+    "supervisor-crash-fencing-candidate-01.json": "daa4e9707ec3da8236643c4c1c3af8a9408ee6c67d9a22b922fb5b20c84863d6",
+    "supervisor-crash-fencing-driver-01/driver.log": "092a1c9fd7997e80338d3d9e07f8b9d441b2beec5ba2d549c332fa259ce126dc",
+    "m02-supervisor-crash-fencing-01/debug/harness.log": "ef3d8d7c7d071ed56d47af381b19aaecb5fcb60460717e9c36e3f291ee56e5f1",
+    "m02-supervisor-crash-fencing-01/debug/fencing.log": "6529c95d0442a1b6c134db9e1348fa9d2ad36d979e8a2ad50984a59d5b4b761a",
+    "m02-supervisor-crash-fencing-01/debug/focused.log": "7a6ce0caa7f962782fe7b0f1b0c74313b15a07c8fa00867a046b7285bbbaaf90",
+    "m02-supervisor-crash-fencing-01/debug/core.log": "b8df53de5bb6c7ea45200303f49848f8a24eba77b8c94fd0d347bf2bc9a69d57",
+    "m02-supervisor-crash-fencing-01/debug/run-full.json": "17a77f9ba2885812b22ffafd3cfa9fd9d7367cd4e861f22782683b5cc7eb816b",
+    "m02-supervisor-crash-fencing-01/debug/server/WorkspaceAuthorityTests-test_partial_private_frame_does_not_block_revocation-broker-1.log": "6ce44eeccc110b1cfd708d3fd929eb02c045499dfbc5d00eddb468ddb4471221",
+    "m02-supervisor-crash-fencing-01/debug/server/WorkspaceAuthorityTests-test_partial_private_frame_does_not_block_revocation-world-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-crash-fencing-01/debug/server/WorkspaceAuthorityTests-test_partial_private_frame_does_not_block_revocation-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-crash-fencing-01/debug/server/WorkspaceAuthorityTests-test_partial_private_frame_does_not_block_revocation-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-crash-fencing-01/debug/server/WorkspaceAuthorityTests-test_partial_private_frame_does_not_block_revocation-world-1.log": "91ddb867b4a1909ca5c7b9a9652d9c3f2b7d9fe1988aa2ed610ee65c47e62bd9",
+    "m02-supervisor-crash-fencing-01/debug/build/Testing/Temporary/LastTest.log": "40bedf9e0527ced9a57168d3df163f1ce6c8e8eb5256f6f9e0c10520695ebf70",
+    "m02-supervisor-crash-fencing-01/debug/build/Testing/Temporary/LastTestsFailed.log": "16876d54dafb418bba6bb4471e068f1aebaad92373763893d1b34d851304f562"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "reviewer": "primary agent",
+  "diagnostic_only": true,
+  "production_changed": false,
+  "profiles": {
+    "sb16": {
+      "control_checks": 3,
+      "bootstrap_checks": 96,
+      "pixel_checks": 24,
+      "build_overlap_checks": 24,
+      "after_build_checks": 6,
+      "workspace_authority_suites": [
+        {
+          "repetition": 1,
+          "command": [
+            "/usr/bin/python3",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+          ],
+          "exit_code": 0,
+          "start": 1791590115.023248,
+          "end": 1791590199.4444485
+        },
+        {
+          "repetition": 2,
+          "command": [
+            "/usr/bin/python3",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+          ],
+          "exit_code": 0,
+          "start": 1791590199.4447327,
+          "end": 1791590280.432148
+        },
+        {
+          "repetition": 3,
+          "command": [
+            "/usr/bin/python3",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+          ],
+          "exit_code": 0,
+          "start": 1791590280.4326015,
+          "end": 1791590361.3279972
+        }
+      ]
+    },
+    "sb16-2": {
+      "control_checks": 3,
+      "bootstrap_checks": 96,
+      "pixel_checks": 24,
+      "build_overlap_checks": 24,
+      "after_build_checks": 6,
+      "workspace_authority_suites": [
+        {
+          "repetition": 1,
+          "command": [
+            "/usr/bin/python3",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/identityd",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+          ],
+          "exit_code": 1,
+          "start": 1791590115.022887,
+          "end": 1791590207.2403138
+        }
+      ]
+    }
+  },
+  "confirmed": "The instrumented workspace authority suite lost its participant channel after the 700 ms client deadline. The issuer recorded an 881 ms event-loop gap.",
+  "supporting": "A two-job compiler workload was active. IO pressure increased near the recorded stall. CPU pressure remained near zero.",
+  "limits": [
+    "The exact blocking syscall is not captured in diagnostic08.",
+    "This does not individually prove the cause of every original failure.",
+    "The single-method build-overlap repetitions all passed. Suite-level reproduction was required.",
+    "Passing diagnostics do not qualify production or remove failed original results."
+  ],
+  "next": "Trace only issuer fsync/fdatasync to distinguish durable storage latency from other event-loop work."
+}

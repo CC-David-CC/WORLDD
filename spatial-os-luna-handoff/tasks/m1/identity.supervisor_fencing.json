@@ -15,11 +15,7 @@
     "locked_files_unchanged": 41
   },
   "baseline": "One confirmed missing-operation failure per host/profile; four profiles total.",
-  "qualification": "Both hosts passed full Debug:1443core,51harness,151P10. Full runtime sanitizers continue.",
-  "live_drivers": {
-    "sb16": 1266474,
-    "sb16_2": 1047059
-  },
+  "qualification": "Full Debug passed on both hosts. Full runtime sanitizers failed two test methods on sb16 and three on sb16-2. Runtime P10 is unrun.",
   "remaining": [
     "Qualify new and existing checks in both profiles on both hosts.",
     "Complete cumulative qualification and review before integration.",
@@ -28,5 +24,10 @@
   "debug_review": "evidence/supervisor-fencing-2026-10-09/debug-results-review-01.json",
   "focused_review": "evidence/supervisor-fencing-2026-10-09/focused-results-review-01.json",
   "integration_dependency": "Resolve world bootstrap authority-channel failure before integrating the candidate chain.",
-  "full_debug_review": "evidence/supervisor-fencing-2026-10-09/full-debug-review-01.json"
+  "full_debug_review": "evidence/supervisor-fencing-2026-10-09/full-debug-review-01.json",
+  "terminal_drivers": {
+    "sb16": 1266474,
+    "sb16_2": 1047059
+  },
+  "full_failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/full-failure-review-04.json"
 }

@@ -1,0 +1,19 @@
+test_authorized_pixels_have_native_quadrants_and_top_left_rows (__main__.ActorPixelTests.test_authorized_pixels_have_native_quadrants_and_top_left_rows) ... ok
+test_ungranted_application_pixels_match_empty_world (__main__.ActorPixelTests.test_ungranted_application_pixels_match_empty_world) ... ok
+test_observation_grant_without_workspace_access_has_no_application_pixels (__main__.ActorPixelTests.test_observation_grant_without_workspace_access_has_no_application_pixels) ... ok
+test_live_paint_changes_the_next_pixel_observation (__main__.ActorPixelTests.test_live_paint_changes_the_next_pixel_observation) ... ok
+test_revoked_pixels_disappear_without_terminating_application (__main__.ActorPixelTests.test_revoked_pixels_disappear_without_terminating_application) ... ok
+test_other_application_scope_does_not_export_its_pixels (__main__.ActorPixelTests.test_other_application_scope_does_not_export_its_pixels) ... ok
+test_resize_and_unmap_update_image_and_surface_metadata (__main__.ActorPixelTests.test_resize_and_unmap_update_image_and_surface_metadata) ... ok
+test_other_room_and_occluded_application_pixels_are_absent (__main__.ActorPixelTests.test_other_room_and_occluded_application_pixels_are_absent) ... ok
+test_default_pixel_viewport_has_no_capture_file_or_input_authority (__main__.ActorPixelTests.test_default_pixel_viewport_has_no_capture_file_or_input_authority) ... ok
+test_metadata_only_requests_have_no_image_and_keep_larger_viewports (__main__.ActorPixelTests.test_metadata_only_requests_have_no_image_and_keep_larger_viewports) ... ok
+test_excessive_pixel_viewport_is_rejected_without_changing_world (__main__.ActorPixelTests.test_excessive_pixel_viewport_is_rejected_without_changing_world) ... ok
+test_revocation_before_post_render_check_returns_no_pixels (__main__.ActorPixelTests.test_revocation_before_post_render_check_returns_no_pixels) ... ok
+test_revocation_before_first_queued_write_exports_no_pixel_reply (__main__.ActorPixelTests.test_revocation_before_first_queued_write_exports_no_pixel_reply) ... ok
+test_revocation_stops_a_partially_written_pixel_reply (__main__.ActorPixelTests.test_revocation_stops_a_partially_written_pixel_reply) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 82.575s
+
+OK

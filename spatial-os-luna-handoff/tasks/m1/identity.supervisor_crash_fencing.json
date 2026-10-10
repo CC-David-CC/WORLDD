@@ -21,11 +21,12 @@
     "new_checks": 10,
     "locked_files_unchanged": 41
   },
-  "live_drivers": {
+  "qualification": "Focused checks passed on both hosts in both profiles. Full Debug failed one test method on each host. Full P10 and runtime cumulative checks are unrun.",
+  "debug_review": "evidence/supervisor-crash-fencing-2026-10-09/debug-results-review-01.json",
+  "focused_review": "evidence/supervisor-crash-fencing-2026-10-09/focused-results-review-01.json",
+  "terminal_drivers": {
     "sb16": 1403725,
     "sb16_2": 1196184
   },
-  "qualification": "Both hosts passed10new checks and51harness checks in Debug and runtime ASan/UBSan. Full cumulative qualification continues.",
-  "debug_review": "evidence/supervisor-crash-fencing-2026-10-09/debug-results-review-01.json",
-  "focused_review": "evidence/supervisor-crash-fencing-2026-10-09/focused-results-review-01.json"
+  "full_failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/full-failure-review-04.json"
 }

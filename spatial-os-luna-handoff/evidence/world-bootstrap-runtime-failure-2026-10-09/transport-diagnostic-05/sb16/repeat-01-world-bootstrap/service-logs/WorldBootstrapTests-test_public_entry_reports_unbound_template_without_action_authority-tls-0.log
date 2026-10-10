@@ -1,0 +1,3 @@
+issuer-server diagnostic: close phase=1 peer_port=35312 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=2 late_ms=-2999 loop_gap_ms=0 max_loop_gap_ms=63 time_ms=258159358 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=35338 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=3 late_ms=-2999 loop_gap_ms=0 max_loop_gap_ms=70 time_ms=258159958 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=35322 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=2 late_ms=-2536 loop_gap_ms=1 max_loop_gap_ms=70 time_ms=258159960 pending=0 buffered=0

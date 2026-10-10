@@ -1,0 +1,231 @@
+sb16 debug configure 0
+sb16 debug build 0
+sb16 debug harness 0
+sb16 debug fencing 0
+sb16 debug focused 0
+sb16 runtime-sanitize configure 0
+sb16 runtime-sanitize build 0
+sb16 runtime-sanitize harness 0
+sb16 runtime-sanitize fencing 0
+sb16 runtime-sanitize focused 0
+sb16 debug core 0
+sb16 debug P10 0
+sb16 runtime-sanitize core 8
+ktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source
+78: Test timeout computed to be: 60
+78: test_bad_configuration_fails_before_creating_world (__main__.ActorRuntimeTests.test_bad_configuration_fails_before_creating_world) ... ok
+78: test_checkpoint_rollback_covers_all_actors_and_revisions (__main__.ActorRuntimeTests.test_checkpoint_rollback_covers_all_actors_and_revisions) ... ok
+78: test_close_and_reopen_preserves_live_pose_with_new_grants (__main__.ActorRuntimeTests.test_close_and_reopen_preserves_live_pose_with_new_grants) ... ok
+78: test_default_entry_spawn_and_actor_management_boundary (__main__.ActorRuntimeTests.test_default_entry_spawn_and_actor_management_boundary) ... ok
+78: test_denied_and_invalid_actions_consume_sequence_without_refresh (__main__.ActorRuntimeTests.test_denied_and_invalid_actions_consume_sequence_without_refresh) ... ok
+78: test_partial_request_does_not_extend_motion_lifetime (__main__.ActorRuntimeTests.test_partial_request_does_not_extend_motion_lifetime) ... ok
+78: test_real_clock_expires_motion_and_disallows_clock_override (__main__.ActorRuntimeTests.test_real_clock_expires_motion_and_disallows_clock_override) ... ok
+78: test_runtime_configuration_changes_motion (__main__.ActorRuntimeTests.test_runtime_configuration_changes_motion) ... ok
+78: test_sequence_zero_missing_and_foreign_tokens (__main__.ActorRuntimeTests.test_sequence_zero_missing_and_foreign_tokens) ... ok
+78: test_uncheckpointed_motion_and_old_token_do_not_survive (__main__.ActorRuntimeTests.test_uncheckpointed_motion_and_old_token_do_not_survive) ... ok
+78: 
+78: ----------------------------------------------------------------------
+78: Ran 10 tests in 2.850s
+78: 
+78: OK
+78/83 Test #78: actor-runtime .........................   Passed    2.94 sec
+test 79
+      Start 79: recovery-boundaries
+
+79: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source/tests/core/test_recovery.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/worldd"
+79: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build
+79: Environment variables: 
+79:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source
+79: Test timeout computed to be: 60
+79: test_actor_action_cannot_arm_management_fault (__main__.RecoveryBoundaryTests.test_actor_action_cannot_arm_management_fault) ... ok
+79: test_before_commit_preserves_real_rows_for_create_update_and_delete (__main__.RecoveryBoundaryTests.test_before_commit_preserves_real_rows_for_create_update_and_delete) ... ok
+79: test_checkpoint_crash_preserves_saved_actor_pose (__main__.RecoveryBoundaryTests.test_checkpoint_crash_preserves_saved_actor_pose) ... ok
+79: test_default_and_clock_only_daemons_cannot_arm_faults (__main__.RecoveryBoundaryTests.test_default_and_clock_only_daemons_cannot_arm_faults) ... ok
+79: test_failed_real_commit_does_not_exit_or_consume_post_commit_fault (__main__.RecoveryBoundaryTests.test_failed_real_commit_does_not_exit_or_consume_post_commit_fault) ... ok
+79: test_fault_is_local_to_one_process_and_never_restored (__main__.RecoveryBoundaryTests.test_fault_is_local_to_one_process_and_never_restored) ... ok
+79: test_invalid_or_unsupported_arms_do_not_enable_a_fault (__main__.RecoveryBoundaryTests.test_invalid_or_unsupported_arms_do_not_enable_a_fault) ... ok
+79: test_post_commit_checkpoint_restores_pose_without_session_input (__main__.RecoveryBoundaryTests.test_post_commit_checkpoint_restores_pose_without_session_input) ... ok
+79: test_post_commit_exit_keeps_real_create_update_delete_exactly_once (__main__.RecoveryBoundaryTests.test_post_commit_exit_keeps_real_create_update_delete_exactly_once) ... ok
+79: test_reads_and_rejected_edits_do_not_consume_pending_fault (__main__.RecoveryBoundaryTests.test_reads_and_rejected_edits_do_not_consume_pending_fault) ... ok
+79: test_reads_rejections_and_rearming_cannot_consume_or_replace_post_commit_exit (__main__.RecoveryBoundaryTests.test_reads_rejections_and_rearming_cannot_consume_or_replace_post_commit_exit) ... ok
+79: 
+79: ----------------------------------------------------------------------
+79: Ran 11 tests in 5.792s
+79: 
+79: OK
+79/83 Test #79: recovery-boundaries ...................   Passed    5.88 sec
+test 80
+      Start 80: workspace-git
+
+80: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source/tests/core/test_workspace_git.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/spatial-git-job-probe"
+80: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build
+80: Environment variables: 
+80:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source
+80: Test timeout computed to be: 90
+80: .............................................
+80: ----------------------------------------------------------------------
+80: Ran 45 tests in 49.540s
+80: 
+80: OK
+80/83 Test #80: workspace-git .........................   Passed   49.67 sec
+test 81
+      Start 81: workspace-context
+
+81: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source/tests/core/test_workspaces.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/worldd"
+81: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build
+81: Environment variables: 
+81:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source
+81: Test timeout computed to be: 90
+81: .............
+81: ----------------------------------------------------------------------
+81: Ran 13 tests in 15.698s
+81: 
+81: OK
+81/83 Test #81: workspace-context .....................   Passed   15.78 sec
+test 82
+      Start 82: workspace-processes
+
+82: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source/tests/core/test_processes.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/spatial-test-host" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/workspaced" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/worldd"
+82: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build
+82: Environment variables: 
+82:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source
+82: Test timeout computed to be: 120
+82: test_native_namespaces_capabilities_resource_limits_and_descriptor_closure (__main__.ProcessTests.test_native_namespaces_capabilities_resource_limits_and_descriptor_closure) ... ok
+82: test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible (__main__.ProcessTests.test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible) ... ok
+82: test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access (__main__.ProcessTests.test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access) ... ok
+82: test_nonzero_signal_exits_and_wait_timeout_preserve_the_actual_child_result (__main__.ProcessTests.test_nonzero_signal_exits_and_wait_timeout_preserve_the_actual_child_result) ... ok
+82: test_invalid_requests_create_no_process_record_and_missing_exec_is_not_success (__main__.ProcessTests.test_invalid_requests_create_no_process_record_and_missing_exec_is_not_success) ... ok
+82: test_operation_identity_is_actor_scoped_and_binds_arguments_and_profile (__main__.ProcessTests.test_operation_identity_is_actor_scoped_and_binds_arguments_and_profile) ... ok
+82: test_damaged_application_supervisor_does_not_poison_future_launches (__main__.ProcessTests.test_damaged_application_supervisor_does_not_poison_future_launches) ... ok
+82: test_read_only_project_and_git_aliases_stay_read_only_but_private_state_is_writable (__main__.ProcessTests.test_read_only_project_and_git_aliases_stay_read_only_but_private_state_is_writable) ... ok
+82: test_actor_disconnect_does_not_terminate_workspace_application (__main__.ProcessTests.test_actor_disconnect_does_not_terminate_workspace_application) ... ok
+82: test_revocation_terminates_detached_descendants_and_preserves_other_actor_execution (__main__.ProcessTests.test_revocation_terminates_detached_descendants_and_preserves_other_actor_execution) ... ok
+82: test_manager_loss_kills_children_and_never_replays_uncertain_operations (__main__.ProcessTests.test_manager_loss_kills_children_and_never_replays_uncertain_operations) ... ok
+82: test_completed_record_survives_restart_and_v3_migration_preserves_workspaces (__main__.ProcessTests.test_completed_record_survives_restart_and_v3_migration_preserves_workspaces) ... ok
+82: test_malformed_stat_is_not_process_exit (__main__.ProcessWitnessTests.test_malformed_stat_is_not_process_exit) ... ok
+82: test_missing_process_does_not_hide_a_live_process (__main__.ProcessWitnessTests.test_missing_process_does_not_hide_a_live_process) ... ok
+82: test_missing_stat_path_is_gone (__main__.ProcessWitnessTests.test_missing_stat_path_is_gone) ... ok
+82: test_only_dead_process_states_are_gone (__main__.ProcessWitnessTests.test_only_dead_process_states_are_gone) ... ok
+82: test_process_exit_during_stat_read_is_gone (__main__.ProcessWitnessTests.test_process_exit_during_stat_read_is_gone) ... ok
+82: test_unrelated_read_errors_are_not_process_exit (__main__.ProcessWitnessTests.test_unrelated_read_errors_are_not_process_exit) ... ok
+82: 
+82: ----------------------------------------------------------------------
+82: Ran 18 tests in 18.400s
+82: 
+82: OK
+82/83 Test #82: workspace-processes ...................   Passed   18.49 sec
+test 83
+      Start 83: storage-faults
+
+83: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source/tests/core/test_storage.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/spatial-storage-vfs-probe"
+83: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build
+83: Environment variables: 
+83:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/source
+83: Test timeout computed to be: 60
+83: test_checkpoint_write_failure_keeps_live_pose_and_old_durable_pose (__main__.StorageFaultTests.test_checkpoint_write_failure_keeps_live_pose_and_old_durable_pose) ... ok
+83: test_create_update_delete_errors_preserve_rows_and_allow_real_retry (__main__.StorageFaultTests.test_create_update_delete_errors_preserve_rows_and_allow_real_retry) ... ok
+83: test_fault_does_not_cross_worlds_or_survive_restart (__main__.StorageFaultTests.test_fault_does_not_cross_worlds_or_survive_restart) ... ok
+83: test_normal_daemon_rejects_storage_faults_and_retains_writes (__main__.StorageFaultTests.test_normal_daemon_rejects_storage_faults_and_retains_writes) ... ok
+83: test_reads_rejections_and_rearming_preserve_next_write_failure (__main__.StorageFaultTests.test_reads_rejections_and_rearming_preserve_next_write_failure) ... ok
+83: test_real_vfs_lifecycles_delegate_io_and_isolate_pending_faults (__main__.StorageFaultTests.test_real_vfs_lifecycles_delegate_io_and_isolate_pending_faults) ... ok
+83: 
+83: ----------------------------------------------------------------------
+83: Ran 6 tests in 6.804s
+83: 
+83: OK
+83/83 Test #83: storage-faults ........................   Passed    6.88 sec
+
+The following tests passed:
+	world-revision-interleave
+	workspace-bootstrap-owner-idle
+	process-termination
+	workspace-participant-races
+	workspace-participant
+	world-participant
+	world-revocation-receipts
+	identity-authority-fencing
+	identity-authority-fencing-client
+	identity-launch-authorization
+	identity-supervisor-registry
+	identity-participant-incarnation
+	identity-participant-channel
+	identity-participant-runtime
+	identity-participant-barrier-client
+	identity-participant-barrier
+	identity-participant-session-client
+	identity-participant-session
+	identity-participants
+	identity-participant-client
+	world-remote-retries
+	world-remote-security
+	world-remote-lifecycle
+	world-remote-native
+	world-remote-races
+	world-remote-config
+	world-remote
+	workspace-bootstrap-races
+	world-bootstrap-races
+	broker-bootstrap-client
+	world-bootstrap
+	native-display-ready
+	render-observation-client
+	broker-control-client
+	workspace-authority
+	identity-keys
+	identity-issuer
+	identity-enrollment
+	identity-bootstrap
+	identity-revocation
+	identity-tls
+	actor-status
+	issuer-client
+	identity-watch
+	render-runtime
+	surface-runtime
+	actor-observation
+	actor-collision
+	broker-control-client-live
+	workspace-participant-native
+	workspace-participant-settlement
+	application-control-lease
+	application-observation
+	actor-pixels
+	application-access
+	native-surface_identity
+	native-compositor_identity
+	native-world_surface_groups
+	native-application-launch
+	native-actor-binding
+	native-application-input
+	native-device-administration
+	native-global-isolation
+	native-selection-isolation
+	native-extension-isolation
+	native-resource-isolation
+	native-security-identity
+	world-participant-native
+	world-identity
+	world-authority
+	actor-objects
+	actor-portals
+	native-actor-input
+	core-protocol
+	worldd-lifecycle
+	actor-runtime
+	recovery-boundaries
+	workspace-git
+	workspace-context
+	workspace-processes
+	storage-faults
+
+98% tests passed, 2 tests failed out of 83
+
+Total Test time (real) = 1618.19 sec
+
+The following tests FAILED:
+	 29 - workspace-bootstrap (Failed)
+	 55 - world-application-control (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-fencing-01/runtime-sanitize/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+

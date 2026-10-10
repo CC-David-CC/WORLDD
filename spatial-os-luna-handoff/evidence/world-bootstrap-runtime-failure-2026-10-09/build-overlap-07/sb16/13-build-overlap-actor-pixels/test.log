@@ -1,0 +1,6 @@
+test_live_paint_changes_the_next_pixel_observation (__main__.ActorPixelTests.test_live_paint_changes_the_next_pixel_observation) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 5.829s
+
+OK

@@ -1,0 +1,63 @@
+{
+  "host": "sb16-2",
+  "source_files": 293,
+  "locked_files": 41,
+  "profile": "runtime-sanitize",
+  "core_checks": 1443,
+  "failed_test_methods": 3,
+  "passed_test_methods": 1440,
+  "failed_suites": [
+    "30:world-bootstrap-races",
+    "36:workspace-authority",
+    "56:actor-pixels"
+  ],
+  "failed_methods": [
+    "test_access_revocation_keeps_valid_process_execution",
+    "test_credential_revoked_during_profile_read_creates_no_receipt",
+    "test_live_paint_changes_the_next_pixel_observation"
+  ],
+  "reported_failure_or_error_records": 3,
+  "P10": "unrun_after_core_failure",
+  "harness_checks": 51,
+  "integrated": false,
+  "cause": "unresolved",
+  "compiler_log_birth_and_modify_times": {
+    "local/m02-authority-fencing-01/debug/build.log": "2026-10-09 18:26:53.139346914 -0400|2026-10-09 18:29:14.759420117 -0400",
+    "local/m02-authority-fencing-01/runtime-sanitize/build.log": "2026-10-09 18:32:12.388247883 -0400|2026-10-09 18:35:38.951848677 -0400",
+    "local/m02-supervisor-fencing-01/debug/build.log": "2026-10-09 18:48:57.359950818 -0400|2026-10-09 18:51:26.091895832 -0400",
+    "local/m02-supervisor-fencing-01/runtime-sanitize/build.log": "2026-10-09 18:53:14.335313712 -0400|2026-10-09 18:56:42.054673287 -0400",
+    "local/m02-supervisor-crash-fencing-01/debug/build.log": "2026-10-09 19:21:01.846706566 -0400|2026-10-09 19:23:39.126218222 -0400",
+    "local/m02-supervisor-crash-fencing-01/runtime-sanitize/build.log": "2026-10-09 19:25:35.240790849 -0400|2026-10-09 19:29:08.888896187 -0400",
+    "local/transport-diagnostic-run-05/build.log": "2026-10-09 19:36:53.206048467 -0400|2026-10-09 19:40:33.956510159 -0400"
+  },
+  "files": {
+    "supervisor-fencing-candidate-01.json": "d690722a05c3b974b7a46f1cd9ece9e2396f75e68cc9d14abaa4f6f6e35ded1f",
+    "supervisor-fencing-driver-01/driver.log": "49aa92fc6c5cc1d2a2afd2cd3dc322e76569f735c2ac07a193bba784d817507c",
+    "m02-supervisor-fencing-01/runtime-sanitize/harness.log": "10689ee08c82988f11d36e0a06347343dacb224c80d8c47a9b55f174ede0661b",
+    "m02-supervisor-fencing-01/runtime-sanitize/run-full.json": "e466b6b00a7febd2129539a71ec64533ff52cb8fc62e825f0ca6eb0bc7bbe97f",
+    "m02-supervisor-fencing-01/runtime-sanitize/focused.log": "7ddb90f221e1b36409f2ef79c0e3cb1d3803f119f518d631bca9dcf56171be80",
+    "m02-supervisor-fencing-01/runtime-sanitize/fencing.log": "b5906261c8d59f06b4d53fd0e2e51a16764ad874e0879fd066b228a6e883cffa",
+    "m02-supervisor-fencing-01/runtime-sanitize/core.log": "abe10203f2fef24f17defcb573c4354fcd008ab2aaf94911f26c288168a7e1e5",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/ActorPixelTests-test_live_paint_changes_the_next_pixel_observation-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/test_live_paint_changes_the_next_pixel_observation-server-0.log": "6437558a7cbcf4f78ab597bb0088aca7b4d0dd870c7a0b66106fd64d4b1cbfc7",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/test_live_paint_changes_the_next_pixel_observation-world-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorldBootstrapRaceTests-test_credential_revoked_during_profile_read_creates_no_receipt-world-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorldBootstrapRaceTests-test_credential_revoked_during_profile_read_creates_no_receipt-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorkspaceAuthorityTests-test_access_revocation_keeps_valid_process_execution-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorldBootstrapRaceTests-test_credential_revoked_during_profile_read_creates_no_receipt-world-1.log": "91ddb867b4a1909ca5c7b9a9652d9c3f2b7d9fe1988aa2ed610ee65c47e62bd9",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/ActorPixelTests-test_live_paint_changes_the_next_pixel_observation-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorkspaceAuthorityTests-test_access_revocation_keeps_valid_process_execution-world-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/ActorPixelTests-test_live_paint_changes_the_next_pixel_observation-world-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorkspaceAuthorityTests-test_access_revocation_keeps_valid_process_execution-world-1.log": "7d264f8378513ce69805c26c4556b2bddf690ccd2d428b636ce6c862014224a1",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/test_live_paint_changes_the_next_pixel_observation-world-1.log": "c7bafda032308d359c6628300863af3e758abb12bc03b39663d8664ba0e90b00",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/test_live_paint_changes_the_next_pixel_observation-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/ActorPixelTests-test_live_paint_changes_the_next_pixel_observation-broker-1.log": "6ce44eeccc110b1cfd708d3fd929eb02c045499dfbc5d00eddb468ddb4471221",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorkspaceAuthorityTests-test_access_revocation_keeps_valid_process_execution-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/test_live_paint_changes_the_next_pixel_observation-controlled-1.log": "95046659b47a5f70b7b5e354ffef75e57676c3c213e6774a90791fd2f89afd01",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/test_live_paint_changes_the_next_pixel_observation-broker-1.log": "6ce44eeccc110b1cfd708d3fd929eb02c045499dfbc5d00eddb468ddb4471221",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorkspaceAuthorityTests-test_access_revocation_keeps_valid_process_execution-broker-1.log": "8271fe4754afd971ab0f5582c7fc7e04065d8b6d8d445f809edffc707d995702",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/ActorPixelTests-test_live_paint_changes_the_next_pixel_observation-world-1.log": "c7bafda032308d359c6628300863af3e758abb12bc03b39663d8664ba0e90b00",
+    "m02-supervisor-fencing-01/runtime-sanitize/build/Testing/Temporary/LastTestsFailed.log": "dc8e04ff63c2873abbf83d493703d08fa2ea1c2d57783b6507d77b3447771000",
+    "m02-supervisor-fencing-01/runtime-sanitize/build/Testing/Temporary/LastTest.log": "aca19f5af9f4db8bb00b5d975c40e7afebb92a28acf0f9d0d6151b084ca872c6"
+  }
+}

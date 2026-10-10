@@ -1,0 +1,52 @@
+{
+  "reviewer": "primary agent",
+  "production_changed": false,
+  "integration_allowed": false,
+  "profiles": {
+    "sb16/supervisor293/runtime-sanitize": {
+      "core_checks": 1443,
+      "failed_test_methods": 2,
+      "passed_test_methods": 1441,
+      "failed_suites": [
+        "29:workspace-bootstrap",
+        "55:world-application-control"
+      ],
+      "P10": "unrun_after_core_failure"
+    },
+    "sb16/crash294/debug": {
+      "core_checks": 1453,
+      "failed_test_methods": 1,
+      "passed_test_methods": 1452,
+      "failed_suites": [
+        "36:workspace-authority"
+      ],
+      "P10": "unrun_after_debug_core_failure"
+    },
+    "sb16-2/supervisor293/runtime-sanitize": {
+      "core_checks": 1443,
+      "failed_test_methods": 3,
+      "passed_test_methods": 1440,
+      "failed_suites": [
+        "30:world-bootstrap-races",
+        "36:workspace-authority",
+        "56:actor-pixels"
+      ],
+      "P10": "unrun_after_core_failure"
+    },
+    "sb16-2/crash294/debug": {
+      "core_checks": 1453,
+      "failed_test_methods": 1,
+      "passed_test_methods": 1452,
+      "failed_suites": [
+        "29:workspace-bootstrap"
+      ],
+      "P10": "unrun_after_debug_core_failure"
+    }
+  },
+  "limits": [
+    "These terminal failed runs do not qualify either candidate.",
+    "Crash294 focused Debug and runtime sanitizer checks remain passing; full runtime qualification is unrun.",
+    "The underlying exception is absent from these original failures. Do not claim an individually proven cause for each.",
+    "No original failure record is replaced by diagnostic repetitions."
+  ]
+}

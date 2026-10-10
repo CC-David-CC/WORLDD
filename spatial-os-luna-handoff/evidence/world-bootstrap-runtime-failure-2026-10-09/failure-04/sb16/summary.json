@@ -1,0 +1,54 @@
+{
+  "host": "sb16",
+  "source_files": 293,
+  "locked_files": 41,
+  "profile": "runtime-sanitize",
+  "core_checks": 1443,
+  "failed_test_methods": 2,
+  "passed_test_methods": 1441,
+  "failed_suites": [
+    "29:workspace-bootstrap",
+    "55:world-application-control"
+  ],
+  "failed_methods": [
+    "test_binding_revocation_blocks_new_recipients_but_preserves_existing_access",
+    "test_resized_aim_rejects_stale_pixels"
+  ],
+  "reported_failure_or_error_records": 3,
+  "P10": "unrun_after_core_failure",
+  "harness_checks": 51,
+  "integrated": false,
+  "cause": "unresolved",
+  "compiler_log_birth_and_modify_times": {
+    "local/m02-authority-fencing-01/runtime-sanitize/build.log": "2026-10-09 18:31:49.682381727 -0400|2026-10-09 18:35:15.741546150 -0400",
+    "local/m02-authority-fencing-01/debug/build.log": "2026-10-09 18:26:51.093024734 -0400|2026-10-09 18:29:01.553873022 -0400",
+    "local/m02-supervisor-fencing-01/runtime-sanitize/build.log": "2026-10-09 18:53:03.603175428 -0400|2026-10-09 18:56:21.508356201 -0400",
+    "local/m02-supervisor-fencing-01/debug/build.log": "2026-10-09 18:48:57.069628065 -0400|2026-10-09 18:51:10.101296382 -0400",
+    "local/m02-supervisor-crash-fencing-01/runtime-sanitize/build.log": "2026-10-09 19:25:47.993431358 -0400|2026-10-09 19:29:15.286773269 -0400",
+    "local/m02-supervisor-crash-fencing-01/debug/build.log": "2026-10-09 19:21:01.755590736 -0400|2026-10-09 19:23:46.214283612 -0400",
+    "local/transport-diagnostic-run-05/build.log": "2026-10-09 19:36:52.889009816 -0400|2026-10-09 19:40:28.559121112 -0400"
+  },
+  "files": {
+    "supervisor-fencing-candidate-01.json": "d690722a05c3b974b7a46f1cd9ece9e2396f75e68cc9d14abaa4f6f6e35ded1f",
+    "supervisor-fencing-driver-01/driver.log": "44b7c730ab8e9dd42aa87968b0db4238d33a3820384937a88c59cb4d6d598df6",
+    "m02-supervisor-fencing-01/runtime-sanitize/harness.log": "a02d9b51f0e22df7fb7f4c84a34614f54b1740363d24dc494112a8ee29035c0e",
+    "m02-supervisor-fencing-01/runtime-sanitize/fencing.log": "20481deaf3933772d8b2bf7b7c183ea039757423e526a1df92861ed24b81b287",
+    "m02-supervisor-fencing-01/runtime-sanitize/focused.log": "38f89393aeb4f0d7ac021239fce8423bfaec9570498387a8a5bb04d128b37d82",
+    "m02-supervisor-fencing-01/runtime-sanitize/core.log": "9b4e09cd76f48057bd4f8248fefeb84bd9e8fbc7a8de05dd98ceeefabbdfe182",
+    "m02-supervisor-fencing-01/runtime-sanitize/run-full.json": "f402c59f9d71991bdf7c65e4a4d42b78ac229f367bf1307bcc3fa3f3eafea3d9",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorldApplicationControlTests-test_resized_aim_rejects_stale_pixels-world-1.log": "35d12ac27fee134693974706914bc2d9e09d66222c7b8c3d3b76ea90b765ce82",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorldApplicationControlTests-test_resized_aim_rejects_stale_pixels-broker-1.log": "6ce44eeccc110b1cfd708d3fd929eb02c045499dfbc5d00eddb468ddb4471221",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/test_resized_aim_rejects_stale_pixels-server-0.log": "be722eff14ec4796d6b4ba4a71a20d1ba7a58e2d9041d83be7e94949e234e1f4",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorkspaceBootstrapTests-test_binding_revocation_blocks_new_recipients_but_preserves_existing_access-world-0.log": "d02b172d8deccaafc1d80f0a9ed947b04f6081956e144c12f6caff969fd909b6",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/test_resized_aim_rejects_stale_pixels-broker-1.log": "6ce44eeccc110b1cfd708d3fd929eb02c045499dfbc5d00eddb468ddb4471221",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorkspaceBootstrapTests-test_binding_revocation_blocks_new_recipients_but_preserves_existing_access-broker-1.log": "8271fe4754afd971ab0f5582c7fc7e04065d8b6d8d445f809edffc707d995702",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/test_resized_aim_rejects_stale_pixels-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorldApplicationControlTests-test_resized_aim_rejects_stale_pixels-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorldApplicationControlTests-test_resized_aim_rejects_stale_pixels-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorldApplicationControlTests-test_resized_aim_rejects_stale_pixels-world-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorkspaceBootstrapTests-test_binding_revocation_blocks_new_recipients_but_preserves_existing_access-broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/server/WorkspaceBootstrapTests-test_binding_revocation_blocks_new_recipients_but_preserves_existing_access-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-supervisor-fencing-01/runtime-sanitize/build/Testing/Temporary/LastTest.log": "38d476d4b119085729c73efe2390c575fea0bcc0a2cc257aa0feeb289e84c36a",
+    "m02-supervisor-fencing-01/runtime-sanitize/build/Testing/Temporary/LastTestsFailed.log": "14e3852f6d2267ac04ad5ca1d21e35deefd81d2ee8d8c293a4fb2d41ba15e318"
+  }
+}

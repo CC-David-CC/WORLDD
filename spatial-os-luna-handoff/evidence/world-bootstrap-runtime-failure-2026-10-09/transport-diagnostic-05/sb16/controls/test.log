@@ -1,0 +1,8 @@
+test_incomplete_frame_exposes_server_deadline (__main__.TransportDiagnosticControls.test_incomplete_frame_exposes_server_deadline) ... ok
+test_paused_owned_issuer_exposes_client_deadline (__main__.TransportDiagnosticControls.test_paused_owned_issuer_exposes_client_deadline) ... ok
+test_stopped_owned_issuer_exposes_tls_close (__main__.TransportDiagnosticControls.test_stopped_owned_issuer_exposes_tls_close) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 6.836s
+
+OK

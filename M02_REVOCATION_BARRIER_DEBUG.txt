@@ -363,3 +363,10 @@ The first qualifier omitted Python protobuf binding targets. Both setup failures
 Full 271-file qualification now runs as sb16 session34786 and sb16-2 session3576.
 Coordinator03 sessions65657/59785 remain active. Combined scopes264 finished both profiles on both hosts.
 No issuer retirement or authenticated supervisor launch authority is implemented by this identity field.
+
+2026-10-09: Classified issuer stall
+An instrumented workspace-authority run hit its 700 ms client deadline during an 881 ms issuer event-loop gap.
+A two-job build was active. IO pressure increased. The exact blocking syscall remains under investigation.
+Supervisor293 full sanitizers and crash294 full Debug contain terminal failures. No production integration is permitted yet.
+Evidence: spatial-os-luna-handoff/evidence/world-bootstrap-runtime-failure-2026-10-09/diagnostic-results-review-08.json
+Issuer-only fsync/fdatasync tracing is diagnostic. Its leak detector is disabled under ptrace; it is not a sanitizer pass.

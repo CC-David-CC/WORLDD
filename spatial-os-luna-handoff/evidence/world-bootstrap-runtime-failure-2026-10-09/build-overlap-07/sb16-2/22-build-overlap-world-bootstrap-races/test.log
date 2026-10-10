@@ -1,0 +1,6 @@
+test_credential_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.624s
+
+OK

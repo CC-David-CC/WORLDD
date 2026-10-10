@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-09: Authority timeout reproduced with an issuer event-loop stall
+
+The instrumented workspace-authority suite failed on sb16-2 during a two-job build.
+The issuer recorded an 881 ms event-loop gap. The client deadline was 700 ms.
+The client disabled the participant channel after that deadline. IO pressure increased near the stall.
+The exact blocking syscall remains unknown. A scoped fsync/fdatasync trace is running on both hosts.
+The trace disables LeakSanitizer only in the traced issuer because ptrace prevents that detector.
+This trace is diagnostic evidence. It cannot qualify sanitizer behavior.
+
+Supervisor293 full sanitizers finished with two failed test methods on sb16 and three on sb16-2.
+Crash294 full Debug finished with one failed test method on each host.
+Crash294 full runtime qualification and both candidates' affected P10 profiles remain unrun.
+Their focused results remain passing. Original failure logs remain preserved.
+
+Both hosts passed three diagnostic controls, 96 bootstrap checks, and 24 pixel checks.
+Both also passed 24 single-method checks during compilation and six after compilation.
+The full workspace-authority suite reproduced the stall despite those individual passes.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/diagnostic-results-review-08.json.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/full-failure-review-04.json.
+
+Production remains broker283. No candidate is integrated. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Transport diagnostics now record the missing failure context
 
 Both hosts completed 20 owner-idle repetitions with no failure. The original failures remain unresolved.

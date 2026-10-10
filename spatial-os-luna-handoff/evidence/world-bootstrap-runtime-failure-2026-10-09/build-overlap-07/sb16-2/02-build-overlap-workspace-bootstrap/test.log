@@ -1,0 +1,6 @@
+test_binding_revocation_blocks_new_recipients_but_preserves_existing_access (__main__.WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.531s
+
+OK

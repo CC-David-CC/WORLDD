@@ -17,15 +17,17 @@ Existing components provide partial implementation where CURRENT_STATE.md record
 The mandatory profile is tasks/spatial-m1.json.
 See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
 
-The latest fully qualified production increment is the reviewed authority supervisor at 534a94c.
-Both hosts adopted all 281 qualified source hashes without restarting sessions or migrating operator state.
+The latest fully qualified production increment is the broker native handoff at f4c4148.
+Both hosts adopted all 283 qualified source hashes without restarting sessions or migrating operator state.
 Both hosts passed full Debug and runtime ASan/UBSan qualification.
-Each profile passed 1,383 core checks across 91 suites, 51 harness checks, and 151 P10 cases.
-No final case failed or skipped. All 281 integrated source hashes match the qualified manifests.
-The 77-file increment includes participant runtime, owned scopes, launch authorization, and the supervisor event loop.
-The separate broker native handoff remains isolated during qualification.
+Each profile passed 1,393 core checks across 93 suites, 51 harness checks, and 151 P10 cases.
+No final case failed or skipped. All integrated source hashes match the qualified manifests.
+World handoff and issuer/supervisor fencing candidates remain isolated after cumulative qualification failures.
+A diagnostic reproduced authority-channel loss after an 881 ms issuer event-loop gap exceeded a 700 ms client deadline.
+The blocking operation remains under investigation. No candidate qualification or integration is inferred from diagnostic passes.
 Complete trusted recovery, fencing, and cross-host cancellation remain required.
-See evidence/authority-supervisor-2026-10-09 for exact sources, review, commands, and results.
+See evidence/supervisor-broker-handoff-2026-10-09 for the qualified production increment.
+See evidence/world-bootstrap-runtime-failure-2026-10-09 for preserved failures and transport diagnostics.
 The original P00-P10 baseline and walkthrough evidence remain in evidence/walkthroughs-2026-10-07.
 
 Qualified components now include actor identity, persistent grants, confined execution, and several native X isolation boundaries.

@@ -1,0 +1,6 @@
+test_resized_aim_rejects_stale_pixels (__main__.WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 6.641s
+
+OK
