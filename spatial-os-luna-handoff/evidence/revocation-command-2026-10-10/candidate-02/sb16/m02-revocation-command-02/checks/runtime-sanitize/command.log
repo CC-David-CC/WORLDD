@@ -1,0 +1,17 @@
+test_command_waits_for_authenticated_application_acknowledgement (__main__.RevocationCommandTests.test_command_waits_for_authenticated_application_acknowledgement) ... ok
+test_credential_revocation_keeps_actor_identity_valid (__main__.RevocationCommandTests.test_credential_revocation_keeps_actor_identity_valid) ... ok
+test_failed_or_substituted_barrier_preserves_commit_without_completion (__main__.RevocationCommandTests.test_failed_or_substituted_barrier_preserves_commit_without_completion) ... ok
+test_invalid_commit_replies_never_claim_confirmation (__main__.RevocationCommandTests.test_invalid_commit_replies_never_claim_confirmation) ... ok
+test_invalid_requests_fail_before_contacting_issuer (__main__.RevocationCommandTests.test_invalid_requests_fail_before_contacting_issuer) ... ok
+test_lost_commit_reply_is_uncertain_and_explicit_resume_reconciles (__main__.RevocationCommandTests.test_lost_commit_reply_is_uncertain_and_explicit_resume_reconciles) ... ok
+test_no_participants_completes_actual_actor_revocation (__main__.RevocationCommandTests.test_no_participants_completes_actual_actor_revocation) ... ok
+test_pending_cancellation_times_out_with_committed_receipt (__main__.RevocationCommandTests.test_pending_cancellation_times_out_with_committed_receipt) ... ok
+test_resume_after_issuer_restart_preserves_pending_obligation (__main__.RevocationCommandTests.test_resume_after_issuer_restart_preserves_pending_obligation) ... ok
+test_resume_is_read_only_and_cannot_substitute_another_target (__main__.RevocationCommandTests.test_resume_is_read_only_and_cannot_substitute_another_target) ... ok
+test_stale_revision_duplicate_target_and_wrong_owner_do_not_mutate (__main__.RevocationCommandTests.test_stale_revision_duplicate_target_and_wrong_owner_do_not_mutate) ... ok
+test_substituted_challenges_never_receive_a_mutation_proof (__main__.RevocationCommandTests.test_substituted_challenges_never_receive_a_mutation_proof) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 12.438s
+
+OK

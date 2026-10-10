@@ -1,5 +1,30 @@
 # Implementation status
 
+## 2026-10-10: Operator revocation waits for cancellation completion
+
+The new spatial-revoke command combines an owner-signed revocation with checked cancellation queries.
+It reports complete only for the exact target and revision with no pending obligations.
+Timeouts retain committed status. Lost mutation replies report uncertainty and never trigger automatic replay.
+Explicit resume reads the original barrier without sending another mutation.
+The raw issuer client retains its explicit commit-only interface.
+
+All 97 selected cases passed in Debug and runtime ASan/UBSan on sb16: 194 case results.
+Twelve new cases cover real commits, pending obligations, acknowledgements, issuer restart, resume, and altered or lost replies.
+The 85 related cases cover issuer transport, revocation, durable barriers, and checked barrier replies.
+Read evidence/revocation-command-2026-10-10/candidate-02/primary-review.json.
+All 350 source hashes match. All 41 locked files remain unchanged.
+
+The first runner omitted imported protobuf bindings. The second omitted one existing probe executable.
+Both failures remain preserved. Only the affected Debug probe case required a retry after its binary was built.
+The first collector rejected its own literal secret patterns. Its original source remains preserved.
+No production code or assertion changed to resolve these runner and collection errors.
+
+Next: exercise the operator command with held native input in the retained production session.
+Then resolve the two preserved intermittent failures and complete the remaining M02 audit and both-host gate.
+Full M02 qualification remains pending. M02 and Spatial-M1 remain incomplete.
+No normal desktop session or database changed. Native, physical-input, and performance evidence is unchanged.
+
+
 ## 2026-10-10: Issuer-outage recovery passes focused native checks
 
 The retained coordinator can now finish fencing after issuer loss during failed-supervisor cleanup.

@@ -187,6 +187,29 @@ message IdentityRevoke {
   optional uint64 expected_security_revision = 2;
   string reason = 3;
 }
+// Local operator interface. Issuer operations still require owner-signed challenges.
+message RevocationCompletionRead { IdentityReference target = 1; uint64 revision = 2; }
+message RevocationCommand {
+  uint32 protocol_version = 1;
+  oneof operation { IdentityRevoke revoke = 2; RevocationCompletionRead resume = 3; }
+  optional uint32 wait_ms = 4; // 50..60000; default 5000. Completion phase only.
+}
+enum RevocationCommandState {
+  REVOCATION_COMMAND_UNSPECIFIED = 0;
+  REVOCATION_NOT_SUBMITTED = 1;
+  REVOCATION_COMMIT_UNCERTAIN = 2;
+  REVOCATION_COMMITTED = 3;
+  REVOCATION_COMPLETE = 4;
+  REVOCATION_REJECTED = 5;
+}
+message RevocationResult {
+  uint32 protocol_version = 1;
+  IdentityReference target = 2;
+  RevocationCommandState state = 3;
+  optional uint64 revision = 4; // Candidate revision if the commit is uncertain.
+  AuthorityBarrierStatus barrier = 5; // Latest checked observation; not a lease.
+  spatial.core.v1.Error error = 6;
+}
 message IdentityStatus {
   bytes issuer_id = 1;
   bytes actor_id = 2;

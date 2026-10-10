@@ -206,6 +206,8 @@ add_library(spatial-issuer-client-lib STATIC src/identity/issuer_client.cpp)
 target_link_libraries(spatial-issuer-client-lib PUBLIC spatial-identity-tls)
 add_executable(spatial-issuer-client src/identity/client_main.cpp)
 target_link_libraries(spatial-issuer-client PRIVATE spatial-issuer-client-lib)
+add_executable(spatial-revoke src/identity/revoke_main.cpp)
+target_link_libraries(spatial-revoke PRIVATE spatial-issuer-client-lib)
 add_library(spatial-participant-runtime-lib STATIC src/identity/participant_runtime.cpp)
 target_link_libraries(spatial-participant-runtime-lib PUBLIC spatial-issuer-client-lib Threads::Threads)
 target_link_libraries(spatial-authority-launch PUBLIC spatial-participant-runtime-lib)
@@ -669,6 +671,11 @@ if(BUILD_TESTING)
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_executable(spatial-issuer-client-probe src/testing/issuer_client_probe.cpp)
     target_link_libraries(spatial-issuer-client-probe PRIVATE spatial-issuer-client-lib)
+    add_test(NAME identity-revocation-command COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_revocation_command.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-revoke>)
+    set_tests_properties(identity-revocation-command PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME issuer-client COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_issuer_client.py" $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(issuer-client PROPERTIES TIMEOUT 90

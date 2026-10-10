@@ -1,0 +1,114 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 35
+    Start 35: identity-participant-barrier-client
+
+35: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_identity_participant_barrier_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/spatial-issuer-client"
+35: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build
+35: Environment variables: 
+35:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source
+35: Test timeout computed to be: 180
+35: Traceback (most recent call last):
+35:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_identity_participant_barrier_client.py", line 3, in <module>
+35:     import core_pb2 as core
+35: ModuleNotFoundError: No module named 'core_pb2'
+1/5 Test #35: identity-participant-barrier-client ...***Failed    0.11 sec
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_identity_participant_barrier_client.py", line 3, in <module>
+    import core_pb2 as core
+ModuleNotFoundError: No module named 'core_pb2'
+
+test 36
+    Start 36: identity-participant-barrier
+
+36: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_identity_participant_barrier.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/identityd"
+36: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build
+36: Environment variables: 
+36:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source
+36: Test timeout computed to be: 120
+36: Traceback (most recent call last):
+36:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_identity_participant_barrier.py", line 5, in <module>
+36:     import core_pb2 as core
+36: ModuleNotFoundError: No module named 'core_pb2'
+2/5 Test #36: identity-participant-barrier ..........***Failed    0.11 sec
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_identity_participant_barrier.py", line 5, in <module>
+    import core_pb2 as core
+ModuleNotFoundError: No module named 'core_pb2'
+
+test 63
+    Start 63: identity-revocation
+
+63: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_identity_revocation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/identityd"
+63: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build
+63: Environment variables: 
+63:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source
+63: Test timeout computed to be: 60
+63: Traceback (most recent call last):
+63:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_identity_revocation.py", line 7, in <module>
+63:     import core_pb2 as core
+63: ModuleNotFoundError: No module named 'core_pb2'
+3/5 Test #63: identity-revocation ...................***Failed    0.10 sec
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_identity_revocation.py", line 7, in <module>
+    import core_pb2 as core
+ModuleNotFoundError: No module named 'core_pb2'
+
+test 66
+    Start 66: identity-revocation-command
+
+66: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_revocation_command.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/spatial-revoke"
+66: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build
+66: Environment variables: 
+66:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source
+66: Test timeout computed to be: 180
+66: Traceback (most recent call last):
+66:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_revocation_command.py", line 11, in <module>
+66:     import core_pb2 as core
+66: ModuleNotFoundError: No module named 'core_pb2'
+4/5 Test #66: identity-revocation-command ...........***Failed    0.10 sec
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_revocation_command.py", line 11, in <module>
+    import core_pb2 as core
+ModuleNotFoundError: No module named 'core_pb2'
+
+test 67
+    Start 67: issuer-client
+
+67: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_issuer_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/spatial-issuer-client"
+67: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build
+67: Environment variables: 
+67:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source
+67: Test timeout computed to be: 90
+67: Traceback (most recent call last):
+67:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_issuer_client.py", line 14, in <module>
+67:     import core_pb2 as core
+67: ModuleNotFoundError: No module named 'core_pb2'
+5/5 Test #67: issuer-client .........................***Failed    0.12 sec
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source/tests/core/test_issuer_client.py", line 14, in <module>
+    import core_pb2 as core
+ModuleNotFoundError: No module named 'core_pb2'
+
+
+0% tests passed, 5 tests failed out of 5
+
+Total Test time (real) =   0.55 sec
+
+The following tests FAILED:
+	 35 - identity-participant-barrier-client (Failed)
+	 36 - identity-participant-barrier (Failed)
+	 63 - identity-revocation (Failed)
+	 66 - identity-revocation-command (Failed)
+	 67 - issuer-client (Failed)
+Errors while running CTest

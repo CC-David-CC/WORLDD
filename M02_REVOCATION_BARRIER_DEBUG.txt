@@ -887,3 +887,14 @@ All 348 frozen source hashes match. All 41 locked files remain unchanged.
 No normal session or database changed. These checks do not show physical input, GPU scanout, or native performance.
 Next: audit remaining M02 requirements and resolve the two preserved intermittent failures before the phase gate.
 M02 and Spatial-M1 remain incomplete.
+
+2026-10-10 operator revocation checkpoint
+spatial-revoke now waits for a checked barrier before reporting completion.
+97 selected cases passed per profile on sb16; 194 Debug and runtime sanitizer results.
+Evidence: spatial-os-luna-handoff/evidence/revocation-command-2026-10-10/candidate-02/primary-review.json
+Preserved runner errors: omitted imported Python bindings; omitted issuer-client probe.
+The probe correction reran only its affected Debug case. No production behavior or assertion was relaxed.
+Collector correction: match complete secret patterns instead of rejecting their own literal fragments.
+Raw evidence remains unchanged. Normal desktop sessions remain unchanged.
+Next: operator command plus actual native cancellation; resolve two earlier intermittent failures; full both-host M02 gate.
+M02 and Spatial-M1 remain incomplete.

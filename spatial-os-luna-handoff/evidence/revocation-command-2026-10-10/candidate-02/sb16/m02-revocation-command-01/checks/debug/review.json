@@ -1,0 +1,65 @@
+{
+  "profile": "debug",
+  "host": "sb16",
+  "status": "failed",
+  "started": 1791651134.0891523,
+  "commands": [
+    {
+      "label": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DSPATIAL_SANITIZERS=OFF",
+        "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
+        "-DCMAKE_C_COMPILER_LAUNCHER=ccache"
+      ],
+      "started": 1791651134.1130185,
+      "exit_code": 0,
+      "ended": 1791651135.0925615,
+      "sha256": "9872e0f64f085fdb7fef6f6fe07d41164cfda8a3df0d8c9d339f246775f50d4d"
+    },
+    {
+      "label": "build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build",
+        "--parallel",
+        "2",
+        "--target",
+        "identityd",
+        "spatial-issuer-client",
+        "spatial-revoke",
+        "issuer-python-protobuf"
+      ],
+      "started": 1791651135.11723,
+      "exit_code": 0,
+      "ended": 1791651172.4688811,
+      "sha256": "b74be563fa6270aab9eab265a5b99611e843e4f09755574425a4dd5ccdc134ae"
+    },
+    {
+      "label": "focused",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-revocation-command-01/debug/build",
+        "--output-on-failure",
+        "-V",
+        "-R",
+        "^(identity-revocation-command|identity-revocation|identity-participant-barrier|identity-participant-barrier-client|issuer-client)$"
+      ],
+      "started": 1791651172.4939818,
+      "exit_code": 8,
+      "ended": 1791651173.048347,
+      "sha256": "4a4c7684f0e8eb861dbbe9d63b0e5cc594d1149be464d8fa2496c3bdd9c92aa9"
+    }
+  ],
+  "ended": 1791651173.048704
+}

@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "dependent_control_reservation_recovery",
+  "current_step": "operator_completion_native_and_m02_gate_audit",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -35,7 +35,7 @@
     "No model inference or additional host is needed for this component.",
     "Do not modify the active remote-transport candidate."
   ],
-  "next_test": "The native reservation gap is reproduced on both hosts. Bind reservations to exact recovery ownership, then prove selective cleanup without terminating independently authorized applications.",
+  "next_test": "Exercise spatial-revoke with held native input, then resolve preserved intermittent failures and run the M02 phase gate.",
   "limitations": [
     "Issuer barrier and checked process cleanup are integrated and adopted on both hosts.",
     "Combined candidate04 passed 1226 core checks and failed one self-revocation receipt test on each host. Debug P10 and runtime sanitizer were unrun after that failure.",
@@ -53,7 +53,8 @@
     "tasks/m1/identity.workspace_participant.json",
     "tasks/m1/identity.supervisor_recovery.json",
     "tasks/m1/identity.native_settlement.json",
-    "tasks/m1/identity.world_read_freshness.json"
+    "tasks/m1/identity.world_read_freshness.json",
+    "tasks/m1/identity.revocation_command.json"
   ],
   "next_component_design": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "current_supervisor": {
@@ -76,5 +77,6 @@
     "evidence": "evidence/authority-supervisor-2026-10-09",
     "next_component": "tasks/m1/identity.supervisor_broker_handoff.json"
   },
-  "control_recovery_task": "tasks/m1/identity.control_recovery.json"
+  "control_recovery_task": "tasks/m1/identity.control_recovery.json",
+  "operator_command_task": "tasks/m1/identity.revocation_command.json"
 }

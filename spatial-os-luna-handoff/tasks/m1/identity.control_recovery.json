@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "m02_failure_evidence_and_gate_audit",
+  "current_step": "operator_completion_native_and_m02_gate_audit",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,6 +12,7 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
+    "Check the operator revocation command against actual held native input and cancellation before the phase gate.",
     "Audit remaining M02 recovery and cancellation requirements against current evidence before freezing the gate.",
     "Resolve the preserved participant-approval startup failure and active-generation revocation-read timeout.",
     "Run complete required M02 Debug, runtime sanitizer, harness, acceptance, native, and cross-host qualification on both hosts."
@@ -450,5 +451,6 @@
     "failed": 0,
     "skipped": 0,
     "full_phase_gate": "pending on both hosts"
-  }
+  },
+  "operator_completion_task": "tasks/m1/identity.revocation_command.json"
 }

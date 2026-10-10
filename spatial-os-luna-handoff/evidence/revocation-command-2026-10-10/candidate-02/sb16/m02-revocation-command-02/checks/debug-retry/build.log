@@ -1,0 +1,3 @@
+[0/2] Re-checking globbed directories...
+[1/2] Building CXX object CMakeFiles/spatial-issuer-client-probe.dir/src/testing/issuer_client_probe.cpp.o
+[2/2] Linking CXX executable spatial-issuer-client-probe

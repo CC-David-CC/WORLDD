@@ -1,0 +1,6 @@
+test_tick_callback_cancels_and_poisons_library_connection (__main__.ClientTests.test_tick_callback_cancels_and_poisons_library_connection) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.215s
+
+OK
