@@ -1,7 +1,7 @@
 {
     "candidate":  "control-admin-transport-draft-01",
     "reviewer":  "primary agent",
-    "state":  "Isolated draft. Not compiled or integrated.",
+    "state":  "Frozen source deployed on both hosts. Qualification is queued behind verified live handoff drivers. All checks remain unrun.",
     "files":  [
                   "src/supervisor/control_admin.hpp",
                   "src/supervisor/control_admin.cpp"
@@ -22,5 +22,11 @@
                             "Real supervised broker registration, inspect, and fence.",
                             "Cumulative Debug and runtime sanitizers on both hosts."
                         ],
-    "remaining":  "Add thin transport probe, independent subprocess witnesses, build integration, and coordinator endpoint mapping."
+    "remaining":  "Add thin transport probe, independent subprocess witnesses, build integration, and coordinator endpoint mapping.",
+    "drivers":  {
+                    "sb16-2":  1839205,
+                    "sb16":  2148249
+                },
+    "source_files":  309,
+    "driver_sha256":  "b40569b4feb84d3ad0393676d5e770068572d0ded669b9579745f92db1407e54"
 }
