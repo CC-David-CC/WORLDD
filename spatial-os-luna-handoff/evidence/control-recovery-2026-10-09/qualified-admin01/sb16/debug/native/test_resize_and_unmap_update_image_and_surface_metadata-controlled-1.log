@@ -1,0 +1,6 @@
+{"event":"ready","xid":8388609,"pid":4,"width":320,"height":240,"xi2":false}
+{"event":"map","xid":8388609}
+{"event":"ack","seq":2}
+{"event":"configure","xid":8388609,"width":640,"height":480}
+{"event":"unmap","xid":8388609}
+{"event":"ack","seq":3}
