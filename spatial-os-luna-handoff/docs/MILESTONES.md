@@ -18,9 +18,10 @@ The mandatory profile is tasks/spatial-m1.json.
 See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
 See docs/M03_QUALIFICATION_AUDIT.txt for existing confinement checks and the remaining aggregate resource boundary.
 
-Current development focuses on M02 recovery interruption and unresolved failure evidence.
+Current development focuses on the final M02 requirement audit and historical timeout disposition.
+Both hosts passed reviewed Debug and sanitizer local gates. All eight cross-host scenarios also passed review.
 Read the newest CURRENT_STATE.md section and tasks/m1/identity.control_recovery.json for current results.
-Full M02 qualification remains pending on both hosts.
+Full M02 sign-off remains pending.
 
 The following paragraphs record historical checkpoints. Their remaining-work statements describe those checkpoints.
 The retained-launch control-owner binding checkpoint added exact recovery ownership.

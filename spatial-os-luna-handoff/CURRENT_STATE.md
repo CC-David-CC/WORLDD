@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-10: Complete cross-host M02 matrix reviewed
+
+All eight coordinated scenarios passed on unchanged candidate02 source and binaries.
+The matrix covered delayed cancellation and crash recovery, both host directions, and both build profiles.
+All 24 controller and worker processes exited successfully. Both hosts used reviewed m02-untraced-03 local qualification.
+All 179 attachments per host and 56 coordinator files passed hash verification.
+Primary review checked all 16 native worker event logs and eight controller witness summaries.
+The evidence records actual key and button release, confined application response, and exact authority generations.
+Crash cases kept retirement pending through dependent cleanup and preserved independently authorized applications.
+The complete scans checked 106 collected logs and found no selected sanitizer markers.
+Read evidence/m02-gate-2026-10-10/crosshost03-final/primary-review.json.
+
+The collector initially rejected credential search literals in its own source.
+One expression was respelled without changing its effective checks or the three witness functions.
+The preserved failure and positive/negative controls are in evidence/m02-gate-2026-10-10/collector-correction-01.
+No production source, runtime test assertion, deadline, or locked file changed.
+
+Both local gates and the cross-host matrix now have reviewed passing evidence.
+Historical timeout disposition and the final M02 requirement audit remain pending.
+Software-display evidence does not qualify physical devices, GPU performance, or shared-world geometry.
+M02 and Spatial-M1 remain incomplete. Do not repeat the completed matrix without a new evidence-based reason.
+
 ## 2026-10-10: Both hosts completed reviewed local M02 qualification
 
 sb16-2 completed both Debug and runtime sanitizer profiles with unchanged candidate02 source and binaries.

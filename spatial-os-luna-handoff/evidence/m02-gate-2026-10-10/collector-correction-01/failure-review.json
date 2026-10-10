@@ -1,0 +1,20 @@
+{
+  "status": "collector_self_scan_failure_preserved",
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "exit_codes": {
+    "sb16": 1,
+    "sb16-2": 1
+  },
+  "tool_chunks": {
+    "sb16": "bedc87",
+    "sb16-2": "2da5b1"
+  },
+  "collector_sha256": "b81fd24e9a9ab0951ba7ffc707134a57c572bfd168de2be4a8c433724488d7c1",
+  "failure": "AssertionError at collect-m02-gate-crosshost-03.py:39 while add() reads the collector source.",
+  "cause": "The source includes its own forbidden byte sequences as string literals. The guard rejects those source literals.",
+  "runtime_scenarios": "All eight coordinated scenarios completed with successful controller and worker exits. Witness collection remains pending.",
+  "changed_scope": "Correct only source spelling of the same credential search bytes. Preserve every native/protobuf witness and all frozen runtime inputs."
+}

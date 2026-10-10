@@ -1,0 +1,8 @@
+Running as unit: spatial-m02-gate-crosshost03-runtime-sanitize-delay-reverse01-controller.service; invocation ID: 8e3a23b5021447fdb26868cabb5e0f24
+Ready for workers
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 38.453s
+CPU time consumed: 1.989s
+Memory peak: 1.5M
+Memory swap peak: 0B

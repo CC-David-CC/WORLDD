@@ -1,0 +1,7 @@
+Running as unit: spatial-m02-gate-crosshost03-debug-delay-forward01-worker.service; invocation ID: 04648364f0284ff6a5afed6519cf22cc
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 8.130s
+CPU time consumed: 1.406s
+Memory peak: 256.0K
+Memory swap peak: 0B

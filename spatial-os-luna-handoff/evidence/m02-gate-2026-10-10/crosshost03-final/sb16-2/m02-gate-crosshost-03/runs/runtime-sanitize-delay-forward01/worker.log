@@ -1,0 +1,7 @@
+Running as unit: spatial-m02-gate-crosshost03-runtime-sanitize-delay-forward01-worker.service; invocation ID: bf7cfd3bba6e437c9af924d776fe4452
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 10.876s
+CPU time consumed: 4.632s
+Memory peak: 1.5M
+Memory swap peak: 0B

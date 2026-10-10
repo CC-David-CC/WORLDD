@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "host": "sb16-2",
+  "scenario": "delay",
+  "production_issuer": "dcc60c22a43f7961171bea2b92ed8bad8f049048cd94ea84551f9552173770b9",
+  "ready": true,
+  "cancelled": true
+}

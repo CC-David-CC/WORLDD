@@ -1,0 +1,7 @@
+Running as unit: spatial-m02-gate-crosshost03-runtime-sanitize-crash-reverse01-worker.service; invocation ID: c889a814789f4804a558f9a70621c7c9
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 11.882s
+CPU time consumed: 3.890s
+Memory peak: 1.5M
+Memory swap peak: 0B

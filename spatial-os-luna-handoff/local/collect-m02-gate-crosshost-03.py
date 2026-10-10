@@ -36,7 +36,7 @@ attachments={}
 def add(path):
     assert path.is_file() and not path.is_symlink() and path.resolve().is_relative_to(base.resolve())
     assert 'private-bundle' not in path.parts and path.suffix in ('.log','.json','.pb','.py','.proto')
-    data=path.read_bytes();assert b'PRIVATE KEY-----' not in data and b'Bearer fleet-' not in data
+    data=path.read_bytes();assert (b'PRIVATE '+b'KEY-----') not in data and (b'Bearer '+b'fleet-') not in data
     attachments[path.relative_to(base).as_posix()]=sha(path)
 
 for attempt in {gate,base/args.qualification}:

@@ -1,0 +1,31 @@
+{
+  "status": "reviewed_collection_only_correction",
+  "before_sha256": "b81fd24e9a9ab0951ba7ffc707134a57c572bfd168de2be4a8c433724488d7c1",
+  "after_sha256": "453cca2ca1e0e43128f2655aa29cf49cbdc5bff4e92be028fca78cda6164a9b6",
+  "exact_single_expression_change": true,
+  "witness_functions_unchanged": [
+    "replies",
+    "native",
+    "controller"
+  ],
+  "checks": {
+    "collector_source": {
+      "accepted": true,
+      "expected": true
+    },
+    "ordinary_log": {
+      "accepted": true,
+      "expected": true
+    },
+    "private_key_marker": {
+      "accepted": false,
+      "expected": false
+    },
+    "bearer_marker": {
+      "accepted": false,
+      "expected": false
+    }
+  },
+  "production_and_locked_tests_changed": false,
+  "runtime_rerun_required": false
+}

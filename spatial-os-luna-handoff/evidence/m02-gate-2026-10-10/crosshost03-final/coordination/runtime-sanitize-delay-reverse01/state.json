@@ -1,0 +1,70 @@
+﻿{
+    "nodes":  [
+                  {
+                      "exited":  true,
+                      "pid":  25088,
+                      "mode":  "controller",
+                      "machine":  "sb16-2"
+                  },
+                  {
+                      "exited":  true,
+                      "pid":  20856,
+                      "mode":  "worker",
+                      "machine":  "sb16"
+                  },
+                  {
+                      "exited":  true,
+                      "pid":  24472,
+                      "mode":  "worker",
+                      "machine":  "sb16-2"
+                  }
+              ],
+    "results":  [
+                    {
+                        "exit_code":  0,
+                        "mode":  "controller",
+                        "machine":  "sb16-2"
+                    },
+                    {
+                        "exit_code":  0,
+                        "mode":  "worker",
+                        "machine":  "sb16"
+                    },
+                    {
+                        "exit_code":  0,
+                        "mode":  "worker",
+                        "machine":  "sb16-2"
+                    }
+                ],
+    "profile":  "runtime-sanitize",
+    "gate_preflights":  [
+                            {
+                                "host":  "sb16",
+                                "status":  "local_gate_reviewed",
+                                "commit":  "1f5088e026573d86be8388cf1f41dfce20189db9",
+                                "profile":  "runtime-sanitize",
+                                "qualification":  {
+                                                      "attempt":  "m02-untraced-03",
+                                                      "summary_sha256":  "875a8852c0b89d9af205e6b2f1050d2e8a3552a4e6c880cf1a946e8e59f9c85c",
+                                                      "review_sha256":  "a2e9b096cbc461aa32999add0a3204029dddef47693f66cd0f1fa4a83522c518",
+                                                      "manifest_sha256":  "47235bd29bdbb50d18e2a7258f451ccc027202d543176db217c431a15bedcb52"
+                                                  }
+                            },
+                            {
+                                "host":  "sb16-2",
+                                "status":  "local_gate_reviewed",
+                                "commit":  "1f5088e026573d86be8388cf1f41dfce20189db9",
+                                "profile":  "runtime-sanitize",
+                                "qualification":  {
+                                                      "attempt":  "m02-untraced-03",
+                                                      "summary_sha256":  "54a8bbc6677d0b21b1de4fcb749fd83201f9c6131fc77765f03c0d0df8cf70eb",
+                                                      "review_sha256":  "f61bf410af36d09aa2f0cc26f61b11f40ccae335013355adc829f4a615fd905d",
+                                                      "manifest_sha256":  "47235bd29bdbb50d18e2a7258f451ccc027202d543176db217c431a15bedcb52"
+                                                  }
+                            }
+                        ],
+    "direction":  "reverse",
+    "status":  "passed",
+    "candidate":  "m02-phase-gate-02",
+    "scenario":  "delay"
+}
