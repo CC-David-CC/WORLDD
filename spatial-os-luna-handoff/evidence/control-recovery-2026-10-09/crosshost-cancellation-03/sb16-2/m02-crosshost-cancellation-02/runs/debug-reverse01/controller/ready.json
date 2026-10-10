@@ -1,0 +1,9 @@
+{
+  "status": "waiting_for_workers",
+  "issuer_host": "sb16-2",
+  "delayed_host": "sb16",
+  "bundle": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-02/runs/debug-reverse01/controller/private-bundle",
+  "control_port": 52367,
+  "issuer_port": 53653,
+  "issuer_id": "e05512abfaee92f1d128cee0051430fc007d54506aebc532574a8b463269d1c8"
+}

@@ -845,3 +845,15 @@ Ten additional kernel-timed repetitions passed. Maximum issuer fdatasync duratio
 These repetitions do not explain or resolve the original timeout. The first tracer compile error is preserved.
 Next: cross-host cancellation and remaining recovery races. Both intermittent failures remain phase-gate work.
 M02 and Spatial-M1 remain incomplete. No normal desktop session or database changed.
+
+2026-10-10: Cross-host credential cancellation passed both directions in Debug and runtime sanitizers.
+Four coordinated scenarios passed. Related fixture suites passed 14 cases per host per profile, 56 total.
+One issuer tracks four exact world and broker generations. Each host runs its own native session and confined application.
+The delayed host retains input while encrypted replies wait. After release, native input and reservations clear.
+Both applications survive. Revoked actor requests fail. All four obligations complete by acknowledgement, without retirement.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/crosshost-cancellation-03/primary-review.json.
+Candidate01 failed because fixture teardown stopped the broker before the world. That failure remains preserved.
+Candidate02 fixes fixture ordering. Candidate03 adds a held-byte witness. Production runtime behavior did not change.
+The two previous intermittent timeout causes remain unresolved. Cross-host crash races and full M02 qualification remain pending.
+These disposable native checks do not establish shared-world geometry, physical input, native GPU or performance acceptance.
+M02 and Spatial-M1 remain incomplete. No normal session or database changed.

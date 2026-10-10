@@ -1,0 +1,367 @@
+{
+  "status": "focused_passed_phase_gate_pending",
+  "host": "sb16",
+  "candidate": "03",
+  "source_files": 347,
+  "locked_files": 41,
+  "cases": [
+    {
+      "tag": "01",
+      "profile": "debug",
+      "direction": "forward",
+      "nodes": {
+        "controller": {
+          "exit_code": 1,
+          "status": "failed"
+        },
+        "worker": {
+          "exit_code": 1,
+          "status": "failed"
+        }
+      }
+    },
+    {
+      "tag": "02",
+      "profile": "debug",
+      "direction": "forward",
+      "nodes": {
+        "controller": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "exact_generations": 4,
+            "pending_then_acknowledged": true,
+            "retirement_used": false,
+            "held_encrypted_bytes": 0,
+            "both_native_applications_survived": true
+          }
+        },
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_press_and_release": true,
+            "application_resize_acknowledged": true,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "tag": "02",
+      "profile": "debug",
+      "direction": "reverse",
+      "nodes": {
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_press_and_release": true,
+            "application_resize_acknowledged": true,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "tag": "03",
+      "profile": "debug",
+      "direction": "forward",
+      "nodes": {
+        "controller": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "exact_generations": 4,
+            "pending_then_acknowledged": true,
+            "retirement_used": false,
+            "held_encrypted_bytes": 67,
+            "both_native_applications_survived": true
+          }
+        },
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_press_and_release": true,
+            "application_resize_acknowledged": true,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "tag": "03",
+      "profile": "debug",
+      "direction": "reverse",
+      "nodes": {
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_press_and_release": true,
+            "application_resize_acknowledged": true,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "tag": "03",
+      "profile": "runtime-sanitize",
+      "direction": "forward",
+      "nodes": {
+        "controller": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "exact_generations": 4,
+            "pending_then_acknowledged": true,
+            "retirement_used": false,
+            "held_encrypted_bytes": 113,
+            "both_native_applications_survived": true
+          }
+        },
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_press_and_release": true,
+            "application_resize_acknowledged": true,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "tag": "03",
+      "profile": "runtime-sanitize",
+      "direction": "reverse",
+      "nodes": {
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_press_and_release": true,
+            "application_resize_acknowledged": true,
+            "confinement_verified": true
+          }
+        }
+      }
+    }
+  ],
+  "related": {
+    "debug": {
+      "authority-owned-participant": 11,
+      "session-application": 3
+    },
+    "runtime-sanitize": {
+      "authority-owned-participant": 11,
+      "session-application": 3
+    }
+  },
+  "attachments": {
+    "m02-crosshost-cancellation-01/manifest.json": "76e0b77f71ed118c9d1a03cc6a311a2c7ccf4a08574b1f8e9c11894477e093f0",
+    "m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py": "5bdc3d486d7431066eacad9fd816eae3c3cd81c1793f710f826b107dfab4aa55",
+    "m02-crosshost-cancellation-02/manifest.json": "712538099960bb53513073c755c9b8e2955b5e40988d2ad7edf6b7d7c70f001e",
+    "m02-crosshost-cancellation-02/source/tests/native/crosshost_revocation.py": "091ce523cfb1002519bd207503c2731ad6ebe36086b3c7643e4ea1ca7a4ee5cb",
+    "m02-crosshost-cancellation-03/manifest.json": "feb0fac05185cbef3894397ba0c891cc9c696357073887ea10bacc50b6214c06",
+    "m02-crosshost-cancellation-03/source/tests/native/crosshost_revocation.py": "5f303ff630ff89a78ba9dd7c8bcda5e6452e7cd093a3161e3bcf5958fbec2652",
+    "m02-crosshost-cancellation-01/checks/debug/configure.log": "866f44637e38dfd04b31f30cc6865eb7601c22cbe94a8a8fb197930d7caa6a54",
+    "m02-crosshost-cancellation-01/checks/debug/build.log": "59c6d830057a709eb260d978ae38d8e6b09f8f98d0cb544c86e7d8a786ba05ac",
+    "m02-crosshost-cancellation-01/checks/debug/build-review.json": "70e09dcba492b59d56c871cfa50d3f8c6860eadf0dff230e85855ba5f12c4d16",
+    "m02-crosshost-cancellation-01/checks/runtime-sanitize/configure.log": "dacd11a2f3efbc526af0a2eb80fe068f19c5b3eace95dde075af96ee20c13757",
+    "m02-crosshost-cancellation-01/checks/runtime-sanitize/build.log": "86eab61d1c2610b8f01dd1912bd79f6c5b97f76d8c02e9e55f48f33c8881daba",
+    "m02-crosshost-cancellation-01/checks/runtime-sanitize/build-review.json": "2a963f9f1432317db1ef65403f334244746dddb62e439d7bca03cac1a4936fb4",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller-review.json": "679a3a4ec6f7b5c469668f01b42ec1582b00fcec721b87974f3a188edbb0a21d",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller.log": "c03b50ee838b2616d83596f3514689da98f190c27ef8b2e47fa58c6ca34043ab",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/complete-barrier.pb": "12b40cf9c1eae303842c88290f5057447efa83597f833b97d70f4cfe72142e3a",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/sb16-2-reply-3.pb": "0e0adf5932b0cbfcad9377862a25e1b2dcf46fdaa5fc58645c871a1625e9ef5d",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/sb16-reply-4.pb": "c09455b00a308e7b8e64573438ebd6d49c04131273dd3984668635159a6ab26e",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/sb16-2-reply-6.pb": "b57a9ed97d41ba6db1b0b4e59a93ae1d13cb26b062753d34425c2a0ca6d800c9",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/ready.json": "3bc37d1886f23aa57d6c082f4e8baa569afb74d95e9a91fb707dd7a44a259904",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/sb16-2-reply-5.pb": "98f428e67d70ea128d9a819760bdd75885009d9436814a3b9b63a417ae51878a",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/pending-barrier.pb": "c34dc97dcc729b1b2c05da1ffbe285545e849dbf46c0cddae3171ae4339262d1",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/sb16-reply-1.pb": "a9cb94b45a0c3697acf3c0946cb72f161b0ed8b906cd80daa17e2e124ef2d63f",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/sb16-2-reply-2.pb": "fe9f9953b21ea67762c1fa612b93324c0504d04b514de4a56a2d884ad0ac801a",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/controller/result.json": "a7cabc2c23b89072e6de1d55c248ee27c97ee75607c69d7936e1a7f39963b546",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/worker-review.json": "a22b970d052ad608295ac248e197aa941d6e292aa78a3d256e6bcefadd762269",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/worker.log": "8426c67a4cddd4a936d11ff933a3cab4295588eeaac553df191f4d1075bc49ce",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/worker/reply-1.pb": "a9cb94b45a0c3697acf3c0946cb72f161b0ed8b906cd80daa17e2e124ef2d63f",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/worker/reply-4.pb": "c09455b00a308e7b8e64573438ebd6d49c04131273dd3984668635159a6ab26e",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/worker/result.json": "09a3513de04f525f4e8d9e321463b0e6182bdb00390775acd86159a89823caec",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/worker/native/runTest-coordinator.log": "91dab83ce1f361cc9b8a355bd164265fb31ffdce750445970d3b822aca53a018",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/worker/native/runTest-server-0.log": "90477eebfcdd56313b0431b0a10c1d989f08f5409141951363a94e2b5ea16ce6",
+    "m02-crosshost-cancellation-01/runs/debug-forward01/launcher-used.py": "76290be5052b4d9d74b687b553f5a17066b43262668494fa6d9d9ea4d9e0caf3",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller-review.json": "c8e009a6d32e897e3977220eec20ade279ec0506b80cc56a262b64ea99faa967",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller.log": "5101b7fdd6fd1cc7ee215cd62ee10ed23d5e9513a7d2618d1ebcf04fa28ebfed",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/complete-barrier.pb": "658a74e4f84a93e56045253f2f0a57d7dbe2dde43c3d810a3bfe1cad08b16e24",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/sb16-2-reply-3.pb": "948ef90b4e3168421dfe387e97700874ba42a7f46d509bed0a1fac52c56f5b59",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/sb16-reply-4.pb": "03c770ef1c662b458770089ccff2e81760fffaa6ca4d8a7dcf730615d9bb1521",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/sb16-reply-7.pb": "2ece901a94d6c27e5f505dbf5631ae8ff0ded4600c480527113f49fafbd9aa9d",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/sb16-2-reply-6.pb": "2fb163fec016b93a608469913a562b3479d54b65f583533971671d69ffdf416e",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/sb16-2-reply-8.pb": "46cdf65ce834ed0c1caada1e0c8e220636851a804ef0f16888bfcebd2d5511be",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/ready.json": "8addeb699287eb41bc87169d5db1d4c0cf216b03bbbdd16dcaeaec26b718aef4",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/sb16-2-reply-5.pb": "a91c29912b511dc21a7d9669d9e6c9aa6a3b204863824d21be1202eac8f7f183",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/pending-barrier.pb": "cd3186ce6036f5dd394b0ddbaabd75d3ffa2d8205fb61e1c22f49c0ab56bc647",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/sb16-reply-1.pb": "956054e4a3f20c0dceeafa3cd49993c1db178b0d5fecc87a3c1c292d64e2bdbb",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/sb16-2-reply-2.pb": "42db209271d40a02bff511c782bcbf3610bc30d388e16b8e5b0e552485ca2180",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/controller/result.json": "3ffd1fb2fd6f52404110f9467037212732107a12d47602e6fda7083e0bbb35fb",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/worker-review.json": "5a6d741330fe60d7d162b1146cf4f75115bc327af76321fc12ebcc0a2e74e1fe",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/worker.log": "b2136b2e07bdfd7910255f51137256517964f1dbe615c03b4dc485e02af7a345",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/worker/reply-1.pb": "956054e4a3f20c0dceeafa3cd49993c1db178b0d5fecc87a3c1c292d64e2bdbb",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/worker/reply-4.pb": "03c770ef1c662b458770089ccff2e81760fffaa6ca4d8a7dcf730615d9bb1521",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/worker/result.json": "cced21d3f042f4a737f9eed01732ef6b73a413a129e1c52f723546d9c108930a",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/worker/native/runTest-coordinator.log": "54c93535a3cec10e0afbabb7dc1d03609b83b3b7bcea14e90bcdf229a65d533e",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-cancellation-02/runs/debug-forward01/worker/native/runTest-server-0.log": "1b8ae135c003af9f9abe4533d42bb11d0b722ec39f89108fa8287d62219b8319",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker-review.json": "a4bf4b01701cd8a6d8ae762c61281192ce65c03e527e51d2196c9c5ef241f360",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker.log": "2f3e9a4dafc905825cdd3a1cf5959a2d02a3a40cc34218c27e1f2e2c13222ab5",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker/reply-6.pb": "df85a76d851386f0ee25d6a48c2b802e6967d47e2973f674ccad2fd002ee914e",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker/reply-5.pb": "86e4d726fe41b22700fd7effe067c1a2cceb791f9fd51f3fa494cc991e0de261",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker/reply-1.pb": "8e150c0254f79f672130bc0eec6f0a0c3b355dd0eb0d1cc4a75fd6ab091ef5db",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker/reply-3.pb": "a8614ca432d7529aa65af1af223ce9eef19ed6e465919f33f87c7faa7bc8f14f",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker/result.json": "8d18354ae3240c6585b8b7d0e6a0923300f9e68d0dd56a7e304413c5edede7c2",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker/native/runTest-coordinator.log": "c95705a0c62ae665ba86334a13ef4efaf54ea97062d37a712615dffecc2a0469",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-cancellation-02/runs/debug-reverse01/worker/native/runTest-server-0.log": "b864274dc2e85e40494100de28fb2bdd074dbf777af38f9f865f7bf227f2c822",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller-review.json": "da30a7e6bdd6f3aaf8f641b864b02fadcb1923c9c1365dc24c5c5019c61cdfc0",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller.log": "bd40a3373b8c78a44b4f220e59866d8473860a356b8719d21d73dc72cbe42a39",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/complete-barrier.pb": "e8594f507fef9a8dcad6291be57ffac18184086495d5f328fba307c6dd20ab7f",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/sb16-2-reply-3.pb": "a6d032b1d2036dfe8a8a09a312ced71a7167eeca77d2af46dc4a57698e156516",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/sb16-reply-4.pb": "08591f396ea062750b49b22933bd848907ee231eec2125190a39f1ed97e7a653",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/sb16-2-reply-6.pb": "3f7e0699378a899903d02d75d44291594e01dfe5b7091796bfc205af6025fe77",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/ready.json": "a3bd051b085c70c6b71cf8f7d86e45162a7205ae8f7de315de6be79936af5d8c",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/sb16-2-reply-5.pb": "7a98cf5ad7217f67b05d504683ea462f3256903059aeeabb148319dfd5cdcc30",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/sb16-2-reply-9.pb": "0a760371fb12d2504cf238e92ecaa4e4c6c5c94ba4d7f049f9d2968c82baf7b7",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/sb16-2-reply-7.pb": "4e931caf914a7edb269c59caa78e68932ee3693f452d520882bcc1abda995e77",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/pending-barrier.pb": "6623d30775b1227870016249d9c4768b096afba9e53862bbda7dc7af2949c662",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/sb16-reply-1.pb": "501ddc81bd64927866947587dfa4df4b6d56b18c628000b1dd981e9911beb91d",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/sb16-2-reply-2.pb": "fcc103d2c1c254653f6bab0406d36256aac87cedf97afccf153c959a2a73c5ad",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/sb16-reply-8.pb": "1edbf0651136758030267eeea7b53e8cca50011251bff68985dfc87ba39274eb",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/controller/result.json": "e1ef59e956af61a86b50cbbadcf251785ffe51a7c3cfeabcaf36611db9f48df9",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/worker-review.json": "c6378706c189c1d8e1e7f8d9f134e2f05c58d13cb495bbf66fdb791c7821b74e",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/worker.log": "fe7c5159c98bfd718ddb107256bf9e124fdb69f4af2586a2406f8750f908af14",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/worker/reply-1.pb": "501ddc81bd64927866947587dfa4df4b6d56b18c628000b1dd981e9911beb91d",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/worker/reply-4.pb": "08591f396ea062750b49b22933bd848907ee231eec2125190a39f1ed97e7a653",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/worker/result.json": "494debd93ac55cda801c0cef44b4acd5ca56d2696e44b3df12b81d8764fcb0a9",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/worker/native/runTest-coordinator.log": "519439f5df65326b4f5d796ccade9608a97b5bdcd9ec8159c56050b71a41444d",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-cancellation-03/runs/debug-forward01/worker/native/runTest-server-0.log": "499766f9dfe853f37cd5e7891d23ed3b1a9864903e1b8047dbf16dbeb0e1a062",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker-review.json": "43fd3bbfac416b8cac8ab35d72c75828d9c844ea70f9ebc35a7c7c4ad960ba28",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker.log": "d4c2b70fddffae20d7370ceb788cbdc4a9c1cb79308acbb0d7f80578b3556b1c",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/reply-6.pb": "9c1a51b2ab4947c4eab9af85c491410e85ab79677d0c7dfa96ad5ffd409202ae",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/reply-5.pb": "550b62ec9379ace5060ec9b380db41065828fa70952cfb3cb7527497bbaaf879",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/reply-1.pb": "df21dcb0aa1be04d56b3a3cb1bff697000b92f110ad58431eff3a86857b4835b",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/reply-3.pb": "8b11db1b941809df5779cd3cb93b43fb3315b01b6ad57edefb7d50858f552d38",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/reply-7.pb": "09e543b33493c6ac37692d8a3d1b5af39378a63b90b69a73769b9c4da0c3a088",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/result.json": "ae2018979511cfb1c399903c9616f3c90ff0f0be9acd7fa3bd39f1b486961cf0",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/native/runTest-coordinator.log": "54c93535a3cec10e0afbabb7dc1d03609b83b3b7bcea14e90bcdf229a65d533e",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-cancellation-03/runs/debug-reverse01/worker/native/runTest-server-0.log": "320ec55c4547162a6b2142185a4f4132b47e3478ad7e3adb825e9d1908c362e4",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller-review.json": "758123bbe0ab5053ca3ff0e2d1a4f19d287d75a7e4d79bcbc8d31f1ba7b8a36d",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller.log": "8bd9cd2e712d2124881803a99978892e28bd66f7b8ebd2141d7745da11fce72c",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/complete-barrier.pb": "e62b383665eaaca01c3e109468c9f2ed38ee18e5574a99282ce64394aabdf913",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/sb16-2-reply-3.pb": "544663d5065d7f719c8bf1a927e60713c44d33db4020bb15ee0640ef4d11977b",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/sb16-reply-4.pb": "ce5e4b9e5c4fe7c84a9e7762806aeb86553dd62977d0846c459bfe5cfc4fc826",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/sb16-2-reply-6.pb": "a214ec50d6df001f8c06893c5d209721da6836caf669adcc4ae0f39d0d2ad4a5",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/ready.json": "f111f38ed6c05d6601a50326263f900c9a5e4d007be0c5b18df49677b75216c0",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/sb16-2-reply-5.pb": "b4e30c99ac3bc6f8726fe3d28eb2151e24cf1eed10ea2cc1f903373ca692ce63",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/sb16-2-reply-9.pb": "0a760371fb12d2504cf238e92ecaa4e4c6c5c94ba4d7f049f9d2968c82baf7b7",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/sb16-2-reply-7.pb": "9c1507a9bd82869f0546699fa754f8cffcc886b845e8ae691750403da297693f",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/pending-barrier.pb": "3d15d107992a22476c5ceb1e71e0e261c2d86c37f0c993f5af04a6b294dbf6aa",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/sb16-reply-1.pb": "06a3030e328ae906edd7cfe465b6ca30b3df503573b98807e8747faadda8bd70",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/sb16-2-reply-2.pb": "45d9e8fa69ac4bf730cd265d96cda2d570601ff643100da1f399c9926b871bc8",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/sb16-reply-8.pb": "1edbf0651136758030267eeea7b53e8cca50011251bff68985dfc87ba39274eb",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/controller/result.json": "be4ea842b05540f3d2a5bed1479334978bdd7dd4c74393baebcb93838a6ab53b",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/worker-review.json": "4846d0aa93de12050f1305bd977c3059d87a2523658b2ba88eff7da8f545a439",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/worker.log": "3805262c09b7721ef4dc42153b6629eab452a7b8ee96e94169dd015a6ee448ba",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/worker/reply-1.pb": "06a3030e328ae906edd7cfe465b6ca30b3df503573b98807e8747faadda8bd70",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/worker/reply-4.pb": "ce5e4b9e5c4fe7c84a9e7762806aeb86553dd62977d0846c459bfe5cfc4fc826",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/worker/result.json": "8f2b5e058f5d9c0248183be77b4d5cce6a12b50f274d5b09129494fb9d49418c",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/worker/native/runTest-coordinator.log": "e68d9fb478a747eb9760e980372a8c3ef209c04efe851d0a418bf216069607e5",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-forward01/worker/native/runTest-server-0.log": "dbca01739dfbd6e6a0eec453a134913eab68e40d4af59d79686ac3cb3a1d7561",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker-review.json": "df6a9f5fbd0b3e98b750c50c8aadf27ea359b612d73f8c75e21289f78c702a33",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker.log": "981642d9ffad26fb68da8cf11b5c4081671b7779ea0ddae710d67bbccacafa78",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/reply-6.pb": "e722725abdc12b4cde168876253f5645cf2f0bd57bf335258cd050831802dd76",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/reply-5.pb": "6ce417db44cd2acb11793c16ba0b500e71591a8bc2544928bd64363a726a1cf6",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/reply-1.pb": "d5a7a047aa3558a3f59df614b048a1756851e5ec7090743d65b9e4c8608a7577",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/reply-3.pb": "31c84370366f5912870879915bc37c79c6372e6c6bead446da83c76786f9c99d",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/reply-7.pb": "7dd6e71ba3e73f02a0139c167f29e6af6cb3d392330def37c6a8ac641442c614",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/result.json": "1b0c5fff8a49c31a45448d3fe34c319764852cd3664987d762ba8284431b0181",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/native/runTest-coordinator.log": "64f0339513b0f67f4968956578f2b7630eafa9df9347d028615c9285a3549a87",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/worker/native/runTest-server-0.log": "2f8f7cd045bd1f72e05fbc3d97e21e7d61e1c2a59b2bc14bae34fc67cf2cf0d2",
+    "m02-crosshost-cancellation-02/related/debug/authority-owned-participant.log": "2e06623d1549fc723fbab0efbf9e70ea2e84e18a0dcdbba8c8d4609f09adade9",
+    "m02-crosshost-cancellation-02/related/debug/review.json": "cb22d2fe0a63874bb6f0306bc69cb48e0d1c9744d131822cd1be67e4dff72511",
+    "m02-crosshost-cancellation-02/related/debug/session-application.log": "9ad931dbdf304eac45093e3c4829a4f77df73d1985e751ee591d2fefa53d123e",
+    "m02-crosshost-cancellation-02/related/debug/native/test_wrong_supervisor_keys_cannot_approve_or_start_the_owned_launch-server-0.log": "5a94449a8508ee969d9cc6fd21ff6383a464a505dd6ddd2f0ff0cdfb7099af61",
+    "m02-crosshost-cancellation-02/related/debug/native/test_world_crash_preserves_application_and_pending_owned_reservation-server-0.log": "3a6ebb705825968558e284620e463e2372677da5e37db2f67edd7a4c9a118323",
+    "m02-crosshost-cancellation-02/related/debug/native/test_failed_exec_cannot_activate_a_generation-server-0.log": "5e8e98c12e5ba3f4bd7edbe732092bf98022f8c0f6eb2c570ca20c3eda00a745",
+    "m02-crosshost-cancellation-02/related/debug/native/test_world_crash_preserves_application_and_pending_owned_reservation-coordinator.log": "4c77f7941635cab18859b6f764c750af29ff241b61be5374c545c59e794c745b",
+    "m02-crosshost-cancellation-02/related/debug/native/test_world_crash_preserves_application_and_pending_owned_reservation-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "m02-crosshost-cancellation-02/related/debug/native/test_restart_does_not_reconstruct_approved_live_ownership-server-0.log": "d1ca56fea35fa3ec5b4949c371e093ac00dd79572a497ad219301ffe1a3ac355",
+    "m02-crosshost-cancellation-02/related/debug/native/test_actor_stop_releases_native_input_and_its_reservation-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-02/related/debug/native/test_worker_failure_blocks_execution_after_approval-server-0.log": "e62e69c374fd55b3e76f08dfc713de2130134a813a2875aca399e0c390029fd9",
+    "m02-crosshost-cancellation-02/related/debug/native/test_world_crash_preserves_application_and_pending_owned_reservation-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-02/related/debug/native/test_activation_cannot_precede_the_owned_child_start-server-0.log": "d159e79d09f489083f46a21fcf1cba942ba85edd067ff81d96d24cc8fffd7e7d",
+    "m02-crosshost-cancellation-02/related/debug/native/test_actor_stop_releases_native_input_and_its_reservation-server-0.log": "a07079c5dc05aba3011f4bc74023747c2bfc408761255f12c6512b6bf618bff1",
+    "m02-crosshost-cancellation-02/related/debug/native/test_recovery_requires_checked_cleanup_and_preserves_live_application-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-02/related/debug/native/test_actor_stop_releases_native_input_and_its_reservation-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-cancellation-02/related/debug/native/test_coordinator_owns_real_authenticated_participant_connection-server-0.log": "3f5d5112d54ffecde1de0e1a19793e774942c6025328b7163aef33a6f8671c74",
+    "m02-crosshost-cancellation-02/related/debug/native/test_recovery_requires_checked_cleanup_and_preserves_live_application-coordinator.log": "d6452e6bbc3b1252399a98bf7e27668fc07c606cf87d27baac48afb5bab91194",
+    "m02-crosshost-cancellation-02/related/debug/native/test_recovery_requires_checked_cleanup_and_preserves_live_application-server-0.log": "bf695310864f2d19009959574151e984599ae9da992efc30db821c79daee9655",
+    "m02-crosshost-cancellation-02/related/debug/native/test_child_observes_durable_exact_approval_and_retained_connection_activates-server-0.log": "43bb5016e53c6eb863ade36bc79d1f05ce2980c7acfb25fd3ff939b67d12bfbc",
+    "m02-crosshost-cancellation-02/related/debug/native/test_cleanup_does_not_retire_an_activated_issuer_generation-server-0.log": "05259d9af04fd642c9f5b446098e61602e715929f8cd24f8d9811f210f3ce6d2",
+    "m02-crosshost-cancellation-02/related/debug/native/test_actor_stop_releases_native_input_and_its_reservation-coordinator.log": "ea88ed887ad6304b9d77409aed578b8ef056a9d2b74f3fa408fa4fe6aba93810",
+    "m02-crosshost-cancellation-02/related/debug/native/test_supervised_child_cannot_execute_without_durable_authorization-server-0.log": "829eb27fab1bb95ad54ed2f21d069be5817f5f2f5ead3447c4e551cf344284b0",
+    "m02-crosshost-cancellation-02/related/debug/native/test_remote_approval_without_journal_commit_cannot_execute_and_exact_retry_recovers-server-0.log": "eabf09ca4d969321d7c3472e3920130d2e4b5b352db62c84ae88791b34345712",
+    "m02-crosshost-cancellation-02/related/debug/native/test_recovery_requires_checked_cleanup_and_preserves_live_application-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "m02-crosshost-cancellation-02/related/debug/native/test_identity_mismatch_is_rejected_before_attaching_a_worker-server-0.log": "5c8930256002d7a334924060cee06cb959c0d4cbeeca74f1ffb354752d86858d",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/authority-owned-participant.log": "f2743b9d7bbaf0e7900eeaa264f5514b4984add3a8af31bdd068dd04193dfc27",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/review.json": "426ebfb02e66a7ee98dcc0b805d7f3ce1f8843750647507a50795d4d03bc26d3",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/session-application.log": "fb0a9cfe3d339265186d782008916148bff3ca5952095c3ba72c746b2442b8cc",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_wrong_supervisor_keys_cannot_approve_or_start_the_owned_launch-server-0.log": "90752aa2f35af2503eff835f7f0b4f01b0a79a65e7850c88777ed433e1d295ae",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_world_crash_preserves_application_and_pending_owned_reservation-server-0.log": "2744e3d184f0eda22dd0cbb889783dc3ea76f38774d2a28b666bb2ed3d57f77f",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_failed_exec_cannot_activate_a_generation-server-0.log": "471bb27171b451ceadcae4181036694eeb843ef356fee07ea42dcd560c6040f3",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_world_crash_preserves_application_and_pending_owned_reservation-coordinator.log": "4c77f7941635cab18859b6f764c750af29ff241b61be5374c545c59e794c745b",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_world_crash_preserves_application_and_pending_owned_reservation-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_restart_does_not_reconstruct_approved_live_ownership-server-0.log": "e24863e0ae63ce88475b0152c083d099ef838b8396eaa4fa2861ea1dd2f7b6fe",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_actor_stop_releases_native_input_and_its_reservation-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_worker_failure_blocks_execution_after_approval-server-0.log": "25ae64698d4e72bfbffc7366aaa54a557608a341fa5e0ed5baf195839909683b",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_world_crash_preserves_application_and_pending_owned_reservation-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_activation_cannot_precede_the_owned_child_start-server-0.log": "0a91388975dcf52643da24ec0a30d840d846a65c1d98092d51dae630284bc082",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_actor_stop_releases_native_input_and_its_reservation-server-0.log": "92d0bbff42c717390fe40fe36c6b84074cd9aeb595e4e0aaa059b78081062867",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_recovery_requires_checked_cleanup_and_preserves_live_application-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_actor_stop_releases_native_input_and_its_reservation-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_coordinator_owns_real_authenticated_participant_connection-server-0.log": "c2a9edc1d7c582cc91ae3c01c1f7c2eca5cd487d7f1900fdf894fbd1d6bacf3a",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_recovery_requires_checked_cleanup_and_preserves_live_application-coordinator.log": "4c77f7941635cab18859b6f764c750af29ff241b61be5374c545c59e794c745b",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_recovery_requires_checked_cleanup_and_preserves_live_application-server-0.log": "7f4776275868248840db78985b991533e8498ca4489fd95eb999f55547a650b2",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_child_observes_durable_exact_approval_and_retained_connection_activates-server-0.log": "3925d15f6f6fd18bff0f00f5a6c383b8cf00a7b7c17483c45d2ed3a4e47889b9",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_cleanup_does_not_retire_an_activated_issuer_generation-server-0.log": "74c99dd91d3a3b1749748586dcf093e4900599191a4d610e9a3fff660d863747",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_actor_stop_releases_native_input_and_its_reservation-coordinator.log": "6e1bee987f91658f6add0f3cefc346e95de16aa75f8d0b23e6d0df96b769db0a",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_supervised_child_cannot_execute_without_durable_authorization-server-0.log": "eea6b5629b35436551196dfe99c09ddccb8cc512673586befb8681b7419f9376",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_remote_approval_without_journal_commit_cannot_execute_and_exact_retry_recovers-server-0.log": "0ec3fc4b3b46592b5e2faa8182ccd5781b1d6662acc7517fe9a2e6e14d0c2b29",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_recovery_requires_checked_cleanup_and_preserves_live_application-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "m02-crosshost-cancellation-02/related/runtime-sanitize/native/test_identity_mismatch_is_rejected_before_attaching_a_worker-server-0.log": "3b176a8a4d9f6d7fb1e54c26e3f8c3f2339f762d1b686aba04e44b8b6ed63fde"
+  },
+  "limitations": [
+    "Full M02 qualification remains pending on both hosts.",
+    "The two preserved intermittent timeout causes remain unresolved.",
+    "These scenarios revoke credentials across two independent worlds. They do not qualify shared-world geometry.",
+    "Further cross-host crash and recovery scenarios remain phase-gate work."
+  ]
+}

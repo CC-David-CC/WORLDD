@@ -1,0 +1,21 @@
+Running as unit: spatial-crosshost01-debug-forward01-worker.service; invocation ID: 41d8ba023ea34fcebc2674f9c9f8af4b
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py", line 415, in <module>
+    if options.mode == 'worker': worker()
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py", line 255, in worker
+    command = receive(stream, wire.CrossHostCommand)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py", line 60, in receive
+    size, = struct.unpack('!I', exact(4))
+                                ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py", line 57, in exact
+    if not part: raise EOFError('Cross-host fixture connection closed')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Cross-host fixture connection closed
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 7.941s
+CPU time consumed: 2.555s
+Memory peak: 1.5M
+Memory swap peak: 0B

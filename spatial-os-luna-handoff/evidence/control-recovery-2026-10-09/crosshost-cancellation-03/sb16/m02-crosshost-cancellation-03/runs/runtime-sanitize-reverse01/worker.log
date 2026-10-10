@@ -1,0 +1,7 @@
+Running as unit: spatial-crosshost03-runtime-sanitize-reverse01-worker.service; invocation ID: d6658950d20e4feaa17028477c9f3d46
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 11.176s
+CPU time consumed: 3.893s
+Memory peak: 1.5M
+Memory swap peak: 0B

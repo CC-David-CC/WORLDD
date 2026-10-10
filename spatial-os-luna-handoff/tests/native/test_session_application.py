@@ -45,10 +45,13 @@ def register_workspace(fixture):
 class SessionApplicationTests(existing.SessionActorTests):
     coordinator_probe = 'spatial-session-application-probe'
 
+    def enrolled_actor(self):
+        return self.issuer.decide(self.issuer.peer, self.issuer.enroll(self.issuer.peer)).enrollment
+
     def setUp(self):
         registry = existing.base.baseline.supervisor.owned.registry.SupervisorRegistryTests
         with patch.object(registry, 'register', register_workspace): super().setUp()
-        self.actor = self.issuer.decide(self.issuer.peer, self.issuer.enroll(self.issuer.peer)).enrollment
+        self.actor = self.enrolled_actor()
         self.claims = self.issuer.claims(self.actor, self.issuer.info)
         self.principal = grants.ActorRef(issuer_id=self.claims.issuer_id, actor_id=self.claims.actor_id)
         self.coordinator_sequence = self.action_sequence = self.probe_sequence = 0
@@ -221,6 +224,9 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.assertFalse(state.channel_fenced); self.assertEqual(len(state.reservations), 1)
         self.lease = state.reservations[0]
         self.assertEqual(self.lease.application, self.app); self.assertEqual(self.lease.principal, self.principal)
+        self.check_active_participants()
+
+    def check_active_participants(self):
         # Both real issuer participants activated under their retained supervisors.
         with sqlite3.connect('file:' + str(self.issuer.state / 'identity.db') + '?mode=ro', uri=True) as db:
             rows = db.execute('SELECT active FROM authority_activation').fetchall()

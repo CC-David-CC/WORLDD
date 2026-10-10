@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: Cross-host credential cancellation passes focused native checks
+
+Both issuer directions passed in Debug and runtime ASan/UBSan. All four coordinated scenarios passed.
+Each scenario uses one real issuer and a native production session on each host.
+The issuer tracks four exact world and broker generations across two independent worlds.
+One world's encrypted replies remain held while the other host releases its native input and control reservation.
+Saved replies prove nonzero held bytes and unreleased input on the delayed host before relay release.
+Both applications remain responsive. Revoked actor requests fail. All four obligations complete through acknowledgements.
+The two affected existing suites passed 14 cases per host per profile: 56 cases total, without failures or skips.
+Read evidence/control-recovery-2026-10-09/crosshost-cancellation-03/primary-review.json.
+
+Candidate01 failed at fixture teardown. The fixture tried to stop its broker before its world.
+Candidate02 corrected that order. The original failure and two exploratory Debug successes remain preserved.
+Candidate03 strengthens the encrypted-delay witness. Compiled inputs remain identical across all three candidates.
+All 347 source hashes match. All 41 locked files remain unchanged. No production runtime behavior changed.
+
+These checks qualify delayed credential cancellation. Shared-world geometry and remaining failure races still need qualification.
+The two earlier intermittent timeout causes remain unresolved. The complete both-host M02 phase gate remains pending.
+M02 and Spatial-M1 remain incomplete. No normal desktop session or database changed.
+
+
 ## 2026-10-10: Four controlled interruption scenarios pass focused checks
 
 All four scenarios passed in Debug and runtime ASan/UBSan on sb16, without failures or skips.

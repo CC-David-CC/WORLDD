@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "issuer_host": "sb16",
+  "delayed_host": "sb16-2",
+  "bundle": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-03/runs/debug-forward01/controller/private-bundle",
+  "control_port": 41005,
+  "issuer_port": 48773,
+  "issuer_id": "767c3e11ab440f703ba578bf188660279ccf9a5f9b4649d4408ba9dec066ca04",
+  "active_participants": 4,
+  "exact_active_generations": 4,
+  "committed_revision": 1,
+  "pending_obligation_observed": true,
+  "native_cancellation_hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "applications_survived": 2,
+  "complete_by_acknowledgement": true
+}

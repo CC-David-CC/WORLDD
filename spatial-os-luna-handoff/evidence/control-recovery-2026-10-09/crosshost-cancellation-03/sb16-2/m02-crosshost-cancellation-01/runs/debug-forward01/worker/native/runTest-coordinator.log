@@ -1,0 +1,11 @@
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+authority participant failed: code=26 request=0 stage=revocations cause=Issuer TLS connection failed
+authority participant failed: code=26 request=0 stage=revocations cause=Issuer TLS connection failed
+authority supervisor: Private participant channel closed
+authority participant failed: code=26 request=0 stage=private_channel cause=Authority participant channel failed; reconciliation is required
+authority supervisor crash fencing unresolved: Issuer connection failed
+worldd: Management reader disconnected
+control owner channel fenced: Private participant channel closed
+workspaced: Workspace supervisor disconnected
+authority supervisor: Private participant channel closed
+authority supervisor crash fencing unresolved: Issuer connection failed

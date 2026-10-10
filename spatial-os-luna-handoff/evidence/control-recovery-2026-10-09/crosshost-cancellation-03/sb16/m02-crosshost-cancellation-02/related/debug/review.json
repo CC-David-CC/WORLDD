@@ -1,0 +1,67 @@
+{
+  "status": "passed",
+  "host": "sb16",
+  "profile": "debug",
+  "started": 1791646477.3243945,
+  "selection": "^(authority-owned-participant|session-application)$",
+  "purpose": "Verify default fixture behavior and native application callers after shared-issuer fixture hooks.",
+  "build_review_sha256": "70e09dcba492b59d56c871cfa50d3f8c6860eadf0dff230e85855ba5f12c4d16",
+  "tests": [
+    {
+      "name": "authority-owned-participant",
+      "command": [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-owned-participant-04f6dc0ecdae1395aa1a77201cfe43a00fe211724dde9e82008bfe094bba1ed7",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-02/related/debug/native",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/test_authority_owned_participant.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/spatial-issuer-client"
+      ],
+      "started": 1791646477.3246949,
+      "exit_code": 0,
+      "ended": 1791646486.0412223,
+      "log_sha256": "2e06623d1549fc723fbab0efbf9e70ea2e84e18a0dcdbba8c8d4609f09adade9"
+    },
+    {
+      "name": "session-application",
+      "command": [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-session-application-04f6dc0ecdae1395aa1a77201cfe43a00fe211724dde9e82008bfe094bba1ed7",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-02/related/debug/native",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/test_session_application.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/spatial-security-auth",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build/spatial-issuer-client"
+      ],
+      "started": 1791646486.041593,
+      "exit_code": 0,
+      "ended": 1791646497.0161278,
+      "log_sha256": "9ad931dbdf304eac45093e3c4829a4f77df73d1985e751ee591d2fefa53d123e"
+    }
+  ],
+  "ended": 1791646497.3536232
+}

@@ -130,6 +130,21 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/grants_pb2.py"
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1/grants.proto
     DEPENDS proto/spatial/authority/v1/grants.proto proto/spatial/core/v1/core.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(grants-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/grants_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/crosshost_revocation_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/crosshost_revocation.proto
+    DEPENDS tests/proto/crosshost_revocation.proto proto/spatial/identity/v1/issuer.proto
+        proto/spatial/supervisor/v1/launch.proto proto/spatial/workspace/v1/broker.proto protobuf::protoc VERBATIM)
+add_custom_target(crosshost-revocation-python-protobuf ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/crosshost_revocation_pb2.py")
+add_dependencies(crosshost-revocation-python-protobuf issuer-python-protobuf launch-python-protobuf)
 
 option(SPATIAL_SANITIZERS "Enable address and undefined-behavior sanitizers" OFF)
 option(SPATIAL_INPUT_TESTS "Require the project XLibre actor-input counterexamples" OFF)

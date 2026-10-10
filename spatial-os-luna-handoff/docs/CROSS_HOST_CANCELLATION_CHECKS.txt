@@ -1,0 +1,31 @@
+Cross-host cancellation qualification
+
+Use one real issuer and two native production sessions, one on each allowed host.
+Each session has its own world, workspace, broker, compositor, and confined native application.
+Register four independent authority identities with unique domains and real supervisor keys.
+Use one enrolled fixture actor on both hosts. Keep all fixture private keys outside Git.
+Use Protocol Buffers over mutually authenticated TLS for test coordination and production issuer traffic.
+Do not rely on SSH trust between the world hosts.
+
+Hold one world's issuer reply stream after both hosts hold native keys and buttons.
+Commit credential revocation at the issuer.
+Require the held world's exact generation to remain an incomplete obligation.
+Independently record nonzero encrypted reply bytes held at the relay before release.
+Require the other host to release its native input and application reservation.
+Release the held stream. Require native cancellation on that host too.
+Require all four issuer obligations to complete only after actual acknowledgements.
+Keep independently authorized applications alive and responsive after controller credential revocation.
+Reject further actor requests with the revoked credential.
+Repeat with the issuer and delayed host roles reversed.
+
+Use production 5000 ms transport deadlines in this new network fixture.
+Do not change the 700 ms deadlines in existing tests.
+An opaque TCP relay delays encrypted bytes. It cannot fabricate an issuer reply or acknowledgement.
+The controller independently reads the actual issuer database after both worker startup replies.
+Workers report native witness results. A worker startup reply alone is not a PASS.
+
+First run Debug startup and cancellation on both real hosts.
+Run affected existing owned-participant and native-application tests after the fixture refactor.
+Then run the new scenarios in runtime sanitizers on both hosts.
+Preserve failing candidates and all independent native evidence.
+Full M02 qualification and the two earlier intermittent timeout investigations remain pending.

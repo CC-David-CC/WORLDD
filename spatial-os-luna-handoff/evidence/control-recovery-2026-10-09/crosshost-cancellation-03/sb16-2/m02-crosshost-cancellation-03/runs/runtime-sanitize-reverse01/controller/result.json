@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "issuer_host": "sb16-2",
+  "delayed_host": "sb16",
+  "bundle": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-03/runs/runtime-sanitize-reverse01/controller/private-bundle",
+  "control_port": 39873,
+  "issuer_port": 39517,
+  "issuer_id": "840a3841891fbb1eaa09d57d6199d7c2ad44b04a8c220b0a2bcff031c70e51be",
+  "active_participants": 4,
+  "exact_active_generations": 4,
+  "committed_revision": 1,
+  "pending_obligation_observed": true,
+  "native_cancellation_hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "applications_survived": 2,
+  "complete_by_acknowledgement": true
+}

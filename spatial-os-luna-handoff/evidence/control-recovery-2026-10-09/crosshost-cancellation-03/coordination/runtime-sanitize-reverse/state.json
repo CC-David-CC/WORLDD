@@ -1,0 +1,43 @@
+﻿{
+    "results":  [
+                    {
+                        "exit_code":  0,
+                        "mode":  "controller",
+                        "machine":  "sb16-2"
+                    },
+                    {
+                        "exit_code":  0,
+                        "mode":  "worker",
+                        "machine":  "sb16"
+                    },
+                    {
+                        "exit_code":  0,
+                        "mode":  "worker",
+                        "machine":  "sb16-2"
+                    }
+                ],
+    "profile":  "runtime-sanitize",
+    "direction":  "reverse",
+    "status":  "passed",
+    "source_tag":  "03",
+    "nodes":  [
+                  {
+                      "exited":  true,
+                      "pid":  23380,
+                      "mode":  "controller",
+                      "machine":  "sb16-2"
+                  },
+                  {
+                      "exited":  true,
+                      "pid":  21672,
+                      "mode":  "worker",
+                      "machine":  "sb16"
+                  },
+                  {
+                      "exited":  true,
+                      "pid":  2056,
+                      "mode":  "worker",
+                      "machine":  "sb16-2"
+                  }
+              ]
+}

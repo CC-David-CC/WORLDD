@@ -14,22 +14,25 @@ import launch_pb2 as pb
 import process_scope_pb2 as process_pb
 
 class OwnedParticipantTests(existing.AuthorityLaunchTests):
+    def issuer_fixture(self):
+        return registry.SupervisorRegistryTests('runTest')
+
     def setUp(self):
         super().setUp()
-        self.issuer=registry.SupervisorRegistryTests('runTest')
+        self.issuer=self.issuer_fixture()
         def cleanup_issuer():
             self.issuer.tearDown()
             self.assertTrue(self.issuer.doCleanups(),'Issuer fixture cleanup failed')
         self.addCleanup(cleanup_issuer);self.issuer.setUp()
         self.assertTrue(self.issuer.bind().HasField('supervision'))
         self.binding.CopyFrom(pb.AuthorityLaunchBinding(issuer_id=self.issuer.info.issuer_id,
-            participant_id=self.issuer.registration.participant.id,registered_revision=1,
+            participant_id=self.issuer.registration.participant.id,registered_revision=self.issuer.registration.registered_revision,
             service_incarnation=os.urandom(32),supervised=True))
 
     def runtime_config(self,**changes):
         config=identity.AuthorityParticipantRuntimeConfig(protocol_version=1,
             issuer_client_config=str(self.issuer.config_file()),private_key_path=str(self.issuer.signer),
-            participant_id=self.binding.participant_id,registered_revision=1,
+            participant_id=self.binding.participant_id,registered_revision=self.binding.registered_revision,
             service_incarnation=self.binding.service_incarnation)
         for n,v in changes.items():setattr(config,n,v)
         path=self.root/('runtime-'+str(time.monotonic_ns())+'.textproto')

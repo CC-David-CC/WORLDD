@@ -1,0 +1,8 @@
+Running as unit: spatial-crosshost02-debug-reverse01-controller.service; invocation ID: e5780983f05f41b0bdd72e29140efcb9
+Ready for workers
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 40.412s
+CPU time consumed: 1.581s
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -1,0 +1,30 @@
+Running as unit: spatial-crosshost01-debug-forward01-worker.service; invocation ID: 3b1cbaafe16d46dbbad35b96b3ded8ba
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py", line 415, in <module>
+    if options.mode == 'worker': worker()
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py", line 275, in worker
+    fixture.feed.set_hold(False); fixture.finish_session()
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/test_session_application.py", line 242, in finish_session
+    stopped = self.request(stop_session=launch.AuthorityLaunchQuery()).cleanup
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/test_session_application.py", line 140, in request
+    self.assertEqual(reply.HasField('error'), expect_error, reply)
+  File "/usr/lib/python3.12/unittest/case.py", line 885, in assertEqual
+    assertion_func(first, second, msg=msg)
+  File "/usr/lib/python3.12/unittest/case.py", line 878, in _baseAssertEqual
+    raise self.failureException(msg)
+AssertionError: True != False : protocol_version: 1
+request_id: 8
+error {
+  code: INVALID_ARGUMENT
+  message: "Stop retained world scopes before the session broker"
+}
+
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 8.055s
+CPU time consumed: 1.421s
+Memory peak: 512.0K
+Memory swap peak: 0B

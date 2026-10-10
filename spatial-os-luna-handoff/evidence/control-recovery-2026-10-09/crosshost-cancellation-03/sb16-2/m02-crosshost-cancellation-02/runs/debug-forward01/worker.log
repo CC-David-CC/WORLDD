@@ -1,0 +1,7 @@
+Running as unit: spatial-crosshost02-debug-forward01-worker.service; invocation ID: 43703e52e994433cb8399e38a155050d
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 8.308s
+CPU time consumed: 2.571s
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -1,0 +1,15 @@
+Running as unit: spatial-session-application-04f6dc0ecdae1395aa1a77201cfe43a00fe211724dde9e82008bfe094bba1ed7.service; invocation ID: 4b2ea8a0f65949799b941542541577c4
+test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionApplicationTests.test_actor_stop_releases_native_input_and_its_reservation) ... ok
+test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionApplicationTests.test_world_crash_preserves_application_and_pending_owned_reservation) ... ok
+test_recovery_requires_checked_cleanup_and_preserves_live_application (__main__.SessionApplicationTests.test_recovery_requires_checked_cleanup_and_preserves_live_application) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 13.351s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 13.547s
+CPU time consumed: 7.738s
+Memory peak: 1.5M
+Memory swap peak: 0B

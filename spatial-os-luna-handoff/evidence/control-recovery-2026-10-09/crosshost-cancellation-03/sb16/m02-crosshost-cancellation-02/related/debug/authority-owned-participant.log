@@ -1,0 +1,23 @@
+Running as unit: spatial-owned-participant-04f6dc0ecdae1395aa1a77201cfe43a00fe211724dde9e82008bfe094bba1ed7.service; invocation ID: 6728449626bc41368f56bd0677a062d5
+test_supervised_child_cannot_execute_without_durable_authorization (__main__.OwnedParticipantTests.test_supervised_child_cannot_execute_without_durable_authorization) ... ok
+test_coordinator_owns_real_authenticated_participant_connection (__main__.OwnedParticipantTests.test_coordinator_owns_real_authenticated_participant_connection) ... ok
+test_child_observes_durable_exact_approval_and_retained_connection_activates (__main__.OwnedParticipantTests.test_child_observes_durable_exact_approval_and_retained_connection_activates) ... ok
+test_identity_mismatch_is_rejected_before_attaching_a_worker (__main__.OwnedParticipantTests.test_identity_mismatch_is_rejected_before_attaching_a_worker) ... ok
+test_wrong_supervisor_keys_cannot_approve_or_start_the_owned_launch (__main__.OwnedParticipantTests.test_wrong_supervisor_keys_cannot_approve_or_start_the_owned_launch) ... ok
+test_remote_approval_without_journal_commit_cannot_execute_and_exact_retry_recovers (__main__.OwnedParticipantTests.test_remote_approval_without_journal_commit_cannot_execute_and_exact_retry_recovers) ... ok
+test_activation_cannot_precede_the_owned_child_start (__main__.OwnedParticipantTests.test_activation_cannot_precede_the_owned_child_start) ... ok
+test_failed_exec_cannot_activate_a_generation (__main__.OwnedParticipantTests.test_failed_exec_cannot_activate_a_generation) ... ok
+test_worker_failure_blocks_execution_after_approval (__main__.OwnedParticipantTests.test_worker_failure_blocks_execution_after_approval) ... ok
+test_restart_does_not_reconstruct_approved_live_ownership (__main__.OwnedParticipantTests.test_restart_does_not_reconstruct_approved_live_ownership) ... ok
+test_cleanup_does_not_retire_an_activated_issuer_generation (__main__.OwnedParticipantTests.test_cleanup_does_not_retire_an_activated_issuer_generation) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 8.559s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 8.654s
+CPU time consumed: 2.340s
+Memory peak: 1.5M
+Memory swap peak: 0B

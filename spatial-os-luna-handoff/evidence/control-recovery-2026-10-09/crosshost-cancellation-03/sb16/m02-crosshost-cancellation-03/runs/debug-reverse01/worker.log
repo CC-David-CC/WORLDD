@@ -1,0 +1,7 @@
+Running as unit: spatial-crosshost03-debug-reverse01-worker.service; invocation ID: d1ac3ee877474d10ac2a0ca2f17998c3
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 8.276s
+CPU time consumed: 1.453s
+Memory peak: 1.5M
+Memory swap peak: 0B

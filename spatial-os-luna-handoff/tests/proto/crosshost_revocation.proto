@@ -1,0 +1,54 @@
+syntax = "proto3";
+package spatial.testing.v1;
+import "issuer.proto";
+import "launch.proto";
+import "broker.proto";
+
+// Disposable acceptance setup. Private key files stay outside Git.
+message CrossHostBootstrap {
+  uint32 protocol_version = 1;
+  bytes run_id = 2;
+  string issuer_address = 3;
+  uint32 issuer_port = 4;
+  uint32 control_port = 5;
+  spatial.identity.v1.IssuerInfo issuer = 6;
+  spatial.identity.v1.EnrollmentRecord actor = 7;
+  bytes owner_public_key = 8;
+  bytes actor_public_key = 9;
+}
+message CrossHostJoin { bytes run_id = 1; string host = 2; }
+message CrossHostEmpty {}
+message CrossHostHold { bool enabled = 1; }
+message CrossHostCommand {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    CrossHostJoin join = 3;
+    CrossHostEmpty start = 4;
+    CrossHostHold hold_world_feed = 5;
+    CrossHostEmpty cancelled = 6;
+    CrossHostEmpty stop = 7;
+  }
+}
+message CrossHostState {
+  string host = 1;
+  string world = 2;
+  string workspace = 3;
+  spatial.supervisor.v1.AuthorityLaunchRecord world_launch = 4;
+  spatial.supervisor.v1.AuthorityLaunchRecord broker_launch = 5;
+  spatial.workspace.v1.ApplicationRef application = 6;
+  bool native_key_press = 7;
+  bool native_button_press = 8;
+  bool native_key_release = 9;
+  bool native_button_release = 10;
+  bool application_responded_after_cancellation = 11;
+  bool reservation_released = 12;
+  bool old_actor_rejected = 13;
+  bool feed_held = 14;
+  uint64 held_bytes = 15;
+}
+message CrossHostReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome { CrossHostState state = 3; string error = 4; }
+}

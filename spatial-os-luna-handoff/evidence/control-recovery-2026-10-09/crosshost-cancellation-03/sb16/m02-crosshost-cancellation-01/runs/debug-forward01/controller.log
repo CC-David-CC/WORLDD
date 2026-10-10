@@ -1,0 +1,22 @@
+Running as unit: spatial-crosshost01-debug-forward01-controller.service; invocation ID: 3bc5b96137b74802804a013aa64cb379
+Ready for workers
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py", line 416, in <module>
+    else: controller()
+          ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py", line 398, in controller
+    for name in HOSTS: call(name, stop=wire.CrossHostEmpty())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/crosshost_revocation.py", line 315, in call
+    assert reply.request_id == commands and reply.HasField('state'), reply
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 7
+error: "AssertionError: True != False : protocol_version: 1\nrequest_id: 8\nerror {\n  code: INVALID_ARGUMENT\n  message: \"Stop retained world scopes before the session broker\"\n}\n"
+
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 44.549s
+CPU time consumed: 682ms
+Memory peak: 1.5M
+Memory swap peak: 0B
