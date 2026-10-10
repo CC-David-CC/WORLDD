@@ -1,0 +1,25 @@
+Running as unit: spatial-world-crash-baseline01.service; invocation ID: 659ec39684994eafbe2ef92102c3df2c
+test_world_crash_delivers_checked_cleanup_while_broker_survives (__main__.WorldCrashTests.test_world_crash_delivers_checked_cleanup_while_broker_survives) ... FAIL
+
+======================================================================
+FAIL: test_world_crash_delivers_checked_cleanup_while_broker_survives (__main__.WorldCrashTests.test_world_crash_delivers_checked_cleanup_while_broker_survives)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_session_world_crash_01.py", line 49, in test_world_crash_delivers_checked_cleanup_while_broker_survives
+    self.assertTrue(cleanup.HasField('view'), 'Missing checked cleanup delivery after world crash: ' + str(cleanup))
+AssertionError: False is not true : Missing checked cleanup delivery after world crash: protocol_version: 1
+error {
+  message: "Session supervisor ownership lost"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 1.790s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 1.908s
+CPU time consumed: 516ms
+Memory peak: 1.5M
+Memory swap peak: 0B

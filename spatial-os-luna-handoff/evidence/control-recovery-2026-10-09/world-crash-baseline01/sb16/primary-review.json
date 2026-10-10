@@ -1,0 +1,15 @@
+{
+  "status": "confirmed_cleanup_delivery_defect",
+  "host": "sb16",
+  "failed": 1,
+  "expected_failure": true,
+  "cause": "SessionLaunch rejected the exited supervisor before draining a final checked cleanup record. The supervisor error protocol did not carry that record.",
+  "independently_checked": [
+    "World, compositor, and supervisor kernel exits",
+    "Both matching cleanup receipts in the saved journal",
+    "Live broker response after crash"
+  ],
+  "production_source_unchanged": true,
+  "archive_sha256": "b1df42d7c98da9ddac2b33efc4f4f231d57279adc79f8de920e49db0056a5506",
+  "correction_status": "New candidate04 building. Corrected crash and no-receipt counterexample remain unrun."
+}

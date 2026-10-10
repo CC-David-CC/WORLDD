@@ -1,0 +1,16 @@
+Running as unit: spatial-world-observation06-runtime-sanitize.service; invocation ID: 978a2845319d427997ae9d4b511a3e9e
+test_actual_world_owner_registers_and_broker_survives_world_shutdown (__main__.SessionWorldTests.test_actual_world_owner_registers_and_broker_survives_world_shutdown) ... ok
+test_caller_cannot_substitute_another_owner_generation (__main__.SessionWorldTests.test_caller_cannot_substitute_another_owner_generation) ... ok
+test_world_cannot_supply_its_own_broker_endpoint (__main__.SessionWorldTests.test_world_cannot_supply_its_own_broker_endpoint) ... ok
+test_broker_native_role_cannot_register_as_world (__main__.SessionWorldTests.test_broker_native_role_cannot_register_as_world) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 6.800s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 6.915s
+CPU time consumed: 3.317s
+Memory peak: 1.5M
+Memory swap peak: 0B

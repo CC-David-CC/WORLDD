@@ -84,7 +84,12 @@ message AuthorityLaunchView {
   AuthorityLaunchRecord record = 1;
   NativeScopeReady ready = 2; // Only during live preparation. Never persisted.
 }
-message AuthorityLaunchError { string message = 1; }
+message AuthorityLaunchError {
+  string message = 1;
+  // Optional final checked teardown, sent on the retained private management channel.
+  // This does not turn the failed launch into success or retire issuer obligations.
+  AuthorityLaunchRecord cleanup_record = 2;
+}
 // Dedicated private SOCK_SEQPACKET channel. No actor can access this interface.
 // A successful reply carries exactly one SCM_RIGHTS pidfd; an error carries none.
 // The snapshot must match the retained, authorized, running broker launch exactly.

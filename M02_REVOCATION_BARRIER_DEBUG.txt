@@ -627,3 +627,28 @@ Both hosts passed that component qualification. No new full cumulative queue was
 The earlier participant-approval startup failure remains unresolved despite five passing unchanged repetitions.
 World registration, selective release, dependent receipt, issuer retirement, and the complete M02 gate remain pending.
 No production session adopted this development branch. Physical, model, and complete Spatial-M1 evidence remain pending.
+
+2026-10-10: Session world registration implementation is in progress and untested.
+Source review confirms worldd starts its own RenderWorker, and Renderer claims exclusive SubstructureRedirect on the native root.
+This current process structure does not implement shared compositor lifetime across world transitions.
+Multi-world/native-session acceptance remains pending. Do not infer it from one-world registration tests.
+No second compositor was started on an operator display. Development checks use disposable native servers.
+
+2026-10-10: All 75 registration and related checks passed in Debug and sanitizers on sb16.
+Additional saved-journal and live descriptor-inventory observations passed in both profiles.
+A new Debug SIGKILL reproducer then confirmed a cleanup-delivery defect.
+The world, compositor, and supervisor exited. The saved journal had both checked cleanup receipts.
+The broker still answered, but SessionCoordinator reported Session supervisor ownership lost instead of the final receipt.
+The original registration source and binaries remain immutable. The crash failure is preserved separately.
+The proposed correction adds optional cleanup_record to AuthorityLaunchError and drains only the retained private channel.
+It preserves the launch failure and checks the exact original ownership and child exit outcome.
+It must not infer cleanup from a dead supervisor or reopened journal. Fresh tests remain pending.
+
+2026-10-10: Corrected candidate04 passed 77 selected cases in Debug and runtime sanitizers on sb16.
+Six real world-registration/recovery cases passed, including post-supervisor-exit receipt delivery and rejection when no receipt exists.
+The broker remained responsive after both crash cases. Saved records and live socket inventories were checked independently.
+The original crash-delivery failure remains preserved under world-crash-baseline01/sb16.
+All 330 tested source hashes match. All 41 locked files remain unchanged.
+The additive cleanup_record field and its validation rules are recorded in docs/SESSION_CONTROL_COORDINATOR.txt.
+Actor transport admission, native application survival, selective reservation release, dependent receipts, and issuer retirement remain pending.
+Shared compositor lifetime and the complete M02/M1 gates remain pending. No running session adopted the development branch.

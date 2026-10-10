@@ -851,7 +851,7 @@ endif()
 # Private administrative transport; the fixture launches only an independent packet witness.
 add_library(spatial-control-admin STATIC src/supervisor/control_admin.cpp)
 target_link_libraries(spatial-control-admin PUBLIC spatial-control-reply)
-add_library(spatial-session-broker STATIC src/supervisor/session_broker.cpp)
+add_library(spatial-session-broker STATIC src/supervisor/session_broker.cpp src/supervisor/session_launch.cpp src/supervisor/session_coordinator.cpp)
 target_link_libraries(spatial-session-broker PUBLIC spatial-authority-launch spatial-core spatial-control-admin)
 if(BUILD_TESTING)
     add_executable(spatial-control-admin-probe src/testing/control_admin_probe.cpp)
@@ -897,6 +897,19 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(session-broker PROPERTIES TIMEOUT 180)
+    add_executable(spatial-session-world-probe src/testing/session_world_probe.cpp)
+    target_link_libraries(spatial-session-world-probe PRIVATE spatial-session-broker)
+    add_test(NAME session-world COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-session-world-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_world.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(session-world PROPERTIES TIMEOUT 180)
     add_executable(spatial-child-handle-client-probe src/testing/child_handle_client_probe.cpp)
     target_link_libraries(spatial-child-handle-client-probe PRIVATE spatial-authority-launch)
     add_test(NAME supervisor-child-handle-client COMMAND "${Python3_EXECUTABLE}"

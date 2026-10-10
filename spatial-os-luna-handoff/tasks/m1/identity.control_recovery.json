@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "connect_retained_world_launch_ownership_and_broker_registration",
+  "current_step": "connect_actor_transport_and_native_selective_control_recovery",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,11 +12,11 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Connect retained world supervisor ownership and exact broker endpoint registration to the session coordinator.",
-    "Verify selective recovery release after checked native cancellation; preserve unrelated reservations and applications.",
+    "Admit real actor transport through the coordinator and retain broker authority independently of each world.",
+    "Verify native application survival and selective reservation release after checked world cleanup.",
     "Persist a checked dependent receipt before issuer retirement.",
-    "Resolve the preserved participant-approval startup failure before the complete gate.",
-    "Qualify the complete recovery path and cumulative profiles on both hosts."
+    "Resolve the preserved participant-approval startup failure before the full phase gate.",
+    "Qualify the complete M02 path and cumulative profiles on both hosts."
   ],
   "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
   "candidate": {
@@ -202,5 +202,24 @@
     "evidence": "evidence/control-recovery-2026-10-09/connected-02/sb16/primary-review.json",
     "integrated_to_main": false,
     "complete_M02_qualified": false
-  }
+  },
+  "world_registration": {
+    "candidate": "connected04",
+    "state": "Production coordinator registration and checked final receipt delivery passed all 77 selected cases per profile in Debug and runtime sanitizers on sb16. Complete M02 qualification remains pending.",
+    "host": "sb16",
+    "source_files": 330,
+    "locked_files": 41,
+    "new_world_cases": 6,
+    "related_cases": 71,
+    "baseline": "evidence/control-recovery-2026-10-09/world-crash-baseline01/sb16/primary-review.json",
+    "prior_registration_evidence": "evidence/control-recovery-2026-10-09/connected-03/sb16/focused-review.json",
+    "integrated_to_main": false,
+    "complete_M02_qualified": false,
+    "evidence": "evidence/control-recovery-2026-10-09/connected-04/sb16/primary-review.json",
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ]
+  },
+  "multi_world_presentation_limit": "Current worldd starts its own compositor. Shared compositor lifetime must be implemented before M1 world-transition acceptance."
 }

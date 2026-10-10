@@ -298,6 +298,7 @@ int main(int argc, char** argv) {
         }
     } catch (const std::exception& error) {
         std::cerr << "authority supervisor: " << error.what() << '\n';
+        std::optional<pb::AuthorityLaunchRecord> cleanup_record;
         if (launch && launch->inspect().revision()) {
             if (!explicit_shutdown) {
                 try { launch->fence_after_failure(); }
@@ -305,13 +306,15 @@ int main(int argc, char** argv) {
                     std::cerr << "authority supervisor crash fencing unresolved: " << fencing.what() << '\n';
                 }
             }
-            try { launch->stop(); }
+            try { cleanup_record = launch->stop(); }
             catch (const std::exception& cleanup) { std::cerr << "authority supervisor cleanup unresolved: " << cleanup.what() << '\n'; }
         }
         if (management) {
             try {
                 pb::AuthorityLaunchReply reply; reply.set_protocol_version(1);
-                reply.mutable_error()->set_message(error.what()); management->send(reply.SerializeAsString()); drain(*management);
+                reply.mutable_error()->set_message(error.what());
+                if (cleanup_record) *reply.mutable_error()->mutable_cleanup_record() = *cleanup_record;
+                management->send(reply.SerializeAsString()); drain(*management);
             } catch (...) { /* The durable journal retains the cleanup result when delivery fails. */ }
         }
         return 2;

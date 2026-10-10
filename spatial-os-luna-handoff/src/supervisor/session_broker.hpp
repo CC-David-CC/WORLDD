@@ -21,6 +21,7 @@ public:
     const v1::AuthorityLaunchRecord& launch() const;
     pid_t supervisor_pid() const;
     pid_t broker_pid() const;
+    void check_alive() const;
     v1::AuthorityLaunchRecord stop();
 private:
     struct Impl;

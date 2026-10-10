@@ -1,5 +1,5 @@
 Session control coordinator
-Status: Partial production implementation. SessionBroker owns the supervised broker. World coordination remains incomplete.
+Status: Partial production implementation. SessionCoordinator owns the broker and registers retained world launches. Complete control recovery remains unfinished.
 
 Invariant
 
@@ -157,3 +157,34 @@ This includes 15 receiver cases, four session-broker cases, and 46 related cases
 An incorrect early-rejection journal assertion was corrected without changing production binaries.
 The original failed assertion and corrected evidence remain preserved.
 Complete M02 qualification on both hosts remains pending.
+
+Final cleanup delivery contract change, 2026-10-10
+
+AuthorityLaunchError gains optional cleanup_record field 2. Existing field numbers remain unchanged.
+The supervisor includes this field only after its owned process and native cleanup both succeed.
+The launch failure remains an error. The supervisor still exits with status 2.
+A startup error cannot authorize a world or become a successful launch.
+
+SessionLaunch can drain the retained management channel after supervisor exit.
+It accepts a final record only against its already retained START_ATTEMPTED snapshot.
+Require the exact binding, authorization, process identity, native identity, and both matching cleanup receipts.
+Require a later record revision, the same schema version, and OWNED_SCOPES_STOPPED.
+Require the retained child exit status to match the reported failure or normal completion.
+Preserve the original failure diagnostic.
+EOF, a dead pidfd, or a reopened journal cannot substitute for this receipt.
+A supervisor killed before delivery leaves cleanup unconfirmed.
+This receipt does not release broker reservations or retire issuer obligations.
+
+The real crash reproducer found that cleanup finished but the prior coordinator lost its final evidence.
+The corrected path and the no-receipt supervisor-crash counterexample passed Debug and runtime sanitizers on sb16.
+All 77 selected checks passed per profile. Full M02 qualification remains pending.
+
+Current implementation limits
+
+The coordinator accepts an unmapped world launch configuration and supplies its broker endpoint.
+Explicit actor socket or listener admission through this coordinator remains unfinished.
+The six focused native cases use one world and its actual compositor on a disposable native server.
+They do not prove native application survival or selective reservation release after a world crash.
+The current world process starts its own compositor.
+Shared compositor lifetime across world transitions remains required before M1 acceptance.
+Do not start a second exclusive renderer on an operator display.

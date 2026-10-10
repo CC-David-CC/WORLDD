@@ -1,5 +1,34 @@
 # Implementation status
 
+## 2026-10-10: World registration and final cleanup delivery candidate
+
+SessionCoordinator now retains a world supervisor and registers its exact owner with the independently retained broker.
+The coordinator creates the world endpoint. Caller-supplied owner substitutions and broker endpoints are rejected.
+The world and compositor inherit no private coordinator sockets in the live descriptor checks.
+SessionLaunch now shares the actual supervisor lifecycle between broker and world ownership.
+
+The first candidate passed 75 selected checks per profile on sb16.
+Four additional journal and descriptor observations passed in each profile.
+A real SIGKILL test then exposed missing cleanup delivery after supervisor exit.
+The saved journal contained both checked receipts, and the broker still answered.
+The coordinator returned Session supervisor ownership lost instead of the receipt.
+Read evidence/control-recovery-2026-10-09/world-crash-baseline01/sb16/primary-review.json.
+
+The corrected protocol adds optional cleanup_record field 2 to AuthorityLaunchError.
+The supervisor still reports the launch failure and exits with status 2.
+The coordinator drains only its retained private channel and validates the original launch and exit outcome.
+An exited supervisor without a delivered receipt cannot establish cleanup.
+The correction passed all 77 selected checks in Debug and runtime sanitizers on sb16.
+Read evidence/control-recovery-2026-10-09/connected-04/sb16/primary-review.json and its raw logs.
+All 41 locked files remain unchanged. No host session adopted this branch.
+
+Remaining M02 work includes actor transport admission, native application survival, selective reservation release, and issuer retirement.
+A checked process/native receipt does not yet establish complete dependent cleanup.
+The earlier participant-approval startup failure remains unexplained.
+Shared compositor lifetime across world transitions also remains an M1 requirement.
+The current world process starts its own compositor. These one-world checks do not qualify multi-world presentation.
+M02 and Spatial-M1 remain incomplete. Full phase qualification remains pending on both hosts.
+
 ## 2026-10-10: Session broker ownership and receiving interface pass focused checks
 
 The M02 development branch now contains ChildHandleClient, ProcessHandle, and SessionBroker.
