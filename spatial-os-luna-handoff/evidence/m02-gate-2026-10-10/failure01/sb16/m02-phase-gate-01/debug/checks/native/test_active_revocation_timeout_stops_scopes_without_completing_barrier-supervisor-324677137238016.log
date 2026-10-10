@@ -1,0 +1,3 @@
+authority participant failed: code=26 request=0 stage=revocations cause=Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=704 gap_ms=10 tick_ms=0
+authority participant failed: code=26 request=0 stage=private_channel cause=Authority participant channel failed; reconciliation is required
+authority supervisor: Authority child exited without completed release

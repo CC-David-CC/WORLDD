@@ -1,0 +1,1 @@
+{"tables": [["authority_retirement"], ["issuer"]], "collision": "table authority_retirement already exists", "migration_exit": 2, "stderr": "identityd: Issuer database operation failed\n", "database_unchanged": true}

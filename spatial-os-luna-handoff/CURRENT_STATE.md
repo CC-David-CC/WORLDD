@@ -1,5 +1,31 @@
 # Implementation status
 
+## 2026-10-10: M02 gate found migration-fixture and startup failures
+
+The frozen candidate remains unchanged. sb16 completed all 124 Debug core suites; 123 passed and one failed.
+Its 51 Debug harness cases passed. Debug P10 and all sanitizer test segments remain unrun.
+The original sb16-2 Debug core run is still finishing with two known failed suites.
+Both hosts failed the version-one issuer migration fixture.
+That fixture retained authority_retirement, a version-ten table, before declaring version one.
+The correction removes that table and checks the exact version-one schema.
+The diagnostic confirmed the table collision and unchanged database after rejected migration.
+All 64 selected cases passed in Debug and 64 in runtime ASan/UBSan on sb16.
+The selected suites cover enrollment, issuer database rejection, and retirement migration rollback.
+Production code and locked acceptance files remain unchanged. Existing binaries were verified and reused.
+Read evidence/m02-gate-2026-10-10/issuer-v1-fixture-01/primary-review.json.
+The original failed gate evidence is retained in evidence/m02-gate-2026-10-10/failure01.
+
+sb16-2 also failed world-revision-interleave during world startup, before its injected stale reply.
+The participant activation timed out with reply_header progress 0/4 after 702 ms.
+The retained issuer log records work_ms=985 at monotonic_us=316997784114.
+Nearby resource samples show disk writeback and increasing I/O pressure without observed compiler overlap.
+These observations do not establish the delayed operation or resolve the historical timeout failures.
+
+The interim progress parser missed CTest failure rows without whitespace before ***Failed.
+Earlier no-failure progress summaries were incorrect. Command exits and final XML determine qualification results.
+Preserve the original logs and record failed, passed, and unrun segments separately.
+M02 and Spatial-M1 remain incomplete. No normal desktop or operator database changed.
+
 ## 2026-10-10: Complete M02 candidate qualification started on both hosts
 
 The reviewed timing diagnostics are committed and pushed to box-git at 54715f9a78aaa92911d2bb0a9c782f316f78902f.

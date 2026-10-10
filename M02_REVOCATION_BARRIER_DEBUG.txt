@@ -967,3 +967,43 @@ The existing authority cgroups provide process ownership and cleanup, not config
 Read spatial-os-luna-handoff/docs/M03_QUALIFICATION_AUDIT.txt.
 This audit changed no production code, frozen source input, running process, or host configuration.
 Prepared collectors and cross-host wrappers remain local and unexecuted until the full local qualification finishes.
+
+2026-10-10 gate failures and interim reporting correction
+Both hosts failed identity-enrollment/test_explicit_schema_migration_preserves_issuer_key_owner_and_policy.
+The fixture leaves authority_retirement in a database labelled version one. The original version-one schema contains only issuer.
+A prepared correction drops the later table and asserts the exact table inventory and schema version.
+No production migration, deadline, locked acceptance test, or acceptance contract changed.
+Selected focused suites: identity-enrollment, identity-issuer, identity-authority-retirement, in Debug and runtime sanitizers.
+Purpose: validate version-one migration, retain malformed database rejection, and check version-nine collision rollback.
+These selected checks remain unrun until the existing gate finishes on the test host.
+
+sb16-2 also failed world-revision-interleave/test_credential_reply_older_than_query_context_is_terminal.
+The failure occurred during scoped-world startup, before the relay was armed to inject an old revision.
+Retained world log: code=26 request=1 stage=activate, reply_header progress=0/4, elapsed_ms=702, gap_ms=10, tick_ms=0.
+Retained issuer log: monotonic_us=316997784114, poll_ms=10, work_ms=985.
+Remote evidence: local/m02-phase-gate-01/debug/checks/native on sb16-2, under spatial-os-luna-handoff.
+The resource samples around this timestamp show no compiler overlap, about 13 GB available RAM, and disk writeback.
+Between samples 316997.053 and 316998.095 seconds, full I/O-pressure time increased by about 596 ms.
+This correlation does not identify the blocked issuer syscall. Further bounded timing diagnosis remains required.
+
+The interim CTest parser required whitespace before the result and missed rows formatted dots followed immediately by ***Failed.
+Earlier no-failure interim updates were incorrect. The parser now accepts either spacing.
+The terminal collector uses command exit status and the CTest XML, independently of those progress summaries.
+The frozen candidate continues to completion of its current core command. Later segments stop after a nonzero result.
+Preserve the failures before focused corrections. Full M02 and Spatial-M1 qualification remain incomplete.
+
+2026-10-10 version-one fixture correction verified
+sb16 finished all 124 Debug core suites: 123 passed and identity-enrollment failed.
+Its 51 Debug harness cases passed. Debug P10 and sanitizer test segments were not run after the failure.
+Original gate evidence: spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/failure01/sb16/primary-review.json.
+Gate archive SHA-256: f2f24e7fb9005e2905411f5502f629f8aef62f88264184d034b3d263a1554b67.
+The bounded fixture diagnostic observed authority_retirement and issuer in the alleged version-one database.
+SQLite confirmed: table authority_retirement already exists. Failed migration retained identical database bytes.
+The corrected fixture passed all 25 enrollment, 18 issuer, and 21 retirement cases in each of two profiles.
+Result: 64 Debug and 64 runtime sanitizer passes, without failures or skips.
+Evidence: spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/issuer-v1-fixture-01/primary-review.json.
+Focused archive SHA-256: 6645dfbe63a624ecbef9810756435746ce62e19727e7affc40f1daf5936ca8ed.
+The fixture now requires exactly the original issuer table and schema version one before migration.
+All original migration, identity, key, policy, and enrollment assertions remain.
+Production binaries are unchanged and hash-verified. All 41 locked files remain unchanged.
+The sb16-2 startup timeout remains unresolved. Focused passes do not qualify the complete M02 phase.

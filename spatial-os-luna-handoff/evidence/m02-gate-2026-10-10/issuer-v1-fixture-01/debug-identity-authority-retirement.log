@@ -1,0 +1,26 @@
+test_retirement_completes_barrier_without_fabricating_applied_history (__main__.RetirementTests.test_retirement_completes_barrier_without_fabricating_applied_history) ... ok
+test_other_participant_keeps_obligations_and_active_generation (__main__.RetirementTests.test_other_participant_keeps_obligations_and_active_generation) ... ok
+test_revocation_between_fence_challenge_and_completion_is_covered (__main__.RetirementTests.test_revocation_between_fence_challenge_and_completion_is_covered) ... ok
+test_retired_generation_gets_no_new_revocation_obligations (__main__.RetirementTests.test_retired_generation_gets_no_new_revocation_obligations) ... ok
+test_fresh_exact_retry_and_nonce_replay_preserve_original_record (__main__.RetirementTests.test_fresh_exact_retry_and_nonce_replay_preserve_original_record) ... ok
+test_unread_completion_reply_can_retry_on_a_fresh_connection (__main__.RetirementTests.test_unread_completion_reply_can_retry_on_a_fresh_connection) ... ok
+test_management_pipe_cannot_retire (__main__.RetirementTests.test_management_pipe_cannot_retire) ... ok
+test_changed_cleanup_or_fence_cannot_replace_retirement (__main__.RetirementTests.test_changed_cleanup_or_fence_cannot_replace_retirement) ... ok
+test_wrong_keys_and_other_signature_purposes_cannot_retire (__main__.RetirementTests.test_wrong_keys_and_other_signature_purposes_cannot_retire) ... ok
+test_proof_cannot_cross_connections_and_nonce_is_consumed (__main__.RetirementTests.test_proof_cannot_cross_connections_and_nonce_is_consumed) ... ok
+test_missing_fence_cannot_retire (__main__.RetirementTests.test_missing_fence_cannot_retire) ... ok
+test_malformed_or_substituted_owner_is_rejected_without_mutation (__main__.RetirementTests.test_malformed_or_substituted_owner_is_rejected_without_mutation) ... ok
+test_insert_or_deactivation_failure_rolls_back_before_retry (__main__.RetirementTests.test_insert_or_deactivation_failure_rolls_back_before_retry) ... ok
+test_completed_retirement_survives_restart_and_exact_retry (__main__.RetirementTests.test_completed_retirement_survives_restart_and_exact_retry) ... ok
+test_old_service_stays_fenced_and_replacement_requires_fresh_authorization (__main__.RetirementTests.test_old_service_stays_fenced_and_replacement_requires_fresh_authorization) ... ok
+test_concurrent_identical_completions_return_one_retirement (__main__.RetirementTests.test_concurrent_identical_completions_return_one_retirement) ... ok
+test_expired_retirement_proof_cannot_commit (__main__.RetirementTests.test_expired_retirement_proof_cannot_commit) ... ok
+test_restart_invalidates_uncompleted_retirement_proof (__main__.RetirementTests.test_restart_invalidates_uncompleted_retirement_proof) ... ok
+test_corrupted_retirement_is_not_returned_or_overwritten (__main__.RetirementTests.test_corrupted_retirement_is_not_returned_or_overwritten) ... ok
+test_explicit_v9_migration_preserves_fence_active_generation_and_key (__main__.RetirementTests.test_explicit_v9_migration_preserves_fence_active_generation_and_key) ... ok
+test_failed_v9_migration_preserves_original_schema (__main__.RetirementTests.test_failed_v9_migration_preserves_original_schema) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 14.231s
+
+OK
