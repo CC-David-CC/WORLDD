@@ -1119,3 +1119,26 @@ The five previous mutation witnesses remain applicable to unchanged production a
 Only the enrollment migration method changed; its shared fixtures and imports remain unchanged.
 Read candidate02-mutation-reassessment.json. Do not claim a new mutation run or identical executable bytes.
 M02 and Spatial-M1 remain incomplete. Historical timeouts remain unresolved.
+
+2026-10-10 candidate02 durable-sync stall captured
+Candidate02 reproduced the activation failure on sb16 during its traced Debug sequence.
+The client received no reply-header bytes before its 700 ms deadline.
+The issuer spent 1053594 and 380364 microseconds in two successful fdatasync calls.
+Those calls account for 1433958 microseconds within the recorded 1487 ms issuer work interval.
+The same interval had filesystem writeback and no observed compiler processes.
+Nearby samples show 274912 KiB dirty memory and 39828 KiB in writeback, followed by 45936 KiB in writeback.
+Compilation had ended about 22 seconds earlier. Build and fixture directories share the same ext4 filesystem.
+
+On sb16-2, four fdatasync calls took 739860 microseconds within a 786 ms work interval.
+Its initial-world release timed out after 703 ms. The overall stale-reply suite nevertheless passed.
+Do not report that host's suite as failed from the native cleanup log alone.
+Read evidence/m02-gate-2026-10-10/writeback-snapshot-01/primary-review.json.
+Both sets of raw snapshots preserve the live diagnostic sequence. They are not terminal qualification reports.
+
+Slow issuer durability calls are directly measured in this reproduction.
+The timeline supports residual build-writeback contention. It does not identify every dirty page's owner.
+Both original runners remain active. Do not flush the filesystem or start another job during their test sequences.
+After terminal collection, prepare an explicit post-build filesystem sync before further untraced qualification.
+Keep production deadlines, test assertions, and database durability unchanged.
+This scheduling change is not yet executed or qualified. Historical failures remain individually unresolved.
+M02 and Spatial-M1 remain incomplete.

@@ -1,0 +1,177 @@
+{
+  "status": "issuer_durable_sync_stall_captured",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "phase_complete": false,
+  "production_changed": false,
+  "hosts": {
+    "sb16": {
+      "archive_sha256": "8b4a5d5b220fc0d7fbda664b06c5436f5d5114c20e993254b08c1de4f8ce34ea",
+      "suite_result": "4/124 Test   #4: world-revision-interleave ..............***Failed    8.57 sec",
+      "deadline_stage": "activate",
+      "deadline_elapsed_ms": 700,
+      "issuer_pid": 2792141,
+      "issuer_work_ms": 1487,
+      "fdatasync_us": 1433958,
+      "slow_syncs": [
+        {
+          "end_monotonic_ns": 330284961186908,
+          "duration_us": 1053594,
+          "return_code": 0,
+          "raw": "SLOW ns=330284961186908 pid=2792141 tid=2792141 comm=identityd syscall=75 us=1053594 result=0"
+        },
+        {
+          "end_monotonic_ns": 330285341579746,
+          "duration_us": 380364,
+          "return_code": 0,
+          "raw": "SLOW ns=330285341579746 pid=2792141 tid=2792141 comm=identityd syscall=75 us=380364 result=0"
+        }
+      ],
+      "resource_samples": [
+        {
+          "monotonic_ns": 330283819304645,
+          "seconds_after_build": 22.039804220199585,
+          "memory_kib": {
+            "MemAvailable": 13014500,
+            "Dirty": 274912,
+            "Writeback": 39828
+          },
+          "io_pressure": "some avg10=8.81 avg60=6.49 avg300=2.52 total=10174637255\nfull avg10=8.75 avg60=6.43 avg300=2.50 total=10084763023\n",
+          "compilers": []
+        },
+        {
+          "monotonic_ns": 330284830515914,
+          "seconds_after_build": 23.051015377044678,
+          "memory_kib": {
+            "MemAvailable": 13017320,
+            "Dirty": 178236,
+            "Writeback": 45936
+          },
+          "io_pressure": "some avg10=8.81 avg60=6.49 avg300=2.52 total=10175330639\nfull avg10=8.75 avg60=6.43 avg300=2.50 total=10085453871\n",
+          "compilers": []
+        },
+        {
+          "monotonic_ns": 330285842501167,
+          "seconds_after_build": 24.063000202178955,
+          "memory_kib": {
+            "MemAvailable": 13019520,
+            "Dirty": 178300,
+            "Writeback": 0
+          },
+          "io_pressure": "some avg10=17.54 avg60=8.14 avg300=2.89 total=10175763671\nfull avg10=17.49 avg60=8.08 avg300=2.87 total=10085885634\n",
+          "compilers": []
+        }
+      ],
+      "bracketing_io_full_pressure_delta_us": 1122611,
+      "interpretation": "Activation timeout failed the test before stale-reply injection.",
+      "attachments": {
+        "core-diagnostic.log": "20d5396d12aa9bdcc2e739581d48af220dea97a60ee6f64d9fd53916ad8711bd",
+        "live-summary.json": "81eebb5116a57845631e4ef0c9e4b54022f6c85bede1f08ee8d918c8802a3ed3",
+        "manifest.json": "47235bd29bdbb50d18e2a7258f451ccc027202d543176db217c431a15bedcb52",
+        "resource-monitor.jsonl": "94befd4dbc749fdb9c466ef210b7a8608e18ea36fe79a81e33316bbe6e9f65d6",
+        "snapshot-review.json": "2cbe70a306efdc74bf80b53d560fcf8047818741e137cc042a57302720f3bc60",
+        "syscall-control.log": "e37df734b9f1e832aeda5dc8bea6b575a433cd260f7541a4150bdd9942c75568",
+        "timing.log": "270626f6bab8ef4f08c438a7845e831949c2a4869595e6f0ff7484909473d263",
+        "trace-record.json": "8a96d0833bae40164775dd8d0920b4c9654811b20f7a66bc8f83561826e13cb0",
+        "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-world-0.log": "0d56e6b30b642c6b315cc7a8ee4662ec07fbcd317c975449e8be2bb9cbe1e68e",
+        "native/test_credential_reply_older_than_query_context_is_terminal-issuer-2792141.log": "129c007ed6dd51134dc8560fd2a48467f8c4223fc8ab5228d441b99b9113c519"
+      }
+    },
+    "sb16-2": {
+      "archive_sha256": "f6e4b5c0380b08413cfcfd72d9a90616d326a264e23938c16afb84fc55edd815",
+      "suite_result": "4/124 Test   #4: world-revision-interleave ..............   Passed   10.03 sec",
+      "deadline_stage": "release",
+      "deadline_elapsed_ms": 703,
+      "issuer_pid": 2274496,
+      "issuer_work_ms": 786,
+      "fdatasync_us": 739860,
+      "slow_syncs": [
+        {
+          "end_monotonic_ns": 322633269086578,
+          "duration_us": 273121,
+          "return_code": 0,
+          "raw": "SLOW ns=322633269086578 pid=2274496 tid=2274496 comm=identityd syscall=75 us=273121 result=0"
+        },
+        {
+          "end_monotonic_ns": 322633472168349,
+          "duration_us": 203018,
+          "return_code": 0,
+          "raw": "SLOW ns=322633472168349 pid=2274496 tid=2274496 comm=identityd syscall=75 us=203018 result=0"
+        },
+        {
+          "end_monotonic_ns": 322633670472310,
+          "duration_us": 153534,
+          "return_code": 0,
+          "raw": "SLOW ns=322633670472310 pid=2274496 tid=2274496 comm=identityd syscall=75 us=153534 result=0"
+        },
+        {
+          "end_monotonic_ns": 322633780947035,
+          "duration_us": 110187,
+          "return_code": 0,
+          "raw": "SLOW ns=322633780947035 pid=2274496 tid=2274496 comm=identityd syscall=75 us=110187 result=0"
+        }
+      ],
+      "resource_samples": [
+        {
+          "monotonic_ns": 322632338916764,
+          "seconds_after_build": 20.412004947662354,
+          "memory_kib": {
+            "MemAvailable": 13289812,
+            "Dirty": 327528,
+            "Writeback": 0
+          },
+          "io_pressure": "some avg10=2.16 avg60=1.99 avg300=1.11 total=4100854558\nfull avg10=2.16 avg60=1.96 avg300=1.08 total=4024390542\n",
+          "compilers": []
+        },
+        {
+          "monotonic_ns": 322633381156586,
+          "seconds_after_build": 21.4542453289032,
+          "memory_kib": {
+            "MemAvailable": 13292880,
+            "Dirty": 230688,
+            "Writeback": 24892
+          },
+          "io_pressure": "some avg10=2.13 avg60=1.99 avg300=1.12 total=4101177036\nfull avg10=2.13 avg60=1.96 avg300=1.09 total=4024701019\n",
+          "compilers": []
+        },
+        {
+          "monotonic_ns": 322634416418464,
+          "seconds_after_build": 22.48950695991516,
+          "memory_kib": {
+            "MemAvailable": 13298660,
+            "Dirty": 184012,
+            "Writeback": 0
+          },
+          "io_pressure": "some avg10=2.13 avg60=1.99 avg300=1.12 total=4101352188\nfull avg10=2.13 avg60=1.96 avg300=1.09 total=4024875286\n",
+          "compilers": []
+        }
+      ],
+      "bracketing_io_full_pressure_delta_us": 484744,
+      "interpretation": "Initial-world release timed out, but the overall stale-reply test suite passed. Do not label it a failed suite.",
+      "attachments": {
+        "core-diagnostic.log": "d1bc79c2684f22dff9ce30c3424b59d9f72fda4a337b7aa3c72962145448d5e4",
+        "live-summary.json": "9d7d285b60ff3512bfe964225294dc9b85ac9ee24602e6bbca69a104daf9a7f3",
+        "manifest.json": "47235bd29bdbb50d18e2a7258f451ccc027202d543176db217c431a15bedcb52",
+        "resource-monitor.jsonl": "e7360c48e88e4538225f843d6fd9288b1257c225b96cc8edfbed836af17f19f5",
+        "snapshot-review.json": "fbd179d0635b40e231e7d01017aa0d726e45f3416346a44214137e359912f521",
+        "syscall-control.log": "f2818e8fd17571be1e632294c3f808ff24ea24159fbdc1869c29a736a9c8cd58",
+        "timing.log": "4809318940e2440d8082fbf26b07f05097a262dab48ae7c7259ae8ccc585f4b3",
+        "trace-record.json": "8cb2abb3a97d1043cfefc9ebc8fd5d43fef22e797a0046ec30a99ff3aa6133ce",
+        "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-tls-0.log": "d330658051c99a37a598336c769877f12da3e0b3e611ad7b768ed56f8457ee63",
+        "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-world-0.log": "c4f5198b34fd4c1ac6d992c860c5f8642442a63f2bcc35a15b5b6e02066549fa",
+        "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-world-1.log": "74547b924e0b716b70b7e85e1f2b19441042abee74ed45b2e51b1f81ffc599a0",
+        "native/test_credential_reply_older_than_query_context_is_terminal-issuer-2274496.log": "d330658051c99a37a598336c769877f12da3e0b3e611ad7b768ed56f8457ee63"
+      }
+    }
+  },
+  "next_action": "After the existing diagnostic job terminates, preserve its complete result. Add an explicit build-filesystem writeback boundary before untraced qualification. Keep deadlines and durability unchanged.",
+  "interpretation": [
+    "The observed issuer fdatasync durations exceed the configured 700 ms fixture deadline. This measures the delayed operation directly in candidate02.",
+    "Both reproductions overlap substantial filesystem writeback after compilation ended. Build and fixture directories share the same ext4 filesystem.",
+    "The resource timeline supports residual build-writeback contention. It does not attribute every dirty page to the build or rule out other filesystem users.",
+    "No production timeout, database durability, kernel setting, or running qualification was changed.",
+    "The contemplated sync -f scheduling step is unexecuted and unqualified. It must not run during the active test sequence.",
+    "These partial traced snapshots do not replace untraced Debug or sanitizer qualification and do not individually close older failures."
+  ],
+  "sync_documentation": "https://www.gnu.org/software/coreutils/manual/html_node/sync-invocation.html"
+}

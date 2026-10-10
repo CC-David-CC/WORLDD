@@ -47,3 +47,26 @@ This scheduling rule does not change production timeout or recovery behavior.
 It does not waive native performance, resource, soak, or fault acceptance.
 Storage contention remains part of later native performance evaluation.
 Do not reduce database durability or continue authority use after a failed participant channel.
+
+2026-10-10 residual-writeback evidence
+
+The candidate02 diagnostic failed on sb16 without a live compiler.
+Its issuer spent 1.433958 seconds in two fdatasync calls during a 700 ms activation request.
+The issuer recorded 1487 ms of event-loop work. The concurrent resource samples show substantial filesystem writeback.
+The build ended about 22 seconds earlier. Build and fixture paths share one ext4 filesystem on each host.
+On sb16-2, four fdatasync calls took 0.739860 seconds during a 703 ms release timeout.
+That host's overall stale-reply suite passed. Preserve the distinction between a native cleanup timeout and a failed test.
+Read evidence/m02-gate-2026-10-10/writeback-snapshot-01/primary-review.json.
+
+The next scheduling correction must finish build writeback before qualification starts.
+Use sync -f with the build directory as its filesystem selector. Require successful completion before tests.
+Record the command, exit status, elapsed time, and resource samples before and after it.
+Do not add this operation to an active frozen test sequence.
+Do not change client deadlines, database durability, kernel writeback settings, caches, or mount options.
+GNU Coreutils documents -f as synchronizing pending I/O for the filesystem containing the supplied path.
+Source: https://www.gnu.org/software/coreutils/manual/html_node/sync-invocation.html.
+Installed help confirms this option on both hosts. The synchronization step remains unexecuted and unqualified.
+
+The measured stall identifies a delayed operation in candidate02. The timing supports residual build contention.
+It does not prove the cause of every historical failure or qualify operation under arbitrary disk contention.
+Native performance and resource testing must still cover workload contention under production settings.

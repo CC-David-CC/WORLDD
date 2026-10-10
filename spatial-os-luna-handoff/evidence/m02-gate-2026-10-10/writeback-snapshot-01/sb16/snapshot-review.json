@@ -1,0 +1,56 @@
+{
+  "host": "sb16",
+  "captured": 1791661544.1179278,
+  "status": "live_diagnostic_snapshot_not_qualification",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "fdatasync_syscall_number": 75,
+  "syscall_number_source": "Previously compiled native timing control on this host",
+  "findings": [
+    {
+      "issuer_pid": 2792141,
+      "loop_end_ns": 330285394665000,
+      "work_ms": 1487,
+      "fdatasync_calls_at_least_100ms": [
+        {
+          "end_monotonic_ns": 330284961186908,
+          "duration_us": 1053594,
+          "return_code": 0,
+          "raw": "SLOW ns=330284961186908 pid=2792141 tid=2792141 comm=identityd syscall=75 us=1053594 result=0"
+        },
+        {
+          "end_monotonic_ns": 330285341579746,
+          "duration_us": 380364,
+          "return_code": 0,
+          "raw": "SLOW ns=330285341579746 pid=2792141 tid=2792141 comm=identityd syscall=75 us=380364 result=0"
+        }
+      ],
+      "observed_fdatasync_us": 1433958,
+      "nearby_resource_samples": 5,
+      "nearby_compilers": [
+        [],
+        [],
+        [],
+        [],
+        []
+      ]
+    }
+  ],
+  "attachments": {
+    "manifest.json": "47235bd29bdbb50d18e2a7258f451ccc027202d543176db217c431a15bedcb52",
+    "live-summary.json": "81eebb5116a57845631e4ef0c9e4b54022f6c85bede1f08ee8d918c8802a3ed3",
+    "resource-monitor.jsonl": "94befd4dbc749fdb9c466ef210b7a8608e18ea36fe79a81e33316bbe6e9f65d6",
+    "core-diagnostic.log": "20d5396d12aa9bdcc2e739581d48af220dea97a60ee6f64d9fd53916ad8711bd",
+    "timing.log": "270626f6bab8ef4f08c438a7845e831949c2a4869595e6f0ff7484909473d263",
+    "trace-record.json": "8a96d0833bae40164775dd8d0920b4c9654811b20f7a66bc8f83561826e13cb0",
+    "syscall-control.log": "e37df734b9f1e832aeda5dc8bea6b575a433cd260f7541a4150bdd9942c75568",
+    "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-world-0.log": "0d56e6b30b642c6b315cc7a8ee4662ec07fbcd317c975449e8be2bb9cbe1e68e",
+    "native/test_credential_reply_older_than_query_context_is_terminal-issuer-2792141.log": "129c007ed6dd51134dc8560fd2a48467f8c4223fc8ab5228d441b99b9113c519"
+  },
+  "limits": [
+    "Trace and core are incomplete snapshots of the live diagnostic run.",
+    "Tracing changes timing; this snapshot is not sanitizer or phase qualification.",
+    "Durable-sync latency is directly measured in this reproduction. Build-writeback attribution requires the retained resource timeline.",
+    "This reproduction does not individually resolve older failures."
+  ]
+}

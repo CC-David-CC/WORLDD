@@ -1,0 +1,17 @@
+{
+  "status": "read_only_environment_verified_no_sync_executed",
+  "hosts": {
+    "sb16": {
+      "host": "sb16",
+      "sync_help": "Usage: sync [OPTION] [FILE]...\nSynchronize cached writes to persistent storage\n\nIf one or more files are specified, sync only them,\nor their containing file systems.\n\n  -d, --data             sync only file data, no unneeded metadata\n  -f, --file-system      sync the file systems that contain the files\n      --help        display this help and exit\n      --version     output version information and exit\n\nGNU coreutils online help: <https://www.gnu.org/software/coreutils/>\nFull documentation <https://www.gnu.org/software/coreutils/sync>\nor available locally via: info '(coreutils) sync invocation'\n",
+      "build_mount": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/nvme0n1p2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime\"\n      }\n   ]\n}\n",
+      "fixture_mount": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/nvme0n1p2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime\"\n      }\n   ]\n}\n"
+    },
+    "sb16-2": {
+      "host": "sb16-2",
+      "sync_help": "Usage: sync [OPTION] [FILE]...\nSynchronize cached writes to persistent storage\n\nIf one or more files are specified, sync only them,\nor their containing file systems.\n\n  -d, --data             sync only file data, no unneeded metadata\n  -f, --file-system      sync the file systems that contain the files\n      --help        display this help and exit\n      --version     output version information and exit\n\nGNU coreutils online help: <https://www.gnu.org/software/coreutils/>\nFull documentation <https://www.gnu.org/software/coreutils/sync>\nor available locally via: info '(coreutils) sync invocation'\n",
+      "build_mount": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/nvme0n1p2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime\"\n      }\n   ]\n}\n",
+      "fixture_mount": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/nvme0n1p2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime\"\n      }\n   ]\n}\n"
+    }
+  }
+}

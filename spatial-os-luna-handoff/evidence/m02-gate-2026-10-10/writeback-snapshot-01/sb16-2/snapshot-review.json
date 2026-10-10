@@ -1,0 +1,69 @@
+{
+  "host": "sb16-2",
+  "captured": 1791661544.1680067,
+  "status": "live_diagnostic_snapshot_not_qualification",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "fdatasync_syscall_number": 75,
+  "syscall_number_source": "Previously compiled native timing control on this host",
+  "findings": [
+    {
+      "issuer_pid": 2274496,
+      "loop_end_ns": 322633781169000,
+      "work_ms": 786,
+      "fdatasync_calls_at_least_100ms": [
+        {
+          "end_monotonic_ns": 322633269086578,
+          "duration_us": 273121,
+          "return_code": 0,
+          "raw": "SLOW ns=322633269086578 pid=2274496 tid=2274496 comm=identityd syscall=75 us=273121 result=0"
+        },
+        {
+          "end_monotonic_ns": 322633472168349,
+          "duration_us": 203018,
+          "return_code": 0,
+          "raw": "SLOW ns=322633472168349 pid=2274496 tid=2274496 comm=identityd syscall=75 us=203018 result=0"
+        },
+        {
+          "end_monotonic_ns": 322633670472310,
+          "duration_us": 153534,
+          "return_code": 0,
+          "raw": "SLOW ns=322633670472310 pid=2274496 tid=2274496 comm=identityd syscall=75 us=153534 result=0"
+        },
+        {
+          "end_monotonic_ns": 322633780947035,
+          "duration_us": 110187,
+          "return_code": 0,
+          "raw": "SLOW ns=322633780947035 pid=2274496 tid=2274496 comm=identityd syscall=75 us=110187 result=0"
+        }
+      ],
+      "observed_fdatasync_us": 739860,
+      "nearby_resource_samples": 5,
+      "nearby_compilers": [
+        [],
+        [],
+        [],
+        [],
+        []
+      ]
+    }
+  ],
+  "attachments": {
+    "manifest.json": "47235bd29bdbb50d18e2a7258f451ccc027202d543176db217c431a15bedcb52",
+    "live-summary.json": "9d7d285b60ff3512bfe964225294dc9b85ac9ee24602e6bbca69a104daf9a7f3",
+    "resource-monitor.jsonl": "e7360c48e88e4538225f843d6fd9288b1257c225b96cc8edfbed836af17f19f5",
+    "core-diagnostic.log": "d1bc79c2684f22dff9ce30c3424b59d9f72fda4a337b7aa3c72962145448d5e4",
+    "timing.log": "4809318940e2440d8082fbf26b07f05097a262dab48ae7c7259ae8ccc585f4b3",
+    "trace-record.json": "8cb2abb3a97d1043cfefc9ebc8fd5d43fef22e797a0046ec30a99ff3aa6133ce",
+    "syscall-control.log": "f2818e8fd17571be1e632294c3f808ff24ea24159fbdc1869c29a736a9c8cd58",
+    "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-world-1.log": "74547b924e0b716b70b7e85e1f2b19441042abee74ed45b2e51b1f81ffc599a0",
+    "native/test_credential_reply_older_than_query_context_is_terminal-issuer-2274496.log": "d330658051c99a37a598336c769877f12da3e0b3e611ad7b768ed56f8457ee63",
+    "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-world-0.log": "c4f5198b34fd4c1ac6d992c860c5f8642442a63f2bcc35a15b5b6e02066549fa",
+    "native/RevisionInterleaveTests-test_credential_reply_older_than_query_context_is_terminal-tls-0.log": "d330658051c99a37a598336c769877f12da3e0b3e611ad7b768ed56f8457ee63"
+  },
+  "limits": [
+    "Trace and core are incomplete snapshots of the live diagnostic run.",
+    "Tracing changes timing; this snapshot is not sanitizer or phase qualification.",
+    "Durable-sync latency is directly measured in this reproduction. Build-writeback attribution requires the retained resource timeline.",
+    "This reproduction does not individually resolve older failures."
+  ]
+}

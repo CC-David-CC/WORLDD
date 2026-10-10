@@ -1,0 +1,16 @@
+Running as unit: spatial-trace-proof-2788039-selected.service; invocation ID: d6849d8865014f9eb635feed8594ea77
+PROBE kind=selected pid=2788053 parent=2817 fsync=74 fdatasync=75 sleep=230
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 190ms
+CPU time consumed: 1ms
+Memory peak: 256.0K
+Memory swap peak: 0B
+Running as unit: spatial-trace-proof-2788039-unselected.service; invocation ID: bb8b267869d247a2ae84437cc20578ca
+PROBE kind=unselected pid=2788061 parent=2817 fsync=74 fdatasync=75 sleep=230
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 195ms
+CPU time consumed: 1ms
+Memory peak: 256.0K
+Memory swap peak: 0B
