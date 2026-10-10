@@ -1,0 +1,5 @@
+issuer-client diagnostic: reason=tls-fatal operation=19 sequence=26 stage=read-header ssl_error=1 errno=0 local_port=46970 late_ms=-585 time_ms=251708734 pending=0 buffered=0
+issuer-client diagnostic: reason=Issuer TLS connection failed operation=19 sequence=26 stage=read-header ssl_error=1 errno=0 local_port=46970 late_ms=-585 time_ms=251708735 pending=0 buffered=0
+participant diagnostic: Issuer TLS connection failed request=0
+authority participant failed: code=26 request=0
+workspaced: Workspace participant release remains unresolved

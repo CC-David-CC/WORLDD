@@ -1,0 +1,79 @@
+test_access_revocation_keeps_valid_process_execution (__main__.WorkspaceAuthorityTests.test_access_revocation_keeps_valid_process_execution) ... ok
+test_actor_revocation_interrupts_a_blocked_process_wait (__main__.WorkspaceAuthorityTests.test_actor_revocation_interrupts_a_blocked_process_wait) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.WorkspaceAuthorityTests.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process) ... ok
+test_bound_workspace_rejects_static_authority_edits (__main__.WorkspaceAuthorityTests.test_bound_workspace_rejects_static_authority_edits) ... ok
+test_credential_revocation_preserves_valid_workspace_process (__main__.WorkspaceAuthorityTests.test_credential_revocation_preserves_valid_workspace_process) ... ok
+test_cross_domain_unknown_and_foreign_grants_are_rejected (__main__.WorkspaceAuthorityTests.test_cross_domain_unknown_and_foreign_grants_are_rejected) ... ok
+test_file_scope_does_not_authorize_a_whole_project_mount (__main__.WorkspaceAuthorityTests.test_file_scope_does_not_authorize_a_whole_project_mount) ... ERROR
+test_grant_revocation_kills_confined_process_without_recipient_request (__main__.WorkspaceAuthorityTests.test_grant_revocation_kills_confined_process_without_recipient_request) ... ok
+test_grants_do_not_make_workspace_available_implicitly (__main__.WorkspaceAuthorityTests.test_grants_do_not_make_workspace_available_implicitly) ... ok
+test_independent_execution_grant_survives_other_grant_revocation (__main__.WorkspaceAuthorityTests.test_independent_execution_grant_survives_other_grant_revocation) ... ok
+test_partial_file_write_grants_do_not_mount_entire_project_writable (__main__.WorkspaceAuthorityTests.test_partial_file_write_grants_do_not_mount_entire_project_writable) ... ok
+test_partial_private_frame_does_not_block_revocation (__main__.WorkspaceAuthorityTests.test_partial_private_frame_does_not_block_revocation) ... ok
+test_persistent_grants_and_selection_survive_broker_and_world_restart (__main__.WorkspaceAuthorityTests.test_persistent_grants_and_selection_survive_broker_and_world_restart) ... ok
+test_readonly_profile_keeps_project_and_git_readonly (__main__.WorkspaceAuthorityTests.test_readonly_profile_keeps_project_and_git_readonly) ... ok
+test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh (__main__.WorkspaceAuthorityTests.test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh) ... ok
+test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout (__main__.WorkspaceAuthorityTests.test_retry_revocation_uses_live_owner_after_setup_exceeds_idle_timeout) ... ok
+test_revoked_ancestor_without_world_session_stops_process (__main__.WorkspaceAuthorityTests.test_revoked_ancestor_without_world_session_stops_process) ... ok
+test_workspace_policy_limits_a_broader_actor_grant (__main__.WorkspaceAuthorityTests.test_workspace_policy_limits_a_broader_actor_grant) ... ERROR
+test_world_admission_and_availability_do_not_grant_workspace_access (__main__.WorkspaceAuthorityTests.test_world_admission_and_availability_do_not_grant_workspace_access) ... ok
+
+======================================================================
+ERROR: test_file_scope_does_not_authorize_a_whole_project_mount (__main__.WorkspaceAuthorityTests.test_file_scope_does_not_authorize_a_whole_project_mount)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py", line 244, in test_file_scope_does_not_authorize_a_whole_project_mount
+    self.enroll_second(); world = self.workspace(); peer = world.peers[1]
+                                  ^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py", line 99, in workspace
+    world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_authority.py", line 110, in scoped_world
+    initial = self.world(state=state)
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_identity.py", line 138, in world
+    self.worlds.append(world);world.management('system.hello');return world
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_identity.py", line 72, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_identity.py", line 36, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_identity.py", line 33, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+======================================================================
+ERROR: test_workspace_policy_limits_a_broader_actor_grant (__main__.WorkspaceAuthorityTests.test_workspace_policy_limits_a_broader_actor_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py", line 191, in test_workspace_policy_limits_a_broader_actor_grant
+    world = self.workspace(policy=['workspace.select','files.read']); peer = world.peers[0]; self.select(peer)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py", line 99, in workspace
+    world = self.scoped_world(session.REGISTERED_ACTORS, broker=self.broker)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_authority.py", line 110, in scoped_world
+    initial = self.world(state=state)
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_identity.py", line 138, in world
+    self.worlds.append(world);world.management('system.hello');return world
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_identity.py", line 72, in management
+    reply=receive(lambda n:os.read(self.proc.stdout.fileno(),n),self.proc.stdout,core.Reply)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_identity.py", line 36, in receive
+    size = struct.unpack('!I',exact(4))[0]
+                              ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_world_identity.py", line 33, in exact
+    if not part: raise EOFError('worldd closed the channel')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: worldd closed the channel
+
+----------------------------------------------------------------------
+Ran 20 tests in 82.236s
+
+FAILED (errors=2)

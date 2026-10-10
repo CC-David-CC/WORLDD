@@ -370,3 +370,11 @@ A two-job build was active. IO pressure increased. The exact blocking syscall re
 Supervisor293 full sanitizers and crash294 full Debug contain terminal failures. No production integration is permitted yet.
 Evidence: spatial-os-luna-handoff/evidence/world-bootstrap-runtime-failure-2026-10-09/diagnostic-results-review-08.json
 Issuer-only fsync/fdatasync tracing is diagnostic. Its leak detector is disabled under ptrace; it is not a sanitizer pass.
+
+2026-10-09: Durable sync latency captured
+Five issuer fdatasync calls took 1.021265 seconds during compilation and matched a 1035 ms event-loop gap.
+A second sequence took 0.783983 seconds and matched an 800 ms gap. The unchanged client deadline is 700 ms.
+The full authority suite passed after compilation. Original failures remain preserved.
+Both hosts now qualify frozen294 without compiler overlap. All sanitizer options, assertions, and deadlines remain unchanged.
+Do not start another compiler workload while qualifier PIDs1544923(sb16) and1334189(sb16-2) are active.
+Evidence: spatial-os-luna-handoff/evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json

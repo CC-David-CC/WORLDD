@@ -1,0 +1,9 @@
+issuer-server diagnostic: close phase=1 peer_port=46354 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=2 late_ms=-2999 loop_gap_ms=0 max_loop_gap_ms=83 time_ms=259377532 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=46368 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=4 late_ms=-2999 loop_gap_ms=0 max_loop_gap_ms=83 time_ms=259377753 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=46386 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=5 late_ms=-2999 loop_gap_ms=0 max_loop_gap_ms=83 time_ms=259378351 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=46382 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=4 late_ms=-2547 loop_gap_ms=1 max_loop_gap_ms=83 time_ms=259378353 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=46340 events=0 wanted=1 offset=0 payload_size=0 ssl_error=0 errno=0 peers=5 late_ms=1 loop_gap_ms=0 max_loop_gap_ms=83 time_ms=259379337 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=46390 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=4 late_ms=-2999 loop_gap_ms=0 max_loop_gap_ms=83 time_ms=259380331 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=46388 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=3 late_ms=-2820 loop_gap_ms=1 max_loop_gap_ms=83 time_ms=259380333 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=46376 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=2 late_ms=-2999 loop_gap_ms=0 max_loop_gap_ms=83 time_ms=259380529 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=46362 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=1 late_ms=-2638 loop_gap_ms=1 max_loop_gap_ms=83 time_ms=259380531 pending=0 buffered=0

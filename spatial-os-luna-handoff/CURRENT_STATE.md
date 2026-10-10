@@ -1,5 +1,24 @@
 # Implementation status
 
+## 2026-10-09: Durable sync latency identified; full qualification restarted without compiler overlap
+
+The issuer trace reproduced participant timeouts during a two-job build on sb16-2.
+Five consecutive fdatasync calls took 1.021265 seconds. The matching event-loop gap was 1035 ms.
+A second sequence took 0.783983 seconds, matching an 800 ms gap.
+Both exceeded the fixture client's unchanged 700 ms deadline. The participants failed closed.
+The same full workspace-authority suite passed after compilation finished.
+The trace affects timing. Diagnostic08 already reproduced an 881 ms gap without ptrace.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json.
+
+Both hosts now run full qualification of the unchanged frozen294 candidate.
+Each host runs one qualifier after its diagnostic build and tests finish.
+The qualifier checks for compiler overlap and preserves new results separately.
+Debug and runtime ASan/LeakSanitizer/UBSan assertions, deadlines, and durability settings are unchanged.
+Read docs/QUALIFICATION_SCHEDULING.txt. These runs are pending, not passing evidence.
+
+Original failed runs remain preserved. Production remains broker283 until full qualification and integration review succeed.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Authority timeout reproduced with an issuer event-loop stall
 
 The instrumented workspace-authority suite failed on sb16-2 during a two-job build.

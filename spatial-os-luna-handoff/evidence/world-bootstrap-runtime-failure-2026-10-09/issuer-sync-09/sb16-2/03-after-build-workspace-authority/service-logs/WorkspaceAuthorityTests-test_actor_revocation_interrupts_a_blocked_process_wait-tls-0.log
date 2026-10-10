@@ -1,0 +1,10 @@
+issuer-server diagnostic: close phase=1 peer_port=38568 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=2 late_ms=-2998 loop_gap_ms=0 max_loop_gap_ms=46 time_ms=251780560 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=38588 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=4 late_ms=-2998 loop_gap_ms=6 max_loop_gap_ms=46 time_ms=251780799 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=38620 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=5 late_ms=-2996 loop_gap_ms=1 max_loop_gap_ms=47 time_ms=251781507 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=38608 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=4 late_ms=-2468 loop_gap_ms=7 max_loop_gap_ms=47 time_ms=251781512 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=38556 events=0 wanted=1 offset=0 payload_size=0 ssl_error=0 errno=0 peers=5 late_ms=9 loop_gap_ms=12 max_loop_gap_ms=47 time_ms=251782209 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=59732 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=5 late_ms=-2962 loop_gap_ms=12 max_loop_gap_ms=71 time_ms=251783343 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=38632 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=4 late_ms=-2996 loop_gap_ms=1 max_loop_gap_ms=71 time_ms=251783658 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=38626 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=3 late_ms=-2075 loop_gap_ms=6 max_loop_gap_ms=71 time_ms=251783663 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=38592 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=2 late_ms=-2996 loop_gap_ms=1 max_loop_gap_ms=71 time_ms=251783814 pending=0 buffered=0
+issuer-server diagnostic: close phase=1 peer_port=38584 events=1 wanted=1 offset=0 payload_size=0 ssl_error=1 errno=0 peers=1 late_ms=-2015 loop_gap_ms=6 max_loop_gap_ms=71 time_ms=251783818 pending=0 buffered=0

@@ -1,0 +1,70 @@
+[
+  {
+    "name": "workspace-authority",
+    "method": null,
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/issuer-sync-diagnostic-09/trace-issuer.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+    ],
+    "start": 1791590364.1533744,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590455.3672397,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-authority",
+    "method": null,
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/issuer-sync-diagnostic-09/trace-issuer.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+    ],
+    "start": 1791590455.3677292,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590548.2366736,
+    "build_live_at_end": true
+  },
+  {
+    "name": "workspace-authority",
+    "method": null,
+    "phase": "build-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/issuer-sync-diagnostic-09/trace-issuer.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+    ],
+    "start": 1791590548.2371223,
+    "build_live_at_start": true,
+    "exit_code": 0,
+    "end": 1791590635.5068917,
+    "build_live_at_end": false
+  },
+  {
+    "name": "workspace-authority",
+    "method": null,
+    "phase": "after-build",
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/source/tests/core/test_workspace_authority.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/issuer-sync-diagnostic-09/trace-issuer.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/transport-diagnostic-run-05/build/worldd"
+    ],
+    "start": 1791590635.507415,
+    "build_live_at_start": false,
+    "exit_code": 0,
+    "end": 1791590720.3163822,
+    "build_live_at_end": false
+  }
+]

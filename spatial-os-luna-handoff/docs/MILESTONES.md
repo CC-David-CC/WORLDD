@@ -24,7 +24,8 @@ Each profile passed 1,393 core checks across 93 suites, 51 harness checks, and 1
 No final case failed or skipped. All integrated source hashes match the qualified manifests.
 World handoff and issuer/supervisor fencing candidates remain isolated after cumulative qualification failures.
 A diagnostic reproduced authority-channel loss after an 881 ms issuer event-loop gap exceeded a 700 ms client deadline.
-The blocking operation remains under investigation. No candidate qualification or integration is inferred from diagnostic passes.
+A syscall trace identified consecutive durable sync calls exceeding that deadline during compilation.
+Full unchanged qualification now runs without compiler overlap. Diagnostic passes do not establish candidate qualification.
 Complete trusted recovery, fencing, and cross-host cancellation remain required.
 See evidence/supervisor-broker-handoff-2026-10-09 for the qualified production increment.
 See evidence/world-bootstrap-runtime-failure-2026-10-09 for preserved failures and transport diagnostics.

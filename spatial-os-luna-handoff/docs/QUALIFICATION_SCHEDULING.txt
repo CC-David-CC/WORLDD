@@ -1,0 +1,49 @@
+Qualification scheduling on the world hosts
+
+Scope
+
+Run Linux qualification on sb16 and sb16-2.
+Both hosts may qualify the same frozen source in parallel.
+Run one cumulative qualification job per host.
+Do not run compiler workloads during that host's cumulative qualification.
+Build first. Then run Debug and runtime sanitizer profiles against the frozen binaries.
+Keep the operator's session and recovery route available.
+
+Reason
+
+The issuer performs synchronous durable database writes before it acknowledges authority changes.
+The transport tests use a 700 ms client deadline.
+The production client's default deadline is 5000 ms.
+These configured bounds have different purposes. Do not change either bound to obtain a pass.
+
+A diagnostic reproduced an 881 ms issuer event-loop gap during a two-job compiler workload.
+The participant client exceeded its configured deadline and disabled authority.
+A syscall trace then reproduced similar failures on sb16-2.
+Five consecutive fdatasync calls took 1.021265 seconds in one failed scenario.
+The corresponding issuer event-loop gap was 1035 ms.
+A second sequence took 0.783983 seconds and corresponded to an 800 ms gap.
+The same workspace-authority suite passed after the compiler exited.
+
+The trace affects timing. A prior untraced run also recorded the long event-loop gap.
+These results explain a reproduced failure mechanism, not every historical failure individually.
+Preserve original qualification failures and their incomplete profiles.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json.
+
+Qualification rules
+
+Keep assertions, authority checks, durability settings, and test deadlines unchanged.
+Keep ASan, LeakSanitizer, and UBSan enabled in runtime sanitizer qualification.
+Do not use traced diagnostic runs as sanitizer qualification.
+Record the source manifest, binary hashes, commands, and raw results.
+Observe compiler processes during qualification and record unexpected overlap.
+Treat detected overlap as an invalid qualification environment.
+Process sampling can miss short jobs. Also check the jobs started by the driver.
+Do not silently restart or replace a failed run.
+Use a new result directory for each explicit rerun.
+
+Limits
+
+This scheduling rule does not change production timeout or recovery behavior.
+It does not waive native performance, resource, soak, or fault acceptance.
+Storage contention remains part of later native performance evaluation.
+Do not reduce database durability or continue authority use after a failed participant channel.

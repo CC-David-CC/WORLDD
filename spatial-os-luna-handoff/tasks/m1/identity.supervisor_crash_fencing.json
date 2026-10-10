@@ -28,5 +28,14 @@
     "sb16": 1403725,
     "sb16_2": 1196184
   },
-  "full_failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/full-failure-review-04.json"
+  "full_failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/full-failure-review-04.json",
+  "qualification_rerun": {
+    "status": "running",
+    "output": "local/crash-fencing-serial-02",
+    "sb16_pid": 1544923,
+    "sb16_2_pid": 1334189,
+    "source_unchanged": true,
+    "assertions_and_deadlines_unchanged": true
+  },
+  "diagnosis": "evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json"
 }

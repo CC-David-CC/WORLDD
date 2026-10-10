@@ -1,0 +1,6 @@
+issuer-client diagnostic: reason=deadline operation=24 sequence=7 stage=read-header ssl_error=0 errno=0 local_port=60914 late_ms=7 time_ms=251723234 pending=0 buffered=0
+issuer-client diagnostic: reason=Issuer client deadline exceeded operation=24 sequence=7 stage=read-header ssl_error=0 errno=0 local_port=60914 late_ms=65 time_ms=251723292 pending=0 buffered=0
+participant diagnostic: Issuer client deadline exceeded request=1
+authority participant failed: code=26 request=1
+worldd: identity service disabled at identity_sessions.cpp:192
+worldd: World authority participation is unavailable
