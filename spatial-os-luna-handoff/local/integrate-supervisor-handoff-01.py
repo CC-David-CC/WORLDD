@@ -113,6 +113,8 @@ for host in ('sb16', 'sb16-2'):
         assert '100% tests passed, 0 tests failed out of 102' in core
         assert value['core_parts'] == dict(zip(names, counts))
         assert value['core_parts']['control-owner-channels'] == 21
+        assert value['core_parts']['authority-control-binding'] == 6
+        assert value['core_parts']['control-supervisor-reply'] == 16
         assert {x['name'] for x in read(p / 'ctest-inventory.json')['tests']} == set(names) | {'supervisor-handoff-lifetime'}
         harness = (p / 'harness.log').read_text()
         clean(harness)
