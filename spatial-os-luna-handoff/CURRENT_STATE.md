@@ -1,5 +1,17 @@
 # Implementation status
 
+## 2026-10-10: M01 identity qualification reassessed and complete
+
+All nine M01 components now have reviewed evidence at the adopted M02 source.
+Each host/profile passed 355 identity-related checks across 23 suites in the retained complete gate.
+The audit matched 121 exact case IDs and verified every selected source hash.
+M02's completed distributed cancellation and recovery evidence resolves the earlier integration dependency.
+Read evidence/m01-audit-2026-10-10/primary-review.json.
+
+This signs off M01 at adopted source b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd and its recorded runtime pins.
+The audit reused evidence. It ran no new runtime tests and provisioned no personal credentials.
+M03 resource work is active on m03/resource-boundary. M03-M16 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: M02 qualified and adopted on both hosts
 
 M02 delegation, scoped revocation, and recovery qualification is complete for the recorded source.

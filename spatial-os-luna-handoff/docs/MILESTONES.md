@@ -20,7 +20,8 @@ The runtime matrix uses frozen source 1f5088e026573d86be8388cf1f41dfce20189db9.
 The adopted source changes only CMake test registration and adds one test file relative to that runtime candidate.
 Current-source binaries were not rebuilt after that test-only addition.
 
-M01 needs final reassessment of its identity evidence against the completed M02 cancellation dependency.
+M01 is qualified at the same adopted source after its identity audit and M02 cancellation dependency review.
+Read evidence/m01-audit-2026-10-10/primary-review.json. The review reuses complete gates; it does not count new runs.
 M03-M16 and H01-H08 remain incomplete. Existing components have the evidence recorded in CURRENT_STATE.md.
 The mandatory profile remains tasks/spatial-m1.json.
 

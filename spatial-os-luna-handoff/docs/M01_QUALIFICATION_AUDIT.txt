@@ -1,3 +1,23 @@
+2026-10-10: M01 qualification complete at the adopted M02 source
+
+The final audit reassessed all nine required M01 components.
+Each host/profile has 355 passing identity-related checks across 23 registered suites.
+The audit matched 121 exact case IDs, including keys, enrollment, revocation, and authenticated world sessions.
+These are retained executions from the complete M02 gate, not new test runs.
+All selected source hashes match the frozen runtime manifest.
+
+M02 now supplies the previously missing checked cancellation and recovery dependency.
+Its reviewed matrix includes delayed delivery, held native cleanup, failed authorities, and both cross-host directions.
+Both normal host checkouts adopted b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
+The tested runtime source remains 1f5088e026573d86be8388cf1f41dfce20189db9.
+Read evidence/m01-audit-2026-10-10/primary-review.json for component mapping, case IDs, source hashes, and raw log references.
+
+M01 and M02 are qualified at those pins. The concurrent M03 draft is not covered by this sign-off.
+The tests use fixture human identities. They do not provision David's personal credential or issuer.
+All later mandatory milestones remain. Spatial-M1 is incomplete.
+Historical failures and unknown original causes remain recorded in docs/M02_FAILURE_DISPOSITION.txt.
+The earlier audit below records its original checkpoint and resolved cancellation dependency.
+
 M01 qualification audit, 2026-10-09
 Status: pending as a complete milestone.
 

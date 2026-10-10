@@ -1,0 +1,1058 @@
+{
+  "status": "M01_qualified_at_adopted_M02_source",
+  "phase": "M01",
+  "phase_complete": true,
+  "Spatial_M1_complete": false,
+  "source_adopted_commit": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "tested_runtime_source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "source_hashes": {
+    "tests/core/test_actor_status.py": "56d0bc64c41ece3ca3aedac3c876ea4429d3a1c715aa11bd9594c78f2ac3a3c4",
+    "tests/core/test_authority_bootstrap.py": "dab16a2e3f65ac0d7f8bab755fc0805562abb9be8524ead75fe1202ad8958021",
+    "tests/core/test_broker_bootstrap_client.py": "83a5293b29f2f5a0d4e2b76ab3330095c379c61710b92c6fce1b0c2814ba29a6",
+    "tests/core/test_identity_bootstrap.py": "6b649bac8886a131a4e15d590e07d17f8286671a33355f9d36998c243aee8ab6",
+    "tests/core/test_identity_enrollment.py": "9b6ce4c355dc0a175073a76bc5112d149f9630b8e16e2abba2411cceb5744935",
+    "tests/core/test_identity_issuer.py": "7d3d8e26dea2579f7bad9ddcdff6ec8a6fb0d9bfe477bbbd366e59f70224dbf0",
+    "tests/core/test_identity_keys.py": "2fa166fc3456d0c0d7ef56517dcaa178d2fa7b31ea63640e2b0dbe6cf0235a2a",
+    "tests/core/test_identity_revocation.py": "995cd599cb1e610d102a79afe437ed4574d2af43e91e7be5d6a9daa87436b0a3",
+    "tests/core/test_identity_tls.py": "d43c79b6b69dcae5cb02b91e392a2753a9bcf94350288fbf367acbab4202b138",
+    "tests/core/test_identity_watch.py": "e178571985684dc61573acee466d39c33e9def6c7f963b9b72901b0b352d0299",
+    "tests/core/test_issuer_client.py": "b56a766be48f27e876d86351c6db49d01993153f61f0ee59531ab5d1c5e40bce",
+    "tests/core/test_workspace_bootstrap.py": "4f706258dab707dfc14660fac48fbba3b22cca317d640989ea48fd31b16efd1f",
+    "tests/core/test_workspace_bootstrap_races.py": "e857087f909d81f99b7740496eb295959a9078b3d28d40ed90ddb1c28cf0a497",
+    "tests/core/test_world_bootstrap.py": "d33e5fb63834ca126751d3242f2879bcc7b1df90cac0bae89b27e3824c47f3ee",
+    "tests/core/test_world_bootstrap_races.py": "bd9570057095d489c1eaf5adb3280d448a19c6d027d88ec094c8c480888cede0",
+    "tests/core/test_world_identity.py": "310b43b9f1f7d27fd5e636a2e06c9b7444d5e9b956472e66c72e49f53715354b",
+    "tests/core/test_world_remote.py": "6c9af6a04dcbebcc5fea248776be99293c88cf7b2573eeb8d0f67aaff42ba5c6",
+    "tests/core/test_world_remote_config.py": "7d5f34e600f552c4e5756a33561ce82fe0c54cd84205c3847d9d0f237c893780",
+    "tests/core/test_world_remote_lifecycle.py": "68a204588ef0673fd4600757e887dee185f5cf2c9fc4017f34bf4f95350bcd25",
+    "tests/core/test_world_remote_native.py": "831e5d9591ab8a7e1521ebb464a93705d654be8ab2348d4c85060cc644173b47",
+    "tests/core/test_world_remote_races.py": "0224973739fbb1e28fdf5b5f65c52cfd9d2170d908de498c78d81e02511e577d",
+    "tests/core/test_actor_tls_retries.py": "ef52039ae2161de74ffc13f43a0c718bf241264966999170f6a227071dc821ac",
+    "tests/core/test_world_remote_security.py": "a7b9ea6d8e9c11228a1905f07b75bf24820cd4c2226e47195814d0f61aa7f828"
+  },
+  "records": [
+    {
+      "host": "sb16",
+      "profile": "debug",
+      "suites": {
+        "actor-status": {
+          "passed": 21,
+          "file": "tests/core/test_actor_status.py",
+          "explicit_case_ids": []
+        },
+        "authority-bootstrap": {
+          "passed": 32,
+          "file": "tests/core/test_authority_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "broker-bootstrap-client": {
+          "passed": 22,
+          "file": "tests/core/test_broker_bootstrap_client.py",
+          "explicit_case_ids": []
+        },
+        "identity-bootstrap": {
+          "passed": 18,
+          "file": "tests/core/test_identity_bootstrap.py",
+          "explicit_case_ids": [
+            "BootstrapTests.test_builtin_empty_profile_is_readable_and_immutable",
+            "BootstrapTests.test_owner_publishes_world_and_workspace_templates_without_subjects",
+            "BootstrapTests.test_profile_publication_requires_owner_proof_and_consumes_nonce",
+            "BootstrapTests.test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap",
+            "BootstrapTests.test_manual_approval_pins_the_profile_in_an_independently_verified_credential",
+            "BootstrapTests.test_automatic_enrollment_uses_the_same_nonempty_profile",
+            "BootstrapTests.test_active_profile_update_invalidates_pending_manual_approval",
+            "BootstrapTests.test_later_profile_updates_do_not_rewrite_recovered_credentials",
+            "BootstrapTests.test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state",
+            "BootstrapTests.test_manual_administration_template_still_requires_explicit_owner_approval",
+            "BootstrapTests.test_malformed_templates_are_rejected_before_publication",
+            "BootstrapTests.test_profile_size_and_unknown_fields_are_rejected",
+            "BootstrapTests.test_service_reads_require_exact_valid_revisions",
+            "BootstrapTests.test_failed_profile_publication_preserves_history_and_active_policy_revision",
+            "BootstrapTests.test_failed_credential_write_rolls_back_nonempty_profile_issuance",
+            "BootstrapTests.test_corrupt_profile_blocks_reads_and_issuance",
+            "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
+            "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
+          ]
+        },
+        "identity-enrollment": {
+          "passed": 25,
+          "file": "tests/core/test_identity_enrollment.py",
+          "explicit_case_ids": [
+            "EnrollmentTests.test_proven_key_waits_for_owner_approval",
+            "EnrollmentTests.test_owner_approval_issues_an_independently_verifiable_durable_credential",
+            "EnrollmentTests.test_humans_and_agents_get_distinct_actor_and_credential_identities",
+            "EnrollmentTests.test_enrollment_challenge_binds_the_exact_intent_and_service",
+            "EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce",
+            "EnrollmentTests.test_changed_enrollment_intent_or_purpose_is_rejected",
+            "EnrollmentTests.test_replay_is_denied_but_fresh_proof_recovers_the_same_pending_request",
+            "EnrollmentTests.test_restart_preserves_pending_requests_and_invalidates_old_challenges",
+            "EnrollmentTests.test_enrollment_proof_expires_on_the_real_clock",
+            "EnrollmentTests.test_owner_and_actor_challenges_cannot_be_used_in_the_other_protocol",
+            "EnrollmentTests.test_requester_cannot_approve_itself_or_read_another_request_as_owner",
+            "EnrollmentTests.test_rejection_is_durable_and_cannot_be_reapproved_or_reenrolled",
+            "EnrollmentTests.test_duplicate_decisions_do_not_create_another_credential",
+            "EnrollmentTests.test_a_key_cannot_create_a_second_request_by_changing_its_intent",
+            "EnrollmentTests.test_owner_can_explicitly_attach_a_second_proven_key_to_one_actor",
+            "EnrollmentTests.test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance",
+            "EnrollmentTests.test_policy_revision_change_prevents_stale_approval",
+            "EnrollmentTests.test_unknown_profile_blocks_issuance_and_preserves_pending_request",
+            "EnrollmentTests.test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants",
+            "EnrollmentTests.test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment",
+            "EnrollmentTests.test_policy_switch_does_not_approve_old_pending_requests_implicitly",
+            "EnrollmentTests.test_invalid_intents_and_reserved_keys_cannot_allocate_enrollments",
+            "EnrollmentTests.test_enrollment_and_owner_challenges_share_one_bounded_pool",
+            "EnrollmentTests.test_real_database_abort_rolls_back_actor_and_credential_creation",
+            "EnrollmentTests.test_explicit_schema_migration_preserves_issuer_key_owner_and_policy"
+          ]
+        },
+        "identity-issuer": {
+          "passed": 18,
+          "file": "tests/core/test_identity_issuer.py",
+          "explicit_case_ids": [
+            "IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy",
+            "IssuerTests.test_initialization_and_startup_never_replace_missing_or_existing_identity",
+            "IssuerTests.test_challenge_binds_issuer_incarnation_owner_operation_and_audience",
+            "IssuerTests.test_owner_policy_change_is_durable_and_observed_through_real_sqlite",
+            "IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed",
+            "IssuerTests.test_successful_proof_cannot_be_replayed",
+            "IssuerTests.test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation",
+            "IssuerTests.test_proof_for_one_challenge_does_not_complete_another",
+            "IssuerTests.test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works",
+            "IssuerTests.test_restart_invalidates_pending_challenges_without_changing_policy",
+            "IssuerTests.test_issuer_instances_do_not_accept_each_others_challenges",
+            "IssuerTests.test_competing_revision_updates_have_one_winner",
+            "IssuerTests.test_invalid_policy_and_unknown_fields_do_not_change_state",
+            "IssuerTests.test_pending_challenges_are_bounded_and_restart_clears_them",
+            "IssuerTests.test_only_one_process_can_own_one_issuer_directory",
+            "IssuerTests.test_unsafe_state_files_and_directory_are_rejected",
+            "IssuerTests.test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly",
+            "IssuerTests.test_protocol_errors_preserve_request_identity_and_connection_usability"
+          ]
+        },
+        "identity-keys": {
+          "passed": 16,
+          "file": "tests/core/test_identity_keys.py",
+          "explicit_case_ids": [
+            "IdentityKeyTests.test_distinct_keys_persist_with_private_permissions_and_external_public_keys",
+            "IdentityKeyTests.test_generation_never_overwrites_an_existing_identity",
+            "IdentityKeyTests.test_concurrent_creation_has_one_winner_and_a_complete_key",
+            "IdentityKeyTests.test_missing_and_relative_paths_do_not_create_implicit_keys",
+            "IdentityKeyTests.test_shared_or_symlinked_key_directory_is_rejected",
+            "IdentityKeyTests.test_exposed_key_permissions_are_rejected_and_read_only_private_key_works",
+            "IdentityKeyTests.test_key_symlink_hardlink_fifo_and_directory_are_rejected_without_hanging",
+            "IdentityKeyTests.test_corrupt_oversized_and_trailing_key_data_are_rejected",
+            "IdentityKeyTests.test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected",
+            "IdentityKeyTests.test_production_signatures_match_independent_openssl_for_every_purpose",
+            "IdentityKeyTests.test_independent_signatures_verify_but_payload_key_and_signature_changes_fail",
+            "IdentityKeyTests.test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed",
+            "IdentityKeyTests.test_empty_and_maximum_payload_are_explicit_and_bounded",
+            "IdentityKeyTests.test_unknown_fields_unknown_purposes_and_missing_proof_fields_fail_closed",
+            "IdentityKeyTests.test_wrong_key_and_signature_lengths_are_rejected",
+            "IdentityKeyTests.test_signing_input_requires_exactly_one_complete_protobuf_frame"
+          ]
+        },
+        "identity-revocation": {
+          "passed": 24,
+          "file": "tests/core/test_identity_revocation.py",
+          "explicit_case_ids": [
+            "RevocationTests.test_fresh_actor_proof_derives_identity_from_registered_credential",
+            "RevocationTests.test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge",
+            "RevocationTests.test_changed_audience_binding_or_signature_purpose_is_rejected",
+            "RevocationTests.test_successful_actor_proof_cannot_be_replayed",
+            "RevocationTests.test_authentication_expiry_and_restart_reject_old_proofs",
+            "RevocationTests.test_credentials_and_proofs_do_not_cross_issuer_instances",
+            "RevocationTests.test_tampered_or_self_signed_credential_cannot_start_authentication",
+            "RevocationTests.test_valid_issuer_signature_does_not_register_an_unissued_credential",
+            "RevocationTests.test_credential_revocation_preserves_other_credential_and_pending_proof",
+            "RevocationTests.test_actor_revocation_disables_all_its_credentials_but_not_another_actor",
+            "RevocationTests.test_revocation_between_challenge_and_completion_denies_authentication",
+            "RevocationTests.test_only_owner_can_read_identity_status_or_revoke",
+            "RevocationTests.test_stale_security_revision_does_not_revoke_another_identity",
+            "RevocationTests.test_fresh_duplicate_revocation_preserves_first_reason_and_revision",
+            "RevocationTests.test_revocation_and_security_revision_survive_process_death",
+            "RevocationTests.test_missing_targets_do_not_change_security_revision",
+            "RevocationTests.test_revoked_actor_cannot_receive_an_additional_credential",
+            "RevocationTests.test_fresh_enrollment_recovery_does_not_reactivate_a_revoked_credential",
+            "RevocationTests.test_sqlite_abort_rolls_back_revocation_and_global_revision",
+            "RevocationTests.test_explicit_v2_migration_preserves_all_existing_credential_bytes",
+            "RevocationTests.test_invalid_revocation_requests_do_not_allocate_owner_challenges",
+            "RevocationTests.test_invalid_authentication_context_and_unknown_fields_are_rejected",
+            "RevocationTests.test_authentication_uses_the_same_bounded_challenge_pool",
+            "RevocationTests.test_owner_and_authentication_challenges_cannot_cross_protocols"
+          ]
+        },
+        "identity-tls": {
+          "passed": 24,
+          "file": "tests/core/test_identity_tls.py",
+          "explicit_case_ids": []
+        },
+        "identity-watch": {
+          "passed": 17,
+          "file": "tests/core/test_identity_watch.py",
+          "explicit_case_ids": []
+        },
+        "issuer-client": {
+          "passed": 30,
+          "file": "tests/core/test_issuer_client.py",
+          "explicit_case_ids": []
+        },
+        "workspace-bootstrap": {
+          "passed": 11,
+          "file": "tests/core/test_workspace_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "workspace-bootstrap-races": {
+          "passed": 10,
+          "file": "tests/core/test_workspace_bootstrap_races.py",
+          "explicit_case_ids": []
+        },
+        "world-bootstrap": {
+          "passed": 15,
+          "file": "tests/core/test_world_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "world-bootstrap-races": {
+          "passed": 6,
+          "file": "tests/core/test_world_bootstrap_races.py",
+          "explicit_case_ids": []
+        },
+        "world-identity": {
+          "passed": 20,
+          "file": "tests/core/test_world_identity.py",
+          "explicit_case_ids": [
+            "WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor",
+            "WorldIdentityTests.test_private_world_requires_separate_admission",
+            "WorldIdentityTests.test_public_admission_does_not_grant_action_authority",
+            "WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect",
+            "WorldIdentityTests.test_actor_channel_does_not_expose_management",
+            "WorldIdentityTests.test_caller_token_cannot_select_another_actor",
+            "WorldIdentityTests.test_wrong_key_and_replayed_completion_fail",
+            "WorldIdentityTests.test_proof_is_bound_to_its_channel",
+            "WorldIdentityTests.test_world_audience_and_random_binding_are_checked",
+            "WorldIdentityTests.test_idle_session_keeps_issuer_checks_available",
+            "WorldIdentityTests.test_revoked_credential_cannot_enter",
+            "WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry",
+            "WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation",
+            "WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor",
+            "WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose",
+            "WorldIdentityTests.test_disconnect_releases_real_native_input_and_keeps_application",
+            "WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request",
+            "WorldIdentityTests.test_actor_revocation_releases_native_input",
+            "WorldIdentityTests.test_issuer_failure_cancels_live_control_and_does_not_kill_application",
+            "WorldIdentityTests.test_excessive_frame_closes_actor_channel_and_releases_input"
+          ]
+        },
+        "world-remote": {
+          "passed": 5,
+          "file": "tests/core/test_world_remote.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-config": {
+          "passed": 12,
+          "file": "tests/core/test_world_remote_config.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-lifecycle": {
+          "passed": 6,
+          "file": "tests/core/test_world_remote_lifecycle.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-native": {
+          "passed": 3,
+          "file": "tests/core/test_world_remote_native.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-races": {
+          "passed": 2,
+          "file": "tests/core/test_world_remote_races.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-retries": {
+          "passed": 5,
+          "file": "tests/core/test_actor_tls_retries.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-security": {
+          "passed": 13,
+          "file": "tests/core/test_world_remote_security.py",
+          "explicit_case_ids": []
+        }
+      },
+      "log": "evidence/m02-gate-2026-10-10/untraced03-final/sb16/m02-untraced-03/debug/checks/core.log",
+      "log_sha256": "a4ad1f3042d396fbb20e0cbe0311caa7a9a2f9edd9fce6b3046180f7aa7483a8"
+    },
+    {
+      "host": "sb16",
+      "profile": "runtime-sanitize",
+      "suites": {
+        "actor-status": {
+          "passed": 21,
+          "file": "tests/core/test_actor_status.py",
+          "explicit_case_ids": []
+        },
+        "authority-bootstrap": {
+          "passed": 32,
+          "file": "tests/core/test_authority_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "broker-bootstrap-client": {
+          "passed": 22,
+          "file": "tests/core/test_broker_bootstrap_client.py",
+          "explicit_case_ids": []
+        },
+        "identity-bootstrap": {
+          "passed": 18,
+          "file": "tests/core/test_identity_bootstrap.py",
+          "explicit_case_ids": [
+            "BootstrapTests.test_builtin_empty_profile_is_readable_and_immutable",
+            "BootstrapTests.test_owner_publishes_world_and_workspace_templates_without_subjects",
+            "BootstrapTests.test_profile_publication_requires_owner_proof_and_consumes_nonce",
+            "BootstrapTests.test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap",
+            "BootstrapTests.test_manual_approval_pins_the_profile_in_an_independently_verified_credential",
+            "BootstrapTests.test_automatic_enrollment_uses_the_same_nonempty_profile",
+            "BootstrapTests.test_active_profile_update_invalidates_pending_manual_approval",
+            "BootstrapTests.test_later_profile_updates_do_not_rewrite_recovered_credentials",
+            "BootstrapTests.test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state",
+            "BootstrapTests.test_manual_administration_template_still_requires_explicit_owner_approval",
+            "BootstrapTests.test_malformed_templates_are_rejected_before_publication",
+            "BootstrapTests.test_profile_size_and_unknown_fields_are_rejected",
+            "BootstrapTests.test_service_reads_require_exact_valid_revisions",
+            "BootstrapTests.test_failed_profile_publication_preserves_history_and_active_policy_revision",
+            "BootstrapTests.test_failed_credential_write_rolls_back_nonempty_profile_issuance",
+            "BootstrapTests.test_corrupt_profile_blocks_reads_and_issuance",
+            "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
+            "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
+          ]
+        },
+        "identity-enrollment": {
+          "passed": 25,
+          "file": "tests/core/test_identity_enrollment.py",
+          "explicit_case_ids": [
+            "EnrollmentTests.test_proven_key_waits_for_owner_approval",
+            "EnrollmentTests.test_owner_approval_issues_an_independently_verifiable_durable_credential",
+            "EnrollmentTests.test_humans_and_agents_get_distinct_actor_and_credential_identities",
+            "EnrollmentTests.test_enrollment_challenge_binds_the_exact_intent_and_service",
+            "EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce",
+            "EnrollmentTests.test_changed_enrollment_intent_or_purpose_is_rejected",
+            "EnrollmentTests.test_replay_is_denied_but_fresh_proof_recovers_the_same_pending_request",
+            "EnrollmentTests.test_restart_preserves_pending_requests_and_invalidates_old_challenges",
+            "EnrollmentTests.test_enrollment_proof_expires_on_the_real_clock",
+            "EnrollmentTests.test_owner_and_actor_challenges_cannot_be_used_in_the_other_protocol",
+            "EnrollmentTests.test_requester_cannot_approve_itself_or_read_another_request_as_owner",
+            "EnrollmentTests.test_rejection_is_durable_and_cannot_be_reapproved_or_reenrolled",
+            "EnrollmentTests.test_duplicate_decisions_do_not_create_another_credential",
+            "EnrollmentTests.test_a_key_cannot_create_a_second_request_by_changing_its_intent",
+            "EnrollmentTests.test_owner_can_explicitly_attach_a_second_proven_key_to_one_actor",
+            "EnrollmentTests.test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance",
+            "EnrollmentTests.test_policy_revision_change_prevents_stale_approval",
+            "EnrollmentTests.test_unknown_profile_blocks_issuance_and_preserves_pending_request",
+            "EnrollmentTests.test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants",
+            "EnrollmentTests.test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment",
+            "EnrollmentTests.test_policy_switch_does_not_approve_old_pending_requests_implicitly",
+            "EnrollmentTests.test_invalid_intents_and_reserved_keys_cannot_allocate_enrollments",
+            "EnrollmentTests.test_enrollment_and_owner_challenges_share_one_bounded_pool",
+            "EnrollmentTests.test_real_database_abort_rolls_back_actor_and_credential_creation",
+            "EnrollmentTests.test_explicit_schema_migration_preserves_issuer_key_owner_and_policy"
+          ]
+        },
+        "identity-issuer": {
+          "passed": 18,
+          "file": "tests/core/test_identity_issuer.py",
+          "explicit_case_ids": [
+            "IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy",
+            "IssuerTests.test_initialization_and_startup_never_replace_missing_or_existing_identity",
+            "IssuerTests.test_challenge_binds_issuer_incarnation_owner_operation_and_audience",
+            "IssuerTests.test_owner_policy_change_is_durable_and_observed_through_real_sqlite",
+            "IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed",
+            "IssuerTests.test_successful_proof_cannot_be_replayed",
+            "IssuerTests.test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation",
+            "IssuerTests.test_proof_for_one_challenge_does_not_complete_another",
+            "IssuerTests.test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works",
+            "IssuerTests.test_restart_invalidates_pending_challenges_without_changing_policy",
+            "IssuerTests.test_issuer_instances_do_not_accept_each_others_challenges",
+            "IssuerTests.test_competing_revision_updates_have_one_winner",
+            "IssuerTests.test_invalid_policy_and_unknown_fields_do_not_change_state",
+            "IssuerTests.test_pending_challenges_are_bounded_and_restart_clears_them",
+            "IssuerTests.test_only_one_process_can_own_one_issuer_directory",
+            "IssuerTests.test_unsafe_state_files_and_directory_are_rejected",
+            "IssuerTests.test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly",
+            "IssuerTests.test_protocol_errors_preserve_request_identity_and_connection_usability"
+          ]
+        },
+        "identity-keys": {
+          "passed": 16,
+          "file": "tests/core/test_identity_keys.py",
+          "explicit_case_ids": [
+            "IdentityKeyTests.test_distinct_keys_persist_with_private_permissions_and_external_public_keys",
+            "IdentityKeyTests.test_generation_never_overwrites_an_existing_identity",
+            "IdentityKeyTests.test_concurrent_creation_has_one_winner_and_a_complete_key",
+            "IdentityKeyTests.test_missing_and_relative_paths_do_not_create_implicit_keys",
+            "IdentityKeyTests.test_shared_or_symlinked_key_directory_is_rejected",
+            "IdentityKeyTests.test_exposed_key_permissions_are_rejected_and_read_only_private_key_works",
+            "IdentityKeyTests.test_key_symlink_hardlink_fifo_and_directory_are_rejected_without_hanging",
+            "IdentityKeyTests.test_corrupt_oversized_and_trailing_key_data_are_rejected",
+            "IdentityKeyTests.test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected",
+            "IdentityKeyTests.test_production_signatures_match_independent_openssl_for_every_purpose",
+            "IdentityKeyTests.test_independent_signatures_verify_but_payload_key_and_signature_changes_fail",
+            "IdentityKeyTests.test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed",
+            "IdentityKeyTests.test_empty_and_maximum_payload_are_explicit_and_bounded",
+            "IdentityKeyTests.test_unknown_fields_unknown_purposes_and_missing_proof_fields_fail_closed",
+            "IdentityKeyTests.test_wrong_key_and_signature_lengths_are_rejected",
+            "IdentityKeyTests.test_signing_input_requires_exactly_one_complete_protobuf_frame"
+          ]
+        },
+        "identity-revocation": {
+          "passed": 24,
+          "file": "tests/core/test_identity_revocation.py",
+          "explicit_case_ids": [
+            "RevocationTests.test_fresh_actor_proof_derives_identity_from_registered_credential",
+            "RevocationTests.test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge",
+            "RevocationTests.test_changed_audience_binding_or_signature_purpose_is_rejected",
+            "RevocationTests.test_successful_actor_proof_cannot_be_replayed",
+            "RevocationTests.test_authentication_expiry_and_restart_reject_old_proofs",
+            "RevocationTests.test_credentials_and_proofs_do_not_cross_issuer_instances",
+            "RevocationTests.test_tampered_or_self_signed_credential_cannot_start_authentication",
+            "RevocationTests.test_valid_issuer_signature_does_not_register_an_unissued_credential",
+            "RevocationTests.test_credential_revocation_preserves_other_credential_and_pending_proof",
+            "RevocationTests.test_actor_revocation_disables_all_its_credentials_but_not_another_actor",
+            "RevocationTests.test_revocation_between_challenge_and_completion_denies_authentication",
+            "RevocationTests.test_only_owner_can_read_identity_status_or_revoke",
+            "RevocationTests.test_stale_security_revision_does_not_revoke_another_identity",
+            "RevocationTests.test_fresh_duplicate_revocation_preserves_first_reason_and_revision",
+            "RevocationTests.test_revocation_and_security_revision_survive_process_death",
+            "RevocationTests.test_missing_targets_do_not_change_security_revision",
+            "RevocationTests.test_revoked_actor_cannot_receive_an_additional_credential",
+            "RevocationTests.test_fresh_enrollment_recovery_does_not_reactivate_a_revoked_credential",
+            "RevocationTests.test_sqlite_abort_rolls_back_revocation_and_global_revision",
+            "RevocationTests.test_explicit_v2_migration_preserves_all_existing_credential_bytes",
+            "RevocationTests.test_invalid_revocation_requests_do_not_allocate_owner_challenges",
+            "RevocationTests.test_invalid_authentication_context_and_unknown_fields_are_rejected",
+            "RevocationTests.test_authentication_uses_the_same_bounded_challenge_pool",
+            "RevocationTests.test_owner_and_authentication_challenges_cannot_cross_protocols"
+          ]
+        },
+        "identity-tls": {
+          "passed": 24,
+          "file": "tests/core/test_identity_tls.py",
+          "explicit_case_ids": []
+        },
+        "identity-watch": {
+          "passed": 17,
+          "file": "tests/core/test_identity_watch.py",
+          "explicit_case_ids": []
+        },
+        "issuer-client": {
+          "passed": 30,
+          "file": "tests/core/test_issuer_client.py",
+          "explicit_case_ids": []
+        },
+        "workspace-bootstrap": {
+          "passed": 11,
+          "file": "tests/core/test_workspace_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "workspace-bootstrap-races": {
+          "passed": 10,
+          "file": "tests/core/test_workspace_bootstrap_races.py",
+          "explicit_case_ids": []
+        },
+        "world-bootstrap": {
+          "passed": 15,
+          "file": "tests/core/test_world_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "world-bootstrap-races": {
+          "passed": 6,
+          "file": "tests/core/test_world_bootstrap_races.py",
+          "explicit_case_ids": []
+        },
+        "world-identity": {
+          "passed": 20,
+          "file": "tests/core/test_world_identity.py",
+          "explicit_case_ids": [
+            "WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor",
+            "WorldIdentityTests.test_private_world_requires_separate_admission",
+            "WorldIdentityTests.test_public_admission_does_not_grant_action_authority",
+            "WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect",
+            "WorldIdentityTests.test_actor_channel_does_not_expose_management",
+            "WorldIdentityTests.test_caller_token_cannot_select_another_actor",
+            "WorldIdentityTests.test_wrong_key_and_replayed_completion_fail",
+            "WorldIdentityTests.test_proof_is_bound_to_its_channel",
+            "WorldIdentityTests.test_world_audience_and_random_binding_are_checked",
+            "WorldIdentityTests.test_idle_session_keeps_issuer_checks_available",
+            "WorldIdentityTests.test_revoked_credential_cannot_enter",
+            "WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry",
+            "WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation",
+            "WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor",
+            "WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose",
+            "WorldIdentityTests.test_disconnect_releases_real_native_input_and_keeps_application",
+            "WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request",
+            "WorldIdentityTests.test_actor_revocation_releases_native_input",
+            "WorldIdentityTests.test_issuer_failure_cancels_live_control_and_does_not_kill_application",
+            "WorldIdentityTests.test_excessive_frame_closes_actor_channel_and_releases_input"
+          ]
+        },
+        "world-remote": {
+          "passed": 5,
+          "file": "tests/core/test_world_remote.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-config": {
+          "passed": 12,
+          "file": "tests/core/test_world_remote_config.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-lifecycle": {
+          "passed": 6,
+          "file": "tests/core/test_world_remote_lifecycle.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-native": {
+          "passed": 3,
+          "file": "tests/core/test_world_remote_native.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-races": {
+          "passed": 2,
+          "file": "tests/core/test_world_remote_races.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-retries": {
+          "passed": 5,
+          "file": "tests/core/test_actor_tls_retries.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-security": {
+          "passed": 13,
+          "file": "tests/core/test_world_remote_security.py",
+          "explicit_case_ids": []
+        }
+      },
+      "log": "evidence/m02-gate-2026-10-10/untraced03-final/sb16/m02-untraced-03/runtime-sanitize/checks/core.log",
+      "log_sha256": "bea28fbf352773e9e311d0e84a49f5a9903220d33185f4b5d3f12b7677184bf7"
+    },
+    {
+      "host": "sb16-2",
+      "profile": "debug",
+      "suites": {
+        "actor-status": {
+          "passed": 21,
+          "file": "tests/core/test_actor_status.py",
+          "explicit_case_ids": []
+        },
+        "authority-bootstrap": {
+          "passed": 32,
+          "file": "tests/core/test_authority_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "broker-bootstrap-client": {
+          "passed": 22,
+          "file": "tests/core/test_broker_bootstrap_client.py",
+          "explicit_case_ids": []
+        },
+        "identity-bootstrap": {
+          "passed": 18,
+          "file": "tests/core/test_identity_bootstrap.py",
+          "explicit_case_ids": [
+            "BootstrapTests.test_builtin_empty_profile_is_readable_and_immutable",
+            "BootstrapTests.test_owner_publishes_world_and_workspace_templates_without_subjects",
+            "BootstrapTests.test_profile_publication_requires_owner_proof_and_consumes_nonce",
+            "BootstrapTests.test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap",
+            "BootstrapTests.test_manual_approval_pins_the_profile_in_an_independently_verified_credential",
+            "BootstrapTests.test_automatic_enrollment_uses_the_same_nonempty_profile",
+            "BootstrapTests.test_active_profile_update_invalidates_pending_manual_approval",
+            "BootstrapTests.test_later_profile_updates_do_not_rewrite_recovered_credentials",
+            "BootstrapTests.test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state",
+            "BootstrapTests.test_manual_administration_template_still_requires_explicit_owner_approval",
+            "BootstrapTests.test_malformed_templates_are_rejected_before_publication",
+            "BootstrapTests.test_profile_size_and_unknown_fields_are_rejected",
+            "BootstrapTests.test_service_reads_require_exact_valid_revisions",
+            "BootstrapTests.test_failed_profile_publication_preserves_history_and_active_policy_revision",
+            "BootstrapTests.test_failed_credential_write_rolls_back_nonempty_profile_issuance",
+            "BootstrapTests.test_corrupt_profile_blocks_reads_and_issuance",
+            "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
+            "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
+          ]
+        },
+        "identity-enrollment": {
+          "passed": 25,
+          "file": "tests/core/test_identity_enrollment.py",
+          "explicit_case_ids": [
+            "EnrollmentTests.test_proven_key_waits_for_owner_approval",
+            "EnrollmentTests.test_owner_approval_issues_an_independently_verifiable_durable_credential",
+            "EnrollmentTests.test_humans_and_agents_get_distinct_actor_and_credential_identities",
+            "EnrollmentTests.test_enrollment_challenge_binds_the_exact_intent_and_service",
+            "EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce",
+            "EnrollmentTests.test_changed_enrollment_intent_or_purpose_is_rejected",
+            "EnrollmentTests.test_replay_is_denied_but_fresh_proof_recovers_the_same_pending_request",
+            "EnrollmentTests.test_restart_preserves_pending_requests_and_invalidates_old_challenges",
+            "EnrollmentTests.test_enrollment_proof_expires_on_the_real_clock",
+            "EnrollmentTests.test_owner_and_actor_challenges_cannot_be_used_in_the_other_protocol",
+            "EnrollmentTests.test_requester_cannot_approve_itself_or_read_another_request_as_owner",
+            "EnrollmentTests.test_rejection_is_durable_and_cannot_be_reapproved_or_reenrolled",
+            "EnrollmentTests.test_duplicate_decisions_do_not_create_another_credential",
+            "EnrollmentTests.test_a_key_cannot_create_a_second_request_by_changing_its_intent",
+            "EnrollmentTests.test_owner_can_explicitly_attach_a_second_proven_key_to_one_actor",
+            "EnrollmentTests.test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance",
+            "EnrollmentTests.test_policy_revision_change_prevents_stale_approval",
+            "EnrollmentTests.test_unknown_profile_blocks_issuance_and_preserves_pending_request",
+            "EnrollmentTests.test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants",
+            "EnrollmentTests.test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment",
+            "EnrollmentTests.test_policy_switch_does_not_approve_old_pending_requests_implicitly",
+            "EnrollmentTests.test_invalid_intents_and_reserved_keys_cannot_allocate_enrollments",
+            "EnrollmentTests.test_enrollment_and_owner_challenges_share_one_bounded_pool",
+            "EnrollmentTests.test_real_database_abort_rolls_back_actor_and_credential_creation",
+            "EnrollmentTests.test_explicit_schema_migration_preserves_issuer_key_owner_and_policy"
+          ]
+        },
+        "identity-issuer": {
+          "passed": 18,
+          "file": "tests/core/test_identity_issuer.py",
+          "explicit_case_ids": [
+            "IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy",
+            "IssuerTests.test_initialization_and_startup_never_replace_missing_or_existing_identity",
+            "IssuerTests.test_challenge_binds_issuer_incarnation_owner_operation_and_audience",
+            "IssuerTests.test_owner_policy_change_is_durable_and_observed_through_real_sqlite",
+            "IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed",
+            "IssuerTests.test_successful_proof_cannot_be_replayed",
+            "IssuerTests.test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation",
+            "IssuerTests.test_proof_for_one_challenge_does_not_complete_another",
+            "IssuerTests.test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works",
+            "IssuerTests.test_restart_invalidates_pending_challenges_without_changing_policy",
+            "IssuerTests.test_issuer_instances_do_not_accept_each_others_challenges",
+            "IssuerTests.test_competing_revision_updates_have_one_winner",
+            "IssuerTests.test_invalid_policy_and_unknown_fields_do_not_change_state",
+            "IssuerTests.test_pending_challenges_are_bounded_and_restart_clears_them",
+            "IssuerTests.test_only_one_process_can_own_one_issuer_directory",
+            "IssuerTests.test_unsafe_state_files_and_directory_are_rejected",
+            "IssuerTests.test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly",
+            "IssuerTests.test_protocol_errors_preserve_request_identity_and_connection_usability"
+          ]
+        },
+        "identity-keys": {
+          "passed": 16,
+          "file": "tests/core/test_identity_keys.py",
+          "explicit_case_ids": [
+            "IdentityKeyTests.test_distinct_keys_persist_with_private_permissions_and_external_public_keys",
+            "IdentityKeyTests.test_generation_never_overwrites_an_existing_identity",
+            "IdentityKeyTests.test_concurrent_creation_has_one_winner_and_a_complete_key",
+            "IdentityKeyTests.test_missing_and_relative_paths_do_not_create_implicit_keys",
+            "IdentityKeyTests.test_shared_or_symlinked_key_directory_is_rejected",
+            "IdentityKeyTests.test_exposed_key_permissions_are_rejected_and_read_only_private_key_works",
+            "IdentityKeyTests.test_key_symlink_hardlink_fifo_and_directory_are_rejected_without_hanging",
+            "IdentityKeyTests.test_corrupt_oversized_and_trailing_key_data_are_rejected",
+            "IdentityKeyTests.test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected",
+            "IdentityKeyTests.test_production_signatures_match_independent_openssl_for_every_purpose",
+            "IdentityKeyTests.test_independent_signatures_verify_but_payload_key_and_signature_changes_fail",
+            "IdentityKeyTests.test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed",
+            "IdentityKeyTests.test_empty_and_maximum_payload_are_explicit_and_bounded",
+            "IdentityKeyTests.test_unknown_fields_unknown_purposes_and_missing_proof_fields_fail_closed",
+            "IdentityKeyTests.test_wrong_key_and_signature_lengths_are_rejected",
+            "IdentityKeyTests.test_signing_input_requires_exactly_one_complete_protobuf_frame"
+          ]
+        },
+        "identity-revocation": {
+          "passed": 24,
+          "file": "tests/core/test_identity_revocation.py",
+          "explicit_case_ids": [
+            "RevocationTests.test_fresh_actor_proof_derives_identity_from_registered_credential",
+            "RevocationTests.test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge",
+            "RevocationTests.test_changed_audience_binding_or_signature_purpose_is_rejected",
+            "RevocationTests.test_successful_actor_proof_cannot_be_replayed",
+            "RevocationTests.test_authentication_expiry_and_restart_reject_old_proofs",
+            "RevocationTests.test_credentials_and_proofs_do_not_cross_issuer_instances",
+            "RevocationTests.test_tampered_or_self_signed_credential_cannot_start_authentication",
+            "RevocationTests.test_valid_issuer_signature_does_not_register_an_unissued_credential",
+            "RevocationTests.test_credential_revocation_preserves_other_credential_and_pending_proof",
+            "RevocationTests.test_actor_revocation_disables_all_its_credentials_but_not_another_actor",
+            "RevocationTests.test_revocation_between_challenge_and_completion_denies_authentication",
+            "RevocationTests.test_only_owner_can_read_identity_status_or_revoke",
+            "RevocationTests.test_stale_security_revision_does_not_revoke_another_identity",
+            "RevocationTests.test_fresh_duplicate_revocation_preserves_first_reason_and_revision",
+            "RevocationTests.test_revocation_and_security_revision_survive_process_death",
+            "RevocationTests.test_missing_targets_do_not_change_security_revision",
+            "RevocationTests.test_revoked_actor_cannot_receive_an_additional_credential",
+            "RevocationTests.test_fresh_enrollment_recovery_does_not_reactivate_a_revoked_credential",
+            "RevocationTests.test_sqlite_abort_rolls_back_revocation_and_global_revision",
+            "RevocationTests.test_explicit_v2_migration_preserves_all_existing_credential_bytes",
+            "RevocationTests.test_invalid_revocation_requests_do_not_allocate_owner_challenges",
+            "RevocationTests.test_invalid_authentication_context_and_unknown_fields_are_rejected",
+            "RevocationTests.test_authentication_uses_the_same_bounded_challenge_pool",
+            "RevocationTests.test_owner_and_authentication_challenges_cannot_cross_protocols"
+          ]
+        },
+        "identity-tls": {
+          "passed": 24,
+          "file": "tests/core/test_identity_tls.py",
+          "explicit_case_ids": []
+        },
+        "identity-watch": {
+          "passed": 17,
+          "file": "tests/core/test_identity_watch.py",
+          "explicit_case_ids": []
+        },
+        "issuer-client": {
+          "passed": 30,
+          "file": "tests/core/test_issuer_client.py",
+          "explicit_case_ids": []
+        },
+        "workspace-bootstrap": {
+          "passed": 11,
+          "file": "tests/core/test_workspace_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "workspace-bootstrap-races": {
+          "passed": 10,
+          "file": "tests/core/test_workspace_bootstrap_races.py",
+          "explicit_case_ids": []
+        },
+        "world-bootstrap": {
+          "passed": 15,
+          "file": "tests/core/test_world_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "world-bootstrap-races": {
+          "passed": 6,
+          "file": "tests/core/test_world_bootstrap_races.py",
+          "explicit_case_ids": []
+        },
+        "world-identity": {
+          "passed": 20,
+          "file": "tests/core/test_world_identity.py",
+          "explicit_case_ids": [
+            "WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor",
+            "WorldIdentityTests.test_private_world_requires_separate_admission",
+            "WorldIdentityTests.test_public_admission_does_not_grant_action_authority",
+            "WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect",
+            "WorldIdentityTests.test_actor_channel_does_not_expose_management",
+            "WorldIdentityTests.test_caller_token_cannot_select_another_actor",
+            "WorldIdentityTests.test_wrong_key_and_replayed_completion_fail",
+            "WorldIdentityTests.test_proof_is_bound_to_its_channel",
+            "WorldIdentityTests.test_world_audience_and_random_binding_are_checked",
+            "WorldIdentityTests.test_idle_session_keeps_issuer_checks_available",
+            "WorldIdentityTests.test_revoked_credential_cannot_enter",
+            "WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry",
+            "WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation",
+            "WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor",
+            "WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose",
+            "WorldIdentityTests.test_disconnect_releases_real_native_input_and_keeps_application",
+            "WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request",
+            "WorldIdentityTests.test_actor_revocation_releases_native_input",
+            "WorldIdentityTests.test_issuer_failure_cancels_live_control_and_does_not_kill_application",
+            "WorldIdentityTests.test_excessive_frame_closes_actor_channel_and_releases_input"
+          ]
+        },
+        "world-remote": {
+          "passed": 5,
+          "file": "tests/core/test_world_remote.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-config": {
+          "passed": 12,
+          "file": "tests/core/test_world_remote_config.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-lifecycle": {
+          "passed": 6,
+          "file": "tests/core/test_world_remote_lifecycle.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-native": {
+          "passed": 3,
+          "file": "tests/core/test_world_remote_native.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-races": {
+          "passed": 2,
+          "file": "tests/core/test_world_remote_races.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-retries": {
+          "passed": 5,
+          "file": "tests/core/test_actor_tls_retries.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-security": {
+          "passed": 13,
+          "file": "tests/core/test_world_remote_security.py",
+          "explicit_case_ids": []
+        }
+      },
+      "log": "evidence/m02-gate-2026-10-10/untraced03-final/sb16-2/m02-untraced-03/debug/checks/core.log",
+      "log_sha256": "ea8cfeec1c22bbec238d0226517cf803234a1cf97f3d44cdb6f5b67ac44aef92"
+    },
+    {
+      "host": "sb16-2",
+      "profile": "runtime-sanitize",
+      "suites": {
+        "actor-status": {
+          "passed": 21,
+          "file": "tests/core/test_actor_status.py",
+          "explicit_case_ids": []
+        },
+        "authority-bootstrap": {
+          "passed": 32,
+          "file": "tests/core/test_authority_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "broker-bootstrap-client": {
+          "passed": 22,
+          "file": "tests/core/test_broker_bootstrap_client.py",
+          "explicit_case_ids": []
+        },
+        "identity-bootstrap": {
+          "passed": 18,
+          "file": "tests/core/test_identity_bootstrap.py",
+          "explicit_case_ids": [
+            "BootstrapTests.test_builtin_empty_profile_is_readable_and_immutable",
+            "BootstrapTests.test_owner_publishes_world_and_workspace_templates_without_subjects",
+            "BootstrapTests.test_profile_publication_requires_owner_proof_and_consumes_nonce",
+            "BootstrapTests.test_profile_revisions_are_immutable_and_publication_uses_compare_and_swap",
+            "BootstrapTests.test_manual_approval_pins_the_profile_in_an_independently_verified_credential",
+            "BootstrapTests.test_automatic_enrollment_uses_the_same_nonempty_profile",
+            "BootstrapTests.test_active_profile_update_invalidates_pending_manual_approval",
+            "BootstrapTests.test_later_profile_updates_do_not_rewrite_recovered_credentials",
+            "BootstrapTests.test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state",
+            "BootstrapTests.test_manual_administration_template_still_requires_explicit_owner_approval",
+            "BootstrapTests.test_malformed_templates_are_rejected_before_publication",
+            "BootstrapTests.test_profile_size_and_unknown_fields_are_rejected",
+            "BootstrapTests.test_service_reads_require_exact_valid_revisions",
+            "BootstrapTests.test_failed_profile_publication_preserves_history_and_active_policy_revision",
+            "BootstrapTests.test_failed_credential_write_rolls_back_nonempty_profile_issuance",
+            "BootstrapTests.test_corrupt_profile_blocks_reads_and_issuance",
+            "BootstrapTests.test_second_credential_keeps_actor_identity_and_pins_its_explicit_profile",
+            "BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable"
+          ]
+        },
+        "identity-enrollment": {
+          "passed": 25,
+          "file": "tests/core/test_identity_enrollment.py",
+          "explicit_case_ids": [
+            "EnrollmentTests.test_proven_key_waits_for_owner_approval",
+            "EnrollmentTests.test_owner_approval_issues_an_independently_verifiable_durable_credential",
+            "EnrollmentTests.test_humans_and_agents_get_distinct_actor_and_credential_identities",
+            "EnrollmentTests.test_enrollment_challenge_binds_the_exact_intent_and_service",
+            "EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce",
+            "EnrollmentTests.test_changed_enrollment_intent_or_purpose_is_rejected",
+            "EnrollmentTests.test_replay_is_denied_but_fresh_proof_recovers_the_same_pending_request",
+            "EnrollmentTests.test_restart_preserves_pending_requests_and_invalidates_old_challenges",
+            "EnrollmentTests.test_enrollment_proof_expires_on_the_real_clock",
+            "EnrollmentTests.test_owner_and_actor_challenges_cannot_be_used_in_the_other_protocol",
+            "EnrollmentTests.test_requester_cannot_approve_itself_or_read_another_request_as_owner",
+            "EnrollmentTests.test_rejection_is_durable_and_cannot_be_reapproved_or_reenrolled",
+            "EnrollmentTests.test_duplicate_decisions_do_not_create_another_credential",
+            "EnrollmentTests.test_a_key_cannot_create_a_second_request_by_changing_its_intent",
+            "EnrollmentTests.test_owner_can_explicitly_attach_a_second_proven_key_to_one_actor",
+            "EnrollmentTests.test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance",
+            "EnrollmentTests.test_policy_revision_change_prevents_stale_approval",
+            "EnrollmentTests.test_unknown_profile_blocks_issuance_and_preserves_pending_request",
+            "EnrollmentTests.test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants",
+            "EnrollmentTests.test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment",
+            "EnrollmentTests.test_policy_switch_does_not_approve_old_pending_requests_implicitly",
+            "EnrollmentTests.test_invalid_intents_and_reserved_keys_cannot_allocate_enrollments",
+            "EnrollmentTests.test_enrollment_and_owner_challenges_share_one_bounded_pool",
+            "EnrollmentTests.test_real_database_abort_rolls_back_actor_and_credential_creation",
+            "EnrollmentTests.test_explicit_schema_migration_preserves_issuer_key_owner_and_policy"
+          ]
+        },
+        "identity-issuer": {
+          "passed": 18,
+          "file": "tests/core/test_identity_issuer.py",
+          "explicit_case_ids": [
+            "IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy",
+            "IssuerTests.test_initialization_and_startup_never_replace_missing_or_existing_identity",
+            "IssuerTests.test_challenge_binds_issuer_incarnation_owner_operation_and_audience",
+            "IssuerTests.test_owner_policy_change_is_durable_and_observed_through_real_sqlite",
+            "IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed",
+            "IssuerTests.test_successful_proof_cannot_be_replayed",
+            "IssuerTests.test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation",
+            "IssuerTests.test_proof_for_one_challenge_does_not_complete_another",
+            "IssuerTests.test_real_monotonic_expiry_rejects_old_proof_and_new_challenge_works",
+            "IssuerTests.test_restart_invalidates_pending_challenges_without_changing_policy",
+            "IssuerTests.test_issuer_instances_do_not_accept_each_others_challenges",
+            "IssuerTests.test_competing_revision_updates_have_one_winner",
+            "IssuerTests.test_invalid_policy_and_unknown_fields_do_not_change_state",
+            "IssuerTests.test_pending_challenges_are_bounded_and_restart_clears_them",
+            "IssuerTests.test_only_one_process_can_own_one_issuer_directory",
+            "IssuerTests.test_unsafe_state_files_and_directory_are_rejected",
+            "IssuerTests.test_unknown_database_or_mismatched_issuer_key_is_never_repaired_implicitly",
+            "IssuerTests.test_protocol_errors_preserve_request_identity_and_connection_usability"
+          ]
+        },
+        "identity-keys": {
+          "passed": 16,
+          "file": "tests/core/test_identity_keys.py",
+          "explicit_case_ids": [
+            "IdentityKeyTests.test_distinct_keys_persist_with_private_permissions_and_external_public_keys",
+            "IdentityKeyTests.test_generation_never_overwrites_an_existing_identity",
+            "IdentityKeyTests.test_concurrent_creation_has_one_winner_and_a_complete_key",
+            "IdentityKeyTests.test_missing_and_relative_paths_do_not_create_implicit_keys",
+            "IdentityKeyTests.test_shared_or_symlinked_key_directory_is_rejected",
+            "IdentityKeyTests.test_exposed_key_permissions_are_rejected_and_read_only_private_key_works",
+            "IdentityKeyTests.test_key_symlink_hardlink_fifo_and_directory_are_rejected_without_hanging",
+            "IdentityKeyTests.test_corrupt_oversized_and_trailing_key_data_are_rejected",
+            "IdentityKeyTests.test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected",
+            "IdentityKeyTests.test_production_signatures_match_independent_openssl_for_every_purpose",
+            "IdentityKeyTests.test_independent_signatures_verify_but_payload_key_and_signature_changes_fail",
+            "IdentityKeyTests.test_signatures_cannot_cross_purposes_even_when_both_claims_are_changed",
+            "IdentityKeyTests.test_empty_and_maximum_payload_are_explicit_and_bounded",
+            "IdentityKeyTests.test_unknown_fields_unknown_purposes_and_missing_proof_fields_fail_closed",
+            "IdentityKeyTests.test_wrong_key_and_signature_lengths_are_rejected",
+            "IdentityKeyTests.test_signing_input_requires_exactly_one_complete_protobuf_frame"
+          ]
+        },
+        "identity-revocation": {
+          "passed": 24,
+          "file": "tests/core/test_identity_revocation.py",
+          "explicit_case_ids": [
+            "RevocationTests.test_fresh_actor_proof_derives_identity_from_registered_credential",
+            "RevocationTests.test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge",
+            "RevocationTests.test_changed_audience_binding_or_signature_purpose_is_rejected",
+            "RevocationTests.test_successful_actor_proof_cannot_be_replayed",
+            "RevocationTests.test_authentication_expiry_and_restart_reject_old_proofs",
+            "RevocationTests.test_credentials_and_proofs_do_not_cross_issuer_instances",
+            "RevocationTests.test_tampered_or_self_signed_credential_cannot_start_authentication",
+            "RevocationTests.test_valid_issuer_signature_does_not_register_an_unissued_credential",
+            "RevocationTests.test_credential_revocation_preserves_other_credential_and_pending_proof",
+            "RevocationTests.test_actor_revocation_disables_all_its_credentials_but_not_another_actor",
+            "RevocationTests.test_revocation_between_challenge_and_completion_denies_authentication",
+            "RevocationTests.test_only_owner_can_read_identity_status_or_revoke",
+            "RevocationTests.test_stale_security_revision_does_not_revoke_another_identity",
+            "RevocationTests.test_fresh_duplicate_revocation_preserves_first_reason_and_revision",
+            "RevocationTests.test_revocation_and_security_revision_survive_process_death",
+            "RevocationTests.test_missing_targets_do_not_change_security_revision",
+            "RevocationTests.test_revoked_actor_cannot_receive_an_additional_credential",
+            "RevocationTests.test_fresh_enrollment_recovery_does_not_reactivate_a_revoked_credential",
+            "RevocationTests.test_sqlite_abort_rolls_back_revocation_and_global_revision",
+            "RevocationTests.test_explicit_v2_migration_preserves_all_existing_credential_bytes",
+            "RevocationTests.test_invalid_revocation_requests_do_not_allocate_owner_challenges",
+            "RevocationTests.test_invalid_authentication_context_and_unknown_fields_are_rejected",
+            "RevocationTests.test_authentication_uses_the_same_bounded_challenge_pool",
+            "RevocationTests.test_owner_and_authentication_challenges_cannot_cross_protocols"
+          ]
+        },
+        "identity-tls": {
+          "passed": 24,
+          "file": "tests/core/test_identity_tls.py",
+          "explicit_case_ids": []
+        },
+        "identity-watch": {
+          "passed": 17,
+          "file": "tests/core/test_identity_watch.py",
+          "explicit_case_ids": []
+        },
+        "issuer-client": {
+          "passed": 30,
+          "file": "tests/core/test_issuer_client.py",
+          "explicit_case_ids": []
+        },
+        "workspace-bootstrap": {
+          "passed": 11,
+          "file": "tests/core/test_workspace_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "workspace-bootstrap-races": {
+          "passed": 10,
+          "file": "tests/core/test_workspace_bootstrap_races.py",
+          "explicit_case_ids": []
+        },
+        "world-bootstrap": {
+          "passed": 15,
+          "file": "tests/core/test_world_bootstrap.py",
+          "explicit_case_ids": []
+        },
+        "world-bootstrap-races": {
+          "passed": 6,
+          "file": "tests/core/test_world_bootstrap_races.py",
+          "explicit_case_ids": []
+        },
+        "world-identity": {
+          "passed": 20,
+          "file": "tests/core/test_world_identity.py",
+          "explicit_case_ids": [
+            "WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor",
+            "WorldIdentityTests.test_private_world_requires_separate_admission",
+            "WorldIdentityTests.test_public_admission_does_not_grant_action_authority",
+            "WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect",
+            "WorldIdentityTests.test_actor_channel_does_not_expose_management",
+            "WorldIdentityTests.test_caller_token_cannot_select_another_actor",
+            "WorldIdentityTests.test_wrong_key_and_replayed_completion_fail",
+            "WorldIdentityTests.test_proof_is_bound_to_its_channel",
+            "WorldIdentityTests.test_world_audience_and_random_binding_are_checked",
+            "WorldIdentityTests.test_idle_session_keeps_issuer_checks_available",
+            "WorldIdentityTests.test_revoked_credential_cannot_enter",
+            "WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry",
+            "WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation",
+            "WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor",
+            "WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose",
+            "WorldIdentityTests.test_disconnect_releases_real_native_input_and_keeps_application",
+            "WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request",
+            "WorldIdentityTests.test_actor_revocation_releases_native_input",
+            "WorldIdentityTests.test_issuer_failure_cancels_live_control_and_does_not_kill_application",
+            "WorldIdentityTests.test_excessive_frame_closes_actor_channel_and_releases_input"
+          ]
+        },
+        "world-remote": {
+          "passed": 5,
+          "file": "tests/core/test_world_remote.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-config": {
+          "passed": 12,
+          "file": "tests/core/test_world_remote_config.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-lifecycle": {
+          "passed": 6,
+          "file": "tests/core/test_world_remote_lifecycle.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-native": {
+          "passed": 3,
+          "file": "tests/core/test_world_remote_native.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-races": {
+          "passed": 2,
+          "file": "tests/core/test_world_remote_races.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-retries": {
+          "passed": 5,
+          "file": "tests/core/test_actor_tls_retries.py",
+          "explicit_case_ids": []
+        },
+        "world-remote-security": {
+          "passed": 13,
+          "file": "tests/core/test_world_remote_security.py",
+          "explicit_case_ids": []
+        }
+      },
+      "log": "evidence/m02-gate-2026-10-10/untraced03-final/sb16-2/m02-untraced-03/runtime-sanitize/checks/core.log",
+      "log_sha256": "f426e3fefe4e6f843c80d89dbd1f2313e4154070ab1fb3ec8fef952e0dec1eed"
+    }
+  ],
+  "previous_audit": "docs/M01_QUALIFICATION_AUDIT.txt",
+  "m02_dependency": {
+    "review": "evidence/m02-gate-2026-10-10/adoption-final-01/primary-review.json",
+    "sha256": "854191aaf633d4ecd8b7a7b2c0237166fc4d8bae7d4496ee9780dbb76ed00fb3"
+  },
+  "components": {
+    "identity.key_material": "Independent OpenSSL, private-file, concurrent creation, and signature-purpose checks.",
+    "identity.issuer_control": "Owner proofs, durable policy, replay, concurrency, and restart checks.",
+    "identity.manual_enrollment": "Proven keys, explicit approval, actor separation, and additional credential checks.",
+    "identity.approve_always": "Common issuance path, configured bootstrap profile, and rejection of automatic administration.",
+    "identity.bootstrap_profile": "Immutable issuer profiles and checked world/workspace bootstrap adapters.",
+    "identity.proof_freshness": "Expiry, audience, purpose, request, credential, and service-incarnation binding.",
+    "identity.credential_revocation": "Credential denial and independent-credential survival; checked effect cancellation supplied by M02.",
+    "identity.actor_revocation": "All actor credentials rejected; unrelated actors and independent application execution preserved.",
+    "identity.world_session": "Authenticated local and TLS actor channels; private-world authority checks and native cancellation."
+  },
+  "scope": "Reassessment of retained complete qualification and the newly completed M02 cancellation dependency. No new runtime execution.",
+  "limits": [
+    "The concurrent M03 resource draft is not the source qualified by this M01 record.",
+    "Fixture human identities qualify the implementation. No personal issuer or David credential is provisioned by these tests.",
+    "Historical failed attempts and unknown original causes remain recorded.",
+    "Real-model tasks, shared-world geometry, physical input, and native performance remain later mandatory milestones."
+  ]
+}
