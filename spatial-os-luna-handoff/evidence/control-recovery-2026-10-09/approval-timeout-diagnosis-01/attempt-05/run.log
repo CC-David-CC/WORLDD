@@ -1,0 +1,13 @@
+Running as unit: spatial-approval-timeout-diag01-5.service; invocation ID: 3662a53e36ac426a9cafb42bb990c3ce
+test_revocation_requires_child_acknowledgement_with_automatic_delivery (test_authority_supervisor.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.637s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 1.747s
+CPU time consumed: 638ms
+Memory peak: 1.5M
+Memory swap peak: 0B

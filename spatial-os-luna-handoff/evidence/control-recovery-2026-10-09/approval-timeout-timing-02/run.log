@@ -1,0 +1,17 @@
+Running as unit: spatial-approval-timeout-timing02.service; invocation ID: 029651559ce647779fbfbbafd8bacede
+attempt 1: passed
+attempt 2: passed
+attempt 3: passed
+attempt 4: passed
+attempt 5: passed
+attempt 6: passed
+attempt 7: passed
+attempt 8: passed
+attempt 9: passed
+attempt 10: passed
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 16.783s
+CPU time consumed: 5.504s
+Memory peak: 1.5M
+Memory swap peak: 0B

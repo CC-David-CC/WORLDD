@@ -1,0 +1,14 @@
+{
+  "status": "instrumentation_compile_failure_no_cases_executed",
+  "detail": "The first tracer used str() on an existing fixed string. The corrected tracer uses that string directly.",
+  "original_review_scope": "The runner recorded its error before the waiting test driver reached its own startup deadline. That final run.log therefore differs from the early attachment hash.",
+  "final_attachments": {
+    "approval-timeout-timing.bt": "5cd3d488d2d4c9c49990e3965fc89611c20f42565b3a81c625eb051b2e7c3d7f",
+    "diagnose-approval-timeout-timing-01.py": "3307f4a378a71bd28a5f0012638fb619ea13c860bf8069bf0a9d591a03122cb2",
+    "review.json": "d0bf407f96863b1a4a10a9863c0a3b904ed15401fe6717dc6b57d101741d3e99",
+    "run.log": "c0297b2f50395a4f875d08977fa23763a7193036d936c7396591f35ae11b1e9c",
+    "selected-case.py": "cb1090e892933a6e81decc0d35a9df79ccaf0584096ae2befae2db8aed416e4e",
+    "test-pid": "bb5b32b80be34894630d019323845fa4c7245180112ed25b0aa06745b29e4a4b",
+    "timing.log": "203e0cd2fecf6982d85d958c8613c6bf7dbc5343926fc22faf6efbe66d9415a3"
+  }
+}

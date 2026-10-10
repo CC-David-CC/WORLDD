@@ -1,0 +1,27 @@
+{
+  "status": "not_reproduced_cause_unconfirmed",
+  "repetitions_passed": 5,
+  "profile": "runtime-sanitize",
+  "host": "sb16",
+  "original_failure_resolved": false,
+  "production_or_test_changes": false,
+  "attachments": {
+    "review.json": "fa69c75a379debc34a25fee680ed2682671e0acd7ae16aedb82a784204afab4b",
+    "attempt-01/run.log": "88695964b69960eb429373abcd074387c8d691a82f4e1e250333d977c381fded",
+    "attempt-02/run.log": "a70a755a42f638619a19c615fe7148bfe5ba00ed8bda470d76418d0a04b762a0",
+    "attempt-03/run.log": "cbaf3b72c1909a55b52e1d82b78bf3bab137872a4b54f9bc62c321bbea9b8b63",
+    "attempt-04/run.log": "7b79774c5006bc6381f8daf9b93c862a4e7697512f7a017ec5437142f6bcc63f",
+    "attempt-05/run.log": "76990dc5b9a96119e323a2712180895331b10189a4fe0662141319e1e3b2cb4e",
+    "attempt-05/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-server-0.log": "69dc5cdda2369f853435ea652a831343c9cca42c2da82659fbe70ab70048e106",
+    "attempt-05/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-supervisor-312890629417084.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-04/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-server-0.log": "c7f3854a4d7c24b1d21b7f743d44f4189c03f63a9157dc2d610a4d417d7e0ac4",
+    "attempt-04/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-supervisor-312887142110787.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-03/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-server-0.log": "db6745028774fb0e1284de9d68f07ddf281915bee438e5cb6ac1c1ec49f1245f",
+    "attempt-03/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-supervisor-312883645829612.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-02/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-server-0.log": "3adabd71ffca44f51c7459d7c19975cd4fc228b776a68a4c3584740982fc531b",
+    "attempt-02/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-supervisor-312880040794319.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "attempt-01/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-server-0.log": "c546a8522f87d8347f560e5b4dadbd0d0e1ff81c211a2aec5ebf2059e0730af7",
+    "attempt-01/native/test_revocation_requires_child_acknowledgement_with_automatic_delivery-supervisor-312876421128978.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "next": "Investigate issuer response delay with bounded transport and storage timing evidence. Do not broaden to the full suite."
+}

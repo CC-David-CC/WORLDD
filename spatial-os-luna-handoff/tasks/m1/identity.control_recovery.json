@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "approval_interruption_and_recovery_failure_qualification",
+  "current_step": "cross_host_cancellation_and_remaining_recovery_races",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -14,7 +14,8 @@
   "remaining": [
     "Qualify failure races and recovery interruptions.",
     "Resolve the preserved participant-approval startup failure before the full phase gate.",
-    "Complete cross-host cancellation and full M02 qualification on both hosts."
+    "Complete cross-host cancellation and full M02 qualification on both hosts.",
+    "Resolve the preserved active-generation revocation-read timeout before the full phase gate."
   ],
   "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
   "candidate": {
@@ -397,5 +398,16 @@
       "runtime ASan/UBSan"
     ],
     "full_phase_gate": "pending on both hosts"
+  },
+  "approval_interruption": {
+    "state": "Four controlled scenarios passed; earlier intermittent failures remain open.",
+    "evidence": "evidence/control-recovery-2026-10-09/approval-interruption-03/sb16/primary-review.json",
+    "contract": "docs/APPROVAL_INTERRUPTION_CHECKS.txt",
+    "cases_per_profile": 4,
+    "host": "sb16",
+    "full_phase_gate": "pending on both hosts",
+    "original_timeout_resolved": false,
+    "preserved_failure": "evidence/control-recovery-2026-10-09/approval-interruption-failure02/sb16/failure-review.json",
+    "timing_evidence": "evidence/control-recovery-2026-10-09/approval-timeout-timing-02/primary-review.json"
   }
 }

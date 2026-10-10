@@ -1,0 +1,56 @@
+Supervisor approval interruption checks
+
+Invariant
+Remote approval alone must not permit child execution.
+Require a live participant and a durable local approval record.
+After interrupted approval, report failure and stop the exact owned process and native scopes.
+Do not retry an uncertain approval or replay execution.
+A fresh launch requires a new journal, incarnation, authorization, process scope, and native credential.
+An unactivated old approval must not become a new launch's authority.
+
+Scenarios
+Use two TLS relays that forward actual issuer requests and replies.
+The real issuer signs proofs, commits approvals, and maintains activation state.
+Inject faults after approval commit:
+1. Close the participant transport while holding the supervisor's committed approval reply.
+2. Withhold a participant revocation reply until its unchanged 700 ms fixture deadline expires.
+3. Drop the supervisor approval reply after the issuer commits it.
+Verify no child configuration, execution marker, stdout, or activation appears.
+Verify the issuer's committed unactivated approval and the exact checked local cleanup independently.
+Verify a subsequent fresh launch cannot reuse the abandoned approval.
+
+Test timing
+Keep the participant and issuer fixture deadlines unchanged.
+Use a 3000 ms supervisor observer deadline in these new fault scenarios.
+It must outlive the participant's 700 ms deadline to observe that failure during approval.
+This does not change a production default or an existing acceptance deadline.
+
+Selection
+First run the three scenarios with verified existing Debug and sanitizer binaries.
+Then register authority-approval-interruption in CMake and rebuild required executables.
+Run the new suite with authority-supervisor, authority-owned-participant,
+authority-control-binding, and identity-supervisor-registry in both profiles.
+Preserve all failed evidence. Keep locked acceptance files unchanged.
+
+Limits
+Controlled reproduction does not establish the cause of the historical intermittent failure.
+Recovery failure races, cross-host cancellation, and the full M02 gate remain pending.
+
+Active-generation timeout follow-up
+Candidate02 passed 52 Debug cases and 51 sanitizer cases. One related sanitizer case failed.
+The existing automatic-revocation test exceeded its issuer reply deadline after activation.
+The original cause remains unconfirmed. Preserve that failure separately from injected faults.
+Five unchanged isolated repetitions passed. Ten kernel-timed repetitions also passed.
+The timed repetitions recorded a maximum issuer fdatasync wait of 21.357 ms.
+Those observations do not explain the original 700 ms deadline failure.
+
+Add a controlled active-generation timeout scenario.
+Hold the real issuer's committed revocation reply at a TLS relay.
+Keep the existing participant deadline and all production binaries unchanged.
+Require exact process and native cleanup after permanent participant failure.
+Require fencing without an applied acknowledgement, release, or retirement.
+The issuer's exact generation and revocation obligation must remain pending.
+Reject replacement execution until explicit retirement.
+Verify no implicit participant reconnection, acknowledgement, or release occurs.
+Run all four interruption cases in Debug and runtime sanitizers with verified existing binaries.
+This scenario tests recovery behavior. It does not resolve the original intermittent timeout.

@@ -1,0 +1,11 @@
+{
+  "status": "not_reproduced_cause_unconfirmed",
+  "repetitions_passed": 10,
+  "original_failure_resolved": false,
+  "source_and_deadlines_changed": false,
+  "issuer_max_fdatasync_us": 21357,
+  "attachments_verified": 38,
+  "kernel_trace_scope": "Only the selected test process tree.",
+  "observations": "No issuer syscall or off-CPU wait reached 100 ms in these successful repetitions.",
+  "limits": "Successful repetitions do not determine the historical timeout cause. No TLS payloads or filesystem buffers were captured."
+}

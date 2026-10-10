@@ -1,0 +1,16 @@
+Running as unit: spatial-approval-interruption-03-606401026f66ac65e0d304d415870a0cdb9f0c945d7c40abf01a7a27f4130f11.service; invocation ID: bce7542d36b14264a83a64354213e40d
+test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch (__main__.ApprovalInterruptionTests.test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch) ... ok
+test_participant_timeout_during_approval_never_executes (__main__.ApprovalInterruptionTests.test_participant_timeout_during_approval_never_executes) ... ok
+test_lost_committed_approval_reply_never_retries_or_executes (__main__.ApprovalInterruptionTests.test_lost_committed_approval_reply_never_retries_or_executes) ... ok
+test_active_revocation_timeout_stops_scopes_without_completing_barrier (__main__.ApprovalInterruptionTests.test_active_revocation_timeout_stops_scopes_without_completing_barrier) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 6.442s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 6.599s
+CPU time consumed: 1.242s
+Memory peak: 1.7M
+Memory swap peak: 0B

@@ -1,0 +1,12 @@
+Running as unit: spatial-approval-timeout-timing01.service; invocation ID: dc2cbc8b730c4cb08bb4b0c9dd143d09
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-timeout-timing-01/selected-case.py", line 9, in <module>
+    if time.monotonic()>until: raise RuntimeError('Timing tracer did not become ready')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Timing tracer did not become ready
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 25.153s
+CPU time consumed: 439ms
+Memory peak: 1.5M
+Memory swap peak: 0B

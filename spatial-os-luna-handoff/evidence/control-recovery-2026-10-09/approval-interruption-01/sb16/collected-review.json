@@ -1,0 +1,54 @@
+{
+  "status": "focused_passed_phase_gate_pending",
+  "host": "sb16",
+  "source_files": 345,
+  "locked_files": 41,
+  "profiles": {
+    "debug": {
+      "replacement": [
+        3
+      ]
+    },
+    "runtime-sanitize": {
+      "replacement": [
+        3
+      ]
+    }
+  },
+  "attachments": {
+    "checks/review.json": "0c08662e1b9e52d24022aa157400463e4692528c2016231ee1e57dec06748fab",
+    "checks/runtime-sanitize/replacement.log": "7da6c4cc7d3f6b59131c53c8c559e80ba2c8b94fab06e73ec45f0f472f01556d",
+    "checks/debug/replacement.log": "d64fa8b13977ee9a4d9c5d01f82bac50bebd25bac09cade51880ccfee0a4b9d7",
+    "checks/runtime-sanitize/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-supervisor-312157540589901.log": "efedb0e5051209a9385fd3c1692b89fb9d33b71d5360713f44c6bf00e3473213",
+    "checks/runtime-sanitize/native/test_lost_committed_approval_reply_never_retries_or_executes-witness.json.log": "7d8971737475c4dfc406d9784e00d8ad0596ce38cdd77dbce3f50e028ad21092",
+    "checks/runtime-sanitize/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-supervisor-312158505241962.log": "508dd3be0796744102a55c312d1d077235cc71d42715acaacd012605f8d2ec60",
+    "checks/runtime-sanitize/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-server-0.log": "fce6b23d9849bc9aea17490ce70f83fab8647fade97c9e2c45973f95bd9d717a",
+    "checks/runtime-sanitize/native/test_lost_committed_approval_reply_never_retries_or_executes-server-0.log": "a68e66248009cf0dc971ffbb4bc964bcecaeba70f722bbf7f2dda0baa1871438",
+    "checks/runtime-sanitize/native/test_participant_timeout_during_approval_never_executes-server-0.log": "99ad187dde69b8de9b7a2a714b6984742b335563f234a9311bc17a88af15bce3",
+    "checks/runtime-sanitize/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-witness.json.log": "ab74742010d659db6f362f631db57fd712184fbc4feb579901b73ace3749ce55",
+    "checks/runtime-sanitize/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-supervisor-312158045486885.log": "b53c51f8d552c124878d7f9a46bc558b2d3a85edec90a6da1e2c27ee7a70edfe",
+    "checks/runtime-sanitize/native/test_participant_timeout_during_approval_never_executes-witness.json.log": "c2d36515b3b28b129b406b18e87523e6064c3b961f249ef721c799e5b4e0ec33",
+    "checks/runtime-sanitize/native/test_participant_timeout_during_approval_never_executes-supervisor-312159875287578.log": "863527c03a272315e3c80dce80d5d006e1232932eb51c7a7aff95194c1355538",
+    "checks/runtime-sanitize/native/test_lost_committed_approval_reply_never_retries_or_executes-supervisor-312161394088501.log": "c8031919d14dbf472b4771c10f134ba641ab3ce5bf5875dfd5e45c39b0f4db95",
+    "checks/debug/native/test_lost_committed_approval_reply_never_retries_or_executes-witness.json.log": "7d8971737475c4dfc406d9784e00d8ad0596ce38cdd77dbce3f50e028ad21092",
+    "checks/debug/native/test_participant_timeout_during_approval_never_executes-supervisor-312153033108286.log": "863527c03a272315e3c80dce80d5d006e1232932eb51c7a7aff95194c1355538",
+    "checks/debug/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-supervisor-312151988652648.log": "508dd3be0796744102a55c312d1d077235cc71d42715acaacd012605f8d2ec60",
+    "checks/debug/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-server-0.log": "3d7f980fbe09456af820d98e30cf18a19140c56fdf0b6464708292df2b388aec",
+    "checks/debug/native/test_lost_committed_approval_reply_never_retries_or_executes-server-0.log": "b69aed5321a9c456aaa2724e60812459dec2957329b1d7c69f56875c6f560417",
+    "checks/debug/native/test_participant_timeout_during_approval_never_executes-server-0.log": "c4a414ba35f068a937409624f55da3a0109eb37fa871c6fef9a174a95d0a23a0",
+    "checks/debug/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-witness.json.log": "ab74742010d659db6f362f631db57fd712184fbc4feb579901b73ace3749ce55",
+    "checks/debug/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-supervisor-312151191442115.log": "efedb0e5051209a9385fd3c1692b89fb9d33b71d5360713f44c6bf00e3473213",
+    "checks/debug/native/test_participant_timeout_during_approval_never_executes-witness.json.log": "c2d36515b3b28b129b406b18e87523e6064c3b961f249ef721c799e5b4e0ec33",
+    "checks/debug/native/test_lost_committed_approval_reply_never_retries_or_executes-supervisor-312154400847443.log": "c8031919d14dbf472b4771c10f134ba641ab3ce5bf5875dfd5e45c39b0f4db95",
+    "checks/debug/native/test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch-supervisor-312151613598598.log": "b53c51f8d552c124878d7f9a46bc558b2d3a85edec90a6da1e2c27ee7a70edfe"
+  },
+  "selected_cases_per_profile": 3,
+  "production_launch_changed": false,
+  "reused_builds": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-participant-diagnostics-02",
+  "limitations": [
+    "Full M02 qualification remains pending on both hosts.",
+    "Failure races and cross-host cancellation remain required.",
+    "The earlier participant-approval startup failure remains unresolved.",
+    "Automatic application placement restoration and shared compositor lifetime remain required for M1."
+  ]
+}

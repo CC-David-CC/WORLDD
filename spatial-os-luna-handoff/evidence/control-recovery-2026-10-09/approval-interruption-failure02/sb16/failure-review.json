@@ -1,0 +1,28 @@
+{
+  "status": "preserved_failure_not_integrated",
+  "host": "sb16",
+  "archive_sha256": "27a6a46c04187d3e4980612f38f95d96ab99720e488a8a67d3fd7805e230eb67",
+  "attachments_verified": 121,
+  "profiles": {
+    "debug": {
+      "passed": 52,
+      "failed": 0,
+      "skipped": 0,
+      "selected": 52
+    },
+    "runtime-sanitize": {
+      "passed": 51,
+      "failed": 1,
+      "skipped": 0,
+      "selected": 52
+    }
+  },
+  "failed_case": "AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery",
+  "observed_cause": "The participant exceeded its issuer revocation-read deadline.",
+  "underlying_cause": "Unconfirmed. The saved stderr does not identify why the deadline expired.",
+  "historical_startup_cause": "Unconfirmed. This failure occurred after activation, not during approval.",
+  "production_source_changed": false,
+  "locked_files_unchanged": 41,
+  "next_check": "Run only this unchanged case up to five times with pinned sanitizer binaries and separate evidence paths.",
+  "full_phase_gate": "Pending on both hosts. M02 and Spatial-M1 remain incomplete."
+}

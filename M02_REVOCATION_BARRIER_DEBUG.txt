@@ -818,3 +818,30 @@ Supervisor and participant logs survive test cleanup. The historical startup cau
 Current passing startup repetitions show expected private-channel closure during checked shutdown.
 Controlled approval interruptions, recovery races, cross-host cancellation, and the full M02 gate remain pending.
 No normal session or database changed. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: Approval interruption candidate02 has one related sanitizer failure.
+Debug: 52 passed. Runtime sanitizers: 51 passed, 1 failed. No cases were skipped.
+The three new interruption scenarios passed in both profiles.
+The failing case is AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery.
+The saved participant diagnostic reports: stage=revocations cause=Issuer client deadline exceeded.
+The underlying timeout cause is unconfirmed. This is not proof of the historical approval-startup cause.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/approval-interruption-failure02/sb16/failure-review.json.
+All source, binary, and raw log hashes were checked before collection. The original failed run remains intact.
+No production code, timeout, or assertion changed. Candidate02 is not integrated or committed.
+Next: only the unchanged failing case, up to five repetitions with separate sanitizer evidence.
+Full M02 qualification remains pending on both hosts. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: The unchanged failing revocation case passed five isolated sanitizer repetitions.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/approval-timeout-diagnosis-01/primary-review.json.
+No source, assertions, or deadlines changed. The original failure remains unresolved.
+Next: bounded issuer transport and storage timing diagnosis. Do not rerun the full matrix.
+
+2026-10-10: Four controlled interruption scenarios passed per profile on sb16.
+Debug and runtime sanitizers reused exact candidate02 binaries. No compiled input changed.
+After active revocation-delivery timeout, exact scope cleanup and fencing preserve the pending issuer obligation.
+Replacement execution is rejected before retirement. No implicit reconnect or false acknowledgement occurs.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/approval-interruption-03/sb16/primary-review.json.
+Ten additional kernel-timed repetitions passed. Maximum issuer fdatasync duration was 21.357 ms.
+These repetitions do not explain or resolve the original timeout. The first tracer compile error is preserved.
+Next: cross-host cancellation and remaining recovery races. Both intermittent failures remain phase-gate work.
+M02 and Spatial-M1 remain incomplete. No normal desktop session or database changed.

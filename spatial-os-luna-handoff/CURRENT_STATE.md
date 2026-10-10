@@ -1,5 +1,39 @@
 # Implementation status
 
+## 2026-10-10: Four controlled interruption scenarios pass focused checks
+
+All four scenarios passed in Debug and runtime ASan/UBSan on sb16, without failures or skips.
+Interrupted approval cannot start a child or reuse an abandoned incarnation.
+A revocation-delivery timeout after activation fences the generation and stops its exact owned scopes.
+The issuer keeps the revocation obligation pending. Replacement cannot execute before retirement.
+No participant reconnect, acknowledgement, release, or replacement marker appears after that injected timeout.
+Read evidence/control-recovery-2026-10-09/approval-interruption-03/sb16/primary-review.json.
+All compiled inputs match candidate02. Both profiles reused its hash-verified binaries with separate evidence paths.
+Only the new test changed after candidate02. All 41 locked files remain unchanged.
+
+Candidate02's related intermittent timeout remains unresolved. Its failed run is preserved separately.
+Five isolated and ten kernel-timed repetitions passed without changing code or deadlines.
+The ten timed repetitions show no issuer syscall or off-CPU wait reaching 100 ms.
+They do not determine the earlier failure's cause. The failed first tracer compilation is also preserved.
+This is a development-branch coverage checkpoint, not full M02 qualification.
+Next: cross-host cancellation and remaining recovery races. Both intermittent failures remain phase-gate work.
+M02 and Spatial-M1 remain incomplete. No normal desktop session or database changed.
+
+
+## 2026-10-10: Approval interruption candidate has a related sanitizer failure
+
+The three new approval-interruption scenarios passed in both profiles on sb16.
+All 52 selected Debug cases passed. Runtime sanitizers passed 51 cases and failed one.
+The existing supervisor revocation case exceeded its issuer revocation-read deadline.
+The underlying timeout cause remains unconfirmed. This happened after activation, not during approval.
+Read evidence/control-recovery-2026-10-09/approval-interruption-failure02/sb16/failure-review.json.
+The exact failure and stderr are preserved. The candidate remains unintegrated.
+The unchanged case passed five isolated sanitizer repetitions. This does not resolve the original failure.
+Read evidence/control-recovery-2026-10-09/approval-timeout-diagnosis-01/primary-review.json.
+Next: bounded issuer transport and storage timing diagnosis.
+Full M02 qualification remains pending on both hosts. M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Participant failure diagnostics preserve the cause
 
 The participant worker now records the failed operation and a bounded cause on stderr.

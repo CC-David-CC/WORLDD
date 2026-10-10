@@ -1,0 +1,53 @@
+{
+  "status": "diagnostic_error",
+  "started": 1791644290.1393616,
+  "original": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-interruption-02",
+  "original_review_sha256": "c5bbb7f7e3c1da1153c67558646fe4141146c64fc958522111efb5f745eeb7a1",
+  "profile": "runtime-sanitize",
+  "selection": "AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery",
+  "limit": 10,
+  "instrumentation": "Kernel syscall durations and off-CPU time for the test process tree. No buffers or request data.",
+  "source_changed": false,
+  "deadlines_changed": false,
+  "original_failure_resolved": false,
+  "test_command": [
+    "/usr/bin/systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--unit=spatial-approval-timeout-timing01",
+    "--property=Delegate=yes",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-interruption-02/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-interruption-02/source",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+    "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-timeout-timing-01/selected-case.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-timeout-timing-01",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-interruption-02/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-interruption-02/runtime-sanitize/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-interruption-02/runtime-sanitize/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-interruption-02/runtime-sanitize/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-approval-interruption-02/runtime-sanitize/build/spatial-issuer-client"
+  ],
+  "test_pid": 2651337,
+  "trace_command": [
+    "sudo",
+    "-n",
+    "bpftrace",
+    "-q",
+    "-B",
+    "none",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/approval-timeout-timing.bt",
+    "2651337"
+  ],
+  "trace_program_sha256": "5cd3d488d2d4c9c49990e3965fc89611c20f42565b3a81c625eb051b2e7c3d7f",
+  "ended": 1791644291.5403306,
+  "attachments": {
+    "run.log": "38a6412da98b991851fbe3ccf14eb38b92bc065acc83653a95880990ef7f747f",
+    "selected-case.py": "cb1090e892933a6e81decc0d35a9df79ccaf0584096ae2befae2db8aed416e4e",
+    "test-pid": "bb5b32b80be34894630d019323845fa4c7245180112ed25b0aa06745b29e4a4b",
+    "timing.log": "203e0cd2fecf6982d85d958c8613c6bf7dbc5343926fc22faf6efbe66d9415a3"
+  }
+}
