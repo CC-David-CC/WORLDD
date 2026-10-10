@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "authenticated_issuer_retirement",
+  "current_step": "connect_checked_cleanup_to_issuer_retirement",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,7 +12,7 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Implement authenticated issuer retirement of the exact fenced generation and durable cleanup result.",
+    "Connect the trusted coordinator signer and durable cleanup receipt to authenticated issuer retirement.",
     "Resolve the preserved participant-approval startup failure before the full phase gate.",
     "Qualify the complete M02 path and cumulative profiles on both hosts."
   ],
@@ -270,6 +270,21 @@
     "cases_per_profile": 113,
     "new_cases": 5,
     "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "issuer_retirement": {
+    "state": "Issuer and client protocol passed focused checks. Coordinator integration remains pending.",
+    "evidence": "evidence/control-recovery-2026-10-09/issuer-retirement-01/sb16/primary-review.json",
+    "contract": "docs/AUTHORITY_RETIREMENT.txt",
+    "host": "sb16",
+    "cases_per_profile": 230,
+    "new_cases": 27,
     "profiles": [
       "Debug",
       "runtime ASan/UBSan"

@@ -712,3 +712,19 @@ Passing evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/d
 No normal host session adopted this branch. Full qualification remains pending on both hosts.
 No physical power-loss injection was performed. Issuer retirement and the earlier startup failure remain open.
 The tested source is unchanged. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: Issuer retirement candidate01 passed 27 new cases and twelve related Debug suites on sb16.
+Runtime sanitizer build is running at local/m02-issuer-retirement-01. No sanitizer result is claimed.
+The baseline request was rejected with INVALID_ARGUMENT and left its real fence obligation pending.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/retirement-baseline01/sb16.
+Issuer protocol tests use fixture cleanup digests. The coordinator signer and actual cleanup-to-retirement remain pending.
+No normal service was restarted or migrated. Full M02 qualification remains pending on both hosts.
+
+2026-10-10: Issuer retirement passed 230 selected cases per profile on sb16.
+All 27 new issuer/client scenarios passed in Debug and runtime sanitizers. No failures or skips.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/issuer-retirement-01/sb16/primary-review.json.
+The protocol baseline rejection remains in evidence/control-recovery-2026-10-09/retirement-baseline01/sb16.
+Fixture cleanup digests verify the authenticated issuer boundary. Actual coordinator cleanup-to-retirement remains pending.
+The explicit issuer schema migration is 9 to 10. No normal host service or database changed.
+The earlier participant-approval failure and complete two-host M02 qualification remain pending.
+M02 and Spatial-M1 remain incomplete.

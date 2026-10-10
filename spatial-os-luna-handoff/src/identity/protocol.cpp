@@ -13,6 +13,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             result->set_implementation("production"); result->set_build_id(SPATIAL_BUILD_ID);
             result->add_capabilities("identity.issuer-control/v1");
             result->add_capabilities("identity.authority-fencing/v1");
+            result->add_capabilities("identity.authority-retirement/v1");
             result->add_capabilities("identity.enrollment/v1");
             result->add_capabilities("identity.revocation/v1");
             result->add_capabilities("identity.authentication/v1");
@@ -44,6 +45,11 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
         else if (request.has_authentication_begin()) *reply.mutable_challenge() = issuer.authentication_begin(request.authentication_begin());
         else if (request.has_authentication_complete()) *reply.mutable_authentication() = issuer.authentication_complete(request.authentication_complete());
         else if (request.has_revocations()) *reply.mutable_revocations() = issuer.revocations(request.revocations());
+        else if (request.has_authority_retire_begin() || request.has_authority_retire_complete()) {
+            if (!connection) throw spatial::WorldError(spatial::wire::FORBIDDEN, "Retirement requires a TLS connection context");
+            if (request.has_authority_retire_begin()) *reply.mutable_challenge() = issuer.authority_retire_begin(request.authority_retire_begin(), *connection);
+            else *reply.mutable_authority_retirement() = issuer.authority_retire_complete(request.authority_retire_complete(), *connection);
+        }
         else if (request.has_authority_fence_begin() || request.has_authority_fence_complete()) {
             if (!connection) throw spatial::WorldError(spatial::wire::FORBIDDEN, "Fencing requires a TLS connection context");
             if (request.has_authority_fence_begin()) *reply.mutable_challenge() = issuer.authority_fence_begin(request.authority_fence_begin(), *connection);

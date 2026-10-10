@@ -1,5 +1,43 @@
 # Implementation status
 
+## 2026-10-10: Authenticated issuer retirement passes focused checks
+
+The issuer now retires an exact fenced generation after a fresh proof from its registered supervisor.
+The proof binds the cleanup digest, fence, launch, generation, issuer incarnation, and TLS connection.
+One transaction saves retirement and deactivates that generation. Applied revision history remains unchanged.
+Barrier replies distinguish retirement from service acknowledgement. Other participants keep their obligations.
+Old service connections remain fenced. Replacement needs fresh authorization and current synchronization.
+
+All 230 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These include 21 issuer retirement scenarios, six client-validation scenarios, and twelve related suites.
+All 336 tested source files match. All 41 locked files remain unchanged.
+The explicit issuer migration is version 9 to 10. No normal host database was migrated.
+Read evidence/control-recovery-2026-10-09/issuer-retirement-01/sb16/primary-review.json.
+
+These protocol tests supply fixture cleanup digests. They do not prove actual external cleanup.
+Next: connect the trusted coordinator signer to its checked, durable dependent receipt.
+Then resolve the earlier participant-approval startup failure and run the complete M02 phase gate on both hosts.
+Shared compositor lifetime across world transitions remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Issuer retirement candidate passes selected Debug checks
+
+The uncommitted candidate adds authenticated retirement for one exact fenced generation.
+Retirement preserves applied revision history and records how each barrier obligation was completed.
+The issuer requires a fresh supervisor proof bound to its TLS connection, fence, and cleanup digest.
+The explicit issuer database migration advances version 9 to 10.
+All 27 new cases and twelve related Debug suites passed on sb16.
+The runtime sanitizer build is running. Its test results remain pending.
+The frozen candidate is local/m02-issuer-retirement-01 on sb16.
+Read its checks/review.json and Debug logs for commands, source pins, and results.
+All 41 locked files remain unchanged. No normal host service or database changed.
+The missing-operation baseline is preserved in evidence/control-recovery-2026-10-09/retirement-baseline01/sb16.
+These protocol tests supply fixture cleanup digests. Actual coordinator cleanup-to-retirement remains pending.
+Next: complete selected sanitizer checks, review and commit this increment, then connect the trusted coordinator signer.
+M02 and Spatial-M1 remain incomplete. Full qualification remains pending on both hosts.
+
+
 ## 2026-10-10: Durable dependent cleanup after checked broker recovery
 
 SessionCoordinator now saves checked cleanup before reporting successful reservation recovery.

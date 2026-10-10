@@ -41,6 +41,8 @@ public:
     v1::AuthorityLaunchAuthorization authority_launch_complete(const v1::AuthorityLaunchComplete& request, IssuerConnection& connection);
     v1::ChallengeReply authority_fence_begin(const v1::AuthorityFenceBegin& request, IssuerConnection& connection);
     v1::AuthorityFenceState authority_fence_complete(const v1::AuthorityFenceComplete& request, IssuerConnection& connection);
+    v1::ChallengeReply authority_retire_begin(const v1::AuthorityRetireBegin& request, IssuerConnection& connection);
+    v1::AuthorityRetirementState authority_retire_complete(const v1::AuthorityRetireComplete& request, IssuerConnection& connection);
     v1::AuthorityActivationState authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection);
     v1::AuthorityActivationState authority_applied(const v1::AuthorityApplied& request, IssuerConnection& connection);
     v1::AuthorityActivationState authority_release(const v1::AuthorityRelease& request, IssuerConnection& connection);

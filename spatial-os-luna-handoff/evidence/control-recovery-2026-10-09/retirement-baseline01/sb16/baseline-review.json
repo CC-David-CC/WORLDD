@@ -1,0 +1,13 @@
+{
+  "status": "missing_retirement_reproduced",
+  "host": "sb16",
+  "expected_failed_cases": 1,
+  "source_files": 334,
+  "scope": "Issuer protocol only. The proposed digest is fixture data, not external cleanup evidence.",
+  "finding": "The proposed retirement request is rejected with INVALID_ARGUMENT. The real fenced generation remains active and its barrier remains pending.",
+  "attachments": {
+    "input.py": "607a393cab91a9816fe7e591027d2e3e607f3f0a0618d3ac38729b4f775af3cd",
+    "baseline.log": "3ab0fe4e2c04d2cd78db22437b77de6641fac5426ccfb3c122a8589dadb883f9",
+    "review.json": "5cbdc884539c21945e7940d01eff00243fc489367cf0b1dc39c2662f120f8c99"
+  }
+}

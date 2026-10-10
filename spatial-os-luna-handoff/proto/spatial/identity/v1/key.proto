@@ -12,6 +12,7 @@ enum SignaturePurpose {
   AUTHORITY_PARTICIPATION = 5;
   AUTHORITY_LAUNCH_AUTHORIZATION = 6;
   AUTHORITY_FENCING = 7;
+  AUTHORITY_RETIREMENT = 8;
 }
 message SignRequest {
   SignaturePurpose purpose = 1;

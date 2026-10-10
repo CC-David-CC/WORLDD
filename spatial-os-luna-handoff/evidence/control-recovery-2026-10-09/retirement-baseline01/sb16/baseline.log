@@ -1,0 +1,20 @@
+test_exact_fenced_generation_requires_retirement_endpoint (__main__.RetirementBaseline.test_exact_fenced_generation_requires_retirement_endpoint) ... FAIL
+
+======================================================================
+FAIL: test_exact_fenced_generation_requires_retirement_endpoint (__main__.RetirementBaseline.test_exact_fenced_generation_requires_retirement_endpoint)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-retirement-baseline-01.py", line 30, in test_exact_fenced_generation_requires_retirement_endpoint
+    self.assertTrue(reply.HasField('challenge'), 'Retirement challenge not implemented: ' + str(reply))
+AssertionError: False is not true : Retirement challenge not implemented: protocol_version: 1
+request_id: 17
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.715s
+
+FAILED (failures=1)

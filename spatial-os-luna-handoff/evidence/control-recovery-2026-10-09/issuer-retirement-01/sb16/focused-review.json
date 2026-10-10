@@ -1,0 +1,123 @@
+{
+  "status": "focused_passed_phase_gate_pending",
+  "host": "sb16",
+  "profiles": {
+    "debug": {
+      "retirement": [
+        21,
+        6
+      ],
+      "focused": [
+        22,
+        4,
+        23,
+        18,
+        14,
+        19,
+        22,
+        16,
+        18,
+        18,
+        24,
+        5
+      ]
+    },
+    "runtime-sanitize": {
+      "retirement": [
+        21,
+        6
+      ],
+      "focused": [
+        22,
+        4,
+        23,
+        18,
+        14,
+        19,
+        22,
+        16,
+        18,
+        18,
+        24,
+        5
+      ]
+    }
+  },
+  "source_files": 336,
+  "locked_files": 41,
+  "selected_cases_per_profile": 230,
+  "new_cases": 27,
+  "failed": 0,
+  "skipped": 0,
+  "attachments": {
+    "checks/review.json": "76bbbe62f4ba2f3a745b3b6c63aa4242db795c7140770080a1b24d90f3f6cf8b",
+    "checks/runtime-sanitize/build.log": "a13d1b9b54cb2b940c156e7cc70e8356b298e882e80d424f8e89d7f9343ba18d",
+    "checks/runtime-sanitize/configure.log": "feff7452c754b05d4a377ec77a28ef2df7c274b5a23fb9a4ffe4f9c9cb509c9d",
+    "checks/runtime-sanitize/focused.log": "a80a6b33ca8cc8af62b3e0605732e1407f1e59658035c74a1b18f9f4329e97d3",
+    "checks/runtime-sanitize/retirement.log": "63948c369fe2aaeca97591e63e6320b005e1803f572e74063935fc096af2a70c",
+    "checks/debug/build.log": "babfa2fab429c46546d7e722419ec6377d77546832e9dedb09d52b6821aef40c",
+    "checks/debug/configure.log": "4f0862313d2e015a7fcbdb2425371f5831061131aa29045373ec99025f004f53",
+    "checks/debug/focused.log": "4d113efa3c2b3cd371679868a24016e5855febcd83a18ff7d99097f27f34de79",
+    "checks/debug/retirement.log": "a4f0250499b60a528b2d806a1b49b11ab1bc82c2de2e60de4846c8c6b098363d",
+    "checks/runtime-sanitize/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-probe.jsonl.log": "f7357b854c5da18d57eb88e72c83a2e8302b2172e7b5b637eae6d483217ba6f2",
+    "checks/runtime-sanitize/native/test_changed_launch_record_cannot_replace_retained_cleanup-server-0.log": "7745bcfab49c86f34926228793771b3760f738974e37df2fce7c66c3ef87ec5c",
+    "checks/runtime-sanitize/native/test_journal_lock_failure_preserves_exact_retry-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_journal_lock_failure_preserves_exact_retry-server-0.log": "404315fa0eaaef4ec7f548dfd86be3be6c77439aca68d72c49fa80a88145fc2e",
+    "checks/runtime-sanitize/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-coordinator.log": "3ea0c7396fdb3f607df7334237b51a5fa5278b365a03b66cbff5e6778e0ae526",
+    "checks/runtime-sanitize/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-server-0.log": "614355ab4654d96da52c6b87131ee7ee7a6ad0c104d2313cccca2c5085c19909",
+    "checks/runtime-sanitize/native/test_readonly_journal_reports_failure_after_release_then_retries-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_readonly_journal_reports_failure_after_release_then_retries-coordinator.log": "3ea0c7396fdb3f607df7334237b51a5fa5278b365a03b66cbff5e6778e0ae526",
+    "checks/runtime-sanitize/native/test_changed_launch_record_cannot_replace_retained_cleanup-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "checks/runtime-sanitize/native/test_corrupted_or_changed_dependent_receipt_is_not_overwritten-coordinator.log": "3ea0c7396fdb3f607df7334237b51a5fa5278b365a03b66cbff5e6778e0ae526",
+    "checks/runtime-sanitize/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_changed_launch_record_cannot_replace_retained_cleanup-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_corrupted_or_changed_dependent_receipt_is_not_overwritten-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_journal_lock_failure_preserves_exact_retry-coordinator.log": "3ea0c7396fdb3f607df7334237b51a5fa5278b365a03b66cbff5e6778e0ae526",
+    "checks/runtime-sanitize/native/test_journal_lock_failure_preserves_exact_retry-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "checks/runtime-sanitize/native/test_readonly_journal_reports_failure_after_release_then_retries-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "checks/runtime-sanitize/native/test_changed_launch_record_cannot_replace_retained_cleanup-coordinator.log": "1185ac562e1802fbb5a0302e3bee62a516258eb10661d09a33bf1a9fa47e063e",
+    "checks/runtime-sanitize/native/test_corrupted_or_changed_dependent_receipt_is_not_overwritten-probe.jsonl.log": "f7357b854c5da18d57eb88e72c83a2e8302b2172e7b5b637eae6d483217ba6f2",
+    "checks/runtime-sanitize/native/test_corrupted_or_changed_dependent_receipt_is_not_overwritten-server-0.log": "1567df49e1d1465526dffd85109aee3da02c300bebc0644beb1bb2e6a761491f",
+    "checks/runtime-sanitize/native/test_readonly_journal_reports_failure_after_release_then_retries-server-0.log": "5ddb450f64dfe254327234b84244531644c04d4b99182f797bcd15687560b878",
+    "checks/debug/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-probe.jsonl.log": "f7357b854c5da18d57eb88e72c83a2e8302b2172e7b5b637eae6d483217ba6f2",
+    "checks/debug/native/test_changed_launch_record_cannot_replace_retained_cleanup-server-0.log": "7185e9add8c2ff38c580bd3df41e21e92c793cb6abf62f6e48d21def9acd75b5",
+    "checks/debug/native/test_journal_lock_failure_preserves_exact_retry-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_journal_lock_failure_preserves_exact_retry-server-0.log": "9c9d18553ac436766e8ec43dc124fbe7b191e710f9f2b2bfcd938a960aebeddd",
+    "checks/debug/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-coordinator.log": "1185ac562e1802fbb5a0302e3bee62a516258eb10661d09a33bf1a9fa47e063e",
+    "checks/debug/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-server-0.log": "90ec2a46d543b366ce288e6f9c70a4ce25ad193130cc42f9c6fd8eabd16a552b",
+    "checks/debug/native/test_readonly_journal_reports_failure_after_release_then_retries-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_readonly_journal_reports_failure_after_release_then_retries-coordinator.log": "1185ac562e1802fbb5a0302e3bee62a516258eb10661d09a33bf1a9fa47e063e",
+    "checks/debug/native/test_changed_launch_record_cannot_replace_retained_cleanup-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "checks/debug/native/test_corrupted_or_changed_dependent_receipt_is_not_overwritten-coordinator.log": "1185ac562e1802fbb5a0302e3bee62a516258eb10661d09a33bf1a9fa47e063e",
+    "checks/debug/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_changed_launch_record_cannot_replace_retained_cleanup-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_corrupted_or_changed_dependent_receipt_is_not_overwritten-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_journal_lock_failure_preserves_exact_retry-coordinator.log": "1185ac562e1802fbb5a0302e3bee62a516258eb10661d09a33bf1a9fa47e063e",
+    "checks/debug/native/test_journal_lock_failure_preserves_exact_retry-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "checks/debug/native/test_readonly_journal_reports_failure_after_release_then_retries-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "checks/debug/native/test_changed_launch_record_cannot_replace_retained_cleanup-coordinator.log": "1185ac562e1802fbb5a0302e3bee62a516258eb10661d09a33bf1a9fa47e063e",
+    "checks/debug/native/test_corrupted_or_changed_dependent_receipt_is_not_overwritten-probe.jsonl.log": "f7357b854c5da18d57eb88e72c83a2e8302b2172e7b5b637eae6d483217ba6f2",
+    "checks/debug/native/test_corrupted_or_changed_dependent_receipt_is_not_overwritten-server-0.log": "6b4d58779c456f220899e449b63fb031e3c68f1aa70617d6145aafd385e25f20",
+    "checks/debug/native/test_readonly_journal_reports_failure_after_release_then_retries-server-0.log": "35ace6b5af22e48a8c206caa5888ea36f730770558f3ea3858f14d82439c4913"
+  },
+  "verified": [
+    "Fresh supervisor proofs bind the exact fenced generation, cleanup digest, issuer incarnation, and TLS connection.",
+    "Retirement deactivates only that generation and preserves its applied revision, fence, and historical obligations.",
+    "Barriers distinguish verified retirement from service-applied revisions. Unrelated participants remain active and pending.",
+    "Revocations committed before retirement remain covered. Later revocations do not obligate the retired generation.",
+    "Exact retries, unread replies, and issuer restarts preserve the original retirement record.",
+    "Old service sockets and consumed launch authorization cannot reactivate. A replacement requires fresh authorization.",
+    "Insert and deactivation failures roll back together. Explicit schema migration preserves identity and history.",
+    "The production client rejects substituted challenge, result, proof, and retirement-aware barrier data.",
+    "Existing fencing, launch, identity, barrier, and native durable-cleanup tests remain passing."
+  ],
+  "limitations": [
+    "The issuer protocol tests supply fixture cleanup digests. They do not prove external cleanup.",
+    "The trusted coordinator signer and actual cleanup-to-retirement integration remain unimplemented.",
+    "No normal host issuer database was migrated and no normal native session adopted this candidate.",
+    "Previously observed participant-approval startup failure remains unresolved.",
+    "Shared compositor lifetime across world transitions remains required.",
+    "Complete M02 and M1 qualification on both hosts remains pending."
+  ],
+  "baseline": "../../retirement-baseline01/sb16/baseline-review.json"
+}

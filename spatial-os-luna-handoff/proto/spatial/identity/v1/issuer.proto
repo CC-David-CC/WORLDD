@@ -101,6 +101,7 @@ message AuthorityBarrierObligation {
   bytes service_incarnation = 3;
   uint64 applied_revision = 4;
   bool complete = 5;
+  AuthorityRetirementState retirement = 6;
 }
 message AuthorityBarrierStatus {
   bytes issuer_id = 1;
@@ -370,6 +371,8 @@ message IssuerRequest {
     AuthorityLaunchComplete authority_launch_complete = 29;
     AuthorityFenceBegin authority_fence_begin = 30;
     AuthorityFenceComplete authority_fence_complete = 31;
+    AuthorityRetireBegin authority_retire_begin = 32;
+    AuthorityRetireComplete authority_retire_complete = 33;
   }
 }
 message IssuerReply {
@@ -395,7 +398,36 @@ message IssuerReply {
     AuthoritySupervisorBinding supervision = 26;
     AuthorityLaunchAuthorization authority_launch_authorization = 27;
     AuthorityFenceState authority_fence = 28;
+    AuthorityRetirementState authority_retirement = 29;
   }
+}
+
+// A registered supervisor attests to a checked durable external-cleanup record.
+message AuthorityRetireBegin {
+  AuthorityFenceBegin owner = 1;
+  bytes fence_id = 2;
+  bytes cleanup_sha256 = 3;
+}
+message AuthorityRetireChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes issuer_incarnation = 3;
+  bytes nonce = 4;
+  bytes connection_binding = 5;
+  AuthorityRetireBegin request = 6;
+  bytes supervisor_public_key = 7;
+  uint32 lifetime_ms = 8;
+  string audience = 9;
+}
+message AuthorityRetireComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthorityRetirementState {
+  bytes issuer_id = 1;
+  AuthorityRetireBegin request = 2;
+  AuthorityParticipantRecord registration = 3;
+  bytes supervisor_public_key = 4;
+  bytes retirement_id = 5;
+  uint64 security_revision = 6;
+  uint64 applied_revision = 7;
 }
 
 // Trusted authority component queues. These messages grant no actor access.

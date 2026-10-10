@@ -1,0 +1,75 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 25
+    Start 25: identity-authority-retirement
+
+25: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/source/tests/core/test_authority_retirement.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/spatial-issuer-client"
+25: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build
+25: Environment variables: 
+25:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/source
+25: Test timeout computed to be: 180
+25: test_retirement_completes_barrier_without_fabricating_applied_history (__main__.RetirementTests.test_retirement_completes_barrier_without_fabricating_applied_history) ... ok
+25: test_other_participant_keeps_obligations_and_active_generation (__main__.RetirementTests.test_other_participant_keeps_obligations_and_active_generation) ... ok
+25: test_revocation_between_fence_challenge_and_completion_is_covered (__main__.RetirementTests.test_revocation_between_fence_challenge_and_completion_is_covered) ... ok
+25: test_retired_generation_gets_no_new_revocation_obligations (__main__.RetirementTests.test_retired_generation_gets_no_new_revocation_obligations) ... ok
+25: test_fresh_exact_retry_and_nonce_replay_preserve_original_record (__main__.RetirementTests.test_fresh_exact_retry_and_nonce_replay_preserve_original_record) ... ok
+25: test_unread_completion_reply_can_retry_on_a_fresh_connection (__main__.RetirementTests.test_unread_completion_reply_can_retry_on_a_fresh_connection) ... ok
+25: test_management_pipe_cannot_retire (__main__.RetirementTests.test_management_pipe_cannot_retire) ... ok
+25: test_changed_cleanup_or_fence_cannot_replace_retirement (__main__.RetirementTests.test_changed_cleanup_or_fence_cannot_replace_retirement) ... ok
+25: test_wrong_keys_and_other_signature_purposes_cannot_retire (__main__.RetirementTests.test_wrong_keys_and_other_signature_purposes_cannot_retire) ... ok
+25: test_proof_cannot_cross_connections_and_nonce_is_consumed (__main__.RetirementTests.test_proof_cannot_cross_connections_and_nonce_is_consumed) ... ok
+25: test_missing_fence_cannot_retire (__main__.RetirementTests.test_missing_fence_cannot_retire) ... ok
+25: test_malformed_or_substituted_owner_is_rejected_without_mutation (__main__.RetirementTests.test_malformed_or_substituted_owner_is_rejected_without_mutation) ... ok
+25: test_insert_or_deactivation_failure_rolls_back_before_retry (__main__.RetirementTests.test_insert_or_deactivation_failure_rolls_back_before_retry) ... ok
+25: test_completed_retirement_survives_restart_and_exact_retry (__main__.RetirementTests.test_completed_retirement_survives_restart_and_exact_retry) ... ok
+25: test_old_service_stays_fenced_and_replacement_requires_fresh_authorization (__main__.RetirementTests.test_old_service_stays_fenced_and_replacement_requires_fresh_authorization) ... ok
+25: test_concurrent_identical_completions_return_one_retirement (__main__.RetirementTests.test_concurrent_identical_completions_return_one_retirement) ... ok
+25: test_expired_retirement_proof_cannot_commit (__main__.RetirementTests.test_expired_retirement_proof_cannot_commit) ... ok
+25: test_restart_invalidates_uncompleted_retirement_proof (__main__.RetirementTests.test_restart_invalidates_uncompleted_retirement_proof) ... ok
+25: test_corrupted_retirement_is_not_returned_or_overwritten (__main__.RetirementTests.test_corrupted_retirement_is_not_returned_or_overwritten) ... ok
+25: test_explicit_v9_migration_preserves_fence_active_generation_and_key (__main__.RetirementTests.test_explicit_v9_migration_preserves_fence_active_generation_and_key) ... ok
+25: test_failed_v9_migration_preserves_original_schema (__main__.RetirementTests.test_failed_v9_migration_preserves_original_schema) ... ok
+25: 
+25: ----------------------------------------------------------------------
+25: Ran 21 tests in 19.699s
+25: 
+25: OK
+1/2 Test #25: identity-authority-retirement ..........   Passed   19.81 sec
+test 26
+    Start 26: identity-authority-retirement-client
+
+26: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/source/tests/core/test_authority_retirement_client.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/spatial-issuer-client"
+26: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build
+26: Environment variables: 
+26:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/source
+26: Test timeout computed to be: 180
+26: test_substituted_retirement_challenge_is_rejected (__main__.RetirementClientTests.test_substituted_retirement_challenge_is_rejected) ... ok
+26: test_substituted_result_or_invalid_proof_is_rejected (__main__.RetirementClientTests.test_substituted_result_or_invalid_proof_is_rejected) ... ok
+26: test_typed_denial_consumes_pending_retirement_context (__main__.RetirementClientTests.test_typed_denial_consumes_pending_retirement_context) ... ok
+26: test_unsolicited_retirement_success_is_rejected (__main__.RetirementClientTests.test_unsolicited_retirement_success_is_rejected) ... ok
+26: test_changed_connection_context_is_rejected (__main__.RetirementClientTests.test_changed_connection_context_is_rejected) ... ok
+26: test_barrier_cannot_claim_retirement_for_another_generation_or_history (__main__.RetirementClientTests.test_barrier_cannot_claim_retirement_for_another_generation_or_history) ... ok
+26: 
+26: ----------------------------------------------------------------------
+26: Ran 6 tests in 10.891s
+26: 
+26: OK
+2/2 Test #26: identity-authority-retirement-client ...   Passed   10.98 sec
+
+The following tests passed:
+	identity-authority-retirement
+	identity-authority-retirement-client
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  30.80 sec

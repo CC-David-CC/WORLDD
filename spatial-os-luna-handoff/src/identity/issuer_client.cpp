@@ -42,11 +42,13 @@ bool dns_name(const std::string& name) {
 bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& reply) {
     return (request.has_hello() && reply.has_hello()) || (request.has_info() && reply.has_info()) ||
         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin() ||
-            request.has_authority_authentication_begin() || request.has_authority_launch_begin() || request.has_authority_fence_begin()) && reply.has_challenge()) ||
+            request.has_authority_authentication_begin() || request.has_authority_launch_begin() || request.has_authority_fence_begin() ||
+            request.has_authority_retire_begin()) && reply.has_challenge()) ||
         (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
             reply.has_participant() || reply.has_registry() || reply.has_authority_barrier() || reply.has_supervision())) ||
         (request.has_authority_launch_complete() && reply.has_authority_launch_authorization()) ||
         (request.has_authority_fence_complete() && reply.has_authority_fence()) ||
+        (request.has_authority_retire_complete() && reply.has_authority_retirement()) ||
         (request.has_profile_read() && reply.has_profile()) ||
         (request.has_enrollment_complete() && reply.has_enrollment()) ||
         (request.has_authentication_complete() && reply.has_authentication()) ||
@@ -183,6 +185,50 @@ struct IssuerClient::Impl {
             *verification.mutable_proof() = request.proof(); verification.set_expected_public_key(expected.supervisor_public_key());
             require(verify(verification), "Fence accepted an invalid supervisor proof");
         } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid fence proof"); }
+    }
+    struct RetirementChallenge {
+        v1::SignRequest signing_request;
+        v1::AuthorityRetireChallenge context;
+        Clock::time_point expires;
+    };
+    std::map<std::string, RetirementChallenge> retirement_challenges;
+    void remember_retirement_challenge(const v1::AuthorityRetireBegin& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
+        require(reply.nonce().size() == 32 && reply.has_signing_request() &&
+            reply.signing_request().purpose() == v1::AUTHORITY_RETIREMENT && reply.signing_request().has_payload(),
+            "Invalid retirement challenge envelope");
+        RetirementChallenge pending; pending.signing_request = reply.signing_request(); auto& value = pending.context;
+        require(value.ParseFromString(pending.signing_request.payload()), "Invalid retirement challenge payload");
+        try { validate_message(value); validate_retire_begin(request); }
+        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid retirement challenge fields"); }
+        require(value.protocol_version() == 1 && value.issuer_id() == config.issuer_id() && value.issuer_incarnation().size() == 32 &&
+            value.nonce() == reply.nonce() && value.connection_binding().size() == 32 && value.has_request() &&
+            value.request().SerializeAsString() == request.SerializeAsString() && value.supervisor_public_key().size() == 32 &&
+            value.supervisor_public_key() != config.issuer_public_key() && value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 &&
+            value.audience() == "identityd/authority-retirement/v1", "Invalid retirement challenge context");
+        require((issuer_incarnation.empty() || issuer_incarnation == value.issuer_incarnation()) &&
+            (launch_binding.empty() || launch_binding == value.connection_binding()) &&
+            (service_binding.empty() || service_binding == value.connection_binding()), "Retirement challenge changed connection context");
+        require(!retirement_challenges.contains(reply.nonce()), "Duplicate retirement challenge nonce");
+        std::erase_if(retirement_challenges, [](const auto& item) { return item.second.expires <= Clock::now(); });
+        require(retirement_challenges.size() < 256, "Too many retirement challenges");
+        pending.expires = sent + std::chrono::milliseconds(value.lifetime_ms());
+        require(Clock::now() < pending.expires, "Retirement challenge expired in transit");
+        issuer_incarnation = value.issuer_incarnation(); launch_binding = value.connection_binding();
+        retirement_challenges.emplace(reply.nonce(), std::move(pending));
+    }
+    void check_retirement_result(const v1::AuthorityRetireComplete& request, const v1::AuthorityRetirementState& result,
+        const std::optional<RetirementChallenge>& pending) {
+        require(pending && Clock::now() < pending->expires, "Unrequested or expired retirement success");
+        const auto& expected = pending->context;
+        try { validate_retirement_state(result, config.issuer_id()); }
+        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid retirement result fields"); }
+        require(result.request().SerializeAsString() == expected.request().SerializeAsString() &&
+            result.supervisor_public_key() == expected.supervisor_public_key(), "Invalid retirement result context");
+        try {
+            v1::VerifyRequest verification; *verification.mutable_content() = pending->signing_request;
+            *verification.mutable_proof() = request.proof(); verification.set_expected_public_key(expected.supervisor_public_key());
+            require(verify(verification), "Retirement accepted an invalid supervisor proof");
+        } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid retirement proof"); }
     }
     struct LaunchChallenge {
         v1::SignRequest signing_request;
@@ -328,8 +374,18 @@ struct IssuerClient::Impl {
                 require((previous.empty() || previous < participant.id()) && keys.insert(participant.public_key()).second &&
                         registrations.insert(record.registered_revision()).second && obligation.generation() > 0 &&
                         obligation.generation() <= INT64_MAX && obligation.service_incarnation().size() == 32 &&
-                        obligation.applied_revision() <= INT64_MAX && obligation.complete() == (obligation.applied_revision() >= result.revision()),
+                        obligation.applied_revision() <= INT64_MAX &&
+                        obligation.complete() == (obligation.applied_revision() >= result.revision() || obligation.has_retirement()),
                         "Invalid barrier obligation");
+                if (obligation.has_retirement()) {
+                    const auto& retired = obligation.retirement();
+                    validate_retirement_state(retired, config.issuer_id());
+                    require(retired.registration().SerializeAsString() == record.SerializeAsString() &&
+                        retired.request().owner().generation() == obligation.generation() &&
+                        retired.request().owner().service_incarnation() == obligation.service_incarnation() &&
+                        retired.applied_revision() == obligation.applied_revision() && retired.security_revision() >= result.revision(),
+                        "Retirement does not match barrier obligation");
+                }
                 for (const auto& domain : participant.domains())
                     require(domains.insert(participant_detail::domain_key(domain)).second, "Conflicting barrier domains");
                 previous = participant.id(); if (!obligation.complete()) ++pending_count;
@@ -548,6 +604,11 @@ struct IssuerClient::Impl {
             auto node = supervision_challenges.extract(request.execute().nonce());
             if (!node.empty()) supervision_pending = std::move(node.mapped());
         }
+        std::optional<RetirementChallenge> retirement_pending;
+        if (request.has_authority_retire_complete()) {
+            auto node = retirement_challenges.extract(request.authority_retire_complete().nonce());
+            if (!node.empty()) retirement_pending = std::move(node.mapped());
+        }
         std::optional<FenceChallenge> fence_pending;
         if (request.has_authority_fence_complete()) {
             auto node = fence_challenges.extract(request.authority_fence_complete().nonce());
@@ -590,6 +651,8 @@ struct IssuerClient::Impl {
             if (reply.has_supervision()) check_supervision_result(request.execute(), reply.supervision(), supervision_pending);
             if (barrier_pending) require(reply.has_authority_barrier(), "Barrier query returned another outcome");
             if (reply.has_authority_barrier()) check_barrier_result(request.execute(), reply.authority_barrier(), barrier_pending);
+            if (request.has_authority_retire_begin()) remember_retirement_challenge(request.authority_retire_begin(), reply.challenge(), sent);
+            if (request.has_authority_retire_complete()) check_retirement_result(request.authority_retire_complete(), reply.authority_retirement(), retirement_pending);
             if (request.has_authority_fence_begin()) remember_fence_challenge(request.authority_fence_begin(), reply.challenge(), sent);
             if (request.has_authority_fence_complete()) check_fence_result(request.authority_fence_complete(), reply.authority_fence(), fence_pending);
             if (request.has_authority_launch_begin()) remember_launch_challenge(request.authority_launch_begin(), reply.challenge(), sent);

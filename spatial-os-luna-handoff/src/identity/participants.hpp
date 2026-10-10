@@ -69,6 +69,22 @@ inline void validate_fence_begin(const v1::AuthorityFenceBegin& request) {
             request.supervision_revision() > 0 && request.supervision_revision() <= INT64_MAX,
             "Invalid authority fence context");
 }
+inline void validate_retire_begin(const v1::AuthorityRetireBegin& request) {
+    validate_message(request);
+    participant_detail::require(request.has_owner() && request.fence_id().size() == 32 && request.cleanup_sha256().size() == 32,
+        "Retirement requires exact fenced ownership and a cleanup digest");
+    validate_fence_begin(request.owner());
+}
+inline void validate_retirement_state(const v1::AuthorityRetirementState& value, const std::string& issuer) {
+    using participant_detail::require;
+    validate_message(value); validate_retire_begin(value.request());
+    validate_participant_record(value.registration(), issuer);
+    const auto& owner = value.request().owner();
+    require(value.issuer_id() == issuer && value.registration().participant().id() == owner.participant_id() &&
+        value.registration().registered_revision() == owner.registered_revision() && value.supervisor_public_key().size() == 32 &&
+        value.supervisor_public_key() != value.registration().participant().public_key() && value.retirement_id().size() == 32 &&
+        value.security_revision() <= INT64_MAX && value.applied_revision() <= value.security_revision(), "Invalid retirement state");
+}
 inline void validate_registry_page(const v1::AuthorityRegistryPage& page, const std::string& issuer) {
     using participant_detail::require;
     validate_message(page);

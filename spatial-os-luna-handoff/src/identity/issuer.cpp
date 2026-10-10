@@ -221,6 +221,16 @@ void create_fence_schema(sqlite3* db) {
             "FOREIGN KEY(participant_id,generation) REFERENCES authority_activation(participant_id,generation));"
             "PRAGMA user_version=9");
 }
+void create_retirement_schema(sqlite3* db) {
+    sql(db, "CREATE TABLE authority_retirement("
+            "participant_id BLOB NOT NULL CHECK(length(participant_id)=32),generation INTEGER NOT NULL CHECK(generation>0),"
+            "retirement_id BLOB NOT NULL UNIQUE CHECK(length(retirement_id)=32),"
+            "security_revision INTEGER NOT NULL CHECK(security_revision>=0),"
+            "applied_revision INTEGER NOT NULL CHECK(applied_revision>=0 AND applied_revision<=security_revision),"
+            "supervisor_public_key BLOB NOT NULL CHECK(length(supervisor_public_key)=32),request BLOB NOT NULL,state BLOB NOT NULL,"
+            "PRIMARY KEY(participant_id,generation),"
+            "FOREIGN KEY(participant_id,generation) REFERENCES authority_fence(participant_id,generation)); PRAGMA user_version=10");
+}
 } // namespace
 
 struct Issuer::Impl {
@@ -236,6 +246,7 @@ struct Issuer::Impl {
         std::string connection_binding{};
         v1::AuthorityLaunchBegin launch{};
         v1::AuthorityFenceBegin fence{};
+        v1::AuthorityRetireBegin retirement{};
     };
     File directory, lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
@@ -275,12 +286,12 @@ struct Issuer::Impl {
         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
-        sqlite3_int64 schema = 9;
+        sqlite3_int64 schema = 10;
         if (!owner) {
             Query version(db.get(), "PRAGMA user_version"); version.step();
             Query application(db.get(), "PRAGMA application_id"); application.step();
             schema = version.integer(0);
-            storage((schema == 9 || ((schema >= 1 && schema <= 8) && migrate)) && application.integer(0) == application_id,
+            storage((schema == 10 || ((schema >= 1 && schema <= 9) && migrate)) && application.integer(0) == application_id,
                     "Unknown issuer schema; explicit migration is required");
         }
         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
@@ -298,7 +309,7 @@ struct Issuer::Impl {
             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
             insert.blob(4, policy.SerializeAsString()); insert.step();
             create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
-            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); create_fence_schema(db.get()); tx.commit();
+            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); create_fence_schema(db.get()); create_retirement_schema(db.get()); tx.commit();
             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
         }
         { Query integrity(db.get(), "PRAGMA quick_check");
@@ -309,7 +320,7 @@ struct Issuer::Impl {
         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
                 "Issuer key does not match its durable identity");
         policy();
-        if (schema < 9) {
+        if (schema < 10) {
             Transaction migration(db.get());
             if (schema == 1) create_enrollment_schema(db.get());
             if (schema < 3) create_security_schema(db.get());
@@ -318,7 +329,8 @@ struct Issuer::Impl {
             if (schema < 6) create_barrier_schema(db.get());
             if (schema < 7) create_supervisor_schema(db.get());
             if (schema < 8) create_launch_schema(db.get());
-            create_fence_schema(db.get()); migration.commit();
+            if (schema < 9) create_fence_schema(db.get());
+            create_retirement_schema(db.get()); migration.commit();
         }
     }
 
@@ -375,9 +387,10 @@ struct Issuer::Impl {
         v1::AuthorityBarrierStatus result; result.set_issuer_id(identity.issuer_id()); result.set_revision(request.revision());
         result.set_participant_count(row.integer(0)); result.mutable_target()->set_kind(static_cast<v1::IdentityTargetKind>(row.integer(1)));
         result.mutable_target()->set_id(row.blob(2));
-        Query count(db.get(), "SELECT COUNT(*),COALESCE(SUM(a.applied_revision<o.revision),0) "
+        Query count(db.get(), "SELECT COUNT(*),COALESCE(SUM(a.applied_revision<o.revision AND t.generation IS NULL),0) "
                               "FROM authority_obligation o JOIN authority_activation a "
-                              "ON a.participant_id=o.participant_id AND a.generation=o.generation WHERE o.revision=?");
+                              "ON a.participant_id=o.participant_id AND a.generation=o.generation "
+                              "LEFT JOIN authority_retirement t ON t.participant_id=o.participant_id AND t.generation=o.generation WHERE o.revision=?");
         count.integer(1, request.revision());
         storage(count.step() == SQLITE_ROW && count.integer(0) == row.integer(0) && count.integer(1) >= 0 &&
                 count.integer(1) <= count.integer(0), "Inconsistent barrier obligation count");
@@ -395,7 +408,15 @@ struct Issuer::Impl {
             auto* obligation = result.add_obligations(); *obligation->mutable_registration() = state.registration();
             obligation->set_generation(state.generation()); obligation->set_service_incarnation(state.service_incarnation());
             obligation->set_applied_revision(state.applied_revision());
-            obligation->set_complete(state.applied_revision() >= request.revision());
+            const auto retired = retirement(page.blob(0), page.integer(1));
+            if (retired) {
+                storage(!state.active() && retired->registration().SerializeAsString() == state.registration().SerializeAsString() &&
+                    retired->request().owner().service_incarnation() == state.service_incarnation() &&
+                    retired->applied_revision() == state.applied_revision() && retired->security_revision() >= request.revision(),
+                    "Retirement does not match barrier generation");
+                *obligation->mutable_retirement() = *retired;
+            }
+            obligation->set_complete(state.applied_revision() >= request.revision() || retired.has_value());
         }
         transaction.commit(); return result;
     }
@@ -404,7 +425,7 @@ struct Issuer::Impl {
         row.blob(1, participant); row.integer(2, generation);
         return row.step() == SQLITE_ROW;
     }
-    v1::AuthoritySupervisorBinding fence_context(const v1::AuthorityFenceBegin& request) {
+    v1::AuthoritySupervisorBinding fence_context(const v1::AuthorityFenceBegin& request, bool require_active = true) {
         validate_fence_begin(request);
         const auto& participant = request.participant_id();
         if (!supervised(participant)) throw WorldError(wire::FORBIDDEN, "Fencing requires a registered supervisor");
@@ -413,7 +434,7 @@ struct Issuer::Impl {
                 binding.revision() != request.supervision_revision())
             throw WorldError(wire::REVISION_CONFLICT, "Fence registration or supervisor revision changed");
         const auto active = activation(participant, request.generation());
-        if (!active.active() || active.service_incarnation() != request.service_incarnation() ||
+        if ((require_active && !active.active()) || active.service_incarnation() != request.service_incarnation() ||
                 active.registration().SerializeAsString() != binding.registration().SerializeAsString())
             throw WorldError(wire::UNAUTHORIZED, "Fence does not match the active registered generation");
         const auto authorized = launch_authorization(participant, request.service_incarnation());
@@ -460,6 +481,79 @@ struct Issuer::Impl {
         insert.integer(4, result.security_revision()); insert.blob(5, key); insert.blob(6, request.SerializeAsString());
         insert.blob(7, result.SerializeAsString()); insert.step();
         return result;
+    }
+    std::optional<v1::AuthorityRetirementState> retirement(const std::string& participant, std::uint64_t generation) {
+        Query row(db.get(), "SELECT retirement_id,security_revision,applied_revision,supervisor_public_key,request,state "
+                            "FROM authority_retirement WHERE participant_id=? AND generation=?");
+        row.blob(1, participant); row.integer(2, generation);
+        if (row.step() != SQLITE_ROW) return std::nullopt;
+        v1::AuthorityRetirementState value;
+        storage(value.ParseFromString(row.blob(5)), "Invalid durable retirement record");
+        try { validate_retirement_state(value, identity.issuer_id()); }
+        catch (const std::invalid_argument&) { throw WorldError(wire::STORAGE_ERROR, "Invalid durable retirement fields"); }
+        storage(row.integer(1) >= 0 && row.integer(2) >= 0 && value.request().owner().participant_id() == participant &&
+            value.request().owner().generation() == generation && value.retirement_id() == row.blob(0) &&
+            value.security_revision() == static_cast<std::uint64_t>(row.integer(1)) && value.security_revision() <= security_revision() &&
+            value.applied_revision() == static_cast<std::uint64_t>(row.integer(2)) && value.supervisor_public_key() == row.blob(3) &&
+            value.request().SerializeAsString() == row.blob(4), "Inconsistent durable retirement identity");
+        Query fence_row(db.get(), "SELECT fence_id,request,supervisor_public_key,security_revision FROM authority_fence "
+                                  "WHERE participant_id=? AND generation=?");
+        fence_row.blob(1, participant); fence_row.integer(2, generation);
+        storage(fence_row.step() == SQLITE_ROW && fence_row.blob(0) == value.request().fence_id() &&
+            fence_row.blob(1) == value.request().owner().SerializeAsString() && fence_row.blob(2) == value.supervisor_public_key() &&
+            fence_row.integer(3) >= 0 && static_cast<std::uint64_t>(fence_row.integer(3)) <= value.security_revision(),
+            "Retirement differs from durable fence");
+        return value;
+    }
+    v1::AuthoritySupervisorBinding retirement_context(const v1::AuthorityRetireBegin& request) {
+        validate_retire_begin(request);
+        const auto& owner = request.owner();
+        const auto binding = fence_context(owner, false);
+        Query row(db.get(), "SELECT fence_id,security_revision,supervisor_public_key,request,state FROM authority_fence "
+                            "WHERE participant_id=? AND generation=?");
+        row.blob(1, owner.participant_id()); row.integer(2, owner.generation());
+        if (row.step() != SQLITE_ROW) throw WorldError(wire::FORBIDDEN, "Retirement requires a committed fence");
+        if (row.blob(0) != request.fence_id()) throw WorldError(wire::UNAUTHORIZED, "Retirement fence identity changed");
+        v1::AuthorityFenceState expected;
+        expected.set_issuer_id(identity.issuer_id()); *expected.mutable_registration() = binding.registration();
+        expected.set_generation(owner.generation()); expected.set_service_incarnation(owner.service_incarnation());
+        expected.set_authorization_id(owner.authorization_id()); expected.set_launch_id(owner.launch_id());
+        expected.set_supervision_revision(owner.supervision_revision()); expected.set_fence_id(request.fence_id());
+        expected.set_security_revision(row.integer(1)); expected.set_supervisor_public_key(binding.public_key());
+        storage(row.integer(1) >= 0 && static_cast<std::uint64_t>(row.integer(1)) <= security_revision() &&
+            row.blob(2) == binding.public_key() && row.blob(3) == owner.SerializeAsString() &&
+            row.blob(4) == expected.SerializeAsString(), "Inconsistent retirement fence context");
+        const auto prior = retirement(owner.participant_id(), owner.generation());
+        const auto active = activation(owner.participant_id(), owner.generation());
+        if (prior) {
+            if (prior->request().SerializeAsString() != request.SerializeAsString())
+                throw WorldError(wire::REVISION_CONFLICT, "Retirement retry changed its cleanup receipt");
+            storage(!active.active() && prior->registration().SerializeAsString() == binding.registration().SerializeAsString() &&
+                prior->supervisor_public_key() == binding.public_key() && prior->applied_revision() == active.applied_revision(),
+                "Retirement activation history changed");
+        } else if (!active.active()) throw WorldError(wire::UNAUTHORIZED, "Generation is inactive without checked retirement");
+        return binding;
+    }
+    v1::AuthorityRetirementState retire(const v1::AuthorityRetireBegin& request, const std::string& key) {
+        const auto binding = retirement_context(request);
+        if (binding.public_key() != key) throw WorldError(wire::UNAUTHORIZED, "Retirement supervisor changed during proof");
+        const auto& owner = request.owner();
+        if (auto prior = retirement(owner.participant_id(), owner.generation())) return *prior;
+        const auto active = activation(owner.participant_id(), owner.generation());
+        v1::AuthorityRetirementState value;
+        value.set_issuer_id(identity.issuer_id()); *value.mutable_request() = request;
+        *value.mutable_registration() = binding.registration(); value.set_supervisor_public_key(key);
+        value.set_retirement_id(random_id()); value.set_security_revision(security_revision());
+        value.set_applied_revision(active.applied_revision());
+        validate_retirement_state(value, identity.issuer_id());
+        Query insert(db.get(), "INSERT INTO authority_retirement VALUES(?,?,?,?,?,?,?,?)");
+        insert.blob(1, owner.participant_id()); insert.integer(2, owner.generation()); insert.blob(3, value.retirement_id());
+        insert.integer(4, value.security_revision()); insert.integer(5, value.applied_revision()); insert.blob(6, key);
+        insert.blob(7, request.SerializeAsString()); insert.blob(8, value.SerializeAsString()); insert.step();
+        Query update(db.get(), "UPDATE authority_activation SET active=0 WHERE participant_id=? AND generation=? AND active=1");
+        update.blob(1, owner.participant_id()); update.integer(2, owner.generation()); update.step();
+        storage(sqlite3_changes(db.get()) == 1, "Retirement lost its active generation");
+        return value;
     }
     v1::AuthoritySupervisorBinding launch_context(const v1::AuthorityLaunchBegin& request) {
         validate_launch_begin(request, identity.issuer_id());
@@ -1106,6 +1200,28 @@ v1::AuthorityFenceState Issuer::authority_fence_complete(const v1::AuthorityFenc
     const auto pending = impl_->consume(request.nonce(), request.proof(), v1::AUTHORITY_FENCING);
     if (pending.connection_binding != connection.binding) throw WorldError(wire::UNAUTHORIZED, "Fence proof belongs to another connection");
     Transaction transaction(impl_->db.get()); const auto result = impl_->fence(pending.fence, pending.expected_key);
+    transaction.commit(); return result;
+}
+v1::ChallengeReply Issuer::authority_retire_begin(const v1::AuthorityRetireBegin& request, IssuerConnection& connection) {
+    if (connection.binding.size() != 32) throw WorldError(wire::FORBIDDEN, "Retirement proof requires a TLS connection identity");
+    Transaction transaction(impl_->db.get()); const auto binding = impl_->retirement_context(request); transaction.commit();
+    const auto nonce = impl_->nonce();
+    v1::AuthorityRetireChallenge payload; payload.set_protocol_version(1); payload.set_issuer_id(impl_->identity.issuer_id());
+    payload.set_issuer_incarnation(impl_->incarnation); payload.set_nonce(nonce); payload.set_connection_binding(connection.binding);
+    *payload.mutable_request() = request; payload.set_supervisor_public_key(binding.public_key());
+    payload.set_lifetime_ms(static_cast<std::uint32_t>(impl_->lifetime.count())); payload.set_audience("identityd/authority-retirement/v1");
+    v1::ChallengeReply result; result.set_nonce(nonce); result.mutable_signing_request()->set_purpose(v1::AUTHORITY_RETIREMENT);
+    result.mutable_signing_request()->set_payload(payload.SerializeAsString());
+    Impl::Pending pending; pending.content = result.signing_request(); pending.expected_key = binding.public_key();
+    pending.expires = Clock::now()+impl_->lifetime; pending.connection_binding = connection.binding; pending.retirement = request;
+    impl_->pending.emplace(nonce, std::move(pending)); return result;
+}
+v1::AuthorityRetirementState Issuer::authority_retire_complete(const v1::AuthorityRetireComplete& request, IssuerConnection& connection) {
+    validate_message(request); require(request.nonce().size() == 32 && request.has_proof(), "Retirement nonce and proof are required");
+    if (connection.binding.size() != 32) throw WorldError(wire::FORBIDDEN, "Retirement proof requires a TLS connection identity");
+    const auto pending = impl_->consume(request.nonce(), request.proof(), v1::AUTHORITY_RETIREMENT);
+    if (pending.connection_binding != connection.binding) throw WorldError(wire::UNAUTHORIZED, "Retirement proof belongs to another connection");
+    Transaction transaction(impl_->db.get()); const auto result = impl_->retire(pending.retirement, pending.expected_key);
     transaction.commit(); return result;
 }
 v1::AuthorityActivationState Issuer::authority_activate(const v1::AuthorityActivate& request, IssuerConnection& connection) {

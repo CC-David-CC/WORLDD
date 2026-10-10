@@ -440,6 +440,16 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
     set_tests_properties(world-revocation-receipts PROPERTIES TIMEOUT 120
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-authority-retirement COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_retirement.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(identity-authority-retirement PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME identity-authority-retirement-client COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_retirement_client.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(identity-authority-retirement-client PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME identity-authority-fencing COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authority_fencing.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client>)
