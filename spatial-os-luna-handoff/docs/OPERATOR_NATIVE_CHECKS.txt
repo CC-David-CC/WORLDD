@@ -1,0 +1,29 @@
+Native operator revocation integration
+
+Select three scenarios before qualification.
+Use the production issuer, supervisors, coordinator, worldd, spatialwm, workspaced, and spatial-revoke.
+Use the patched native XLibre fixture and an independently confined X client.
+Keep the normal desktop session unchanged.
+Pause only the fixture world process through its retained pidfd.
+Observe actual held Shift and button state through the application's native event log.
+
+1. Revoke the controller credential while its world is paused.
+   Require a committed issuer revision and a pending world obligation.
+   Require no command reply while native key and button release remain unobserved.
+   Resume the world. Require command success, native releases, and a released application lease.
+2. Keep the world paused through the command's completion deadline.
+   Require a committed, pending result. Do not report complete.
+   Resume the world and explicitly resume the command's completion query.
+   Require native release and one original issuer revocation only.
+3. Crash the paused world after the revocation commits.
+   Require checked native cleanup and continued operation of the independently authorized application.
+   Keep the command pending until dependent cleanup and authenticated generation retirement finish.
+   Require an exact cleanup digest and applied revision zero for the retired world.
+
+All scenarios preserve uncommitted project data and deny further requests from the revoked controller.
+All successful cancellations require the independent X application to answer a new resize command.
+Record raw protobuf results, native events, process logs, source hashes, and binary hashes.
+Run the three scenarios in Debug and runtime ASan/UBSan on sb16.
+No production source or existing test assertion changes are required for this increment.
+Full M02 qualification on both hosts remains a phase-gate requirement.
+Software native-session evidence does not qualify GPU performance or physical input devices.

@@ -1,0 +1,91 @@
+M02 gate coverage map
+
+Scope: delegation and immediate scoped revocation in tasks/spatial-m1.json and docs/MILESTONES.md.
+This map identifies required evidence. It does not mark the phase complete.
+Read CURRENT_STATE.md for current execution results and preserved failures.
+Older authority task limitations describe earlier component boundaries. Do not treat them as current implementation status.
+
+1. Structural authority and delegation
+   Production boundary: src/authority/store.hpp and its implementation.
+   Required checks in tests/core/test_authority.py include:
+   test_scope_is_component_wise
+   test_scope_widening_and_sibling_delegation_fail
+   test_child_cannot_retain_parent_depth
+   test_parent_and_issuer_are_derived
+   test_wrong_subject_cannot_delegate
+   test_administration_does_not_imply_other_rights_or_delegation
+   test_administration_delegation_requires_explicit_permission
+   test_parent_revocation_invalidates_all_descendants
+   test_independent_grants_survive_parent_revocation
+   test_sibling_rights_cannot_be_combined_for_delegation
+   These checks require actual persistent grants and decisions. A copied grant record grants no authority.
+
+2. Authenticated world authority
+   Required checks in tests/core/test_world_authority.py include:
+   test_delegation_uses_authenticated_principal
+   test_world_administration_does_not_mint_workspace_authority
+   test_independent_navigation_grant_survives_revocation
+   test_revoked_ancestor_without_world_session_stops_descendant
+   test_object_scope_and_visibility_are_enforced_in_actor_engine
+   test_revocation_cancels_object_draft_and_releases_lease
+   test_administration_and_held_rights_do_not_imply_delegation
+   These checks must reach the authenticated production world action path.
+
+3. Workspace and execution authority
+   Required checks in tests/core/test_workspace_authority.py include:
+   test_credential_revocation_preserves_valid_workspace_process
+   test_revoked_ancestor_without_world_session_stops_process
+   test_independent_execution_grant_survives_other_grant_revocation
+   test_file_scope_does_not_authorize_a_whole_project_mount
+   test_cross_domain_unknown_and_foreign_grants_are_rejected
+   test_retry_cannot_acknowledge_a_process_revoked_during_status_refresh
+   Require real confined processes, mounts, filesystem effects, and process exit witnesses.
+
+4. Separate observation, control, and execution decisions
+   tests/core/test_application_access.py checks independent rights and read-only control restrictions.
+   tests/core/test_application_observation.py checks metadata filtering, observation revocation, and surviving application output.
+   tests/core/test_application_control_lease.py checks independent controllers and pending release acknowledgements.
+   tests/core/test_world_application_control.py checks real native input release and independent surviving control grants.
+   Do not replace native event evidence with an actor API acknowledgement.
+
+5. Distributed issuer revocation and completion
+   Require durable participant obligations, checked acknowledgement ranges, and no completion on connection loss.
+   Relevant suites include identity-participant-barrier, identity-participant-barrier-client, and identity-participant-runtime.
+   Existing cross-host cancellation evidence is in evidence/control-recovery-2026-10-09/crosshost-cancellation-03.
+   Existing cross-host crash evidence is in evidence/control-recovery-2026-10-09/crosshost-recovery-02.
+   These cover both directions and profiles. Reassess their source and binary pins for the gate candidate.
+
+6. Failure and recovery boundaries
+   Require exact retained ownership, checked process and native cleanup, dependent cleanup, and authenticated retirement.
+   Existing issuer-outage evidence is in evidence/control-recovery-2026-10-09/deferred-fence-01.
+   Failed or absent acknowledgements must not become applied revisions.
+   Reopened journals must not recreate retained session authority.
+   Replacements must not replay uncertain application execution.
+
+7. Operator completion
+   tests/core/test_revocation_command.py checks real issuer commits, uncertainty, resume, and response validation.
+   tests/native/test_operator_revocation.py connects the command to actual held native input and retained recovery.
+   Require pending results while effects remain unresolved. Require explicit resume after timeout or uncertainty.
+   A commit-only identity_status is insufficient to report completed revocation.
+
+Gate prerequisites still open
+
+Resolve the preserved participant-approval startup failure.
+Its original evidence is in evidence/control-recovery-2026-10-09/connected-01/sb16/checks-retry02/runtime-sanitize/related.log.
+Resolve the preserved active-generation revocation-read timeout.
+Its original evidence is in evidence/control-recovery-2026-10-09/approval-interruption-failure02.
+Successful isolated repetitions do not resolve either original failure.
+The next timeout diagnostic should preserve the original suite context and capture timing across its process tree.
+Do not keep repeating the isolated case without a changed diagnostic hypothesis.
+
+Gate execution
+
+Freeze one candidate. Enumerate every CTest case, harness case, and required acceptance ID before execution.
+Run complete required Debug and runtime sanitizer profiles on sb16 and sb16-2.
+Run the full harness and locked P00-P10 acceptance suites on both hosts.
+Include the required native, cross-host, recovery, and mutation evidence for M02.
+Record source, build, host, command, counts, failures, skips, and raw evidence separately.
+Reassess affected evidence after any source correction. Do not mark unrun work passed.
+The focused lists above do not replace the complete phase gate.
+M02 does not certify later shared-world, cabinet, model, physical-input, or performance milestones.
+Spatial-M1 remains incomplete until every mandatory milestone has its own complete evidence.

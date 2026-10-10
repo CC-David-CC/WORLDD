@@ -898,3 +898,16 @@ Collector correction: match complete secret patterns instead of rejecting their 
 Raw evidence remains unchanged. Normal desktop sessions remain unchanged.
 Next: operator command plus actual native cancellation; resolve two earlier intermittent failures; full both-host M02 gate.
 M02 and Spatial-M1 remain incomplete.
+
+2026-10-10 connected operator cancellation checkpoint
+Three native scenarios passed in each profile on sb16: six results, no failures or skips.
+The command stayed pending while the paused world held native input. Completion paired with released input and an empty lease.
+Timeout keeps the original committed revision; explicit resume sends no new revocation.
+World crash requires checked dependent cleanup and authenticated retirement, with applied revision zero.
+The confined X application and uncommitted project data survive controller credential revocation.
+Evidence: spatial-os-luna-handoff/evidence/operator-native-2026-10-10/candidate-01/primary-review.json
+Coverage map: spatial-os-luna-handoff/docs/M02_GATE_COVERAGE.txt
+351 source hashes and 41 unchanged locked files verified. 139 raw evidence attachments preserved.
+Physical input and GPU performance were not demonstrated by these software native-session checks.
+Two earlier intermittent failures remain unresolved. Full both-host M02 qualification remains pending.
+Next: original suite-context timing diagnosis, then freeze the complete phase gate.

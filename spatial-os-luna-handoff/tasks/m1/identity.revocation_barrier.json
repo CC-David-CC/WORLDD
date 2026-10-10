@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "operator_completion_native_and_m02_gate_audit",
+  "current_step": "m02_failure_evidence_and_gate_audit",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -35,7 +35,7 @@
     "No model inference or additional host is needed for this component.",
     "Do not modify the active remote-transport candidate."
   ],
-  "next_test": "Exercise spatial-revoke with held native input, then resolve preserved intermittent failures and run the M02 phase gate.",
+  "next_test": "Diagnose the preserved intermittent failures using original suite context and process timing, then freeze complete M02 qualification on both hosts.",
   "limitations": [
     "Issuer barrier and checked process cleanup are integrated and adopted on both hosts.",
     "Combined candidate04 passed 1226 core checks and failed one self-revocation receipt test on each host. Debug P10 and runtime sanitizer were unrun after that failure.",
@@ -78,5 +78,6 @@
     "next_component": "tasks/m1/identity.supervisor_broker_handoff.json"
   },
   "control_recovery_task": "tasks/m1/identity.control_recovery.json",
-  "operator_command_task": "tasks/m1/identity.revocation_command.json"
+  "operator_command_task": "tasks/m1/identity.revocation_command.json",
+  "gate_coverage_map": "docs/M02_GATE_COVERAGE.txt"
 }

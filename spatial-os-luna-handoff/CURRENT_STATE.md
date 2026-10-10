@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: Operator revocation passes connected native checks
+
+All three operator scenarios passed in Debug and runtime ASan/UBSan on sb16: six native case results.
+The command stayed pending while an actual world process held native Shift and button input.
+Normal delivery completed with released native input and no application lease.
+A bounded timeout retained the committed revision. Explicit resume completed without another revocation.
+After a world crash, native cleanup alone did not complete the command.
+Checked dependent cleanup and authenticated retirement completed the outstanding obligation with applied revision zero.
+The independent confined X application remained responsive. Uncommitted project data survived.
+
+Read evidence/operator-native-2026-10-10/candidate-01/primary-review.json.
+All 351 source hashes match. All 41 locked files remain unchanged.
+Production source and existing test assertions remain unchanged in this increment.
+The new M02 coverage map is docs/M02_GATE_COVERAGE.txt. It identifies required evidence without marking the gate passed.
+
+Next: diagnose the two preserved intermittent failures using the original suite context and process timing.
+Then finish the M02 audit and freeze the complete both-host phase gate.
+M02 and Spatial-M1 remain incomplete. Software native-session checks do not qualify physical input or GPU performance.
+No normal desktop session or database changed.
+
+
 ## 2026-10-10: Operator revocation waits for cancellation completion
 
 The new spatial-revoke command combines an owner-signed revocation with checked cancellation queries.

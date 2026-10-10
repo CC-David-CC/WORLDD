@@ -1,0 +1,15 @@
+Running as unit: spatial-operator-native-01-runtime-sanitize.service; invocation ID: f2127091574d4d0c91431c0ff43a4829
+test_completion_waits_for_real_key_button_and_lease_release (__main__.OperatorRevocationTests.test_completion_waits_for_real_key_button_and_lease_release) ... ok
+test_pending_timeout_resumes_without_another_revocation (__main__.OperatorRevocationTests.test_pending_timeout_resumes_without_another_revocation) ... ok
+test_crash_requires_checked_recovery_and_retirement_before_completion (__main__.OperatorRevocationTests.test_crash_requires_checked_recovery_and_retirement_before_completion) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 16.351s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 16.494s
+CPU time consumed: 7.370s
+Memory peak: 1.5M
+Memory swap peak: 0B
