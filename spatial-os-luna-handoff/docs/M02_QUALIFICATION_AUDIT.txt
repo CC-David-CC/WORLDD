@@ -1,3 +1,14 @@
+Terminal log review, 2026-10-10
+
+Scan all preserved native child logs before approving terminal qualification or starting cross-host checks.
+The collectors retain these logs. Their automatic sanitizer assertion scans only the core log.
+Use local/review-m02-sanitizer-logs-01.py with each complete attachment review.
+Review every reported marker. A clean scan does not establish sanitizer instrumentation or phase completion.
+The scanner detected a recorded native leak beside a passing harness log.
+Both completed Debug diagnostics had no selected markers. Runtime sanitizer qualification remains pending.
+Read evidence/m02-gate-2026-10-10/sanitizer-log-scan-primary-review.json.
+No live runner or frozen candidate changed.
+
 Candidate02 reassessment, 2026-10-10
 
 Current source: 1f5088e026573d86be8388cf1f41dfce20189db9, candidate m02-phase-gate-02.

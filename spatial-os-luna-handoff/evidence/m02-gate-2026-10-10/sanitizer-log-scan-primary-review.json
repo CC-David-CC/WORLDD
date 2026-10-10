@@ -1,0 +1,55 @@
+{
+  "status": "artifact_scanner_verified_terminal_runtime_scans_pending",
+  "scanner_sha256": "c64ee237dcf1ed3eb590ece2fcee8ed14c7969c20da8b94a3eaae622ca71afc1",
+  "positive_witness": {
+    "harness.log": {
+      "source": "evidence/m02-gate-2026-10-10/candidate02-final/sb16/m02-phase-gate-02/debug/checks/harness.log",
+      "sha256": "42356bf9133e19cf519c3182c85203dc172458121a055c96a364f5b37c446cd8"
+    },
+    "native/server.log": {
+      "source": "evidence/native-security-identity-2026-10-07/sb16/upstream-shutdown/server.log",
+      "sha256": "3991b05bafddb2eb4c765ee337106ef8674cb56d1b7784fc8fdd642382f1c54f"
+    }
+  },
+  "checks": [
+    {
+      "check": "known_native_leak",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "report": "sanitizer-log-positive-witness.json",
+      "report_sha256": "abbcecbf6b366b0d214eeabe23e3070cc40d050b3d47db3dbd94a8120ca312b6",
+      "verified_attachments": 2,
+      "scanned_logs": 2,
+      "findings": 2
+    },
+    {
+      "check": "sb16_diagnostic",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "report": "sanitizer-log-scan-sb16-diagnostic.json",
+      "report_sha256": "104d1055c23490cb0695019ae58d429201f7a347298e2bc6c3aa4a77d7e29b78",
+      "verified_attachments": 3567,
+      "scanned_logs": 3558,
+      "findings": 0
+    },
+    {
+      "check": "sb16_2_diagnostic",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "report": "sanitizer-log-scan-sb16-2-diagnostic.json",
+      "report_sha256": "1f5ae7b1e5cea0ebd89c418eb78ae5f3299b6720e542804e3a5afacc3c5cab05",
+      "verified_attachments": 3567,
+      "scanned_logs": 3548,
+      "findings": 0
+    }
+  ],
+  "review": [
+    "The known native leak is detected even when the accompanying harness log ends with OK.",
+    "Every attachment hash is verified before its bytes are used.",
+    "Only raw log, text, and XML evidence is scanned. Source files with sanitizer-detection patterns are excluded.",
+    "Both completed diagnostics contain no selected sanitizer markers. These were Debug diagnostics, not runtime sanitizer qualification.",
+    "The full terminal qualification archives on both hosts still require this scan and primary review.",
+    "No running qualifier, frozen source, or executable changed. No XLibre defect is newly fixed or closed."
+  ],
+  "phase_complete": false
+}

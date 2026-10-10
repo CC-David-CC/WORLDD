@@ -1,0 +1,24 @@
+{
+  "status": "sanitizer_markers_present",
+  "input_review_sha256": "daa4a2304d00bf2748d8f87ca59d386e0af2cbae52efccd900a1132146271a8d",
+  "scanner_sha256": "c64ee237dcf1ed3eb590ece2fcee8ed14c7969c20da8b94a3eaae622ca71afc1",
+  "verified_attachments": 2,
+  "scanned_logs": {
+    "harness.log": "42356bf9133e19cf519c3182c85203dc172458121a055c96a364f5b37c446cd8",
+    "native/server.log": "3991b05bafddb2eb4c765ee337106ef8674cb56d1b7784fc8fdd642382f1c54f"
+  },
+  "findings": [
+    {
+      "file": "native/server.log",
+      "line": 44,
+      "text": "==1542011==ERROR: LeakSanitizer: detected memory leaks"
+    },
+    {
+      "file": "native/server.log",
+      "line": 93,
+      "text": "SUMMARY: AddressSanitizer: 595 byte(s) leaked in 7 allocation(s)."
+    }
+  ],
+  "phase_complete": false,
+  "limitation": "This scan checks preserved log bytes. It does not establish test execution, coverage, sanitizer instrumentation, or phase completion."
+}

@@ -1,0 +1,17 @@
+M02 complete log review
+
+The existing collectors preserve native child logs.
+Their automatic sanitizer check scans only the core log.
+Final approval also needs a scan of every preserved child log.
+
+Run these artifact checks on the controller:
+1. Combine an existing passing harness log with an existing native LeakSanitizer log in an explicitly marked fixture.
+   Require the scanner to report the actual native leak despite the passing harness log.
+2. Scan the complete preserved sb16 diagnostic archive after verifying every attachment hash.
+3. Scan the complete preserved sb16-2 diagnostic checkpoint after verifying every attachment hash.
+4. Scan both complete terminal qualification archives when they exist.
+
+Do not run another Linux runtime or modify a live qualifier.
+Do not count diagnostic scans as runtime sanitizer qualification.
+Do not close an existing XLibre defect from this scanner check.
+Record all marker findings for primary review before local qualification approval or cross-host execution.

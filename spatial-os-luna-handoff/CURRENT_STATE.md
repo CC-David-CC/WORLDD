@@ -1,5 +1,17 @@
 # Implementation status
 
+## 2026-10-10: Complete native log review added
+
+The final artifact review now scans preserved child logs as well as the main test log.
+The scanner verifies every attachment hash before reading its results.
+A recorded native leak remained detectable beside a passing harness log.
+Both completed Debug diagnostic archives contain no selected sanitizer markers.
+These scans do not qualify runtime sanitizers or close the failed sb16 diagnostic.
+Read evidence/m02-gate-2026-10-10/sanitizer-log-scan-primary-review.json.
+Both terminal qualification archives still require this scan and primary review before cross-host execution.
+The live qualifiers, frozen sources, executables, assertions, and deadlines remain unchanged.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Both hosts now run untraced Debug qualification
 
 The complete failed sb16 diagnostic and its 3567 raw attachments are preserved in commit c4d9b16.

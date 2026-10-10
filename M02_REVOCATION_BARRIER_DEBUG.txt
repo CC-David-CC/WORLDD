@@ -1178,3 +1178,12 @@ sb16 retry: synchronization succeeded, all 26 generated log-path changes verifie
 sb16-2 diagnostic: all 124 suites passed; all 3567 checkpoint attachments verified.
 Both hosts now run untraced qualification. Full Debug, runtime sanitizers, and cross-host checks remain incomplete.
 See CURRENT_STATE.md in spatial-os-luna-handoff for exact evidence paths.
+
+2026-10-10: Complete child-log review
+The existing collectors preserve native logs but scan only the core log automatically.
+Final review must also scan all preserved child logs before cross-host checks.
+The new artifact scanner detected a known native leak beside a passing harness log.
+Both completed Debug diagnostic archives contain no selected sanitizer markers.
+This does not qualify runtime sanitizers, close historical failures, or change a running job.
+Both terminal qualification archives still need complete scans and primary review.
+See spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/sanitizer-log-scan-primary-review.json.
