@@ -1,0 +1,30 @@
+{
+  "status": "prepared_not_executed",
+  "candidate": "m02-phase-gate-02",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "source_files": 351,
+  "locked_files_unchanged": 41,
+  "changed_from_original": [
+    "tests/core/test_identity_enrollment.py"
+  ],
+  "archive_sha256": "f39471ca91385d0f2bee702e5beed0383e7e0e8308ddf69b403d379afbc170dd",
+  "runner_sha256": "4cab69f6c005aaacff9cc0eb23b852b24e83b55ffd2ad955c789d47ed6c66bb3",
+  "collector_sha256": "c19919cbc40ca09d82452e3937c6f156c1d015294df534de3de812c1c3d24e06",
+  "diagnostic_tools": {
+    "trace-qualification-03.py": "57d3b09c13840b05521701be521a70fac9b81edd96afbe0f2969bfe9764472e7",
+    "qualification-syscalls-03.bt": "9e574213571797622777be80cc6815d09817af1df4e63ffe0c0e77ade37c1ddf"
+  },
+  "review": [
+    "All 351 source bytes match the frozen archive. Only the reviewed enrollment fixture differs from candidate01.",
+    "All 41 locked files are unchanged. Production sources are unchanged.",
+    "Build both profiles before any testing; two compiler jobs on each host.",
+    "Retain the original inventory, harness, and full Debug core order for broader timing.",
+    "The traced Debug core is diagnostic only. Run untraced Debug core and P10 afterward.",
+    "Run the complete sanitizer profile without tracing. Preserve original assertions and client deadlines.",
+    "Separate diagnostic native logs prevent later qualification from overwriting failure evidence.",
+    "Keep original failure-stop behavior. Record later segments as unrun.",
+    "Selected service and unrelated service controls pass on both hosts. Failed instrumentation inputs remain preserved."
+  ],
+  "historical_failures_resolved": false,
+  "phase_complete": false
+}

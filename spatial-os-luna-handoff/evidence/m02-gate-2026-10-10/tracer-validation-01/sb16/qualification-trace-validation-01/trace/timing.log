@@ -1,0 +1,3 @@
+ERROR: 'BPFTRACE_MAX_STRLEN' 256 exceeds the current maximum of 200 bytes.
+This limitation is because strings are currently stored on the 512 byte BPF stack.
+Long strings will be pursued in: https://github.com/iovisor/bpftrace/issues/305

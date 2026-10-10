@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: Corrected M02 candidate and broader timing prepared
+
+The exact-executable tracer passed positive and negative controls on both hosts.
+It captures selected systemd-launched services and excludes the unrelated service.
+The known 180 ms delay measured 180894 microseconds on sb16 and 180179 on sb16-2.
+Three setup failures per host remain preserved. They exceeded the installed string limit or BPF stack limit.
+Separate exact-path probes resolved the instrumentation setup failure. No production source changed.
+Read evidence/m02-gate-2026-10-10/tracer-validation-01/primary-review.json for all 84 raw attachments.
+
+Candidate02 freezes 351 source files at commit 1f5088e026573d86be8388cf1f41dfce20189db9.
+Only the reviewed enrollment fixture differs from the first candidate. All 41 locked files are unchanged.
+Archive SHA-256: f39471ca91385d0f2bee702e5beed0383e7e0e8308ddf69b403d379afbc170dd.
+Read evidence/m02-gate-2026-10-10/candidate02-preparation.json.
+Both hosts will build both profiles before testing. Each build uses two compiler jobs.
+The complete Debug core sequence first runs with broader syscall timing as diagnostic evidence.
+Untraced Debug and sanitizer qualification remain required. Diagnostic native logs use a separate directory.
+Assertions, client deadlines, durability, and failure-stop behavior remain unchanged.
+This preparation is not execution evidence. The original startup and historical timeouts remain unresolved.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Five focused mutation witnesses verified
 
 Five isolated Debug mutations on sb16 each caused the intended existing assertion to fail.

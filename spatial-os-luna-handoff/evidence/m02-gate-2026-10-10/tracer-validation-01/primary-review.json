@@ -1,0 +1,157 @@
+{
+  "status": "positive_and_negative_controls_verified",
+  "hosts": {
+    "sb16": {
+      "archive_sha256": "c894e86d98b8cc87be625f680d8bb17ad30073263f2c8c561d44913c0fab0190",
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "failed",
+          "reason": "Executable string exceeded installed 200-byte limit",
+          "review": "qualification-trace-validation-01/review.json"
+        },
+        {
+          "attempt": 2,
+          "status": "failed",
+          "reason": "Combined string predicate exceeded BPF stack",
+          "review": "qualification-trace-validation-02/review.json"
+        },
+        {
+          "attempt": 3,
+          "status": "failed",
+          "reason": "Combined string predicate exceeded BPF stack",
+          "review": "qualification-trace-validation-03/review.json"
+        },
+        {
+          "attempt": 4,
+          "status": "scope_and_timing_verified",
+          "reason": "Separate exact-path probes fit BPF stack; selected service captured and sibling excluded",
+          "review": "qualification-trace-validation-04/review.json"
+        }
+      ],
+      "attachments": {
+        "qualification-syscalls-01.bt": "a4fadacef1328f32bfb5a3e85e4e4384f0f13a4bd5dbff0098a6448d0ce2724e",
+        "qualification-syscalls-02.bt": "9f1ed6e8941c0d7dce0e7f2a7799c6bedca4bbe6799c4539a03ba6b30fe0cb61",
+        "qualification-syscalls-03.bt": "9e574213571797622777be80cc6815d09817af1df4e63ffe0c0e77ade37c1ddf",
+        "trace-qualification-01.py": "029182b50ab0fb186e71912d62ccb2ce0d3447224667cbab171c4a8ab368c142",
+        "trace-qualification-02.py": "09e3fc4729cf9c02661b0c74fe7a1164379d7f8a53cba9bbe98f4b4c64289fb0",
+        "trace-qualification-03.py": "57d3b09c13840b05521701be521a70fac9b81edd96afbe0f2969bfe9764472e7",
+        "validate-qualification-trace-01.py": "6804e9fcb7d0be5ccb373ea778ac9e83cf5020e6a5195ce97f9cd99ea6b79351",
+        "validate-qualification-trace-02.py": "24f69330dba1f1fbf3a8a93cf7d6d5608613778bc89a15c1cc556ce299822ca7",
+        "validate-qualification-trace-03.py": "77fcf8c4f694b9e7fb25658971fc5c9292f207ad2de03c6c195330e8d4dfe4b6",
+        "validate-qualification-trace-04.py": "2cbdbf71f3ce92c2212874487ba7fe55616b447dfb5e3fac6a6df17b9d413912",
+        "qualification-trace-validation-01/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-01/dispatch.py": "132a795c2b3c6c4125f804be01113e372b8489665b5eb055c784814b98d40870",
+        "qualification-trace-validation-01/probe.c": "85baf29ebf14ccff69500c5df2f279d192ae180b80a298027364d0bccc99265e",
+        "qualification-trace-validation-01/review.json": "d5a8d14e299229c06282d8656562d195a9e9a99616a1db642de84e57d7a1e66f",
+        "qualification-trace-validation-01/run.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-02/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-02/dispatch.py": "132a795c2b3c6c4125f804be01113e372b8489665b5eb055c784814b98d40870",
+        "qualification-trace-validation-02/probe.c": "85baf29ebf14ccff69500c5df2f279d192ae180b80a298027364d0bccc99265e",
+        "qualification-trace-validation-02/review.json": "d76cf0e61bf0bfa4c649a3c2a0794031ab6ac0e60ae546c5a6207c4e929d9b9b",
+        "qualification-trace-validation-02/run.log": "0d2cef79eafa895aa09aff6ab54983b3cdf46dd549618ec6a9bb39fc478af334",
+        "qualification-trace-validation-03/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-03/dispatch.py": "132a795c2b3c6c4125f804be01113e372b8489665b5eb055c784814b98d40870",
+        "qualification-trace-validation-03/probe.c": "85baf29ebf14ccff69500c5df2f279d192ae180b80a298027364d0bccc99265e",
+        "qualification-trace-validation-03/review.json": "0b736850053fc74d6db16064f8eb9b5fd1d6f58799343c59775a2688c6039ec1",
+        "qualification-trace-validation-03/run.log": "0d2cef79eafa895aa09aff6ab54983b3cdf46dd549618ec6a9bb39fc478af334",
+        "qualification-trace-validation-04/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-04/dispatch.py": "132a795c2b3c6c4125f804be01113e372b8489665b5eb055c784814b98d40870",
+        "qualification-trace-validation-04/probe.c": "85baf29ebf14ccff69500c5df2f279d192ae180b80a298027364d0bccc99265e",
+        "qualification-trace-validation-04/review.json": "2bd779d78d7a5eefccc41fa8e7ee1e0cc2132255efb160f8620130e889dc3d41",
+        "qualification-trace-validation-04/run.log": "e37df734b9f1e832aeda5dc8bea6b575a433cd260f7541a4150bdd9942c75568",
+        "qualification-trace-validation-04/trace/record.json": "47355f49a6ae887de1bff55928c1f1cc3934baa5a281b67a904ef9eef495ab81",
+        "qualification-trace-validation-04/trace/timing.log": "7c8c0205c73df963014756f334720cd593a77fe5b72e9b5e9fdfacdf35510ec3",
+        "qualification-trace-validation-04/trace/trace.bt": "025e578db9b6b47760703ef39f18cdcf6766970cd914e2b776f9a95fe92d2b10",
+        "qualification-trace-validation-03/trace/record.json": "5f117d19a37d703b643791a841e96a9510fa2acbe230314e49bfac19087e32f6",
+        "qualification-trace-validation-03/trace/timing.log": "26955c72e16b0dca1c0e12a7f4e50efed38cc48a5ba7ab1b5a322a8f9484f5e3",
+        "qualification-trace-validation-03/trace/trace.bt": "7e2910dd9c6ef98b18d1489d46d1d63a22fc2755876b81bef0f304cb53a3175d",
+        "qualification-trace-validation-02/trace/record.json": "16c3781ebee840e2b387b476a7fad8e56ccd896dcc3fcd839e490457a2d571dd",
+        "qualification-trace-validation-02/trace/timing.log": "26955c72e16b0dca1c0e12a7f4e50efed38cc48a5ba7ab1b5a322a8f9484f5e3",
+        "qualification-trace-validation-02/trace/trace.bt": "2e53fbe9015f1e08732e829c3eca6463707615a84da7a14df2b7e5c8c8cc943c",
+        "qualification-trace-validation-01/trace/record.json": "91aebc6e053ab1eb3174752e68891f7f545d805427ac37b1ff9677d96641ea92",
+        "qualification-trace-validation-01/trace/timing.log": "46a7677c3df1ab58106fcb4dffb843eb8a87e4367782071628af0160bea06da7",
+        "qualification-trace-validation-01/trace/trace.bt": "824a67a89af0cda96e79935dfe3fdef9f4e5b547a5dea706d2ff97f932608ee9"
+      }
+    },
+    "sb16-2": {
+      "archive_sha256": "fc22ed7108d8dff8484a16240587a932f0500a0174b97291493cce5004b3e5d7",
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "failed",
+          "reason": "Executable string exceeded installed 200-byte limit",
+          "review": "qualification-trace-validation-01/review.json"
+        },
+        {
+          "attempt": 2,
+          "status": "failed",
+          "reason": "Combined string predicate exceeded BPF stack",
+          "review": "qualification-trace-validation-02/review.json"
+        },
+        {
+          "attempt": 3,
+          "status": "failed",
+          "reason": "Combined string predicate exceeded BPF stack",
+          "review": "qualification-trace-validation-03/review.json"
+        },
+        {
+          "attempt": 4,
+          "status": "scope_and_timing_verified",
+          "reason": "Separate exact-path probes fit BPF stack; selected service captured and sibling excluded",
+          "review": "qualification-trace-validation-04/review.json"
+        }
+      ],
+      "attachments": {
+        "qualification-syscalls-01.bt": "a4fadacef1328f32bfb5a3e85e4e4384f0f13a4bd5dbff0098a6448d0ce2724e",
+        "qualification-syscalls-02.bt": "9f1ed6e8941c0d7dce0e7f2a7799c6bedca4bbe6799c4539a03ba6b30fe0cb61",
+        "qualification-syscalls-03.bt": "9e574213571797622777be80cc6815d09817af1df4e63ffe0c0e77ade37c1ddf",
+        "trace-qualification-01.py": "029182b50ab0fb186e71912d62ccb2ce0d3447224667cbab171c4a8ab368c142",
+        "trace-qualification-02.py": "09e3fc4729cf9c02661b0c74fe7a1164379d7f8a53cba9bbe98f4b4c64289fb0",
+        "trace-qualification-03.py": "57d3b09c13840b05521701be521a70fac9b81edd96afbe0f2969bfe9764472e7",
+        "validate-qualification-trace-01.py": "6804e9fcb7d0be5ccb373ea778ac9e83cf5020e6a5195ce97f9cd99ea6b79351",
+        "validate-qualification-trace-02.py": "24f69330dba1f1fbf3a8a93cf7d6d5608613778bc89a15c1cc556ce299822ca7",
+        "validate-qualification-trace-03.py": "77fcf8c4f694b9e7fb25658971fc5c9292f207ad2de03c6c195330e8d4dfe4b6",
+        "validate-qualification-trace-04.py": "2cbdbf71f3ce92c2212874487ba7fe55616b447dfb5e3fac6a6df17b9d413912",
+        "qualification-trace-validation-01/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-01/dispatch.py": "132a795c2b3c6c4125f804be01113e372b8489665b5eb055c784814b98d40870",
+        "qualification-trace-validation-01/probe.c": "85baf29ebf14ccff69500c5df2f279d192ae180b80a298027364d0bccc99265e",
+        "qualification-trace-validation-01/review.json": "d64cf056157444c66565f2888f9618ee90b222334cbf733151957069efbc7fc1",
+        "qualification-trace-validation-01/run.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-02/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-02/dispatch.py": "132a795c2b3c6c4125f804be01113e372b8489665b5eb055c784814b98d40870",
+        "qualification-trace-validation-02/probe.c": "85baf29ebf14ccff69500c5df2f279d192ae180b80a298027364d0bccc99265e",
+        "qualification-trace-validation-02/review.json": "471f17b9896dd47e82f5895af8c1e6a04b6c10cdd661e31f2a52584f778f593a",
+        "qualification-trace-validation-02/run.log": "0d2cef79eafa895aa09aff6ab54983b3cdf46dd549618ec6a9bb39fc478af334",
+        "qualification-trace-validation-03/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-03/dispatch.py": "132a795c2b3c6c4125f804be01113e372b8489665b5eb055c784814b98d40870",
+        "qualification-trace-validation-03/probe.c": "85baf29ebf14ccff69500c5df2f279d192ae180b80a298027364d0bccc99265e",
+        "qualification-trace-validation-03/review.json": "4eb1148aa235df7ce498775d1e44a950ef05c0947126286eb73e26d51e26cdd3",
+        "qualification-trace-validation-03/run.log": "0d2cef79eafa895aa09aff6ab54983b3cdf46dd549618ec6a9bb39fc478af334",
+        "qualification-trace-validation-04/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "qualification-trace-validation-04/dispatch.py": "132a795c2b3c6c4125f804be01113e372b8489665b5eb055c784814b98d40870",
+        "qualification-trace-validation-04/probe.c": "85baf29ebf14ccff69500c5df2f279d192ae180b80a298027364d0bccc99265e",
+        "qualification-trace-validation-04/review.json": "b1e48e1c4b38de8a43c3db6a3044b1a2d36b45aa4591040ab513a65a44e771a0",
+        "qualification-trace-validation-04/run.log": "f2818e8fd17571be1e632294c3f808ff24ea24159fbdc1869c29a736a9c8cd58",
+        "qualification-trace-validation-04/trace/record.json": "17186e84b9df36b180b53257a55ed518ce90d48a68770ec1d2fa703fd3b0aae3",
+        "qualification-trace-validation-04/trace/timing.log": "8fc38ae76c367f42ca3bdeab5bf7720ed13761f1ca1f37b22061006967666859",
+        "qualification-trace-validation-04/trace/trace.bt": "025e578db9b6b47760703ef39f18cdcf6766970cd914e2b776f9a95fe92d2b10",
+        "qualification-trace-validation-03/trace/record.json": "0574ff4edf526e4c57fa2c820f7ac8b100c501eebea8a6181a58ba16f274e45a",
+        "qualification-trace-validation-03/trace/timing.log": "26955c72e16b0dca1c0e12a7f4e50efed38cc48a5ba7ab1b5a322a8f9484f5e3",
+        "qualification-trace-validation-03/trace/trace.bt": "7e2910dd9c6ef98b18d1489d46d1d63a22fc2755876b81bef0f304cb53a3175d",
+        "qualification-trace-validation-02/trace/record.json": "8e6c7a09e5bba24ccc4e24647df5a9a5ac7306625b3880194e43be718c9e74e3",
+        "qualification-trace-validation-02/trace/timing.log": "26955c72e16b0dca1c0e12a7f4e50efed38cc48a5ba7ab1b5a322a8f9484f5e3",
+        "qualification-trace-validation-02/trace/trace.bt": "2e53fbe9015f1e08732e829c3eca6463707615a84da7a14df2b7e5c8c8cc943c",
+        "qualification-trace-validation-01/trace/record.json": "f9fade76b82090d2fb3cf0ed0d384287e3260d3b5c1c38c0c4504450bb0ebd1b",
+        "qualification-trace-validation-01/trace/timing.log": "46a7677c3df1ab58106fcb4dffb843eb8a87e4367782071628af0160bea06da7",
+        "qualification-trace-validation-01/trace/trace.bt": "824a67a89af0cda96e79935dfe3fdef9f4e5b547a5dea706d2ff97f932608ee9"
+      }
+    }
+  },
+  "production_changes": false,
+  "qualification_pass": false,
+  "limitations": [
+    "Tracing changes timing. Controls prove selected process capture and sibling exclusion, not production correctness.",
+    "Traced runs do not replace untraced sanitizer qualification."
+  ]
+}

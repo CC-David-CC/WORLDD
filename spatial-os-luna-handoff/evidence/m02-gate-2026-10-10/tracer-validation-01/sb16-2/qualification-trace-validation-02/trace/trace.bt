@@ -1,0 +1,44 @@
+BEGIN { @tracked[$1] = 1; printf("READY root=%d\n", $1); }
+tracepoint:sched:sched_process_fork /@tracked[args->parent_pid]/ {
+    @tracked[args->child_pid] = 1;
+    printf("FORK parent=%d child=%d\n", args->parent_pid, args->child_pid);
+}
+tracepoint:sched:sched_process_exec {
+    $exe = str(args->filename);
+    if ($exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/identityd" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/native-launch-checkpoint-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-actor-tls-retry-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-app-init" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-authority-launch-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-authority-migrate" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-authority-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-authority-supervisor" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-broker-control-client-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-child-handle-client-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-confined-xprobe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-control-admin-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-control-reply-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-git-job-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-input-bridge" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-issuer-client" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-issuer-client-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-issuer-watch" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-issuer-watch-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-key" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-native-config-witness" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-native-scope-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-participant-runtime-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-process-scope-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-process-termination-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-render-observation-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-retained-child-handle-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-revoke" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-security-auth" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-session-application-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-session-broker-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-session-launch-exit-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-session-world-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-storage-vfs-probe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-test-host" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-xprobe" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatialwm" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/workspaced" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/worldd" || $exe == "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/qualification-trace-validation-02/trace-probe") {
+        @tracked[tid] = 1;
+        printf("EXEC_MATCH ns=%llu pid=%d path=%s\n", nsecs, pid, $exe);
+    }
+    if (@tracked[tid]) { printf("EXEC ns=%llu pid=%d path=%s\n", nsecs, pid, $exe); }
+}
+tracepoint:raw_syscalls:sys_enter /@tracked[tid]/ { @started[tid] = nsecs; }
+tracepoint:raw_syscalls:sys_exit /@tracked[tid] && @started[tid]/ {
+    $us = (nsecs - @started[tid]) / 1000;
+    @maximum_us[comm, args->id] = max($us);
+    @calls[comm, args->id] = count();
+    if ($us >= 100000) {
+        printf("SLOW ns=%llu pid=%d tid=%d comm=%s syscall=%d us=%llu result=%lld\n",
+            nsecs, pid, tid, comm, args->id, $us, args->ret);
+    }
+    delete(@started[tid]);
+}
+tracepoint:sched:sched_switch {
+    if (@tracked[args->prev_pid]) {
+        @offcpu[args->prev_pid] = nsecs;
+        @offstate[args->prev_pid] = args->prev_state;
+    }
+    if (@tracked[args->next_pid] && @offcpu[args->next_pid]) {
+        $us = (nsecs - @offcpu[args->next_pid]) / 1000;
+        if ($us >= 100000) {
+            printf("WAIT ns=%llu tid=%d comm=%s us=%llu state=%lld\n",
+                nsecs, args->next_pid, args->next_comm, $us, @offstate[args->next_pid]);
+        }
+        delete(@offcpu[args->next_pid]); delete(@offstate[args->next_pid]);
+    }
+}
+tracepoint:sched:sched_process_exit /@tracked[tid]/ {
+    delete(@tracked[tid]); delete(@started[tid]); delete(@offcpu[tid]); delete(@offstate[tid]);
+    if (tid == $1) { printf("ROOT_EXIT\n"); exit(); }
+}
+interval:s:1 { @seconds++; if (@seconds >= $2) { printf("TRACE_DEADLINE\n"); exit(); } }
+END { clear(@tracked); clear(@started); clear(@offcpu); clear(@offstate); clear(@seconds); }
