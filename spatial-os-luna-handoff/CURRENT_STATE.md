@@ -1,5 +1,24 @@
 # Implementation status
 
+## 2026-10-10: Qualified supervisor handoff fix integrated and adopted
+
+Both hosts passed complete Debug and runtime sanitizer qualification for handoff01.
+Each profile passed 1,498 core checks across 103 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed per profile. No final case failed or skipped.
+Both hosts reproduced the two baseline defects before corrected qualification.
+The exact three-file fix is integrated and adopted at 0ed35eb3e21268fcaed38b190b93619a17260088.
+All 304 qualified source hashes match. Both checkouts are clean.
+No runtime restarted or operator state migrated. Active helper bytes remain unchanged.
+Read evidence/control-recovery-2026-10-09/integration-primary-review-handoff-01.json and the handoff-adoption host receipts.
+
+Administrative transport passed full Debug and sanitizers on sb16.
+Each profile passed 1,509 core checks, 51 harness checks, 151 P10 cases, and three native-world checks.
+Second-host transport qualification remains required before integration.
+Retained-handle qualification has started building on sb16.
+Secure transfer, the production coordinator, selective cleanup, and issuer retirement remain incomplete.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Qualified reply validation integrated and adopted
 
 Both hosts passed complete Debug and runtime ASan, LeakSanitizer, and UBSan qualification for reply01.
