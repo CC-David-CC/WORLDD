@@ -30,12 +30,13 @@
   },
   "full_failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/full-failure-review-04.json",
   "qualification_rerun": {
-    "status": "running",
+    "status": "Full Debug passed on both hosts; full runtime sanitizers running.",
     "output": "local/crash-fencing-serial-02",
     "sb16_pid": 1544923,
     "sb16_2_pid": 1334189,
     "source_unchanged": true,
-    "assertions_and_deadlines_unchanged": true
+    "assertions_and_deadlines_unchanged": true,
+    "debug_review": "evidence/supervisor-crash-fencing-2026-10-09/serial-debug-results-review-02.json"
   },
   "diagnosis": "evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json"
 }

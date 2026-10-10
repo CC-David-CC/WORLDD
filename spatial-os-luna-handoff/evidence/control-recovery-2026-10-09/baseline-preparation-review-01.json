@@ -1,0 +1,27 @@
+{
+  "reviewer": "primary agent",
+  "status": "queued_unrun",
+  "production_changed": false,
+  "source_files": 294,
+  "scripts": {
+    "run-control-recovery-baseline-01.py": "fce1b80655819269961862cd08c484b0104330ad54f266a4c8eedc725e805e5a",
+    "test_control_recovery_baseline_01.py": "8cd62bd574429ab47a125df80d52de1f6cf6118cbfb00cc61382e816d54a4426"
+  },
+  "jobs": {
+    "sb16": 1601319,
+    "sb16-2": 1374531
+  },
+  "prerequisite": "The exact serial02 qualifier must exit and report passed with no compiler overlap.",
+  "review": [
+    "The diagnostic kills only its own world process and pins its compositor before the crash.",
+    "An independent native client must see held-input release and answer resize after the crash.",
+    "The broker must remain alive and confirm authority before BUSY can establish an orphan reservation.",
+    "Explicit diagnostic release occurs only after native release and is not production recovery.",
+    "Only the new diagnostic method runs; inherited application-control tests are not duplicated.",
+    "Source and binaries are checked before and after execution. Test assertions remain unchanged."
+  ],
+  "limits": [
+    "Direct fixture-retained broker channel, without configured recovery supervisor.",
+    "Debug diagnostic only. Does not qualify full recovery or native hardware."
+  ]
+}

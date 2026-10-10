@@ -384,3 +384,10 @@ Primary review covers all 37 changed files. The candidate remains unintegrated.
 The integration guard rejected missing full evidence and preserved production283.
 Git-index and host-adoption checks are prepared. Both full serial02 qualifiers remain active.
 Evidence: spatial-os-luna-handoff/evidence/supervisor-crash-fencing-2026-10-09/combined-static-review-04.json
+
+2026-10-09: Both full Debug profiles passed
+Frozen294 passed1453 core checks across99 suites,51 harness checks,and151 P10 cases on each host.
+No failures, skips, or recorded compiler overlap. Full runtime sanitizers remain active.
+The sb16-2 Debug collector first refused an unfinished P10 run. Collection succeeded only after P10 passed.
+Production remains broker283. The dependent control-recovery witness is queued, not run.
+Evidence: spatial-os-luna-handoff/evidence/supervisor-crash-fencing-2026-10-09/serial-debug-results-review-02.json

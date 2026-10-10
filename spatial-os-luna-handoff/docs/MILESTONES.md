@@ -25,7 +25,10 @@ No final case failed or skipped. All integrated source hashes match the qualifie
 World handoff and issuer/supervisor fencing candidates remain isolated after cumulative qualification failures.
 A diagnostic reproduced authority-channel loss after an 881 ms issuer event-loop gap exceeded a 700 ms client deadline.
 A syscall trace identified consecutive durable sync calls exceeding that deadline during compilation.
-Full unchanged qualification now runs without compiler overlap. Diagnostic passes do not establish candidate qualification.
+The combined294 candidate passed full Debug on both hosts: 1453 core checks, 51 harness checks, and 151 P10 cases each.
+Its full runtime sanitizer qualification continues without compiler overlap. Production integration remains pending.
+Read evidence/supervisor-crash-fencing-2026-10-09/serial-debug-results-review-02.json.
+Diagnostic passes do not establish candidate qualification.
 Complete trusted recovery, fencing, and cross-host cancellation remain required.
 See evidence/supervisor-broker-handoff-2026-10-09 for the qualified production increment.
 See evidence/world-bootstrap-runtime-failure-2026-10-09 for preserved failures and transport diagnostics.

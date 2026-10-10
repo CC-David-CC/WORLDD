@@ -1,0 +1,77 @@
+Application-control recovery: baseline and next invariant
+Status: The diagnostic is queued. No recovery result is claimed.
+
+Required behavior
+
+A trusted supervisor must release a crashed generation's control reservations after it verifies native cancellation.
+Preserve applications whose execution authority remains valid.
+Keep unrelated reservations and independently valid grants.
+Keep issuer retirement pending until this dependent cleanup is confirmed.
+
+Current source findings
+
+ControlLeases stores a lease ID, actor principal, application reference, and revocation flag.
+It has no owning world generation or recovery scope.
+Repeated acquisition by the same actor returns its existing lease.
+Another actor receives BUSY until the reservation is released.
+Revocation retains the reservation until the trusted world confirms native cancellation through release.
+These rules correctly prevent premature control transfer during ordinary revocation.
+
+The current private broker channel has one trusted caller.
+BrokerClient closes its descriptor when destroyed. It does not own the broker process.
+The broker stops its applications when that private management channel reaches EOF.
+The diagnostic fixture can retain the broker endpoint while the world exits.
+Retaining an endpoint is not a production recovery implementation.
+
+The combined294 supervisor record has checked process and native cleanup receipts.
+It has no dependent control-reservation receipt.
+OWNED_SCOPES_STOPPED therefore does not establish complete authority recovery.
+Do not interpret that stage as permission to retire issuer obligations.
+
+Source references
+
+src/workspace/control.hpp
+src/workspace/control.cpp
+src/workspace/main.cpp
+src/platform/broker.hpp
+src/platform/broker.cpp
+proto/spatial/workspace/v1/broker.proto
+proto/spatial/supervisor/v1/launch.proto
+docs/AUTHORITY_SUPERVISOR_RECOVERY.txt
+
+Queued diagnostic
+
+Use the unchanged frozen294 Debug binaries after that host passes full qualification.
+Use a disposable native server and real confined application.
+Hold a real key and button through an authenticated world actor.
+Pin the compositor with a pidfd before killing the owned world process.
+Verify world and compositor exit.
+Verify actual key and button release through the independent native client.
+Verify that the application still answers a native resize command.
+Check whether a separately authorized actor remains blocked by the broker reservation.
+Retrieve the retained reservation through the private diagnostic channel.
+Release it only after the native release witness succeeds.
+Verify subsequent acquisition and release by the other actor.
+
+This explicit diagnostic release is not a production cleanup receipt.
+The diagnostic uses a retained direct broker channel, without a configured recovery supervisor.
+A diagnostic pass demonstrates the gap. It does not qualify recovery.
+Preserve failures, setup errors, raw native events, source hashes, and binary hashes separately.
+Do not run this diagnostic concurrently with cumulative qualification on the same host.
+
+Next implementation constraints
+
+Bind reservations to an immutable recovery owner before admitting application control.
+Derive that owner from the retained exact launch. Do not accept an actor-selected owner.
+Retain broker communication independently of the crashed world's descriptor.
+Stop that owner's new acquisitions before checking native cleanup.
+Account for acquisition committed by the broker when its reply was lost.
+A list of replies observed by the world is insufficient evidence of all reservations.
+Release only reservations owned by the exact fenced generation.
+Require a checked broker response, or checked cleanup by that broker's registered recovery supervisor.
+Treat missing replies, wrong generations, and uncertain ownership as unresolved.
+Persist the checked dependent receipt before issuer retirement.
+Do not kill independently authorized applications to obtain an empty reservation table.
+
+The additive protobuf interface and its ownership checks require a separate implementation review.
+No existing acceptance assertion or locked contract changes in this baseline.

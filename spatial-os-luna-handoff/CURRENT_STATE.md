@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-09: Combined294 full Debug passes on both hosts
+
+Both hosts passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 acceptance cases.
+No final Debug check failed or skipped. Both runs used the same frozen294 source.
+No compiler overlap was recorded. Assertions, deadlines, and durability settings remain unchanged.
+Read evidence/supervisor-crash-fencing-2026-10-09/serial-debug-results-review-02.json.
+Full runtime ASan, LeakSanitizer, and UBSan qualification now runs on both hosts.
+Production remains broker283 until both runtime profiles and final integration review pass.
+
+The next recovery diagnostic is queued behind each host's successful full qualifier.
+It checks native input release, surviving applications, and retained broker reservations after a world crash.
+It has not run. A direct diagnostic release cannot establish production recovery.
+Read docs/CONTROL_RECOVERY_BASELINE.txt and evidence/control-recovery-2026-10-09/baseline-preparation-review-01.json.
+M02 and Spatial-M1 remain incomplete. Historical failures remain preserved.
+
 ## 2026-10-09: Combined source review and guarded integration prepared
 
 The primary agent reviewed all 37 changed files between production283 and frozen294.
