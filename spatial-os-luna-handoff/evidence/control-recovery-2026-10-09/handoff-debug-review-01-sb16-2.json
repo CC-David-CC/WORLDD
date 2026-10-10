@@ -1,0 +1,10 @@
+{
+  "host": "sb16-2",
+  "reviewer": "primary agent",
+  "profile": "debug",
+  "attachment_hashes_verified": true,
+  "raw_core_counts_verified": true,
+  "summary_sha256": "5766757cb911d01bde44a8297ac62ba0f8cc69f841fdbe228124985de6906be9",
+  "integration_ready": false,
+  "remaining": "runtime sanitizer qualification"
+}
