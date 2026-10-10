@@ -1157,3 +1157,9 @@ Read evidence/m02-gate-2026-10-10/untraced03-preparation.json and untraced03-ove
 Positive execution remains unrun. Reuse any reviewed successful result from the other host.
 Cross-host launch must select each host's reviewed qualification attempt after results exist.
 M02 and Spatial-M1 remain incomplete. Historical failures remain individually unresolved.
+
+2026-10-10: Cross-host version03 preparation
+Explicit per-host qualification selection now preserves failed original evidence.
+Both hosts rejected missing or invalid selections and refused overlap with the live original gates.
+No cross-host runtime scenario executed. All eight remain unrun.
+See spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/crosshost03-preparation.json.
