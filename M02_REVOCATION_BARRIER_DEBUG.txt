@@ -475,3 +475,8 @@ Production recovery still needs supervisor-created ownership, a surviving broker
 Binding01 adds retained-launch owner derivation in an isolated draft. No owner fields come from the caller.
 Six new checks are unrun. Queued drivers wait for owner04 on sb16 (1774639) and sb16-2 (1540587).
 This step does not yet retain the production broker channel or release crashed reservations.
+
+sb16 completed both owner03 profiles: 1472 core checks, 51 harness checks, and 151 P10 cases per profile.
+All three supplementary native-world checks passed in both profiles. Logs and witness files are preserved.
+The two protocol-validation failures reproduced exactly in both profiles. Candidate03 remains ineligible for integration.
+Candidate04 now builds and qualifies on sb16. sb16-2 continues owner03 sanitizers.

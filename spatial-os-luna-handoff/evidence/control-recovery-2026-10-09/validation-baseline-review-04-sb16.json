@@ -1,0 +1,22 @@
+{
+  "reviewer": "primary agent",
+  "host": "sb16",
+  "candidate": 3,
+  "status": "known validation-order defect reproduced",
+  "profiles": {
+    "debug": {
+      "expected_failures": 2,
+      "unexpected_errors": 0,
+      "log_sha256": "d161418c6e0891c081457172cc9bcedda6b69f82720b9edd93209faa49ea2696"
+    },
+    "runtime-sanitize": {
+      "expected_failures": 2,
+      "unexpected_errors": 0,
+      "log_sha256": "4e22e8a2542bb5e6b360e8ab08e07eb3ef6f7513dea163c6ee4e4dbe04efc92f"
+    }
+  },
+  "correction_candidate": 4,
+  "correction_status": "Build and qualification pending",
+  "production_changed": false,
+  "integration_ready": false
+}

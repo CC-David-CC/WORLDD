@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-09: sb16 passes full owner qualification and native-world checks
+
+Candidate03 passed Debug and runtime sanitizers on sb16.
+Each profile passed 1,472 core checks across 100 suites, 51 harness checks, and 151 P10 cases.
+Each profile also passed three native-world checks for revocation, world crash, and explicit channel fencing.
+Native input released, applications survived, and unrelated owner reservations remained independent.
+Read evidence/control-recovery-2026-10-09/full-review-03-sb16.json.
+
+The two validation-order defects reproduced exactly in both profiles.
+Their failure logs remain in evidence/control-recovery-2026-10-09/validation-baseline-04/sb16.
+Candidate04 is now building and qualifying on sb16. sb16-2 still runs candidate03 sanitizers.
+Candidate03 remains ineligible for integration. No production recovery completion is claimed.
+
 ## 2026-10-09: Retained-launch control binding prepared in isolation
 
 The binding01 draft adds control owner derivation to AuthorityLaunch and its private supervisor interface.

@@ -1,0 +1,10 @@
+{
+  "world_exit_confirmed": true,
+  "compositor_exit_confirmed": true,
+  "native_release_confirmed": true,
+  "application_alive": true,
+  "reservation_retained_pending_recovery": true,
+  "production_supervisor_binding": false,
+  "production_recovery_release": false,
+  "limitation": "Fixture provisions the owner; real broker/world/native paths execute all actions."
+}

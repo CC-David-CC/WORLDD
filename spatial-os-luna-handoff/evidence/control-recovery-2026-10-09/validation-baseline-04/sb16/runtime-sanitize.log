@@ -1,0 +1,39 @@
+test_unsupported_version_precedes_native_attribution (__main__.OwnerValidationTests.test_unsupported_version_precedes_native_attribution) ... FAIL
+test_unknown_fields_precede_native_attribution (__main__.OwnerValidationTests.test_unknown_fields_precede_native_attribution) ... FAIL
+
+======================================================================
+FAIL: test_unsupported_version_precedes_native_attribution (__main__.OwnerValidationTests.test_unsupported_version_precedes_native_attribution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_validation_01.py", line 34, in test_unsupported_version_precedes_native_attribution
+    self.check_validation_precedes_attribution(2, b'', core.UNSUPPORTED_VERSION)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_validation_01.py", line 26, in check_validation_precedes_attribution
+    self.assertEqual(reply.error.code, expected,
+AssertionError: 13 != 5 : Expected UNSUPPORTED_VERSION before native attribution: protocol_version: 1
+request_id: 101
+error {
+  code: FORBIDDEN
+  message: "Control owner native server mismatch"
+}
+
+
+======================================================================
+FAIL: test_unknown_fields_precede_native_attribution (__main__.OwnerValidationTests.test_unknown_fields_precede_native_attribution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_validation_01.py", line 37, in test_unknown_fields_precede_native_attribution
+    self.check_validation_precedes_attribution(1, b'\xf8\x07\x01', core.INVALID_ARGUMENT)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_validation_01.py", line 26, in check_validation_precedes_attribution
+    self.assertEqual(reply.error.code, expected,
+AssertionError: 13 != 1 : Expected INVALID_ARGUMENT before native attribution: protocol_version: 1
+request_id: 101
+error {
+  code: FORBIDDEN
+  message: "Control owner native server mismatch"
+}
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 4.424s
+
+FAILED (failures=2)

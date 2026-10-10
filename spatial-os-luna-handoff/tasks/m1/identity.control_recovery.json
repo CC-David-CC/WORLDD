@@ -25,7 +25,7 @@
     "new_checks": 19,
     "production_changed": false,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-review-03.json",
-    "state": "Both hosts passed full Debug qualification. Both runtime sanitizer profiles are active.",
+    "state": "sb16 completed full Debug and sanitizer profiles; sb16-2 sanitizer qualification remains active.",
     "drivers": {
       "sb16": 1679232,
       "sb16-2": 1463045
@@ -35,25 +35,26 @@
       "sb16": "1472 core/100 suites;51 harness;151 P10 passed. Evidence collected.",
       "sb16-2": "1472 core/100 suites; 51 harness; 151 P10 passed. Evidence collected."
     },
-    "runtime": "Both hosts passed sanitizer harness and 19 owner checks. Full sanitizer core and P10 remain pending."
+    "runtime": "sb16: 1472 core/100 suites, 51 harness, 151 P10 passed. sb16-2: full sanitizer run active."
   },
   "preserved_failures": [
     "Both hosts:103 existing checks and51 harness passed;12 new checks errored on a fixture helper collision.",
     "Both hosts:18 new checks and51 harness passed;1 descriptor-count witness errored on protected procfs."
   ],
   "native_integration": {
-    "state": "Queued after candidate03 full qualification; unrun",
+    "state": "sb16: all three native-world checks passed in Debug and runtime sanitizers. sb16-2: queued.",
     "checks_per_profile": 3,
     "drivers": {
       "sb16": 1693702,
       "sb16-2": 1475338
     },
-    "evidence": "evidence/control-recovery-2026-10-09/owner-world-preparation-01.json"
+    "evidence": "evidence/control-recovery-2026-10-09/owner-world-preparation-01.json",
+    "sb16_evidence": "evidence/control-recovery-2026-10-09/owner-world-01/sb16/collected.json"
   },
   "candidate03_integration_ready": false,
   "validation_order_correction": {
     "candidate": 4,
-    "state": "Queued after full candidate03 and native-world checks; runtime reproducer unrun.",
+    "state": "sb16 reproduced both expected baseline failures in both profiles; candidate04 build and qualification follows. sb16-2 remains queued.",
     "total_owner_checks": 21,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-validation-review-04.json",
     "drivers": {

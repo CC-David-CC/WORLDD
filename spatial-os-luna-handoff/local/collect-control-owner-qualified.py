@@ -10,24 +10,27 @@ import tarfile
 import time
 
 parser=argparse.ArgumentParser()
-parser.add_argument('--candidate',choices=('03','04'),required=True)
+parser.add_argument('--candidate',choices=('03','04','binding01'),required=True)
 parser.add_argument('--mode',choices=('debug','final'),required=True)
 args=parser.parse_args()
 r=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff')
 host=socket.gethostname().split('.')[0]
 assert host in ('sb16','sb16-2')
-root=r/'local'/('m02-control-owner-'+args.candidate)
+binding_candidate=args.candidate=='binding01'
+candidate_name='control-binding-01' if binding_candidate else 'control-owner-'+args.candidate
+root=r/'local'/('m02-'+candidate_name)
 out=root/'qualification'
 manifest=json.loads((root/'manifest.json').read_text())
 raw_summary=(out/'summary.json').read_bytes()
 run=json.loads(raw_summary)
 assert run['host']==host and run['source_manifest']==manifest['files']
-assert len(manifest['files'])==297 and len(manifest['locked_files'])==41
+source_count=298 if binding_candidate else 297
+assert len(manifest['files'])==source_count and len(manifest['locked_files'])==41
 assert not run['compiler_overlap']
 assert run['status']=='passed' if args.mode=='final' else run['status'] in ('qualifying','passed')
 profiles=('debug','runtime-sanitize') if args.mode=='final' else ('debug',)
 expected_owners=19 if args.candidate=='03' else 21
-result=dict(host=host,candidate=args.candidate,mode=args.mode,source_files=297,locked_files=41,
+result=dict(host=host,candidate=args.candidate,mode=args.mode,source_files=source_count,locked_files=41,
             source_manifest=manifest['files'],profiles={},collected=time.time(),
             integration_ready=False,production_recovery_qualified=False)
 archive=r/'local'/f'control-owner-qualified-{args.candidate}-{args.mode}-{host}.tar.gz'
@@ -54,7 +57,7 @@ for group in ('files','locked_files'):
 if args.mode=='final':
     launch=json.loads((root/'launch.json').read_text())
     marker=Path('/proc')/str(launch['pid'])/'cmdline'
-    assert not marker.exists() or ('qualify-control-owner-'+args.candidate+'.py').encode() not in marker.read_bytes()
+    assert not marker.exists() or ('qualify-'+candidate_name+'.py').encode() not in marker.read_bytes()
 
 monitor=(out/'compiler-monitor.jsonl').read_text()
 complete_lines=monitor.splitlines() if monitor.endswith('\n') else monitor.splitlines()[:-1]
@@ -66,8 +69,8 @@ for profile in profiles:
     value=run['profiles'][profile]
     build=Path(value['build']);folder=out/profile
     steps={x['name']:x for x in value['results']}
-    required=['harness','owners','core','P10']
-    if args.candidate=='04':required.insert(2,'world')
+    required=['harness','binding' if binding_candidate else 'owners','core','P10']
+    if args.candidate!='03':required.insert(2,'world')
     assert all(name in steps and steps[name]['exit_code']==0 for name in required), (profile,steps)
     assert all(sha((build/name).read_bytes())==digest for name,digest in value['binaries'].items())
     assert samples[0]['time']<=steps['harness']['started']
@@ -79,19 +82,29 @@ for profile in profiles:
     collect(build/'build_id.hpp',profile+'/build_id.hpp')
     attachments[profile+'/sanitizer-config.json']=(json.dumps(dict(profile=profile,cmake_sanitizers=expected,
         ASAN_OPTIONS='detect_leaks=1:abort_on_error=1',UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1',
-        qualifier_sha256=sha((r/'local'/('qualify-control-owner-'+args.candidate+'.py')).read_bytes())),indent=2)+'\n').encode()
-    owners=collect(folder/'owners.log').decode();direct_suite(owners,expected_owners)
+        qualifier_sha256=sha((r/'local'/('qualify-'+candidate_name+'.py')).read_bytes())),indent=2)+'\n').encode()
+    if binding_candidate:
+        focused=collect(folder/'binding.log').decode();clean(focused)
+        assert re.findall(r'^\s*Start\s+\d+:\s+(\S+)',focused,re.M)==['authority-control-binding']
+        assert re.findall(r'^\d+: Ran (\d+) tests? in ',focused,re.M)==['6']
+        assert '100% tests passed, 0 tests failed out of 1' in focused
+    else:
+        owners=collect(folder/'owners.log').decode();direct_suite(owners,expected_owners)
     harness=collect(folder/'harness.log').decode();clean(harness)
     assert 'Ran 51 tests' in harness and harness.rstrip().endswith('OK')
     core=collect(folder/'core.log').decode();clean(core)
     names=re.findall(r'^\s*Start\s+\d+:\s+(\S+)',core,re.M)
     counts=list(map(int,re.findall(r'^\d+: Ran (\d+) tests? in ',core,re.M)))
-    assert len(names)==len(set(names))==len(counts)==99 and sum(counts)==1453
-    assert '100% tests passed, 0 tests failed out of 99' in core
-    assert 'control-owner-channels' not in names
+    core_suites=100 if binding_candidate else 99
+    core_checks=1474 if binding_candidate else 1453
+    excluded='authority-control-binding' if binding_candidate else 'control-owner-channels'
+    assert len(names)==len(set(names))==len(counts)==core_suites and sum(counts)==core_checks
+    assert f'100% tests passed, 0 tests failed out of {core_suites}' in core
+    assert excluded not in names
+    if binding_candidate:assert dict(zip(names,counts))['control-owner-channels']==21
     inventory=subprocess.check_output(['ctest','--test-dir',str(build),'--show-only=json-v1'])
     entries=json.loads(inventory)['tests']
-    assert {entry['name'] for entry in entries}==set(names)|{'control-owner-channels'}
+    assert {entry['name'] for entry in entries}==set(names)|{excluded}
     attachments[profile+'/ctest-inventory.json']=inventory
     # CTest inventory may rewrite LastTest.log. Captured core.log is the execution evidence.
     p10=json.loads(collect(folder/'P10.json'))
@@ -99,7 +112,7 @@ for profile in profiles:
     assert all(case['status']=='passed' for case in p10['tests'])
     clean(collect(folder/'P10.log').decode())
     native_checks=0
-    if args.candidate=='04':
+    if args.candidate!='03':
         direct_suite(collect(folder/'world.log').decode(),3)
         native_checks=3
         witnesses=list((folder/'witness').glob('*.json'));assert len(witnesses)==3
@@ -110,11 +123,26 @@ for profile in profiles:
     for name in ('configure.log','build.log'):
         if (folder/name).exists():collect(folder/name)
     for path in (folder/'native').rglob('*.log'):collect(path)
-    result['profiles'][profile]=dict(core_checks=1453+expected_owners,core_suites=100,
+    result['profiles'][profile]=dict(core_checks=core_checks+(6 if binding_candidate else expected_owners),core_suites=core_suites+1,
         owner_checks=expected_owners,native_world_checks=native_checks,harness_checks=51,P10_cases=151,
         failed=0,skipped=0,commands=value['results'],binaries=value['binaries'],core_parts=dict(zip(names,counts)))
+    if binding_candidate:result['profiles'][profile]['binding_checks']=6
 
-if args.candidate=='04':
+if binding_candidate:
+    expected_failures={
+        'test_prepared_owner_matches_activation_and_exact_issuer_fence',
+        'test_reopened_authorized_record_cannot_reconstruct_control_owner',
+        'test_failed_authorization_commit_cannot_expose_owner',
+        'test_query_rejects_nested_unknown_owner_selector_without_mutation',
+        'test_production_supervisor_returns_exact_owned_binding_without_stopping_child'}
+    for profile in ('debug','runtime-sanitize'):
+        baseline=run['baseline'][profile]
+        assert baseline['missing_binding_reproduced'] and baseline['results'][0]['exit_code']==1
+        log=collect(out/('baseline-'+profile)/'binding.log').decode()
+        assert 'Ran 6 tests' in log and 'FAILED (failures=5)' in log and 'ERROR:' not in log
+        assert set(re.findall(r'^FAIL: (test_\w+)',log,re.M))==expected_failures
+        assert 'Missing owned control binding:' in log and 'Missing production control binding:' in log
+elif args.candidate=='04':
     for profile in ('debug','runtime-sanitize'):
         baseline=run['baseline'][profile]
         assert baseline['defect_reproduced'] and baseline['results'][0]['exit_code']==1
