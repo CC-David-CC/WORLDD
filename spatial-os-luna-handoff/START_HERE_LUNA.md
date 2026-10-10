@@ -20,7 +20,8 @@ python3 tools/gate.py --through P01 --case test_yaw_turns_forward_to_left \
   --sut '["/absolute/path/to/build/spatial-test-host"]'
 ```
 
-Read the assertion, implement the production function, then run all of P00–P01 without `--case`:
+Read the assertion and implement the production function.
+Run affected checks during development. Run the cumulative suite at the phase gate:
 
 ```sh
 python3 tools/gate.py --through P01 \
@@ -48,7 +49,9 @@ Use an ordinary JSON file at `local/driver-state.json`:
 }
 ```
 
-On resume, verify the recorded commit and rerun the last gate. A checkpoint is a navigational aid, not proof.
+On resume, verify current source, saved evidence, and live jobs.
+Select the next affected check. Do not restart the full gate solely because work resumed.
+A checkpoint is a navigational aid, not proof. The root AGENTS.md defines the current test schedule.
 
 ## Code layout to start with
 

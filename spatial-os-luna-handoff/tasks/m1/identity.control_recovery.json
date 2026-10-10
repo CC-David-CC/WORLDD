@@ -3,7 +3,8 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "qualify_reply_and_handoff_then_complete_session_control_recovery",
+  "current_step": "connect_secure_handle_transfer_and_session_control_recovery_with_focused_checks",
+  "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
   "invariant": "Release only a fenced generation's owned control reservations after verified native cancellation, while preserving independently authorized applications.",
   "baseline": "Both hosts reproduced native release with a surviving application and an unreleased broker reservation. One corrected Debug diagnostic passed per host.",
@@ -162,7 +163,9 @@
     "candidate": "handle01",
     "source_files": 311,
     "new_checks": 5,
-    "state": "Frozen candidate queued behind administrative transport on both hosts; checks unrun",
+    "state": "sb16 original Debug run failed five cleanup assertions that counted kernel cgroup files. The separate corrected helper passed all five scenarios in Debug and runtime sanitizers against unchanged binaries. sb16-2 original candidate remains queued. Full qualification after correction remains pending.",
+    "focused_correction_evidence": "evidence/control-recovery-2026-10-09/handle-focused-02/sb16/review.json",
+    "preserved_failure_evidence": "evidence/control-recovery-2026-10-09/handle-failure-01/sb16/review.json",
     "drivers": {
       "sb16": 2180756,
       "sb16-2": 1880094

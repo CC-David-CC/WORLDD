@@ -18,13 +18,19 @@ Read `START_HERE_LUNA.md`, `docs/CONTRACT.md`, the current task in `tasks/INDEX.
 
 ## Work loop
 
-1. Run harness self-tests. Run the preceding cumulative gate on the current commit.
-2. Select one primitive from the current phase. Record its test IDs and production files.
-3. Run the primitive's tests to observe the failure. Save the command and log.
-4. State the invariant in one sentence. Implement that invariant in production code.
-5. Run the specific tests, then the full cumulative phase gate.
-6. Review the diff. Update `local/driver-state.json` with commit, phase, test evidence and next test.
-7. Commit only a coherent passing increment. Move to the next primitive.
+1. Inspect current source and existing evidence. Verify live jobs before scheduling new work.
+2. Select a coherent increment from the current phase. Record changed files and affected test IDs.
+3. Reproduce the defect or missing behavior. Preserve its command and failure evidence.
+4. State the invariant. Implement it in production code.
+5. Run affected tests and related integration checks. Include focused sanitizers for lifetime and resource changes.
+6. Review the diff. Record passed, failed, and unrun checks in `local/driver-state.json`.
+7. Commit coherent increments that pass their selected checks. Keep the full phase gate pending.
+8. Run complete required qualification on both hosts at the phase gate.
+
+The root AGENTS.md defines the current test schedule.
+Do not rerun the complete cumulative matrix after every primitive.
+Broaden testing when a shared change or failure affects additional components.
+Preserve reviewable commits for reproducible regression diagnosis with git bisect.
 
 A partial phase can remain on a work branch. Do not call it complete. Do not mark an unexecuted or skipped test as passed. Do not turn a failing test into a TODO.
 

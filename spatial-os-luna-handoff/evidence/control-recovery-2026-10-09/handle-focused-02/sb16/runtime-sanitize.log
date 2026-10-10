@@ -1,0 +1,17 @@
+Running as unit: spatial-retained-handle-focused-02-runtime-sanitize.service; invocation ID: 522bf370b627466694781c1fb022622a
+test_exited_child_rejects_handle (__main__.HandleTests.test_exited_child_rejects_handle) ... ok
+test_live_handle_preserves_original_and_observes_exit (__main__.HandleTests.test_live_handle_preserves_original_and_observes_exit) ... ok
+test_prepared_scope_rejects_handle (__main__.HandleTests.test_prepared_scope_rejects_handle) ... ok
+test_stopped_scope_rejects_handle (__main__.HandleTests.test_stopped_scope_rejects_handle) ... ok
+test_surviving_descendant_does_not_replace_direct_child (__main__.HandleTests.test_surviving_descendant_does_not_replace_direct_child) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.159s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 213ms
+CPU time consumed: 169ms
+Memory peak: 1.5M
+Memory swap peak: 0B

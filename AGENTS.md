@@ -320,6 +320,26 @@ Do not restore held input, expired leases, or old session tokens.
 Journal external effects and report uncertainty.
 Do not claim that SQLite makes filesystem, Git, process, and X effects one atomic transaction.
 
+## Development checks and phase gates
+
+Use focused tests during implementation. Run full qualification at the phase gate.
+Select tests from the changed behavior, its callers, and the authority boundaries it affects.
+Record the selected tests and their purpose before running them.
+Add a regression check for each reproduced defect.
+Run related integration scenarios when components connect.
+Run focused sanitizers for process, descriptor, memory, input, and lifetime changes.
+Broaden testing early when shared infrastructure changes or focused failures reveal wider effects.
+Do not repeat the complete cumulative matrix after every small change.
+Keep small, reviewable Git commits so regressions can be isolated.
+Use git bisect only with a reproducible failure and known good and bad commits.
+Preserve failing evidence. Do not treat unrun tests as passed.
+Run the full required Debug, sanitizer, harness, and acceptance suites on both hosts at the phase gate.
+Run required cross-host, native, physical-input, recovery, and performance checks for the milestone.
+Freeze the gate candidate. Reassess affected evidence after any source change.
+Focused checks do not prove phase completion.
+This schedule supersedes older instructions requiring a cumulative gate after every primitive.
+It does not change acceptance contracts or locked tests.
+
 ## Spatial-M1 acceptance
 
 Require real authority, confinement, X isolation, recovery, and checked transport.

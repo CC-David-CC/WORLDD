@@ -1,0 +1,57 @@
+{
+  "host": "sb16",
+  "status": "passed",
+  "started": 1791618118.503395,
+  "selection_reason": "Only the cleanup oracle changed. Exercise all five handle scenarios in both existing build profiles.",
+  "original_failure": "m02-retained-child-handle-01/qualification/debug/handle.log",
+  "source_manifest_sha256": "e8a2d0b19044dcd038b1766d73d2415a51cd83e5713f425cd49648f9b0596084",
+  "original_summary_sha256": "2e1cd933b4171c47a3f0569387a4133a6c1e3066a2e71b2a4561eb56e081a791",
+  "helper_sha256": "15f4179383f19bc609725c2ad6eb499c2e210faa88b41bf45a1506898997d359",
+  "runner_sha256": "5e67835735442c5e84c40d5cf2c6bd16554cc4c0a43a56356787b332cc7d4ad0",
+  "profiles": {
+    "debug": {
+      "command": [
+        "systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-retained-handle-focused-02-debug",
+        "--property=Delegate=yes",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "--setenv=LSAN_OPTIONS=",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_retained_child_handle_02.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build/spatial-retained-child-handle-probe"
+      ],
+      "exit_code": 0,
+      "probe_sha256": "6d7b706d2b3968ff3b447031a0fdb1b03415fde55f477daf6222234d659eab1f",
+      "log_sha256": "06b0cd3957f30c2c5355715e92ee5a11d32b3107683e918826dde87f8aba3af7",
+      "checks": 5
+    },
+    "runtime-sanitize": {
+      "command": [
+        "systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-retained-handle-focused-02-runtime-sanitize",
+        "--property=Delegate=yes",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "--setenv=LSAN_OPTIONS=",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_retained_child_handle_02.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/runtime-sanitize/build/spatial-retained-child-handle-probe"
+      ],
+      "exit_code": 0,
+      "probe_sha256": "00530e0d3743cc34be5a96b28a0b24a5d782d84ff018ea0b27872ed2c1b14603",
+      "log_sha256": "ed72752a76fa725d6182a2c43f52a72d7071491e51ad1e4ab99b0304540abac0",
+      "checks": 5
+    }
+  },
+  "full_qualification": "Unrun after this correction; required at the coherent phase gate.",
+  "ended": 1791618119.0863826
+}

@@ -596,3 +596,10 @@ Failure evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/b
 2026-10-10: sb16 administrative transport full Debug passed: 1509 core/104 suites, 51 harness, 151 P10, three native-world checks; no failures/skips. Archive extracted and attachment hashes/raw counts verified. All 11 focused sanitizer checks also passed. Full sanitizer and second-host qualification remain required. The production coordinator is still unimplemented.
 2026-10-10: Handoff01 integrated and adopted on both hosts at 0ed35eb3e21268fcaed38b190b93619a17260088 after four passing profiles. All 304 hashes match. Clean checkouts; no restart or migration. Active helper bytes checked before fast-forward. sb16 transport final evidence verified; second-host transport and complete M02 recovery remain pending.
 2026-10-10: Retained-handle qualification failed five new cleanup assertions. The test counted 18 kernel cgroup control files as leftover scopes. Preserved the failure log. A separate corrected helper now checks no child directories, no root processes, and populated 0. Corrected checks remain unrun. Neither frozen candidate nor locked tests changed.
+2026-10-10: Corrected retained-handle helper passed all five scenarios in Debug and runtime sanitizers on sb16.
+Both profiles used unchanged frozen source and prebuilt binaries. The focused runs took less than one second each.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/handle-focused-02/sb16.
+Original failures remain preserved. Full qualification after correction and second-host corrected checks remain pending.
+User-directed schedule now uses focused checks per change and full qualification at phase gates.
+Root and subproject instructions record the schedule. Acceptance contracts and locked tests remain unchanged.
+The production coordinator, selective cleanup, durable receipt, and issuer retirement remain incomplete.

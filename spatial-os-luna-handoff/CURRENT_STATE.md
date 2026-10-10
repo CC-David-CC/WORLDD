@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: Focused development checks and retained-handle correction
+
+Use affected tests during implementation and complete qualification at phase gates.
+The root AGENTS.md records this user-directed schedule.
+Existing qualification runs continue. Do not queue a full matrix for each small increment.
+
+All five retained-handle scenarios passed on sb16 in Debug and runtime sanitizers.
+The original test incorrectly counted normal cgroup control files as leftover scopes.
+The corrected helper checks child directories, root processes, and the populated state.
+Both profiles used unchanged handle01 source and prebuilt binaries.
+Read evidence/control-recovery-2026-10-09/handle-focused-02/sb16/review.json and its raw logs.
+The five original failures remain preserved. No locked acceptance file changed.
+This focused result does not qualify the full candidate or its second-host behavior.
+
+The existing sb16-2 administrative transport run remains active.
+Its original retained-handle candidate remains queued with immutable test inputs.
+Secure transfer, production coordination, selective cleanup, durable receipt, and issuer retirement remain incomplete.
+Build these as one connected recovery candidate, with focused checks as components change.
+Run complete qualification on both hosts at the M02 phase gate.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Qualified supervisor handoff fix integrated and adopted
 
 Both hosts passed complete Debug and runtime sanitizer qualification for handoff01.
