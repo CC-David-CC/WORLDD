@@ -1,0 +1,66 @@
+{
+  "reviewer": "primary agent",
+  "status": "live configuration observed",
+  "production_changed": false,
+  "full_qualification": "still running",
+  "records": [
+    {
+      "host": "sb16",
+      "observed": 1791592678.3084497,
+      "samples": [
+        {
+          "pid": 1616562,
+          "process_start_ticks": 26156140,
+          "binary": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/runtime-sanitize/build/identityd",
+          "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "LSAN_OPTIONS": "",
+          "asan_loaded": true,
+          "ubsan_loaded": true,
+          "tracer_pid": 0
+        },
+        {
+          "pid": 1616632,
+          "process_start_ticks": 26156259,
+          "binary": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/runtime-sanitize/build/workspaced",
+          "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "LSAN_OPTIONS": "",
+          "asan_loaded": true,
+          "ubsan_loaded": true,
+          "tracer_pid": 0
+        }
+      ],
+      "scope": "One live process sample; not a replacement for the full qualifier logs."
+    },
+    {
+      "host": "sb16-2",
+      "observed": 1791592678.3199887,
+      "samples": [
+        {
+          "pid": 1397552,
+          "process_start_ticks": 25387215,
+          "binary": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/runtime-sanitize/build/identityd",
+          "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "LSAN_OPTIONS": "",
+          "asan_loaded": true,
+          "ubsan_loaded": true,
+          "tracer_pid": 0
+        },
+        {
+          "pid": 1397573,
+          "process_start_ticks": 25387365,
+          "binary": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/runtime-sanitize/build/worldd",
+          "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+          "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+          "LSAN_OPTIONS": "",
+          "asan_loaded": true,
+          "ubsan_loaded": true,
+          "tracer_pid": 0
+        }
+      ],
+      "scope": "One live process sample; not a replacement for the full qualifier logs."
+    }
+  ]
+}
