@@ -1,0 +1,28 @@
+{
+  "reviewer": "primary agent",
+  "state": "Isolated prerequisite draft; uncompiled and untested",
+  "reviewed_files": [
+    "src/supervisor/process_scope.cpp",
+    "src/supervisor/process_scope.hpp"
+  ],
+  "source_hashes": {
+    "src/supervisor/process_scope.cpp": {
+      "base": "90d644201ad851df51e168d3c4160622f2db76f0ad890b120231b24932ce8700",
+      "draft": "23cbd1d9847e9ad7b44beedb720ecd9b29cbb5c255aacb3c493cf9efe8fe0358"
+    },
+    "src/supervisor/process_scope.hpp": {
+      "base": "e5b20511a789aad8652637e7ab84152510e822122d41d266c69f96a37fdb87f3",
+      "draft": "00c44b91ee8ba5fc844811c49487996f65dbf3a6733f1f9686fe83c6dd089792"
+    }
+  },
+  "production_changed": false,
+  "authorization_transfer_implemented": false,
+  "required_tests": [
+    "Reject prepared and stopped scopes",
+    "Reject exited child even when descendant keeps cgroup populated",
+    "Returned descriptor is CLOEXEC and pins exact original child",
+    "Closing returned copy does not change original ownership",
+    "Concurrent exit closes rejected duplicate without leaks"
+  ],
+  "remaining": "Production supervisor authorization, descriptor-capable private transfer, and coordinator integration"
+}
