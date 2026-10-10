@@ -1,0 +1,10 @@
+{
+  "helper": "local/adopt-supervisor-handoff-01.py",
+  "reviewer": "primary agent",
+  "syntax_checked": true,
+  "source_hashes_required": 304,
+  "complete_profiles_required_on_both_hosts": true,
+  "active_helpers_preserved": true,
+  "execution": "unrun; second-host full qualification and integration remain pending",
+  "helper_sha256": "24b611f02a726ae252b12aa0a0d7d78646381b2785c5d50fdace21653d88bb54"
+}
