@@ -21,8 +21,10 @@ void validate_control_reply(const workspace::v1::ControlSupervisorRequest& reque
     if (request.has_register_()) expected = &request.register_();
     else if (request.has_inspect()) expected = &request.inspect();
     else if (request.has_fence()) expected = &request.fence();
+    else if (request.has_recover()) expected = &request.recover().owner();
     require(expected != nullptr, "Missing control request operation");
     validate_control_owner(*expected);
+    if (request.has_recover()) validate_control_recovery(request.recover());
     if (reply.has_error()) {
         require(reply.error().code() != wire::ERROR_CODE_UNSPECIFIED, "Missing control error code");
         return;
@@ -32,12 +34,23 @@ void validate_control_reply(const workspace::v1::ControlSupervisorRequest& reque
     require(state.owner().SerializeAsString() == expected->SerializeAsString(), "Control reply owner mismatch");
     require(!request.has_fence() || state.channel_fenced(), "Control fence was not confirmed");
     // Registration replies are generated before any request can run on that channel.
-    require(!request.has_register_() || (!state.channel_fenced() && state.reservations().empty()),
+    require(!request.has_register_() || (!state.channel_fenced() && state.reservations().empty() && !state.has_recovery()),
         "Invalid initial control owner state");
-    require(state.reservations_size() <= 256, "Control reservation count exceeds limit");
+    if (request.has_recover()) {
+        require(state.has_recovery() && state.recovery().cleanup().SerializeAsString() == request.recover().SerializeAsString(),
+            "Control recovery reply does not match requested cleanup");
+    }
+    if (state.has_recovery()) {
+        validate_control_recovery(state.recovery().cleanup());
+        require(state.channel_fenced() && state.reservations().empty() &&
+            state.recovery().cleanup().owner().SerializeAsString() == expected->SerializeAsString(),
+            "Invalid recovered control owner state");
+    }
+    const auto& reservations = state.has_recovery() ? state.recovery().released() : state.reservations();
+    require(reservations.size() <= 256, "Control reservation count exceeds limit");
     std::set<std::string> identifiers, applications;
     std::size_t snapshot_bytes = 0;
-    for (const auto& reservation : state.reservations()) {
+    for (const auto& reservation : reservations) {
         const auto& principal = reservation.principal();
         const auto& application = reservation.application();
         require(reservation.id().size() == 32 && principal.issuer_id().size() == 32 &&

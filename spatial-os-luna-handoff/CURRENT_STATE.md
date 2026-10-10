@@ -1,5 +1,39 @@
 # Implementation status
 
+## 2026-10-10: Selective reservation recovery through retained world ownership
+
+SessionCoordinator now releases a stopped world's reservations after checked process and native cleanup.
+The broker requires the exact fenced owner. It preserves unrelated owners and independently authorized applications.
+Exact retries and inspection return the original cleanup receipt. Changed or incomplete receipts are rejected.
+World and actor channels cannot invoke this private recovery operation.
+The receipt remains in broker memory. Durable dependent evidence and issuer retirement remain unimplemented.
+
+All 154 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+Fifteen new cases cover broker recovery, reply validation, and an actual coordinator-managed world crash.
+The native application remains responsive after its failed world's reservation is released.
+Read evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json.
+All 41 locked files remain unchanged. One explanatory comment changed after testing; executable statements did not.
+No normal host session adopted this branch. Complete qualification remains pending on both hosts.
+
+Next: persist the checked dependent receipt, bound to the exact retained broker and world launches.
+Then implement authenticated issuer retirement and resolve the earlier participant-approval startup failure.
+Shared compositor lifetime across world transitions remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Selective recovery candidate passes focused Debug checks
+
+The uncommitted selective-recovery candidate releases only a checked, fenced world's control reservations.
+It preserves unrelated owners and application execution. Exact retries return the cached original receipt.
+The coordinator derives both cleanup receipts from its retained supervisor. Actors cannot invoke private recovery.
+All 154 selected Debug cases passed on sb16, including 15 new cases and three native session scenarios.
+The runtime sanitizer build is running. Its selected checks remain unrun until that build succeeds.
+The source is frozen at local/m02-selective-recovery-01 on sb16.
+Read its checks/review.json and checks/debug logs for commands, hashes, and results.
+No normal host session adopted this candidate. Full two-host qualification remains pending.
+The broker receipt is still in memory. Durable dependent receipt and issuer retirement remain unimplemented.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Local actors and confined application crash recovery
 
 SessionCoordinator now creates local actor channels and transfers each endpoint once to an exact retained world owner.

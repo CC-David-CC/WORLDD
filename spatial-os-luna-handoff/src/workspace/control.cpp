@@ -3,6 +3,7 @@
 #include "world/store.hpp"
 #include <cerrno>
 #include <sys/random.h>
+#include <vector>
 
 namespace spatial {
 namespace {
@@ -86,6 +87,24 @@ bool ControlLeases::cancellation_settled() const {
         if (reservation.revoked || fenced_.contains(reservation.owner)) return false;
     }
     return true;
+}
+void ControlLeases::recover(const std::string& owner, pb::ControlRecoveryReceipt& receipt) {
+    if (owner.empty() || !fenced_.contains(owner))
+        throw WorldError(wire::FORBIDDEN, "Control recovery requires a fenced managed owner");
+    if (!receipt.released().empty()) throw std::invalid_argument("Recovery receipt must start empty");
+    std::vector<std::pair<decltype(leases_)::iterator, decltype(groups_)::iterator>> pending;
+    pending.reserve(leases_.size());
+    for (auto lease = leases_.begin(); lease != leases_.end(); ++lease) {
+        if (lease->second.owner != owner) continue;
+        const auto group = groups_.find(lease->second.lease.application().SerializeAsString());
+        if (group == groups_.end() || group->second != lease->first)
+            throw std::runtime_error("Control recovery reservation index mismatch");
+        *receipt.add_released() = lease->second.lease;
+        pending.emplace_back(lease, group);
+    }
+    // Complete every allocation and invariant check before the first erase.
+    // No authority refresh, callback, or reentrant request can interleave this commit.
+    for (const auto& [lease, group] : pending) { groups_.erase(group); leases_.erase(lease); }
 }
 void ControlLeases::tick() {
     for (auto& [id, reservation] : leases_) {

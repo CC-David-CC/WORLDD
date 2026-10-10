@@ -29,6 +29,7 @@ struct ControlChannels::Impl {
         std::shared_ptr<Stream> channel;
         dev_t device;
         ino_t inode;
+        std::unique_ptr<pb::ControlRecoveryReceipt> recovery;
     };
     int fd = -1, peer = 0, pidfd = -1;
     ControlLeases& controls;
@@ -73,6 +74,7 @@ struct ControlChannels::Impl {
         pb::ControlOwnerState result;
         *result.mutable_owner() = owner.binding;
         controls.inspect(key, result);
+        if (owner.recovery) *result.mutable_recovery() = *owner.recovery;
         return result;
     }
     pb::ControlOwnerState dispatch(const pb::ControlSupervisorRequest& request, Received& received) {
@@ -82,6 +84,7 @@ struct ControlChannels::Impl {
         if (request.has_register_()) binding = &request.register_();
         else if (request.has_inspect()) binding = &request.inspect();
         else if (request.has_fence()) binding = &request.fence();
+        else if (request.has_recover()) binding = &request.recover().owner();
         else throw WorldError(wire::UNKNOWN_METHOD, "No control supervisor operation");
         validate_control_owner(*binding);
         const auto key = binding->SerializeAsString();
@@ -102,7 +105,7 @@ struct ControlChannels::Impl {
             // The new-expression allocates before take(). Stream owns the fd if construction starts.
             // shared_ptr deletes the constructed stream if its control-block allocation fails.
             auto channel = std::shared_ptr<Stream>(new Stream(received.take(), peer));
-            auto [position, inserted] = owners.emplace(key, Owner{*binding, std::move(channel), info.st_dev, info.st_ino});
+            auto [position, inserted] = owners.emplace(key, Owner{*binding, std::move(channel), info.st_dev, info.st_ino, {}});
             require(inserted, "Control owner already registered");
             return state(key, position->second);
         }
@@ -110,6 +113,20 @@ struct ControlChannels::Impl {
         const auto found = owners.find(key);
         if (found == owners.end()) throw WorldError(wire::NOT_FOUND, "Exact control owner does not exist");
         if (request.has_fence()) fence(key, found->second);
+        if (request.has_recover()) {
+            validate_control_recovery(request.recover());
+            auto& owner = found->second;
+            require(!owner.channel, "Control recovery requires a fenced channel");
+            if (owner.recovery) {
+                require(owner.recovery->cleanup().SerializeAsString() == request.recover().SerializeAsString(),
+                    "Control recovery retry changed its cleanup receipt");
+            } else {
+                auto receipt = std::make_unique<pb::ControlRecoveryReceipt>();
+                *receipt->mutable_cleanup() = request.recover();
+                controls.recover(key, *receipt);
+                owner.recovery = std::move(receipt); // Cannot allocate after reservation erasure.
+            }
+        }
         return state(key, found->second);
     }
     void administrative() {

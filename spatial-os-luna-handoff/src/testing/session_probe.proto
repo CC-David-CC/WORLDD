@@ -14,6 +14,7 @@ message SessionProbeRequest {
     spatial.workspace.v1.ControlOwner inspect = 12;
     spatial.workspace.v1.ControlOwner stop_world = 13;
     spatial.supervisor.v1.AuthorityLaunchQuery stop_session = 14;
+    spatial.workspace.v1.ControlOwner recover_world = 15;
   }
 }
 message SessionProbeReply {

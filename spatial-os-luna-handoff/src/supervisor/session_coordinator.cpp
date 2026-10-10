@@ -67,11 +67,17 @@ struct SessionCoordinator::Impl {
             found->second->owner.SerializeAsString() == owner.SerializeAsString(), "Control owner is not a retained session world");
         return *found->second;
     }
-    workspace::v1::ControlOwnerState administrative(const workspace::v1::ControlOwner& owner, int endpoint = -1, bool fence = false) {
+    workspace::v1::ControlOwnerState administrative(const workspace::v1::ControlOwner& owner, int endpoint = -1,
+        bool fence = false, const v1::AuthorityLaunchRecord* cleanup = nullptr) {
         live(); require(sequence != UINT64_MAX, "Session administrative request sequence exhausted");
         workspace::v1::ControlSupervisorRequest request;
         request.set_protocol_version(1); request.set_request_id(++sequence);
-        if (endpoint >= 3) *request.mutable_register_() = owner;
+        if (cleanup) {
+            *request.mutable_recover()->mutable_owner() = owner;
+            *request.mutable_recover()->mutable_process_stopped() = cleanup->process_stopped();
+            *request.mutable_recover()->mutable_native_stopped() = cleanup->native_stopped();
+        }
+        else if (endpoint >= 3) *request.mutable_register_() = owner;
         else if (fence) *request.mutable_fence() = owner;
         else *request.mutable_inspect() = owner;
         const auto reply = broker.administrative().exchange(request, endpoint);
@@ -219,6 +225,13 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::Co
     return world.record;
 }
 BrokerClient& SessionCoordinator::root() { impl_->live(); return impl_->broker.root(); }
+workspace::v1::ControlOwnerState SessionCoordinator::recover_world(const workspace::v1::ControlOwner& owner) {
+    auto& state = *impl_; const auto& world = state.find(owner);
+    // Stopped state requires SessionLaunch to validate both owned cleanup receipts.
+    require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED,
+        "Control recovery requires checked world cleanup");
+    return state.administrative(owner, -1, false, &world.record);
+}
 const v1::AuthorityLaunchRecord& SessionCoordinator::broker_launch() const { impl_->live(); return impl_->broker.launch(); }
 v1::AuthorityLaunchRecord SessionCoordinator::stop() {
     auto& state = *impl_; state.live();

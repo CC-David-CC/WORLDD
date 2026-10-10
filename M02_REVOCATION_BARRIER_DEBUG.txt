@@ -681,3 +681,24 @@ Candidate02 was packaged but never executed. Candidate03 uses protobuf for the a
 Candidate01's remote-input rejection and evidence-directory error remain preserved.
 The first failed application's raw log remains unavailable. Its failure and the second application log are retained.
 One stale test-driver comment was corrected after testing. Runtime behavior and locked files remain unchanged.
+
+2026-10-10: Selective reservation recovery candidate01
+The production coordinator now derives recovery requests from checked process and native cleanup receipts.
+The private broker operation releases only that fenced owner's reservations and retains its original receipt.
+All 154 focused Debug cases passed on sb16, including 15 new recovery cases.
+The same frozen candidate is building with runtime sanitizers. Those test results remain pending.
+Remote evidence: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-selective-recovery-01/checks.
+The collector must wait for terminal success. No commit or normal-session adoption occurred yet.
+One explanatory coordinator comment was corrected after freezing the candidate. Executable statements remain unchanged.
+Durable dependent cleanup receipts, authenticated issuer retirement, and complete two-host M02 qualification remain pending.
+The prior participant-approval startup failure still lacks diagnostic detail. Generic exception handling hid its underlying cause.
+Do not classify later passing runs as proof that the startup defect is fixed.
+
+2026-10-10: Selective recovery focused qualification complete
+All 154 selected cases passed in each of Debug and runtime sanitizers on sb16. No failures or skips occurred.
+Fifteen new cases cover broker recovery, strict reply validation, and a real coordinator-managed world crash.
+The actual application remains responsive after its failed world's reservation is released.
+The broker retains the original release receipt in memory. Durable storage and issuer retirement remain unfinished.
+Read spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json.
+The reviewed source matches the frozen candidate except one explanatory comment. All 41 locked files are unchanged.
+Full qualification on both hosts, physical input, model tasks, performance, and complete M1 acceptance remain pending.

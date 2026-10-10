@@ -92,7 +92,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py"
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/broker.proto
-    DEPENDS proto/spatial/supervisor/v1/native_scope.proto proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
+    DEPENDS proto/spatial/supervisor/v1/process_scope.proto proto/spatial/supervisor/v1/native_scope.proto proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
         proto/spatial/identity/v1/issuer.proto proto/spatial/identity/v1/key.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(broker-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/key_pb2.py"
@@ -157,6 +157,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPA
 
 add_library(spatial-protobuf STATIC ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
+target_sources(spatial-protobuf PRIVATE ${scope_proto_sources} ${scope_proto_headers})
 target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
 target_include_directories(spatial-scene PUBLIC src)
@@ -169,7 +170,7 @@ add_dependencies(spatial-control-reply-probe broker-python-protobuf scope-python
 add_library(spatial-compositor-config STATIC src/platform/compositor_config.cpp)
 target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
 add_library(spatial-identity STATIC src/identity/keys.cpp)
-add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp ${scope_proto_sources} ${scope_proto_headers})
+add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp)
 target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
 add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/supervisor/child_handle.cpp src/supervisor/child_handle_client.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
 target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope SQLite::SQLite3)

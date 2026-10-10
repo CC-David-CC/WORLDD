@@ -4,6 +4,7 @@ import "core.proto";
 import "grants.proto";
 import "issuer.proto";
 import "native_scope.proto";
+import "process_scope.proto";
 
 // Sealed, inherited supervisor input. Never store cookies in workspace state.
 message NativeLaunchConfig {
@@ -68,10 +69,22 @@ message ControlOwner {
   spatial.identity.v1.AuthorityFenceBegin launch = 2;
   spatial.supervisor.v1.NativeScopeIdentity native = 3;
 }
+// The retained coordinator supplies checked cleanup. Actors cannot supply this message.
+message ControlOwnerRecovery {
+  ControlOwner owner = 1;
+  spatial.supervisor.v1.ProcessScopeStopped process_stopped = 2;
+  spatial.supervisor.v1.NativeScopeStopped native_stopped = 3;
+}
+// Retained for the broker lifetime. This is not a durable issuer retirement receipt.
+message ControlRecoveryReceipt {
+  ControlOwnerRecovery cleanup = 1;
+  repeated ApplicationControlLease released = 2;
+}
 message ControlOwnerState {
   ControlOwner owner = 1;
   bool channel_fenced = 2;
   repeated ApplicationControlLease reservations = 3;
+  ControlRecoveryReceipt recovery = 4;
 }
 // One protobuf per private SOCK_SEQPACKET packet. Register carries one SCM_RIGHTS fd.
 // This envelope is never accepted on world or actor channels.
@@ -82,6 +95,7 @@ message ControlSupervisorRequest {
     ControlOwner register = 10;
     ControlOwner inspect = 11;
     ControlOwner fence = 12;
+    ControlOwnerRecovery recover = 13;
   }
 }
 message ControlSupervisorReply {

@@ -15,6 +15,8 @@ public:
     workspace::v1::ApplicationControlReleased release(const workspace::v1::ApplicationControlRelease&, const std::string& owner = {});
     void fence(const std::string& owner);
     void inspect(const std::string& owner, workspace::v1::ControlOwnerState&) const;
+    // Private coordinator recovery only. Does not refresh authority or stop applications.
+    void recover(const std::string& owner, workspace::v1::ControlRecoveryReceipt&);
     // Uses already prepared issuer state. Performs no issuer exchange or process reaping.
     void tick();
     bool cancellation_settled() const;

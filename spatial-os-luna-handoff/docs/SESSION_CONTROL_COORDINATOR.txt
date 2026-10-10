@@ -105,7 +105,7 @@ Exercise coordinator loss and preserve unresolved recovery obligations.
 Run focused checks during implementation.
 Run full Debug and runtime sanitizer profiles on both hosts at the phase gate.
 Keep locked acceptance files unchanged.
-This contract does not claim M02 completion or implement selective release.
+This contract does not claim M02 completion or issuer retirement.
 
 Administrative client implementation requirements
 
@@ -125,7 +125,7 @@ Use a bounded deadline for both sending and receiving.
 Check broker process liveness while waiting.
 Send one SCM_RIGHTS descriptor only for registration.
 Registration uses the coordinator's exact endpoint-to-retained-launch mapping.
-Inspect and fence send no descriptors.
+Inspect, fence, and recover send no descriptors.
 Call validate_control_reply before interpreting any response.
 A validated remote error remains an error.
 A transport failure after sending leaves the operation uncertain.
@@ -151,7 +151,7 @@ Neither EOF nor shutdown acknowledges issuer retirement.
 The library is production code. The probe only drives it with real supervisor and broker processes.
 The broker increment tests cover authenticated broker ownership and rejection paths.
 Later increments below cover world registration and application survival after world failure.
-Selective recovery remains unimplemented.
+The selective recovery increment below adds checked reservation release.
 
 Focused checks passed 65 cases in each of Debug and runtime sanitizers on sb16.
 This includes 15 receiver cases, four session-broker cases, and 46 related cases.
@@ -215,7 +215,7 @@ Read evidence/control-recovery-2026-10-09/connected-applications-03/sb16/primary
 Actor cancellation releases native input and the actor's reservation.
 A world crash releases native input while the confined application and broker remain responsive.
 Checked process and native cleanup match the saved world journal.
-The failed owner's reservation remains fenced and pending. Selective release remains unimplemented.
+That application increment leaves the failed owner's reservation fenced and pending before explicit selective recovery.
 The earlier TLS actor increment passed all 117 selected cases per profile on sb16.
 Read evidence/control-recovery-2026-10-09/connected-actors-01/sb16/primary-review.json.
 Full M02 qualification remains pending on both hosts.
@@ -224,3 +224,20 @@ They do not prove selective reservation release or simultaneous independent worl
 The current world process starts its own compositor.
 Shared compositor lifetime across world transitions remains required before M1 acceptance.
 Do not start a second exclusive renderer on an operator display.
+
+Selective recovery implementation, 2026-10-10
+
+SessionCoordinator.recover_world accepts only an exact retained owner after checked stop_world cleanup.
+It derives both receipts from its retained launch record. Callers cannot supply replacement cleanup data.
+The authenticated broker recovery operation requires the exact fenced channel and both matching receipts.
+It releases that owner's reservations while preserving unrelated owners and application execution.
+The broker retains the original receipt for exact retry, inspection, and lost-reply reconciliation.
+Read docs/CONTROL_OWNER_CHANNELS.txt for the additive protobuf fields and complete validation contract.
+
+All 154 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These include one new native scenario, nine new broker cases, and five new reply-validator cases.
+The native scenario uses actual process and native cleanup. Component fixtures supply private coordinator receipt data.
+Read evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json.
+All 41 locked files remain unchanged. No normal host session adopted this branch.
+Durable dependent receipt storage and issuer retirement remain unimplemented.
+Complete M02 qualification remains pending on both hosts.

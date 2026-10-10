@@ -173,6 +173,51 @@ class ReplyTests(unittest.TestCase):
         self.reply.error.message = 'x'*65536
         self.check(False)
 
+    def recovery(self):
+        cleanup = pb.ControlOwnerRecovery(owner=self.owner)
+        cleanup.native_stopped.identity.CopyFrom(self.owner.native)
+        value = cleanup.process_stopped.identity
+        value.launch_id = self.owner.launch.launch_id
+        value.scope_name = 'authority-' + value.launch_id.hex()
+        value.boot_id = '12345678-1234-1234-1234-123456789abc'; value.device = 23; value.inode = 42
+        self.request.recover.CopyFrom(cleanup)
+        self.reply.state.channel_fenced = True
+        self.reply.state.recovery.cleanup.CopyFrom(cleanup)
+        self.reservation()
+        self.reply.state.recovery.released.extend(self.reply.state.reservations)
+        self.reply.state.ClearField('reservations')
+
+    def test_recovery_and_later_inspection_preserve_exact_receipt(self):
+        self.recovery(); self.check(True)
+        self.request.inspect.CopyFrom(self.owner); self.check(True)
+        self.request.fence.CopyFrom(self.owner); self.check(True)
+
+    def test_recovery_requires_matching_complete_receipt(self):
+        self.recovery(); original = copy.deepcopy(self.reply)
+        for field in ('recovery', 'channel_fenced'):
+            self.reply.CopyFrom(original); self.reply.state.ClearField(field); self.check(False)
+        self.reply.CopyFrom(original); self.reply.state.recovery.cleanup.process_stopped.identity.inode += 1
+        self.check(False)
+        self.reply.CopyFrom(original); self.request.recover.ClearField('native_stopped'); self.check(False)
+
+    def test_recovered_owner_cannot_have_active_reservations(self):
+        self.recovery(); self.reservation(); self.check(False)
+
+    def test_recovered_reservations_receive_same_identity_and_size_validation(self):
+        self.recovery(); original = copy.deepcopy(self.reply)
+        self.reply.state.recovery.released[0].application.server_id = b'x'*32; self.check(False)
+        self.reply.CopyFrom(original)
+        self.reply.state.recovery.released.add().CopyFrom(self.reply.state.recovery.released[0]); self.check(False)
+        self.reply.CopyFrom(original)
+        self.reply.state.recovery.released[0].application.application = b'x'*60000; self.check(False)
+
+    def test_recovery_inspection_rejects_changed_owner_or_cleanup(self):
+        self.recovery(); self.request.inspect.CopyFrom(self.owner)
+        original = copy.deepcopy(self.reply)
+        self.reply.state.recovery.cleanup.owner.launch.generation += 1; self.check(False)
+        self.reply.CopyFrom(original)
+        self.reply.state.recovery.cleanup.native_stopped.identity.credential_id = b'x'*32; self.check(False)
+
 
 if __name__ == '__main__':
     unittest.main()

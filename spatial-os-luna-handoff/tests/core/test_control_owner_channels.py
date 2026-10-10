@@ -1,5 +1,6 @@
 """Independent requests to real owner-bound brokers and confined native applications."""
 import array
+import copy
 import os
 import select
 import socket
@@ -50,7 +51,7 @@ class OwnedBroker(leases.LeaseBroker):
         self.admin.close()
         self.log.close()
         text = self.path.read_text()
-        # These tests deliberately retain fenced reservations. No recovery release exists yet.
+        # Some tests deliberately retain fenced reservations without requesting checked recovery.
         if self.proc.returncode == 2:
             self.fixture.assertTrue(text.rstrip().endswith('Workspace control release remains unresolved'), text)
         else:
@@ -137,6 +138,126 @@ class ControlOwnerTests(WorldIdentityFixture):
 
     def release(self, world, lease):
         return self.request(world, control_release=pb.ApplicationControlRelease(id=lease.id, principal=lease.principal))
+
+    def cleanup_receipt(self, owner):
+        # This component fixture is the configured private coordinator, not a cleanup witness.
+        # The native session tests prove actual process and native cleanup before admission here.
+        recovery = pb.ControlOwnerRecovery(owner=owner)
+        recovery.native_stopped.identity.CopyFrom(owner.native)
+        process = recovery.process_stopped.identity
+        process.launch_id = owner.launch.launch_id
+        process.scope_name = 'authority-' + process.launch_id.hex()
+        process.boot_id = '12345678-1234-1234-1234-123456789abc'
+        process.device = 23; process.inode = 42
+        return recovery
+
+    def test_recovery_releases_only_fenced_owner_and_preserves_applications(self):
+        owner, world = self.register(); other, second = self.register()
+        first = self.lease(world); other_app = self.launch_application(); other_lease = self.lease(second, other_app)
+        self.admin('fence', owner)
+        recovered = self.admin('recover', self.cleanup_receipt(owner)).state
+        self.assertTrue(recovered.channel_fenced); self.assertFalse(recovered.reservations)
+        self.assertEqual(list(recovered.recovery.released), [first])
+        self.assertFalse(self.inspect(other).channel_fenced)
+        self.assertEqual(self.lease(second, other_app), other_lease)
+        replacement = self.lease(second)
+        self.assertNotEqual(replacement.id, first.id)
+        self.assertTrue(self.release(second, replacement).HasField('control_released'))
+        self.assertTrue(self.release(second, other_lease).HasField('control_released'))
+        self.finish_application(self.app); self.finish_application(other_app)
+
+    def test_recovery_is_idempotent_and_changed_receipt_is_rejected(self):
+        owner, world = self.register(); lease = self.lease(world); self.admin('fence', owner)
+        cleanup = self.cleanup_receipt(owner)
+        first = self.admin('recover', cleanup)
+        self.assertTrue(first.HasField('state'), first)
+        self.assertEqual(self.admin('recover', cleanup).state, first.state)
+        self.assertEqual(self.inspect(owner), first.state)
+        self.assertEqual(list(first.state.recovery.released), [lease])
+        changed = copy.deepcopy(cleanup); changed.process_stopped.identity.inode += 1
+        self.denied(self.admin('recover', changed), core.INVALID_ARGUMENT)
+        self.assertEqual(self.inspect(owner), first.state)
+
+    def test_recovery_rejects_unfenced_owner_without_effect(self):
+        owner, world = self.register(); lease = self.lease(world)
+        self.denied(self.admin('recover', self.cleanup_receipt(owner)), core.INVALID_ARGUMENT)
+        state = self.inspect(owner)
+        self.assertFalse(state.channel_fenced); self.assertFalse(state.HasField('recovery'))
+        self.assertEqual(self.lease(world), lease)
+        self.release(world, lease)
+
+    def test_recovery_rejects_missing_or_mismatched_cleanup_without_releasing(self):
+        owner, world = self.register(); lease = self.lease(world); self.admin('fence', owner)
+        cleanup = self.cleanup_receipt(owner)
+        changes = [lambda x: x.ClearField('process_stopped'), lambda x: x.ClearField('native_stopped'),
+            lambda x: setattr(x.native_stopped.identity, 'credential_id', os.urandom(32)),
+            lambda x: setattr(x.native_stopped.identity, 'server_id', os.urandom(32)),
+            lambda x: setattr(x.process_stopped.identity, 'launch_id', os.urandom(32)),
+            lambda x: setattr(x.process_stopped.identity, 'scope_name', 'unrelated'),
+            lambda x: setattr(x.process_stopped.identity, 'inode', 0),
+            lambda x: x.native_stopped.MergeFromString(b'\xf8\x07\x01')]
+        for change in changes:
+            invalid = copy.deepcopy(cleanup); change(invalid)
+            self.denied(self.admin('recover', invalid), core.INVALID_ARGUMENT)
+            self.assertEqual(list(self.inspect(owner).reservations), [lease])
+        self.assertTrue(self.admin('recover', cleanup).HasField('state'))
+
+    def test_recovery_rejects_unknown_owner_and_transferred_descriptors(self):
+        owner, world = self.register(); lease = self.lease(world); self.admin('fence', owner)
+        self.denied(self.admin('recover', self.cleanup_receipt(self.owner_binding())), core.NOT_FOUND)
+        a, b = socket.socketpair()
+        try:
+            self.denied(self.admin('recover', self.cleanup_receipt(owner), [b.fileno()]), core.INVALID_ARGUMENT)
+        finally:
+            a.close(); b.close()
+        self.assertEqual(list(self.inspect(owner).reservations), [lease])
+        self.assertTrue(self.admin('recover', self.cleanup_receipt(owner)).HasField('state'))
+
+    def test_recovery_covers_acquisition_whose_reply_was_lost(self):
+        owner, world = self.register()
+        world.sendall(frame(pb.Request(protocol_version=1, request_id=1,
+            control_acquire=pb.ApplicationControlRequest(principal=self.principal(), application=self.app))))
+        self.assertTrue(select.select([world], [], [], 5)[0])
+        world.close()
+        state = self.until(lambda: self.inspect(owner), lambda value: value.channel_fenced)
+        self.assertEqual(len(state.reservations), 1)
+        recovered = self.admin('recover', self.cleanup_receipt(owner)).state
+        self.assertEqual(list(recovered.recovery.released), list(state.reservations))
+        self.assertFalse(recovered.reservations)
+
+    def test_recovery_reply_loss_is_reconciled_by_inspection(self):
+        owner, world = self.register(); lease = self.lease(world); self.admin('fence', owner)
+        cleanup = self.cleanup_receipt(owner)
+        request = pb.ControlSupervisorRequest(protocol_version=1, request_id=999, recover=cleanup)
+        self.broker.admin.send(request.SerializeToString())
+        self.broker.admin.recv(65536)  # Deliberately discard the committed reply.
+        state = self.inspect(owner)
+        self.assertEqual(state.recovery.cleanup, cleanup)
+        self.assertEqual(list(state.recovery.released), [lease])
+        self.assertFalse(state.reservations)
+        self.assertEqual(self.admin('recover', cleanup).state, state)
+
+    def test_empty_recovery_retains_fence_and_does_not_enable_rebinding(self):
+        owner, world = self.register(); self.admin('fence', owner)
+        state = self.admin('recover', self.cleanup_receipt(owner)).state
+        self.assertTrue(state.channel_fenced); self.assertTrue(state.HasField('recovery'))
+        self.assertFalse(state.reservations); self.assertFalse(state.recovery.released)
+        a, b = socket.socketpair()
+        try:
+            self.denied(self.admin('register', owner, [b.fileno()]), core.ALREADY_EXISTS)
+        finally:
+            a.close(); b.close()
+
+    def test_world_channel_cannot_invoke_private_recovery(self):
+        owner, world = self.register(); lease = self.lease(world)
+        world.sendall(frame(pb.ControlSupervisorRequest(protocol_version=1, request_id=999,
+            recover=self.cleanup_receipt(owner))))
+        reply = receive(world.recv, world, pb.Reply)
+        self.assertTrue(reply.HasField('error'), reply)
+        state = self.inspect(owner)
+        self.assertFalse(state.channel_fenced); self.assertFalse(state.HasField('recovery'))
+        self.assertEqual(list(state.reservations), [lease])
+        self.assertTrue(self.release(world, lease).HasField('control_released'))
 
     def test_two_owner_channels_have_distinct_reservations(self):
         owner, world = self.register()

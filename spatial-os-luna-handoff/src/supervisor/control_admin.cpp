@@ -77,10 +77,12 @@ workspace::v1::ControlSupervisorReply ControlAdmin::exchange(
     require(request.protocol_version() == 1 && request.ByteSizeLong() <= 65536,
         "Invalid administrative request version or size");
     const workspace::v1::ControlOwner* owner = request.has_register_() ? &request.register_() :
-        request.has_inspect() ? &request.inspect() : request.has_fence() ? &request.fence() : nullptr;
+        request.has_inspect() ? &request.inspect() : request.has_fence() ? &request.fence() :
+        request.has_recover() ? &request.recover().owner() : nullptr;
     require(owner != nullptr && (request.has_register_() ? endpoint >= 3 : endpoint == -1),
         "Administrative operation has incorrect descriptor count");
     validate_control_owner(*owner);
+    if (request.has_recover()) validate_control_recovery(request.recover());
     const auto bytes = request.SerializeAsString();
     const auto deadline = Clock::now() + std::chrono::seconds(5);
     try {

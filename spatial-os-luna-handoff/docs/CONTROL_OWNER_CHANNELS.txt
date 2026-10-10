@@ -83,10 +83,67 @@ Verify channel EOF and explicit fencing preserve applications and unrelated rese
 Verify revocation delivery and unchanged actor authority enforcement.
 Reject malformed packets, invalid descriptors, wrong peers, duplicate registration, and owner-table overflow.
 Verify rejection does not leak descriptors or grant owner-administration authority to world channels.
-Run existing lease tests and full Debug and runtime sanitizer profiles on both hosts before integration.
+Run affected lease and recovery checks during implementation.
+Run full Debug and runtime sanitizer profiles on both hosts at the phase gate.
 
 Reference
 
 Linux unix(7): https://man7.org/linux/man-pages/man7/unix.7.html
 Linux recvmsg(2): https://man7.org/linux/man-pages/man2/recvmsg.2.html
 No locked acceptance assertion changes in this contract.
+
+Selective recovery contract, 2026-10-10
+
+Add ControlOwnerRecovery with owner field 1, process_stopped field 2, and native_stopped field 3.
+Add ControlRecoveryReceipt with cleanup field 1 and released reservations field 2.
+Add ControlOwnerState.recovery at field 4 and ControlSupervisorRequest.recover at field 13.
+Retain existing field numbers and protocol version 1.
+Use the existing typed ProcessScopeStopped and NativeScopeStopped messages.
+The process-scope generated bindings now reside in the shared protobuf library.
+
+Only the authenticated private coordinator channel can request recovery. Transfer no descriptors.
+The coordinator accepts an exact retained owner. It accepts no caller-supplied cleanup record.
+Require successful stop_world with both checked process and native cleanup receipts before recovery.
+The broker checks the exact registered owner, both receipt bindings, and the closed, fenced owner channel.
+Process and native launch identities must match the registered launch.
+The native receipt must match the complete registered native identity.
+The broker trusts its authenticated coordinator to verify external effects from retained supervisor ownership.
+Message shape or an actor assertion cannot prove those effects.
+
+Release every reservation owned by that channel, including acquisitions whose replies were lost.
+Preserve other owners, their reservations, and independently authorized applications.
+Prepare the complete result and all index lookups before erasing any reservation.
+Do not refresh authority, call external code, or pump another request during that mutation.
+Keep the original channel fenced and retain its registration tombstone.
+Recovery does not authorize replacement execution or actor access.
+
+Cache the exact cleanup and released reservations for the broker's lifetime.
+An exact retry returns the same receipt. A changed cleanup receipt is rejected.
+Inspection and repeated fencing include the retained receipt and zero current reservations.
+Validate receipt identities, uniqueness, bounds, and exact request matching in the coordinator client.
+Keep the existing 60000-byte reservation snapshot and 65536-byte administrative packet limits.
+Bound cleanup messages to 4096 bytes. Validate all nested protobuf fields.
+
+This receipt is not durable and does not retire the issuer generation.
+Broker loss or administrative transport failure can leave recovery unresolved.
+Do not reconstruct live ownership from this cached receipt or a reopened journal.
+Persist a separate checked dependent receipt before implementing issuer retirement.
+
+Focused evidence plan
+
+Use the existing connected-application crash evidence as the missing-recovery baseline.
+Run control reply, owner-channel, administrative transport, and normal application lease checks.
+Run actual coordinator application crash recovery, world lifecycle, and broker lifecycle checks.
+Run process-scope and supervisor checks because their generated bindings move to the shared protobuf library.
+Use Debug and runtime sanitizers on sb16 for this increment.
+Test exact retries, discarded replies, missing receipts, substituted identities, and unrelated owner preservation.
+The component fixture supplies private coordinator receipts. It does not claim to witness native cleanup.
+The native session scenario supplies real checked process and native receipts through production SessionCoordinator.
+Full M02 qualification remains pending on both hosts.
+
+Focused result, 2026-10-10
+
+The selective-recovery candidate passed 154 cases per profile in Debug and runtime sanitizers on sb16.
+There were no failed or skipped cases. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json.
+Durable dependent receipts and issuer retirement remain unimplemented.

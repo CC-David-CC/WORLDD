@@ -58,6 +58,7 @@ int main(int argc, char** argv) {
                 else if (request.has_broker()) *reply.mutable_result() = coordinator.root().call(request.broker());
                 else if (request.has_inspect()) *reply.mutable_owner() = coordinator.inspect_world(request.inspect());
                 else if (request.has_stop_world()) *reply.mutable_cleanup() = coordinator.stop_world(request.stop_world());
+                else if (request.has_recover_world()) *reply.mutable_owner() = coordinator.recover_world(request.recover_world());
                 else if (request.has_stop_session()) { *reply.mutable_cleanup() = coordinator.stop(); stopped = true; }
                 else throw std::runtime_error("Missing coordinator test operation");
             } catch (const std::exception& error) {

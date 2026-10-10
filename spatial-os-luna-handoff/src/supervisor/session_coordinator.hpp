@@ -22,6 +22,7 @@ public:
     workspace::v1::ControlOwnerState inspect_world(const workspace::v1::ControlOwner&);
     core::v1::Reply world_call(const workspace::v1::ControlOwner&, const core::v1::Request&);
     v1::AuthorityLaunchRecord stop_world(const workspace::v1::ControlOwner&);
+    workspace::v1::ControlOwnerState recover_world(const workspace::v1::ControlOwner&);
     BrokerClient& root();
     const v1::AuthorityLaunchRecord& broker_launch() const;
     v1::AuthorityLaunchRecord stop();

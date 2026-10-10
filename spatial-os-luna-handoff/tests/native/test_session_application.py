@@ -128,13 +128,13 @@ class SessionApplicationTests(existing.SessionActorTests):
         config.launch.arguments.extend(['--config', str(self.config_file('actor-runtime', runtime))])
         return config
 
-    def request(self, **operation):
+    def request(self, expect_error=False, **operation):
         self.coordinator_sequence += 1
         request = probe.SessionProbeRequest(protocol_version=1, request_id=self.coordinator_sequence, **operation)
         self.coordinator.stdin.write(frame(request)); self.coordinator.stdin.flush()
         reply = self.message(self.coordinator.stdout, probe.SessionProbeReply)
         self.assertEqual(reply.request_id, request.request_id); self.assertEqual(reply.protocol_version, 1)
-        self.assertFalse(reply.HasField('error'), reply)
+        self.assertEqual(reply.HasField('error'), expect_error, reply)
         return reply
 
     def management(self, method, **arguments):
@@ -249,6 +249,10 @@ class SessionApplicationTests(existing.SessionActorTests):
 
     def test_world_crash_preserves_application_and_pending_owned_reservation(self):
         self.held_application()
+        self.crash_world()
+        self.finish_session()
+
+    def crash_world(self):
         supervisor = int(next(row.split()[1] for row in Path('/proc/' + str(self.world_ids.worldd_pid) + '/status').read_text().splitlines() if row.startswith('PPid:')))
         pins = [os.pidfd_open(pid) for pid in (self.world_ids.worldd_pid, self.world_ids.spatialwm_pid, supervisor)]
         try:
@@ -266,9 +270,28 @@ class SessionApplicationTests(existing.SessionActorTests):
             self.assertEqual(cleanup, saved)
             self.released()
             self.assertEqual(list(self.request(inspect=self.owner).owner.reservations), [self.lease])
-            self.finish_session()
+            return cleanup
         finally:
             for pin in pins: os.close(pin)
+
+    def test_recovery_requires_checked_cleanup_and_preserves_live_application(self):
+        self.held_application()
+        rejected = self.request(expect_error=True, recover_world=self.owner)
+        self.assertIn('requires checked world cleanup', rejected.error.message)
+        self.assertEqual(list(self.request(inspect=self.owner).owner.reservations), [self.lease])
+        cleanup = self.crash_world()
+        changed = broker.ControlOwner(); changed.CopyFrom(self.owner); changed.launch.generation += 1
+        self.request(expect_error=True, recover_world=changed)
+        recovered = self.request(recover_world=self.owner).owner
+        self.assertTrue(recovered.channel_fenced); self.assertEqual(list(recovered.reservations), [])
+        self.assertEqual(recovered.recovery.cleanup.owner, self.owner)
+        self.assertEqual(recovered.recovery.cleanup.process_stopped, cleanup.process_stopped)
+        self.assertEqual(recovered.recovery.cleanup.native_stopped, cleanup.native_stopped)
+        self.assertEqual(list(recovered.recovery.released), [self.lease])
+        self.assertEqual(self.request(recover_world=self.owner).owner, recovered)
+        self.assertEqual(self.request(inspect=self.owner).owner, recovered)
+        self.released()
+        self.finish_session()
 
 
 if __name__ == '__main__':

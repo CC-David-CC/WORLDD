@@ -20,4 +20,20 @@ inline void validate_control_owner(const workspace::v1::ControlOwner& owner) {
         native.role() == security::v1::COMPOSITOR))
         throw std::invalid_argument("Invalid control owner binding");
 }
+inline void validate_control_recovery(const workspace::v1::ControlOwnerRecovery& recovery) {
+    validate_message(recovery);
+    validate_control_owner(recovery.owner());
+    const auto& process = recovery.process_stopped().identity();
+    std::string scope = "authority-";
+    constexpr char hex[] = "0123456789abcdef";
+    for (unsigned char byte : recovery.owner().launch().launch_id()) {
+        scope += hex[byte >> 4]; scope += hex[byte & 15];
+    }
+    if (!(recovery.ByteSizeLong() <= 4096 && recovery.has_process_stopped() && recovery.has_native_stopped() &&
+        process.launch_id() == recovery.owner().launch().launch_id() && process.scope_name() == scope &&
+        process.boot_id().size() == 36 && process.boot_id().find('\0') == std::string::npos &&
+        process.device() > 0 && process.inode() > 0 &&
+        recovery.native_stopped().identity().SerializeAsString() == recovery.owner().native().SerializeAsString()))
+        throw std::invalid_argument("Invalid control recovery cleanup binding");
+}
 }

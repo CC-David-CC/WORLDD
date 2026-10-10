@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "implement_selective_owned_reservation_recovery",
+  "current_step": "persist_checked_dependent_cleanup_receipt",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,9 +12,8 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Release only a fenced owner's reservations after checked process and native cleanup.",
-    "Verify unrelated owner reservations and application execution remain usable.",
-    "Persist a checked dependent receipt before issuer retirement.",
+    "Persist checked world cleanup and broker recovery receipts before reporting issuer retirement.",
+    "Implement authenticated issuer retirement of the exact fenced generation.",
     "Resolve the preserved participant-approval startup failure before the full phase gate.",
     "Qualify the complete M02 path and cumulative profiles on both hosts."
   ],
@@ -249,6 +248,20 @@
       "Debug",
       "runtime ASan/UBSan"
     ],
+    "full_phase_gate": "pending on both hosts"
+  },
+  "selective_recovery": {
+    "state": "Focused production recovery passed. Durable receipt and issuer retirement remain incomplete.",
+    "evidence": "evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json",
+    "cases_per_profile": 154,
+    "new_cases": 15,
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
     "full_phase_gate": "pending on both hosts"
   }
 }
