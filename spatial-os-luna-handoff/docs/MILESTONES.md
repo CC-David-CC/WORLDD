@@ -12,22 +12,24 @@ Keep native hardware, authority, confinement, shared worlds, cabinets, and provi
 
 ## Current qualification
 
-All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qualification items.
-Existing components provide partial implementation where CURRENT_STATE.md records their evidence.
-The mandatory profile is tasks/spatial-m1.json.
-See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
-See docs/M03_QUALIFICATION_AUDIT.txt for existing confinement checks and the remaining aggregate resource boundary.
+M02 is qualified and adopted on both hosts at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
+Read evidence/m02-gate-2026-10-10/adoption-final-01/primary-review.json for exact scope and pins.
+Both hosts passed complete Debug and runtime-sanitize gates. All eight cross-host scenarios passed.
+Five mutations were detected. The additive timeout-policy increment passed 132 focused checks.
+The runtime matrix uses frozen source 1f5088e026573d86be8388cf1f41dfce20189db9.
+The adopted source changes only CMake test registration and adds one test file relative to that runtime candidate.
+Current-source binaries were not rebuilt after that test-only addition.
 
-Current development focuses on the final M02 requirement audit and historical timeout disposition.
-Both hosts passed reviewed Debug and sanitizer local gates. All eight cross-host scenarios also passed review.
-Bounded disk interference now reproduces participant deadlines. Two-second clients also failed under that interference.
-The existing five-second client default passed one pressure trial. Retain it while investigating contention and transport blocking.
-Read evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json for the nine selected diagnostic results.
-The explicit timeout-policy increment passed 132 focused checks across both hosts and profiles.
-The coverage reassessment matched 285 M02 case definitions to 1140 passing executions in the existing full gate.
-Read evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json. Final disposition and host adoption remain pending.
-Read the newest CURRENT_STATE.md section and tasks/m1/identity.control_recovery.json for current results.
-Full M02 sign-off remains pending.
+M01 needs final reassessment of its identity evidence against the completed M02 cancellation dependency.
+M03-M16 and H01-H08 remain incomplete. Existing components have the evidence recorded in CURRENT_STATE.md.
+The mandatory profile remains tasks/spatial-m1.json.
+
+Current development moves to M03 aggregate execution budgets, bounded storage, and competing I/O containment.
+The existing five-second client default remains. Bounded disk pressure defeated 700 ms and two-second clients.
+One successful five-second pressure trial does not establish a worst-case latency bound.
+Storage-pressure availability remains mandatory M03 and M1 performance work.
+Read docs/M02_FAILURE_DISPOSITION.txt for preserved failures and unknown historical causes.
+Read docs/M03_QUALIFICATION_AUDIT.txt and tasks/m1/workspace.resources.json for the next implementation boundary.
 
 The following paragraphs record historical checkpoints. Their remaining-work statements describe those checkpoints.
 The retained-launch control-owner binding checkpoint added exact recovery ownership.

@@ -1,0 +1,1 @@
+Collection completed for both hosts. The final local console summary raised TypeError because host appeared twice in dict construction. All files and fresh-verification receipts were written before that summary error. No adoption or remote command was repeated.

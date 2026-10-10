@@ -2,8 +2,8 @@
   "id": "identity.control_recovery",
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
-  "status": "in_progress",
-  "current_step": "m02_timeout_policy_verified_final_disposition_and_adoption",
+  "status": "passed",
+  "current_step": "m02_qualified_and_source_adopted",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -11,11 +11,7 @@
   "baseline": "Both hosts reproduced native release with a surviving application and an unreleased broker reservation. One corrected Debug diagnostic passed per host.",
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
-  "remaining": [
-    "Finish M02 historical-failure disposition and reviewed normal-host source adoption. Keep unrecorded historical causes explicitly unknown.",
-    "Retain the completed local and cross-host matrix and the focused timeout-policy results at their exact source and binary pins.",
-    "Address storage-contention availability through the workspace resource boundary without weakening durable authority ordering."
-  ],
+  "remaining": [],
   "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
   "candidate": {
     "version": 3,
@@ -520,5 +516,9 @@
     "matched_existing_passes": 1140,
     "new_execution": false,
     "phase_complete": false
-  }
+  },
+  "integrated_branch": "main",
+  "integrated_commit": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "completion_evidence": "evidence/m02-gate-2026-10-10/adoption-final-01/primary-review.json",
+  "mandatory_followup": "tasks/m1/workspace.resources.json"
 }

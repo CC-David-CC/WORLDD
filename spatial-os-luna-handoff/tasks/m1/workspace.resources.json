@@ -1,7 +1,7 @@
 {
   "id": "workspace.resources",
   "phase": "M03",
-  "status": "pending",
+  "status": "in_progress",
   "contract": "docs/M03_QUALIFICATION_AUDIT.txt",
   "invariant": "Every workspace process and descendant remains inside its effective aggregate resource budget. Exhaustion cannot widen authority or produce a false durable acknowledgement.",
   "required": [
@@ -18,7 +18,7 @@
   "known_limitations": [
     "Existing setrlimit controls are per process and do not establish aggregate workspace or application budgets.",
     "The root ext4 filesystem does not currently advertise project quotas. Do not claim storage quotas exist.",
-    "Only cpu, memory, and pids delegation has been verified. Check I/O controller support before selecting enforcement.",
+    "The kernel advertises io on both hosts, but the delegated user service receives only cpu, memory, and pids. Project-scoped I/O delegation requires implementation and qualification.",
     "A five-second client passed one bounded write-pressure trial. This does not establish worst-case latency.",
     "Moving database work to a worker does not make durable commits complete faster or authorize stale authority decisions."
   ],
@@ -28,8 +28,8 @@
     "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json"
   ],
   "remaining": [
-    "Finish reviewed M02 source adoption.",
     "Select the aggregate resource and bounded storage design from verified host capabilities.",
     "Implement one coherent enforcement boundary and its independent regression witnesses."
-  ]
+  ],
+  "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json"
 }

@@ -1,0 +1,10 @@
+
+--- spatial-os-luna-handoff/local/check-stopped-broker-dependency-baseline-01.py (prior host copy)
++++ spatial-os-luna-handoff/local/check-stopped-broker-dependency-baseline-01.py (reviewed Git copy)
+@@ -1,3 +1,3 @@
+-"""Run the actual-cleanup baseline only after issuer candidate qualification ends."""
++"""Run the missing dependency baseline against qualified broker retirement code."""
+ import hashlib
+ import json
+
+

@@ -1,0 +1,12 @@
+{
+  "host": "sb16-2",
+  "checked_at": 1791674981.0839,
+  "head": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "branch": "main",
+  "origin": "dflanag3@box-git:/srv/data/git/spacial_desktop.git",
+  "git_status": "",
+  "source_files_verified": 352,
+  "locked_files_verified": 41,
+  "backup_members_verified": [],
+  "ssh_route_live": true
+}

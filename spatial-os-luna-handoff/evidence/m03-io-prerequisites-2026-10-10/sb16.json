@@ -1,0 +1,155 @@
+{
+  "host": "sb16",
+  "checked_at": 1791675134.3909576,
+  "cgroup": [
+    {
+      "path": "/sys/fs/cgroup",
+      "exists": true,
+      "cgroup.controllers": {
+        "value": "cpuset cpu io memory hugetlb pids rdma misc dmem\n",
+        "writable": false
+      },
+      "cgroup.subtree_control": {
+        "value": "cpu memory pids\n",
+        "writable": false
+      },
+      "io.stat": {
+        "value": "7:11 rbytes=382976 wbytes=0 rios=62 wios=0 dbytes=0 dios=0\n7:10 rbytes=266986496 wbytes=0 rios=6330 wios=0 dbytes=0 dios=0\n7:9 rbytes=1740800 wbytes=0 rios=92 wios=0 dbytes=0 dios=0\n7:8 rbytes=47575040 wbytes=0 rios=1077 wios=0 dbytes=0 dios=0\n259:0 rbytes=36714059776 wbytes=663859516416 rios=1206560 wios=23696607 dbytes=0 dios=0\n7:7 rbytes=427008 wbytes=0 rios=55 wios=0 dbytes=0 dios=0\n7:6 rbytes=105068544 wbytes=0 rios=1993 wios=0 dbytes=0 dios=0\n7:5 rbytes=724992 wbytes=0 rios=55 wios=0 dbytes=0 dios=0\n7:4 rbytes=12538880 wbytes=0 rios=4265 wios=0 dbytes=0 dios=0\n7:3 rbytes=48366592 wbytes=0 rios=2249 wios=0 dbytes=0 dios=0\n7:2 rbytes=102179840 wbytes=0 rios=3814 wios=0 dbytes=0 dios=0\n7:1 rbytes=138885120 wbytes=0 rios=3117 wios=0 dbytes=0 dios=0\n7:0 rbytes=17408 wbytes=0 rios=14 wios=0 dbytes=0 dios=0\n",
+        "writable": false
+      }
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice",
+      "exists": true,
+      "cgroup.controllers": {
+        "value": "cpu memory pids\n",
+        "writable": false
+      },
+      "cgroup.subtree_control": {
+        "value": "cpu memory pids\n",
+        "writable": false
+      },
+      "cgroup.type": {
+        "value": "domain\n",
+        "writable": false
+      },
+      "cpu.max": {
+        "value": "max 100000\n",
+        "writable": false
+      },
+      "memory.max": {
+        "value": "max\n",
+        "writable": false
+      },
+      "pids.max": {
+        "value": "max\n",
+        "writable": false
+      }
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice",
+      "exists": true,
+      "cgroup.controllers": {
+        "value": "cpu memory pids\n",
+        "writable": false
+      },
+      "cgroup.subtree_control": {
+        "value": "cpu memory pids\n",
+        "writable": false
+      },
+      "cgroup.type": {
+        "value": "domain\n",
+        "writable": false
+      },
+      "cpu.max": {
+        "value": "max 100000\n",
+        "writable": false
+      },
+      "memory.max": {
+        "value": "max\n",
+        "writable": false
+      },
+      "pids.max": {
+        "value": "37116\n",
+        "writable": false
+      }
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service",
+      "exists": true,
+      "cgroup.controllers": {
+        "value": "cpu memory pids\n",
+        "writable": false
+      },
+      "cgroup.subtree_control": {
+        "value": "cpu memory pids\n",
+        "writable": true
+      },
+      "cgroup.type": {
+        "value": "domain\n",
+        "writable": false
+      },
+      "cpu.max": {
+        "value": "max 100000\n",
+        "writable": false
+      },
+      "memory.max": {
+        "value": "max\n",
+        "writable": false
+      },
+      "pids.max": {
+        "value": "max\n",
+        "writable": false
+      }
+    }
+  ],
+  "systemd": {
+    "command": [
+      "systemctl",
+      "show",
+      "user@1000.service",
+      "-p",
+      "Delegate",
+      "-p",
+      "DelegateControllers"
+    ],
+    "returncode": 0,
+    "stdout": "Delegate=yes\nDelegateControllers=cpu memory pids\n",
+    "stderr": ""
+  },
+  "filesystem": {
+    "command": [
+      "findmnt",
+      "-J",
+      "-T",
+      "/home/dflanag3/src/spacial_desktop",
+      "-o",
+      "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+    ],
+    "returncode": 0,
+    "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/nvme0n1p2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime\",\n         \"maj:min\": \"259:2\"\n      }\n   ]\n}\n",
+    "stderr": ""
+  },
+  "block_devices": {
+    "command": [
+      "lsblk",
+      "-J",
+      "-o",
+      "NAME,TYPE,MAJ:MIN,SIZE,FSTYPE,MOUNTPOINTS"
+    ],
+    "returncode": 0,
+    "stdout": "{\n   \"blockdevices\": [\n      {\n         \"name\": \"loop0\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:0\",\n         \"size\": \"4K\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/bare/5\"\n         ]\n      },{\n         \"name\": \"loop1\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:1\",\n         \"size\": \"16.5M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/firmware-updater/226\"\n         ]\n      },{\n         \"name\": \"loop2\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:2\",\n         \"size\": \"614.5M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/gnome-46-2404/164\"\n         ]\n      },{\n         \"name\": \"loop3\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:3\",\n         \"size\": \"66.8M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/core24/2124\"\n         ]\n      },{\n         \"name\": \"loop4\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:4\",\n         \"size\": \"91.7M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/gtk-common-themes/1535\"\n         ]\n      },{\n         \"name\": \"loop5\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:5\",\n         \"size\": \"828K\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/snapd-desktop-integration/391\"\n         ]\n      },{\n         \"name\": \"loop6\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:6\",\n         \"size\": \"260.8M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/firefox/8863\"\n         ]\n      },{\n         \"name\": \"loop7\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:7\",\n         \"size\": \"11.8M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/snap-store/1390\"\n         ]\n      },{\n         \"name\": \"loop8\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:8\",\n         \"size\": \"402M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/mesa-2404/1839\"\n         ]\n      },{\n         \"name\": \"loop9\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:9\",\n         \"size\": \"50.3M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/snapd/27738\"\n         ]\n      },{\n         \"name\": \"loop10\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:10\",\n         \"size\": \"44.7M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/snapd/28254\"\n         ]\n      },{\n         \"name\": \"loop11\",\n         \"type\": \"loop\",\n         \"maj:min\": \"7:11\",\n         \"size\": \"12M\",\n         \"fstype\": \"squashfs\",\n         \"mountpoints\": [\n             \"/snap/snap-store/1447\"\n         ]\n      },{\n         \"name\": \"nvme0n1\",\n         \"type\": \"disk\",\n         \"maj:min\": \"259:0\",\n         \"size\": \"238.5G\",\n         \"fstype\": null,\n         \"mountpoints\": [\n             null\n         ],\n         \"children\": [\n            {\n               \"name\": \"nvme0n1p1\",\n               \"type\": \"part\",\n               \"maj:min\": \"259:1\",\n               \"size\": \"1G\",\n               \"fstype\": \"vfat\",\n               \"mountpoints\": [\n                   \"/boot/efi\"\n               ]\n            },{\n               \"name\": \"nvme0n1p2\",\n               \"type\": \"part\",\n               \"maj:min\": \"259:2\",\n               \"size\": \"237.4G\",\n               \"fstype\": \"ext4\",\n               \"mountpoints\": [\n                   \"/\"\n               ]\n            }\n         ]\n      }\n   ]\n}\n",
+    "stderr": ""
+  },
+  "mount_tools": {
+    "command": [
+      "sh",
+      "-c",
+      "command -v mkfs.ext4; command -v losetup; command -v setquota; command -v xfs_quota"
+    ],
+    "returncode": 127,
+    "stdout": "/usr/sbin/mkfs.ext4\n/usr/sbin/losetup\n",
+    "stderr": ""
+  },
+  "host_changed": false
+}

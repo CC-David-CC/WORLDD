@@ -1,0 +1,1 @@
+Read-only M03 design input on sb16 and sb16-2: inspect cgroup controller availability, delegation, and backing filesystem. This is not a resource-enforcement or performance test. Do not modify host settings.

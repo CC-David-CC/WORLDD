@@ -1,3 +1,14 @@
+Read-only I/O delegation inspection, 2026-10-10
+
+M02 source adoption and its scoped qualification are complete. M03 resource implementation is now active.
+Both kernels advertise the io controller at the root cgroup.
+Neither host enables it in the root subtree or delegates it to David's user service.
+The user boundary receives cpu, memory, and pids only. It cannot currently apply io.max.
+Read evidence/m03-io-prerequisites-2026-10-10/primary-review.json for exact commands and output hashes.
+No host configuration, process placement, mount, or filesystem feature changed.
+Next, select project-scoped controller delegation and bounded storage. Preserve normal login and SSH recovery.
+The older observations below remain useful. Their M02-pending statements describe earlier checkpoints.
+
 Read-only host prerequisites, 2026-10-10
 
 Both hosts expose cpu, memory, and pids under David's delegated user service.

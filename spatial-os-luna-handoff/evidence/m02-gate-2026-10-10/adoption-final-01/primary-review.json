@@ -1,0 +1,85 @@
+{
+  "status": "M02_qualified_and_reviewed_source_adopted",
+  "phase": "M02",
+  "phase_complete": true,
+  "Spatial_M1_complete": false,
+  "source_adopted_commit": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "tested_runtime_source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "source_files_verified_per_host": 352,
+  "locked_files_verified_per_host": 41,
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "integration_record_sha256": "011747e71a1438383a5644d18f1e7c4a972b0c552b2c7b4bb574f5c146b2c488",
+  "qualification": {
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ],
+    "per_host_per_profile": {
+      "core_checks": 1668,
+      "core_suites": 124,
+      "harness_checks": 51,
+      "acceptance_cases": 151,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "crosshost_scenarios_passed": 8,
+  "focused_timeout_checks_passed": 132,
+  "mutations_detected": 5,
+  "prior_evidence_at_source_commit": {
+    "evidence/m02-gate-2026-10-10/untraced03-final/sb16-review.json": "632ed220cb4685d8932d5af22614b630ac0783a4dd60194ae00636833f70c677",
+    "evidence/m02-gate-2026-10-10/untraced03-final/sb16-2-review.json": "3bebf8f36f386367347a84ac6159f1bf85a0307c833f0f781bb1cb98d0ef237b",
+    "evidence/m02-gate-2026-10-10/crosshost03-final/primary-review.json": "ffc2c55e406c0913423ef2d0d44b81634ab1a094308a63ada1480cdffc822575",
+    "evidence/m02-gate-2026-10-10/candidate02-mutation-reassessment.json": "bc347b80d84cd7e325e4ecefd6750343050ff95d72afdb3706943c0d1624570a",
+    "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json": "adbaad2d268ac3140f50bd991fc8a1651aec551a1293e5d55dd82298685ab9c6",
+    "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/coverage-reassessment.json": "f86ce6a9cdca40e3edcb838169bbf01b42df5a4ce523aed5e1a6513dd81da4c3",
+    "docs/M02_FAILURE_DISPOSITION.txt": "ff1b6907d31140d81c8f8a2cbaac9a46abdbd83ea782be64bcb675a9de5c44e1",
+    "tasks/m1/workspace.resources.json": "017fd87096e90cef8c9b87bdd4986d5324ed1e78acbaddd8584886db241e7578"
+  },
+  "attachments": {
+    "collection-note.txt": "d12cdff921948508bb2f2f8253365303529e0da7ffb35c9354c15b0b6270354b",
+    "sb16/applied.json": "afe76ab505fbcde208e180e07ed7fed1092415f09c6ee0966ccdc6225b0f8533",
+    "sb16/check.json": "a4d93833b13933c83d53f6e371f32869e2fc2daf67b9c05e1627437612e4207c",
+    "sb16/collision-diffs.txt": "8e9167763f54c4d964bbd3bcc4f2564deb0e528d5cc0fbc4009e3fe709f5e1fc",
+    "sb16/collision-review.json": "55caa51420841b825901a17d6ab1800739ed6a1118666ba30814991129577385",
+    "sb16/fetch.log": "9ed12d7b86aed72c92205cf2bc52ce2fb4166c06dda2c8333de8a12b8108f038",
+    "sb16/fresh-verification.json": "fce0759424063dd022e8da1b89ffd424187fef112c612de572aa990ec96110f3",
+    "sb16/merge.log": "ec5ffc5309d952d734a84a588c5e976f8c66402e1dadbdce5eb9741cdb750d77",
+    "sb16-2/applied.json": "254e524a1dc3f59ab48fd7aa14a47f87cf157789552f0b840911603aae20a07b",
+    "sb16-2/check.json": "3c752e47bf1db3d6c7035b6cd24e064df2803e21cd50c9bc51785c494a4192ec",
+    "sb16-2/fetch.log": "9ed12d7b86aed72c92205cf2bc52ce2fb4166c06dda2c8333de8a12b8108f038",
+    "sb16-2/fresh-verification.json": "26b71d26d7d6a10b8b2962ae05b41e5d4db0ff00c7a97d022ed867034a415acb",
+    "sb16-2/merge.log": "113a0d41e01605253db65533510d124d82c1000d74de5d890e66828b2e7cd480"
+  },
+  "terminal_adoption_sessions": {
+    "sb16": 96768,
+    "sb16-2": 27477
+  },
+  "runtime_restarted": false,
+  "operator_state_migrated": false,
+  "current_source_binaries_rebuilt": false,
+  "test_only_source_delta": [
+    "CMakeLists.txt",
+    "tests/core/test_issuer_client_defaults.py"
+  ],
+  "historical_attempts": "Preserved failures remain failures. Unrecorded historical causes remain unknown. Read docs/M02_FAILURE_DISPOSITION.txt.",
+  "open_mandatory_followup": "M03 aggregate workload and I/O containment; M15 storage-pressure availability and native performance.",
+  "limits": [
+    "Qualification composes the complete frozen-runtime matrix with the separately qualified additive timeout tests.",
+    "No existing source test, production deadline, durability setting, or locked acceptance file changed.",
+    "One successful five-second pressure trial does not establish a worst-case latency bound.",
+    "Software displays do not qualify physical input, GPU performance, or later Spatial-M1 milestones."
+  ],
+  "recovery": "Both SSH routes remain live. Normal login and operator state were unchanged. sb16 prior ignored helper bytes remain in its verified local backup."
+}

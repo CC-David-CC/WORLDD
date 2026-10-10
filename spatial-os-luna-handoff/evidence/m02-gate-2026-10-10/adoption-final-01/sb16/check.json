@@ -1,0 +1,35 @@
+{
+  "host": "sb16",
+  "before": "0ed35eb3e21268fcaed38b190b93619a17260088",
+  "commit": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "checked_at": 1791674617.637279,
+  "integration_record_sha256": "011747e71a1438383a5644d18f1e7c4a972b0c552b2c7b4bb574f5c146b2c488",
+  "source_files_verified": 352,
+  "locked_files_verified": 41,
+  "identical_existing_untracked_files": 156,
+  "different_ignored_collisions": [
+    {
+      "path": "spatial-os-luna-handoff/local/check-broker-replacement-02.py",
+      "old_sha256": "a1ae3979c8d50dc21d8f7d04c9f74b7362666d21f3cc78a3eaa79ae8fc41eb66",
+      "target_sha256": "320e84821632ddd78ce9f11cc198e3894d60b284c76f35ee7018de30822480e9"
+    },
+    {
+      "path": "spatial-os-luna-handoff/local/check-stopped-broker-dependency-baseline-01.py",
+      "old_sha256": "220d84e24bc96c1b3b309a2dddd248027b2c1e7537d844b7594edee99646e137",
+      "target_sha256": "f1e9774834bfd74927fc9ce385b65b12979077ccd0a81a8e40501bb8fdd08137"
+    },
+    {
+      "path": "spatial-os-luna-handoff/local/unpack-broker-replacement-01.py",
+      "old_sha256": "6861aa04b06364d9a4f20a260b09fa14f864110db70b1a93a6968f1fb2cd7add",
+      "target_sha256": "81da0a492155b51ecd48bf7d8e1b3fe6a4f699b4eb806f0af8d90660fde570c9"
+    },
+    {
+      "path": "spatial-os-luna-handoff/local/unpack-broker-replacement-02.py",
+      "old_sha256": "641e47ca7ebd4881ba6f917f0df04ddc6e79b3566d8db8fec879ccee7d22a287",
+      "target_sha256": "916b377225c7d3319a39ca9619fed6582e0c9409ac2898b334eebfe26b2f3bb5"
+    }
+  ],
+  "runtime_restarted": false,
+  "operator_state_migrated": false,
+  "status": "source_verified_ready"
+}

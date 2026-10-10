@@ -1312,3 +1312,15 @@ No runtime restarted, and no world or operator state migrated.
 Historical-failure disposition and reviewed host adoption remain pending.
 No precise original cause can be recovered from diagnostic fields that were not captured.
 M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: M02 adoption completed; M03 follows.
+Both hosts fast-forwarded clean main to b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
+Both verified 352 source and 41 locked files. No runtime restarted or operator state migrated.
+The sb16 backup preserves four prior helper copies and all four original hashes verified.
+Read spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/adoption-final-01/primary-review.json.
+Receipt collection saved both hosts before its console summary raised a duplicate-host TypeError.
+A local read verified all saved receipts. No adoption or remote command repeated after that summary error.
+M02 is qualified at the recorded runtime and source pins. Full Spatial-M1 remains incomplete.
+No new current-HEAD runtime build was run for the additive CMake test registration.
+700 ms and 2000 ms pressure clients failed; the 5000 ms default passed one trial only.
+Storage-contention availability remains mandatory M03/M15 work. Original untraced failure causes remain unknown.

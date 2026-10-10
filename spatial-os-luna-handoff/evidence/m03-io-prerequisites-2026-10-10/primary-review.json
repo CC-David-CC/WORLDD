@@ -1,0 +1,21 @@
+{
+  "status": "read_only_prerequisites_verified",
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "observations": [
+    "The root cgroup advertises io.",
+    "The root subtree and user.slice descendants enable cpu, memory, and pids only.",
+    "The delegated user service cannot apply io.max because io is not available at its boundary.",
+    "This is a configuration prerequisite, not an I/O-enforcement implementation or a measured latency guarantee."
+  ],
+  "host_settings_changed": false,
+  "production_changed": false,
+  "next_step": "Select project-scoped controller delegation and a bounded storage backend. Record setup and recovery before any host changes.",
+  "attachments": {
+    "sb16-2.json": "15de24dc1a99a4b7d7b1dc086f53d36bc877b110f450e97038146b5ae2c44d73",
+    "sb16.json": "b0862af3f47ae8b1ba5c14b02c3bad3a774028b4ca8a0c48f81c4d686a251e70",
+    "selection.txt": "06e0aeb8234d32b42f61a1ec799df5e5e1a5677daa2c4b1800f6a5459859d2c7"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "host": "sb16",
+  "checked_at": 1791674980.8826563,
+  "head": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "branch": "main",
+  "origin": "dflanag3@box-git:/srv/data/git/spacial_desktop.git",
+  "git_status": "",
+  "source_files_verified": 352,
+  "locked_files_verified": 41,
+  "backup_members_verified": [
+    {
+      "path": "spatial-os-luna-handoff/local/check-broker-replacement-02.py",
+      "sha256": "a1ae3979c8d50dc21d8f7d04c9f74b7362666d21f3cc78a3eaa79ae8fc41eb66"
+    },
+    {
+      "path": "spatial-os-luna-handoff/local/check-stopped-broker-dependency-baseline-01.py",
+      "sha256": "220d84e24bc96c1b3b309a2dddd248027b2c1e7537d844b7594edee99646e137"
+    },
+    {
+      "path": "spatial-os-luna-handoff/local/unpack-broker-replacement-01.py",
+      "sha256": "6861aa04b06364d9a4f20a260b09fa14f864110db70b1a93a6968f1fb2cd7add"
+    },
+    {
+      "path": "spatial-os-luna-handoff/local/unpack-broker-replacement-02.py",
+      "sha256": "641e47ca7ebd4881ba6f917f0df04ddc6e79b3566d8db8fec879ccee7d22a287"
+    }
+  ],
+  "ssh_route_live": true
+}

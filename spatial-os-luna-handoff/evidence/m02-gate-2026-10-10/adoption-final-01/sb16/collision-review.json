@@ -1,0 +1,26 @@
+{
+  "status": "reviewed_preserve_then_adopt",
+  "files": [
+    {
+      "path": "spatial-os-luna-handoff/local/check-broker-replacement-02.py",
+      "executable_ast_unchanged": true,
+      "line_endings_only": true
+    },
+    {
+      "path": "spatial-os-luna-handoff/local/check-stopped-broker-dependency-baseline-01.py",
+      "executable_ast_unchanged": true,
+      "line_endings_only": false
+    },
+    {
+      "path": "spatial-os-luna-handoff/local/unpack-broker-replacement-01.py",
+      "executable_ast_unchanged": true,
+      "line_endings_only": true
+    },
+    {
+      "path": "spatial-os-luna-handoff/local/unpack-broker-replacement-02.py",
+      "executable_ast_unchanged": true,
+      "line_endings_only": true
+    }
+  ],
+  "preserve_prior_bytes": true
+}

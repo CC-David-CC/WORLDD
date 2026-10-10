@@ -1,3 +1,28 @@
+2026-10-10: M02 qualification and reviewed adoption complete
+
+M02 delegation, scoped revocation, and recovery qualification is complete for the recorded source.
+Both normal host checkouts adopted b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd on main.
+Each host verified 352 source files and 41 locked files before and after adoption.
+Both checkouts are clean. Neither host restarted a runtime or migrated operator state.
+Four older sb16 helper files remain preserved in a verified local backup.
+
+Both hosts passed Debug and runtime-sanitize gates on the frozen runtime source 1f5088e026573d86be8388cf1f41dfce20189db9.
+Each host/profile passed 1668 core checks, 51 harness checks, and 151 P00-P10 acceptance cases.
+All eight cross-host delay and crash scenarios passed. Five mutations triggered their intended failures.
+The additive timeout suite and related checks passed 132 executions across both hosts and profiles.
+The composed qualification preserves exact source and binary pins. Current-source binaries were not rebuilt after the test-only addition.
+Read evidence/m02-gate-2026-10-10/adoption-final-01/primary-review.json.
+
+Historical failures remain failed. Their unrecorded original causes remain unknown.
+Read docs/M02_FAILURE_DISPOSITION.txt for the explicit disposition and evidence limits.
+Storage contention remains open under tasks/m1/workspace.resources.json and the M1 performance gate.
+The existing five-second client default remains. Neither 700 ms nor 2000 ms passed the bounded pressure reproduction.
+
+Next: M03 aggregate resource enforcement and bounded storage, with focused checks before its full phase gate.
+M01's earlier cancellation dependency has current M02 evidence. Its final identity audit still needs reassessment.
+M03-M16 and physical-session qualification remain incomplete. Spatial-M1 remains incomplete.
+Older sections below describe historical checkpoints; their pending statements are not current status.
+
 2026-10-10: Production timeout checks and requirement-family reassessment
 
 Both hosts passed thirty existing issuer-client checks and three new default-budget checks in both build profiles.
