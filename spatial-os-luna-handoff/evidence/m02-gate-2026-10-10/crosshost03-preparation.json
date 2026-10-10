@@ -1,0 +1,34 @@
+{
+  "status": "prepared_guards_verified_positive_execution_unrun",
+  "candidate": "m02-phase-gate-02",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "helpers": {
+    "m02_crosshost_qualification03.py": "9f6ab1bc041988e6a7caf01969681161f189f4a1393aa1d13c6b09ecc7f3b36a",
+    "run-m02-gate-crosshost-03.py": "d59fb379ed42c9d0ca86a99264ed0d0ec31306e270f13cb15553c42b298e2b11",
+    "collect-m02-gate-crosshost-03.py": "b81fd24e9a9ab0951ba7ffc707134a57c572bfd168de2be4a8c433724488d7c1",
+    "coordinate-m02-gate-crosshost-03.ps1": "94dfba907c161a2baeaf0419c473d5a2cdcb9c4a4ca51f65239850bc44b09fb9",
+    "crosshost03-selection-plan.txt": "d09836310b6a072141012626fa7dcd3352b01b98f79826e0b3bbdfe8662ded96"
+  },
+  "witness_function_sha256": {
+    "replies": "723097e593dc4d64e1b92eb8323cf364de4459b526a3a51f5c2ec359a7d31284",
+    "native": "0c6e47a7be83d2d4373d09ba69a3834b82ee8300d2c40a6995ed765527938d52",
+    "controller": "8f3ca6a54e8685189f5097d791b7e64653f0a6b98d56a91fb58f83eef5a773af"
+  },
+  "review": [
+    "Each host must explicitly select its original qualification or the unchanged-binary untraced retry.",
+    "Both profiles require reviewed core, harness, and P10 passes with untraced qualifying commands.",
+    "The retry retains the failed original summary and links its exact preserved evidence archive.",
+    "Selected summaries, manifests, review attachments, binaries, and successful synchronization must agree.",
+    "Every node records its selected qualification hashes and checks they remain unchanged at exit.",
+    "The collector includes both original and selected attempt records; it does not overwrite failed evidence.",
+    "The coordinator requires separate selections for sb16 and sb16-2 and matching source commits.",
+    "Existing cross-host protobuf scenarios and all three independent witness functions remain unchanged.",
+    "Four negative checks passed per host: missing selection, invalid selection, busy original, and busy retry.",
+    "No cross-host output or fixture was created. Both original qualifiers remained live.",
+    "Python and PowerShell syntax checks passed. Positive qualification validation and eight runtime scenarios remain unrun."
+  ],
+  "production_changes": [],
+  "locked_test_changes": [],
+  "phase_complete": false,
+  "historical_failures_resolved": false
+}

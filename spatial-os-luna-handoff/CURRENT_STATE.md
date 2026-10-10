@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-10: Cross-host checks can select each reviewed local attempt
+
+The version03 launcher requires an explicit qualification attempt for each host.
+It accepts the original gate or the unchanged-binary retry only after complete reviewed local passes.
+Retry selection retains the failed original summary and its preserved evidence archive hash.
+Each cross-host node records the selected summary and review hashes.
+The collector preserves both records. No failed original result becomes a pass.
+
+Four negative controls passed on each host: missing selection, invalid selection, and both busy attempt selections.
+No fixture, service, bindings, or cross-host output was created. Both original qualifiers remained live.
+The existing protobuf scenarios and three independent witness functions remain unchanged.
+Read evidence/m02-gate-2026-10-10/crosshost03-preparation.json and the per-host guard records.
+Actual successful-attempt validation and all eight coordinated scenarios remain unrun.
+The original candidate02 diagnostic sequences remain active. M02 remains incomplete.
+
 ## 2026-10-10: Untraced retry prepared with an explicit writeback boundary
 
 The original candidate02 diagnostic jobs remain active. No retry or filesystem synchronization has started.

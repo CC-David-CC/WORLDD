@@ -1,0 +1,41 @@
+{
+  "host": "sb16",
+  "live_runner_pid": 2788613,
+  "checks": [
+    {
+      "name": "missing_selection",
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "usage: run-m02-gate-crosshost-03.py [-h] --qualification\n                                    {m02-phase-gate-02,m02-untraced-03}\n                                    [--check-only]\n                                    {controller,worker}\n                                    {debug,runtime-sanitize} {delay,crash}\n                                    {forward,reverse}\nrun-m02-gate-crosshost-03.py: error: the following arguments are required: --qualification\n",
+      "output_absent": true
+    },
+    {
+      "name": "invalid_selection",
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "usage: run-m02-gate-crosshost-03.py [-h] --qualification\n                                    {m02-phase-gate-02,m02-untraced-03}\n                                    [--check-only]\n                                    {controller,worker}\n                                    {debug,runtime-sanitize} {delay,crash}\n                                    {forward,reverse}\nrun-m02-gate-crosshost-03.py: error: argument --qualification: invalid choice: 'invalid' (choose from 'm02-phase-gate-02', 'm02-untraced-03')\n",
+      "output_absent": true
+    },
+    {
+      "name": "original_busy",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/run-m02-gate-crosshost-03.py\", line 26, in <module>\n    fcntl.flock(gate_lock, fcntl.LOCK_SH | fcntl.LOCK_NB)\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n",
+      "output_absent": true
+    },
+    {
+      "name": "retry_busy",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/run-m02-gate-crosshost-03.py\", line 26, in <module>\n    fcntl.flock(gate_lock, fcntl.LOCK_SH | fcntl.LOCK_NB)\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n",
+      "output_absent": true
+    }
+  ],
+  "helpers": {
+    "m02_crosshost_qualification03.py": "9f6ab1bc041988e6a7caf01969681161f189f4a1393aa1d13c6b09ecc7f3b36a",
+    "run-m02-gate-crosshost-03.py": "d59fb379ed42c9d0ca86a99264ed0d0ec31306e270f13cb15553c42b298e2b11",
+    "collect-m02-gate-crosshost-03.py": "b81fd24e9a9ab0951ba7ffc707134a57c572bfd168de2be4a8c433724488d7c1"
+  },
+  "original_runner_still_live": true,
+  "runtime_scenarios": "unrun"
+}

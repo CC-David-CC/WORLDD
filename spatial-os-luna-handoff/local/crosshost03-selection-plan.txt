@@ -1,0 +1,20 @@
+Cross-host qualification selection
+
+Keep candidate02 source and binaries frozen.
+Select each host's reviewed qualification attempt explicitly.
+Allow the original gate or the unchanged-binary untraced retry.
+Preserve the original failed gate when selecting its successful retry.
+Record the selected summary and review hashes in every node record.
+Keep the existing protobuf scenarios and independent witness assertions unchanged.
+
+Selected checks before use:
+1. Parse the Python and PowerShell helpers without starting a runtime.
+2. Verify the three witness functions remain byte-identical to version02.
+3. Check required attempt selection and reject invalid attempt names.
+4. Run both-host check-only controls while the original exclusive gates remain active.
+   Require rejection before any fixture, service, bindings, or cross-host output is created.
+5. After qualification completes, validate actual reviewed summaries and pinned binaries.
+6. Run eight coordinated scenarios: delay/crash, both directions, Debug/runtime sanitizer.
+
+Checks 5 and 6 require real completed local qualification.
+Prepared helpers do not establish runtime acceptance.
