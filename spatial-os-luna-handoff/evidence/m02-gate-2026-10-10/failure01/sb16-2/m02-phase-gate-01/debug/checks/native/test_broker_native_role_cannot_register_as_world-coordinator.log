@@ -1,0 +1,2 @@
+authority supervisor: Compositor handoff requires a compositor native scope
+world start rejected: Session supervisor failed: Compositor handoff requires a compositor native scope

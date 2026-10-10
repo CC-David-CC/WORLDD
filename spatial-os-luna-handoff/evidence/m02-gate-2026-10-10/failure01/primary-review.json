@@ -1,0 +1,52 @@
+{
+  "status": "failed",
+  "phase_complete": false,
+  "source_commit": "54715f9a78aaa92911d2bb0a9c782f316f78902f",
+  "source_files": 351,
+  "locked_files_unchanged": 41,
+  "hosts": {
+    "sb16": {
+      "review_sha256": "5e0a03ba54f4a6079ac36df9cff1f91999fe13dc2319f4c1425a16774ee956d3",
+      "debug_harness_passed": 51,
+      "debug_core_passed_suites": 123,
+      "debug_core_failed_suites": [
+        "identity-enrollment"
+      ],
+      "case_executions_including_failures": 1668,
+      "failed_cases": [
+        "test_explicit_schema_migration_preserves_issuer_key_owner_and_policy (__main__.EnrollmentTests.test_explicit_schema_migration_preserves_issuer_key_owner_and_policy)"
+      ],
+      "debug_acceptance": "unrun",
+      "runtime_sanitizer_tests": "unrun",
+      "raw_attachments_verified": 3563
+    },
+    "sb16-2": {
+      "review_sha256": "46c3d1984ba463c7fcac406b029c55d8da1dd1f54529853b231c1c7e2f78d508",
+      "debug_harness_passed": 51,
+      "debug_core_passed_suites": 122,
+      "debug_core_failed_suites": [
+        "world-revision-interleave",
+        "identity-enrollment"
+      ],
+      "case_executions_including_failures": 1668,
+      "failed_cases": [
+        "test_credential_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_credential_reply_older_than_query_context_is_terminal)",
+        "test_explicit_schema_migration_preserves_issuer_key_owner_and_policy (__main__.EnrollmentTests.test_explicit_schema_migration_preserves_issuer_key_owner_and_policy)"
+      ],
+      "debug_acceptance": "unrun",
+      "runtime_sanitizer_tests": "unrun",
+      "raw_attachments_verified": 3563
+    }
+  },
+  "reporting_correction": "The interim regular expression missed CTest failure rows with no whitespace before ***Failed. Final results use command exits and XML.",
+  "fixture_correction": {
+    "commit": "d39279169fd9670eded679371a96bf4c0042093b",
+    "debug_passed": 64,
+    "runtime_sanitizer_passed": 64,
+    "production_changed": false,
+    "evidence": "../issuer-v1-fixture-01/primary-review.json"
+  },
+  "startup_timeout_resolved": false,
+  "historical_failures_resolved": false,
+  "next_action": "Bounded issuer startup timing diagnosis, followed by a new frozen phase gate after relevant corrections."
+}

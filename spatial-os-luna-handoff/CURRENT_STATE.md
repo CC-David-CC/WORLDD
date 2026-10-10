@@ -4,7 +4,8 @@
 
 The frozen candidate remains unchanged. sb16 completed all 124 Debug core suites; 123 passed and one failed.
 Its 51 Debug harness cases passed. Debug P10 and all sanitizer test segments remain unrun.
-The original sb16-2 Debug core run is still finishing with two known failed suites.
+sb16-2 also completed all 124 Debug core suites; 122 passed and two failed.
+Its 51 Debug harness cases passed. Debug P10 and all sanitizer test segments remain unrun there too.
 Both hosts failed the version-one issuer migration fixture.
 That fixture retained authority_retirement, a version-ten table, before declaring version one.
 The correction removes that table and checks the exact version-one schema.
@@ -14,6 +15,7 @@ The selected suites cover enrollment, issuer database rejection, and retirement 
 Production code and locked acceptance files remain unchanged. Existing binaries were verified and reused.
 Read evidence/m02-gate-2026-10-10/issuer-v1-fixture-01/primary-review.json.
 The original failed gate evidence is retained in evidence/m02-gate-2026-10-10/failure01.
+The fixture fix and sb16 evidence were pushed to box-git at d39279169fd9670eded679371a96bf4c0042093b.
 
 sb16-2 also failed world-revision-interleave during world startup, before its injected stale reply.
 The participant activation timed out with reply_header progress 0/4 after 702 ms.
@@ -24,6 +26,7 @@ These observations do not establish the delayed operation or resolve the histori
 The interim progress parser missed CTest failure rows without whitespace before ***Failed.
 Earlier no-failure progress summaries were incorrect. Command exits and final XML determine qualification results.
 Preserve the original logs and record failed, passed, and unrun segments separately.
+Next: diagnose the startup delay with bounded timing checks before freezing another complete gate candidate.
 M02 and Spatial-M1 remain incomplete. No normal desktop or operator database changed.
 
 ## 2026-10-10: Complete M02 candidate qualification started on both hosts

@@ -1007,3 +1007,24 @@ The fixture now requires exactly the original issuer table and schema version on
 All original migration, identity, key, policy, and enrollment assertions remain.
 Production binaries are unchanged and hash-verified. All 41 locked files remain unchanged.
 The sb16-2 startup timeout remains unresolved. Focused passes do not qualify the complete M02 phase.
+
+2026-10-10 terminal results on both hosts
+The fixture correction and sb16 evidence were reviewed and pushed to box-git at d39279169fd9670eded679371a96bf4c0042093b.
+All 3629 staged blobs matched reviewed working files, including byte-identical raw evidence.
+sb16-2 then finished all 124 Debug core suites: 122 passed, world-revision-interleave and identity-enrollment failed.
+Its 51 Debug harness cases passed. Its Debug P10 and sanitizer test segments remain unrun after the failures.
+sb16-2 archive SHA-256: 36b87f810d74d84805d5118f1f8e03496a042d4bda60dc9b9e8358a9027b7f36.
+Both original core runs executed 1668 unittest cases per host. This count includes failures.
+Both hosts preserved all 351 frozen source hashes and all 41 unchanged locked files.
+Both builds completed for each host; a successful sanitizer build does not mean sanitizer tests ran.
+Both terminal resource reviews report no observed compiler overlap and no monitor errors.
+No gate runner remains active. Cross-host and mutation helpers remain unexecuted for this failed candidate.
+Next: bounded startup-delay timing diagnosis. Do not repeat the full gate after every diagnostic change.
+The corrected fixture has focused qualification only. M02 and Spatial-M1 remain incomplete.
+
+Evidence staging correction
+The attachment inventory found six preserved logs/cache records inside ignored build directories, three per host.
+They had not entered the Git index through the enclosing evidence directory.
+Each was added explicitly, without modifying its bytes. The earlier sb16 commit remains in history.
+The terminal evidence commit supplies the omitted sb16 attachments and the complete sb16-2 archive contents.
+Source and test results are unchanged. The final index check requires every listed raw attachment to exist in Git.
