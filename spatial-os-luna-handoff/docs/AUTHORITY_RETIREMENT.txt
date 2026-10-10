@@ -1,5 +1,5 @@
 Authenticated retirement after external cleanup
-Status: Issuer and client protocol implemented with focused checks. Trusted coordinator integration remains pending.
+Status: Issuer, client, and retained coordinator integration pass focused checks. Complete M02 qualification remains pending.
 
 Invariant
 

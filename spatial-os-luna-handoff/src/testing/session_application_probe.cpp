@@ -6,10 +6,12 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <cstring>
+#include <csignal>
 
 // Forward management to the real coordinator. Application actions use its local actor channel.
 int main(int argc, char** argv) {
     try {
+        if (std::signal(SIGPIPE, SIG_IGN) == SIG_ERR) throw std::runtime_error("Cannot disable issuer transport SIGPIPE");
         if (argc != 7) throw std::runtime_error("Expected broker/world configuration, native inputs, actor listener, and actor delivery socket");
         const auto binary = std::filesystem::canonical("/proc/self/exe").parent_path();
         const auto load = [](const char* path) {
@@ -59,6 +61,7 @@ int main(int argc, char** argv) {
                 else if (request.has_inspect()) *reply.mutable_owner() = coordinator.inspect_world(request.inspect());
                 else if (request.has_stop_world()) *reply.mutable_cleanup() = coordinator.stop_world(request.stop_world());
                 else if (request.has_recover_world()) *reply.mutable_owner() = coordinator.recover_world(request.recover_world());
+                else if (request.has_retire_world()) *reply.mutable_retirement() = coordinator.retire_world(request.retire_world());
                 else if (request.has_stop_session()) { *reply.mutable_cleanup() = coordinator.stop(); stopped = true; }
                 else throw std::runtime_error("Missing coordinator test operation");
             } catch (const std::exception& error) {

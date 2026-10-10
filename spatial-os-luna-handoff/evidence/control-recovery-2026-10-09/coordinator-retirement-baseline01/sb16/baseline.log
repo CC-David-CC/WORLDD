@@ -1,0 +1,30 @@
+Running as unit: spatial-coordinator-retirement-baseline-01.service; invocation ID: 148cec9706e04d9fae579fbb2f7e0e29
+test_actual_durable_cleanup_needs_coordinator_retirement (__main__.CoordinatorRetirementBaseline.test_actual_durable_cleanup_needs_coordinator_retirement) ... FAIL
+
+======================================================================
+FAIL: test_actual_durable_cleanup_needs_coordinator_retirement (__main__.CoordinatorRetirementBaseline.test_actual_durable_cleanup_needs_coordinator_retirement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-coordinator-retirement-baseline-01.py", line 37, in test_actual_durable_cleanup_needs_coordinator_retirement
+    self.assertEqual(reply.WhichOneof('outcome'), 'retirement',
+AssertionError: 'error' != 'retirement'
+- error
++ retirement
+ : Coordinator retirement is missing after actual durable cleanup: protocol_version: 1
+request_id: 13
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 3.686s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 3.806s
+CPU time consumed: 908ms
+Memory peak: 1.5M
+Memory swap peak: 0B

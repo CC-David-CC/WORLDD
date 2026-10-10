@@ -728,3 +728,20 @@ Fixture cleanup digests verify the authenticated issuer boundary. Actual coordin
 The explicit issuer schema migration is 9 to 10. No normal host service or database changed.
 The earlier participant-approval failure and complete two-host M02 qualification remain pending.
 M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: Coordinator retirement candidate02 passed 110 selected Debug cases on sb16.
+The runtime sanitizer build is running. Its result remains pending.
+Frozen candidate: local/m02-coordinator-retirement-02. Live controller exec session: 19542.
+Initial integration failure: missing SIGPIPE setup in the test driver. One case passed and seven failed.
+Failure evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/coordinator-retirement-failure01/sb16/failure-review.json.
+Candidate02 changes only driver signal setup and its documented precondition after candidate01.
+The assertions and production retirement logic are unchanged. No integration commit yet.
+Broker retirement, actual replacement recovery, failure races, startup diagnosis, cross-host cancellation, and full M02 qualification remain pending.
+
+2026-10-10: Actual coordinator cleanup-to-retirement passed 110 selected cases per profile on sb16.
+Eight new native cases and ten related suites passed in Debug and runtime ASan/UBSan. No failures or skips.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/coordinator-retirement-02/sb16/primary-review.json.
+The missing-step baseline remains in evidence/control-recovery-2026-10-09/coordinator-retirement-baseline01/sb16.
+Only the exact retained world is retired. Native application response and broker survival are checked.
+Broker retirement, replacement recovery, failure races, the earlier startup failure, cross-host cancellation, and full M02 qualification remain pending.
+No normal session or database changed. M02 and Spatial-M1 remain incomplete.

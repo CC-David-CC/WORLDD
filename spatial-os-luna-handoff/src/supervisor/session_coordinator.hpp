@@ -6,6 +6,7 @@
 namespace spatial { class BrokerClient; }
 namespace spatial::supervisor {
 // Owns broker management above individual world launches. No actor receives this API.
+// The calling process must ignore SIGPIPE, as required by its issuer transport.
 class SessionCoordinator final {
 public:
     SessionCoordinator(const std::filesystem::path& supervisor, const std::filesystem::path& broker_config_path,
@@ -23,6 +24,7 @@ public:
     core::v1::Reply world_call(const workspace::v1::ControlOwner&, const core::v1::Request&);
     v1::AuthorityLaunchRecord stop_world(const workspace::v1::ControlOwner&);
     workspace::v1::ControlOwnerState recover_world(const workspace::v1::ControlOwner&);
+    identity::v1::AuthorityRetirementState retire_world(const workspace::v1::ControlOwner&);
     BrokerClient& root();
     const v1::AuthorityLaunchRecord& broker_launch() const;
     v1::AuthorityLaunchRecord stop();

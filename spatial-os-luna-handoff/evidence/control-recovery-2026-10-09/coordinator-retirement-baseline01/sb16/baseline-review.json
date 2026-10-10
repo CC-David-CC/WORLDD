@@ -1,0 +1,35 @@
+{
+  "status": "expected_missing_step_failure",
+  "command": [
+    "systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--property=Delegate=yes",
+    "--unit=spatial-coordinator-retirement-baseline-01",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/source:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/source/tests/native",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-coordinator-retirement-baseline-01/native",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-coordinator-retirement-baseline-01.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/debug/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/debug/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-retirement-01/debug/build/spatial-issuer-client"
+  ],
+  "host": "sb16",
+  "source_files": 336,
+  "attachments": {
+    "baseline.log": "250c06eda31538955cb01d572a5f7e6671366b10793e30ba7d56031085ce1635",
+    "review.json": "5c289ea0c3a83742f5828d189cf047f22c270d6ec4dae9ae9640ce11e95060f8",
+    "input.py": "58d0dea4d9be5423072bf261eeca7974b76e563d38eb6e90387cbeacf45ee386",
+    "native/test_actual_durable_cleanup_needs_coordinator_retirement-coordinator.log": "1185ac562e1802fbb5a0302e3bee62a516258eb10661d09a33bf1a9fa47e063e",
+    "native/test_actual_durable_cleanup_needs_coordinator_retirement-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "native/test_actual_durable_cleanup_needs_coordinator_retirement-server-0.log": "42d2072cff38d08c446864a1b503b96936195daa0b8601e127a2aa39bc4a0458",
+    "native/test_actual_durable_cleanup_needs_coordinator_retirement-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7"
+  },
+  "finding": "The actual stopped world has durable dependent cleanup. Its issuer generation remains active, with no retirement. The coordinator rejects the proposed retirement operation.",
+  "limitations": "One baseline case. This is failure evidence, not a qualification pass."
+}

@@ -1,5 +1,53 @@
 # Implementation status
 
+## 2026-10-10: Actual coordinator cleanup-to-retirement passes focused checks
+
+The retained coordinator now signs retirement after verified world crash cleanup and durable broker reservation recovery.
+It hashes the exact saved dependent receipt. Callers cannot supply cleanup, keys, digests, or issuer destinations.
+The issuer retires only that fenced generation. The broker and independently authorized application remain usable.
+The coordinator reports success after saving the issuer result in launch journal schema 3.
+Exact retries preserve the original receipt, including after an issuer commit followed by local storage failure.
+Reopened journals cannot recreate ownership or start replacement execution.
+
+All 110 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These include eight new native scenarios and ten related suites.
+All 337 tested source files match. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/coordinator-retirement-02/sb16/primary-review.json.
+The missing-step baseline and first integration failure remain preserved.
+The first driver omitted required SIGPIPE setup. Its correction leaves the assertions and retirement logic unchanged.
+No normal host session or database changed.
+
+Remaining M02 work includes broker retirement, replacement recovery, failure races, cross-host cancellation, and full two-host qualification.
+The previously observed participant-approval startup failure remains unresolved.
+This path requires retained coordinator ownership. It does not implement automatic coordinator restart recovery.
+Shared compositor lifetime across world transitions remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Coordinator retirement candidate passes selected Debug checks
+
+The uncommitted coordinator candidate connects checked world cleanup to authenticated issuer retirement.
+It binds the exact saved dependent receipt and persists the issuer result in launch journal schema 3.
+All eight new native scenarios and ten related suites passed in Debug on sb16.
+The selected total is 110 cases, without failures or skips.
+The runtime sanitizer build is running. Sanitizer results remain pending.
+The frozen source is local/m02-coordinator-retirement-02 on sb16.
+Read its checks/review.json and Debug logs for exact commands and source hashes.
+All 337 source files are frozen. All 41 locked files remain unchanged.
+
+The initial driver omitted the issuer transport's required SIGPIPE setup.
+That run passed one case and failed seven. Its assertions remain unchanged in the correction.
+Read evidence/control-recovery-2026-10-09/coordinator-retirement-failure01/sb16/failure-review.json.
+The actual missing-step baseline is preserved in coordinator-retirement-baseline01/sb16.
+
+Next: finish sanitizer checks, review collected evidence, and commit this coherent increment.
+Broker retirement, replacement recovery, failure races, and cross-host cancellation remain required for M02.
+The earlier participant-approval startup failure remains unresolved.
+Full qualification remains pending on both hosts. No normal session or database changed.
+Shared compositor lifetime across world transitions remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Authenticated issuer retirement passes focused checks
 
 The issuer now retires an exact fenced generation after a fresh proof from its registered supervisor.

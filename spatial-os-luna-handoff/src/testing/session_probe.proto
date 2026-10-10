@@ -3,6 +3,7 @@ package spatial.testing.v1;
 import "core.proto";
 import "broker.proto";
 import "launch.proto";
+import "issuer.proto";
 
 // Test-driver transport only. Actors never receive this coordinator interface.
 message SessionProbeRequest {
@@ -15,6 +16,7 @@ message SessionProbeRequest {
     spatial.workspace.v1.ControlOwner stop_world = 13;
     spatial.supervisor.v1.AuthorityLaunchQuery stop_session = 14;
     spatial.workspace.v1.ControlOwner recover_world = 15;
+    spatial.workspace.v1.ControlOwner retire_world = 16;
   }
 }
 message SessionProbeReply {
@@ -25,5 +27,6 @@ message SessionProbeReply {
     spatial.workspace.v1.ControlOwnerState owner = 11;
     spatial.supervisor.v1.AuthorityLaunchRecord cleanup = 12;
     spatial.core.v1.Error error = 13;
+    spatial.identity.v1.AuthorityRetirementState retirement = 14;
   }
 }

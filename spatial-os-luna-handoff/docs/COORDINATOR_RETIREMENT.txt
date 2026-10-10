@@ -1,0 +1,65 @@
+Coordinator retirement from checked durable cleanup
+Status: Implemented with focused Debug and sanitizer checks. Complete M02 qualification remains pending.
+
+Invariant
+
+Only the trusted session coordinator may request retirement for its exact retained world owner.
+Require checked process and native cleanup from the original supervisor.
+Require the durable dependent-cleanup record and the original committed issuer fence.
+Retain the exact dependent record returned by successful coordinator recovery.
+Require the saved protobuf bytes to match that retained result before creating a proof.
+Do not accept a caller-supplied digest, cleanup record, signing key, or issuer destination.
+Keep the actor interface unchanged.
+
+Proof creation
+
+Retain the world's original private supervisor authorization configuration in the coordinator.
+Keep these paths outside durable world state and actor-visible messages.
+Require the configured key to match the stopped world's launch authorization and issuer fence.
+Require the same supervision revision and previous generation used for the original launch.
+Derive AuthorityRetireBegin from the stored stopped world and its fence.
+Compute cleanup_sha256 over the saved AuthorityDependentCleanup protobuf bytes.
+Never change those bytes to add the issuer result.
+Use the production IssuerClient to obtain and validate a fresh retirement challenge.
+Check the challenge's issuer against the owned launch before signing.
+Validate the returned retirement against the exact request, registration, and supervisor key.
+
+Local durability
+
+Add an issuer_retirement singleton table to the private world launch journal.
+Store the typed AuthorityRetirementState separately from the unchanged dependent-cleanup record.
+Migrate launch database user_version 2 to 3 only when recording the verified result.
+The issuer database migration is separate and remains version 9 to 10.
+Acquire the existing private launch lock.
+Check the original launch row and dependent record again inside the write transaction.
+Create the table, insert the result, and change user_version in one transaction.
+Synchronize the owned directory before reporting successful completion.
+Opening version 3 must validate the retirement digest and exact stopped-world identity.
+Opening a journal must not recreate live process ownership or authorize replacement execution.
+
+Retry and failures
+
+Reject retirement before the stopped world has a durable dependent-cleanup record.
+Reject missing issuer fences and changed launch, dependency, or retirement records.
+An issuer failure leaves the local journal at version 2.
+An issuer commit may precede a local persistence failure. Report that uncertainty as an error.
+A retry uses the same saved cleanup bytes and exact request.
+Fresh authenticated issuer retries return the original retirement identity.
+A locally completed retry returns the same verified saved result without repeating external effects.
+Do not require the signing key file or a new issuer challenge to return an already saved result.
+Do not change a surviving application's own execution authority.
+Do not treat this protocol as automatic coordinator restart recovery.
+
+Checks
+
+Preserve a missing-step baseline after actual world crash cleanup and durable broker recovery.
+Run actual issuer, coordinator, supervisors, world, broker, compositor, and confined application processes.
+Compare the requested digest with an independent hash of the stored dependent record.
+Check the exact issuer activation row becomes inactive while its applied revision remains unchanged.
+Check the saved local retirement equals the issuer's immutable record.
+Verify exact retry and continued native application response.
+Reject live, unrecovered, unfenced, substituted, or tampered world contexts before signing.
+Inject issuer write failure and local journal contention. Verify failure and exact recovery after repair.
+Reopen completed journals and verify replacement execution remains denied.
+Run related launch, dependent-cleanup, issuer-retirement, and native coordinator checks in both profiles.
+Complete M02 qualification remains required on both hosts.

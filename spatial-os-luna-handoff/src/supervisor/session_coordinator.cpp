@@ -45,6 +45,9 @@ struct World {
     std::unique_ptr<identity::ParticipantStream> management;
     workspace::v1::ControlOwner owner;
     v1::AuthorityLaunchRecord record;
+    v1::AuthorityLaunchAuthorize authorization;
+    std::optional<v1::AuthorityDependentCleanup> dependent;
+    std::optional<identity::v1::AuthorityRetirementState> retirement;
     std::filesystem::path journal_directory;
     std::vector<std::unique_ptr<File>> actors;
     bool registered = false, stopped = false, failed = false;
@@ -146,6 +149,7 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
     require(inserted, "Session world insertion failed");
     auto& world = *position->second;
     world.journal_directory = config.journal_directory();
+    world.authorization = config.authorization();
     try {
         world.supervisor = std::make_unique<SessionLaunch>(state.executable, path, config, native,
             std::array<int, 3>{channel.child.value, channel.child.value, STDERR_FILENO}, false);
@@ -229,15 +233,26 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::Co
 }
 BrokerClient& SessionCoordinator::root() { impl_->live(); return impl_->broker.root(); }
 workspace::v1::ControlOwnerState SessionCoordinator::recover_world(const workspace::v1::ControlOwner& owner) {
-    auto& state = *impl_; const auto& world = state.find(owner);
+    auto& state = *impl_; auto& world = state.find(owner);
     // Stopped state requires SessionLaunch to validate both owned cleanup receipts.
     require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED,
         "Control recovery requires checked world cleanup");
     const auto recovered = state.administrative(owner, -1, false, &world.record);
     // Broker release can precede a persistence error. Exact retry uses its retained receipt.
     AuthorityLaunch journal(world.journal_directory);
-    journal.record_control_recovery(world.record, state.broker.launch(), recovered);
+    world.dependent = journal.record_control_recovery(world.record, state.broker.launch(), recovered);
     return recovered;
+}
+identity::v1::AuthorityRetirementState SessionCoordinator::retire_world(const workspace::v1::ControlOwner& owner) {
+    auto& world = impl_->find(owner);
+    require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED && world.dependent,
+        "Retirement requires retained durable world cleanup");
+    AuthorityLaunch journal(world.journal_directory);
+    auto result = journal.retire_control_recovery(*world.dependent, world.authorization);
+    require(!world.retirement || world.retirement->SerializeAsString() == result.SerializeAsString(),
+        "Saved retirement differs from retained issuer result");
+    world.retirement = result;
+    return result;
 }
 const v1::AuthorityLaunchRecord& SessionCoordinator::broker_launch() const { impl_->live(); return impl_->broker.launch(); }
 v1::AuthorityLaunchRecord SessionCoordinator::stop() {
