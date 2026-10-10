@@ -1,0 +1,41 @@
+{
+  "status": "prior_mutation_evidence_remains_applicable_to_unchanged_source",
+  "candidate": "m02-phase-gate-02",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "prior_source_commit": "54715f9a78aaa92911d2bb0a9c782f316f78902f",
+  "unchanged_source_files": 350,
+  "locked_files_unchanged": 41,
+  "only_changed_file": "tests/core/test_identity_enrollment.py",
+  "only_changed_python_method": "test_explicit_schema_migration_preserves_issuer_key_owner_and_policy",
+  "shared_fixture_and_import_structure_unchanged": true,
+  "evidence": [
+    {
+      "path": "evidence/m02-gate-2026-10-10/mutations-04/primary-review.json",
+      "sha256": "63f0e349620fc82203490141ab2a46f48f2cd557d2292d273005ad6b273b8bd3",
+      "raw_attachments_verified": 76,
+      "positive_before_passed": 4,
+      "expected_mutation_failures": 4,
+      "positive_after_passed": 4
+    },
+    {
+      "path": "evidence/m02-gate-2026-10-10/cache-mutation-05/primary-review.json",
+      "sha256": "b396dbe2066fac55d3d508b9ae62d204754e9e267d961a6fb0b315e2f3affb67",
+      "raw_attachments_verified": 14,
+      "positive_before_passed": 1,
+      "expected_mutation_failures": 1,
+      "positive_after_passed": 1
+    }
+  ],
+  "review": [
+    "Production code, build configuration, schemas, and all five mutation witnesses are byte-identical.",
+    "The enrollment delta is confined to an unrelated migration test method. Shared fixture definitions are unchanged.",
+    "The five required sensitivity results remain applicable to the unchanged enforcement and witnesses.",
+    "No mutation was executed against candidate02 binaries. Its full untraced qualification remains required."
+  ],
+  "limitations": [
+    "The first four prior mutations did not record individual mutant binary hashes. Their patches, build logs, intended assertions, and restored passes remain preserved.",
+    "Prior Debug sensitivity evidence does not imply sanitizer, cross-host, physical-input, or complete phase qualification."
+  ],
+  "phase_complete": false,
+  "historical_failures_resolved": false
+}

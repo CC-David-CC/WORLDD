@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-10: Candidate02 builds advance; cross-host follow-up prepared
+
+Both candidate02 Debug builds passed. Both sanitizer builds started and remain under their retained runners.
+The cross-host launcher refused overlap on both hosts before creating any fixture or service.
+Its eight prepared scenarios cover delay and crash, both directions, and Debug and sanitizer profiles.
+They require reviewed local passes first. Positive cross-host execution remains unrun.
+Read evidence/m02-gate-2026-10-10/crosshost02-preparation.json.
+
+The candidate delta changes only the enrollment migration test method. All 350 other source files are unchanged.
+Shared fixture definitions and imports remain unchanged. All 41 locked files are unchanged.
+All five prior mutation witnesses remain applicable to unchanged enforcement and test source.
+Their original raw evidence hashes were checked again. No mutant was executed against candidate02 binaries.
+Read evidence/m02-gate-2026-10-10/candidate02-mutation-reassessment.json.
+Full local qualification, cross-host execution, and historical failure resolution remain pending.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Corrected M02 candidate running on both hosts
 
 Both hosts passed Debug configuration and started their isolated builds.

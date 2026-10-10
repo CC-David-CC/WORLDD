@@ -1109,3 +1109,13 @@ Retained tool sessions: 36741 and 66553. Do not restart after an observation tim
 Launch evidence: spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/candidate02-launch.json.
 Traced Debug is diagnostic. Untraced Debug and sanitizer qualification remain required.
 The original startup and historical timeouts remain unresolved. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10 cross-host follow-up and mutation reassessment
+Both candidate02 Debug builds passed. Both runtime sanitizer builds started.
+Cross-host preflight correctly refused the live qualification lock on both hosts before setup.
+No cross-host process or fixture was created by the control. Eight positive scenarios remain unrun.
+Preparation and guard evidence are under spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/crosshost02-*.json.
+The five previous mutation witnesses remain applicable to unchanged production and witness source.
+Only the enrollment migration method changed; its shared fixtures and imports remain unchanged.
+Read candidate02-mutation-reassessment.json. Do not claim a new mutation run or identical executable bytes.
+M02 and Spatial-M1 remain incomplete. Historical timeouts remain unresolved.

@@ -1,0 +1,68 @@
+{
+  "status": "prepared_overlap_guard_verified_positive_execution_unrun",
+  "candidate": "m02-phase-gate-02",
+  "helpers": {
+    "run-m02-gate-crosshost-02.py": "0defc0651b23ab3f713bbeeb58fcca493fd24aceffdea368360fb48a97986cf2",
+    "collect-m02-gate-crosshost-02.py": "6f939c85d0d75e114cb6a9dc6e471021dc0ff8fc03523759b6e18cf2f67f1712",
+    "coordinate-m02-gate-crosshost-02.ps1": "87a09f031f51d4453c005b1995388530be03be2b954c420f12322c1ebd15f412"
+  },
+  "selected_scenarios": [
+    {
+      "profile": "debug",
+      "scenario": "delay",
+      "direction": "forward"
+    },
+    {
+      "profile": "debug",
+      "scenario": "delay",
+      "direction": "reverse"
+    },
+    {
+      "profile": "debug",
+      "scenario": "crash",
+      "direction": "forward"
+    },
+    {
+      "profile": "debug",
+      "scenario": "crash",
+      "direction": "reverse"
+    },
+    {
+      "profile": "runtime-sanitize",
+      "scenario": "delay",
+      "direction": "forward"
+    },
+    {
+      "profile": "runtime-sanitize",
+      "scenario": "delay",
+      "direction": "reverse"
+    },
+    {
+      "profile": "runtime-sanitize",
+      "scenario": "crash",
+      "direction": "forward"
+    },
+    {
+      "profile": "runtime-sanitize",
+      "scenario": "crash",
+      "direction": "reverse"
+    }
+  ],
+  "purpose": "Verify exact distributed revocation obligations, real native input release, surviving applications, dependent cleanup, and checked retirement.",
+  "controls": "The shared qualification lock refused both hosts before cross-host setup while candidate02 remained live.",
+  "guard_evidence": "crosshost02-overlap-guards.json",
+  "independent_witness_functions_sha256": "382c503b86ac75ee0dfe7f607c91fe7300066b0cdc7cd0a0334e241ae5670e6a",
+  "review": [
+    "Python and PowerShell syntax checks passed.",
+    "Independent protobuf and native witness functions are unchanged from the reviewed recovery collector.",
+    "Both hosts must have reviewed, successful untraced Debug and sanitizer qualification before startup.",
+    "The node runner shares the qualification lock; the full local runner holds it exclusively.",
+    "Run one coordinated scenario at a time. Controller and both workers belong to that scenario.",
+    "Only disposable fixture credentials travel through SSH. The collector excludes private bundles.",
+    "The collector distinguishes passed, failed, and unrun cases and retains independent witness errors.",
+    "No production source, schema, frozen candidate, or acceptance assertion changed."
+  ],
+  "runtime_positive_validation": "unrun",
+  "phase_complete": false,
+  "historical_failures_resolved": false
+}

@@ -1,3 +1,21 @@
+Candidate02 reassessment, 2026-10-10
+
+Current source: 1f5088e026573d86be8388cf1f41dfce20189db9, candidate m02-phase-gate-02.
+The original audit below describes candidate01. Its authority and native coverage still applies to unchanged production code.
+Only one enrollment migration test method changed. Shared fixtures, imports, production code, and locked files are unchanged.
+Read evidence/m02-gate-2026-10-10/candidate02-mutation-reassessment.json.
+All five prior sensitivity witnesses remain applicable to the unchanged source. Their original limitations remain recorded.
+No new mutation execution or binary equivalence is claimed. Full candidate02 qualification remains required.
+
+Candidate02 adds a complete traced Debug core sequence as diagnostic evidence.
+Untraced Debug and runtime sanitizer qualification remain separate and mandatory on both hosts.
+The cross-host follow-up selects eight coordinated runs: two scenarios, two directions, and two profiles.
+Its preflight requires reviewed local passes. Both hosts refused overlap before any cross-host setup.
+Read evidence/m02-gate-2026-10-10/crosshost02-preparation.json and crosshost02-overlap-guards.json.
+Cross-host runtime execution remains unrun. M02 and Spatial-M1 remain incomplete.
+
+Original candidate01 audit follows.
+
 M02 qualification audit, 2026-10-10
 
 Candidate: 54715f9a78aaa92911d2bb0a9c782f316f78902f.

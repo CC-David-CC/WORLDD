@@ -1,0 +1,49 @@
+{
+  "status": "overlap_guards_verified_crosshost_unrun",
+  "hosts": {
+    "sb16": {
+      "host": "sb16",
+      "observed": 1791661274.0327208,
+      "status": "overlap_refused_before_setup",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/run-m02-gate-crosshost-02.py",
+        "worker",
+        "debug",
+        "delay",
+        "forward",
+        "--check-only"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/run-m02-gate-crosshost-02.py\", line 24, in <module>\n    fcntl.flock(gate_lock, fcntl.LOCK_SH | fcntl.LOCK_NB)\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n",
+      "active_gate_pid": 2788613,
+      "active_gate_status": "building",
+      "crosshost_root_created": false,
+      "runner_sha256": "0defc0651b23ab3f713bbeeb58fcca493fd24aceffdea368360fb48a97986cf2",
+      "positive_crosshost_execution": "unrun"
+    },
+    "sb16-2": {
+      "host": "sb16-2",
+      "observed": 1791661274.1338313,
+      "status": "overlap_refused_before_setup",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/run-m02-gate-crosshost-02.py",
+        "worker",
+        "debug",
+        "delay",
+        "forward",
+        "--check-only"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/run-m02-gate-crosshost-02.py\", line 24, in <module>\n    fcntl.flock(gate_lock, fcntl.LOCK_SH | fcntl.LOCK_NB)\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n",
+      "active_gate_pid": 2271090,
+      "active_gate_status": "building",
+      "crosshost_root_created": false,
+      "runner_sha256": "0defc0651b23ab3f713bbeeb58fcca493fd24aceffdea368360fb48a97986cf2",
+      "positive_crosshost_execution": "unrun"
+    }
+  }
+}
