@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-09: Corrected owner04 passes both profiles on sb16
+
+sb16 passed complete Debug and runtime ASan, LeakSanitizer, and UBSan qualification.
+Each profile passed 1,474 core checks across 100 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed per profile. No check failed or skipped. No compiler overlap was recorded.
+Read evidence/control-recovery-2026-10-09/full-review-04-sb16.json.
+The native fixtures still supply owner bindings. Complete production recovery remains unimplemented.
+
+sb16-2 continues owner04 sanitizer qualification. Integration still requires that result and final review.
+Binding01 reproduced five expected baseline failures across six checks in both profiles on sb16.
+Both corrected builds passed. Debug passed six binding checks, three native-world checks, and 51 harness checks.
+Full Debug regression now runs. The full sanitizer profile remains required.
+Read evidence/control-recovery-2026-10-09/binding-baseline-01/sb16/baseline-review.json.
+Read evidence/control-recovery-2026-10-09/binding-focused-01/sb16/debug/focused-review.json.
+The second host's binding driver and both reply-validation drivers still wait.
+Production source remains a3a926d. M02 remains incomplete.
+
 ## 2026-10-09: Retained-launch binding integration guard prepared
 
 The primary agent reviewed the seven-file binding change against its retained-ownership contract.

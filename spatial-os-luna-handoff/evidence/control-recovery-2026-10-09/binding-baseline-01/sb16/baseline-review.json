@@ -1,0 +1,98 @@
+{
+  "host": "sb16",
+  "candidate": "binding01",
+  "baseline": "owner04",
+  "profiles": {
+    "debug": {
+      "expected_failures": 5,
+      "checks": 6,
+      "errors": 0,
+      "baseline_binaries": {
+        "workspaced": "14a1457de27b35c55ecc931024cbcc2c8829855c1b93b0abcc4ae2901b5c02f7",
+        "worldd": "0ae543e1f80985a4a60d749dbb68288bf99796e0fe36a978abf2f5cf50395656",
+        "identityd": "e6e3202c49d826614bb1fed6466ca0f1aaf07c23d627b4ad981b0d5fdfad2b1a",
+        "spatialwm": "9405c7116225a75dd91778fd82e536f468da43fff9091c0c5422d289cdcc2fe0",
+        "spatial-test-host": "6c12953f7a9de54db85db08859d9080badec2faf8a26c5f0e2fcaeb0af253569",
+        "spatial-issuer-client": "d0cc0d080485277745bbfaeab8e7e20f8b551015fb530e50bf9f0c090d51c63d",
+        "spatial-security-auth": "3f396fed46ea975a8c9a251121db4395f063af8883d7fbfa8683f6210898effb",
+        "spatial-authority-supervisor": "519723e0dfc4943d49795b27e8be26ad82382a73a8999d217868d9bc89411d1b"
+      },
+      "command": {
+        "name": "binding",
+        "command": [
+          "systemd-run",
+          "--user",
+          "--wait",
+          "--pipe",
+          "--collect",
+          "--unit=spatial-binding-baseline-debug-1774639",
+          "--property=Delegate=yes",
+          "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/source/tests/core:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/source",
+          "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+          "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/qualification/baseline-debug/native",
+          "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+          "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/source",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/debug/build/spatial-authority-launch-probe",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/debug/build/spatial-security-auth",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/debug/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/debug/build/spatial-issuer-client"
+        ],
+        "started": 1791603092.764447,
+        "ended": 1791603097.6528127,
+        "exit_code": 1
+      }
+    },
+    "runtime-sanitize": {
+      "expected_failures": 5,
+      "checks": 6,
+      "errors": 0,
+      "baseline_binaries": {
+        "workspaced": "68440a1d3121ff34a8fb5c9ea1d47868a61c5a67311337f2eacf6fa1b781afef",
+        "worldd": "f2fe7da75535983da25f5650c224433d8ad8d46dd0bd9cf8a94b0af2c319caa2",
+        "identityd": "626c36ffe97d89029623899a3ee6efc390f52c7748ac13aa260655e16ae8426b",
+        "spatialwm": "269046c4b3c512e2d8abe3fd9ac1de3738038ea0a5892d4c4bd6d43cd37c0488",
+        "spatial-test-host": "575f094f44d189936a765e6f1d30bc45aaa59991a82d42ccfe2522586ea0ee30",
+        "spatial-issuer-client": "c2c8a81665482d17891918e12504baec8d99ced895abd1e647afa4cd9aa25fde",
+        "spatial-security-auth": "19f898b954af5c8f016e1b49e83940043823889967a0bc3482594686380a5dcd",
+        "spatial-authority-supervisor": "431b461d3689059397c303a75c07ff38aba2335b4b4f153c92417878df943744"
+      },
+      "command": {
+        "name": "binding",
+        "command": [
+          "systemd-run",
+          "--user",
+          "--wait",
+          "--pipe",
+          "--collect",
+          "--unit=spatial-binding-baseline-runtime-sanitize-1774639",
+          "--property=Delegate=yes",
+          "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/source/tests/core:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/source",
+          "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+          "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/qualification/baseline-runtime-sanitize/native",
+          "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+          "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+          "python3",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_binding_01.py",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/source",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/runtime-sanitize/build/spatial-authority-launch-probe",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/runtime-sanitize/build/spatial-security-auth",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/runtime-sanitize/build/identityd",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-04/runtime-sanitize/build/spatial-issuer-client"
+        ],
+        "started": 1791603098.8005936,
+        "ended": 1791603104.8120122,
+        "exit_code": 1
+      }
+    }
+  },
+  "preceding_summary_sha256": "302a2b56e08e48c88c4ec6ea1b89af16b5be0d968ab19c2bcd170b7418f06f03",
+  "attachment_hashes": {
+    "debug.log": "5d6ddf798a5b3221c16510370530bfc5b26f96e55c6c9b811c967d2b334f8560",
+    "runtime-sanitize.log": "ac86b7fc1ebfa172b608a9b0eb0af056e4f1afcfdc48e45a8d6febcf69a9eb87"
+  },
+  "positive_binding_checks_run": false,
+  "integration_ready": false
+}

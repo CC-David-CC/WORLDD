@@ -513,3 +513,12 @@ Binding01 integration guard prepared and reviewed. Apply refused the missing own
 All 294 production source hashes remained unchanged. Full binding qualification and final review remain required.
 Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json.
 Both owner04 sanitizer drivers remain live; binding01 and reply01 remain queued.
+
+Owner04 sb16 completed Debug and runtime sanitizers: 1474 core / 100 suites, 51 harness, 151 P10, and three native-world checks per profile.
+No failures, skips, or compiler overlap. Full evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/full-review-04-sb16.json.
+Binding01 sb16 reproduced five expected failures among six baseline checks in both profiles. Its corrected builds are underway.
+Source remains unintegrated. sb16-2 owner04 sanitizers continue.
+
+Binding01 sb16: both builds passed. Focused Debug passed six binding checks, three native-world checks, and 51 harness checks.
+Full Debug regression is active. Sanitizer qualification and all second-host binding checks remain required.
+Focused evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/binding-focused-01/sb16/debug/focused-review.json.

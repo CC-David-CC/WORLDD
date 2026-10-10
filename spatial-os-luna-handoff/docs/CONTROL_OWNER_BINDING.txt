@@ -1,5 +1,5 @@
 Control owner derivation from the retained launch
-Status: Isolated implementation draft. Tests remain unrun.
+Status: Focused Debug checks pass on sb16. Complete both-host qualification and integration remain pending.
 
 Invariant
 

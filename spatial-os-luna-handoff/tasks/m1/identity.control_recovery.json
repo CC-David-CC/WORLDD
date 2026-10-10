@@ -56,7 +56,7 @@
   "candidate03_integration_ready": false,
   "validation_order_correction": {
     "candidate": 4,
-    "state": "Both hosts passed complete Debug qualification. Each sanitizer profile passed the harness, 21 owner checks, and three native-world checks. Both full sanitizer core runs remain active.",
+    "state": "sb16 passed both complete profiles. sb16-2 continues full sanitizer qualification after passing Debug.",
     "total_owner_checks": 21,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-validation-review-04.json",
     "drivers": {
@@ -67,12 +67,13 @@
     "sb16_2_focused_evidence": "evidence/control-recovery-2026-10-09/owner-focused-04/sb16-2/debug/focused-review.json",
     "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/debug-full-review-04-sb16.json",
     "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/debug-full-review-04-sb16-2.json",
-    "debug_matrix_evidence": "evidence/control-recovery-2026-10-09/debug-matrix-review-04.json"
+    "debug_matrix_evidence": "evidence/control-recovery-2026-10-09/debug-matrix-review-04.json",
+    "sb16_full_evidence": "evidence/control-recovery-2026-10-09/full-review-04-sb16.json"
   },
   "retained_launch_binding": {
     "candidate": "binding01",
     "base": "owner04",
-    "state": "Draft staged; both drivers wait for owner04 full qualification. All six new checks are unrun.",
+    "state": "sb16 reproduced five expected baseline failures among six checks in both profiles. Both corrected builds passed. Debug passed six binding checks, three native-world checks, and 51 harness checks; full Debug regression remains active. sb16-2 waits for owner04.",
     "source_files": 298,
     "changed_files": 7,
     "new_checks": 6,
@@ -83,7 +84,9 @@
     "evidence": "evidence/control-recovery-2026-10-09/control-binding-review-01.json",
     "production_changed": false,
     "integration_guard": "local/integrate-control-binding-01.py",
-    "guard_rejection_evidence": "evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json"
+    "guard_rejection_evidence": "evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json",
+    "sb16_baseline_evidence": "evidence/control-recovery-2026-10-09/binding-baseline-01/sb16/baseline-review.json",
+    "sb16_focused_debug_evidence": "evidence/control-recovery-2026-10-09/binding-focused-01/sb16/debug/focused-review.json"
   },
   "session_coordinator_contract": "docs/SESSION_CONTROL_COORDINATOR.txt",
   "control_reply_validation": {
