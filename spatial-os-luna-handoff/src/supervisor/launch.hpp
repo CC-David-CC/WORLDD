@@ -41,10 +41,13 @@ public:
     void fence_after_failure();
 private:
     friend class SessionCoordinator;
+    friend class SessionBroker;
     // Only the retained coordinator may persist its verified dependent cleanup.
     v1::AuthorityDependentCleanup record_control_recovery(const v1::AuthorityLaunchRecord& expected_world,
         const v1::AuthorityLaunchRecord& retained_broker, const workspace::v1::ControlOwnerState& recovered);
     identity::v1::AuthorityRetirementState retire_control_recovery(const v1::AuthorityDependentCleanup& expected,
+        const v1::AuthorityLaunchAuthorize& original_config);
+    identity::v1::AuthorityRetirementState retire_broker_cleanup(const v1::AuthorityLaunchRecord& expected,
         const v1::AuthorityLaunchAuthorize& original_config);
     struct Impl;
     std::unique_ptr<Impl> impl_;

@@ -1,0 +1,47 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 116
+    Start 116: session-broker-retirement
+
+116: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-broker-retirement-14f01420db751910a68d3f059279a63bd8c6377a32a454b3032df6118bb5e74a" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/source/tests/native/test_broker_retirement.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build/spatial-issuer-client"
+116: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/runtime-sanitize/build
+116: Test timeout computed to be: 240
+116: Running as unit: spatial-broker-retirement-14f01420db751910a68d3f059279a63bd8c6377a32a454b3032df6118bb5e74a.service; invocation ID: 97b00739677643d38e13b02a89b7269b
+116: test_actual_broker_retirement_preserves_other_generation_and_exact_retry (__main__.BrokerRetirementTests.test_actual_broker_retirement_preserves_other_generation_and_exact_retry) ... ok
+116: test_live_and_unchecked_broker_cannot_retire (__main__.BrokerRetirementTests.test_live_and_unchecked_broker_cannot_retire) ... ok
+116: test_unfenced_shutdown_cannot_claim_failed_generation_retirement (__main__.BrokerRetirementTests.test_unfenced_shutdown_cannot_claim_failed_generation_retirement) ... ok
+116: test_changed_or_reordered_cleanup_bytes_cannot_authorize_retirement (__main__.BrokerRetirementTests.test_changed_or_reordered_cleanup_bytes_cannot_authorize_retirement) ... ok
+116: test_wrong_key_locked_and_readonly_journal_leave_issuer_unchanged (__main__.BrokerRetirementTests.test_wrong_key_locked_and_readonly_journal_leave_issuer_unchanged) ... ok
+116: test_issuer_write_failure_rolls_back_and_retry_completes (__main__.BrokerRetirementTests.test_issuer_write_failure_rolls_back_and_retry_completes) ... ok
+116: test_local_commit_failure_recovers_original_committed_issuer_receipt (__main__.BrokerRetirementTests.test_local_commit_failure_recovers_original_committed_issuer_receipt) ... ok
+116: test_saved_receipt_tampering_is_rejected_and_reopen_cannot_launch (__main__.BrokerRetirementTests.test_saved_receipt_tampering_is_rejected_and_reopen_cannot_launch) ... ok
+116: test_supervisor_death_without_checked_cleanup_cannot_retire (__main__.BrokerRetirementTests.test_supervisor_death_without_checked_cleanup_cannot_retire) ... ok
+116: 
+116: ----------------------------------------------------------------------
+116: Ran 9 tests in 47.081s
+116: 
+116: OK
+116: Finished with result: success
+116: Main processes terminated with: code=exited/status=0
+116: Service runtime: 47.214s
+116: CPU time consumed: 19.259s
+116: Memory peak: 1.5M
+116: Memory swap peak: 0B
+1/1 Test #116: session-broker-retirement ........   Passed   47.23 sec
+
+The following tests passed:
+	session-broker-retirement
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  47.24 sec

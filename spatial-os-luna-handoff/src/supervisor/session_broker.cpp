@@ -1,5 +1,6 @@
 #include "supervisor/session_broker.hpp"
 #include "supervisor/session_launch.hpp"
+#include "supervisor/launch.hpp"
 #include "supervisor/control_admin.hpp"
 #include "platform/broker.hpp"
 #include "identity/tls_support.hpp"
@@ -23,10 +24,15 @@ struct SessionBroker::Impl {
     ProcessHandle broker;
     std::unique_ptr<BrokerClient> root;
     std::unique_ptr<ControlAdmin> administrative;
+    std::filesystem::path journal_directory;
+    v1::AuthorityLaunchAuthorize authorization;
+    std::optional<v1::AuthorityLaunchRecord> cleanup;
+    std::optional<identity::v1::AuthorityRetirementState> retirement;
     void live() const { require(owner == getpid() && bool(launch), "Session broker ownership lost"); launch->live(); }
     void start(const std::filesystem::path& executable, const std::filesystem::path& path,
                v1::AuthoritySupervisorConfig config, int native) {
         validate_message(config);
+        journal_directory = config.journal_directory(); authorization = config.authorization();
         require(config.has_broker_native_target_fd() && !config.has_compositor_native_target_fd() &&
             config.inherited_source_fds_size() == 0 && config.launch().inherited_fds_size() == 0,
             "Session broker requires an unmapped supervised broker configuration");
@@ -59,6 +65,19 @@ void SessionBroker::check_alive() const { impl_->live(); impl_->root->check_aliv
 v1::AuthorityLaunchRecord SessionBroker::stop() {
     require(impl_->owner == getpid() && impl_->launch, "Session broker cleanup ownership lost");
     auto result = impl_->launch->stop();
+    require(!impl_->cleanup || impl_->cleanup->SerializeAsString() == result.SerializeAsString(),
+        "Broker cleanup differs from retained receipt");
+    impl_->cleanup = result;
     impl_->administrative.reset(); impl_->root.reset(); return result;
+}
+identity::v1::AuthorityRetirementState SessionBroker::retire() {
+    auto& state = *impl_;
+    require(state.owner == getpid() && state.cleanup, "Broker retirement requires retained checked cleanup");
+    AuthorityLaunch journal(state.journal_directory);
+    auto result = journal.retire_broker_cleanup(*state.cleanup, state.authorization);
+    require(!state.retirement || state.retirement->SerializeAsString() == result.SerializeAsString(),
+        "Saved broker retirement differs from retained issuer result");
+    state.retirement = result;
+    return result;
 }
 }

@@ -261,6 +261,7 @@ identity::v1::AuthorityRetirementState SessionCoordinator::retire_world(const wo
 }
 const v1::AuthorityLaunchRecord& SessionCoordinator::broker_launch() const { impl_->live(); return impl_->broker.launch(); }
 v1::AuthorityLaunchRecord SessionCoordinator::stop_broker() { impl_->owned(); return impl_->broker.stop(); }
+identity::v1::AuthorityRetirementState SessionCoordinator::retire_broker() { impl_->owned(); return impl_->broker.retire(); }
 v1::AuthorityLaunchRecord SessionCoordinator::stop() {
     auto& state = *impl_; state.owned();
     for (const auto& [key, world] : state.worlds) {

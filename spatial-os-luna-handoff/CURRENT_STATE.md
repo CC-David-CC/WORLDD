@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: Broker retirement after checked cleanup passes focused checks
+
+The retained coordinator now retires a failed broker generation after checked process and native cleanup.
+Its original supervisor signer binds the exact saved launch bytes and committed issuer fence.
+The issuer retires only that broker generation. Independent generations retain their existing state.
+Explicit launch journal schema 4 saves the issuer result without changing the cleanup bytes or revision.
+Exact retries preserve the original result, including after an issuer commit followed by local storage failure.
+Broker retirement does not replace world cleanup or authorize replacement execution.
+
+All 93 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These include nine new native scenarios and nine related suites.
+All 341 tested source files match. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/broker-retirement-01/sb16/primary-review.json.
+The actual missing-retirement baseline remains preserved. No normal host session or database changed.
+
+Next: dependent world recovery with a stopped broker, then actual replacement recovery and failure races.
+The earlier participant-approval startup failure, cross-host cancellation, and full two-host qualification remain required work.
+Shared compositor lifetime across world transitions remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Retained broker crash cleanup passes focused checks
 
 The session now retrieves checked broker cleanup after its original supervisor exits.

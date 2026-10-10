@@ -753,3 +753,12 @@ Both original failure baselines remain preserved. Broker cleanup is separate fro
 Broker retirement and stopped-broker dependency recovery remain pending.
 Replacement recovery, failure races, the earlier startup failure, cross-host cancellation and full M02 qualification remain pending.
 No normal session or database changed. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: Broker retirement passed 93 cases per profile on sb16.
+Nine new native scenarios and nine related suites passed in Debug and runtime ASan/UBSan.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/broker-retirement-01/sb16/primary-review.json.
+The original missing-operation baseline remains preserved in broker-retirement-baseline01/sb16.
+Only the broker generation is retired. Its exact cleanup bytes and independently authorized generations remain unchanged.
+Dependent world recovery with a stopped broker, replacement recovery, failure races and cross-host cancellation remain pending.
+The earlier startup failure remains unresolved. Full M02 qualification remains pending on both hosts.
+No normal session or database changed. M02 and Spatial-M1 remain incomplete.

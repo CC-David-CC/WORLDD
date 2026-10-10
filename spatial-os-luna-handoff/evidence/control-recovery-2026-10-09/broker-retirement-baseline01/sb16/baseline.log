@@ -1,0 +1,30 @@
+Running as unit: spatial-broker-retirement-baseline-01.service; invocation ID: 460d8e86ce5443aca630bcfce2c8621c
+test_checked_broker_cleanup_needs_issuer_retirement (__main__.BrokerRetirementBaseline.test_checked_broker_cleanup_needs_issuer_retirement) ... FAIL
+
+======================================================================
+FAIL: test_checked_broker_cleanup_needs_issuer_retirement (__main__.BrokerRetirementBaseline.test_checked_broker_cleanup_needs_issuer_retirement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-broker-retirement-baseline-01.py", line 26, in test_checked_broker_cleanup_needs_issuer_retirement
+    self.assertEqual(reply.WhichOneof('outcome'), 'retirement',
+AssertionError: 'error' != 'retirement'
+- error
++ retirement
+ : Broker retirement is missing after actual checked cleanup: protocol_version: 1
+request_id: 9
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 3.596s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 3.734s
+CPU time consumed: 890ms
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -29,6 +29,7 @@ public:
     const v1::AuthorityLaunchRecord& broker_launch() const;
     // Broker scope cleanup remains separate from world cleanup and issuer retirement.
     v1::AuthorityLaunchRecord stop_broker();
+    identity::v1::AuthorityRetirementState retire_broker();
     v1::AuthorityLaunchRecord stop();
 private:
     struct Impl;

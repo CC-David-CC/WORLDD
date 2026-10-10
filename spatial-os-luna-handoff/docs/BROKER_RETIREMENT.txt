@@ -1,0 +1,55 @@
+Broker retirement after checked scope cleanup
+Status: Focused Debug and sanitizer checks passed. Full M02 qualification remains pending.
+
+Invariant
+
+The retained session broker owns the original supervisor reply channel and launch configuration.
+Require its successful checked stop before signing broker retirement.
+Require matching process and native cleanup receipts and the exact committed issuer fence.
+Use the original supervisor signer and configured issuer.
+Callers cannot supply a cleanup record, signing key, digest, or issuer destination.
+Hash the exact durable AuthorityLaunchRecord bytes with SHA-256.
+Reject changed bytes, including semantically equal reordered protobuf fields.
+Use the existing authenticated authority retirement protocol.
+Retire only the broker generation identified by that record.
+Keep unrelated world and broker generations unchanged.
+
+Persistence
+
+Launch journal schemas 1, 2, and 3 retain their existing meanings.
+Add schema 4 for a completed broker retirement.
+Schema 4 contains the original launch row and one immutable issuer_retirement row.
+It does not require a world dependent_cleanup row.
+Require a supervised BROKER record with checked cleanup and an issuer fence.
+Preserve the exact launch bytes and revision.
+Migrate schema 1 to schema 4 only during this explicit broker retirement operation.
+Save the checked issuer result and schema version in one transaction.
+Require local durability before reporting success.
+An issuer commit can precede a failed local commit.
+Recover that result through a fresh authenticated retry of the same retirement request.
+After successful local storage, an exact retry returns the saved receipt without loading the key again.
+Validate the saved result against the retained result on subsequent calls.
+Reopening the journal cannot reconstruct process ownership or authorize replacement execution.
+
+Scope
+
+Broker cleanup destroys its process scope and native credential scope.
+These scopes include its confined application processes and issued native credentials.
+Retirement completes that broker generation's remaining issuer obligations.
+It does not claim world cleanup or retire a world generation.
+Keep complete session shutdown conditional on checked cleanup of every retained world.
+World dependency recovery with a stopped broker remains a separate required operation.
+Replacement execution still needs fresh authorization and current authority synchronization.
+
+Checks
+
+Use an actual broker crash and confined native application.
+Require retained process-handle exit evidence and checked native cleanup before retirement.
+Verify exact journal bytes, issuer state, unchanged applied revision, and unaffected independent generations.
+Verify exact retries after successful storage and after an issuer commit followed by local failure.
+Reject live, unchecked, unfenced, tampered, locked, read-only, and wrong-key contexts.
+Reject supervisor death without a checked receipt.
+Verify failed issuer writes leave local schema 1 and permit retry.
+Verify schema 4 reopening and deny replacement execution from the saved journal.
+Run affected Debug and runtime sanitizer checks.
+Full M02 qualification remains required on both hosts.

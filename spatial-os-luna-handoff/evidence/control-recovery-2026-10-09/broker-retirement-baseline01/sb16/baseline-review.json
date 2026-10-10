@@ -1,0 +1,35 @@
+{
+  "status": "expected_missing_step_failure",
+  "command": [
+    "systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--property=Delegate=yes",
+    "--unit=spatial-broker-retirement-baseline-01",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/source:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/source/tests/native",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-baseline-01/native",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-broker-retirement-baseline-01.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/spatial-issuer-client"
+  ],
+  "host": "sb16",
+  "source_files": 340,
+  "attachments": {
+    "baseline.log": "067def22120cbdc98bb28c5c4dd3940d00dfd7a776878c86314b1bffd3fb099d",
+    "review.json": "51ce914337fca3d1b89bfb2352310f287b9e93d2289ca54d5e6e136a4ab64eea",
+    "input.py": "c940f9ba6234885a3d7df6a45bd49e05bd5859d82c6b224d35bdff88ff0ed8f4",
+    "native/test_checked_broker_cleanup_needs_issuer_retirement-probe.jsonl.log": "d0b89518c82b676c237d7a9678fde49ac7ffe51a4d56f7877f9e6bb623a7295d",
+    "native/test_checked_broker_cleanup_needs_issuer_retirement-coordinator.log": "8908c9a912a62886a833dfe503d4124acf089e8a0e6796a22955126fc3840f90",
+    "native/test_checked_broker_cleanup_needs_issuer_retirement-server-0.log": "a1c874025cba61ebb53ee35eb9ca4496176a1a8644ecf705eef33a8082db40d7",
+    "native/test_checked_broker_cleanup_needs_issuer_retirement-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7"
+  },
+  "finding": "The actual broker and its confined application processes have checked process/native cleanup and a committed issuer fence. The retained coordinator delivers the cleanup. Its issuer generation remains active, with no retirement. The proposed private retirement operation is missing.",
+  "limitations": "One baseline case. This is failure evidence, not a qualification pass."
+}

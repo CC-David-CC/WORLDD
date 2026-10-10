@@ -4,7 +4,9 @@ Status: Issuer, client, and retained coordinator integration pass focused checks
 Invariant
 
 Retire only one exact fenced service generation after authenticated supervisor proof.
-Bind the proof to the durable dependent-cleanup record through its SHA-256 digest.
+Bind the proof to the exact durable cleanup bytes through their SHA-256 digest.
+World retirement uses its dependent-cleanup record. Broker retirement uses its checked stopped launch record.
+Read BROKER_RETIREMENT.txt for the explicit broker journal layout.
 Keep the original fence and historical obligations.
 Do not change the service's applied_revision.
 Do not infer external cleanup from a closed connection, inactive process, or supplied digest alone.
@@ -64,5 +66,6 @@ Inject transaction failures and prove rollback before retry.
 Use independent TLS peers to test challenge, result, and barrier-response substitution.
 Verify explicit schema migration and failed migration rollback.
 Run affected identity, fencing, launch, barrier, migration, and dependent-cleanup checks in both profiles.
-Connect the trusted coordinator signer in the next increment and require actual cleanup before signing.
+Retained world and broker signers require actual checked cleanup before signing.
+Dependent world recovery with a stopped broker remains pending.
 Full M02 qualification remains pending on both hosts.

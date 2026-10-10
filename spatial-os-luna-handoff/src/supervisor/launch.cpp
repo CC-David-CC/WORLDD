@@ -201,6 +201,45 @@ void validate_retirement(const identity::v1::AuthorityRetirementState& value,
         value.security_revision() >= world.fence().security_revision(),
         "Issuer retirement differs from exact fenced cleanup");
 }
+void validate_retirement_config(const v1::AuthorityLaunchAuthorize& original_config,
+    const v1::AuthorityLaunchRecord& record) {
+    validate_message(original_config);
+    const auto& approved = record.authorization();
+    require(std::filesystem::path(original_config.issuer_client_config()).is_absolute() &&
+        std::filesystem::path(original_config.private_key_path()).is_absolute() &&
+        original_config.has_previous_generation() &&
+        original_config.previous_generation() == approved.request().previous_generation() &&
+        original_config.supervision_revision() == approved.request().supervision_revision(),
+        "Retirement configuration differs from original supervisor approval");
+}
+identity::v1::AuthorityRetirementState request_retirement(const v1::AuthorityLaunchRecord& record,
+    const std::string& cleanup_bytes, const v1::AuthorityLaunchAuthorize& original_config) {
+    const auto request = retirement_request(record, cleanup_bytes);
+    const auto& approved = record.authorization();
+    auto key = identity::KeyPair::load(original_config.private_key_path());
+    require(key.public_key() == approved.supervisor_public_key(), "Retirement signing key differs from owned authorization");
+    identity::IssuerClient client(original_config.issuer_client_config());
+    identity::v1::IssuerRequest begin; begin.set_protocol_version(1);
+    *begin.mutable_authority_retire_begin() = request;
+    auto result = client.call(std::move(begin));
+    require(result.has_challenge(), "Issuer rejected owned retirement challenge");
+    identity::v1::AuthorityRetireChallenge challenge;
+    require(challenge.ParseFromString(result.challenge().signing_request().payload()) &&
+        challenge.issuer_id() == record.binding().issuer_id() &&
+        challenge.supervisor_public_key() == key.public_key() &&
+        challenge.request().SerializeAsString() == request.SerializeAsString(),
+        "Retirement challenge differs from owned issuer context");
+    identity::v1::IssuerRequest complete; complete.set_protocol_version(1);
+    auto* proof = complete.mutable_authority_retire_complete();
+    proof->set_nonce(result.challenge().nonce());
+    *proof->mutable_proof() = key.sign(result.challenge().signing_request());
+    result = client.call(std::move(complete));
+    require(result.has_authority_retirement(), "Issuer did not retire the owned authority launch");
+    const auto& value = result.authority_retirement();
+    validate_retirement(value, record, cleanup_bytes);
+    return value;
+}
+
 }
 
 struct AuthorityLaunch::Impl {
@@ -208,7 +247,7 @@ struct AuthorityLaunch::Impl {
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
     v1::AuthorityLaunchRecord record;
     std::optional<v1::AuthorityDependentCleanup> dependent;
-    std::string dependent_bytes;
+    std::string dependent_bytes, record_bytes;
     std::optional<identity::v1::AuthorityRetirementState> retirement;
     int database_version = 1;
     std::unique_ptr<ProcessScope> process;
@@ -255,7 +294,7 @@ struct AuthorityLaunch::Impl {
         if (existing) {
             Query version(db.get(), "PRAGMA user_version"), application(db.get(), "PRAGMA application_id");
             require(version.step() == SQLITE_ROW &&
-                ((database_version = sqlite3_column_int(version.statement, 0)) >= 1 && database_version <= 3) &&
+                ((database_version = sqlite3_column_int(version.statement, 0)) >= 1 && database_version <= 4) &&
                 application.step() == SQLITE_ROW && sqlite3_column_int(application.statement, 0) == 1397771340,
                 "Unknown launch schema; preserve journal for explicit migration");
         }
@@ -273,9 +312,9 @@ struct AuthorityLaunch::Impl {
         if (row.step() == SQLITE_ROW) {
             const auto bytes = row.bytes(0);
             require(bytes.size() <= 65536 && record.ParseFromString(bytes), "Malformed durable launch record");
-            validate_record(record);
+            validate_record(record); record_bytes = bytes;
         }
-        if (database_version >= 2) {
+        if (database_version == 2 || database_version == 3) {
             Query count(db.get(), "SELECT COUNT(*) FROM dependent_cleanup");
             require(count.step() == SQLITE_ROW && sqlite3_column_int(count.statement, 0) == 1,
                 "Dependent cleanup journal requires one receipt");
@@ -289,7 +328,7 @@ struct AuthorityLaunch::Impl {
             dependent = std::move(value);
             dependent_bytes = bytes;
         }
-        if (database_version == 3) {
+        if (database_version == 3 || database_version == 4) {
             Query count(db.get(), "SELECT COUNT(*) FROM issuer_retirement");
             require(count.step() == SQLITE_ROW && sqlite3_column_int(count.statement, 0) == 1,
                 "Retirement journal requires one receipt");
@@ -298,7 +337,9 @@ struct AuthorityLaunch::Impl {
             const auto bytes = saved.bytes(0);
             identity::v1::AuthorityRetirementState value;
             require(bytes.size() <= 65536 && value.ParseFromString(bytes), "Malformed issuer retirement receipt");
-            validate_retirement(value, record, dependent_bytes);
+            require(database_version != 4 || record.native().role() == security::v1::BROKER,
+                "Broker retirement schema requires a broker launch");
+            validate_retirement(value, record, database_version == 4 ? record_bytes : dependent_bytes);
             retirement = std::move(value);
         }
     }
@@ -315,7 +356,7 @@ struct AuthorityLaunch::Impl {
             require(put.step() == SQLITE_DONE, "Cannot persist launch record");
             sql(db.get(), "COMMIT");
         } catch (...) { sqlite3_exec(db.get(), "ROLLBACK", nullptr, nullptr, nullptr); throw; }
-        record = std::move(next);
+        record = std::move(next); record_bytes = bytes;
     }
 };
 
@@ -362,42 +403,15 @@ identity::v1::AuthorityRetirementState AuthorityLaunch::retire_control_recovery(
         state.record.SerializeAsString() == expected.world().SerializeAsString() &&
         state.dependent_bytes == expected.SerializeAsString(),
         "Retirement journal differs from retained dependent cleanup");
-    const auto request = retirement_request(state.record, state.dependent_bytes);
-    validate_message(original_config);
-    const auto& approved = state.record.authorization();
-    require(std::filesystem::path(original_config.issuer_client_config()).is_absolute() &&
-        std::filesystem::path(original_config.private_key_path()).is_absolute() &&
-        original_config.has_previous_generation() &&
-        original_config.previous_generation() == approved.request().previous_generation() &&
-        original_config.supervision_revision() == approved.request().supervision_revision(),
-        "Retirement configuration differs from original supervisor approval");
+    retirement_request(state.record, state.dependent_bytes);
+    validate_retirement_config(original_config, state.record);
     if (state.retirement) {
         require(fsync(state.directory.fd) == 0, "Retirement directory durability uncertain");
         return *state.retirement;
     }
     require(state.database_version == 2, "Retirement requires launch schema 2");
     require(sqlite3_db_readonly(state.db.get(), "main") == 0, "Retirement journal is read-only");
-    auto key = identity::KeyPair::load(original_config.private_key_path());
-    require(key.public_key() == approved.supervisor_public_key(), "Retirement signing key differs from owned authorization");
-    identity::IssuerClient client(original_config.issuer_client_config());
-    identity::v1::IssuerRequest begin; begin.set_protocol_version(1);
-    *begin.mutable_authority_retire_begin() = request;
-    auto result = client.call(std::move(begin));
-    require(result.has_challenge(), "Issuer rejected owned retirement challenge");
-    identity::v1::AuthorityRetireChallenge challenge;
-    require(challenge.ParseFromString(result.challenge().signing_request().payload()) &&
-        challenge.issuer_id() == state.record.binding().issuer_id() &&
-        challenge.supervisor_public_key() == key.public_key() &&
-        challenge.request().SerializeAsString() == request.SerializeAsString(),
-        "Retirement challenge differs from owned issuer context");
-    identity::v1::IssuerRequest complete; complete.set_protocol_version(1);
-    auto* proof = complete.mutable_authority_retire_complete();
-    proof->set_nonce(result.challenge().nonce());
-    *proof->mutable_proof() = key.sign(result.challenge().signing_request());
-    result = client.call(std::move(complete));
-    require(result.has_authority_retirement(), "Issuer did not retire the owned authority launch");
-    const auto& value = result.authority_retirement();
-    validate_retirement(value, state.record, state.dependent_bytes);
+    const auto value = request_retirement(state.record, state.dependent_bytes, original_config);
     const auto bytes = value.SerializeAsString();
     // The issuer may already have committed. A local failure requires an exact authenticated retry.
     sql(state.db.get(), "BEGIN IMMEDIATE");
@@ -417,6 +431,41 @@ identity::v1::AuthorityRetirementState AuthorityLaunch::retire_control_recovery(
     } catch (...) { sqlite3_exec(state.db.get(), "ROLLBACK", nullptr, nullptr, nullptr); throw; }
     require(fsync(state.directory.fd) == 0, "Retirement directory durability uncertain");
     state.database_version = 3; state.retirement = value;
+    return value;
+}
+identity::v1::AuthorityRetirementState AuthorityLaunch::retire_broker_cleanup(
+    const v1::AuthorityLaunchRecord& expected, const v1::AuthorityLaunchAuthorize& original_config) {
+    auto& state = *impl_;
+    require(!state.process && !state.native && !state.dependent &&
+        expected.native().role() == security::v1::BROKER &&
+        state.record.SerializeAsString() == expected.SerializeAsString() &&
+        state.record_bytes == expected.SerializeAsString(),
+        "Broker retirement journal differs from retained checked cleanup");
+    retirement_request(state.record, state.record_bytes); // Require the exact stopped and fenced generation.
+    validate_retirement_config(original_config, state.record);
+    if (state.retirement) {
+        require(fsync(state.directory.fd) == 0, "Retirement directory durability uncertain");
+        return *state.retirement;
+    }
+    require(state.database_version == 1, "Broker retirement requires launch schema 1");
+    require(sqlite3_db_readonly(state.db.get(), "main") == 0, "Retirement journal is read-only");
+    const auto value = request_retirement(state.record, state.record_bytes, original_config);
+    const auto bytes = value.SerializeAsString();
+    // Preserve the checked launch. An issuer commit can precede failed local storage.
+    sql(state.db.get(), "BEGIN IMMEDIATE");
+    try {
+        { Query current(state.db.get(), "SELECT record FROM launch WHERE singleton=1");
+          require(current.step() == SQLITE_ROW && current.bytes(0) == state.record_bytes,
+              "Broker launch row changed before retirement commit"); }
+        sql(state.db.get(), "CREATE TABLE issuer_retirement(singleton INTEGER PRIMARY KEY CHECK(singleton=1), record BLOB NOT NULL)");
+        { Query insert(state.db.get(), "INSERT INTO issuer_retirement VALUES(1,?)");
+          require(sqlite3_bind_blob(insert.statement, 1, bytes.data(), static_cast<int>(bytes.size()), SQLITE_TRANSIENT) == SQLITE_OK,
+              "Cannot bind broker retirement receipt");
+          require(insert.step() == SQLITE_DONE, "Cannot persist broker retirement receipt"); }
+        sql(state.db.get(), "PRAGMA user_version=4; COMMIT");
+    } catch (...) { sqlite3_exec(state.db.get(), "ROLLBACK", nullptr, nullptr, nullptr); throw; }
+    require(fsync(state.directory.fd) == 0, "Retirement directory durability uncertain");
+    state.database_version = 4; state.retirement = value;
     return value;
 }
 v1::AuthorityLaunchView AuthorityLaunch::prepare(const std::filesystem::path& root,

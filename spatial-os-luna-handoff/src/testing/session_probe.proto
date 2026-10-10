@@ -18,6 +18,7 @@ message SessionProbeRequest {
     spatial.workspace.v1.ControlOwner recover_world = 15;
     spatial.workspace.v1.ControlOwner retire_world = 16;
     spatial.supervisor.v1.AuthorityLaunchQuery stop_broker = 17;
+    spatial.supervisor.v1.AuthorityLaunchQuery retire_broker = 18;
   }
 }
 message SessionProbeReply {
