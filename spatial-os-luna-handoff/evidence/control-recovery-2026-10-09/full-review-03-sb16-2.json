@@ -1,0 +1,23 @@
+{
+  "reviewer": "primary agent",
+  "host": "sb16-2",
+  "candidate": 3,
+  "profiles": [
+    "Debug",
+    "runtime ASan/LSan/UBSan"
+  ],
+  "core_checks_per_profile": 1472,
+  "core_suites_per_profile": 100,
+  "harness_checks_per_profile": 51,
+  "P10_cases_per_profile": 151,
+  "extra_native_world_checks_per_profile": 3,
+  "failed": 0,
+  "skipped": 0,
+  "compiler_overlap": false,
+  "full_summary_sha256": "e642452a19c3794a01c9ff4a7e52d703a88b27370a06a275ee7f179669b19992",
+  "native_summary_sha256": "eaeb5a4d9c4337dee8c802d5b8f22bee1de0c04122aafedfd256159139721f3a",
+  "production_changed": false,
+  "integration_ready": false,
+  "hold": "Candidate04 must fix the separately reproduced protocol-validation ordering defect.",
+  "limitation": "Native integration uses fixture-provisioned owner bindings. Production supervisor binding and selective recovery release remain incomplete."
+}

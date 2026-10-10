@@ -1,0 +1,9 @@
+{
+  "native_release_confirmed": true,
+  "reservation_released": true,
+  "application_alive": true,
+  "authorized_handoff_delivered_native_input": true,
+  "production_supervisor_binding": false,
+  "production_recovery_release": false,
+  "limitation": "Fixture provisions the owner; real broker/world/native paths execute all actions."
+}

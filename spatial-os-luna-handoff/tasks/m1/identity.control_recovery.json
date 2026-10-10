@@ -25,7 +25,7 @@
     "new_checks": 19,
     "production_changed": false,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-review-03.json",
-    "state": "sb16 completed full Debug and sanitizer profiles; sb16-2 sanitizer qualification remains active.",
+    "state": "Both hosts completed full Debug and sanitizer profiles. Candidate03 remains ineligible for integration because the additional validation-order regressions fail.",
     "drivers": {
       "sb16": 1679232,
       "sb16-2": 1463045
@@ -35,32 +35,35 @@
       "sb16": "1472 core/100 suites;51 harness;151 P10 passed. Evidence collected.",
       "sb16-2": "1472 core/100 suites; 51 harness; 151 P10 passed. Evidence collected."
     },
-    "runtime": "sb16: 1472 core/100 suites, 51 harness, 151 P10 passed. sb16-2: full sanitizer run active."
+    "runtime": "Both hosts: 1472 core/100 suites, 51 harness, and 151 P10 passed in Debug and runtime sanitizers.",
+    "matrix_evidence": "evidence/control-recovery-2026-10-09/matrix-review-03.json"
   },
   "preserved_failures": [
     "Both hosts:103 existing checks and51 harness passed;12 new checks errored on a fixture helper collision.",
     "Both hosts:18 new checks and51 harness passed;1 descriptor-count witness errored on protected procfs."
   ],
   "native_integration": {
-    "state": "sb16: all three native-world checks passed in Debug and runtime sanitizers. sb16-2: queued.",
+    "state": "Both hosts passed all three native-world checks in Debug and runtime sanitizers.",
     "checks_per_profile": 3,
     "drivers": {
       "sb16": 1693702,
       "sb16-2": 1475338
     },
     "evidence": "evidence/control-recovery-2026-10-09/owner-world-preparation-01.json",
-    "sb16_evidence": "evidence/control-recovery-2026-10-09/owner-world-01/sb16/collected.json"
+    "sb16_evidence": "evidence/control-recovery-2026-10-09/owner-world-01/sb16/collected.json",
+    "sb16_2_evidence": "evidence/control-recovery-2026-10-09/owner-world-01/sb16-2/collected.json"
   },
   "candidate03_integration_ready": false,
   "validation_order_correction": {
     "candidate": 4,
-    "state": "sb16 reproduced both expected baseline failures in both profiles; candidate04 build and qualification follows. sb16-2 remains queued.",
+    "state": "Both hosts reproduced both baseline failures in Debug and runtime sanitizers. sb16 passed the corrected Debug focused checks and runs full qualification. sb16-2 builds candidate04.",
     "total_owner_checks": 21,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-validation-review-04.json",
     "drivers": {
       "sb16": 1713719,
       "sb16-2": 1490463
-    }
+    },
+    "sb16_focused_evidence": "evidence/control-recovery-2026-10-09/owner-focused-04/sb16/debug/focused-review.json"
   },
   "retained_launch_binding": {
     "candidate": "binding01",

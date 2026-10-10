@@ -480,3 +480,11 @@ sb16 completed both owner03 profiles: 1472 core checks, 51 harness checks, and 1
 All three supplementary native-world checks passed in both profiles. Logs and witness files are preserved.
 The two protocol-validation failures reproduced exactly in both profiles. Candidate03 remains ineligible for integration.
 Candidate04 now builds and qualifies on sb16. sb16-2 continues owner03 sanitizers.
+
+Candidate04 sb16 Debug: 21 owner checks, three native-world checks, and 51 harness checks passed.
+Both validation-order regressions pass. Full profiles remain required before integration.
+
+Both-host owner03 matrix complete: Debug and runtime sanitizers passed 1472 core, 51 harness, and 151 P10 checks per profile.
+All three extra native-world checks passed per host/profile. No compiler overlap or skips were recorded.
+Two added validation-order checks fail on both hosts/profiles as expected. Their logs are preserved; owner03 remains ineligible for integration.
+Owner04 passed sb16 focused Debug checks and continues full qualification. sb16-2 now builds owner04.

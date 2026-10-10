@@ -1,0 +1,38 @@
+{
+  "reviewer": "primary agent",
+  "candidate": 3,
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "profiles": [
+    "Debug",
+    "runtime ASan/LSan/UBSan"
+  ],
+  "per_profile": {
+    "core_checks": 1472,
+    "core_suites": 100,
+    "harness_checks": 51,
+    "P10_cases": 151,
+    "native_world_checks": 3,
+    "qualification_failures": 0,
+    "skipped": 0
+  },
+  "known_defect": "Two additional protocol-validation counterexamples fail as expected on both hosts and profiles. Candidate04 corrects this defect.",
+  "integration_ready": false,
+  "production_changed": false,
+  "production_supervisor_binding": false,
+  "production_recovery_release": false,
+  "evidence_hashes": {
+    "sb16": {
+      "full": "4efc1dcd498e01712b1d3bf3b434dc72764a978a92bade171908ec33d27a6c34",
+      "native": "bda811b7179b6064b25cec65900b7de9c7237fc7681d6381dbedd83dfd4faa5b",
+      "baseline": "a5efb4a84f19c86888408cb82e1b62e204485397278c7424fa4f48911ff52080"
+    },
+    "sb16-2": {
+      "full": "e642452a19c3794a01c9ff4a7e52d703a88b27370a06a275ee7f179669b19992",
+      "native": "eaeb5a4d9c4337dee8c802d5b8f22bee1de0c04122aafedfd256159139721f3a",
+      "baseline": "e8aa8432821485ffb5b884c3cf197e8f1c065d2ed306c0be8185ff4cd01e4906"
+    }
+  }
+}

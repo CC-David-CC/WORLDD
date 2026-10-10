@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-09: Both-host owner03 matrix and native-world evidence collected
+
+Both hosts passed candidate03 Debug and runtime sanitizer qualification.
+Each profile passed 1,472 core checks across 100 suites, 51 harness checks, and 151 P10 cases.
+Each profile also passed three independent native-world checks. No qualifier failed or skipped a check.
+No compiler overlap was recorded.
+Read evidence/control-recovery-2026-10-09/matrix-review-03.json.
+
+Two additional validation-order checks reproduced the known defect on both hosts in both profiles.
+These failures remain separate from the passing existing matrix. Candidate03 remains ineligible for integration.
+Candidate04 passed focused Debug checks on sb16 and runs full qualification there.
+sb16-2 builds candidate04. Binding01 still waits for its predecessor.
+The native fixtures supply owner bindings. Production control recovery remains incomplete.
+
+## 2026-10-09: Corrected owner-channel checks pass on sb16 Debug
+
+Candidate04 passed 21 owner checks, three native-world checks, and 51 harness checks on sb16.
+Both validation-order regressions now pass after their baseline failures were preserved.
+The full Debug regression run remains active. The sanitizer profile follows it.
+Read evidence/control-recovery-2026-10-09/owner-focused-04/sb16/debug/focused-review.json.
+This focused result does not authorize integration. Both full profiles are still required on both hosts.
+
 ## 2026-10-09: sb16 passes full owner qualification and native-world checks
 
 Candidate03 passed Debug and runtime sanitizers on sb16.
