@@ -1,0 +1,59 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 109
+    Start 109: supervisor-session-exit
+
+109: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/source/tests/core/test_session_launch_exit.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/spatial-session-launch-exit-probe"
+109: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build
+109: Environment variables: 
+109:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/source
+109: Test timeout computed to be: 45
+109: test_failed_exit_cannot_become_success_on_retry (__main__.SessionExitTests.test_failed_exit_cannot_become_success_on_retry) ... ok
+109: test_matching_exit_allows_exact_completed_retry (__main__.SessionExitTests.test_matching_exit_allows_exact_completed_retry) ... ok
+109: 
+109: ----------------------------------------------------------------------
+109: Ran 2 tests in 0.101s
+109: 
+109: OK
+1/2 Test #109: supervisor-session-exit ..........   Passed    0.18 sec
+test 115
+    Start 115: session-broker-cleanup
+
+115: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-broker-cleanup-7027392beff5f63001a16473b11a7087e8ab0fa3222355a9315689089e93b033" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/source/tests/native/test_session_broker_cleanup.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build/spatial-issuer-client"
+115: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-broker-cleanup-01/debug/build
+115: Test timeout computed to be: 180
+115: Running as unit: spatial-broker-cleanup-7027392beff5f63001a16473b11a7087e8ab0fa3222355a9315689089e93b033.service; invocation ID: 5d19c1c9870d40efadaff3478bd15643
+115: test_crashed_broker_delivers_checked_receipt_and_exact_retry (__main__.SessionBrokerCleanupTests.test_crashed_broker_delivers_checked_receipt_and_exact_retry) ... ok
+115: test_broker_cleanup_does_not_replace_unconfirmed_world_cleanup (__main__.SessionBrokerCleanupTests.test_broker_cleanup_does_not_replace_unconfirmed_world_cleanup) ... ok
+115: test_process_exit_waits_for_actual_native_cleanup_reply (__main__.SessionBrokerCleanupTests.test_process_exit_waits_for_actual_native_cleanup_reply) ... ok
+115: test_supervisor_death_without_receipt_cannot_claim_cleanup (__main__.SessionBrokerCleanupTests.test_supervisor_death_without_receipt_cannot_claim_cleanup) ... ok
+115: 
+115: ----------------------------------------------------------------------
+115: Ran 4 tests in 14.579s
+115: 
+115: OK
+115: Finished with result: success
+115: Main processes terminated with: code=exited/status=0
+115: Service runtime: 14.748s
+115: CPU time consumed: 3.307s
+115: Memory peak: 1.5M
+115: Memory swap peak: 0B
+2/2 Test #115: session-broker-cleanup ...........   Passed   14.76 sec
+
+The following tests passed:
+	supervisor-session-exit
+	session-broker-cleanup
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  14.95 sec

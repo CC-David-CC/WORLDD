@@ -68,6 +68,7 @@ struct SessionLaunch::Impl {
     std::optional<v1::AuthorityLaunchRecord> terminal_record;
     std::string terminal_failure;
     bool stopped = false, reaped = false;
+    int child_status = 0;
     std::uint64_t sequence = 0;
 
     void live() const {
@@ -113,7 +114,8 @@ struct SessionLaunch::Impl {
         return receive(sequence, std::chrono::seconds(10));
     }
     bool wait_child(int milliseconds, int* status = nullptr) {
-        if (child <= 0 || reaped) return true;
+        if (child <= 0) return true;
+        if (reaped) { if (status) *status = child_status; return true; }
         if (supervisor.descriptor() >= 0) {
             pollfd event{supervisor.descriptor(), POLLIN, 0}; int ready;
             do { ready = poll(&event, 1, milliseconds); } while (ready < 0 && errno == EINTR);
@@ -122,7 +124,7 @@ struct SessionLaunch::Impl {
         int result = 0; pid_t waited;
         do { waited = waitpid(child, &result, WNOHANG); } while (waited < 0 && errno == EINTR);
         if (waited != child) return false;
-        reaped = true; if (status) *status = result; return true;
+        reaped = true; child_status = result; if (status) *status = result; return true;
     }
     ~Impl() {
         if (owner != getpid()) return;
@@ -217,7 +219,9 @@ workspace::v1::ControlOwner SessionLaunch::control_owner() {
 }
 v1::AuthorityLaunchRecord SessionLaunch::stop() {
     auto& state = *impl_;
-    require(state.owner == getpid() && !state.stopped && state.management, "Session cleanup ownership lost");
+    require(state.owner == getpid(), "Session cleanup ownership lost");
+    if (state.stopped) return state.record;
+    require(bool(state.management), "Session cleanup ownership lost");
     v1::AuthorityLaunchRecord result;
     if (!state.terminal_record) {
         std::uint64_t request_id = 0;

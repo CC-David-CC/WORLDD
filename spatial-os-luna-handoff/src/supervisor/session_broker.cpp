@@ -57,7 +57,8 @@ pid_t SessionBroker::supervisor_pid() const { impl_->live(); return impl_->launc
 pid_t SessionBroker::broker_pid() const { impl_->live(); return impl_->broker.pid(); }
 void SessionBroker::check_alive() const { impl_->live(); impl_->root->check_alive(); }
 v1::AuthorityLaunchRecord SessionBroker::stop() {
-    impl_->live(); auto result = impl_->launch->stop();
+    require(impl_->owner == getpid() && impl_->launch, "Session broker cleanup ownership lost");
+    auto result = impl_->launch->stop();
     impl_->administrative.reset(); impl_->root.reset(); return result;
 }
 }

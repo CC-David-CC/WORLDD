@@ -64,14 +64,16 @@ struct SessionCoordinator::Impl {
     Impl(const std::filesystem::path& executable, const std::filesystem::path& path,
         v1::AuthoritySupervisorConfig config, int native)
         : executable(executable), broker(executable, path, std::move(config), native) {}
-    void live() const { require(getpid() == creator, "Session coordinator ownership lost"); broker.check_alive(); }
-    World& find(const workspace::v1::ControlOwner& owner) const {
-        live(); validate_message(owner);
+    void owned() const { require(getpid() == creator, "Session coordinator ownership lost"); }
+    void live() const { owned(); broker.check_alive(); }
+    World& find_owned(const workspace::v1::ControlOwner& owner) const {
+        owned(); validate_message(owner);
         auto found = worlds.find(owner.launch().service_incarnation());
         require(found != worlds.end() && found->second->registered &&
             found->second->owner.SerializeAsString() == owner.SerializeAsString(), "Control owner is not a retained session world");
         return *found->second;
     }
+    World& find(const workspace::v1::ControlOwner& owner) const { live(); return find_owned(owner); }
     workspace::v1::ControlOwnerState administrative(const workspace::v1::ControlOwner& owner, int endpoint = -1,
         bool fence = false, const v1::AuthorityLaunchRecord* cleanup = nullptr) {
         live(); require(sequence != UINT64_MAX, "Session administrative request sequence exhausted");
@@ -224,10 +226,13 @@ core::v1::Reply SessionCoordinator::world_call(const workspace::v1::ControlOwner
     }
 }
 v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::ControlOwner& owner) {
-    auto& state = *impl_; auto& world = state.find(owner);
+    auto& state = *impl_; auto& world = state.find_owned(owner);
     require(!world.stopped, "Session world already stopped");
     // Stop its input path before native/process cleanup. Reservations remain pending separate selective recovery.
-    state.administrative(owner, -1, true);
+    try { state.administrative(owner, -1, true); }
+    catch (const std::exception& error) {
+        std::cerr << "World broker fence unconfirmed; stopping owned scopes: " << error.what() << '\n';
+    }
     world.record = world.supervisor->stop(); world.stopped = true; world.management.reset(); world.actors.clear();
     return world.record;
 }
@@ -255,8 +260,9 @@ identity::v1::AuthorityRetirementState SessionCoordinator::retire_world(const wo
     return result;
 }
 const v1::AuthorityLaunchRecord& SessionCoordinator::broker_launch() const { impl_->live(); return impl_->broker.launch(); }
+v1::AuthorityLaunchRecord SessionCoordinator::stop_broker() { impl_->owned(); return impl_->broker.stop(); }
 v1::AuthorityLaunchRecord SessionCoordinator::stop() {
-    auto& state = *impl_; state.live();
+    auto& state = *impl_; state.owned();
     for (const auto& [key, world] : state.worlds) {
         (void)key; require(world->stopped || !world->supervisor, "Stop retained world scopes before the session broker");
     }

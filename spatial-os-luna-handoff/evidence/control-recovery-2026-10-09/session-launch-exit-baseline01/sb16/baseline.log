@@ -1,0 +1,50 @@
+test_failed_exit_cannot_become_success_on_retry (__main__.ExitStatusBaseline.test_failed_exit_cannot_become_success_on_retry) ... FAIL
+
+======================================================================
+FAIL: test_failed_exit_cannot_become_success_on_retry (__main__.ExitStatusBaseline.test_failed_exit_cannot_become_success_on_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-launch-exit-baseline-01/input.py", line 24, in test_failed_exit_cannot_become_success_on_retry
+    self.assertTrue(second.HasField('error'),
+AssertionError: False is not true : Retry forgot the rejected supervisor exit status and accepted cleanup: protocol_version: 1
+request_id: 2
+view {
+  record {
+    schema_version: 2
+    revision: 2
+    binding {
+      issuer_id: "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+      participant_id: "pppppppppppppppppppppppppppppppp"
+      registered_revision: 1
+      service_incarnation: "ssssssssssssssssssssssssssssssss"
+      supervised: true
+    }
+    process {
+      launch_id: "llllllllllllllllllllllllllllllll"
+    }
+    native {
+      launch_id: "llllllllllllllllllllllllllllllll"
+      role: COMPOSITOR
+    }
+    stage: OWNED_SCOPES_STOPPED
+    process_stopped {
+      identity {
+        launch_id: "llllllllllllllllllllllllllllllll"
+      }
+    }
+    native_stopped {
+      identity {
+        launch_id: "llllllllllllllllllllllllllllllll"
+        role: COMPOSITOR
+      }
+    }
+    authorization {
+    }
+  }
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.022s
+
+FAILED (failures=1)

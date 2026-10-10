@@ -1,0 +1,27 @@
+Running as unit: spatial-session-broker-cleanup-baseline-01.service; invocation ID: 21836442abea46d4bbb3f3ec4fc2dc46
+test_checked_broker_crash_cleanup_is_delivered_to_retained_session (__main__.BrokerCleanupBaseline.test_checked_broker_crash_cleanup_is_delivered_to_retained_session) ... FAIL
+
+======================================================================
+FAIL: test_checked_broker_crash_cleanup_is_delivered_to_retained_session (__main__.BrokerCleanupBaseline.test_checked_broker_crash_cleanup_is_delivered_to_retained_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-session-broker-cleanup-baseline-01.py", line 44, in test_checked_broker_crash_cleanup_is_delivered_to_retained_session
+    self.assertTrue(reply.HasField('cleanup'),
+AssertionError: False is not true : Session discarded checked broker cleanup after its supervisor exited: protocol_version: 1
+request_id: 8
+error {
+  code: INVALID_ARGUMENT
+  message: "Session supervisor ownership lost"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 3.586s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 3.713s
+CPU time consumed: 892ms
+Memory peak: 1.5M
+Memory swap peak: 0B

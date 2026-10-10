@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-10: Retained broker crash cleanup passes focused checks
+
+The session now retrieves checked broker cleanup after its original supervisor exits.
+Exact retries preserve the receipt. Repeated waits retain the actual supervisor exit status.
+A rejected nonzero exit cannot become successful cleanup on retry.
+The coordinator can stop its exact owned world scopes when the broker is unavailable.
+Broker cleanup does not replace world cleanup, reservation recovery, or issuer retirement.
+
+All 69 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These include four new native cases, two exit-validation cases, and nine related suites.
+Native cases cover actual broker/application crashes, delayed native cleanup, independent credentials, and supervisor death.
+All 340 tested source files match. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/session-broker-cleanup-01/sb16/primary-review.json.
+Both original defect baselines remain preserved. No normal host session or database changed.
+
+Next: broker issuer retirement and dependent recovery with a stopped broker.
+Replacement recovery, failure races, cross-host cancellation, and full two-host qualification remain required for M02.
+The earlier participant-approval startup failure remains unresolved despite subsequent passing checks.
+Shared compositor lifetime across world transitions remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Actual coordinator cleanup-to-retirement passes focused checks
 
 The retained coordinator now signs retirement after verified world crash cleanup and durable broker reservation recovery.

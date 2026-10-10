@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "replacement_recovery_and_failure_qualification",
+  "current_step": "broker_retirement_and_stopped_broker_dependencies",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,7 +12,8 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Complete checked broker retirement and verify actual replacement recovery and failure races.",
+    "Implement checked broker issuer retirement and dependent recovery with a stopped broker.",
+    "Verify actual replacement recovery and failure races.",
     "Resolve the preserved participant-approval startup failure before the full phase gate.",
     "Complete cross-host cancellation and full M02 qualification on both hosts."
   ],
@@ -300,6 +301,21 @@
     "host": "sb16",
     "cases_per_profile": 110,
     "new_cases": 8,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "broker_cleanup": {
+    "state": "Checked broker cleanup after supervisor exit passed focused checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/session-broker-cleanup-01/sb16/primary-review.json",
+    "contract": "docs/SESSION_BROKER_CLEANUP.txt",
+    "host": "sb16",
+    "cases_per_profile": 69,
+    "new_cases": 6,
     "profiles": [
       "Debug",
       "runtime ASan/UBSan"

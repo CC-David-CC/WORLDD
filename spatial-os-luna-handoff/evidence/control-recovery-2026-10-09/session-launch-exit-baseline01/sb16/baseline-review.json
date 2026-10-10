@@ -1,0 +1,14 @@
+{
+  "status": "expected_exit_status_failure",
+  "passed": 0,
+  "failed": 1,
+  "attachments": {
+    "review.json": "4c7493226c79841bc15916e18a5f28fd92351f61d5937358258fd2393996a5df",
+    "build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline.log": "3c8958f53c293f6f595b1b4a5d216f02b22900f0ff35178446ea808ec33ea415",
+    "input.cpp": "f0e99a725cca548ce073869f012e3a7ac870c123a96c21854d20cc22ee04f94d",
+    "input.py": "229954cf072ba479e0a55f39e960379e170c7c5563074823e738cfd9d3672a42"
+  },
+  "finding": "A final receipt paired with exit status 7 was rejected once, then accepted on retry because wait_child returned a default zero status after reaping.",
+  "scope": "Independent lifecycle fault peer linked against unchanged production SessionLaunch. This is protocol and exit-validation evidence, not native cleanup evidence."
+}

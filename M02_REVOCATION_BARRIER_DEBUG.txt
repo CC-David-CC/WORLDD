@@ -745,3 +745,11 @@ The missing-step baseline remains in evidence/control-recovery-2026-10-09/coordi
 Only the exact retained world is retired. Native application response and broker survival are checked.
 Broker retirement, replacement recovery, failure races, the earlier startup failure, cross-host cancellation, and full M02 qualification remain pending.
 No normal session or database changed. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: Retained broker crash cleanup passed 69 cases per profile on sb16.
+Four new native cases, two exit-validation cases and nine related suites passed in Debug and runtime ASan/UBSan.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/session-broker-cleanup-01/sb16/primary-review.json.
+Both original failure baselines remain preserved. Broker cleanup is separate from world cleanup and issuer retirement.
+Broker retirement and stopped-broker dependency recovery remain pending.
+Replacement recovery, failure races, the earlier startup failure, cross-host cancellation and full M02 qualification remain pending.
+No normal session or database changed. M02 and Spatial-M1 remain incomplete.

@@ -21,6 +21,7 @@ public:
     int supervisor_pidfd() const;
     ProcessHandle broker_handle();
     workspace::v1::ControlOwner control_owner();
+    // Exact retry returns the already checked receipt. Rejected child exits stay rejected.
     v1::AuthorityLaunchRecord stop();
 private:
     struct Impl;
