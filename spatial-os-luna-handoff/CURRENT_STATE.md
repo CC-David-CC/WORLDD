@@ -1,5 +1,17 @@
 # Implementation status
 
+## 2026-10-10: Reply validation passes full Debug on sb16
+
+sb16 passed 1,496 core checks across 102 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed. No case failed or skipped.
+Read evidence/control-recovery-2026-10-09/reply-debug-review-01-sb16.json.
+The exact source, binary hashes, compiler monitor, and raw logs are preserved.
+The collector's reply01 path passed these checks after adding handoff01 support.
+
+Reply sanitizer qualification remains required. sb16-2 still runs binding sanitizers.
+The handoff tests remain queued and unrun. No reply or handoff source is integrated.
+Complete production control recovery and M02 remain incomplete.
+
 ## 2026-10-10: Binding full profiles pass on sb16; reply checks pass in Debug
 
 sb16 passed binding01 Debug and runtime sanitizers.

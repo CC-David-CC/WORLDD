@@ -562,3 +562,7 @@ Prepared binding source adoption using the deployed frozen manifest and 298 exac
 The helper protects all eight external qualification inputs before fast-forward checkout updates. Adoption remains unrun.
 The collector now supports handoff01, including its two required baseline failures and 1498-check cumulative profiles.
 The handoff collection path remains unrun. Both active qualification handles were confirmed live.
+
+Reply01 sb16 passed full Debug: 1496 core / 102 suites, 51 harness, 151 P10, and three native-world checks.
+No failures or skips. Raw evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/qualified-reply01/sb16.
+Both-host sanitizer qualification and handoff lifetime checks remain pending.

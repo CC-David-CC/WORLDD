@@ -1,0 +1,18 @@
+{
+  "reviewer": "primary agent",
+  "host": "sb16",
+  "candidate": "reply01",
+  "profile": "debug",
+  "core_checks": 1496,
+  "core_suites": 102,
+  "reply_checks": 16,
+  "harness_checks": 51,
+  "P10_cases": 151,
+  "native_world_checks": 3,
+  "failed": 0,
+  "skipped": 0,
+  "summary_sha256": "7a800f55ee5116f2f32c3050bf4fa46a37319c1cef7b8f607093fa3c6bf7a1d6",
+  "integration_ready": false,
+  "production_transport_implemented": false,
+  "remaining": "Both-host full Debug and sanitizer qualification before integration."
+}

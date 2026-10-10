@@ -1,5 +1,5 @@
 Private control reply validation
-Status: All 16 focused Debug checks passed on sb16. Complete qualification and integration remain pending.
+Status: Full Debug qualification passed on sb16. Complete both-host qualification and integration remain pending.
 
 Invariant
 
@@ -43,7 +43,8 @@ Qualification
 
 Both hosts have isolated copies of all 303 source files and 41 unchanged locked files.
 Each driver starts after successful binding01 qualification on the same host.
-sb16 passed its focused Debug checks and runs the full profile.
+sb16 passed full Debug: 1496 core checks, 51 harness checks, 151 P10 cases, and three native-world checks.
+Its full sanitizer profile remains required.
 Read evidence/control-recovery-2026-10-09/reply-focused-01/sb16/debug/focused-review.json.
 Then each driver builds Debug and runtime sanitizer profiles with two compiler jobs.
 Builds finish before qualification starts.

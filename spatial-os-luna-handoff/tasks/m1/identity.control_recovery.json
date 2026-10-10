@@ -100,7 +100,7 @@
   "control_reply_validation": {
     "candidate": "reply01",
     "base": "binding01",
-    "state": "sb16 passed focused Debug: 16 reply checks, 51 harness checks, and three native-world checks. Full qualification runs there. sb16-2 waits for binding01.",
+    "state": "sb16 passed complete Debug qualification: 1496 core / 102 suites, 51 harness, 151 P10, and three native-world checks. Its sanitizer profile remains required. sb16-2 waits for binding01.",
     "source_files": 303,
     "changed_files": 7,
     "new_checks": 16,
@@ -111,7 +111,8 @@
     "evidence": "evidence/control-recovery-2026-10-09/control-reply-review-01.json",
     "production_changed": false,
     "transport_implemented": false,
-    "sb16_focused_debug_evidence": "evidence/control-recovery-2026-10-09/reply-focused-01/sb16/debug/focused-review.json"
+    "sb16_focused_debug_evidence": "evidence/control-recovery-2026-10-09/reply-focused-01/sb16/debug/focused-review.json",
+    "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/reply-debug-review-01-sb16.json"
   },
   "supervisor_handoff_lifetime": {
     "candidate": "handoff01",
