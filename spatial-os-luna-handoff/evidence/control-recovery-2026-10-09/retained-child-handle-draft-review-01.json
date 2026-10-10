@@ -1,6 +1,6 @@
 {
   "reviewer": "primary agent",
-  "state": "Isolated prerequisite draft; uncompiled and untested",
+  "state": "Frozen 311-file candidate deployed on both hosts; qualification waiting behind exact administrative drivers",
   "reviewed_files": [
     "src/supervisor/process_scope.cpp",
     "src/supervisor/process_scope.hpp"
@@ -24,11 +24,18 @@
     "Closing returned copy does not change original ownership",
     "Concurrent exit closes rejected duplicate without leaks"
   ],
-  "remaining": "Build targets, full frozen candidate, queued Linux qualification, production supervisor authorization, descriptor-capable private transfer, and coordinator integration",
+  "remaining": "Complete qualification, production supervisor authorization, descriptor-capable private transfer, and coordinator integration",
   "new_checks": 5,
   "checks_status": "unrun",
   "test_files": [
     "src/testing/retained_child_handle_probe.cpp",
     "tests/core/test_retained_child_handle.py"
-  ]
+  ],
+  "source_files": 311,
+  "locked_files_unchanged": 41,
+  "drivers": {
+    "sb16": 2180756,
+    "sb16-2": 1880094
+  },
+  "driver_sha256": "7f3e8c2cd1c18f355226000c471f9414ff8e2fa572ecbcc917d8b3712bc37a5f"
 }
