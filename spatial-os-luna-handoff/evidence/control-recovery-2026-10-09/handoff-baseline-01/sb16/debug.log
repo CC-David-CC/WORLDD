@@ -1,0 +1,34 @@
+Running as unit: spatial-handoff-baseline-debug-2020931.service; invocation ID: 323765c93e49421aa55ff6be01fb9b10
+test_selected_endpoint_has_no_supervisor_copy_after_handoff (__main__.HandoffTests.test_selected_endpoint_has_no_supervisor_copy_after_handoff) ... FAIL
+test_child_stdout_has_no_supervisor_writer_after_handoff (__main__.HandoffTests.test_child_stdout_has_no_supervisor_writer_after_handoff) ... FAIL
+
+======================================================================
+FAIL: test_selected_endpoint_has_no_supervisor_copy_after_handoff (__main__.HandoffTests.test_selected_endpoint_has_no_supervisor_copy_after_handoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_handoff_lifetime_01.py", line 64, in test_selected_endpoint_has_no_supervisor_copy_after_handoff
+    self.child_exit_while_supervisor_stopped(proc, parent)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_handoff_lifetime_01.py", line 36, in child_exit_while_supervisor_stopped
+    self.assertTrue(select.select([observed], [], [], .3)[0],
+AssertionError: [] is not true : Supervisor retained an endpoint after its only child exited
+
+======================================================================
+FAIL: test_child_stdout_has_no_supervisor_writer_after_handoff (__main__.HandoffTests.test_child_stdout_has_no_supervisor_writer_after_handoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_handoff_lifetime_01.py", line 70, in test_child_stdout_has_no_supervisor_writer_after_handoff
+    self.child_exit_while_supervisor_stopped(proc, proc.stdout)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_handoff_lifetime_01.py", line 36, in child_exit_while_supervisor_stopped
+    self.assertTrue(select.select([observed], [], [], .3)[0],
+AssertionError: [] is not true : Supervisor retained an endpoint after its only child exited
+
+----------------------------------------------------------------------
+Ran 2 tests in 2.800s
+
+FAILED (failures=2)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 2.919s
+CPU time consumed: 569ms
+Memory peak: 1.5M
+Memory swap peak: 0B

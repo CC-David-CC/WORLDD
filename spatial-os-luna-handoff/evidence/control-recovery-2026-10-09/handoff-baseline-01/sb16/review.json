@@ -1,0 +1,21 @@
+{
+  "host": "sb16",
+  "reviewer": "primary agent",
+  "defect_reproduced": true,
+  "profiles": {
+    "debug": {
+      "expected_failures": 2,
+      "errors": 0,
+      "log_sha256": "1b7bdcf4dbdeb0bcbc6308b5246dfba6904ccbfbb7de80320f07665bf17e5e8c"
+    },
+    "runtime-sanitize": {
+      "expected_failures": 2,
+      "errors": 0,
+      "log_sha256": "f70aa5e8ea1bf148be4f3f6d3575643d0fbf35bdc4bfd258927e55c976f1671d"
+    }
+  },
+  "baseline_candidate": "reply01",
+  "corrected_candidate": "handoff01",
+  "corrected_checks": "unrun",
+  "production_changed": false
+}
