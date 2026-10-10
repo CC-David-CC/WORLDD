@@ -1,0 +1,30 @@
+{
+  "reviewed_by": "primary agent",
+  "state": "development branch; not integrated to main",
+  "source_files": 314,
+  "locked_files_unchanged": 41,
+  "changed_after_build": [
+    "tests/native/test_supervisor_child_handle.py"
+  ],
+  "transfer_checks": {
+    "debug": 8,
+    "runtime_sanitizer": 8
+  },
+  "related_checks": {
+    "debug_passed": 39,
+    "runtime_sanitizer_passed": 38,
+    "runtime_sanitizer_failed": 1
+  },
+  "targeted_repetitions": 5,
+  "unresolved": "Participant startup approval failure; five unchanged repetitions passed, cause unknown.",
+  "fixture_fix": "Use a free target for the negative alias mapping. This reaches the intended inode guard without weakening it.",
+  "contract": "docs/CHILD_HANDLE_PROTOCOL.txt",
+  "phase_gate_complete": false,
+  "remaining": [
+    "coordinator handle receiver and launch ownership",
+    "selective reservation recovery",
+    "durable dependent receipt",
+    "issuer retirement",
+    "complete phase qualification on both hosts"
+  ]
+}

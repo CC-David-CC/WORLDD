@@ -21,6 +21,9 @@ public:
     ProcessScope& operator=(const ProcessScope&) = delete;
     v1::ProcessScopeState state() const;
     bool exited_successfully() const;
+    // Duplicates the retained live child handle. The caller must close the result.
+    // This does not authorize an external transfer or prove process cleanup.
+    int duplicate_child_pidfd() const;
     v1::ProcessScopeStopped stop();
 private:
     ProcessScope() = default;

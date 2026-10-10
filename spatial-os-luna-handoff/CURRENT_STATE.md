@@ -1,5 +1,28 @@
 # Implementation status
 
+## 2026-10-10: Private broker handle server on the M02 development branch
+
+Branch m02/control-recovery contains the private supervisor handle server and its protobuf messages.
+The server duplicates the retained broker pidfd after checking the exact authorized launch snapshot.
+It checks parent credentials, bounds replies, and prevents child mappings of the private endpoint.
+The coordinator receiver remains incomplete. No host adopted this branch into its running session.
+
+All eight new transfer checks passed in Debug and runtime sanitizers on sb16.
+All 39 related Debug checks passed.
+Related sanitizer checks passed 38 cases and failed one existing participant-approval startup case.
+The unchanged failing case then passed five targeted repetitions. Its cause remains unresolved.
+Do not treat these results as a clean integration gate.
+Read evidence/control-recovery-2026-10-09/connected-01/sb16/primary-review.json and the preserved raw logs.
+
+The first alias fixture collided with another descriptor target before reaching the intended guard.
+Its corrected target passed both profiles with unchanged production binaries.
+All 41 locked files remain unchanged. The original baseline and both failures remain preserved.
+
+The obsolete sb16-2 handle run was canceled while waiting, before any build or test.
+Its inputs remain unchanged. The existing administrative transport run continues on sb16-2.
+Next: implement the coordinator receiver and retain broker management independently of world launches.
+Selective cleanup, durable dependent receipts, issuer retirement, and complete M02 qualification remain required.
+
 ## 2026-10-10: Focused development checks and retained-handle correction
 
 Use affected tests during implementation and complete qualification at phase gates.

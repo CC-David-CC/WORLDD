@@ -3,7 +3,8 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "connect_secure_handle_transfer_and_session_control_recovery_with_focused_checks",
+  "current_step": "implement_coordinator_handle_receiver_and_connected_control_recovery",
+  "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
   "invariant": "Release only a fenced generation's owned control reservations after verified native cancellation, while preserving independently authorized applications.",
@@ -12,7 +13,7 @@
   "production_changed": true,
   "remaining": [
     "Connect qualified retained-launch owner registration to the production session coordinator.",
-    "Transfer the exact retained broker child handle through an authenticated private supervisor interface.",
+    "Connect the private handle server to the coordinator receiver and exact retained supervisor identity.",
     "Retain production broker communication independently of the world process.",
     "Verify selective recovery release after checked native cancellation; preserve unrelated reservations and applications.",
     "Persist a checked dependent receipt before issuer retirement.",
@@ -163,7 +164,7 @@
     "candidate": "handle01",
     "source_files": 311,
     "new_checks": 5,
-    "state": "sb16 original Debug run failed five cleanup assertions that counted kernel cgroup files. The separate corrected helper passed all five scenarios in Debug and runtime sanitizers against unchanged binaries. sb16-2 original candidate remains queued. Full qualification after correction remains pending.",
+    "state": "sb16 corrected checks passed all five scenarios in Debug and runtime sanitizers. The obsolete sb16-2 candidate was canceled before its build. The development branch includes the corrected helper. Full phase qualification remains pending.",
     "focused_correction_evidence": "evidence/control-recovery-2026-10-09/handle-focused-02/sb16/review.json",
     "preserved_failure_evidence": "evidence/control-recovery-2026-10-09/handle-failure-01/sb16/review.json",
     "drivers": {
@@ -172,6 +173,17 @@
     },
     "production_changed": false,
     "evidence": "evidence/control-recovery-2026-10-09/retained-child-handle-draft-review-01.json",
-    "secure_supervisor_transfer_implemented": false
+    "secure_supervisor_transfer_implemented": false,
+    "canceled_queue_evidence": "evidence/control-recovery-2026-10-09/retained-handle-obsolete-queue-canceled-01.json"
+  },
+  "private_handle_server": {
+    "state": "Implemented on the development branch. Eight new checks passed per profile on sb16. Coordinator reception remains incomplete.",
+    "contract": "docs/CHILD_HANDLE_PROTOCOL.txt",
+    "evidence": "evidence/control-recovery-2026-10-09/connected-01/sb16/primary-review.json",
+    "integrated_to_main": false,
+    "related_debug_passed": 39,
+    "related_sanitizer_passed": 38,
+    "related_sanitizer_failed": 1,
+    "unresolved": "Existing participant startup failed during supervisor approval. Five unchanged targeted repetitions passed. Root cause remains unproven."
   }
 }

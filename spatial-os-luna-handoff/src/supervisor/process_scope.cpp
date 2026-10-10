@@ -206,6 +206,17 @@ v1::ProcessScopeState ProcessScope::state() const {
     result.set_populated(!removed_ && populated()); result.set_started(started_);
     result.set_direct_child_exited(started_ && child_exited()); return result;
 }
+int ProcessScope::duplicate_child_pidfd() const {
+    valid(started_ && !removed_ && !reaped_ && child_ > 0 && pidfd_ >= 0,
+        "No retained live child handle");
+    valid(!child_exited() && populated(), "Owned child is no longer running");
+    const int duplicate = fcntl(pidfd_, F_DUPFD_CLOEXEC, 3);
+    check(duplicate >= 3, "Cannot duplicate retained child handle");
+    try {
+        valid(!child_exited() && populated(), "Owned child exited during handle duplication");
+    } catch (...) { close(duplicate); throw; }
+    return duplicate;
+}
 bool ProcessScope::exited_successfully() const {
     valid(started_ && child_ > 0 && !reaped_, "No retained child exit status");
     siginfo_t info{};

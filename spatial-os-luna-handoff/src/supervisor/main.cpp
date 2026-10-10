@@ -1,4 +1,5 @@
 #include "supervisor/launch.hpp"
+#include "supervisor/child_handle.hpp"
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
 #include "broker.pb.h"
@@ -42,7 +43,7 @@ int descriptor(const char* text) {
 bool absolute(const std::string& text) {
     return !text.empty() && text.find('\0') == std::string::npos && std::filesystem::path(text).is_absolute();
 }
-pb::AuthoritySupervisorConfig configuration(const char* path, int native, int management) {
+pb::AuthoritySupervisorConfig configuration(const char* path, int native, int management, int handle) {
     pb::AuthoritySupervisorConfig value;
     require(google::protobuf::TextFormat::ParseFromString(spatial::identity::tls_detail::load_config(path), &value),
         "Malformed supervisor configuration");
@@ -67,20 +68,22 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         require(target >= 3 && target <= 255 && targets.insert(target).second,
             "Invalid compositor native descriptor target");
     }
-    struct stat native_info{}, management_info{};
+    struct stat native_info{}, management_info{}, handle_info{};
     require(fstat(native, &native_info) == 0 && fstat(management, &management_info) == 0,
         "Cannot identify privileged descriptors");
+    require(handle < 0 || fstat(handle, &handle_info) == 0, "Cannot identify private handle descriptor");
     for (int i = 0; i < value.inherited_source_fds_size(); ++i) {
         const auto source = value.inherited_source_fds(i), target = value.launch().inherited_fds(i);
         struct stat source_info{};
         require(source >= 3 && source <= INT_MAX && static_cast<int>(source) != native &&
-            static_cast<int>(source) != management && sources.insert(source).second &&
+            static_cast<int>(source) != management && static_cast<int>(source) != handle && sources.insert(source).second &&
             fcntl(static_cast<int>(source), F_GETFD) >= 0 &&
             target >= 3 && target <= 255 && targets.insert(target).second,
             "Invalid or privileged child descriptor mapping");
         require(fstat(static_cast<int>(source), &source_info) == 0 &&
             !(source_info.st_dev == native_info.st_dev && source_info.st_ino == native_info.st_ino) &&
-            !(source_info.st_dev == management_info.st_dev && source_info.st_ino == management_info.st_ino),
+            !(source_info.st_dev == management_info.st_dev && source_info.st_ino == management_info.st_ino) &&
+            (handle < 0 || !(source_info.st_dev == handle_info.st_dev && source_info.st_ino == handle_info.st_ino)),
             "Child descriptor aliases privileged supervisor input");
     }
     return value;
@@ -199,15 +202,19 @@ void release_child_sources(const pb::AuthoritySupervisorConfig& config) {
 int main(int argc, char** argv) {
     std::unique_ptr<spatial::supervisor::AuthorityLaunch> launch;
     std::unique_ptr<spatial::identity::ParticipantStream> management;
+    std::unique_ptr<spatial::supervisor::ChildHandleServer> handles;
     bool explicit_shutdown = false;
     std::signal(SIGPIPE, SIG_IGN);
     std::signal(SIGTERM, terminate); std::signal(SIGINT, terminate);
     try {
-        require(argc == 4, "Expected supervisor configuration, sealed native descriptor, and management descriptor");
+        require(argc == 4 || argc == 5,
+            "Expected supervisor configuration, sealed native descriptor, management descriptor, and optional private handle descriptor");
         const int native = descriptor(argv[2]), control = descriptor(argv[3]);
-        require(native != control, "Native and management descriptors must differ");
-        auto config = configuration(argv[1], native, control);
+        const int handle = argc == 5 ? descriptor(argv[4]) : -1;
+        require(native != control && handle != native && handle != control, "Privileged descriptors must differ");
+        auto config = configuration(argv[1], native, control, handle);
         management = std::make_unique<spatial::identity::ParticipantStream>(control, getppid());
+        if (handle >= 0) handles = std::make_unique<spatial::supervisor::ChildHandleServer>(handle, getppid());
         File native_config(native);
         File broker_config;
         File compositor_config;
@@ -282,6 +289,7 @@ int main(int argc, char** argv) {
                 management->send(reply.SerializeAsString());
                 if (stop) { drain(*management); return 0; }
             }
+            if (handles) handles->pump(*launch);
             launch->pump_channel();
             if (launch->child_completed()) {
                 view(*management, launch->stop()); drain(*management); return 0;

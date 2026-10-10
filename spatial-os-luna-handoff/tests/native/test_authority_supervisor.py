@@ -39,7 +39,7 @@ class AuthoritySupervisorTests(owned.OwnedParticipantTests):
                 arguments=[str(self.child_config), *domains]),
             child_participant_config=str(self.child_config), participant_target_fd=37)
 
-    def supervisor_process(self, config=None, start_server=True, invalid_mapping=False):
+    def supervisor_process(self, config=None, start_server=True, invalid_mapping=False, handle_fd=None, supervisor_binary=None):
         if start_server:
             self.start()
         if config is None:
@@ -51,7 +51,7 @@ class AuthoritySupervisorTests(owned.OwnedParticipantTests):
         os.write(fd, native.SerializeToString())
         fcntl.fcntl(fd, fcntl.F_ADD_SEALS, fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
         parent, child = socket.socketpair()
-        alias = os.dup(fd) if invalid_mapping == 'alias' else None
+        alias = os.dup(fd) if invalid_mapping == 'alias' else os.dup(handle_fd) if invalid_mapping == 'handle-alias' else None
         if invalid_mapping:
             config.inherited_source_fds.append(fd if alias is None else alias)
             config.launch.inherited_fds.append(38)
@@ -59,9 +59,11 @@ class AuthoritySupervisorTests(owned.OwnedParticipantTests):
         path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
         logpath = path.with_suffix('.log'); log = logpath.open('wb')
         try:
-            proc = subprocess.Popen([str(owned.existing.PROBE.with_name('spatial-authority-supervisor')),
-                str(path), str(fd), str(child.fileno())], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=log, pass_fds=(fd, child.fileno()) + (() if alias is None else (alias,)))
+            proc = subprocess.Popen([str(supervisor_binary or owned.existing.PROBE.with_name('spatial-authority-supervisor')),
+                str(path), str(fd), str(child.fileno())] + ([] if handle_fd is None else [str(handle_fd)]),
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=log, pass_fds=(fd, child.fileno()) + (() if alias is None else (alias,)) +
+                (() if handle_fd is None else (handle_fd,)))
         finally:
             os.close(fd); child.close()
             if alias is not None:

@@ -131,5 +131,7 @@ A transport failure after sending leaves the operation uncertain.
 Do not synthesize successful registration, fencing, cleanup, or retirement.
 Do not replay an uncertain registration with another identity.
 
-These requirements are not implemented or qualified transport evidence.
-The running reply01 source contains validation only.
+The development branch contains the administrative client in src/supervisor/control_admin.cpp.
+Its packet tests do not prove the coordinator's endpoint-to-launch mapping.
+The private supervisor handle server is implemented. Coordinator reception remains incomplete.
+Do not report the complete recovery path as implemented from these component checks.

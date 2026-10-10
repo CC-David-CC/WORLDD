@@ -603,3 +603,14 @@ Original failures remain preserved. Full qualification after correction and seco
 User-directed schedule now uses focused checks per change and full qualification at phase gates.
 Root and subproject instructions record the schedule. Acceptance contracts and locked tests remain unchanged.
 The production coordinator, selective cleanup, durable receipt, and issuer retirement remain incomplete.
+2026-10-10: Development branch m02/control-recovery now implements a private protobuf broker-handle server.
+All eight transfer cases passed in Debug and runtime sanitizers on sb16. Coordinator reception remains incomplete.
+The alias-negative fixture first collided with native target 38. Moving its native target to 39 reached the intended alias guard.
+The original failure and passing correction are preserved. Production bytes did not change after that failure.
+Related Debug checks: 39 passed. Related sanitizer checks: 38 passed, one failed during participant approval.
+Exact failure: test_production_supervisor_returns_exact_owned_binding_without_stopping_child received Participant failed during supervisor approval.
+Five fresh repetitions of that unchanged assertion passed with extra fixture logs preserved. The cause remains unknown.
+Do not claim a clean integration gate or M02 completion. Main and running host sessions remain on the prior qualified source.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/connected-01/sb16.
+The obsolete sb16-2 handle queue was canceled while its verified process was waiting, with no children or completed build.
+The active sb16-2 administrative transport run continues. Its canceled successor's source inputs remain unchanged.

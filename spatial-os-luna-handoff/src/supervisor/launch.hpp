@@ -32,6 +32,8 @@ public:
     v1::AuthorityLaunchRecord inspect() const;
     // Registration identity from retained live ownership. This does not prove activation or cleanup.
     workspace::v1::ControlOwner control_owner() const;
+    // Private coordinator query. Caller owns the duplicate; serialized identity is insufficient.
+    int duplicate_broker_pidfd(const v1::AuthorityLaunchRecord& expected) const;
     v1::AuthorityLaunchRecord stop();
     // Fence the exact authorized generation. This does not retire issuer obligations.
     v1::AuthorityLaunchRecord fence();

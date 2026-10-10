@@ -85,6 +85,22 @@ message AuthorityLaunchView {
   NativeScopeReady ready = 2; // Only during live preparation. Never persisted.
 }
 message AuthorityLaunchError { string message = 1; }
+// Dedicated private SOCK_SEQPACKET channel. No actor can access this interface.
+// A successful reply carries exactly one SCM_RIGHTS pidfd; an error carries none.
+// The snapshot must match the retained, authorized, running broker launch exactly.
+message AuthorityChildHandleRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  AuthorityLaunchRecord expected = 3;
+}
+message AuthorityChildHandleReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    AuthorityLaunchRecord launch = 10;
+    AuthorityLaunchError error = 11;
+  }
+}
 message AuthorityLaunchReply {
   uint32 protocol_version = 1;
   uint64 request_id = 2;

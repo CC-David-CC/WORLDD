@@ -416,6 +416,18 @@ workspace::v1::ControlOwner AuthorityLaunch::control_owner() const {
     *owner.mutable_native() = impl_->record.native();
     return owner;
 }
+int AuthorityLaunch::duplicate_broker_pidfd(const v1::AuthorityLaunchRecord& expected) const {
+    validate_message(expected);
+    require(impl_->record.binding().supervised() && impl_->record.has_authorization() &&
+        impl_->record.stage() == v1::START_ATTEMPTED && impl_->started &&
+        impl_->record.native().role() == security::v1::BROKER &&
+        impl_->process && impl_->native && impl_->participant && !impl_->participant->failed() &&
+        impl_->authorization_config && !impl_->stopping && !impl_->relay_failed && !impl_->relay_released &&
+        !impl_->record.has_fence(), "Broker handle requires retained live authorized launch ownership");
+    require(expected.SerializeAsString() == impl_->record.SerializeAsString(),
+        "Broker handle query does not match the retained launch");
+    return impl_->process->duplicate_child_pidfd();
+}
 v1::AuthorityLaunchRecord AuthorityLaunch::fence() {
     require(impl_->record.binding().supervised() && impl_->record.has_authorization() &&
         impl_->record.stage() >= v1::START_ATTEMPTED && impl_->process && impl_->native &&

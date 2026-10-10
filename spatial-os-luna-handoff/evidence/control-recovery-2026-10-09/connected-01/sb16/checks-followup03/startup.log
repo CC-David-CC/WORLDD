@@ -1,0 +1,17 @@
+Running as unit: spatial-connected-followup03-startup.service; invocation ID: a090aa4da73a4e5cb33956c1646f315a
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.StartupCase.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 6.306s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 6.419s
+CPU time consumed: 2.486s
+Memory peak: 1.7M
+Memory swap peak: 0B

@@ -171,7 +171,7 @@ target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
 add_library(spatial-identity STATIC src/identity/keys.cpp)
 add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp ${scope_proto_sources} ${scope_proto_headers})
 target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
-add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
+add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/supervisor/child_handle.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
 target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope SQLite::SQLite3)
 add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
 add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
@@ -846,4 +846,40 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage.py" $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-storage-vfs-probe>)
     set_tests_properties(storage-faults PROPERTIES TIMEOUT 60
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+endif()
+
+# Private administrative transport; the fixture launches only an independent packet witness.
+add_library(spatial-control-admin STATIC src/supervisor/control_admin.cpp)
+target_link_libraries(spatial-control-admin PUBLIC spatial-control-reply)
+if(BUILD_TESTING)
+    add_executable(spatial-control-admin-probe src/testing/control_admin_probe.cpp)
+    target_link_libraries(spatial-control-admin-probe PRIVATE spatial-control-admin)
+    add_dependencies(spatial-control-admin-probe broker-python-protobuf security-python-protobuf python-protobuf)
+    add_test(NAME control-administrative-transport COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_control_admin.py" $<TARGET_FILE:spatial-control-admin-probe>)
+    set_tests_properties(control-administrative-transport PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+endif()
+
+if(BUILD_TESTING)
+    add_executable(spatial-retained-child-handle-probe src/testing/retained_child_handle_probe.cpp)
+    target_link_libraries(spatial-retained-child-handle-probe PRIVATE spatial-process-scope)
+    add_test(NAME retained-child-handle COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-retained-handle-${build_hash} --property=Delegate=yes
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_retained_child_handle.py"
+        $<TARGET_FILE:spatial-retained-child-handle-probe>)
+    set_tests_properties(retained-child-handle PROPERTIES TIMEOUT 120)
+    add_test(NAME supervisor-child-handle COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-child-handle-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_supervisor_child_handle.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(supervisor-child-handle PROPERTIES TIMEOUT 180)
 endif()

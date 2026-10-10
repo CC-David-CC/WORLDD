@@ -1,0 +1,58 @@
+{
+  "startup": {
+    "command": [
+      "systemd-run",
+      "--user",
+      "--wait",
+      "--pipe",
+      "--collect",
+      "--property=Delegate=yes",
+      "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/source:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/source/tests/native",
+      "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+      "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/checks-followup03/native",
+      "--setenv=SPATIAL_BINDING_STARTUP_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/checks-followup03/startup-logs",
+      "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+      "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+      "--setenv=LSAN_OPTIONS=",
+      "--unit=spatial-connected-followup03-startup",
+      "python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/reproduce-binding-startup-01.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/source",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/spatial-authority-launch-probe",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/spatial-security-auth",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/spatial-issuer-client"
+    ],
+    "exit_code": 0,
+    "helper_sha256": "b8d117a4795a5d70321402afb896d8e1711901b3dd381c97ac3769ea0b525aee",
+    "log_sha256": "9582946f141565e7e8e5ed2d2fe37e033d0d760402aeef5c7b6cd6bfba8ac81e"
+  },
+  "handle": {
+    "command": [
+      "systemd-run",
+      "--user",
+      "--wait",
+      "--pipe",
+      "--collect",
+      "--property=Delegate=yes",
+      "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/source:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/source/tests/native",
+      "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+      "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/checks-followup03/native",
+      "--setenv=SPATIAL_BINDING_STARTUP_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/checks-followup03/startup-logs",
+      "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+      "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+      "--setenv=LSAN_OPTIONS=",
+      "--unit=spatial-connected-followup03-handle",
+      "python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_supervisor_child_handle_02.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/source",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/spatial-authority-launch-probe",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/spatial-security-auth",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-recovery-01/runtime-sanitize/build/spatial-issuer-client"
+    ],
+    "exit_code": 0,
+    "helper_sha256": "81af63aeddf1861a01837d585bbe4e8b2c2447c74eb15d88c7fa089ad94a19e1",
+    "log_sha256": "740b8fbe946af1364e70ccb13c4714ec03ca2ebbce87060fcc2c1a74c831d4ab"
+  }
+}
