@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-10: Control recovery qualification queue
+
+Reply01 passed full Debug and runtime sanitizers on sb16.
+Reply01 passed full Debug on sb16-2. Its sanitizer core checks are running.
+Each completed profile passed 1,496 core checks, 51 harness checks, 151 P10 cases, and three native-world checks.
+
+Handoff01 passed its two focused Debug checks on sb16 after reproducing both baseline failures.
+Its full Debug core checks are running. Sanitizer and second-host qualification remain required.
+Read evidence/control-recovery-2026-10-09/handoff-focused-01/sb16/debug/review.json.
+
+Administrative transport has 11 new checks, queued behind handoff on each host.
+Retained child-handle duplication has five new checks, queued behind transport on each host.
+These 16 new checks remain unrun. Neither candidate implements the complete session coordinator.
+Only binding01 is integrated and adopted production source.
+Secure child-handle transfer, coordinator integration, selective cleanup, and issuer retirement remain incomplete.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Reply validation passes both profiles on sb16
 
 sb16 passed full Debug and runtime sanitizer qualification for reply01.
