@@ -1,0 +1,37 @@
+{
+  "status": "runner_exit_observed",
+  "started": 1791654609.4385705,
+  "runner_pid": 2708276,
+  "initial_process_identities": {
+    "2708276": {
+      "start_ticks": "32321691"
+    },
+    "2712933": {
+      "start_ticks": "32348128"
+    },
+    "2712935": {
+      "start_ticks": "32348129"
+    }
+  },
+  "scope": "Exact live candidate02 runner, its observed children, and future descendants. Kernel timing only.",
+  "starts_mid_run": true,
+  "source_changed": false,
+  "deadlines_changed": false,
+  "command": [
+    "sudo",
+    "-n",
+    "bpftrace",
+    "-q",
+    "-B",
+    "none",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-candidate02-kernel-timing-01/kernel.bt",
+    "2708276"
+  ],
+  "exit_code": 0,
+  "ended": 1791654613.2718394,
+  "attachments": {
+    "trace-current-issuer-run-02.py": "968d75d54a1b9fa78404b4ebdcc444254b104049c0828f353b780800b3b1410a",
+    "kernel.bt": "9586bc807d02afcda4f17d065ff42ce042025f2f0333afc81d3b6494c4dbb394",
+    "timing.log": "41aa448a751574671d076359cccf6f6f15273a2a04547dc68fd5518d9ff55739"
+  }
+}

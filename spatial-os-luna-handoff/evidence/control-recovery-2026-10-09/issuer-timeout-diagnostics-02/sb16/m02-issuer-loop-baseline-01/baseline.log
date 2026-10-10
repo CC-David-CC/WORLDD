@@ -1,0 +1,14 @@
+test_server_records_long_loop_delay_without_changing_protocol (__main__.TlsTests.test_server_records_long_loop_delay_without_changing_protocol) ... FAIL
+
+======================================================================
+FAIL: test_server_records_long_loop_delay_without_changing_protocol (__main__.TlsTests.test_server_records_long_loop_delay_without_changing_protocol)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-loop-baseline-01/test_identity_tls.py", line 159, in test_server_records_long_loop_delay_without_changing_protocol
+    self.assertTrue(lines, 'The issuer did not retain the injected event-loop delay')
+AssertionError: [] is not true : The issuer did not retain the injected event-loop delay
+
+----------------------------------------------------------------------
+Ran 1 test in 0.339s
+
+FAILED (failures=1)

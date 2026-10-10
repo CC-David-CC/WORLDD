@@ -1,0 +1,15 @@
+READY root=2708276
+ROOT_EXIT
+
+
+@calls[systemd-run, tracepoint:syscalls:sys_exit_ppoll]: 1
+@calls[ctest, tracepoint:syscalls:sys_exit_read]: 8
+@calls[python3, tracepoint:syscalls:sys_exit_read]: 1314
+@maximum_us[ctest, tracepoint:syscalls:sys_exit_read]: 3
+@maximum_us[systemd-run, tracepoint:syscalls:sys_exit_ppoll]: 1000
+@maximum_us[python3, tracepoint:syscalls:sys_exit_read]: 33794
+
+
+
+
+

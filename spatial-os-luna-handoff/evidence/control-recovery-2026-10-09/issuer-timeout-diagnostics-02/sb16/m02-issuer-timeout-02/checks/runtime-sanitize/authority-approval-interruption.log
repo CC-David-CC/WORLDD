@@ -1,0 +1,42 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 8
+    Start 8: authority-approval-interruption
+
+8: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-approval-interruption-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/source/tests/native/test_approval_interruption.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/spatial-issuer-client"
+8: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build
+8: Test timeout computed to be: 120
+8: Running as unit: spatial-approval-interruption-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: abed457e73eb4cf48b76da9116e2667e
+8: test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch (__main__.ApprovalInterruptionTests.test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch) ... ok
+8: test_participant_timeout_during_approval_never_executes (__main__.ApprovalInterruptionTests.test_participant_timeout_during_approval_never_executes) ... ok
+8: test_lost_committed_approval_reply_never_retries_or_executes (__main__.ApprovalInterruptionTests.test_lost_committed_approval_reply_never_retries_or_executes) ... ok
+8: test_active_revocation_timeout_stops_scopes_without_completing_barrier (__main__.ApprovalInterruptionTests.test_active_revocation_timeout_stops_scopes_without_completing_barrier) ... ok
+8: 
+8: ----------------------------------------------------------------------
+8: Ran 4 tests in 7.450s
+8: 
+8: OK
+8: Finished with result: success
+8: Main processes terminated with: code=exited/status=0
+8: Service runtime: 7.573s
+8: CPU time consumed: 2.419s
+8: Memory peak: 1.5M
+8: Memory swap peak: 0B
+1/1 Test #8: authority-approval-interruption ...   Passed    7.59 sec
+
+The following tests passed:
+	authority-approval-interruption
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   7.60 sec

@@ -31,8 +31,8 @@ These focused checks do not resolve either historical failure by themselves.
 The complete both-host M02 phase gate remains pending.
 No inference, physical input, or normal desktop change is needed for this diagnostic increment.
 
-Current result
-The diagnostic candidate remains unintegrated.
+Preserved first candidate result
+The first diagnostic candidate failed qualification.
 Debug passed all 64 selected cases on sb16.
 Sanitizers passed 30 client cases, then 15 participant cases with one participant failure.
 The two later sanitizer native suites were not run.
@@ -42,3 +42,30 @@ Read evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-failure01/p
 Three traced repetitions passed 48 participant case executions. They do not explain the failed run.
 Read evidence/control-recovery-2026-10-09/participant-reply-timing-01/primary-review.json.
 Capture issuer TLS read/write progress and readiness with kernel timing next.
+
+Issuer-side diagnostic increment
+The bounded TLS trace passed twenty attempts and observed 260 complete participant reply headers.
+The maximum write-to-header interval was 117906 microseconds in those passing attempts.
+The original 705 ms failure remains unexplained. Dynamic probes can perturb scheduling.
+Record issuer event-loop delays of at least 100 ms without dynamic probes.
+Use only fixed numeric timing fields. Keep existing transport behavior and deadlines.
+Retain issuer stderr through the existing evidence directory during fixture cleanup.
+Add identity-tls to the previously selected suites in Debug and runtime ASan/UBSan.
+Its new case pauses the exact fixture issuer through a retained pidfd, then verifies replies and the delay log.
+The deliberate pause tests observability. It does not reproduce or explain the historical cause.
+
+Second candidate result
+All five selected suites passed on sb16 in both profiles: 88 Debug and 88 runtime sanitizer cases.
+The issuer-loop baseline failed its one new diagnostic assertion against the previous server binary.
+The corresponding check passed with the new logging and retained the expected 151 ms injected delay.
+The Debug run also recorded a separate loop with 10 ms before poll completion and 127 ms afterward.
+That record is not the earlier 705 ms failure and does not establish its cause.
+Read evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-02/primary-review.json.
+Keep the original failed candidate and all unsuccessful trace setup evidence.
+
+Next qualification
+Audit the finite M02 requirements, then freeze one candidate for the complete both-host matrix.
+Retain client and issuer logs. Record resource pressure and compiler overlap during qualification.
+Earlier compiler-overlap evidence exists in evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json.
+It does not explain the newer no-live-compiler failure without additional evidence.
+Do not repeat the isolated case further without a new diagnostic hypothesis.

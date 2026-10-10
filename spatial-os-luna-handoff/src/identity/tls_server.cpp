@@ -10,6 +10,7 @@
 #include <array>
 #include <cerrno>
 #include <chrono>
+#include <cstdio>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <poll.h>
@@ -143,10 +144,12 @@ struct IssuerTlsServer::Impl {
         context = tls_detail::make_context(true, config.certificate_path(), config.private_key_path(), config.client_ca_path());
     }
     void serve(Issuer& issuer) {
+        auto started = Clock::now();
         for (;;) {
             std::vector<pollfd> fds{{STDIN_FILENO, POLLIN, 0}, {listener.value, POLLIN, 0}};
             for (const auto& peer : peers) fds.push_back({peer->socket.value, peer->wanted, 0});
             const int result = poll(fds.data(), fds.size(), 10);
+            const auto polled = Clock::now();
             if (result < 0 && errno == EINTR) continue;
             require(result >= 0, "Cannot poll issuer TLS listener");
             if (fds[0].revents & (POLLIN | POLLHUP | POLLERR | POLLNVAL)) {
@@ -176,6 +179,15 @@ struct IssuerTlsServer::Impl {
                 if (peers.size() >= limit) { close(fd); continue; }
                 peers.push_back(std::make_unique<Peer>(fd, context.get(), timeout));
             }
+            const auto finished = Clock::now();
+            if (finished-started >= Milliseconds(100)) {
+                // Fixed timing fields only. Do not log peer identities or request data.
+                std::fprintf(stderr, "issuer TLS loop delayed monotonic_us=%lld poll_ms=%lld work_ms=%lld\n",
+                    static_cast<long long>(std::chrono::duration_cast<std::chrono::microseconds>(finished.time_since_epoch()).count()),
+                    static_cast<long long>(std::chrono::duration_cast<Milliseconds>(polled-started).count()),
+                    static_cast<long long>(std::chrono::duration_cast<Milliseconds>(finished-polled).count()));
+            }
+            started = finished;
         }
     }
 };

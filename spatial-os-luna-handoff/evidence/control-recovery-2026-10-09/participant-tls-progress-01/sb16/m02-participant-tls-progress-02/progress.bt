@@ -1,0 +1,92 @@
+BEGIN { @tracked[$1] = 1; printf("READY root=%d\n", $1); }
+tracepoint:sched:sched_process_fork /@tracked[args->parent_pid]/ {
+    @tracked[args->child_pid] = 1;
+    printf("FORK parent=%d child=%d\n", args->parent_pid, args->child_pid);
+}
+tracepoint:sched:sched_process_exec /@tracked[tid]/ {
+    printf("EXEC pid=%d path=%s\n", pid, str(args->filename));
+}
+tracepoint:syscalls:sys_enter_read,
+tracepoint:syscalls:sys_enter_write,
+tracepoint:syscalls:sys_enter_pread64,
+tracepoint:syscalls:sys_enter_pwrite64,
+tracepoint:syscalls:sys_enter_fsync,
+tracepoint:syscalls:sys_enter_fdatasync,
+tracepoint:syscalls:sys_enter_poll,
+tracepoint:syscalls:sys_enter_ppoll,
+tracepoint:syscalls:sys_enter_futex /@tracked[tid]/ { @started[tid] = nsecs; }
+tracepoint:syscalls:sys_exit_read,
+tracepoint:syscalls:sys_exit_write,
+tracepoint:syscalls:sys_exit_pread64,
+tracepoint:syscalls:sys_exit_pwrite64,
+tracepoint:syscalls:sys_exit_fsync,
+tracepoint:syscalls:sys_exit_fdatasync,
+tracepoint:syscalls:sys_exit_poll,
+tracepoint:syscalls:sys_exit_ppoll,
+tracepoint:syscalls:sys_exit_futex /@tracked[tid] && @started[tid]/ {
+    $us = (nsecs - @started[tid]) / 1000;
+    @maximum_us[comm, probe] = max($us);
+    @calls[comm, probe] = count();
+    if ($us >= 100000) {
+        printf("SLOW ns=%llu pid=%d tid=%d comm=%s call=%s us=%llu result=%lld\n",
+            nsecs, pid, tid, comm, probe, $us, args->ret);
+    }
+    delete(@started[tid]);
+}
+tracepoint:sched:sched_switch {
+    if (@tracked[args->prev_pid]) {
+        @offcpu[args->prev_pid] = nsecs;
+        @offstate[args->prev_pid] = args->prev_state;
+    }
+    if (@tracked[args->next_pid] && @offcpu[args->next_pid]) {
+        $us = (nsecs - @offcpu[args->next_pid]) / 1000;
+        if ($us >= 100000) {
+            printf("WAIT ns=%llu tid=%d comm=%s us=%llu state=%lld\n",
+                nsecs, args->next_pid, args->next_comm, $us, @offstate[args->next_pid]);
+        }
+        delete(@offcpu[args->next_pid]); delete(@offstate[args->next_pid]);
+    }
+}
+tracepoint:sched:sched_process_exit /@tracked[tid]/ {
+    delete(@tracked[tid]); delete(@started[tid]); delete(@offcpu[tid]); delete(@offstate[tid]);
+    if (tid == $1) { printf("ROOT_EXIT\n"); exit(); }
+}
+interval:s:1 { @seconds++; if (@seconds >= 90) { printf("TRACE_DEADLINE\n"); exit(); } }
+END {
+    clear(@tls_ssl); clear(@tls_size); clear(@tls_count); clear(@tls_start);
+    clear(@error_ssl); clear(@pending_ssl);
+ clear(@tracked); clear(@started); clear(@offcpu); clear(@offstate); clear(@seconds); }
+
+// Append this to approval-timeout-timing.bt. Log sizes and results, never buffers.
+uprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_read_ex,
+uprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_write_ex
+/@tracked[tid] && (comm == "identityd" || comm == "spatial-partici")/ {
+    @tls_ssl[tid] = arg0; @tls_size[tid] = arg2; @tls_count[tid] = arg3;
+    @tls_start[tid] = nsecs;
+    printf("TLS_BEGIN ns=%llu pid=%d tid=%d comm=%s ssl=%llu call=%s size=%llu\n",
+        nsecs, pid, tid, comm, arg0, probe, arg2);
+}
+uretprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_read_ex,
+uretprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_write_ex
+/@tracked[tid] && @tls_start[tid]/ {
+    $count = (uint64)0;
+    if (retval == 1) { $count = *(uint64 *)uptr(@tls_count[tid]); }
+    printf("TLS_END ns=%llu pid=%d tid=%d comm=%s ssl=%llu call=%s result=%lld count=%llu us=%llu\n",
+        nsecs, pid, tid, comm, @tls_ssl[tid], probe, retval, $count, (nsecs-@tls_start[tid])/1000);
+    delete(@tls_ssl[tid]); delete(@tls_size[tid]); delete(@tls_count[tid]); delete(@tls_start[tid]);
+}
+uprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_get_error
+/@tracked[tid] && (comm == "identityd" || comm == "spatial-partici")/ { @error_ssl[tid] = arg0; }
+uretprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_get_error
+/@tracked[tid] && @error_ssl[tid]/ {
+    printf("TLS_ERROR ns=%llu pid=%d tid=%d comm=%s ssl=%llu result=%lld\n",
+        nsecs, pid, tid, comm, @error_ssl[tid], retval);
+    delete(@error_ssl[tid]);
+}
+uprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_pending
+/@tracked[tid] && comm == "identityd"/ { @pending_ssl[tid] = arg0; }
+uretprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_pending
+/@tracked[tid] && @pending_ssl[tid]/ {
+    printf("TLS_PENDING ns=%llu pid=%d ssl=%llu bytes=%lld\n", nsecs, pid, @pending_ssl[tid], retval);
+    delete(@pending_ssl[tid]);
+}

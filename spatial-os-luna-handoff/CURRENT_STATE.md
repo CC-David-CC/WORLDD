@@ -1,5 +1,32 @@
 # Implementation status
 
+## 2026-10-10: Client and issuer timing diagnostics pass focused qualification
+
+The client now reports the failed transport stage and bounded timing counters.
+The issuer records event-loop delays of at least 100 ms. The fixture retains issuer stderr.
+Existing deadlines, transport validation, and permanent failure behavior remain unchanged.
+The diagnostic increment passed 88 selected cases in Debug and 88 in runtime ASan/UBSan on sb16.
+The five suites cover issuer TLS, the client, participant runtime, approval interruption, and the native supervisor.
+The deliberate issuer pause verifies the delay log and subsequent protocol replies through the real daemon.
+All 351 frozen source hashes match. All 41 locked files remain unchanged.
+
+Read evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-02/primary-review.json.
+The earlier candidate's actual 705 ms reply-header timeout remains preserved and unexplained.
+Read issuer-timeout-diagnostics-failure01 under the same evidence directory.
+These focused passes qualify the diagnostic behavior. They do not establish a timeout fix or complete M02.
+
+The bounded TLS trace passed twenty attempts and observed 260 complete participant reply headers.
+Its largest request-write to reply-header interval was 117906 microseconds.
+The initial tracer failed before target execution because it contained two END blocks. Both attempts are preserved.
+Read evidence/control-recovery-2026-10-09/participant-tls-progress-01/primary-review.json.
+Dynamic probes can alter timing. No payload buffers or credentials were captured.
+
+Earlier evidence separately confirmed slow durable writes during compiler overlap.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json.
+That finding does not prove the cause of the newer failure without a live compiler.
+Next: complete the M02 evidence audit and prepare broader both-host qualification with retained issuer timing and resource evidence.
+Keep historical failures open. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Revocation timeout reproduced with transport diagnostics
 
 An unintegrated client patch records the transport stage, transfer progress, elapsed time, and maximum check and callback intervals.

@@ -114,6 +114,11 @@ struct IssuerClient::Impl {
     std::function<void()> tick;
     std::chrono::milliseconds timeout{5000};
     Clock::time_point deadline;
+    Clock::time_point started, last_check;
+    Clock::duration maximum_gap{}, maximum_tick{};
+    const char* phase = "connect";
+    const char* waiting_for = "none";
+    std::size_t progress = 0, transfer_size = 0;
     std::uint64_t sequence = 0;
     bool broken = false, busy = false;
     struct ServiceChallenge {
@@ -545,7 +550,7 @@ struct IssuerClient::Impl {
         SSL_set_hostflags(tls.get(), X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS | X509_CHECK_FLAG_NEVER_CHECK_SUBJECT);
         require(SSL_set1_host(tls.get(), config.server_name().c_str()) == 1 &&
                 SSL_set_tlsext_host_name(tls.get(), config.server_name().c_str()) == 1, "Cannot set issuer TLS server name");
-        deadline = Clock::now()+timeout;
+        reset_deadline();
         const auto connected = connect(socket.value, address, length);
         if (connected < 0) {
             require(errno == EINPROGRESS, "Cannot connect to issuer");
@@ -553,6 +558,7 @@ struct IssuerClient::Impl {
             int error = 0; socklen_t size = sizeof(error);
             require(getsockopt(socket.value, SOL_SOCKET, SO_ERROR, &error, &size) == 0 && error == 0, "Issuer connection failed");
         }
+        phase = "tls_handshake";
         for (;;) {
             check(); ERR_clear_error(); const int result = SSL_connect(tls.get());
             if (result == 1) break;
@@ -565,16 +571,36 @@ struct IssuerClient::Impl {
         require(exchange(info).has_info(), "Issuer identity check failed");
     }
     void poison() noexcept { broken = true; tls.reset(); socket.reset(); }
+    void reset_deadline() {
+        started = last_check = Clock::now(); deadline = started+timeout;
+        maximum_gap = maximum_tick = Clock::duration::zero();
+        waiting_for = "none"; progress = transfer_size = 0;
+    }
     void check() {
+        const auto before_tick = Clock::now();
+        maximum_gap = std::max(maximum_gap, before_tick-last_check);
         if (tick) tick();
-        require(Clock::now() < deadline, "Issuer client deadline exceeded");
+        const auto now = Clock::now();
+        maximum_tick = std::max(maximum_tick, now-before_tick); last_check = now;
+        if (now < deadline) return;
+        const auto milliseconds = [](Clock::duration value) {
+            return std::chrono::duration_cast<std::chrono::milliseconds>(value).count();
+        };
+        // Fixed names and counters only. Never include request data or configuration.
+        std::ostringstream message;
+        message << "Issuer client deadline exceeded phase=" << phase << " wait=" << waiting_for
+            << " progress=" << progress << '/' << transfer_size
+            << " elapsed_ms=" << milliseconds(now-started) << " gap_ms=" << milliseconds(maximum_gap)
+            << " tick_ms=" << milliseconds(maximum_tick);
+        throw std::runtime_error(message.str());
     }
     void wait(short events) {
+        waiting_for = events == POLLIN ? "read" : "write";
         for (;;) {
             check(); pollfd fd{socket.value, events, 0}; const auto result = poll(&fd, 1, 10);
             if (result < 0 && errno == EINTR) continue;
             require(result >= 0 && !(fd.revents & POLLNVAL), "Issuer client poll failed");
-            if (fd.revents & (events | POLLERR | POLLHUP)) return;
+            if (fd.revents & (events | POLLERR | POLLHUP)) { waiting_for = "none"; return; }
         }
     }
     void retry(int error) {
@@ -582,14 +608,15 @@ struct IssuerClient::Impl {
         else if (error == SSL_ERROR_WANT_WRITE) wait(POLLOUT);
         else throw std::runtime_error("Issuer TLS connection failed");
     }
-    void transfer(char* data, std::size_t size, bool writing) {
+    void transfer(char* data, std::size_t size, bool writing, const char* stage) {
+        phase = stage; progress = 0; transfer_size = size;
         std::size_t offset = 0;
         while (offset < size) {
             check(); std::size_t count = 0; ERR_clear_error();
             const int result = writing ? SSL_write_ex(tls.get(), data+offset, size-offset, &count) :
                                          SSL_read_ex(tls.get(), data+offset, size-offset, &count);
             if (result != 1) retry(SSL_get_error(tls.get(), result));
-            else { require(count > 0, "Issuer TLS made no progress"); offset += count; }
+            else { require(count > 0, "Issuer TLS made no progress"); offset += count; progress = offset; }
         }
     }
     v1::IssuerReply exchange(v1::IssuerRequest request) {
@@ -629,12 +656,13 @@ struct IssuerClient::Impl {
         require(sequence < std::numeric_limits<std::uint64_t>::max(), "Issuer request sequence exhausted");
         request.set_request_id(++sequence);
         std::ostringstream output; write_frame(output, request); auto bytes = output.str();
-        transfer(bytes.data(), bytes.size(), true);
-        std::array<unsigned char, 4> header{}; transfer(reinterpret_cast<char*>(header.data()), header.size(), false);
+        transfer(bytes.data(), bytes.size(), true, "request_write");
+        std::array<unsigned char, 4> header{};
+        transfer(reinterpret_cast<char*>(header.data()), header.size(), false, "reply_header");
         const std::uint32_t length = (std::uint32_t(header[0]) << 24) | (std::uint32_t(header[1]) << 16) |
                                     (std::uint32_t(header[2]) << 8) | header[3];
         require(length <= max_frame_bytes, "Issuer reply exceeds size limit");
-        bytes.resize(length); transfer(bytes.data(), bytes.size(), false);
+        bytes.resize(length); transfer(bytes.data(), bytes.size(), false, "reply_payload");
         v1::IssuerReply reply;
         require(reply.ParseFromString(bytes) && reply.protocol_version() == 1 && reply.request_id() == sequence,
                 "Invalid issuer reply identity");
@@ -698,7 +726,7 @@ struct IssuerClient::Impl {
         request.set_request_id(sequence+1);
         if (request.protocol_version() != 1 || request.ByteSizeLong() > max_frame_bytes)
             throw std::invalid_argument("Invalid issuer request version or size");
-        busy = true; deadline = Clock::now()+timeout;
+        busy = true; reset_deadline();
         try {
             auto reply = exchange(std::move(request)); reply.set_request_id(caller_id); busy = false; return reply;
         } catch (...) { busy = false; poison(); throw; }

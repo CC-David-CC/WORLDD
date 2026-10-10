@@ -35,7 +35,7 @@
     "No model inference or additional host is needed for this component.",
     "Do not modify the active remote-transport candidate."
   ],
-  "next_test": "Capture issuer TLS read/write progress and readiness alongside kernel timing for the new active revocation reply-header timeout. The candidate remains unintegrated; historical failures and the full both-host M02 gate remain open.",
+  "next_test": "Complete the M02 evidence audit, then freeze broader both-host qualification with retained client and issuer diagnostics, resource pressure, and compiler-overlap records. Keep the historical timeouts open until evidence explains them.",
   "limitations": [
     "Issuer barrier and checked process cleanup are integrated and adopted on both hosts.",
     "Combined candidate04 passed 1226 core checks and failed one self-revocation receipt test on each host. Debug P10 and runtime sanitizer were unrun after that failure.",
@@ -80,5 +80,6 @@
   "control_recovery_task": "tasks/m1/identity.control_recovery.json",
   "operator_command_task": "tasks/m1/identity.revocation_command.json",
   "gate_coverage_map": "docs/M02_GATE_COVERAGE.txt",
-  "current_timeout_diagnosis": "evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-failure01/primary-review.json"
+  "current_timeout_diagnosis": "evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-failure01/primary-review.json",
+  "qualified_timeout_diagnostics": "evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-02/primary-review.json"
 }

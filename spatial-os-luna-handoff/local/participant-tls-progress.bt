@@ -1,0 +1,37 @@
+// Append this to approval-timeout-timing.bt. Log sizes and results, never buffers.
+uprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_read_ex,
+uprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_write_ex
+/@tracked[tid] && (comm == "identityd" || comm == "spatial-partici")/ {
+    @tls_ssl[tid] = arg0; @tls_size[tid] = arg2; @tls_count[tid] = arg3;
+    @tls_start[tid] = nsecs;
+    printf("TLS_BEGIN ns=%llu pid=%d tid=%d comm=%s ssl=%llu call=%s size=%llu\n",
+        nsecs, pid, tid, comm, arg0, probe, arg2);
+}
+uretprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_read_ex,
+uretprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_write_ex
+/@tracked[tid] && @tls_start[tid]/ {
+    $count = (uint64)0;
+    if (retval == 1) { $count = *(uint64 *)uptr(@tls_count[tid]); }
+    printf("TLS_END ns=%llu pid=%d tid=%d comm=%s ssl=%llu call=%s result=%lld count=%llu us=%llu\n",
+        nsecs, pid, tid, comm, @tls_ssl[tid], probe, retval, $count, (nsecs-@tls_start[tid])/1000);
+    delete(@tls_ssl[tid]); delete(@tls_size[tid]); delete(@tls_count[tid]); delete(@tls_start[tid]);
+}
+uprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_get_error
+/@tracked[tid] && (comm == "identityd" || comm == "spatial-partici")/ { @error_ssl[tid] = arg0; }
+uretprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_get_error
+/@tracked[tid] && @error_ssl[tid]/ {
+    printf("TLS_ERROR ns=%llu pid=%d tid=%d comm=%s ssl=%llu result=%lld\n",
+        nsecs, pid, tid, comm, @error_ssl[tid], retval);
+    delete(@error_ssl[tid]);
+}
+uprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_pending
+/@tracked[tid] && comm == "identityd"/ { @pending_ssl[tid] = arg0; }
+uretprobe:/lib/x86_64-linux-gnu/libssl.so.3:SSL_pending
+/@tracked[tid] && @pending_ssl[tid]/ {
+    printf("TLS_PENDING ns=%llu pid=%d ssl=%llu bytes=%lld\n", nsecs, pid, @pending_ssl[tid], retval);
+    delete(@pending_ssl[tid]);
+}
+END {
+    clear(@tls_ssl); clear(@tls_size); clear(@tls_count); clear(@tls_start);
+    clear(@error_ssl); clear(@pending_ssl);
+}

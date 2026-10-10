@@ -1,0 +1,57 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 64
+    Start 64: identity-tls
+
+64: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/source/tests/core/test_identity_tls.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/identityd"
+64: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build
+64: Environment variables: 
+64:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-02/source
+64: Test timeout computed to be: 90
+64: test_connection_limit_rejects_excess_peer_then_recovers (__main__.TlsTests.test_connection_limit_rejects_excess_peer_then_recovers) ... ok
+64: test_connections_share_enrollment_authentication_and_revocation (__main__.TlsTests.test_connections_share_enrollment_authentication_and_revocation) ... ok
+64: test_disconnect_mid_payload_does_not_kill_issuer (__main__.TlsTests.test_disconnect_mid_payload_does_not_kill_issuer) ... ok
+64: test_encrypted_private_key_fails_without_prompting (__main__.TlsTests.test_encrypted_private_key_fails_without_prompting) ... ok
+64: test_excessive_frame_closes_only_offending_peer (__main__.TlsTests.test_excessive_frame_closes_only_offending_peer) ... ok
+64: test_expired_service_certificate_rejected (__main__.TlsTests.test_expired_service_certificate_rejected) ... ok
+64: test_idle_timeout_reclaims_peer (__main__.TlsTests.test_idle_timeout_reclaims_peer) ... ok
+64: test_independent_client_rejects_wrong_server_name_and_trust (__main__.TlsTests.test_independent_client_rejects_wrong_server_name_and_trust) ... ok
+64: test_invalid_configuration_and_key_mismatch_fail_before_accept (__main__.TlsTests.test_invalid_configuration_and_key_mismatch_fail_before_accept) ... ok
+64: test_listener_requires_tcp_listening_socket (__main__.TlsTests.test_listener_requires_tcp_listening_socket) ... ok
+64: test_malformed_unknown_and_wrong_version_preserve_channel (__main__.TlsTests.test_malformed_unknown_and_wrong_version_preserve_channel) ... ok
+64: test_maximum_frame_crosses_tls_record_boundaries (__main__.TlsTests.test_maximum_frame_crosses_tls_record_boundaries) ... ok
+64: test_missing_service_certificate_rejected (__main__.TlsTests.test_missing_service_certificate_rejected) ... ok
+64: test_mutual_tls_reaches_production_issuer (__main__.TlsTests.test_mutual_tls_reaches_production_issuer) ... ok
+64: test_partial_and_pipelined_frames_keep_request_identity (__main__.TlsTests.test_partial_and_pipelined_frames_keep_request_identity) ... ok
+64: test_partial_frame_deadline_is_not_refreshed_by_progress (__main__.TlsTests.test_partial_frame_deadline_is_not_refreshed_by_progress) ... ok
+64: test_private_key_permissions_and_links_fail_closed (__main__.TlsTests.test_private_key_permissions_and_links_fail_closed) ... ok
+64: test_server_records_long_loop_delay_without_changing_protocol (__main__.TlsTests.test_server_records_long_loop_delay_without_changing_protocol) ... ok
+64: test_service_certificate_does_not_replace_owner_proof (__main__.TlsTests.test_service_certificate_does_not_replace_owner_proof) ... ok
+64: test_stalled_handshake_does_not_block_other_peers (__main__.TlsTests.test_stalled_handshake_does_not_block_other_peers) ... ok
+64: test_stalled_reader_hits_write_deadline_without_blocking_other_peer (__main__.TlsTests.test_stalled_reader_hits_write_deadline_without_blocking_other_peer) ... ok
+64: test_supervisor_eof_stops_listener_and_all_peers (__main__.TlsTests.test_supervisor_eof_stops_listener_and_all_peers) ... ok
+64: test_tls12_and_plaintext_rejected (__main__.TlsTests.test_tls12_and_plaintext_rejected) ... ok
+64: test_untrusted_service_certificate_rejected (__main__.TlsTests.test_untrusted_service_certificate_rejected) ... ok
+64: 
+64: ----------------------------------------------------------------------
+64: Ran 24 tests in 13.860s
+64: 
+64: OK
+1/1 Test #64: identity-tls .....................   Passed   13.95 sec
+
+The following tests passed:
+	identity-tls
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  13.96 sec

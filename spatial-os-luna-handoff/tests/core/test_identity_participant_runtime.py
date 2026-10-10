@@ -219,6 +219,7 @@ class ParticipantRuntimeTests(ClientFixture):
         self.assertEqual(len(lines), 1, lines)
         self.assertIn('stage=issuer_connect', lines[0])
         self.assertIn('cause=Issuer client deadline exceeded', lines[0])
+        self.assertIn('phase=tls_handshake wait=read progress=0/0', lines[0])
 
     def test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines(self):
         message = 'peer rejection\n\r\t' + 'x' * 600

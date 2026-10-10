@@ -1,0 +1,27 @@
+Running as unit: spatial-participant-tls-progress02.service; invocation ID: 04dd24756c254f868cec410c1e3ccc0d
+{'attempt': 1, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 2, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 3, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 4, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 5, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 6, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 7, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 8, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 9, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 10, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 11, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 12, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 13, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 14, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 15, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 16, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 17, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 18, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 19, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 20, 'passed': True, 'tests': 1, 'failures': 0, 'errors': 0, 'skipped': 0}
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 23.452s
+CPU time consumed: 7.328s
+Memory peak: 1.5M
+Memory swap peak: 0B

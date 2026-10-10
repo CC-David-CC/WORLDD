@@ -1,0 +1,6 @@
+test_real_barrier_waits_for_explicit_application_acknowledgement (test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.119s
+
+OK

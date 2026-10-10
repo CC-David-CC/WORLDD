@@ -327,6 +327,32 @@ class ClientTests(ClientFixture):
         output, _ = client.proc.communicate(frame(pb.IssuerRequest(protocol_version=1, info=pb.IssuerInfoRequest())), timeout=2)
         self.assertEqual(client.proc.returncode, 2); self.assertEqual(output, b''); self.assertLess(time.monotonic()-started, 1)
 
+    def stalled_reply_diagnostic(self, phase, prefix, progress):
+        def respond(peer, request, reply):
+            peer.stream.sendall(prefix(frame(reply)))
+            peer.stop.wait(2)
+        peer = FaultPeer(self, response=respond)
+        client = self.client(peer.port)
+        request = pb.IssuerRequest(protocol_version=1, info=pb.IssuerInfoRequest())
+        output, _ = client.proc.communicate(frame(request)*2, timeout=3)
+        self.assertEqual(client.proc.returncode, 2)
+        self.assertEqual(output, b'')
+        self.assertEqual(peer.connections, 1)
+        self.assertEqual(len(peer.requests), 3, 'A timed-out request must not reconnect or replay')
+        diagnostic = Path(client.stderr.name).read_text().strip()
+        self.assertRegex(diagnostic, r'^spatial-issuer-client: Issuer client deadline exceeded '
+            r'phase=' + phase + r' wait=read progress=' + str(progress) + r'/[0-9]+ '
+            r'elapsed_ms=[0-9]+ gap_ms=[0-9]+ tick_ms=[0-9]+$')
+        self.assertLessEqual(len(diagnostic), 240)
+        fields = dict(item.split('=') for item in diagnostic.split() if '=' in item)
+        self.assertGreaterEqual(int(fields['elapsed_ms']), 700)
+
+    def test_stalled_reply_header_reports_phase_and_partial_progress(self):
+        self.stalled_reply_diagnostic('reply_header', lambda data: data[:1], 1)
+
+    def test_stalled_reply_payload_reports_phase_and_partial_progress(self):
+        self.stalled_reply_diagnostic('reply_payload', lambda data: data[:6], 2)
+
     def test_lost_reply_does_not_reconnect_or_replay(self):
         def respond(peer, request, reply): peer.stream.shutdown(socket.SHUT_RDWR)
         peer = FaultPeer(self, response=respond); client = self.client(peer.port)
@@ -337,8 +363,10 @@ class ClientTests(ClientFixture):
 
     def test_tcp_handshake_timeout_is_bounded(self):
         peer = FaultPeer(self, stall_handshake=True); started = time.monotonic()
-        self.rejected(peer.port, io_timeout_ms=150)
+        client = self.rejected(peer.port, io_timeout_ms=150)
         self.assertLess(time.monotonic()-started, 1)
+        self.assertIn('Issuer client deadline exceeded phase=tls_handshake wait=read progress=0/0 ',
+            Path(client.stderr.name).read_text())
 
     def test_tls12_has_no_fallback(self):
         peer = FaultPeer(self, tls12=True); self.rejected(peer.port); self.assertEqual(peer.requests, [])

@@ -1,5 +1,7 @@
 """Independent TLS peers exercise the real issuer and its existing proofs."""
 import os
+from pathlib import Path
+import signal
 import socket
 import ssl
 import struct
@@ -91,6 +93,10 @@ class TlsFixture(EnrollmentFixture):
                 except subprocess.TimeoutExpired: proc.kill(); proc.wait(timeout=3); raise
             for stream in (proc.stdin, proc.stdout, log):
                 if not stream.closed: stream.close()
+            target = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+            if target:
+                Path(target).mkdir(parents=True, exist_ok=True)
+                (Path(target)/f'{self._testMethodName}-issuer-{proc.pid}.log').write_bytes(Path(log.name).read_bytes())
 
     def context(self, identity=True, trust=None):
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -130,6 +136,32 @@ class TlsFixture(EnrollmentFixture):
 
 
 class TlsTests(TlsFixture):
+    def test_server_records_long_loop_delay_without_changing_protocol(self):
+        peer = self.ready(); proc, log = self.daemons[-1]
+        pidfd = os.pidfd_open(proc.pid)
+        try:
+            signal.pidfd_send_signal(pidfd, signal.SIGSTOP)
+            until = time.monotonic()+1
+            while True:
+                state = next(line for line in Path(f'/proc/{proc.pid}/status').read_text().splitlines()
+                    if line.startswith('State:'))
+                if 'T (stopped)' in state: break
+                self.assertLess(time.monotonic(), until, 'Owned issuer did not stop')
+                time.sleep(.005)
+            # This pause injects a scheduling delay; replies below establish recovery.
+            time.sleep(.15)
+        finally:
+            signal.pidfd_send_signal(pidfd, signal.SIGCONT)
+            os.close(pidfd)
+        self.assertEqual(peer.call(info=pb.IssuerInfoRequest()).info, self.info)
+        self.assertEqual(peer.call(info=pb.IssuerInfoRequest()).info, self.info)
+        lines = [line for line in Path(log.name).read_text().splitlines() if line.startswith('issuer TLS loop delayed ')]
+        self.assertTrue(lines, 'The issuer did not retain the injected event-loop delay')
+        for line in lines:
+            self.assertRegex(line, r'^issuer TLS loop delayed monotonic_us=[0-9]+ poll_ms=[0-9]+ work_ms=[0-9]+$')
+        self.assertTrue(any(sum(int(item.split('=')[1]) for item in line.split()
+            if item.startswith(('poll_ms=', 'work_ms='))) >= 100 for line in lines))
+
     def test_mutual_tls_reaches_production_issuer(self):
         peer = self.ready()
         self.assertEqual(peer.stream.version(), 'TLSv1.3')

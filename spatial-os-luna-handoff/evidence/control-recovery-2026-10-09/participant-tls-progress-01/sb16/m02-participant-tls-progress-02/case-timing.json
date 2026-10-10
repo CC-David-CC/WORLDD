@@ -1,0 +1,242 @@
+[
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322851058800049
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322852238197340
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322852238695305
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322853362081599
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322853362627775
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322854513101088
+  },
+  {
+    "attempt": 4,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322854513612227
+  },
+  {
+    "attempt": 4,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322855654238897
+  },
+  {
+    "attempt": 5,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322855654761839
+  },
+  {
+    "attempt": 5,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322856769289796
+  },
+  {
+    "attempt": 6,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322856769861962
+  },
+  {
+    "attempt": 6,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322857889604548
+  },
+  {
+    "attempt": 7,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322857890151681
+  },
+  {
+    "attempt": 7,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322859045364861
+  },
+  {
+    "attempt": 8,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322859045925892
+  },
+  {
+    "attempt": 8,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322860174313606
+  },
+  {
+    "attempt": 9,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322860174878093
+  },
+  {
+    "attempt": 9,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322861329366642
+  },
+  {
+    "attempt": 10,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322861329957918
+  },
+  {
+    "attempt": 10,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322862463375371
+  },
+  {
+    "attempt": 11,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322862464040690
+  },
+  {
+    "attempt": 11,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322863583239490
+  },
+  {
+    "attempt": 12,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322863583850326
+  },
+  {
+    "attempt": 12,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322864736326331
+  },
+  {
+    "attempt": 13,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322864736968440
+  },
+  {
+    "attempt": 13,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322865875331602
+  },
+  {
+    "attempt": 14,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322865875964892
+  },
+  {
+    "attempt": 14,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322867000269993
+  },
+  {
+    "attempt": 15,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322867000908207
+  },
+  {
+    "attempt": 15,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322868115138790
+  },
+  {
+    "attempt": 16,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322868115802067
+  },
+  {
+    "attempt": 16,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322869253799505
+  },
+  {
+    "attempt": 17,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322869254457727
+  },
+  {
+    "attempt": 17,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322870375195112
+  },
+  {
+    "attempt": 18,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322870375883782
+  },
+  {
+    "attempt": 18,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322871544475374
+  },
+  {
+    "attempt": 19,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322871545282162
+  },
+  {
+    "attempt": 19,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322872688127545
+  },
+  {
+    "attempt": 20,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322872688813307
+  },
+  {
+    "attempt": 20,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322873798878020
+  }
+]

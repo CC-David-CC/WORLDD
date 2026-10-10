@@ -926,3 +926,17 @@ None of these passing repetitions resolves the failed qualification or proves th
 The production diagnostic and two changed tests remain unintegrated in the worktree.
 Next: issuer TLS progress/readiness and kernel timing. Both historical failures remain open.
 M02 and Spatial-M1 remain incomplete. No normal desktop changed.
+
+2026-10-10 qualified timing diagnostics checkpoint
+Candidate02 passed 88 selected Debug cases and 88 runtime sanitizer cases on sb16.
+Client timeout logs retain transport phase, byte progress, elapsed time, check gaps, and callback time.
+Issuer loop delays of at least 100 ms are recorded. The fixture retains issuer stderr.
+The injected pause test passed in both profiles. Original deadlines and failure behavior remain unchanged.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-02/primary-review.json
+The actual 705 ms failure in candidate01 remains unexplained; these passes do not prove a fix.
+Twenty bounded TLS-traced attempts passed. They observed 260 completed reply headers, with a maximum interval of 117906 us.
+The first trace script failed before target execution due to duplicate END blocks; both attempts remain preserved.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/participant-tls-progress-01/primary-review.json
+An older compiler-overlap diagnosis found slow durable writes. It does not prove the newer failure cause.
+Next: M02 evidence audit and broader both-host qualification with timing and resource evidence.
+All 351 source hashes and 41 unchanged locked files verified. M02 and Spatial-M1 remain incomplete.
