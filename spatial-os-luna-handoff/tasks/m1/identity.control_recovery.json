@@ -93,7 +93,8 @@
     "sb16_focused_debug_evidence": "evidence/control-recovery-2026-10-09/binding-focused-01/sb16/debug/focused-review.json",
     "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/qualified-binding01/sb16/summary-debug.json",
     "sb16_full_evidence": "evidence/control-recovery-2026-10-09/binding-final-review-01-sb16.json",
-    "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/binding-debug-review-01-sb16-2.json"
+    "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/binding-debug-review-01-sb16-2.json",
+    "adoption_script": "local/adopt-control-binding-01.py"
   },
   "session_coordinator_contract": "docs/SESSION_CONTROL_COORDINATOR.txt",
   "control_reply_validation": {
@@ -124,6 +125,7 @@
       "sb16-2": 1739758
     },
     "evidence": "evidence/control-recovery-2026-10-09/supervisor-handoff-review-01.json",
-    "production_changed": false
+    "production_changed": false,
+    "collector": "local/collect-control-owner-qualified.py --candidate handoff01"
   }
 }

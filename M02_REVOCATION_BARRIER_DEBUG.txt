@@ -557,3 +557,8 @@ Reply01 sb16 focused Debug passed 16 reply checks, 51 harness, and three native-
 The first sb16 final archive copy started before its collector finished and returned No such file or directory.
 Retried both copies after collector completion. Extracted archives and verified all recorded attachment hashes.
 Second-host binding sanitizers and first-host reply qualification remain active. Handoff tests remain unrun.
+
+Prepared binding source adoption using the deployed frozen manifest and 298 exact source hashes.
+The helper protects all eight external qualification inputs before fast-forward checkout updates. Adoption remains unrun.
+The collector now supports handoff01, including its two required baseline failures and 1498-check cumulative profiles.
+The handoff collection path remains unrun. Both active qualification handles were confirmed live.

@@ -10,7 +10,7 @@ import tarfile
 import time
 
 parser=argparse.ArgumentParser()
-parser.add_argument('--candidate',choices=('03','04','binding01','reply01'),required=True)
+parser.add_argument('--candidate',choices=('03','04','binding01','reply01','handoff01'),required=True)
 parser.add_argument('--mode',choices=('debug','final'),required=True)
 args=parser.parse_args()
 r=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff')
@@ -18,7 +18,8 @@ host=socket.gethostname().split('.')[0]
 assert host in ('sb16','sb16-2')
 binding_candidate=args.candidate=='binding01'
 reply_candidate=args.candidate=='reply01'
-candidate_name=('control-reply-01' if reply_candidate else
+handoff_candidate=args.candidate=='handoff01'
+candidate_name=('supervisor-handoff-01' if handoff_candidate else 'control-reply-01' if reply_candidate else
                 'control-binding-01' if binding_candidate else 'control-owner-'+args.candidate)
 root=r/'local'/('m02-'+candidate_name)
 out=root/'qualification'
@@ -26,7 +27,7 @@ manifest=json.loads((root/'manifest.json').read_text())
 raw_summary=(out/'summary.json').read_bytes()
 run=json.loads(raw_summary)
 assert run['host']==host and run['source_manifest']==manifest['files']
-source_count=303 if reply_candidate else 298 if binding_candidate else 297
+source_count=304 if handoff_candidate else 303 if reply_candidate else 298 if binding_candidate else 297
 assert len(manifest['files'])==source_count and len(manifest['locked_files'])==41
 assert not run['compiler_overlap']
 assert run['status']=='passed' if args.mode=='final' else run['status'] in ('qualifying','passed')
@@ -71,7 +72,7 @@ for profile in profiles:
     value=run['profiles'][profile]
     build=Path(value['build']);folder=out/profile
     steps={x['name']:x for x in value['results']}
-    required=['harness','reply' if reply_candidate else 'binding' if binding_candidate else 'owners','core','P10']
+    required=['harness','handoff' if handoff_candidate else 'reply' if reply_candidate else 'binding' if binding_candidate else 'owners','core','P10']
     if args.candidate!='03':required.insert(2,'world')
     assert all(name in steps and steps[name]['exit_code']==0 for name in required), (profile,steps)
     assert all(sha((build/name).read_bytes())==digest for name,digest in value['binaries'].items())
@@ -85,7 +86,12 @@ for profile in profiles:
     attachments[profile+'/sanitizer-config.json']=(json.dumps(dict(profile=profile,cmake_sanitizers=expected,
         ASAN_OPTIONS='detect_leaks=1:abort_on_error=1',UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1',
         qualifier_sha256=sha((r/'local'/('qualify-'+candidate_name+'.py')).read_bytes())),indent=2)+'\n').encode()
-    if reply_candidate:
+    if handoff_candidate:
+        focused=collect(folder/'handoff.log').decode();clean(focused)
+        assert re.findall(r'^\s*Start\s+\d+:\s+(\S+)',focused,re.M)==['supervisor-handoff-lifetime']
+        assert re.findall(r'^\d+: Ran (\d+) tests? in ',focused,re.M)==['2']
+        assert '100% tests passed, 0 tests failed out of 1' in focused
+    elif reply_candidate:
         focused=collect(folder/'reply.log').decode();clean(focused)
         assert re.findall(r'^\s*Start\s+\d+:\s+(\S+)',focused,re.M)==['control-supervisor-reply']
         assert re.findall(r'^\d+: Ran (\d+) tests? in ',focused,re.M)==['16']
@@ -102,14 +108,15 @@ for profile in profiles:
     core=collect(folder/'core.log').decode();clean(core)
     names=re.findall(r'^\s*Start\s+\d+:\s+(\S+)',core,re.M)
     counts=list(map(int,re.findall(r'^\d+: Ran (\d+) tests? in ',core,re.M)))
-    core_suites=101 if reply_candidate else 100 if binding_candidate else 99
-    core_checks=1480 if reply_candidate else 1474 if binding_candidate else 1453
-    excluded='control-supervisor-reply' if reply_candidate else 'authority-control-binding' if binding_candidate else 'control-owner-channels'
+    core_suites=102 if handoff_candidate else 101 if reply_candidate else 100 if binding_candidate else 99
+    core_checks=1496 if handoff_candidate else 1480 if reply_candidate else 1474 if binding_candidate else 1453
+    excluded='supervisor-handoff-lifetime' if handoff_candidate else 'control-supervisor-reply' if reply_candidate else 'authority-control-binding' if binding_candidate else 'control-owner-channels'
     assert len(names)==len(set(names))==len(counts)==core_suites and sum(counts)==core_checks
     assert f'100% tests passed, 0 tests failed out of {core_suites}' in core
     assert excluded not in names
-    if binding_candidate or reply_candidate:assert dict(zip(names,counts))['control-owner-channels']==21
-    if reply_candidate:assert dict(zip(names,counts))['authority-control-binding']==6
+    if binding_candidate or reply_candidate or handoff_candidate:assert dict(zip(names,counts))['control-owner-channels']==21
+    if reply_candidate or handoff_candidate:assert dict(zip(names,counts))['authority-control-binding']==6
+    if handoff_candidate:assert dict(zip(names,counts))['control-supervisor-reply']==16
     inventory=subprocess.check_output(['ctest','--test-dir',str(build),'--show-only=json-v1'])
     entries=json.loads(inventory)['tests']
     assert {entry['name'] for entry in entries}==set(names)|{excluded}
@@ -131,13 +138,24 @@ for profile in profiles:
     for name in ('configure.log','build.log'):
         if (folder/name).exists():collect(folder/name)
     for path in (folder/'native').rglob('*.log'):collect(path)
-    result['profiles'][profile]=dict(core_checks=core_checks+(16 if reply_candidate else 6 if binding_candidate else expected_owners),core_suites=core_suites+1,
+    result['profiles'][profile]=dict(core_checks=core_checks+(2 if handoff_candidate else 16 if reply_candidate else 6 if binding_candidate else expected_owners),core_suites=core_suites+1,
         owner_checks=expected_owners,native_world_checks=native_checks,harness_checks=51,P10_cases=151,
         failed=0,skipped=0,commands=value['results'],binaries=value['binaries'],core_parts=dict(zip(names,counts)))
-    if binding_candidate or reply_candidate:result['profiles'][profile]['binding_checks']=6
-    if reply_candidate:result['profiles'][profile]['reply_checks']=16
+    if binding_candidate or reply_candidate or handoff_candidate:result['profiles'][profile]['binding_checks']=6
+    if reply_candidate or handoff_candidate:result['profiles'][profile]['reply_checks']=16
+    if handoff_candidate:result['profiles'][profile]['handoff_checks']=2
 
-if binding_candidate:
+if handoff_candidate:
+    for profile in ('debug','runtime-sanitize'):
+        baseline=run['baseline'][profile]
+        assert baseline['retained_copies_reproduced'] and baseline['results'][0]['exit_code']==1
+        log=collect(out/('baseline-'+profile)/'handoff.log').decode()
+        assert 'Ran 2 tests' in log and 'FAILED (failures=2)' in log and 'ERROR:' not in log
+        assert set(re.findall(r'^FAIL: (test_\w+)',log,re.M))=={
+            'test_selected_endpoint_has_no_supervisor_copy_after_handoff',
+            'test_child_stdout_has_no_supervisor_writer_after_handoff'}
+        assert 'Supervisor retained an endpoint after its only child exited' in log
+elif binding_candidate:
     expected_failures={
         'test_prepared_owner_matches_activation_and_exact_issuer_fence',
         'test_reopened_authorized_record_cannot_reconstruct_control_owner',
