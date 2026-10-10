@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-10: Untraced retry prepared with an explicit writeback boundary
+
+The original candidate02 diagnostic jobs remain active. No retry or filesystem synchronization has started.
+The prepared retry reuses verified candidate02 source and binaries after a terminal failed run.
+It requires the complete prior evidence archive and its exact hash before CTest can reuse build metadata.
+New qualification logs and XML use a separate directory. Original failure evidence remains archived.
+
+The runner records a successful sync -f before testing and retains resource samples on both sides.
+It selects the same 124 core suites, 51 harness cases, and 151 P10 cases per profile.
+Both Debug and runtime sanitizer qualification are untraced. Test deadlines and database durability are unchanged.
+The overlap guard refused startup on both hosts before creating output or synchronizing the filesystem.
+Read evidence/m02-gate-2026-10-10/untraced03-preparation.json and untraced03-overlap-guards.json.
+Positive execution remains unrun. Reuse any reviewed successful result from the other host.
+Cross-host launch must select each host's reviewed qualification attempt after results exist.
+M02 and Spatial-M1 remain incomplete. Historical failures remain individually unresolved.
+
+
 ## 2026-10-10: Startup timeout traced to slow issuer durability calls
 
 Candidate02 reproduced the activation failure on sb16 during its traced Debug sequence.

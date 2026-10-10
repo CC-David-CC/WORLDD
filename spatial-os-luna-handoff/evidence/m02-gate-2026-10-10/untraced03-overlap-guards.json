@@ -1,0 +1,41 @@
+{
+  "status": "retry_overlap_refused_both_hosts_positive_execution_unrun",
+  "hosts": {
+    "sb16": {
+      "host": "sb16",
+      "observed": 1791662102.8584704,
+      "status": "retry_refused_before_sync_or_setup",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/qualify-m02-untraced-03.py",
+        "0000000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/qualify-m02-untraced-03.py\", line 20, in <module>\n    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n",
+      "active_gate_pid": 2788613,
+      "active_gate_status": "qualifying",
+      "retry_root_created": false,
+      "runner_sha256": "e920c096091d9209d55ac584b33bebad8ee1a4f190d05e9399c1c1d33d6f31d6",
+      "sync_and_positive_tests": "unrun"
+    },
+    "sb16-2": {
+      "host": "sb16-2",
+      "observed": 1791662103.0857437,
+      "status": "retry_refused_before_sync_or_setup",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/qualify-m02-untraced-03.py",
+        "0000000000000000000000000000000000000000000000000000000000000000"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/qualify-m02-untraced-03.py\", line 20, in <module>\n    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n",
+      "active_gate_pid": 2271090,
+      "active_gate_status": "qualifying",
+      "retry_root_created": false,
+      "runner_sha256": "e920c096091d9209d55ac584b33bebad8ee1a4f190d05e9399c1c1d33d6f31d6",
+      "sync_and_positive_tests": "unrun"
+    }
+  }
+}

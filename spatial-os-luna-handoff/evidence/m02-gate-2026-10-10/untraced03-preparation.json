@@ -1,0 +1,37 @@
+{
+  "status": "prepared_guards_verified_sync_and_qualification_unrun",
+  "candidate": "m02-phase-gate-02",
+  "attempt": "m02-untraced-03",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "runner_sha256": "e920c096091d9209d55ac584b33bebad8ee1a4f190d05e9399c1c1d33d6f31d6",
+  "collector_sha256": "1f150be324ee6a66f02ff783127aa4a49ab0058f7d7cb47d814079ab58e04710",
+  "source_changes": [],
+  "locked_test_changes": [],
+  "selection": {
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ],
+    "ctest_suites_per_profile": 124,
+    "harness_cases_per_profile": 51,
+    "P10_cases_per_profile": 151,
+    "traced": false
+  },
+  "review": [
+    "The retry requires a terminal failed candidate02 run, completed builds, and the exact archived failure evidence hash.",
+    "The qualification lock prevents overlap before creating output or synchronizing storage. Both-host negative controls passed.",
+    "Reused source and executable bytes are checked against candidate02 manifests. No rebuild is required.",
+    "CTest rewrites its build/Testing logs. Preserve and verify the complete prior evidence archive before reuse.",
+    "The retry records source and build directories explicitly and writes new logs and XML to m02-untraced-03.",
+    "The filesystem sync precedes tests and records its exit code, timing, and surrounding resource samples.",
+    "The 120-second sync bound is an environment-preparation limit. Existing client, suite, and command deadlines remain unchanged.",
+    "Core, harness, and P10 inventories must exactly match the prior frozen candidate.",
+    "No cache drops, mount changes, kernel writeback settings, deadline increases, or durability changes are introduced.",
+    "Reuse any reviewed successful result on the other host. Do not duplicate its complete suite merely because this host needs a retry.",
+    "Cross-host launch must select each host's reviewed qualification attempt explicitly after these results exist."
+  ],
+  "guard_evidence": "untraced03-overlap-guards.json",
+  "positive_execution": "unrun",
+  "phase_complete": false,
+  "historical_failures_resolved": false
+}
