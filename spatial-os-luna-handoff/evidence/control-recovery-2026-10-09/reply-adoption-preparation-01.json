@@ -1,0 +1,11 @@
+{
+  "helper": "local/adopt-control-reply-01.py",
+  "reviewer": "primary agent",
+  "syntax_checked": true,
+  "source_hashes_required": 303,
+  "complete_profiles_required_on_both_hosts": true,
+  "active_helpers_preserved": true,
+  "runtime_restart": false,
+  "execution": "unrun; integration and second-host final qualification remain pending",
+  "helper_sha256": "dbe30f6736fd3bb5e60742159518b6c408fe28d98d296643644a8fd74374947c"
+}
