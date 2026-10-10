@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "m02_storage_contention_reproduced_timeout_policy_and_final_audit_pending",
+  "current_step": "m02_timeout_policy_verified_final_disposition_and_adoption",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,9 +12,9 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Complete the final M02 requirement audit and reviewed host adoption. Reuse the reviewed local and cross-host gate evidence.",
-    "Disposition the older approval and revocation-read failures without claiming an uncaptured cause.",
-    "Address reproduced storage-contention availability. Retain the production five-second client default. Propose normal-operation fixture and fault-test budgets explicitly."
+    "Finish M02 historical-failure disposition and reviewed normal-host source adoption. Keep unrecorded historical causes explicitly unknown.",
+    "Retain the completed local and cross-host matrix and the focused timeout-policy results at their exact source and binary pins.",
+    "Address storage-contention availability through the workspace resource boundary without weakening durable authority ordering."
   ],
   "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
   "candidate": {
@@ -493,6 +493,32 @@
       "5000_ms_default": "passed_one_trial"
     },
     "historical_causes_proved": false,
+    "phase_complete": false
+  },
+  "timeout_policy_2026_10_10": {
+    "status": "focused_checks_reviewed",
+    "review": "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json",
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ],
+    "existing_checks_passed": 120,
+    "new_checks_passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "existing_fixture_changed": false,
+    "production_changed": false,
+    "existing_ctest_entries_preserved": 124
+  },
+  "requirement_execution_reassessment": {
+    "review": "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/coverage-reassessment.json",
+    "case_definitions": 285,
+    "matched_existing_passes": 1140,
+    "new_execution": false,
     "phase_complete": false
   }
 }

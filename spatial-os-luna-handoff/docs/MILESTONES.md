@@ -23,6 +23,9 @@ Both hosts passed reviewed Debug and sanitizer local gates. All eight cross-host
 Bounded disk interference now reproduces participant deadlines. Two-second clients also failed under that interference.
 The existing five-second client default passed one pressure trial. Retain it while investigating contention and transport blocking.
 Read evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json for the nine selected diagnostic results.
+The explicit timeout-policy increment passed 132 focused checks across both hosts and profiles.
+The coverage reassessment matched 285 M02 case definitions to 1140 passing executions in the existing full gate.
+Read evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json. Final disposition and host adoption remain pending.
 Read the newest CURRENT_STATE.md section and tasks/m1/identity.control_recovery.json for current results.
 Full M02 sign-off remains pending.
 

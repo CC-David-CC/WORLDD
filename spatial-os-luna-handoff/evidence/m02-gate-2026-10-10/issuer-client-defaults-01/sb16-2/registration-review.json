@@ -1,0 +1,44 @@
+{
+  "host": "sb16-2",
+  "status": "focused_checks_and_registration_verified",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "unchanged_existing_ctest_entries": 124,
+  "profiles": {
+    "debug": [
+      {
+        "suite": "issuer-client",
+        "passed": 30,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "issuer-client-defaults",
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "runtime-sanitize": [
+      {
+        "suite": "issuer-client",
+        "passed": 30,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "issuer-client-defaults",
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "source_and_binaries_unchanged": true,
+  "scanned_logs": 35,
+  "sanitizer_matches": 0,
+  "phase_complete": false,
+  "source_inputs": {
+    "CMakeLists.txt": "8858b96c216250a96416d37943a5c711539fd0beeee1f79d9ce5c22d70cdcaa6",
+    "tests/core/test_issuer_client_defaults.py": "9e39e1a9a5e50e74f652e8ec1a68af23e3f55223fa24b943513c2c402e37af29"
+  }
+}

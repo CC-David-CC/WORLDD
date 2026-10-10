@@ -1,0 +1,122 @@
+{
+  "status": "reviewed_focused_checks_passed",
+  "new_checks": 12,
+  "existing_checks": 120,
+  "failed": 0,
+  "skipped": 0,
+  "production_code_changed": false,
+  "production_configuration_changed": false,
+  "existing_test_configuration_changed": false,
+  "source_changed": [
+    "CMakeLists.txt",
+    "tests/core/test_issuer_client_defaults.py"
+  ],
+  "hosts": {
+    "sb16": {
+      "archive_sha256": "98ecbc77ec863eb1e7c8affcc5d6b81f570f6f94b059222e4697417acbfd83aa",
+      "attachments_verified": 41,
+      "profiles": {
+        "debug": [
+          {
+            "suite": "issuer-client",
+            "passed": 30,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "suite": "issuer-client-defaults",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "runtime-sanitize": [
+          {
+            "suite": "issuer-client",
+            "passed": 30,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "suite": "issuer-client-defaults",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          }
+        ]
+      },
+      "existing_ctest_entries_preserved": 124,
+      "scanned_logs": 35,
+      "sanitizer_matches": 0,
+      "default_client_diagnostics": {
+        "debug": {
+          "test_explicit_short_timeout_is_preserved_and_never_replays-client.log": "spatial-issuer-client: Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=700 gap_ms=10 tick_ms=0",
+          "test_omitted_timeout_accepts_valid_reply_after_two_seconds-client.log": "",
+          "test_omitted_timeout_is_bounded_and_never_replays-client.log": "spatial-issuer-client: Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=5005 gap_ms=10 tick_ms=0"
+        },
+        "runtime-sanitize": {
+          "test_explicit_short_timeout_is_preserved_and_never_replays-client.log": "spatial-issuer-client: Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=705 gap_ms=10 tick_ms=0",
+          "test_omitted_timeout_accepts_valid_reply_after_two_seconds-client.log": "",
+          "test_omitted_timeout_is_bounded_and_never_replays-client.log": "spatial-issuer-client: Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=5007 gap_ms=10 tick_ms=0"
+        }
+      }
+    },
+    "sb16-2": {
+      "archive_sha256": "ac7813252cecefcbd2d8545498597a2d55b12183dbc775e4adadff5e4eda3024",
+      "attachments_verified": 41,
+      "profiles": {
+        "debug": [
+          {
+            "suite": "issuer-client",
+            "passed": 30,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "suite": "issuer-client-defaults",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          }
+        ],
+        "runtime-sanitize": [
+          {
+            "suite": "issuer-client",
+            "passed": 30,
+            "failed": 0,
+            "skipped": 0
+          },
+          {
+            "suite": "issuer-client-defaults",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0
+          }
+        ]
+      },
+      "existing_ctest_entries_preserved": 124,
+      "scanned_logs": 35,
+      "sanitizer_matches": 0,
+      "default_client_diagnostics": {
+        "debug": {
+          "test_explicit_short_timeout_is_preserved_and_never_replays-client.log": "spatial-issuer-client: Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=700 gap_ms=10 tick_ms=0",
+          "test_omitted_timeout_accepts_valid_reply_after_two_seconds-client.log": "",
+          "test_omitted_timeout_is_bounded_and_never_replays-client.log": "spatial-issuer-client: Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=5000 gap_ms=10 tick_ms=0"
+        },
+        "runtime-sanitize": {
+          "test_explicit_short_timeout_is_preserved_and_never_replays-client.log": "spatial-issuer-client: Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=701 gap_ms=10 tick_ms=0",
+          "test_omitted_timeout_accepts_valid_reply_after_two_seconds-client.log": "",
+          "test_omitted_timeout_is_bounded_and_never_replays-client.log": "spatial-issuer-client: Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=5005 gap_ms=10 tick_ms=0"
+        }
+      }
+    }
+  },
+  "source_review": "Only one additive CTest registration and a separate three-case suite. Existing shared fixtures are unchanged.",
+  "evidence_reassessment": "All 124 existing CTest commands and properties match after normalizing source/build paths, unit build hashes, and evidence destinations. Existing gate binaries and source are unchanged. New checks ran directly against those binaries. New CMake metadata was configured separately; current-source binaries were not rebuilt.",
+  "phase_complete": false,
+  "remaining": [
+    "Final M02 requirement audit and historical-failure disposition",
+    "Reviewed normal-host source adoption",
+    "Storage-contention availability follow-up during workspace resource containment"
+  ]
+}

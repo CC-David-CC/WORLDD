@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: Explicit production timeout coverage passed on both hosts
+
+The new issuer-client-defaults suite adds three checks without changing the shared 700 ms fixture.
+It verifies a valid reply after 2.2 seconds, an explicit short deadline, and bounded default-timeout failure without replay.
+Both hosts passed the three new checks and all thirty existing issuer-client checks in both profiles.
+The total is 132 passed checks, zero failures, and zero skips.
+Default-timeout diagnostics reported 5000 to 5007 ms. Explicit short-timeout diagnostics reported 700 to 705 ms.
+All 82 collected attachments verified. All 70 scanned logs lacked selected sanitizer markers.
+
+The production source, settings, and frozen binaries remain unchanged.
+CMake has one additional test registration. All 124 existing entries match after normalizing generated paths and build hashes.
+The new CMake metadata was configured separately. Current-source binaries were not rebuilt.
+The earlier complete local and cross-host gates remain evidence for their recorded candidate.
+Read docs/ISSUER_TIMEOUT_POLICY.txt and evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json.
+
+The M02 coverage reassessment matched 285 selected case definitions across all four full local gate logs.
+It found 1140 passing executions across seven requirement families.
+This reuses reviewed source and execution evidence. It does not count those executions as new runs.
+Both normal host checkouts are clean at 0ed35eb3e21268fcaed38b190b93619a17260088.
+Reviewed source adoption and historical-failure disposition remain pending. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Disk interference and client timeout comparison reviewed
 
 Bounded scratch writes reproduced issuer durability stalls on sb16 without compiling or changing production code.

@@ -1,0 +1,10 @@
+{
+  "host": "sb16-2",
+  "head": "0ed35eb3e21268fcaed38b190b93619a17260088",
+  "branch": "main",
+  "origin": "dflanag3@box-git:/srv/data/git/spacial_desktop.git",
+  "dirty": [],
+  "sparse_checkout": "false",
+  "source_mutated": false,
+  "runtime_restarted": false
+}

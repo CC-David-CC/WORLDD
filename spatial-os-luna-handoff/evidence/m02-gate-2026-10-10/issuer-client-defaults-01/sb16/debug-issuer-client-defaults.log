@@ -1,0 +1,8 @@
+test_explicit_short_timeout_is_preserved_and_never_replays (__main__.ClientDefaultTests.test_explicit_short_timeout_is_preserved_and_never_replays) ... ok
+test_omitted_timeout_accepts_valid_reply_after_two_seconds (__main__.ClientDefaultTests.test_omitted_timeout_accepts_valid_reply_after_two_seconds) ... ok
+test_omitted_timeout_is_bounded_and_never_replays (__main__.ClientDefaultTests.test_omitted_timeout_is_bounded_and_never_replays) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 8.497s
+
+OK

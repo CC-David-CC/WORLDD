@@ -1,3 +1,28 @@
+2026-10-10: Production timeout checks and requirement-family reassessment
+
+Both hosts passed thirty existing issuer-client checks and three new default-budget checks in both build profiles.
+All 132 selected executions passed without skips. The 700 ms shared fixture and existing assertions remain unchanged.
+The default accepts a valid response after 2.2 seconds and fails a withheld response near five seconds.
+An explicit 700 ms limit remains effective. Both timeout checks reject reconnect and queued-request replay.
+The collector verified 82 attachments. All 70 scanned logs lack selected sanitizer markers.
+The new CMake registration preserves all 124 existing entries after generated path and build-hash normalization.
+The focused checks reused pinned candidate02 binaries. Current-source binaries were not rebuilt.
+Read evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json.
+
+The execution coverage reassessment located these case definitions in unchanged source:
+43 structural delegation cases.
+27 authenticated world authority cases.
+20 workspace execution authority cases.
+94 separate observation, control, and execution cases.
+49 distributed completion cases.
+37 failure and recovery cases.
+15 operator completion cases.
+All 285 definitions have exact passing lines in each host and profile's full gate log.
+These 1140 executions are reused evidence. They are not additional test runs.
+Read coverage-reassessment.json beside the primary review.
+The prior source and independent-witness review still defines what these assertions prove.
+Historical-failure disposition and reviewed host adoption remain pending. M02 remains incomplete.
+
 2026-10-10: Storage-pressure diagnosis and timeout comparison
 
 All nine selected diagnostic cases ran on sb16 using the frozen runtime-sanitize binaries.

@@ -1,0 +1,45 @@
+Issuer timeout policy
+
+Production clients use a five-second I/O budget when configuration omits io_timeout_ms.
+Keep this existing default. A timeout is not successful acknowledgement.
+Do not reconnect or replay an uncertain operation automatically.
+Keep durable commits and revocation-completion checks unchanged.
+
+The shared test fixture explicitly uses 700 ms.
+Preserve that fixture and its existing assertions for this increment.
+Add separate checks for omitted production configuration and explicit short configuration.
+Do not relabel the preserved 700 ms or 2000 ms pressure failures as passes.
+
+Selected checks before integration
+Run the new issuer-client-defaults suite in Debug and runtime sanitizers on both hosts.
+Run the existing issuer-client suite alongside it to preserve malformed-reply and deadline coverage.
+Use unchanged qualified production binaries. No rebuild is needed for these Python checks.
+Verify all source, binary, and locked-file hashes before and after execution.
+Verify the added CMake registration in a separate configuration directory.
+Do not change or reconfigure the frozen qualification build.
+
+New default-budget assertions
+A valid reply delayed by 2.2 seconds must succeed with an omitted timeout field.
+The same delay must fail with an explicit 700 ms field.
+An indefinitely withheld reply must fail near the existing five-second default.
+Both failures must close the client without reconnecting or sending the queued second request.
+Preserve child diagnostics. Require no sanitizer findings.
+
+These checks qualify transport timeout selection and terminal failure behavior.
+The delayed peer is an independent transport witness, not an authority implementation.
+It does not qualify storage latency, complete revocation, or a production deployment.
+The real-issuer storage comparison is in evidence/m02-gate-2026-10-10/durability-diagnosis-01.
+
+Storage contention remains an availability concern for Spatial-M1.
+Address competing writes through the workspace resource boundary and deployment policy.
+Do not weaken SQLite durability or expose uncommitted authority to improve response time.
+A separate database worker requires an explicit authority-ordering design before implementation.
+
+Verified results, 2026-10-10
+Both hosts passed the three new checks and thirty existing checks in Debug and runtime sanitizers.
+All 132 selected executions passed without skips.
+The recorded default deadline ranged from 5000 to 5007 ms.
+The recorded explicit short deadline ranged from 700 to 705 ms.
+All 124 existing CTest entries retain their commands and properties after generated-path normalization.
+Current-source binaries were not rebuilt. The new checks used the previously qualified production binaries.
+Read evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json.

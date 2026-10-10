@@ -1290,3 +1290,25 @@ A database worker cannot make a pending durable commit finish sooner.
 No worst-case latency bound, power-loss result, or physical/GPU result follows from these runs.
 The older approval and revocation-read failures remain individually unproven.
 M02 final audit and host adoption remain pending. Completed local and cross-host results remain reviewed.
+
+2026-10-10: Explicit production timeout coverage
+
+Added issuer-client-defaults with three independent TLS transport checks.
+The shared 700 ms fixture and all existing assertions remain unchanged.
+Both hosts passed 30 existing checks and three new checks in both profiles: 132 passed, zero failed, zero skipped.
+A valid reply after 2.2 seconds succeeded with the omitted production timeout field.
+The default rejected a withheld reply at 5000-5007 ms. Explicit short limits failed at 700-705 ms.
+Timed-out clients did not reconnect or send the queued second request.
+All 82 collected attachments verified. All 70 scanned logs lack selected sanitizer markers.
+The isolated CMake configuration preserves 124 existing test entries after path and build-hash normalization.
+The new registration adds one suite. Current-source binaries were not rebuilt.
+The checks used unchanged frozen candidate02 binaries and generated bindings.
+Evidence: spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json
+
+The coverage reassessment matched 285 selected M02 case definitions across all four full-gate logs.
+Those 1140 passing executions are reused evidence, not new runs.
+Both normal host checkouts are clean at 0ed35eb3e21268fcaed38b190b93619a17260088.
+No runtime restarted, and no world or operator state migrated.
+Historical-failure disposition and reviewed host adoption remain pending.
+No precise original cause can be recovered from diagnostic fields that were not captured.
+M02 and Spatial-M1 remain incomplete.

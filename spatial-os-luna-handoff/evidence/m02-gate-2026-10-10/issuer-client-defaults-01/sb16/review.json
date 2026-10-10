@@ -1,0 +1,230 @@
+{
+  "host": "sb16",
+  "status": "passed_review_pending",
+  "pid": 3000522,
+  "started": 1791673575.3168352,
+  "binary_source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "source_inputs": {
+    "CMakeLists.txt": "8858b96c216250a96416d37943a5c711539fd0beeee1f79d9ce5c22d70cdcaa6",
+    "tests/core/test_issuer_client_defaults.py": "9e39e1a9a5e50e74f652e8ec1a68af23e3f55223fa24b943513c2c402e37af29"
+  },
+  "production_changed": false,
+  "existing_tests_changed": false,
+  "locked_files_changed": false,
+  "runner_sha256": "02b8968c3551fae054e06150649c23eac641929132793b2cf9edf071862b9084",
+  "profiles": {
+    "debug": [
+      {
+        "suite": "issuer-client",
+        "passed": 30,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "issuer-client-defaults",
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "runtime-sanitize": [
+      {
+        "suite": "issuer-client",
+        "passed": 30,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "issuer-client-defaults",
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "commands": [
+    {
+      "label": "configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-client-defaults-01/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-client-defaults-01/configuration",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=ON",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "started": 1791673575.3260996,
+      "exit_code": 0,
+      "ended": 1791673576.4434938,
+      "sha256": "516714068762e11d3fc778e966f1d25ba657b4fc91f09468a6df1778ac310247"
+    },
+    {
+      "label": "inventory",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-client-defaults-01/configuration",
+        "--show-only=json-v1"
+      ],
+      "started": 1791673576.4531093,
+      "exit_code": 0,
+      "ended": 1791673576.568507,
+      "sha256": "fb9108a23a6723fdcd46e0517746ac3f9b4419a746747f6c405215297212774d"
+    },
+    {
+      "label": "sync-before-tests",
+      "argv": [
+        "sync",
+        "-f",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-client-defaults-01"
+      ],
+      "started": 1791673576.5791135,
+      "exit_code": 0,
+      "ended": 1791673576.6946015,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "debug-issuer-client",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-client-defaults-01/source/tests/core/test_issuer_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/spatial-issuer-client"
+      ],
+      "started": 1791673576.7044852,
+      "exit_code": 0,
+      "ended": 1791673587.300401,
+      "sha256": "fbcb7fc957a0294b3ffb089126282f7ba655b6536f8fe12c1046e6ecb5d10887"
+    },
+    {
+      "label": "debug-issuer-client-defaults",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-client-defaults-01/source/tests/core/test_issuer_client_defaults.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/spatial-issuer-client"
+      ],
+      "started": 1791673587.310376,
+      "exit_code": 0,
+      "ended": 1791673595.9320607,
+      "sha256": "e77ed0d2f5ecdcc2d1047c89d142a4cde13a97785f3ed11c1e278ab62fe895b1"
+    },
+    {
+      "label": "runtime-sanitize-issuer-client",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-client-defaults-01/source/tests/core/test_issuer_client.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "started": 1791673595.9421575,
+      "exit_code": 0,
+      "ended": 1791673612.4724195,
+      "sha256": "ac35a803b199c65a09c8c650a2b858ab2578795aea9ff4b54649805354564245"
+    },
+    {
+      "label": "runtime-sanitize-issuer-client-defaults",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-client-defaults-01/source/tests/core/test_issuer_client_defaults.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/runtime-sanitize/build/spatial-issuer-client"
+      ],
+      "started": 1791673612.482208,
+      "exit_code": 0,
+      "ended": 1791673621.3554263,
+      "sha256": "45384b72996a23c43db24d0f9feaaf96926f90a2a7f8d385ac0fcdc5604f40f1"
+    }
+  ],
+  "phase_complete": false,
+  "qualification_scope": "Focused regression coverage using frozen candidate02 binaries. CMake registration checked separately.",
+  "registration": {
+    "suite": "issuer-client-defaults",
+    "total_suites": 125,
+    "verified": true
+  },
+  "scanned_logs": [
+    "runtime-sanitize-issuer-client-defaults.log",
+    "debug-issuer-client-defaults.log",
+    "debug-issuer-client.log",
+    "runtime-sanitize-issuer-client.log",
+    "sync-before-tests.log",
+    "configure.log",
+    "inventory.log",
+    "runtime-sanitize-issuer-client-native/test_client_certificate_must_be_trusted_by_issuer-issuer-3001379.log",
+    "runtime-sanitize-issuer-client-native/test_valid_issuer_error_keeps_connection_usable-issuer-3001805.log",
+    "runtime-sanitize-issuer-client-native/test_bootstrap_profile_publication_and_exact_read_reach_real_issuer-issuer-3001298.log",
+    "runtime-sanitize-issuer-client-native/test_client_verifies_explicit_server_trust-issuer-3001455.log",
+    "runtime-sanitize-issuer-client-native/test_numeric_ipv6_endpoint_reaches_real_issuer-issuer-3001624.log",
+    "runtime-sanitize-issuer-client-native/test_invalid_local_payload_does_not_poison_connection-issuer-3001560.log",
+    "runtime-sanitize-issuer-client-native/test_real_enrollment_authentication_and_revocation_use_checked_client-issuer-3001640.log",
+    "runtime-sanitize-issuer-client-native/test_client_verifies_server_name-issuer-3001472.log",
+    "runtime-sanitize-issuer-client-native/test_client_rejects_expired_server_certificate-issuer-3001416.log",
+    "runtime-sanitize-issuer-client-native/test_client_reaches_real_issuer_and_preserves_caller_request_ids-issuer-3001398.log",
+    "runtime-sanitize-issuer-client-native/test_common_name_without_dns_san_is_rejected-issuer-3001490.log",
+    "runtime-sanitize-issuer-client-defaults-native/test_omitted_timeout_accepts_valid_reply_after_two_seconds-client.log",
+    "runtime-sanitize-issuer-client-defaults-native/test_omitted_timeout_is_bounded_and_never_replays-client.log",
+    "runtime-sanitize-issuer-client-defaults-native/test_explicit_short_timeout_is_preserved_and_never_replays-client.log",
+    "debug-issuer-client-defaults-native/test_omitted_timeout_accepts_valid_reply_after_two_seconds-client.log",
+    "debug-issuer-client-defaults-native/test_omitted_timeout_is_bounded_and_never_replays-client.log",
+    "debug-issuer-client-defaults-native/test_explicit_short_timeout_is_preserved_and_never_replays-client.log",
+    "debug-issuer-client-native/test_numeric_ipv6_endpoint_reaches_real_issuer-issuer-3001027.log",
+    "debug-issuer-client-native/test_bootstrap_profile_publication_and_exact_read_reach_real_issuer-issuer-3000772.log",
+    "debug-issuer-client-native/test_invalid_local_payload_does_not_poison_connection-issuer-3000971.log",
+    "debug-issuer-client-native/test_client_verifies_explicit_server_trust-issuer-3000892.log",
+    "debug-issuer-client-native/test_client_verifies_server_name-issuer-3000905.log",
+    "debug-issuer-client-native/test_client_reaches_real_issuer_and_preserves_caller_request_ids-issuer-3000851.log",
+    "debug-issuer-client-native/test_client_certificate_must_be_trusted_by_issuer-issuer-3000835.log",
+    "debug-issuer-client-native/test_real_enrollment_authentication_and_revocation_use_checked_client-issuer-3001040.log",
+    "debug-issuer-client-native/test_client_rejects_expired_server_certificate-issuer-3000866.log",
+    "debug-issuer-client-native/test_valid_issuer_error_keeps_connection_usable-issuer-3001179.log",
+    "debug-issuer-client-native/test_common_name_without_dns_san_is_rejected-issuer-3000920.log"
+  ],
+  "sanitizer_matches": 0,
+  "original_source_files_verified": 351,
+  "locked_files_verified": 41,
+  "source_and_binaries_unchanged": true,
+  "ended": 1791673626.92019,
+  "attachments": {
+    "runtime-sanitize-issuer-client-defaults.log": "45384b72996a23c43db24d0f9feaaf96926f90a2a7f8d385ac0fcdc5604f40f1",
+    "debug-issuer-client-defaults.log": "e77ed0d2f5ecdcc2d1047c89d142a4cde13a97785f3ed11c1e278ab62fe895b1",
+    "debug-issuer-client.log": "fbcb7fc957a0294b3ffb089126282f7ba655b6536f8fe12c1046e6ecb5d10887",
+    "runtime-sanitize-issuer-client.log": "ac35a803b199c65a09c8c650a2b858ab2578795aea9ff4b54649805354564245",
+    "sync-before-tests.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "configure.log": "516714068762e11d3fc778e966f1d25ba657b4fc91f09468a6df1778ac310247",
+    "inventory.log": "fb9108a23a6723fdcd46e0517746ac3f9b4419a746747f6c405215297212774d",
+    "runtime-sanitize-issuer-client-native/test_client_certificate_must_be_trusted_by_issuer-issuer-3001379.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_valid_issuer_error_keeps_connection_usable-issuer-3001805.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_bootstrap_profile_publication_and_exact_read_reach_real_issuer-issuer-3001298.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_client_verifies_explicit_server_trust-issuer-3001455.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_numeric_ipv6_endpoint_reaches_real_issuer-issuer-3001624.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_invalid_local_payload_does_not_poison_connection-issuer-3001560.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_real_enrollment_authentication_and_revocation_use_checked_client-issuer-3001640.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_client_verifies_server_name-issuer-3001472.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_client_rejects_expired_server_certificate-issuer-3001416.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_client_reaches_real_issuer_and_preserves_caller_request_ids-issuer-3001398.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-native/test_common_name_without_dns_san_is_rejected-issuer-3001490.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-defaults-native/test_omitted_timeout_accepts_valid_reply_after_two_seconds-client.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime-sanitize-issuer-client-defaults-native/test_omitted_timeout_is_bounded_and_never_replays-client.log": "14b826a2edc0c28ac9e232faa436739bb93719eb390032ce4cdd5d5ebf27ecb2",
+    "runtime-sanitize-issuer-client-defaults-native/test_explicit_short_timeout_is_preserved_and_never_replays-client.log": "28702fe6586338759c1e1db016dff937f552d4b2db6cbf1ec155aa3a8b4128e7",
+    "debug-issuer-client-defaults-native/test_omitted_timeout_accepts_valid_reply_after_two_seconds-client.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-defaults-native/test_omitted_timeout_is_bounded_and_never_replays-client.log": "3bbe0f18fbb861124ae3a64aa2fd71b52f9d3a28a508b0d533e24af474a5422d",
+    "debug-issuer-client-defaults-native/test_explicit_short_timeout_is_preserved_and_never_replays-client.log": "95a8aa5c7cc26cdd940a03fda5434cd79918acedf3236ed2c5b48b007103a1db",
+    "debug-issuer-client-native/test_numeric_ipv6_endpoint_reaches_real_issuer-issuer-3001027.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_bootstrap_profile_publication_and_exact_read_reach_real_issuer-issuer-3000772.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_invalid_local_payload_does_not_poison_connection-issuer-3000971.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_client_verifies_explicit_server_trust-issuer-3000892.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_client_verifies_server_name-issuer-3000905.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_client_reaches_real_issuer_and_preserves_caller_request_ids-issuer-3000851.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_client_certificate_must_be_trusted_by_issuer-issuer-3000835.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_real_enrollment_authentication_and_revocation_use_checked_client-issuer-3001040.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_client_rejects_expired_server_certificate-issuer-3000866.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_valid_issuer_error_keeps_connection_usable-issuer-3001179.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-issuer-client-native/test_common_name_without_dns_san_is_rejected-issuer-3000920.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
