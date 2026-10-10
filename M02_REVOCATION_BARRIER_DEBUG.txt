@@ -1222,3 +1222,18 @@ Both local cross-host preflights passed in check-only mode. No cross-host runtim
 Read spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/untraced03-final/sb16-review.json.
 sb16-2 passed its full Debug sequence and remains live under session 60054 for runtime sanitizers.
 M02 still requires the second-host terminal review, all eight cross-host scenarios, and the remaining failure audit.
+
+## 2026-10-10: Both hosts completed reviewed local M02 qualification
+
+sb16-2 completed both Debug and runtime sanitizer profiles with unchanged candidate02 source and binaries.
+Each profile passed 1668 core checks across 124 suites, 51 harness checks, and 151 acceptance cases.
+No selected case failed or skipped. Both native evidence inventories matched the permitted 26 path changes.
+All 7122 copied attachment hashes match. The complete 7115-log scan found no selected sanitizer markers.
+No compiler overlap or monitor error was recorded. Both check-only cross-host preflights passed.
+Read evidence/m02-gate-2026-10-10/untraced03-final/sb16-2-review.json.
+
+Both hosts now have complete reviewed local passes. Do not repeat these local gates without new evidence.
+All eight coordinated cross-host scenarios remain unrun on this candidate.
+Historical failure disposition and the final M02 requirement audit remain pending.
+The original failed attempts remain preserved. These passes do not establish every historical timeout cause.
+M02 and Spatial-M1 remain incomplete.

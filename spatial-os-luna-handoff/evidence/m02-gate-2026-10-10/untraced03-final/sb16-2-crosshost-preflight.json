@@ -1,0 +1,72 @@
+{
+  "host": "sb16-2",
+  "check_only": true,
+  "profiles": [
+    {
+      "command": [
+        "ssh",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "dflanag3@sb16-2",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/run-m02-gate-crosshost-03.py",
+        "worker",
+        "debug",
+        "delay",
+        "forward",
+        "--qualification",
+        "m02-untraced-03",
+        "--check-only"
+      ],
+      "exit_code": 0,
+      "result": {
+        "host": "sb16-2",
+        "status": "local_gate_reviewed",
+        "commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+        "profile": "debug",
+        "qualification": {
+          "attempt": "m02-untraced-03",
+          "summary_sha256": "54a8bbc6677d0b21b1de4fcb749fd83201f9c6131fc77765f03c0d0df8cf70eb",
+          "review_sha256": "f61bf410af36d09aa2f0cc26f61b11f40ccae335013355adc829f4a615fd905d",
+          "manifest_sha256": "47235bd29bdbb50d18e2a7258f451ccc027202d543176db217c431a15bedcb52"
+        }
+      },
+      "stderr": ""
+    },
+    {
+      "command": [
+        "ssh",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "ConnectTimeout=10",
+        "dflanag3@sb16-2",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/run-m02-gate-crosshost-03.py",
+        "worker",
+        "runtime-sanitize",
+        "delay",
+        "forward",
+        "--qualification",
+        "m02-untraced-03",
+        "--check-only"
+      ],
+      "exit_code": 0,
+      "result": {
+        "host": "sb16-2",
+        "status": "local_gate_reviewed",
+        "commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+        "profile": "runtime-sanitize",
+        "qualification": {
+          "attempt": "m02-untraced-03",
+          "summary_sha256": "54a8bbc6677d0b21b1de4fcb749fd83201f9c6131fc77765f03c0d0df8cf70eb",
+          "review_sha256": "f61bf410af36d09aa2f0cc26f61b11f40ccae335013355adc829f4a615fd905d",
+          "manifest_sha256": "47235bd29bdbb50d18e2a7258f451ccc027202d543176db217c431a15bedcb52"
+        }
+      },
+      "stderr": ""
+    }
+  ]
+}

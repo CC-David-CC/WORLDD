@@ -1,0 +1,43 @@
+{
+  "host": "sb16-2",
+  "status": "reviewed_local_debug_and_runtime_sanitizer_passed",
+  "archive_sha256": "75529e37f2a171151e77306b52f37038934ca8ffccc6ffce7d9c0e332c88169e",
+  "attachments_verified": 7122,
+  "collector_review_sha256": "f61bf410af36d09aa2f0cc26f61b11f40ccae335013355adc829f4a615fd905d",
+  "profiles": {
+    "debug": {
+      "core_suites_passed": 124,
+      "core_case_executions": 1668,
+      "harness_passed": 51,
+      "acceptance_passed": 151,
+      "failed": 0,
+      "skipped": 0,
+      "issuer_loop_delay_records": 1,
+      "maximum_logged_issuer_work_ms": 0
+    },
+    "runtime-sanitize": {
+      "core_suites_passed": 124,
+      "core_case_executions": 1668,
+      "harness_passed": 51,
+      "acceptance_passed": 151,
+      "failed": 0,
+      "skipped": 0,
+      "issuer_loop_delay_records": 2,
+      "maximum_logged_issuer_work_ms": 93
+    }
+  },
+  "prior_failed_archive_sha256": "18811cf8fed5ede1c7d64167409322bf1909f01bf71f59a391c60de6e28595c7",
+  "historical_failures_resolved": false,
+  "phase_complete": false,
+  "remaining": [
+    "Run all eight coordinated cross-host scenarios.",
+    "Complete the M02 requirement audit and historical failure disposition."
+  ],
+  "sanitizer_scan": {
+    "report": "sb16-2-sanitizer-scan.json",
+    "sha256": "8f3cb81327c37778776461a07307da3296990e814f5da13f30e39cfffc4ea9db",
+    "scanned_logs": 7115,
+    "findings": 0
+  },
+  "timing_limit": "Logged delays include the intentional 150 ms poll-delay diagnostic. These figures do not establish GPU performance or explain every historical timeout."
+}

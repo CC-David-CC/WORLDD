@@ -1,0 +1,1 @@
+authority participant failed: code=1 request=7 stage=applied cause=Acknowledgement requires one contiguous consumed revision and the active generation
