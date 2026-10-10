@@ -491,3 +491,10 @@ Owner04 passed sb16 focused Debug checks and continues full qualification. sb16-
 
 Candidate04 focused Debug passes on both hosts: 21 owner checks, three native-world checks, and 51 harness checks each.
 The two protocol-validation regressions pass on each host. Full qualification remains active; production integration is still pending.
+
+2026-10-09: owner04 full Debug passed on sb16.
+1,474 core checks / 100 suites; 51 harness; 151 P10; three native-world checks.
+No failures or skips. Raw evidence: evidence/control-recovery-2026-10-09/qualified-04/sb16.
+Sanitizer focused checks passed on sb16; full sanitizer core remains active.
+sb16-2 full Debug remains active. Both binding01 drivers wait.
+Production remains a3a926d. Coordinator contract: docs/SESSION_CONTROL_COORDINATOR.txt.

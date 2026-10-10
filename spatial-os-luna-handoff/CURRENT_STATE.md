@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Corrected owner04 passes full Debug on sb16
+
+sb16 passed 1,474 core checks across 100 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed. No check failed or skipped.
+Read evidence/control-recovery-2026-10-09/debug-full-review-04-sb16.json.
+The raw evidence, source hashes, binary hashes, and compiler monitor are preserved.
+
+sb16 also passed the sanitizer harness, 21 owner checks, and three native-world checks.
+Its full sanitizer core run remains active. sb16-2 continues full Debug qualification.
+Both retained-launch binding drivers still wait for successful owner04 qualification on their host.
+No production integration occurred. M02 remains incomplete.
+
+The next coordinator boundary is specified in docs/SESSION_CONTROL_COORDINATOR.txt.
+That contract requires independent broker retention and an exact world-endpoint-to-supervisor mapping.
+It is an implementation contract, not a claim that the coordinator exists.
+
 ## 2026-10-09: Corrected focused Debug checks pass on both hosts
 
 Candidate04 passed 21 owner checks, three native-world checks, and 51 harness checks on each host.

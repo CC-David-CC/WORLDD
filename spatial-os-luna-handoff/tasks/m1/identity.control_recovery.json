@@ -56,7 +56,7 @@
   "candidate03_integration_ready": false,
   "validation_order_correction": {
     "candidate": 4,
-    "state": "Both hosts reproduced both baseline failures in both profiles. Corrected Debug passed 21 owner checks, three native-world checks, and 51 harness checks on each host. Both full qualification drivers remain active.",
+    "state": "sb16 passed complete Debug qualification. Its sanitizer harness, 21 owner checks, and three native-world checks passed; full sanitizer core remains active. sb16-2 continues full Debug qualification. Both binding drivers still wait.",
     "total_owner_checks": 21,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-validation-review-04.json",
     "drivers": {
@@ -64,7 +64,8 @@
       "sb16-2": 1490463
     },
     "sb16_focused_evidence": "evidence/control-recovery-2026-10-09/owner-focused-04/sb16/debug/focused-review.json",
-    "sb16_2_focused_evidence": "evidence/control-recovery-2026-10-09/owner-focused-04/sb16-2/debug/focused-review.json"
+    "sb16_2_focused_evidence": "evidence/control-recovery-2026-10-09/owner-focused-04/sb16-2/debug/focused-review.json",
+    "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/debug-full-review-04-sb16.json"
   },
   "retained_launch_binding": {
     "candidate": "binding01",
@@ -79,5 +80,6 @@
     },
     "evidence": "evidence/control-recovery-2026-10-09/control-binding-review-01.json",
     "production_changed": false
-  }
+  },
+  "session_coordinator_contract": "docs/SESSION_CONTROL_COORDINATOR.txt"
 }

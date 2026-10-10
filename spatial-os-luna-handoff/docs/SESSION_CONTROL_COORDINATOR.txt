@@ -1,0 +1,107 @@
+Session control coordinator
+Status: Implementation contract. The production coordinator is not implemented.
+
+Invariant
+
+The session retains broker management independently of every world launch.
+Each world endpoint maps to one retained, authorized compositor launch.
+A world failure closes only that world's control path.
+It does not close broker management or stop independently authorized applications.
+
+Existing implementation boundaries
+
+src/platform/broker.cpp provides BrokerProcess and BrokerClient.
+BrokerProcess starts workspaced directly. It does not provide supervised authority launch ownership.
+src/platform/worker.cpp uses that path for the conformance host.
+Do not promote that fixture launch into the production session coordinator.
+
+src/supervisor/main.cpp supervises one authorized process launch.
+It retains process scope, native scope, participant connection, and launch authorization.
+Its private parent channel supports lifecycle operations.
+The binding01 candidate adds a control_owner query derived from those retained handles.
+That query does not activate a generation or prove cleanup.
+
+The owner04 broker candidate accepts separate root, administrative, and world channels.
+Root EOF still shuts down workspaced and its applications.
+Administrative failure fences admitted world channels but preserves reservations and application execution.
+World-channel failure affects only its immutable owner.
+
+Required process and descriptor ownership
+
+Add one production session coordinator above the existing per-launch supervisors.
+Keep the broker supervisor independent of all world supervisors.
+Launch the broker through the existing authorized supervisor path.
+Retain the broker root channel in the session coordinator.
+Create the broker administrative socket pair in that same coordinator process.
+Pass only the broker endpoint through its supervisor into workspaced.
+Configure the administrative peer as the coordinator, not the intermediary supervisor.
+Keep the administrative sender endpoint in the coordinator for its complete lifetime.
+
+Create each world socket pair in the coordinator.
+Pass the world endpoint only to the corresponding retained world supervisor and child.
+Close unused endpoint copies after their checked handoff.
+Never pass root or administrative channels to a world, compositor, actor, or application.
+Keep all descriptors close-on-exec except explicitly mapped child descriptors.
+Keep the existing supervisor checks against privileged descriptor aliases.
+
+Kernel socket credentials identify the socket creator.
+They do not identify a later process that inherits the endpoint.
+The coordinator therefore owns the endpoint-to-launch mapping.
+Do not infer that mapping from a caller's PID, world name, or serialized owner fields.
+Do not relax the broker's per-packet sender check to permit another sender.
+
+World admission sequence
+
+1. Retain the exact world supervisor process and its private management connection.
+2. Start its authorized world launch with the dedicated world endpoint.
+3. Read the initial launch record from that retained supervisor.
+4. Query control_owner through the same private connection.
+5. Validate the returned binding against that launch record and expected issuer.
+6. Register the paired broker endpoint with that exact owner.
+7. Validate the complete registration reply before reporting control-channel readiness.
+
+The world may queue its initial broker request before registration.
+Do not report readiness from process creation or a queued request alone.
+Registration does not replace actor, application, or workspace authorization.
+Do not accept a caller-selected owner or an unrelated inherited endpoint.
+
+Failure handling
+
+Correlate every supervisor and broker reply with its request and expected operation.
+Validate protobuf messages recursively, including versions and nested fields.
+Bound packet sizes, pending requests, and response deadlines.
+Treat timeout, malformed replies, and lost registration replies as uncertain effects.
+Inspect the exact owner when the administrative connection remains usable.
+Do not retry registration with a different identity to bypass uncertainty.
+
+On world failure, fence its broker channel before accepting replacement control work.
+Then obtain checked process and native cleanup through the retained supervisor.
+Keep unrelated worlds and application execution active.
+Retain reservations until the separate selective recovery operation verifies cleanup.
+Never infer cleanup from EOF, process exit, or elapsed time alone.
+
+Coordinator failure must fence managed world channels through the existing broker transport rules.
+Do not promise application survival after coordinator or broker failure.
+Reopening a journal cannot recreate lost live handles or authorize replacement execution.
+Record unresolved ownership and require the existing checked recovery path.
+
+Required independent tests
+
+Run the real coordinator, supervised broker, supervised world, and native application.
+Kill one world after it holds a real key, button, and application control reservation.
+Verify native input release and continued application response.
+Verify the broker root connection remains owned by the live coordinator.
+Verify only the failed world's channel is fenced.
+Verify an unrelated world's reservation and application remain usable.
+Verify the failed world's reservation remains pending before selective checked release.
+
+Reject substitution of another supervisor's owner, generation, or endpoint.
+Reject unapproved launches and ownership reconstructed from journal contents alone.
+Exercise supervisor failure before and after registration.
+Exercise a lost registration reply and verify exact-owner reconciliation.
+Verify world and application descriptor inventories contain no administrative endpoint.
+Exercise coordinator loss and preserve unresolved recovery obligations.
+
+Run focused checks and full Debug and runtime sanitizer profiles on both hosts.
+Keep locked acceptance files unchanged.
+This contract does not claim M02 completion or implement selective release.

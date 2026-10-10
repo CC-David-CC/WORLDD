@@ -1,0 +1,25 @@
+{
+  "reviewer": "primary agent",
+  "candidate": "04",
+  "host": "sb16",
+  "profile": "debug",
+  "core_checks": 1474,
+  "core_suites": 100,
+  "owner_checks": 21,
+  "harness_checks": 51,
+  "P10_cases": 151,
+  "native_world_checks": 3,
+  "failed": 0,
+  "skipped": 0,
+  "archive_sha256": "092c7247f59b88e3f68b6d0b5fce9fdbaf0b3d95a5f9b72eed77f26e8cbacc0b",
+  "summary_sha256": "3b122815c351618d660e997a7efaae4f465e58236e27b589a6bb55bbbe9c5451",
+  "evidence": "qualified-04/sb16/summary-debug.json",
+  "integration_ready": false,
+  "production_recovery_complete": false,
+  "remaining": [
+    "Both-host runtime sanitizer qualification.",
+    "sb16-2 full Debug qualification.",
+    "Retained launch binding and production coordinator.",
+    "Selective release and durable cleanup receipts."
+  ]
+}
