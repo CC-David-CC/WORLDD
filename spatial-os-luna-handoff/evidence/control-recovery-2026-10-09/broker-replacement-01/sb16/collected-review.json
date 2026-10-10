@@ -1,0 +1,76 @@
+{
+  "status": "focused_passed_phase_gate_pending",
+  "host": "sb16",
+  "source_files": 344,
+  "locked_files": 41,
+  "profiles": {
+    "debug": {
+      "replacement": [
+        3
+      ]
+    },
+    "runtime-sanitize": {
+      "replacement": [
+        3
+      ]
+    }
+  },
+  "attachments": {
+    "checks/review.json": "497b50443cb4efe3dfd6c2b62e3b83930177f057de8260671d025d53b054733a",
+    "checks/runtime-sanitize/replacement.log": "ae443ae8603c038fcf85daa82ecc7904e824a6c5733b22103dabf1474e8034db",
+    "checks/debug/replacement.log": "5f766217483d38b47037bad9dd80c16e4ce04d3f0354eb87844215dcdd7e6ab1",
+    "checks/runtime-sanitize/native/test_pending_broker_retirement_prevents_new_session_execution-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-server-0.log": "a3c3931458a0bdb96028f4d5225ce4546580b2653b2bd26fc1d08c8d92f1c89f",
+    "checks/runtime-sanitize/native/test_pending_broker_retirement_prevents_new_session_execution-replacement-0.log": "daf4476e356cd001eae5654f9160f88a9d1bee9c28432a78b2c64cbec0aac29a",
+    "checks/runtime-sanitize/native/test_fresh_session_synchronizes_revocation_before_actor_admission-coordinator.log": "55a0c052867002075f5b6034b8209eb9f179829a2fb4a93995b558d0bf8e7f6b",
+    "checks/runtime-sanitize/native/test_pending_broker_retirement_prevents_new_session_execution-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/runtime-sanitize/native/test_fresh_session_synchronizes_revocation_before_actor_admission-original-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/runtime-sanitize/native/test_fresh_session_synchronizes_revocation_before_actor_admission-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/runtime-sanitize/native/test_fresh_session_synchronizes_revocation_before_actor_admission-replacement-0.log": "d618dfb8e2bbebc237f723998e192b442c3d992d5948d5749c0e9289f23f3215",
+    "checks/runtime-sanitize/native/test_pending_broker_retirement_prevents_new_session_execution-original-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_fresh_session_synchronizes_revocation_before_actor_admission-server-0.log": "79ebf320ba0db2a4d11e8b64cb6e74a888510eba13ca893a6da630a82e5c06e1",
+    "checks/runtime-sanitize/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-original-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_pending_broker_retirement_prevents_new_session_execution-coordinator.log": "55a0c052867002075f5b6034b8209eb9f179829a2fb4a93995b558d0bf8e7f6b",
+    "checks/runtime-sanitize/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-coordinator.log": "55a0c052867002075f5b6034b8209eb9f179829a2fb4a93995b558d0bf8e7f6b",
+    "checks/runtime-sanitize/native/test_fresh_session_synchronizes_revocation_before_actor_admission-original-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-replacement-0.log": "d618dfb8e2bbebc237f723998e192b442c3d992d5948d5749c0e9289f23f3215",
+    "checks/runtime-sanitize/native/test_fresh_session_synchronizes_revocation_before_actor_admission-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/runtime-sanitize/native/test_pending_broker_retirement_prevents_new_session_execution-server-0.log": "f1c4e5fec54fdd3155771eb2e18449410fe4dc61fb2a5b2b7d6e73f9842a147b",
+    "checks/runtime-sanitize/native/test_pending_broker_retirement_prevents_new_session_execution-original-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/runtime-sanitize/native/test_pending_broker_retirement_prevents_new_session_execution-replacement-1.log": "d618dfb8e2bbebc237f723998e192b442c3d992d5948d5749c0e9289f23f3215",
+    "checks/runtime-sanitize/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-original-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/runtime-sanitize/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "checks/runtime-sanitize/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-confinement.json.log": "ccb0c88eb328625f608b6588ab62a547e32e975f913f7c0fe370d7c88fb6874c",
+    "checks/debug/native/test_pending_broker_retirement_prevents_new_session_execution-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-server-0.log": "959fb8692cd64b01d12ffd70f15d78096cd94b01a74931118d0b2cee4b8ad6c8",
+    "checks/debug/native/test_pending_broker_retirement_prevents_new_session_execution-replacement-0.log": "daf4476e356cd001eae5654f9160f88a9d1bee9c28432a78b2c64cbec0aac29a",
+    "checks/debug/native/test_fresh_session_synchronizes_revocation_before_actor_admission-coordinator.log": "e6c0a30a8c7c04c945d6fea220ae3d7b5f2f570b78e2ec9c9f18843e4b11a3f1",
+    "checks/debug/native/test_pending_broker_retirement_prevents_new_session_execution-probe.jsonl.log": "90d01f647bf5f0a256589e3b79e71c76ea0b6f4d055eb6877722d2ef4781369c",
+    "checks/debug/native/test_fresh_session_synchronizes_revocation_before_actor_admission-original-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/debug/native/test_fresh_session_synchronizes_revocation_before_actor_admission-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/debug/native/test_fresh_session_synchronizes_revocation_before_actor_admission-replacement-0.log": "2ebc09c07cec39e76f5738a2a4c0e8e6c4adeff1d23e3371f307ffa8d3c8e62a",
+    "checks/debug/native/test_pending_broker_retirement_prevents_new_session_execution-original-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_fresh_session_synchronizes_revocation_before_actor_admission-server-0.log": "4451c1b0da5df713f0df440d6e62feaf18e504cdd175b7dd0f66c4fcf6392621",
+    "checks/debug/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-original-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_pending_broker_retirement_prevents_new_session_execution-coordinator.log": "e6c0a30a8c7c04c945d6fea220ae3d7b5f2f570b78e2ec9c9f18843e4b11a3f1",
+    "checks/debug/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-coordinator.log": "e6c0a30a8c7c04c945d6fea220ae3d7b5f2f570b78e2ec9c9f18843e4b11a3f1",
+    "checks/debug/native/test_fresh_session_synchronizes_revocation_before_actor_admission-original-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-replacement-0.log": "1eba9a0dcef8a438df6f2ba9ad4f9bed36091209e390883e36dca5fcf2fcd59b",
+    "checks/debug/native/test_fresh_session_synchronizes_revocation_before_actor_admission-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_pending_broker_retirement_prevents_new_session_execution-server-0.log": "f2525d019c2184518533dab07483132773f44500ad03337949b49c6b5dc36191",
+    "checks/debug/native/test_pending_broker_retirement_prevents_new_session_execution-original-probe.jsonl.log": "90d01f647bf5f0a256589e3b79e71c76ea0b6f4d055eb6877722d2ef4781369c",
+    "checks/debug/native/test_pending_broker_retirement_prevents_new_session_execution-replacement-1.log": "9b98672f36adf88359bed7ff61da3ef162f32116fc2bf20fe02129e28aa72fd0",
+    "checks/debug/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-original-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/debug/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "checks/debug/native/test_fresh_session_preserves_data_and_requires_explicit_application_launch-confinement.json.log": "ccb0c88eb328625f608b6588ab62a547e32e975f913f7c0fe370d7c88fb6874c"
+  },
+  "selected_cases_per_profile": 3,
+  "production_launch_changed": false,
+  "reused_builds": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02",
+  "limitations": [
+    "Full M02 qualification remains pending on both hosts.",
+    "Failure races and cross-host cancellation remain required.",
+    "The earlier participant-approval startup failure remains unresolved.",
+    "Automatic application placement restoration and shared compositor lifetime remain required for M1."
+  ]
+}

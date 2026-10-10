@@ -798,3 +798,13 @@ The surviving application requires fresh actor authentication and a new lease. O
 Broker replacement, failure races, the earlier startup defect, cross-host cancellation, and the full gate remain pending.
 Automatic placement restoration and shared compositor lifetime remain required for M1.
 No normal host session or database changed. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: Broker replacement passed 42 cases per profile on sb16.
+Three new scenarios and four related suites passed in Debug and runtime ASan/UBSan.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/broker-replacement-02/sb16/primary-review.json.
+The exploratory three-case checks passed in both profiles without rebuilding unchanged compiled inputs.
+The final candidate was rebuilt after test registration. Production launch code did not change.
+Interrupted execution is uncertain and cannot replay. New applications require an explicit launch.
+Failure races, the earlier startup defect, cross-host cancellation, and the full both-host gate remain pending.
+Automatic placement restoration and shared compositor lifetime remain required for M1.
+No normal host session or database changed. M02 and Spatial-M1 remain incomplete.

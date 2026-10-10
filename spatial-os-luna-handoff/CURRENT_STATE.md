@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-10: Actual broker replacement passes focused native checks
+
+Fresh production sessions recover the original world and workspace after checked cleanup and issuer retirement.
+Saved geometry, actor context, workspace selection, and uncommitted project files survive.
+Interrupted process records become uncertain. Replaying the old launch returns UNAVAILABLE without execution.
+An explicit new launch creates a confined application with a fresh native identity and control lease.
+Replacement applies current revocation before actor admission. Pending broker retirement prevents replacement execution.
+The implementation already provided this path. Only the new test and CMake registration changed.
+
+All 42 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These include three new native scenarios and four related suites.
+All 344 tested source files match. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/broker-replacement-02/sb16/primary-review.json.
+The exploratory three-case runs also passed in both profiles using verified unchanged binaries.
+The final candidate was rebuilt after CMake registration and additional confinement assertions.
+
+Next: failure races, the earlier participant-approval startup defect, and cross-host cancellation.
+Full M02 qualification remains pending on both hosts.
+Automatic application placement restoration and shared compositor lifetime remain required for M1.
+No normal host session or database changed. M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Actual world replacement passes focused native checks
 
 The existing production coordinator starts a fresh world generation after checked recovery and issuer retirement.

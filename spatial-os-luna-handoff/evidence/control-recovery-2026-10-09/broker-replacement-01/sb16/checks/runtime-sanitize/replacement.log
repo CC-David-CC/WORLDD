@@ -1,0 +1,15 @@
+Running as unit: spatial-broker-replacement-01-2c97f3cf6c936b4cc186238941a5d1943b5c9b5062149e8b7a4896bd88819079.service; invocation ID: 3bf71dc767ca458a85199aea000ae733
+test_fresh_session_preserves_data_and_requires_explicit_application_launch (__main__.BrokerReplacementTests.test_fresh_session_preserves_data_and_requires_explicit_application_launch) ... ok
+test_fresh_session_synchronizes_revocation_before_actor_admission (__main__.BrokerReplacementTests.test_fresh_session_synchronizes_revocation_before_actor_admission) ... ok
+test_pending_broker_retirement_prevents_new_session_execution (__main__.BrokerReplacementTests.test_pending_broker_retirement_prevents_new_session_execution) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 23.971s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 24.091s
+CPU time consumed: 9.933s
+Memory peak: 1.5M
+Memory swap peak: 0B

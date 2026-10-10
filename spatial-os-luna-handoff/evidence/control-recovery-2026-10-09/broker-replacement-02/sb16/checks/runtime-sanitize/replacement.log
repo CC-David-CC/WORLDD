@@ -1,0 +1,41 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 119
+    Start 119: session-broker-replacement
+
+119: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-broker-replacement-c1ba15720fee2a05c51d144c3d4105b65b7e2828744d305d07fe815ff21b0c8d" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/source/tests/native/test_broker_replacement.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build/spatial-issuer-client"
+119: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-replacement-02/runtime-sanitize/build
+119: Test timeout computed to be: 240
+119: Running as unit: spatial-broker-replacement-c1ba15720fee2a05c51d144c3d4105b65b7e2828744d305d07fe815ff21b0c8d.service; invocation ID: 559b71e133b9401ca8239fc58de51138
+119: test_fresh_session_preserves_data_and_requires_explicit_application_launch (__main__.BrokerReplacementTests.test_fresh_session_preserves_data_and_requires_explicit_application_launch) ... ok
+119: test_fresh_session_synchronizes_revocation_before_actor_admission (__main__.BrokerReplacementTests.test_fresh_session_synchronizes_revocation_before_actor_admission) ... ok
+119: test_pending_broker_retirement_prevents_new_session_execution (__main__.BrokerReplacementTests.test_pending_broker_retirement_prevents_new_session_execution) ... ok
+119: 
+119: ----------------------------------------------------------------------
+119: Ran 3 tests in 25.322s
+119: 
+119: OK
+119: Finished with result: success
+119: Main processes terminated with: code=exited/status=0
+119: Service runtime: 25.475s
+119: CPU time consumed: 10.430s
+119: Memory peak: 1.5M
+119: Memory swap peak: 0B
+1/1 Test #119: session-broker-replacement .......   Passed   25.50 sec
+
+The following tests passed:
+	session-broker-replacement
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  25.51 sec
