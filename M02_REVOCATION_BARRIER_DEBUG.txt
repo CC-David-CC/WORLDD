@@ -566,3 +566,8 @@ The handoff collection path remains unrun. Both active qualification handles wer
 Reply01 sb16 passed full Debug: 1496 core / 102 suites, 51 harness, 151 P10, and three native-world checks.
 No failures or skips. Raw evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/qualified-reply01/sb16.
 Both-host sanitizer qualification and handoff lifetime checks remain pending.
+
+2026-10-10: Binding01 passed full qualification on both hosts and was integrated as the exact seven-file change.
+Each host/profile: 1480 core / 101 suites, 51 harness, 151 P10, and three native-world checks. No final failures, skips, or compiler overlap.
+The owner query derives identity from retained launch handles. It does not prove activation or cleanup.
+Coordinator, administrative transport, selective recovery release, and issuer retirement remain incomplete.

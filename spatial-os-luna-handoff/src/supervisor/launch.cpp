@@ -128,6 +128,22 @@ void validate_record(const v1::AuthorityLaunchRecord& value) {
     require(value.stage() != v1::OWNED_SCOPES_STOPPED || (value.has_process_stopped() && value.has_native_stopped()),
         "Incomplete owned scope cleanup");
 }
+identity::v1::AuthorityFenceBegin owned_generation(const v1::AuthorityLaunchRecord& record) {
+    const auto& binding = record.binding();
+    const auto& approval = record.authorization();
+    const auto& authorized = approval.request();
+    require(binding.supervised() && record.has_authorization() && authorized.previous_generation() < INT64_MAX,
+        "Owned generation requires a bounded supervised authorization");
+    identity::v1::AuthorityFenceBegin result;
+    result.set_participant_id(binding.participant_id());
+    result.set_registered_revision(binding.registered_revision());
+    result.set_generation(authorized.previous_generation()+1);
+    result.set_service_incarnation(binding.service_incarnation());
+    result.set_launch_id(record.process().launch_id());
+    result.set_supervision_revision(authorized.supervision_revision());
+    result.set_authorization_id(approval.authorization_id());
+    return result;
+}
 }
 
 struct AuthorityLaunch::Impl {
@@ -381,6 +397,25 @@ void AuthorityLaunch::fence_after_failure() {
     // The issuer, not this local eligibility check, proves exact activation.
     fence();
 }
+workspace::v1::ControlOwner AuthorityLaunch::control_owner() const {
+    require(impl_->record.binding().supervised() && impl_->record.has_authorization() &&
+        impl_->process && impl_->native && impl_->participant && !impl_->participant->failed() &&
+        impl_->authorization_config && !impl_->stopping && !impl_->relay_failed && !impl_->relay_released &&
+        (impl_->record.stage() == v1::PREPARED ||
+            (impl_->record.stage() == v1::START_ATTEMPTED && impl_->started)),
+        "Control owner requires retained live authorized launch ownership");
+    require(impl_->record.native().role() == security::v1::COMPOSITOR,
+        "Control owner requires an owned compositor scope");
+    if (impl_->started) {
+        const auto state = impl_->process->state();
+        require(state.populated() && !state.direct_child_exited(), "Control owner child is no longer running");
+    }
+    workspace::v1::ControlOwner owner;
+    owner.set_issuer_id(impl_->record.binding().issuer_id());
+    *owner.mutable_launch() = owned_generation(impl_->record);
+    *owner.mutable_native() = impl_->record.native();
+    return owner;
+}
 v1::AuthorityLaunchRecord AuthorityLaunch::fence() {
     require(impl_->record.binding().supervised() && impl_->record.has_authorization() &&
         impl_->record.stage() >= v1::START_ATTEMPTED && impl_->process && impl_->native &&
@@ -391,21 +426,11 @@ v1::AuthorityLaunchRecord AuthorityLaunch::fence() {
     if (impl_->relay_child.fd >= 0) close(std::exchange(impl_->relay_child.fd, -1));
     impl_->participant.reset();
     const auto& approval = impl_->record.authorization();
-    const auto& authorized = approval.request();
-    require(authorized.previous_generation() < INT64_MAX, "Fence candidate generation overflows");
     auto key = identity::KeyPair::load(impl_->authorization_config->private_key_path());
     require(key.public_key() == approval.supervisor_public_key(), "Fence signing key differs from owned authorization");
     identity::IssuerClient client(impl_->authorization_config->issuer_client_config());
     identity::v1::IssuerRequest begin; begin.set_protocol_version(1);
-    auto* request = begin.mutable_authority_fence_begin();
-    const auto& binding = impl_->record.binding();
-    request->set_participant_id(binding.participant_id());
-    request->set_registered_revision(binding.registered_revision());
-    request->set_generation(authorized.previous_generation()+1);
-    request->set_service_incarnation(binding.service_incarnation());
-    request->set_launch_id(impl_->record.process().launch_id());
-    request->set_supervision_revision(authorized.supervision_revision());
-    request->set_authorization_id(approval.authorization_id());
+    *begin.mutable_authority_fence_begin() = owned_generation(impl_->record);
     auto result = client.call(std::move(begin));
     require(result.has_challenge(), "Issuer rejected owned authority fence challenge");
     identity::v1::IssuerRequest complete; complete.set_protocol_version(1);

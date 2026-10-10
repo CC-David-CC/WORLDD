@@ -30,6 +30,8 @@ public:
     // True only after an explicit release and exit of the retained direct child.
     bool child_completed() const;
     v1::AuthorityLaunchRecord inspect() const;
+    // Registration identity from retained live ownership. This does not prove activation or cleanup.
+    workspace::v1::ControlOwner control_owner() const;
     v1::AuthorityLaunchRecord stop();
     // Fence the exact authorized generation. This does not retire issuer obligations.
     v1::AuthorityLaunchRecord fence();

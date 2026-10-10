@@ -17,7 +17,7 @@ pkg_check_modules(XCB REQUIRED IMPORTED_TARGET xcb)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 configure_file(config/conformance.textproto runtime.textproto COPYONLY)
-set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
+set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
 protobuf_generate_cpp(compositor_proto_sources compositor_proto_headers proto/spatial/render/v1/compositor_native.proto)
 protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
 protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
@@ -40,12 +40,13 @@ add_custom_target(compositor-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/launch.proto
-    DEPENDS proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
+    DEPENDS proto/spatial/workspace/v1/broker.proto proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
         proto/spatial/supervisor/v1/native_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(launch-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/process_scope_pb2.py"
@@ -171,7 +172,7 @@ add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe
 add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
 target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch)
 target_link_libraries(spatial-authority-launch-probe PRIVATE spatial-authority-launch)
-add_dependencies(spatial-authority-launch-probe launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
+add_dependencies(spatial-authority-launch-probe broker-python-protobuf launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
 add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
 target_link_libraries(spatial-process-scope-probe PRIVATE spatial-process-scope)
 add_dependencies(spatial-process-scope-probe scope-python-protobuf python-protobuf security-python-protobuf)
@@ -321,6 +322,17 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(authority-supervisor-fencing PROPERTIES TIMEOUT 180)
+    add_test(NAME authority-control-binding COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-control-binding-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_control_owner_binding.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(authority-control-binding PROPERTIES TIMEOUT 180)
     add_test(NAME authority-supervisor-crash-fencing COMMAND systemd-run --user --wait --pipe --collect
         --unit=spatial-supervisor-crash-fencing-${build_hash} --property=Delegate=yes
         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"

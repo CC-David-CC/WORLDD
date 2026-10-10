@@ -4,6 +4,7 @@ import "process_scope.proto";
 import "native_scope.proto";
 import "issuer.proto";
 import "grants.proto";
+import "broker.proto";
 
 // Private supervisor context. Recording this does not authorize issuer activation.
 message AuthorityLaunchBinding {
@@ -76,6 +77,7 @@ message AuthorityLaunchRequest {
     AuthorityParticipantChannelPrepare prepare_channel = 18;
     AuthorityLaunchQuery pump_channel = 19;
     AuthorityLaunchQuery fence = 20;
+    AuthorityLaunchQuery control_owner = 21;
   }
 }
 message AuthorityLaunchView {
@@ -91,5 +93,6 @@ message AuthorityLaunchReply {
     AuthorityLaunchError error = 11;
     spatial.identity.v1.ParticipantUpdate participant_update = 12;
     spatial.identity.v1.AuthorityParticipantRuntimeConfig participant_config = 13;
+    spatial.workspace.v1.ControlOwner control_owner = 14;
   }
 }

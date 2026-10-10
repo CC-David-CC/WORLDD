@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-10: Qualified retained-launch binding integrated
+
+The exact seven-file binding01 source change is integrated.
+Both hosts passed complete Debug and runtime ASan, LeakSanitizer, and UBSan qualification.
+Each profile passed 1,480 core checks across 101 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed per profile. No final case failed or skipped. No compiler overlap was recorded.
+All 41 locked files remain unchanged. The five expected baseline failures remain preserved in each host/profile.
+Read evidence/control-recovery-2026-10-09/integration-primary-review-binding-01.json and integration-applied-binding-01.json.
+
+The private supervisor query derives the control owner from retained authorized compositor launch ownership.
+It grants no activation or cleanup authority and cannot reconstruct live ownership from a reopened journal.
+Host source adoption follows the reviewed commit.
+Reply qualification continues; handoff lifetime qualification remains queued.
+The production session coordinator, administrative transport, selective cleanup, and issuer retirement remain incomplete.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Reply validation passes full Debug on sb16
 
 sb16 passed 1,496 core checks across 102 suites, 51 harness checks, and 151 P10 cases.

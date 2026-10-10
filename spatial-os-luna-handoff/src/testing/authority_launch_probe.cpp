@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
                 else if (request.has_prepare_channel()) *reply.mutable_participant_config() = launch.prepare_channel(request.prepare_channel().target_fd());
                 else if (request.has_pump_channel()) { launch.pump_channel(); *reply.mutable_view()->mutable_record() = launch.inspect(); }
                 else if (request.has_inspect()) *reply.mutable_view()->mutable_record() = launch.inspect();
+                else if (request.has_control_owner()) *reply.mutable_control_owner() = launch.control_owner();
                 else if (request.has_stop()) *reply.mutable_view()->mutable_record() = launch.stop();
                 else if (request.has_fence()) *reply.mutable_view()->mutable_record() = launch.fence();
                 else throw std::runtime_error("Unknown launch operation");

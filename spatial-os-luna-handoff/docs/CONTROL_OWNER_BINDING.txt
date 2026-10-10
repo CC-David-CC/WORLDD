@@ -1,5 +1,5 @@
 Control owner derivation from the retained launch
-Status: Focused Debug checks pass on sb16. Complete both-host qualification and integration remain pending.
+Status: Retained-launch binding is integrated after full qualification on both hosts. Complete recovery remains pending.
 
 Invariant
 

@@ -1,0 +1,44 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 11
+    Start 11: authority-control-binding
+
+11: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-control-binding-cb199d74d4ab0cc5a9eea5f574bbc2ee13b5a0d2d369da619dac1155e6af2a0a" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/qualification/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/source/tests/native/test_control_owner_binding.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build/spatial-issuer-client"
+11: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-binding-01/runtime-sanitize/build
+11: Test timeout computed to be: 180
+11: Running as unit: spatial-control-binding-cb199d74d4ab0cc5a9eea5f574bbc2ee13b5a0d2d369da619dac1155e6af2a0a.service; invocation ID: 141b2623be0a4a198caa9c160fb10308
+11: test_prepared_owner_matches_activation_and_exact_issuer_fence (__main__.BindingTests.test_prepared_owner_matches_activation_and_exact_issuer_fence) ... ok
+11: test_reopened_authorized_record_cannot_reconstruct_control_owner (__main__.BindingTests.test_reopened_authorized_record_cannot_reconstruct_control_owner) ... ok
+11: test_failed_authorization_commit_cannot_expose_owner (__main__.BindingTests.test_failed_authorization_commit_cannot_expose_owner) ... ok
+11: test_query_rejects_nested_unknown_owner_selector_without_mutation (__main__.BindingTests.test_query_rejects_nested_unknown_owner_selector_without_mutation) ... ok
+11: test_broker_native_role_cannot_become_world_control_owner (__main__.BrokerBindingTests.test_broker_native_role_cannot_become_world_control_owner) ... ok
+11: test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.SupervisorBindingTests.test_production_supervisor_returns_exact_owned_binding_without_stopping_child) ... ok
+11: 
+11: ----------------------------------------------------------------------
+11: Ran 6 tests in 7.822s
+11: 
+11: OK
+11: Finished with result: success
+11: Main processes terminated with: code=exited/status=0
+11: Service runtime: 7.997s
+11: CPU time consumed: 4.977s
+11: Memory peak: 1.5M
+11: Memory swap peak: 0B
+1/1 Test #11: authority-control-binding ........   Passed    8.02 sec
+
+The following tests passed:
+	authority-control-binding
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   8.03 sec

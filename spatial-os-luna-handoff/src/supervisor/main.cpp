@@ -249,7 +249,8 @@ int main(int argc, char** argv) {
                     require(request.ParseFromString(*bytes), "Malformed supervisor request");
                     reply.set_request_id(request.request_id()); spatial::validate_message(request);
                     require(request.protocol_version() == 1, "Unsupported supervisor request version");
-                    require(request.has_inspect() || request.has_stop() || request.has_fence(), "Supervisor supports only inspect, stop, and fence");
+                    require(request.has_inspect() || request.has_stop() || request.has_fence() || request.has_control_owner(),
+                        "Supervisor supports only inspect, stop, fence, and control owner");
                     stop = request.has_stop() || request.has_fence();
                 } catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
                 if (!reply.has_error()) {
@@ -257,7 +258,11 @@ int main(int argc, char** argv) {
                     explicit_shutdown = stop;
                     // Cleanup errors are fatal and cannot resume child routing.
                     if (request.has_fence()) launch->fence();
-                    *reply.mutable_view()->mutable_record() = stop ? launch->stop() : launch->inspect();
+                    if (request.has_control_owner()) {
+                        try { *reply.mutable_control_owner() = launch->control_owner(); }
+                        catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
+                    }
+                    else *reply.mutable_view()->mutable_record() = stop ? launch->stop() : launch->inspect();
                 }
                 management->send(reply.SerializeAsString());
                 if (stop) { drain(*management); return 0; }

@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "qualify_retained_launch_binding_and_complete_dependent_recovery",
+  "current_step": "qualify_reply_and_handoff_then_complete_session_control_recovery",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
   "invariant": "Release only a fenced generation's owned control reservations after verified native cancellation, while preserving independently authorized applications.",
   "baseline": "Both hosts reproduced native release with a surviving application and an unreleased broker reservation. One corrected Debug diagnostic passed per host.",
@@ -77,7 +77,7 @@
   "retained_launch_binding": {
     "candidate": "binding01",
     "base": "owner04",
-    "state": "sb16 passed full Debug and runtime sanitizers. sb16-2 passed full Debug and runs sanitizers. Both baseline profiles reproduced on both hosts.",
+    "state": "Both hosts passed complete Debug and sanitizer qualification. Exact binding01 source is integrated; host adoption follows the reviewed commit.",
     "source_files": 298,
     "changed_files": 7,
     "new_checks": 6,
@@ -86,7 +86,7 @@
       "sb16-2": 1540587
     },
     "evidence": "evidence/control-recovery-2026-10-09/control-binding-review-01.json",
-    "production_changed": false,
+    "production_changed": true,
     "integration_guard": "local/integrate-control-binding-01.py",
     "guard_rejection_evidence": "evidence/control-recovery-2026-10-09/integration-guard-rejection-binding-01.json",
     "sb16_baseline_evidence": "evidence/control-recovery-2026-10-09/binding-baseline-01/sb16/baseline-review.json",
@@ -94,7 +94,9 @@
     "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/qualified-binding01/sb16/summary-debug.json",
     "sb16_full_evidence": "evidence/control-recovery-2026-10-09/binding-final-review-01-sb16.json",
     "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/binding-debug-review-01-sb16-2.json",
-    "adoption_script": "local/adopt-control-binding-01.py"
+    "adoption_script": "local/adopt-control-binding-01.py",
+    "integrated": true,
+    "integration_evidence": "evidence/control-recovery-2026-10-09/integration-applied-binding-01.json"
   },
   "session_coordinator_contract": "docs/SESSION_CONTROL_COORDINATOR.txt",
   "control_reply_validation": {
