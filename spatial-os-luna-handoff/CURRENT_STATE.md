@@ -1,5 +1,29 @@
 # Implementation status
 
+## 2026-10-10: Local actors and confined application crash recovery
+
+SessionCoordinator now creates local actor channels and transfers each endpoint once to an exact retained world owner.
+The actor authenticates through the existing signed proof and uses persistent world and workspace authority.
+The real actor launches a confined native application through the supervised broker.
+Actor cancellation releases held native input and its control reservation.
+A world crash also releases native input. The application remains responsive through the surviving broker.
+Checked process and native cleanup match the durable journal. The failed world's reservation remains fenced and pending.
+
+All 100 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These comprise two new native scenarios and 98 related cases across seven suites.
+Read evidence/control-recovery-2026-10-09/connected-applications-03/sb16/primary-review.json.
+The initial remote-input rejection and fixture evidence-directory error remain preserved in connected-application-baseline01.
+The corrected path keeps remote application input disabled. All 41 locked files remain unchanged.
+One stale source comment was corrected after testing. Executable source is unchanged.
+No normal host session adopted this branch. Full qualification on both hosts remains pending.
+
+Next: release only the checked, fenced world's reservations while preserving unrelated owners and application execution.
+Then persist the dependent cleanup receipt and implement issuer retirement.
+Resolve the earlier participant-approval startup failure before the M02 phase gate.
+Shared compositor lifetime across world transitions remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Authenticated actor transport through the session coordinator
 
 SessionCoordinator now admits an explicitly supplied TCP listener for the existing TLS actor interface.

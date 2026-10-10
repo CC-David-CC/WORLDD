@@ -661,3 +661,23 @@ Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/connected
 Confined application recovery is next. Selective release, dependent receipt, issuer retirement, and the earlier startup failure remain unresolved.
 Full two-host M02 qualification, physical-input evidence, model acceptance, and full M1 qualification remain pending.
 Controller setup retried an early archive transfer and a malformed SSH Python command. The corrected transfer and extraction succeeded before testing.
+
+2026-10-10: Connected application first run
+Both Debug cases launched confined native applications but rejected input: Remote application input is not supported.
+TLS actors are remote. This is the required M1 restriction, not a runtime defect to remove.
+The fixture also missed creation of its first evidence directory. The raw CTest failure is preserved; the first application log could not be retained.
+Candidate01 is frozen. Related checks and sanitizers were unrun. Candidate02 adds coordinator-created local actor endpoints.
+
+Connected application recovery checkpoint, 2026-10-10
+
+Candidate03 passed 100 selected cases per profile on sb16 in Debug and runtime sanitizers.
+The two new native scenarios exercise actual signed actors, persistent authority, and confined application execution.
+A world crash releases native input. The application and independently retained broker remain responsive.
+The exact failed-world reservation remains fenced and pending after checked process and native cleanup.
+Selective reservation release, its durable receipt, and issuer retirement remain unfinished.
+Full M02 qualification remains pending on both hosts.
+Read spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/connected-applications-03/sb16/primary-review.json.
+Candidate02 was packaged but never executed. Candidate03 uses protobuf for the actor-endpoint handoff payload.
+Candidate01's remote-input rejection and evidence-directory error remain preserved.
+The first failed application's raw log remains unavailable. Its failure and the second application log are retained.
+One stale test-driver comment was corrected after testing. Runtime behavior and locked files remain unchanged.

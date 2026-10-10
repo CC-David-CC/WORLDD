@@ -102,7 +102,8 @@ Exercise a lost registration reply and verify exact-owner reconciliation.
 Verify world and application descriptor inventories contain no administrative endpoint.
 Exercise coordinator loss and preserve unresolved recovery obligations.
 
-Run focused checks and full Debug and runtime sanitizer profiles on both hosts.
+Run focused checks during implementation.
+Run full Debug and runtime sanitizer profiles on both hosts at the phase gate.
 Keep locked acceptance files unchanged.
 This contract does not claim M02 completion or implement selective release.
 
@@ -148,9 +149,9 @@ The session validates checked process and native cleanup before accepting explic
 Neither EOF nor shutdown acknowledges issuer retirement.
 
 The library is production code. The probe only drives it with real supervisor and broker processes.
-The new tests cover authenticated broker ownership and rejection paths.
-They do not yet prove world endpoint registration, selective recovery, or application survival after world failure.
-Those connected scenarios remain the next implementation work.
+The broker increment tests cover authenticated broker ownership and rejection paths.
+Later increments below cover world registration and application survival after world failure.
+Selective recovery remains unimplemented.
 
 Focused checks passed 65 cases in each of Debug and runtime sanitizers on sb16.
 This includes 15 receiver cases, four session-broker cases, and 46 related cases.
@@ -185,7 +186,8 @@ The coordinator accepts an unmapped world launch configuration and supplies its 
 The actor-listener candidate accepts one explicitly supplied TCP listening descriptor.
 It duplicates and checks the descriptor before creating world ownership.
 Require AF_INET or AF_INET6, SOCK_STREAM, IPPROTO_TCP, and SO_ACCEPTCONN.
-Require one absolute identity configuration path and one absolute TLS configuration path.
+Require one absolute identity configuration path for local or TLS actor channels.
+Require one absolute TLS configuration path when a TLS listener is supplied.
 Reject caller-supplied actor descriptor arguments and generic descriptor mappings.
 Allocate the child descriptor without colliding with participant, native, or broker targets.
 Close the coordinator's duplicate after the supervisor accepts the launch.
@@ -194,12 +196,31 @@ The test probe closes its original descriptor after successful handoff.
 Private coordinator sockets use AF_UNIX. Their duplicates cannot pass listener validation.
 Worldd applies the existing mutual TLS, signed actor proof, admission, and action authorization checks.
 The listener does not grant actor identity, workspace access, or management authority.
-Local actor socket admission remains unimplemented in this coordinator.
-All 117 selected cases passed in Debug and runtime sanitizers on sb16.
+The local actor candidate creates actor-only socket pairs inside the coordinator.
+It accepts a requested channel count. It never admits a caller-supplied local endpoint.
+Each world inherits only its actor endpoint. The coordinator retains the paired endpoint until explicit transfer.
+Require the exact retained live world owner before transferring an endpoint.
+Transfer each endpoint once. The recipient must close it after use.
+Close untransferred endpoints during failed startup or world shutdown.
+The existing process supervisor enforces its sixteen-descriptor launch budget.
+Broker, native, and participant channels consume three descriptors. A TLS listener consumes one additional descriptor.
+Local socket actors use the same signed identity proof and semantic actions.
+TLS actors remain remote. They cannot control native application input in M1.
+The application candidate uses local actors and real persistent world and workspace grants.
+Its first remote-input attempt and fixture evidence error remain preserved.
+Read evidence/control-recovery-2026-10-09/connected-application-baseline01/sb16/baseline-review.json.
+The connected application candidate passed all 100 selected cases in Debug and runtime sanitizers on sb16.
+These comprise two new native scenarios and 98 related cases.
+Read evidence/control-recovery-2026-10-09/connected-applications-03/sb16/primary-review.json.
+Actor cancellation releases native input and the actor's reservation.
+A world crash releases native input while the confined application and broker remain responsive.
+Checked process and native cleanup match the saved world journal.
+The failed owner's reservation remains fenced and pending. Selective release remains unimplemented.
+The earlier TLS actor increment passed all 117 selected cases per profile on sb16.
 Read evidence/control-recovery-2026-10-09/connected-actors-01/sb16/primary-review.json.
 Full M02 qualification remains pending on both hosts.
-The six focused native cases use one world and its actual compositor on a disposable native server.
-They do not prove native application survival or selective reservation release after a world crash.
+The focused native cases use one world and its actual compositor on a disposable native server.
+They do not prove selective reservation release or simultaneous independent world presentation.
 The current world process starts its own compositor.
 Shared compositor lifetime across world transitions remains required before M1 acceptance.
 Do not start a second exclusive renderer on an operator display.

@@ -1,0 +1,231 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 41
+    Start  41: world-remote-native
+
+41: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source/tests/core/test_world_remote_native.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-security-auth"
+41: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build
+41: Environment variables: 
+41:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source
+41: Test timeout computed to be: 180
+41: test_remote_geometry_omits_authorized_live_application_pixels_and_metadata (__main__.RemoteNativeTests.test_remote_geometry_omits_authorized_live_application_pixels_and_metadata) ... ok
+41: test_same_actor_restores_local_application_observation_after_remote_session (__main__.RemoteNativeTests.test_same_actor_restores_local_application_observation_after_remote_session) ... ok
+41: test_stalled_large_reply_closes_remote_channel_and_preserves_local_actor (__main__.RemoteNativeTests.test_stalled_large_reply_closes_remote_channel_and_preserves_local_actor) ... ok
+41: 
+41: ----------------------------------------------------------------------
+41: Ran 3 tests in 19.604s
+41: 
+41: OK
+1/7 Test  #41: world-remote-native ................   Passed   19.73 sec
+test 74
+    Start  74: application-observation
+
+74: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source/tests/core/test_application_observation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-security-auth"
+74: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build
+74: Environment variables: 
+74:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source
+74: Test timeout computed to be: 180
+74: test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application) ... ok
+74: test_authorized_aim_uses_same_filtered_scene (__main__.ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene) ... ok
+74: test_broker_reply_cannot_grant_control_without_observation (__main__.ApplicationObservationTests.test_broker_reply_cannot_grant_control_without_observation) ... ok
+74: test_broker_reply_cannot_substitute_application_identity (__main__.ApplicationObservationTests.test_broker_reply_cannot_substitute_application_identity) ... ok
+74: test_broker_reply_requires_explicit_observation_decision (__main__.ApplicationObservationTests.test_broker_reply_requires_explicit_observation_decision) ... ok
+74: test_broker_reply_requires_matching_group_count (__main__.ApplicationObservationTests.test_broker_reply_requires_matching_group_count) ... ok
+74: test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection) ... ok
+74: test_legacy_interaction_grant_cannot_control_labeled_application (__main__.ApplicationObservationTests.test_legacy_interaction_grant_cannot_control_labeled_application) ... ok
+74: test_legacy_world_grants_do_not_reveal_labeled_application (__main__.ApplicationObservationTests.test_legacy_world_grants_do_not_reveal_labeled_application) ... ok
+74: test_observe_does_not_enable_input_control (__main__.ApplicationObservationTests.test_observe_does_not_enable_input_control) ... ok
+74: test_observe_grant_without_workspace_access_does_not_reveal_application (__main__.ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application) ... ok
+74: test_observe_revocation_removes_metadata_but_preserves_process (__main__.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process) ... ok
+74: test_revocation_after_render_prevents_queued_metadata_export (__main__.ApplicationObservationTests.test_revocation_after_render_prevents_queued_metadata_export) ... ok
+74: test_revocation_before_post_render_check_returns_no_metadata (__main__.ApplicationObservationTests.test_revocation_before_post_render_check_returns_no_metadata) ... ok
+74: test_workspace_access_alone_does_not_reveal_application (__main__.ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application) ... ok
+74: test_world_admission_and_placement_do_not_grant_application_observation (__main__.ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation) ... ok
+74: 
+74: ----------------------------------------------------------------------
+74: Ran 16 tests in 83.079s
+74: 
+74: OK
+2/7 Test  #74: application-observation ............   Passed   83.19 sec
+test 75
+    Start  75: world-application-control
+
+75: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source/tests/core/test_world_application_control.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-security-auth"
+75: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build
+75: Environment variables: 
+75:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source
+75: Test timeout computed to be: 240
+75: test_authorized_native_input_without_workspace_selection (__main__.WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection) ... ok
+75: test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control) ... ok
+75: test_readonly_actor_cannot_control_writable_application (__main__.WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application) ... ok
+75: test_readonly_actor_can_control_readonly_application (__main__.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application) ... ok
+75: test_one_application_has_one_actor_controller (__main__.WorldApplicationControlTests.test_one_application_has_one_actor_controller) ... ok
+75: test_unfocus_releases_native_input_before_handoff (__main__.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff) ... ok
+75: test_idle_control_revocation_releases_input_and_preserves_execution (__main__.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution) ... ok
+75: test_observation_revocation_cancels_control (__main__.WorldApplicationControlTests.test_observation_revocation_cancels_control) ... ok
+75: test_independent_control_grant_survives_other_revocation (__main__.WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation) ... ok
+75: test_stop_releases_application_reservation (__main__.WorldApplicationControlTests.test_stop_releases_application_reservation) ... ok
+75: test_scroll_uses_real_native_events (__main__.WorldApplicationControlTests.test_scroll_uses_real_native_events) ... ok
+75: test_independent_applications_allow_simultaneous_actors (__main__.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors) ... ok
+75: test_session_close_releases_before_handoff (__main__.WorldApplicationControlTests.test_session_close_releases_before_handoff) ... ok
+75: test_controller_disconnect_releases_before_handoff (__main__.WorldApplicationControlTests.test_controller_disconnect_releases_before_handoff) ... ok
+75: test_restored_grant_does_not_restore_held_input (__main__.WorldApplicationControlTests.test_restored_grant_does_not_restore_held_input) ... ok
+75: test_popup_uses_same_application_reservation (__main__.WorldApplicationControlTests.test_popup_uses_same_application_reservation) ... ok
+75: test_resized_aim_rejects_stale_pixels (__main__.WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels) ... ok
+75: test_unmapped_capture_releases_reservation (__main__.WorldApplicationControlTests.test_unmapped_capture_releases_reservation) ... ok
+75: test_actor_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_actor_revocation_releases_native_input) ... ok
+75: test_credential_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_credential_revocation_releases_native_input) ... ok
+75: test_actor_revocation_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_actor_revocation_cancels_during_broker_wait) ... ok
+75: test_credential_revocation_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_credential_revocation_cancels_during_broker_wait) ... ok
+75: test_disconnect_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_disconnect_cancels_during_broker_wait) ... ok
+75: test_revocation_during_renderer_wait_does_not_replay_input (__main__.WorldApplicationControlTests.test_revocation_during_renderer_wait_does_not_replay_input) ... ok
+75: test_revocation_during_native_cancel_closes_actor_devices (__main__.WorldApplicationControlTests.test_revocation_during_native_cancel_closes_actor_devices) ... ok
+75: 
+75: ----------------------------------------------------------------------
+75: Ran 25 tests in 145.280s
+75: 
+75: OK
+3/7 Test  #75: world-application-control ..........   Passed  145.40 sec
+test 77
+    Start  77: application-access
+
+77: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source/tests/core/test_application_access.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-security-auth"
+77: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build
+77: Environment variables: 
+77:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source
+77: Test timeout computed to be: 180
+77: test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access) ... ok
+77: test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application) ... ok
+77: test_application_scoped_execution_grant_does_not_authorize_project_execution (__main__.ApplicationAccessTests.test_application_scoped_execution_grant_does_not_authorize_project_execution) ... ok
+77: test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets) ... ok
+77: test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority) ... ok
+77: test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation) ... ok
+77: test_control_requires_application_execution_authority (__main__.ApplicationAccessTests.test_control_requires_application_execution_authority) ... ok
+77: test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution) ... ok
+77: test_corrupt_recorded_execution_rights_cannot_reduce_control_requirement (__main__.ApplicationAccessTests.test_corrupt_recorded_execution_rights_cannot_reduce_control_requirement) ... ok
+77: test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application) ... ok
+77: test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access) ... ok
+77: test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application) ... ok
+77: test_foreign_issuer_principal_cannot_use_local_grants (__main__.ApplicationAccessTests.test_foreign_issuer_principal_cannot_use_local_grants) ... ok
+77: test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation) ... ok
+77: test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control) ... ok
+77: test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions) ... ok
+77: test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority) ... ok
+77: test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants) ... ok
+77: test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control) ... ok
+77: test_parent_revocation_invalidates_dependent_application_grant (__main__.ApplicationAccessTests.test_parent_revocation_invalidates_dependent_application_grant) ... ok
+77: test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application) ... ok
+77: test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application) ... ok
+77: test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application) ... ok
+77: test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal) ... ok
+77: test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority) ... ok
+77: test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes) ... ok
+77: test_workspace_policy_limits_recorded_application_authority (__main__.ApplicationAccessTests.test_workspace_policy_limits_recorded_application_authority) ... ok
+77: test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied) ... ok
+77: 
+77: ----------------------------------------------------------------------
+77: Ran 28 tests in 65.897s
+77: 
+77: OK
+4/7 Test  #77: application-access .................   Passed   66.00 sec
+test 104
+    Start 104: control-administrative-transport
+
+104: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source/tests/core/test_control_admin.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-control-admin-probe"
+104: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build
+104: Environment variables: 
+104:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source
+104: Test timeout computed to be: 180
+104: test_child_exit_is_uncertain (__main__.TransportTests.test_child_exit_is_uncertain) ... ok
+104: test_exact_child_reply (__main__.TransportTests.test_exact_child_reply) ... ok
+104: test_malformed_rejected (__main__.TransportTests.test_malformed_rejected) ... ok
+104: test_other_process_cannot_reply (__main__.TransportTests.test_other_process_cannot_reply) ... ok
+104: test_oversize_rejected (__main__.TransportTests.test_oversize_rejected) ... ok
+104: test_remote_error_stays_error (__main__.TransportTests.test_remote_error_stays_error) ... ok
+104: test_reply_descriptors_rejected (__main__.TransportTests.test_reply_descriptors_rejected) ... ok
+104: test_reply_timeout_is_uncertain (__main__.TransportTests.test_reply_timeout_is_uncertain) ... ok
+104: test_wrong_owner_rejected (__main__.TransportTests.test_wrong_owner_rejected) ... ok
+104: test_wrong_request_rejected (__main__.TransportTests.test_wrong_request_rejected) ... ok
+104: test_wrong_version_rejected (__main__.TransportTests.test_wrong_version_rejected) ... ok
+104: 
+104: ----------------------------------------------------------------------
+104: Ran 11 tests in 5.834s
+104: 
+104: OK
+5/7 Test #104: control-administrative-transport ...   Passed    5.90 sec
+test 107
+    Start 107: session-broker
+
+107: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-broker-1dd15ba22eff52580d414ea250be203d6b14983b16a28d7f92a032140fcc94c9" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source/tests/native/test_session_broker.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-issuer-client"
+107: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build
+107: Test timeout computed to be: 180
+107: Running as unit: spatial-session-broker-1dd15ba22eff52580d414ea250be203d6b14983b16a28d7f92a032140fcc94c9.service; invocation ID: 579293af038646d5b1118eeb65fe6542
+107: test_real_broker_root_and_administration_share_verified_live_child (__main__.SessionBrokerTests.test_real_broker_root_and_administration_share_verified_live_child) ... ok
+107: test_coordinator_rejects_supplied_administrative_endpoint_arguments (__main__.SessionBrokerTests.test_coordinator_rejects_supplied_administrative_endpoint_arguments) ... ok
+107: test_failed_broker_exec_preserves_checked_owned_cleanup (__main__.SessionBrokerTests.test_failed_broker_exec_preserves_checked_owned_cleanup) ... ok
+107: test_wrong_native_role_cannot_supply_a_broker_handle (__main__.SessionBrokerTests.test_wrong_native_role_cannot_supply_a_broker_handle) ... ok
+107: 
+107: ----------------------------------------------------------------------
+107: Ran 4 tests in 3.454s
+107: 
+107: OK
+107: Finished with result: success
+107: Main processes terminated with: code=exited/status=0
+107: Service runtime: 3.577s
+107: CPU time consumed: 1.821s
+107: Memory peak: 1.5M
+107: Memory swap peak: 0B
+6/7 Test #107: session-broker .....................   Passed    3.61 sec
+test 108
+    Start 108: session-world
+
+108: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-world-1dd15ba22eff52580d414ea250be203d6b14983b16a28d7f92a032140fcc94c9" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source/tests/native/test_session_world.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build/spatial-issuer-client"
+108: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/runtime-sanitize/build
+108: Test timeout computed to be: 180
+108: Running as unit: spatial-session-world-1dd15ba22eff52580d414ea250be203d6b14983b16a28d7f92a032140fcc94c9.service; invocation ID: 143277a65b904ee3b23759e813e99e9c
+108: test_actual_world_owner_registers_and_broker_survives_world_shutdown (__main__.SessionWorldTests.test_actual_world_owner_registers_and_broker_survives_world_shutdown) ... ok
+108: test_caller_cannot_substitute_another_owner_generation (__main__.SessionWorldTests.test_caller_cannot_substitute_another_owner_generation) ... ok
+108: test_world_crash_delivers_checked_cleanup_after_supervisor_exit (__main__.SessionWorldTests.test_world_crash_delivers_checked_cleanup_after_supervisor_exit) ... ok
+108: test_supervisor_crash_without_receipt_cannot_claim_cleanup (__main__.SessionWorldTests.test_supervisor_crash_without_receipt_cannot_claim_cleanup) ... ok
+108: test_world_cannot_supply_its_own_broker_endpoint (__main__.SessionWorldTests.test_world_cannot_supply_its_own_broker_endpoint) ... ok
+108: test_broker_native_role_cannot_register_as_world (__main__.SessionWorldTests.test_broker_native_role_cannot_register_as_world) ... ok
+108: test_listener_admits_real_signed_actor_without_management_authority (__main__.SessionActorTests.test_listener_admits_real_signed_actor_without_management_authority) ... ok
+108: test_private_socket_cannot_be_admitted_as_actor_listener (__main__.SessionActorTests.test_private_socket_cannot_be_admitted_as_actor_listener) ... ok
+108: test_unlistening_tcp_socket_cannot_be_admitted (__main__.SessionActorTests.test_unlistening_tcp_socket_cannot_be_admitted) ... ok
+108: test_listener_requires_tls_configuration (__main__.SessionActorTests.test_listener_requires_tls_configuration) ... ok
+108: test_actor_descriptor_arguments_cannot_select_private_endpoints (__main__.SessionActorTests.test_actor_descriptor_arguments_cannot_select_private_endpoints) ... ok
+108: 
+108: ----------------------------------------------------------------------
+108: Ran 11 tests in 19.811s
+108: 
+108: OK
+108: Finished with result: success
+108: Main processes terminated with: code=exited/status=0
+108: Service runtime: 19.928s
+108: CPU time consumed: 9.007s
+108: Memory peak: 1.5M
+108: Memory swap peak: 0B
+7/7 Test #108: session-world ......................   Passed   19.97 sec
+
+The following tests passed:
+	world-remote-native
+	application-observation
+	world-application-control
+	application-access
+	control-administrative-transport
+	session-broker
+	session-world
+
+100% tests passed, 0 tests failed out of 7
+
+Total Test time (real) = 343.79 sec

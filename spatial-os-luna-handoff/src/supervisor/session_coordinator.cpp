@@ -7,6 +7,8 @@
 #include "identity/tls_support.hpp"
 #include <map>
 #include <iostream>
+#include <vector>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 
@@ -42,6 +44,7 @@ struct World {
     std::unique_ptr<identity::ParticipantStream> management;
     workspace::v1::ControlOwner owner;
     v1::AuthorityLaunchRecord record;
+    std::vector<std::unique_ptr<File>> actors;
     bool registered = false, stopped = false, failed = false;
     std::uint64_t sequence = 0;
 };
@@ -81,7 +84,7 @@ SessionCoordinator::SessionCoordinator(const std::filesystem::path& executable, 
     : impl_(std::make_unique<Impl>(executable, path, std::move(config), native)) {}
 SessionCoordinator::~SessionCoordinator() = default;
 workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesystem::path& path,
-    v1::AuthoritySupervisorConfig config, int native, int actor_listener) {
+    v1::AuthoritySupervisorConfig config, int native, int actor_listener, unsigned local_actor_channels) {
     auto& state = *impl_; state.live(); validate_message(config);
     require(config.has_compositor_native_target_fd() && !config.has_broker_native_target_fd() &&
         config.inherited_source_fds_size() == 0 && config.launch().inherited_fds_size() == 0,
@@ -102,21 +105,34 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
             if (arg == "--identity-config") ++identity_configs; else ++tls_configs;
         }
     }
-    require(actor_listener == -1 ? identity_configs == 0 && tls_configs == 0 : identity_configs == 1 && tls_configs == 1,
+    require(local_actor_channels <= 32, "Excessive local actor channels");
+    require(identity_configs == ((actor_listener != -1 || local_actor_channels) ? 1U : 0U),
+        "Actor transport and identity configuration are required together");
+    require(tls_configs == (actor_listener != -1 ? 1U : 0U),
         "Actor listener, identity configuration, and TLS configuration are required together");
     File listener;
     if (actor_listener != -1) listener.reset(retain_actor_listener(actor_listener));
     int target = 255;
     while (target == static_cast<int>(config.participant_target_fd()) || target == static_cast<int>(config.compositor_native_target_fd())) --target;
+    const auto next_target = [&] {
+        do { --target; } while (target == static_cast<int>(config.participant_target_fd()) ||
+            target == static_cast<int>(config.compositor_native_target_fd()));
+        return target;
+    };
     Pair endpoint, channel;
     config.add_inherited_source_fds(endpoint.child.value); config.mutable_launch()->add_inherited_fds(target);
     config.mutable_launch()->add_arguments("--workspace-fd"); config.mutable_launch()->add_arguments(std::to_string(target));
     config.mutable_launch()->add_arguments("--workspace-pid"); config.mutable_launch()->add_arguments(std::to_string(state.broker.broker_pid()));
     if (listener.value >= 3) {
-        do { --target; } while (target == static_cast<int>(config.participant_target_fd()) ||
-            target == static_cast<int>(config.compositor_native_target_fd()));
-        config.add_inherited_source_fds(listener.value); config.mutable_launch()->add_inherited_fds(target);
+        config.add_inherited_source_fds(listener.value); config.mutable_launch()->add_inherited_fds(next_target());
         config.mutable_launch()->add_arguments("--actor-listen-fd"); config.mutable_launch()->add_arguments(std::to_string(target));
+    }
+    std::vector<std::unique_ptr<Pair>> actors;
+    for (unsigned index = 0; index < local_actor_channels; ++index) {
+        auto actor = std::make_unique<Pair>();
+        config.add_inherited_source_fds(actor->child.value); config.mutable_launch()->add_inherited_fds(next_target());
+        config.mutable_launch()->add_arguments("--actor-fd"); config.mutable_launch()->add_arguments(std::to_string(target));
+        actors.push_back(std::move(actor));
     }
     auto [position, inserted] = state.worlds.emplace(key, std::make_unique<World>());
     require(inserted, "Session world insertion failed");
@@ -125,6 +141,13 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
         world.supervisor = std::make_unique<SessionLaunch>(state.executable, path, config, native,
             std::array<int, 3>{channel.child.value, channel.child.value, STDERR_FILENO}, false);
         endpoint.child.reset(); channel.child.reset(); listener.reset();
+        world.actors.reserve(actors.size());
+        for (auto& actor : actors) {
+            auto client = std::make_unique<File>();
+            client->reset(std::exchange(actor->parent.value, -1));
+            actor->child.reset();
+            world.actors.push_back(std::move(client));
+        }
         world.record = world.supervisor->record();
         require(world.record.native().server_id() == state.broker.launch().native().server_id(), "World and broker have different native server identities");
         world.owner = world.supervisor->control_owner();
@@ -145,8 +168,16 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
             catch (const std::exception& error) { std::cerr << "World registration cleanup unresolved: " << error.what() << '\n'; }
         }
         world.management.reset();
+        world.actors.clear();
         throw;
     }
+}
+int SessionCoordinator::take_actor_channel(const workspace::v1::ControlOwner& owner, unsigned index) {
+    auto& world = impl_->find(owner);
+    require(!world.failed && !world.stopped, "Session world is not available");
+    world.supervisor->live();
+    require(index < world.actors.size() && world.actors[index]->value >= 3, "Actor channel is unavailable or already transferred");
+    return std::exchange(world.actors[index]->value, -1);
 }
 const v1::AuthorityLaunchRecord& SessionCoordinator::world_launch(const workspace::v1::ControlOwner& owner) const {
     return impl_->find(owner).record;
@@ -184,7 +215,7 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::Co
     require(!world.stopped, "Session world already stopped");
     // Stop its input path before native/process cleanup. Reservations remain pending separate selective recovery.
     state.administrative(owner, -1, true);
-    world.record = world.supervisor->stop(); world.stopped = true; world.management.reset();
+    world.record = world.supervisor->stop(); world.stopped = true; world.management.reset(); world.actors.clear();
     return world.record;
 }
 BrokerClient& SessionCoordinator::root() { impl_->live(); return impl_->broker.root(); }

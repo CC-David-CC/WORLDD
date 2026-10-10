@@ -1,0 +1,40 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 109
+    Start 109: session-application
+
+109: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-application-3e134ac1fbf204014d173ab7a53982f1078c26ddf23381a418eaeed0a65b4ef5" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source/tests/native/test_session_application.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build/spatial-issuer-client"
+109: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-03/debug/build
+109: Test timeout computed to be: 180
+109: Running as unit: spatial-session-application-3e134ac1fbf204014d173ab7a53982f1078c26ddf23381a418eaeed0a65b4ef5.service; invocation ID: 132229779c0640eb81ccf831c80a7196
+109: test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionApplicationTests.test_actor_stop_releases_native_input_and_its_reservation) ... ok
+109: test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionApplicationTests.test_world_crash_preserves_application_and_pending_owned_reservation) ... ok
+109: 
+109: ----------------------------------------------------------------------
+109: Ran 2 tests in 7.457s
+109: 
+109: OK
+109: Finished with result: success
+109: Main processes terminated with: code=exited/status=0
+109: Service runtime: 7.639s
+109: CPU time consumed: 1.770s
+109: Memory peak: 1.5M
+109: Memory swap peak: 0B
+1/1 Test #109: session-application ..............   Passed    7.66 sec
+
+The following tests passed:
+	session-application
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   7.66 sec

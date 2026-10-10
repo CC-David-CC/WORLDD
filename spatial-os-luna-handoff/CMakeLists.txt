@@ -910,6 +910,32 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(session-world PROPERTIES TIMEOUT 180)
+    protobuf_generate_cpp(session_probe_sources session_probe_headers src/testing/session_probe.proto)
+    add_executable(spatial-session-application-probe src/testing/session_application_probe.cpp ${session_probe_sources} ${session_probe_headers})
+    target_link_libraries(spatial-session-application-probe PRIVATE spatial-session-broker)
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/session_probe_pb2.py"
+        COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/src/testing
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/testing/session_probe.proto
+        DEPENDS src/testing/session_probe.proto protobuf::protoc VERBATIM)
+    add_custom_target(session-probe-python ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/session_probe_pb2.py")
+    add_test(NAME session-application COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-session-application-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_application.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(session-application PROPERTIES TIMEOUT 180)
     add_executable(spatial-child-handle-client-probe src/testing/child_handle_client_probe.cpp)
     target_link_libraries(spatial-child-handle-client-probe PRIVATE spatial-authority-launch)
     add_test(NAME supervisor-child-handle-client COMMAND "${Python3_EXECUTABLE}"

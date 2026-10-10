@@ -1,0 +1,95 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 109
+    Start 109: session-application
+
+109: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-application-086765c9cdd987a525db746cb959b69be9c3a1e2b15b81c90f49b68a7f3c9453" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source/tests/native/test_session_application.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/spatial-issuer-client"
+109: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build
+109: Test timeout computed to be: 180
+109: Running as unit: spatial-session-application-086765c9cdd987a525db746cb959b69be9c3a1e2b15b81c90f49b68a7f3c9453.service; invocation ID: 8b31450e3d1e444a8090ffd165b59393
+109: test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionApplicationTests.test_actor_stop_releases_native_input_and_its_reservation) ... FAIL
+109: test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionApplicationTests.test_actor_stop_releases_native_input_and_its_reservation) ... ERROR
+109: test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionApplicationTests.test_world_crash_preserves_application_and_pending_owned_reservation) ... FAIL
+109: 
+109: ======================================================================
+109: ERROR: test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionApplicationTests.test_actor_stop_releases_native_input_and_its_reservation)
+109: ----------------------------------------------------------------------
+109: Traceback (most recent call last):
+109:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source/tests/native/test_session_application.py", line 187, in retain
+109:     if path.exists(): (Path(target) / (self._testMethodName + '-' + name + '.log')).write_bytes(path.read_bytes())
+109:                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+109:   File "/usr/lib/python3.12/pathlib.py", line 1038, in write_bytes
+109:     with self.open(mode='wb') as f:
+109:          ^^^^^^^^^^^^^^^^^^^^
+109:   File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+109:     return io.open(self, mode, buffering, encoding, errors, newline)
+109:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+109: FileNotFoundError: [Errno 2] No such file or directory: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/checks/debug/native/test_actor_stop_releases_native_input_and_its_reservation-probe.jsonl.log'
+109: 
+109: ======================================================================
+109: FAIL: test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionApplicationTests.test_actor_stop_releases_native_input_and_its_reservation)
+109: ----------------------------------------------------------------------
+109: Traceback (most recent call last):
+109:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source/tests/native/test_session_application.py", line 221, in test_actor_stop_releases_native_input_and_its_reservation
+109:     self.held_application()
+109:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source/tests/native/test_session_application.py", line 197, in held_application
+109:     self.act(pointer=core.ActorPointerRequest(button=1, pressed=True))
+109:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source/tests/native/test_session_application.py", line 129, in act
+109:     self.assertTrue(reply.HasField('action'), reply)
+109: AssertionError: False is not true : protocol_version: 1
+109: request_id: 6
+109: error {
+109:   code: UNIMPLEMENTED
+109:   message: "Remote application input is not supported"
+109: }
+109: 
+109: 
+109: ======================================================================
+109: FAIL: test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionApplicationTests.test_world_crash_preserves_application_and_pending_owned_reservation)
+109: ----------------------------------------------------------------------
+109: Traceback (most recent call last):
+109:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source/tests/native/test_session_application.py", line 231, in test_world_crash_preserves_application_and_pending_owned_reservation
+109:     self.held_application()
+109:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source/tests/native/test_session_application.py", line 197, in held_application
+109:     self.act(pointer=core.ActorPointerRequest(button=1, pressed=True))
+109:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/source/tests/native/test_session_application.py", line 129, in act
+109:     self.assertTrue(reply.HasField('action'), reply)
+109: AssertionError: False is not true : protocol_version: 1
+109: request_id: 6
+109: error {
+109:   code: UNIMPLEMENTED
+109:   message: "Remote application input is not supported"
+109: }
+109: 
+109: 
+109: ----------------------------------------------------------------------
+109: Ran 2 tests in 7.413s
+109: 
+109: FAILED (failures=2, errors=1)
+109: Finished with result: exit-code
+109: Main processes terminated with: code=exited/status=1
+109: Service runtime: 7.586s
+109: CPU time consumed: 1.639s
+109: Memory peak: 1.5M
+109: Memory swap peak: 0B
+1/1 Test #109: session-application ..............***Failed    7.60 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   7.61 sec
+
+The following tests FAILED:
+	109 - session-application (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-connected-applications-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

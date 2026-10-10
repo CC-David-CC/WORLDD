@@ -1,0 +1,25 @@
+{
+  "status": "remote_input_restriction_confirmed_local_transport_required",
+  "host": "sb16",
+  "debug_cases": 2,
+  "failures": 2,
+  "fixture_cleanup_errors": 1,
+  "related_checks": "unrun",
+  "sanitizers": "unrun",
+  "unchanged_runtime_sources": 127,
+  "attachments": {
+    "checks/review.json": "3b9396bec89759c9ff1207cfca5346245ee42e34796ec1b594f0d883a4f6a8d0",
+    "checks/debug/build.log": "4449e39f17097a5b7f7d8d217d857ef144d8ad4ea233eb1dc54468400d6f0892",
+    "checks/debug/native-application.log": "fc9f276a7e8cbdfb1f95b18f9d4ead498bff9422a0009763aeefaeac725c6d7f",
+    "checks/debug/configure.log": "f0025cb3ed4ced9aa7a85c6a23e207e8ea7bee86a350e707681733da27c4aead",
+    "checks/debug/native/test_world_crash_preserves_application_and_pending_owned_reservation-server-0.log": "f968e03e26cd9bcf7192866e085e575eea35bfc0b4541aee10dfe6352cdefe45",
+    "checks/debug/native/test_world_crash_preserves_application_and_pending_owned_reservation-coordinator.log": "b96ca79e83eae81d6814ed51e214bf4262b3398361d1055d3ef0d99dfe482757",
+    "checks/debug/native/test_world_crash_preserves_application_and_pending_owned_reservation-probe.jsonl.log": "e3979a0b96041ab055c6874794aa93b3e15d755d5f25465cf3b6798b1dce6801",
+    "checks/debug/native/test_world_crash_preserves_application_and_pending_owned_reservation-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_actor_stop_releases_native_input_and_its_reservation-server-0.log": "73fdbd47250c04b83cd863a894d7cdcbbd0ec708bc62a1610d4daca9507ce82c",
+    "checks/debug/native/test_actor_stop_releases_native_input_and_its_reservation-coordinator.log": "6a46ec1cc89cd96575cdcc88a0209aaa77da61491e57b6012494a5e46e16818f"
+  },
+  "finding": "The real actor launched a confined native application. TLS actors correctly cannot control native application input in M1.",
+  "next_action": "Create local actor endpoints inside SessionCoordinator. Preserve remote-input rejection.",
+  "missing_evidence": "The first application raw log was not retained because its destination directory was not yet created. The failure and second application log remain available."
+}

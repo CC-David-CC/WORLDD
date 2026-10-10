@@ -69,10 +69,13 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
         self.logpath = self.root / 'session-world.log'; log = self.logpath.open('wb')
         listener = getattr(self, 'actor_listener', None)
         if listener is not None: arguments.append(str(listener.fileno()))
+        extra = tuple(getattr(self, 'coordinator_fds', ()))
+        arguments.extend(map(str, extra))
         try:
-            proc = subprocess.Popen([str(base.baseline.supervisor.owned.existing.PROBE.with_name('spatial-session-world-probe')), *arguments],
+            proc = subprocess.Popen([str(base.baseline.supervisor.owned.existing.PROBE.with_name(
+                getattr(self, 'coordinator_probe', 'spatial-session-world-probe'))), *arguments],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log,
-                pass_fds=tuple(descriptors) + (() if listener is None else (listener.fileno(),)))
+                pass_fds=tuple(descriptors) + (() if listener is None else (listener.fileno(),)) + extra)
         finally:
             for descriptor in descriptors: os.close(descriptor)
             if listener is not None: listener.close()
@@ -250,7 +253,8 @@ class SessionActorTests(SessionWorldTests):
         self.assertTrue(reply.HasField('world_info'), reply)
         self.world_domain = reply.world_info.world_id
         config = super().world_config()
-        self.actor = self.issuer.decide(self.issuer.peer, self.issuer.enroll(self.issuer.peer)).enrollment
+        if not hasattr(self, 'actor'):
+            self.actor = self.issuer.decide(self.issuer.peer, self.issuer.enroll(self.issuer.peer)).enrollment
         self.claims = self.issuer.claims(self.actor, self.issuer.info)
         identity_config = session.WorldIdentityConfig(protocol_version=1,
             issuer_client_config=str(self.issuer.config_file()), participant_runtime_config=config.child_participant_config,

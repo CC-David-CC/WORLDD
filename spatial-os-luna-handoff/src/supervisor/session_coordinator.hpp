@@ -14,7 +14,10 @@ public:
     SessionCoordinator(const SessionCoordinator&) = delete;
     SessionCoordinator& operator=(const SessionCoordinator&) = delete;
     workspace::v1::ControlOwner start_world(const std::filesystem::path& private_config,
-        v1::AuthoritySupervisorConfig world_config, int borrowed_native, int borrowed_actor_listener = -1);
+        v1::AuthoritySupervisorConfig world_config, int borrowed_native, int borrowed_actor_listener = -1,
+        unsigned local_actor_channels = 0);
+    // Transfers one actor-only endpoint to the caller, which must close it. No caller FD is admitted.
+    int take_actor_channel(const workspace::v1::ControlOwner&, unsigned index);
     const v1::AuthorityLaunchRecord& world_launch(const workspace::v1::ControlOwner&) const;
     workspace::v1::ControlOwnerState inspect_world(const workspace::v1::ControlOwner&);
     core::v1::Reply world_call(const workspace::v1::ControlOwner&, const core::v1::Request&);
