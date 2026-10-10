@@ -576,3 +576,5 @@ Binding adoption stopped at the clean-checkout guard on both hosts. Only the tra
 Corrected the helper to permit only collector bytes that exactly match the reviewed target commit.
 It stages those unchanged bytes and checks fast-forward feasibility; all other local changes remain rejected.
 Failure evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/binding-adoption-collector-state-failure-01.json.
+
+2026-10-10 update: Binding adoption retry stopped on both hosts at git add because the local helper directory is ignored. Exact target collector bytes passed verification. No checkout merge or runtime restart occurred. The adoption helper needs tracked-path staging compatible with the ignore rule. Reply validation qualification continues; handoff qualification remains queued.
