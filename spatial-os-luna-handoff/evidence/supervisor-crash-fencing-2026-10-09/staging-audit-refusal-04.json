@@ -1,0 +1,10 @@
+{
+  "command": [
+    "python",
+    "spatial-os-luna-handoff\\local\\audit-integrated-crash-fencing-04.py"
+  ],
+  "exit_code": 1,
+  "reason": "No integrated candidate in the Git index",
+  "stderr": "fatal: path 'spatial-os-luna-handoff/evidence/supervisor-crash-fencing-2026-10-09/integration-applied-04.json' does not exist (neither on disk nor in the index)\nTraceback (most recent call last):\n  File \"C:\\Users\\dflanag3\\Documents\\spacial_desktop\\spatial-os-luna-handoff\\local\\audit-integrated-crash-fencing-04.py\", line 19, in <module>\n    index_record = json.loads(git('show', ':' + prefix + e + 'integration-applied-04.json'))\n                              ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\dflanag3\\Documents\\spacial_desktop\\spatial-os-luna-handoff\\local\\audit-integrated-crash-fencing-04.py\", line 15, in git\n    return subprocess.check_output(['git', *args], cwd=repo)\n           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\Python313\\Lib\\subprocess.py\", line 472, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n               **kwargs).stdout\n               ^^^^^^^^^\n  File \"C:\\Program Files\\Python313\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['git', 'show', ':spatial-os-luna-handoff/evidence/supervisor-crash-fencing-2026-10-09/integration-applied-04.json']' returned non-zero exit status 128.\n",
+  "production_modified": false
+}

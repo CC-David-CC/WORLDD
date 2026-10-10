@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-09: Combined source review and guarded integration prepared
+
+The primary agent reviewed all 37 changed files between production283 and frozen294.
+The review found no unresolved static defect. This does not replace runtime qualification.
+The 41 locked files remain unchanged. Existing migration fixtures only account for schema9.
+Read evidence/supervisor-crash-fencing-2026-10-09/combined-static-review-04.json.
+
+The integration guard requires all four complete host/profile results and the exact tested source hashes.
+It refused missing qualification evidence and left all production files unchanged.
+The separate staging audit checks Git's index, raw test logs, and compiler-monitor evidence.
+Host adoption also verifies the qualified binaries and source before a fast-forward update.
+No runtime restart or operator-state migration is part of source adoption.
+
+Both serial02 qualifiers remain active. Debug harness, crash-fencing, and focused authority checks passed on both hosts.
+Full Debug core checks continue. Full runtime sanitizers remain pending in these fresh runs.
+Production remains broker283. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Durable sync latency identified; full qualification restarted without compiler overlap
 
 The issuer trace reproduced participant timeouts during a two-job build on sb16-2.

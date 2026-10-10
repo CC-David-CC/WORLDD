@@ -378,3 +378,9 @@ The full authority suite passed after compilation. Original failures remain pres
 Both hosts now qualify frozen294 without compiler overlap. All sanitizer options, assertions, and deadlines remain unchanged.
 Do not start another compiler workload while qualifier PIDs1544923(sb16) and1334189(sb16-2) are active.
 Evidence: spatial-os-luna-handoff/evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json
+
+2026-10-09: Combined integration prepared
+Primary review covers all 37 changed files. The candidate remains unintegrated.
+The integration guard rejected missing full evidence and preserved production283.
+Git-index and host-adoption checks are prepared. Both full serial02 qualifiers remain active.
+Evidence: spatial-os-luna-handoff/evidence/supervisor-crash-fencing-2026-10-09/combined-static-review-04.json
