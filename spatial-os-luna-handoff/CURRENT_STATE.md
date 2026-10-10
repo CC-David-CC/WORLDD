@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-10: Qualified reply validation integrated and adopted
+
+Both hosts passed complete Debug and runtime ASan, LeakSanitizer, and UBSan qualification for reply01.
+Each profile passed 1,496 core checks across 102 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed per profile. No final case failed or skipped.
+The integration guard verified raw evidence, exact source, unchanged locks, and primary review.
+All 303 Git index hashes matched the qualified candidate.
+Both hosts adopted commit 14a889396f22708cebbf0b968ed518a70f540607 with clean checkouts and matching source hashes.
+No runtime restarted or operator state migrated. Active qualification helper bytes remain unchanged.
+Read evidence/control-recovery-2026-10-09/integration-primary-review-reply-01.json and the reply-adoption host receipts.
+
+Handoff qualification continues. Administrative transport and retained-handle checks remain queued.
+Secure child-handle transfer, session coordination, selective cleanup, and issuer retirement remain incomplete.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Control recovery qualification queue
 
 Reply01 passed full Debug and runtime sanitizers on sb16.

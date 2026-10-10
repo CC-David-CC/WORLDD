@@ -103,7 +103,7 @@
   "control_reply_validation": {
     "candidate": "reply01",
     "base": "binding01",
-    "state": "sb16 passed full Debug and sanitizer profiles. sb16-2 passed full Debug; its sanitizer core qualification is active. No reply source is integrated.",
+    "state": "Both hosts passed full Debug and sanitizer qualification. Exact seven-file reply01 source is integrated and adopted at 14a889396f22708cebbf0b968ed518a70f540607. All 303 source hashes match. Administrative transport and complete recovery remain pending.",
     "source_files": 303,
     "changed_files": 7,
     "new_checks": 16,
@@ -112,13 +112,17 @@
       "sb16-2": 1616004
     },
     "evidence": "evidence/control-recovery-2026-10-09/control-reply-review-01.json",
-    "production_changed": false,
+    "production_changed": true,
     "transport_implemented": false,
     "sb16_focused_debug_evidence": "evidence/control-recovery-2026-10-09/reply-focused-01/sb16/debug/focused-review.json",
     "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/reply-debug-review-01-sb16.json",
     "sb16_full_evidence": "evidence/control-recovery-2026-10-09/reply-final-review-01-sb16.json",
     "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/reply-debug-review-01-sb16-2.json",
-    "integration_guard": "local/integrate-control-reply-01.py"
+    "integration_guard": "local/integrate-control-reply-01.py",
+    "adoption_evidence": [
+      "evidence/control-recovery-2026-10-09/reply-adoption-sb16-01.json",
+      "evidence/control-recovery-2026-10-09/reply-adoption-sb16-2-01.json"
+    ]
   },
   "supervisor_handoff_lifetime": {
     "candidate": "handoff01",
