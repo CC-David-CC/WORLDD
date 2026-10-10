@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-09: Corrected owner04 passes full Debug on both hosts
+
+Each host passed 1,474 core checks across 100 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed on each host. No check failed or skipped.
+Read evidence/control-recovery-2026-10-09/debug-matrix-review-04.json.
+Both raw evidence sets match the same source manifest and unchanged acceptance locks.
+
+Both sanitizer profiles passed the harness, 21 owner checks, and three native-world checks.
+Their full core runs remain active. Binding01 and reply01 remain queued on each host.
+The collector now supports reply01 and successfully collected the second owner's complete Debug profile.
+Its reply01 collection path remains unrun until that candidate qualifies.
+No production integration occurred. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Control reply validation prepared in isolation
 
 The reply01 draft adds a production validator for private broker control replies.

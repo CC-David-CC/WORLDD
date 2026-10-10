@@ -1,0 +1,30 @@
+{
+  "reviewer": "primary agent",
+  "candidate": "04",
+  "profile": "debug",
+  "hosts": {
+    "sb16": {
+      "core_checks": 1474,
+      "core_suites": 100,
+      "harness_checks": 51,
+      "P10_cases": 151,
+      "native_world_checks": 3,
+      "failed": 0,
+      "skipped": 0,
+      "summary_sha256": "3b122815c351618d660e997a7efaae4f465e58236e27b589a6bb55bbbe9c5451"
+    },
+    "sb16-2": {
+      "core_checks": 1474,
+      "core_suites": 100,
+      "harness_checks": 51,
+      "P10_cases": 151,
+      "native_world_checks": 3,
+      "failed": 0,
+      "skipped": 0,
+      "summary_sha256": "4fd5a6cbdb8a7595b678814ebd735be8ca3267c67fe643885be40c80554a4441"
+    }
+  },
+  "production_recovery_complete": false,
+  "integration_ready": false,
+  "remaining": "Full runtime sanitizer qualification on both hosts."
+}

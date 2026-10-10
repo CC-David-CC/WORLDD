@@ -503,3 +503,8 @@ Reply01: isolated seven-file reply-validation draft, 303 source files, 41 unchan
 All 16 new checks remain unrun. Drivers wait for binding01: sb16 PID1872025; sb16-2 PID1616004.
 The validator does not implement administrative transport, the session coordinator, or recovery release.
 Read spatial-os-luna-handoff/docs/CONTROL_REPLY_VALIDATION.txt.
+
+Owner04 full Debug passed on both hosts: each passed 1474 core / 100 suites, 51 harness, 151 P10, and three native-world checks.
+No failures or skips. Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/debug-matrix-review-04.json.
+Both sanitizer harnesses and focused owner/native checks passed. Both full sanitizer core runs remain active.
+Binding01 and reply01 remain queued. The collector supports reply01; that collection branch remains unrun.
