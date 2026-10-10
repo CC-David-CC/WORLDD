@@ -1,0 +1,43 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 110
+    Start 110: session-dependent-cleanup
+
+110: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-dependent-cleanup-8e0b1d8d3236c6f3ce380366b572888f2f184e8c461988413863ef55579c1c64" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/source/tests/native/test_dependent_cleanup.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build/spatial-issuer-client"
+110: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-dependent-cleanup-01/debug/build
+110: Test timeout computed to be: 180
+110: Running as unit: spatial-dependent-cleanup-8e0b1d8d3236c6f3ce380366b572888f2f184e8c461988413863ef55579c1c64.service; invocation ID: d043915786744ecaa07d109bde724155
+110: test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch (__main__.DependentCleanupTests.test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch) ... ok
+110: test_readonly_journal_reports_failure_after_release_then_retries (__main__.DependentCleanupTests.test_readonly_journal_reports_failure_after_release_then_retries) ... ok
+110: test_journal_lock_failure_preserves_exact_retry (__main__.DependentCleanupTests.test_journal_lock_failure_preserves_exact_retry) ... ok
+110: test_changed_launch_record_cannot_replace_retained_cleanup (__main__.DependentCleanupTests.test_changed_launch_record_cannot_replace_retained_cleanup) ... ok
+110: test_corrupted_or_changed_dependent_receipt_is_not_overwritten (__main__.DependentCleanupTests.test_corrupted_or_changed_dependent_receipt_is_not_overwritten) ... ok
+110: 
+110: ----------------------------------------------------------------------
+110: Ran 5 tests in 19.022s
+110: 
+110: OK
+110: Finished with result: success
+110: Main processes terminated with: code=exited/status=0
+110: Service runtime: 19.204s
+110: CPU time consumed: 4.194s
+110: Memory peak: 1.5M
+110: Memory swap peak: 0B
+1/1 Test #110: session-dependent-cleanup ........   Passed   19.22 sec
+
+The following tests passed:
+	session-dependent-cleanup
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  19.23 sec

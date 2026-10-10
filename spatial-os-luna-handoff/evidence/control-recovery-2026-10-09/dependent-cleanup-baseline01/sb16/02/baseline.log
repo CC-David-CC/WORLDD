@@ -1,0 +1,24 @@
+Running as unit: spatial-dependent-cleanup-baseline-02.service; invocation ID: fa6e470ad5f94124a850ff212808304a
+test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch (__main__.DependentCleanupTests.test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch) ... FAIL
+
+======================================================================
+FAIL: test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch (__main__.DependentCleanupTests.test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-dependent-cleanup-baseline-02.py", line 48, in test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch
+    before = self.saved(cleanup, recovered)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-dependent-cleanup-baseline-02.py", line 20, in saved
+    self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 2,
+AssertionError: 1 != 2 : Checked broker release has no durable dependent receipt migration
+
+----------------------------------------------------------------------
+Ran 1 test in 3.789s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 3.907s
+CPU time consumed: 907ms
+Memory peak: 1.5M
+Memory swap peak: 0B

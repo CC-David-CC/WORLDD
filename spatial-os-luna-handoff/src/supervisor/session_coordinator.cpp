@@ -1,6 +1,7 @@
 #include "supervisor/session_coordinator.hpp"
 #include "supervisor/session_broker.hpp"
 #include "supervisor/session_launch.hpp"
+#include "supervisor/launch.hpp"
 #include "supervisor/control_admin.hpp"
 #include "platform/broker.hpp"
 #include "identity/participant_stream.hpp"
@@ -44,6 +45,7 @@ struct World {
     std::unique_ptr<identity::ParticipantStream> management;
     workspace::v1::ControlOwner owner;
     v1::AuthorityLaunchRecord record;
+    std::filesystem::path journal_directory;
     std::vector<std::unique_ptr<File>> actors;
     bool registered = false, stopped = false, failed = false;
     std::uint64_t sequence = 0;
@@ -143,6 +145,7 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
     auto [position, inserted] = state.worlds.emplace(key, std::make_unique<World>());
     require(inserted, "Session world insertion failed");
     auto& world = *position->second;
+    world.journal_directory = config.journal_directory();
     try {
         world.supervisor = std::make_unique<SessionLaunch>(state.executable, path, config, native,
             std::array<int, 3>{channel.child.value, channel.child.value, STDERR_FILENO}, false);
@@ -230,7 +233,11 @@ workspace::v1::ControlOwnerState SessionCoordinator::recover_world(const workspa
     // Stopped state requires SessionLaunch to validate both owned cleanup receipts.
     require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED,
         "Control recovery requires checked world cleanup");
-    return state.administrative(owner, -1, false, &world.record);
+    const auto recovered = state.administrative(owner, -1, false, &world.record);
+    // Broker release can precede a persistence error. Exact retry uses its retained receipt.
+    AuthorityLaunch journal(world.journal_directory);
+    journal.record_control_recovery(world.record, state.broker.launch(), recovered);
+    return recovered;
 }
 const v1::AuthorityLaunchRecord& SessionCoordinator::broker_launch() const { impl_->live(); return impl_->broker.launch(); }
 v1::AuthorityLaunchRecord SessionCoordinator::stop() {

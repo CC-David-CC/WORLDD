@@ -239,5 +239,16 @@ These include one new native scenario, nine new broker cases, and five new reply
 The native scenario uses actual process and native cleanup. Component fixtures supply private coordinator receipt data.
 Read evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json.
 All 41 locked files remain unchanged. No normal host session adopted this branch.
-Durable dependent receipt storage and issuer retirement remain unimplemented.
+Durable dependent receipt storage is now implemented. Issuer retirement remains unimplemented.
 Complete M02 qualification remains pending on both hosts.
+
+Durable dependent cleanup implementation, 2026-10-10
+
+Recovery now records checked world cleanup and broker release before reporting success.
+The saved protobuf binds the original stopped world to the exact retained, live broker.
+The launch journal migrates from user_version 1 to 2 in one transaction.
+The original launch row and revision remain unchanged.
+Read docs/DEPENDENT_CLEANUP_PERSISTENCE.txt for the storage and retry contract.
+All 113 selected cases passed in Debug and runtime sanitizers on sb16.
+Read evidence/control-recovery-2026-10-09/dependent-cleanup-01/sb16/primary-review.json.
+Reopened journals do not recreate live ownership. Issuer retirement and full phase qualification remain pending.

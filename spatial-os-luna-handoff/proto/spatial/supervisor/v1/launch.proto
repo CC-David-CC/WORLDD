@@ -35,6 +35,13 @@ message AuthorityLaunchRecord {
   spatial.identity.v1.AuthorityLaunchAuthorization authorization = 9;
   spatial.identity.v1.AuthorityFenceState fence = 10;
 }
+// Durable evidence from retained coordinator ownership. Reopening it creates no live handles.
+message AuthorityDependentCleanup {
+  uint32 schema_version = 1;
+  AuthorityLaunchRecord world = 2;
+  AuthorityLaunchRecord broker = 3;
+  spatial.workspace.v1.ControlRecoveryReceipt controls = 4;
+}
 message AuthorityParticipantAttach {
   string runtime_config = 1;
   repeated spatial.authority.v1.Domain domains = 2;

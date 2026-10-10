@@ -702,3 +702,13 @@ The broker retains the original release receipt in memory. Durable storage and i
 Read spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json.
 The reviewed source matches the frozen candidate except one explanatory comment. All 41 locked files are unchanged.
 Full qualification on both hosts, physical input, model tasks, performance, and complete M1 acceptance remain pending.
+
+2026-10-10: Durable dependent cleanup passed 113 selected cases per profile on sb16.
+Five new native scenarios passed in Debug and runtime ASan/UBSan. No failures or skips.
+The first baseline failed because journal() collided with an inherited Path fixture field.
+The corrected world_database() helper reproduced the missing durable receipt with unchanged production.
+Both attempts remain in spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/dependent-cleanup-baseline01.
+Passing evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/dependent-cleanup-01/sb16/primary-review.json.
+No normal host session adopted this branch. Full qualification remains pending on both hosts.
+No physical power-loss injection was performed. Issuer retirement and the earlier startup failure remain open.
+The tested source is unchanged. M02 and Spatial-M1 remain incomplete.

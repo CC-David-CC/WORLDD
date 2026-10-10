@@ -173,7 +173,7 @@ add_library(spatial-identity STATIC src/identity/keys.cpp)
 add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp)
 target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
 add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/supervisor/child_handle.cpp src/supervisor/child_handle_client.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
-target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope SQLite::SQLite3)
+target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope spatial-control-reply SQLite::SQLite3)
 add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
 add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
 target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch)
@@ -937,6 +937,17 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(session-application PROPERTIES TIMEOUT 180)
+    add_test(NAME session-dependent-cleanup COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-dependent-cleanup-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_dependent_cleanup.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(session-dependent-cleanup PROPERTIES TIMEOUT 180)
     add_executable(spatial-child-handle-client-probe src/testing/child_handle_client_probe.cpp)
     target_link_libraries(spatial-child-handle-client-probe PRIVATE spatial-authority-launch)
     add_test(NAME supervisor-child-handle-client COMMAND "${Python3_EXECUTABLE}"

@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "persist_checked_dependent_cleanup_receipt",
+  "current_step": "authenticated_issuer_retirement",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,8 +12,7 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Persist checked world cleanup and broker recovery receipts before reporting issuer retirement.",
-    "Implement authenticated issuer retirement of the exact fenced generation.",
+    "Implement authenticated issuer retirement of the exact fenced generation and durable cleanup result.",
     "Resolve the preserved participant-approval startup failure before the full phase gate.",
     "Qualify the complete M02 path and cumulative profiles on both hosts."
   ],
@@ -255,6 +254,21 @@
     "evidence": "evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json",
     "cases_per_profile": 154,
     "new_cases": 15,
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "dependent_cleanup": {
+    "state": "Durable checked recovery receipt implemented and focused checks passed. Issuer retirement remains incomplete.",
+    "evidence": "evidence/control-recovery-2026-10-09/dependent-cleanup-01/sb16/primary-review.json",
+    "contract": "docs/DEPENDENT_CLEANUP_PERSISTENCE.txt",
+    "cases_per_profile": 113,
+    "new_cases": 5,
     "host": "sb16",
     "profiles": [
       "Debug",

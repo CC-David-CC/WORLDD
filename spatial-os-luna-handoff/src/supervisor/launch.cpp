@@ -1,6 +1,7 @@
 #include "supervisor/launch.hpp"
 #include "supervisor/native_scope.hpp"
 #include "supervisor/process_scope.hpp"
+#include "supervisor/control_reply.hpp"
 #include "core/protocol.hpp"
 #include "identity/participant_runtime.hpp"
 #include "identity/participant_stream.hpp"
@@ -144,12 +145,45 @@ identity::v1::AuthorityFenceBegin owned_generation(const v1::AuthorityLaunchReco
     result.set_authorization_id(approval.authorization_id());
     return result;
 }
+void validate_dependent_cleanup(const v1::AuthorityDependentCleanup& value) {
+    validate_message(value);
+    const auto& world = value.world(); const auto& broker = value.broker();
+    require(value.schema_version() == 1 && value.ByteSizeLong() <= 262144 &&
+        world.ByteSizeLong() <= 65536 && broker.ByteSizeLong() <= 65536,
+        "Invalid dependent cleanup version or size");
+    validate_record(world); validate_record(broker);
+    require(world.binding().supervised() && world.has_authorization() &&
+        world.stage() == v1::OWNED_SCOPES_STOPPED && world.native().role() == security::v1::COMPOSITOR &&
+        broker.binding().supervised() && broker.has_authorization() && broker.stage() == v1::START_ATTEMPTED &&
+        broker.native().role() == security::v1::BROKER && !broker.has_fence() &&
+        !broker.has_process_stopped() && !broker.has_native_stopped() &&
+        world.binding().issuer_id() == broker.binding().issuer_id() &&
+        world.native().server_id() == broker.native().server_id() &&
+        world.process().launch_id() != broker.process().launch_id(), "Invalid dependent cleanup launch context");
+    workspace::v1::ControlOwner owner;
+    owner.set_issuer_id(world.binding().issuer_id());
+    *owner.mutable_launch() = owned_generation(world); *owner.mutable_native() = world.native();
+    const auto& cleanup = value.controls().cleanup();
+    require(cleanup.owner().SerializeAsString() == owner.SerializeAsString() &&
+        cleanup.process_stopped().SerializeAsString() == world.process_stopped().SerializeAsString() &&
+        cleanup.native_stopped().SerializeAsString() == world.native_stopped().SerializeAsString(),
+        "Dependent cleanup does not match stopped world");
+    workspace::v1::ControlSupervisorRequest request;
+    request.set_protocol_version(1); request.set_request_id(1); *request.mutable_recover() = cleanup;
+    workspace::v1::ControlSupervisorReply reply;
+    reply.set_protocol_version(1); reply.set_request_id(1);
+    *reply.mutable_state()->mutable_owner() = owner; reply.mutable_state()->set_channel_fenced(true);
+    *reply.mutable_state()->mutable_recovery() = value.controls();
+    validate_control_reply(request, reply);
+}
 }
 
 struct AuthorityLaunch::Impl {
     File directory, lock;
     std::unique_ptr<sqlite3, decltype(&sqlite3_close)> db{nullptr, sqlite3_close};
     v1::AuthorityLaunchRecord record;
+    std::optional<v1::AuthorityDependentCleanup> dependent;
+    int database_version = 1;
     std::unique_ptr<ProcessScope> process;
     std::unique_ptr<NativeScope> native;
     std::unique_ptr<identity::ParticipantRuntime> participant;
@@ -193,7 +227,8 @@ struct AuthorityLaunch::Impl {
         require(sqlite3_busy_timeout(db.get(), 2000) == SQLITE_OK, "Cannot set launch journal deadline");
         if (existing) {
             Query version(db.get(), "PRAGMA user_version"), application(db.get(), "PRAGMA application_id");
-            require(version.step() == SQLITE_ROW && sqlite3_column_int(version.statement, 0) == 1 &&
+            require(version.step() == SQLITE_ROW &&
+                ((database_version = sqlite3_column_int(version.statement, 0)) == 1 || database_version == 2) &&
                 application.step() == SQLITE_ROW && sqlite3_column_int(application.statement, 0) == 1397771340,
                 "Unknown launch schema; preserve journal for explicit migration");
         }
@@ -212,6 +247,19 @@ struct AuthorityLaunch::Impl {
             const auto bytes = row.bytes(0);
             require(bytes.size() <= 65536 && record.ParseFromString(bytes), "Malformed durable launch record");
             validate_record(record);
+        }
+        if (database_version == 2) {
+            Query count(db.get(), "SELECT COUNT(*) FROM dependent_cleanup");
+            require(count.step() == SQLITE_ROW && sqlite3_column_int(count.statement, 0) == 1,
+                "Dependent cleanup journal requires one receipt");
+            Query saved(db.get(), "SELECT record FROM dependent_cleanup WHERE singleton=1");
+            require(saved.step() == SQLITE_ROW, "Missing dependent cleanup receipt");
+            const auto bytes = saved.bytes(0);
+            v1::AuthorityDependentCleanup value;
+            require(bytes.size() <= 262144 && value.ParseFromString(bytes), "Malformed dependent cleanup receipt");
+            validate_dependent_cleanup(value);
+            require(value.world().SerializeAsString() == record.SerializeAsString(), "Dependent cleanup launch row changed");
+            dependent = std::move(value);
         }
     }
     void persist(v1::AuthorityLaunchRecord next) {
@@ -233,6 +281,40 @@ struct AuthorityLaunch::Impl {
 
 AuthorityLaunch::AuthorityLaunch(const std::filesystem::path& directory) : impl_(std::make_unique<Impl>(directory)) {}
 v1::AuthorityLaunchRecord AuthorityLaunch::inspect() const { return impl_->record; }
+v1::AuthorityDependentCleanup AuthorityLaunch::record_control_recovery(const v1::AuthorityLaunchRecord& expected_world,
+    const v1::AuthorityLaunchRecord& retained_broker, const workspace::v1::ControlOwnerState& recovered) {
+    require(!impl_->process && !impl_->native && impl_->record.SerializeAsString() == expected_world.SerializeAsString(),
+        "Dependent cleanup journal differs from retained stopped world");
+    v1::AuthorityDependentCleanup value; value.set_schema_version(1);
+    *value.mutable_world() = expected_world; *value.mutable_broker() = retained_broker;
+    *value.mutable_controls() = recovered.recovery();
+    validate_dependent_cleanup(value);
+    require(recovered.channel_fenced() && recovered.reservations().empty() &&
+        recovered.owner().SerializeAsString() == value.controls().cleanup().owner().SerializeAsString(),
+        "Dependent cleanup requires checked fenced broker recovery");
+    const auto bytes = value.SerializeAsString();
+    if (impl_->dependent) {
+        require(impl_->dependent->SerializeAsString() == bytes, "Dependent cleanup retry changed its receipt");
+        require(fsync(impl_->directory.fd) == 0, "Dependent cleanup directory durability uncertain");
+        return *impl_->dependent;
+    }
+    require(impl_->database_version == 1, "Dependent cleanup migration requires launch schema 1");
+    sql(impl_->db.get(), "BEGIN IMMEDIATE");
+    try {
+        { Query current(impl_->db.get(), "SELECT record FROM launch WHERE singleton=1");
+          require(current.step() == SQLITE_ROW && current.bytes(0) == expected_world.SerializeAsString(),
+              "Launch row changed before dependent cleanup commit"); }
+        sql(impl_->db.get(), "CREATE TABLE dependent_cleanup(singleton INTEGER PRIMARY KEY CHECK(singleton=1), record BLOB NOT NULL)");
+        { Query insert(impl_->db.get(), "INSERT INTO dependent_cleanup VALUES(1,?)");
+          require(sqlite3_bind_blob(insert.statement, 1, bytes.data(), static_cast<int>(bytes.size()), SQLITE_TRANSIENT) == SQLITE_OK,
+              "Cannot bind dependent cleanup receipt");
+          require(insert.step() == SQLITE_DONE, "Cannot persist dependent cleanup receipt"); }
+        sql(impl_->db.get(), "PRAGMA user_version=2; COMMIT");
+    } catch (...) { sqlite3_exec(impl_->db.get(), "ROLLBACK", nullptr, nullptr, nullptr); throw; }
+    require(fsync(impl_->directory.fd) == 0, "Dependent cleanup directory durability uncertain");
+    impl_->database_version = 2; impl_->dependent = value;
+    return value;
+}
 v1::AuthorityLaunchView AuthorityLaunch::prepare(const std::filesystem::path& root,
     const v1::AuthorityLaunchBinding& binding, int fd) {
     require(!impl_->record.revision() && !impl_->process, "Launch already exists; recovery cannot authorize replacement");

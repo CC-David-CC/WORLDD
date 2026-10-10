@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: Durable dependent cleanup after checked broker recovery
+
+SessionCoordinator now saves checked cleanup before reporting successful reservation recovery.
+The protobuf receipt binds the stopped world, retained broker, and exact released reservations.
+An explicit SQLite migration adds the receipt without changing the original launch row or revision.
+Exact retries preserve the saved bytes. Failed storage remains an error after broker release.
+Reopening the journal cannot recreate process ownership or authorize replacement execution.
+
+All 113 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+Five new native cases cover persistence, retries, journal failures, changed records, and denied replacement launches.
+The initial baseline fixture error and corrected missing-durability failure remain preserved.
+Read evidence/control-recovery-2026-10-09/dependent-cleanup-01/sb16/primary-review.json.
+All 334 tested source files match. All 41 locked files remain unchanged.
+No normal host session adopted this branch. Full qualification remains pending on both hosts.
+
+Next: authenticate issuer retirement for the exact fenced generation and durable cleanup result.
+Then resolve the earlier participant-approval startup failure and run the complete M02 phase gate.
+Shared compositor lifetime across world transitions remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Selective reservation recovery through retained world ownership
 
 SessionCoordinator now releases a stopped world's reservations after checked process and native cleanup.

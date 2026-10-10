@@ -1,0 +1,27 @@
+{
+  "status": "durability_gap_reproduced_on_unchanged_binaries",
+  "host": "sb16",
+  "fixture_error": "The first test helper named journal collided with an inherited Path attribute.",
+  "correction": "Rename the helper to world_database. Keep the original failed run and input.",
+  "finding": "Actual broker recovery succeeds, but launch.db stays at version 1 without a dependent cleanup receipt.",
+  "cases_per_run": 1,
+  "first_run_errors": 1,
+  "corrected_run_expected_failures": 1,
+  "source_files": 333,
+  "attachments": {
+    "01/input.py": "34c87ab9f0cbcf66f80bb24b4f739b49516834a67dd7f434f41038de89920d4c",
+    "01/baseline.log": "d21c3beec9e3e220a2b3e699db076df7bc3a684b060bd6ba4592b286809bf7af",
+    "01/review.json": "8dd68cb66fa68abd90c6fa8e768747ed049a84a85f7468e1faf807333d8d39ac",
+    "01/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "01/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-coordinator.log": "d95f19c42acb3d99352028b3dfd0fe7ea50fe703efb95e9f486fd1dd692a3ae6",
+    "01/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-server-0.log": "cd23f54c0e9f1d4acfe9c359133dee57041a37dc81f31cf8938e5fb741cd4790",
+    "01/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "02/input.py": "bbafa929d617b962a39fb44341d89d5cfc31df9d7c95ed790afc5717ed40ebf5",
+    "02/baseline.log": "d8b0761469b7bfab4653d3766b0c594bdb48c3efba2f66ce0a2de875abe7050f",
+    "02/review.json": "457be962ccd98fe8b00b5e0bf30b86941e3c39550854171d394da31dfc49d263",
+    "02/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "02/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-coordinator.log": "23a021f8f841d926a7986c32e68f6270b71c9447cb34178cad5742fff63676e3",
+    "02/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-server-0.log": "cf57db7e5a9ecd3c2bb222a59220b7871ccbc9bde9ac24ca52b95db95f207235",
+    "02/native/test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7"
+  }
+}

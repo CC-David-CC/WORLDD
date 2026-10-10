@@ -1,0 +1,25 @@
+Running as unit: spatial-dependent-cleanup-baseline-01.service; invocation ID: 5ba7b754be3c454e8fd1126826ea8cfc
+test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch (__main__.DependentCleanupTests.test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch) ... ERROR
+
+======================================================================
+ERROR: test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch (__main__.DependentCleanupTests.test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-dependent-cleanup-baseline-01.py", line 48, in test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch
+    before = self.saved(cleanup, recovered)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-dependent-cleanup-baseline-01.py", line 19, in saved
+    with sqlite3.connect('file:' + str(self.journal()) + '?mode=ro', uri=True) as db:
+                                       ^^^^^^^^^^^^^^
+TypeError: 'PosixPath' object is not callable
+
+----------------------------------------------------------------------
+Ran 1 test in 3.829s
+
+FAILED (errors=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 3.965s
+CPU time consumed: 913ms
+Memory peak: 1.5M
+Memory swap peak: 0B
