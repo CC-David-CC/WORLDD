@@ -105,3 +105,31 @@ Exercise coordinator loss and preserve unresolved recovery obligations.
 Run focused checks and full Debug and runtime sanitizer profiles on both hosts.
 Keep locked acceptance files unchanged.
 This contract does not claim M02 completion or implement selective release.
+
+Administrative client implementation requirements
+
+The coordinator creates and owns the administrative socket pair.
+SO_PEERCRED therefore identifies its creator, not the supervised broker child.
+Pin the exact retained broker child with a pidfd before accepting replies.
+Require SCM_CREDENTIALS with that child PID and the configured UID on every reply.
+Enable SO_PASSCRED before the broker can send its first reply.
+Reject missing, duplicate, or mismatched credentials.
+Reject reply descriptors and close every received descriptor, including malformed packets.
+Reject MSG_TRUNC and MSG_CTRUNC before protobuf interpretation.
+Use recvmsg with MSG_CMSG_CLOEXEC.
+Use MSG_NOSIGNAL for sends.
+
+Permit one administrative request in flight.
+Use a bounded deadline for both sending and receiving.
+Check broker process liveness while waiting.
+Send one SCM_RIGHTS descriptor only for registration.
+Registration uses the coordinator's exact endpoint-to-retained-launch mapping.
+Inspect and fence send no descriptors.
+Call validate_control_reply before interpreting any response.
+A validated remote error remains an error.
+A transport failure after sending leaves the operation uncertain.
+Do not synthesize successful registration, fencing, cleanup, or retirement.
+Do not replay an uncertain registration with another identity.
+
+These requirements are not implemented or qualified transport evidence.
+The running reply01 source contains validation only.

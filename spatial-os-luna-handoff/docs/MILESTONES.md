@@ -17,13 +17,16 @@ Existing components provide partial implementation where CURRENT_STATE.md record
 The mandatory profile is tasks/spatial-m1.json.
 See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
 
-The latest qualified source increment adds immutable owner channels and scoped control reservations.
-Both hosts passed Debug and runtime sanitizers: 1,474 core checks, 51 harness checks, and 151 P10 cases per profile.
-Three native-world checks also passed per profile. No final case failed or skipped.
-Read evidence/control-recovery-2026-10-09/integration-primary-review-04.json.
-Both hosts adopted all 297 qualified source hashes at 4779f731 without session restarts or state migration.
-Read evidence/control-recovery-2026-10-09/adoption-review-04.json.
-Production supervisor binding, session coordination, selective recovery release, and issuer retirement remain required.
+The latest qualified source increment adds retained-launch control-owner binding.
+Both hosts passed Debug and runtime sanitizers: 1,480 core checks across 101 suites per profile.
+Each profile also passed 51 harness checks, 151 P10 cases, and three native-world checks.
+No final case failed or skipped. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/integration-primary-review-binding-01.json.
+Both hosts adopted all 298 qualified source hashes at 0fb875454df3cc582c35e076c96043035312fdff.
+No session restarted or operator state migrated.
+Read evidence/control-recovery-2026-10-09/binding-adoption-review-01.json.
+Session coordination, administrative transport, selective recovery release, and issuer retirement remain required.
+Reply validation qualification is active on both hosts. Handoff qualification waits behind it.
 
 The previous qualified increment is native world handoff and authority crash fencing at a3a926d.
 Both hosts adopted all 294 qualified source hashes without restarting sessions or migrating operator state.
@@ -117,3 +120,4 @@ Do not turn missing hardware trials into passed or optional items.
 The root plan excludes remote live-surface streaming, cross-host workspace migration, articulated bodies, and store simulations from M1.
 Unrelated LOCAL_READY targets remain pending.
 These exclusions do not remove any requirement listed above.
+
