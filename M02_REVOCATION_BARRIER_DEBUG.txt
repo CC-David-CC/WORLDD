@@ -1187,3 +1187,20 @@ Both completed Debug diagnostic archives contain no selected sanitizer markers.
 This does not qualify runtime sanitizers, close historical failures, or change a running job.
 Both terminal qualification archives still need complete scans and primary review.
 See spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/sanitizer-log-scan-primary-review.json.
+
+2026-10-10: sb16-2 diagnostic evidence directory collision
+The original sb16-2 untraced Debug run failed session-operator-revocation setup.
+All three cases raised FileExistsError at test_operator_revocation.py line 25.
+The earlier diagnostic had already created their explicit native evidence directories.
+The failing setup executed before the three operator assertions.
+Keep the running sequence intact until it ends. Archive its terminal evidence before retrying.
+Use the prepared m02-untraced-03 runner with separate generated native evidence arguments.
+Reuse the candidate02 source and binaries. Do not rebuild or change assertions and deadlines.
+The separate complete diagnostic checkpoint already preserves the earlier native logs.
+This failure has a concrete harness cause. It does not explain the historical issuer timeouts.
+
+The terminal sb16-2 attempt passed 122 core suites and failed two suites.
+session-deferred-fence also failed five setups at test_deferred_fence.py line 47.
+Those failures have the same exclusive evidence-directory collision.
+The eight affected test bodies did not execute in this untraced attempt.
+Debug acceptance and runtime sanitizer tests remain unrun in the failed original attempt.

@@ -85,3 +85,15 @@ Require complete CTest inventory equality except for the exact log-directory rep
 Do not change test source, assertions, timeouts, executable bytes, or other metadata.
 The sb16 Debug inventory verified all 26 such argument changes before core execution.
 Read evidence/m02-gate-2026-10-10/untraced03-launch-sb16.json.
+
+2026-10-10 second-host evidence collision
+
+The unchanged original sb16-2 sequence reused its diagnostic native evidence paths during untraced Debug.
+session-operator-revocation failed all three setups because their evidence directories already existed.
+Those cases require exclusive directory creation before their operator assertions.
+Changing inherited environment variables did not override the generated systemd arguments.
+Preserve the completed diagnostic checkpoint and the complete terminal failed attempt.
+Then use the prepared retry with verified generated evidence-path isolation and unchanged binaries.
+Do not delete old evidence directories or accept diagnostic passes as untraced qualification.
+The terminal attempt also failed five session-deferred-fence setups with the same directory collision.
+It passed 122 of 124 core suites. Debug acceptance and runtime sanitizer tests did not execute.

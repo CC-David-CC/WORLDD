@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: sb16 Debug passed; sb16-2 evidence setup failed
+
+sb16 passed all 124 untraced Debug core suites and all 151 acceptance cases without skips.
+Its Debug harness passed 51 checks. Runtime sanitizer qualification is active.
+These results still require terminal collection and complete raw-log review.
+
+The original sb16-2 runner completed Debug with 122 passed core suites and two failed suites.
+session-operator-revocation and session-deferred-fence failed eight setups with FileExistsError.
+Their native evidence directories already existed from the earlier complete diagnostic pass.
+Those eight test bodies did not execute in this untraced attempt.
+Debug harness passed 51 checks. Debug acceptance and runtime sanitizer tests remain unrun in that attempt.
+
+Preserve the terminal archive before retrying with the reviewed m02-untraced-03 runner.
+That runner isolates generated native evidence paths while preserving source, binaries, assertions, and deadlines.
+The earlier complete diagnostic checkpoint remains separate evidence.
+The terminal archive is now copied. All 6716 attachment hashes match.
+Each of the eight colliding directories has verified files in the earlier diagnostic checkpoint.
+Read evidence/m02-gate-2026-10-10/candidate02-final/sb16-2-review.json.
+This harness failure does not explain or close historical issuer timeouts.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Complete native log review added
 
 The final artifact review now scans preserved child logs as well as the main test log.

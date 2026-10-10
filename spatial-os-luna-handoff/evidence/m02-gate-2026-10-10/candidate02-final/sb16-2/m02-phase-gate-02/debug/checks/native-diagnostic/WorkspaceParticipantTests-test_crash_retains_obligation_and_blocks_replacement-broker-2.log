@@ -1,0 +1,2 @@
+authority participant failed: code=18 request=1 stage=activate cause=Service already has an active generation; cleanup is required
+workspaced: Workspace participation is unavailable

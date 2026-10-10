@@ -1,0 +1,5 @@
+{"event":"ready","xid":12582913,"pid":4,"width":320,"height":240,"xi2":false}
+{"event":"map","xid":12582913}
+{"event":"focus","focused":true,"device":0,"xid":12582913}
+{"event":"button","pressed":true,"button":1,"x":160,"y":120,"device":0,"xid":12582913}
+{"event":"key","pressed":true,"keycode":50,"keysym":65505,"device":0,"xid":12582913,"text_hex":""}

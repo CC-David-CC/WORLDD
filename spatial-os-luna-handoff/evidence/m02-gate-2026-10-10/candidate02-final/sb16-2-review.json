@@ -1,0 +1,91 @@
+{
+  "host": "sb16-2",
+  "status": "terminal_failed_attempt_preserved",
+  "archive_sha256": "18811cf8fed5ede1c7d64167409322bf1909f01bf71f59a391c60de6e28595c7",
+  "attachments_verified": 6716,
+  "diagnostic_suites_passed": 124,
+  "debug_core_suites_passed": 122,
+  "debug_core_suites_failed": 2,
+  "debug_harness_passed": 51,
+  "debug_acceptance": "unrun",
+  "runtime_sanitizer_tests": "unrun",
+  "failed_suites": [
+    "session-operator-revocation",
+    "session-deferred-fence"
+  ],
+  "cause": "Both suites failed exclusive evidence-directory creation during setUp. The same directories are present in the earlier preserved diagnostic checkpoint.",
+  "collisions": [
+    {
+      "suite_number": 114,
+      "evidence_directory": "debug/checks/native/test_completion_waits_for_real_key_button_and_lease_release",
+      "diagnostic_attachment_examples": [
+        "debug/checks/native/test_completion_waits_for_real_key_button_and_lease_release/command-0.log",
+        "debug/checks/native/test_completion_waits_for_real_key_button_and_lease_release/native-held.json"
+      ]
+    },
+    {
+      "suite_number": 114,
+      "evidence_directory": "debug/checks/native/test_pending_timeout_resumes_without_another_revocation",
+      "diagnostic_attachment_examples": [
+        "debug/checks/native/test_pending_timeout_resumes_without_another_revocation/command-0.log",
+        "debug/checks/native/test_pending_timeout_resumes_without_another_revocation/command-1.log"
+      ]
+    },
+    {
+      "suite_number": 114,
+      "evidence_directory": "debug/checks/native/test_crash_requires_checked_recovery_and_retirement_before_completion",
+      "diagnostic_attachment_examples": [
+        "debug/checks/native/test_crash_requires_checked_recovery_and_retirement_before_completion/command-0.log",
+        "debug/checks/native/test_crash_requires_checked_recovery_and_retirement_before_completion/native-held.json"
+      ]
+    },
+    {
+      "suite_number": 121,
+      "evidence_directory": "debug/checks/native/test_issuer_restart_retires_exact_failed_generations",
+      "diagnostic_attachment_examples": [
+        "debug/checks/native/test_issuer_restart_retires_exact_failed_generations/after-exit-wait-tls-0.log",
+        "debug/checks/native/test_issuer_restart_retires_exact_failed_generations/before-exit-wait-tls-0.log"
+      ]
+    },
+    {
+      "suite_number": 121,
+      "evidence_directory": "debug/checks/native/test_failed_local_fence_commit_retries_original_remote_fence",
+      "diagnostic_attachment_examples": [
+        "debug/checks/native/test_failed_local_fence_commit_retries_original_remote_fence/after-exit-wait-tls-0.log",
+        "debug/checks/native/test_failed_local_fence_commit_retries_original_remote_fence/before-exit-wait-tls-0.log"
+      ]
+    },
+    {
+      "suite_number": 121,
+      "evidence_directory": "debug/checks/native/test_pending_fences_survive_restart_and_reject_changed_fence",
+      "diagnostic_attachment_examples": [
+        "debug/checks/native/test_pending_fences_survive_restart_and_reject_changed_fence/after-exit-wait-tls-0.log",
+        "debug/checks/native/test_pending_fences_survive_restart_and_reject_changed_fence/before-exit-wait-tls-0.log"
+      ]
+    },
+    {
+      "suite_number": 121,
+      "evidence_directory": "debug/checks/native/test_wrong_key_and_changed_cleanup_cannot_request_a_fence",
+      "diagnostic_attachment_examples": [
+        "debug/checks/native/test_wrong_key_and_changed_cleanup_cannot_request_a_fence/after-exit-wait-tls-0.log",
+        "debug/checks/native/test_wrong_key_and_changed_cleanup_cannot_request_a_fence/before-exit-wait-tls-0.log"
+      ]
+    },
+    {
+      "suite_number": 121,
+      "evidence_directory": "debug/checks/native/test_remote_retirement_commit_survives_failed_local_write",
+      "diagnostic_attachment_examples": [
+        "debug/checks/native/test_remote_retirement_commit_survives_failed_local_write/after-exit-wait-tls-0.log",
+        "debug/checks/native/test_remote_retirement_commit_survives_failed_local_write/before-exit-wait-tls-0.log"
+      ]
+    }
+  ],
+  "checkpoint_path_mapping": "The diagnostic checkpoint uses candidate-relative paths; terminal attachments include the m02-phase-gate-02 prefix.",
+  "correction": "Use the reviewed m02-untraced-03 runner with verified generated evidence-path changes and unchanged source and binaries.",
+  "limitations": [
+    "The eight affected operator and recovery test bodies did not execute in this untraced attempt.",
+    "Other native paths may contain reused diagnostic output; do not treat this attempt as a complete native qualification.",
+    "Historical issuer timeout causes remain individually unresolved."
+  ],
+  "phase_complete": false
+}
