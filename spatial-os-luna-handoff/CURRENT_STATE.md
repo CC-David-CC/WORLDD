@@ -11,7 +11,7 @@ Read evidence/control-recovery-2026-10-09/integration-primary-review-binding-01.
 
 The private supervisor query derives the control owner from retained authorized compositor launch ownership.
 It grants no activation or cleanup authority and cannot reconstruct live ownership from a reopened journal.
-Host source adoption follows the reviewed commit.
+Both hosts adopted commit 0fb875454df3cc582c35e076c96043035312fdff. All 298 qualified source hashes match. Both checkouts are clean. No runtime restarted or operator state migrated. Read evidence/control-recovery-2026-10-09/binding-adoption-review-01.json.
 Reply qualification continues; handoff lifetime qualification remains queued.
 The production session coordinator, administrative transport, selective cleanup, and issuer retirement remain incomplete.
 M02 and Spatial-M1 remain incomplete.
@@ -84,7 +84,7 @@ The broker now binds control reservations to immutable admitted world channels.
 Fencing stops new owner requests and preserves reservations and independently authorized applications.
 The native-world fixtures still supply owner bindings. Complete production recovery remains unimplemented.
 Retained-launch binding qualification continues on both hosts. Reply validation remains queued.
-Host source adoption follows the reviewed commit. No operator session restart is required.
+Both hosts adopted commit 0fb875454df3cc582c35e076c96043035312fdff. All 298 qualified source hashes match. Both checkouts are clean. No runtime restarted or operator state migrated. Read evidence/control-recovery-2026-10-09/binding-adoption-review-01.json. No operator session restart is required.
 M02 and Spatial-M1 remain incomplete.
 
 ## 2026-10-09: Corrected owner04 passes both profiles on sb16
@@ -3977,3 +3977,4 @@ The additional mandatory milestones include identity, delegation, confinement, c
 shared worlds, model actors, application restoration, native devices, performance, and lifecycle soak.
 None is implied by the current rendering result.
 No Spatial-M1 or LOCAL_READY qualification is claimed.
+

@@ -578,3 +578,4 @@ It stages those unchanged bytes and checks fast-forward feasibility; all other l
 Failure evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/binding-adoption-collector-state-failure-01.json.
 
 2026-10-10 update: Binding adoption retry stopped on both hosts at git add because the local helper directory is ignored. Exact target collector bytes passed verification. No checkout merge or runtime restart occurred. The adoption helper needs tracked-path staging compatible with the ignore rule. Reply validation qualification continues; handoff qualification remains queued.
+2026-10-10: Binding adoption succeeded on both hosts at 0fb875454df3cc582c35e076c96043035312fdff. All 298 source hashes match. Checkouts are clean. No restart or migration occurred. All four reply and queued handoff driver PIDs were verified live. Git add --update resolved staging of the exact verified tracked collector.

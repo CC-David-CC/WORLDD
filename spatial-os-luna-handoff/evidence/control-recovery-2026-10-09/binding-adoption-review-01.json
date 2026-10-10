@@ -1,0 +1,19 @@
+{
+    "commit":  "0fb875454df3cc582c35e076c96043035312fdff",
+    "hosts":  [
+                  "sb16",
+                  "sb16-2"
+              ],
+    "source_hashes_matched":  298,
+    "worktrees_clean":  true,
+    "runtime_restarted":  false,
+    "operator_state_migrated":  false,
+    "helper_bytes_preserved":  true,
+    "qualification_handles_verified_live":  [
+                                                1872025,
+                                                1616004,
+                                                2020931,
+                                                1739758
+                                            ],
+    "M02_complete":  false
+}
