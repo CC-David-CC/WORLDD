@@ -1,5 +1,37 @@
 # Implementation status
 
+## 2026-10-09: Candidate04 static review and integration guard prepared
+
+The primary agent reviewed all eight changed files against the ownership contract.
+The prepared guard requires exact source hashes, unchanged acceptance locks, and both hosts' full Debug and sanitizer results.
+It also requires the two baseline failures, three native-world checks per profile, and final primary review.
+A rejection check confirmed missing qualification cannot change production source.
+Read evidence/control-recovery-2026-10-09/owner-static-review-04.json.
+Read evidence/control-recovery-2026-10-09/integration-guard-rejection-04.json.
+The correction remains unintegrated. Full qualification continues.
+
+## 2026-10-09: Candidate03 full Debug passes on both hosts
+
+Both hosts passed 1,472 core checks across 100 suites, 51 harness checks, and 151 P10 cases.
+The collected raw logs contain no failures or skips. No compiler overlap was recorded.
+Read evidence/control-recovery-2026-10-09/debug-full-review-03-sb16-2.json.
+Both sanitizer profiles passed the harness and 19 owner-channel checks. Their full core runs remain active.
+Candidate03 remains ineligible for integration. Candidate04 must correct protocol-validation ordering.
+Native-world checks and production recovery integration remain pending.
+
+## 2026-10-09: Candidate03 full Debug passes on sb16
+
+The raw results confirm1472 core checks across100 suites,51 harness checks,and151 P10 cases.
+No Debug check failed or skipped. The compiler monitor recorded no overlap.
+Read evidence/control-recovery-2026-10-09/debug-full-review-03-sb16.json.
+sb16 now runs runtime sanitizer qualification. sb16-2 still runs Debug.
+A read-only live sample confirmed ASan, UBSan, leak detection, and no ptrace in an sb16 issuer process.
+This sample applies to that observed process. It does not replace the full sanitizer run.
+
+Candidate03 remains blocked from integration by the strict-validation ordering defect.
+The three native-world checks and candidate04 correction remain queued.
+Production remains a3a926d. M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Native owner checks queued; strict-validation correction prepared
 
 Candidate03 full qualification remains active on both hosts.

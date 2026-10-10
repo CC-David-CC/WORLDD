@@ -1,0 +1,26 @@
+{
+  "host": "sb16",
+  "candidate": "03",
+  "profile": "runtime-sanitize",
+  "observed": 1791598029.3572245,
+  "read_only": true,
+  "ptrace_used": false,
+  "samples": [
+    {
+      "pid": 1739382,
+      "start_ticks": "26691368",
+      "binary": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-03/runtime-sanitize/build/identityd",
+      "binary_sha256": "7200462b75fbb576b41a5aa981a574d6715904b6d205c239afd4581516851011",
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+      },
+      "libraries": [
+        "/usr/lib/x86_64-linux-gnu/libasan.so.8.0.0",
+        "/usr/lib/x86_64-linux-gnu/libubsan.so.1.0.0"
+      ],
+      "tracer_pid": 0,
+      "confirmed": true
+    }
+  ]
+}

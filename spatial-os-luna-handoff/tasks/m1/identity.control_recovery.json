@@ -25,12 +25,17 @@
     "new_checks": 19,
     "production_changed": false,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-review-03.json",
-    "state": "Both hosts passed19 new Debug checks and51 harness checks. Runtime compilation complete. Full cumulative qualification remains active.",
+    "state": "Both hosts passed full Debug qualification. Both runtime sanitizer profiles are active.",
     "drivers": {
       "sb16": 1679232,
       "sb16-2": 1463045
     },
-    "debug_evidence": "evidence/control-recovery-2026-10-09/owner-debug-03"
+    "debug_evidence": "evidence/control-recovery-2026-10-09/owner-debug-03",
+    "full_debug": {
+      "sb16": "1472 core/100 suites;51 harness;151 P10 passed. Evidence collected.",
+      "sb16-2": "1472 core/100 suites; 51 harness; 151 P10 passed. Evidence collected."
+    },
+    "runtime": "Both hosts passed sanitizer harness and 19 owner checks. Full sanitizer core and P10 remain pending."
   },
   "preserved_failures": [
     "Both hosts:103 existing checks and51 harness passed;12 new checks errored on a fixture helper collision.",

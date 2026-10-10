@@ -454,3 +454,20 @@ Each waits for its native-world predecessor. It must reproduce both strict-valid
 Candidate04 contains21 owner checks and keeps all41 locked files unchanged.
 Its expected full profile is1474 core checks,51 harness checks,151 P10 cases,plus3 native-world checks.
 These new totals are planned qualification counts, not passes.
+
+2026-10-09: Candidate03 full Debug passed on sb16
+Verified1472 core checks/100 suites,51 harness,151 P10;zero failed/skipped;no compiler overlap.
+Raw logs, source hashes, binary hashes, and the Debug monitor snapshot are preserved.
+CTest inventory can rewrite LastTest.log. Captured core.log remains the execution evidence.
+A read-only procfs sample confirmed ASan/UBSan libraries and leak-detection options in one live sb16 issuer.
+No ptrace was used. The sample does not establish completion of the sanitizer suite.
+Candidate03 still cannot be integrated because strict-validation order needs candidate04.
+Read spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/debug-full-review-03-sb16.json.
+
+2026-10-09: Collected full Debug evidence from both hosts. Each passed 1472 core checks, 51 harness checks, and 151 P10 cases.
+Both sanitizer profiles passed their harness and 19 owner checks. Full sanitizer core runs remain active.
+Candidate03 remains unintegrated. Candidate04 validation-order correction and three native-world checks are still required.
+
+Candidate04: Primary static review covers all eight changed files. Integration requires exact final evidence on both hosts.
+The integration guard refused missing evidence and left all 294 production source hashes unchanged.
+Production recovery still needs supervisor-created ownership, a surviving broker channel, selective release, and durable receipts.

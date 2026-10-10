@@ -1,0 +1,17 @@
+{
+  "reviewer": "primary agent",
+  "host": "sb16-2",
+  "candidate": 3,
+  "profile": "Debug",
+  "core_checks": 1472,
+  "core_suites": 100,
+  "harness_checks": 51,
+  "P10_cases": 151,
+  "failed": 0,
+  "skipped": 0,
+  "compiler_overlap": false,
+  "summary_sha256": "591199db8702d7d1d0d5fb7c455c8f318425cb591b72fd73cd5517619fbd62f7",
+  "production_changed": false,
+  "integration_ready": false,
+  "hold": "Candidate04 must correct strict-validation order. Native-world checks and both final profiles remain pending."
+}

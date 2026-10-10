@@ -1,0 +1,14 @@
+{
+  "command": [
+    "python",
+    "spatial-os-luna-handoff\\local\\integrate-control-owner-04.py",
+    "--apply"
+  ],
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Integration refused: missing final candidate04 evidence for sb16\n",
+  "production_294_hashes_unchanged": true,
+  "new_production_files_absent": true,
+  "expected_rejection": true,
+  "guard_sha256": "727af014fed5a90bbf3dd2ac094e8fdb606d9a02d94602eaaf14b8ebf6b9a365"
+}
