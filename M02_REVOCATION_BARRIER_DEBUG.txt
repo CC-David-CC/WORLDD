@@ -488,3 +488,6 @@ Both-host owner03 matrix complete: Debug and runtime sanitizers passed 1472 core
 All three extra native-world checks passed per host/profile. No compiler overlap or skips were recorded.
 Two added validation-order checks fail on both hosts/profiles as expected. Their logs are preserved; owner03 remains ineligible for integration.
 Owner04 passed sb16 focused Debug checks and continues full qualification. sb16-2 now builds owner04.
+
+Candidate04 focused Debug passes on both hosts: 21 owner checks, three native-world checks, and 51 harness checks each.
+The two protocol-validation regressions pass on each host. Full qualification remains active; production integration is still pending.

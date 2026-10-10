@@ -1,5 +1,13 @@
 # Implementation status
 
+## 2026-10-09: Corrected focused Debug checks pass on both hosts
+
+Candidate04 passed 21 owner checks, three native-world checks, and 51 harness checks on each host.
+Both protocol-validation regressions now pass in Debug on sb16 and sb16-2.
+Read evidence/control-recovery-2026-10-09/owner-focused-04.
+Both full qualification drivers remain active. Runtime sanitizer qualification follows Debug on each host.
+The retained-launch binding candidate still waits. No production integration occurred.
+
 ## 2026-10-09: Both-host owner03 matrix and native-world evidence collected
 
 Both hosts passed candidate03 Debug and runtime sanitizer qualification.
