@@ -471,3 +471,7 @@ Candidate03 remains unintegrated. Candidate04 validation-order correction and th
 Candidate04: Primary static review covers all eight changed files. Integration requires exact final evidence on both hosts.
 The integration guard refused missing evidence and left all 294 production source hashes unchanged.
 Production recovery still needs supervisor-created ownership, a surviving broker channel, selective release, and durable receipts.
+
+Binding01 adds retained-launch owner derivation in an isolated draft. No owner fields come from the caller.
+Six new checks are unrun. Queued drivers wait for owner04 on sb16 (1774639) and sb16-2 (1540587).
+This step does not yet retain the production broker channel or release crashed reservations.

@@ -1,0 +1,33 @@
+{
+  "reviewer": "primary agent",
+  "candidate": "binding01",
+  "base": "owner04",
+  "source_files": 298,
+  "changed_files": [
+    "CMakeLists.txt",
+    "proto/spatial/supervisor/v1/launch.proto",
+    "src/supervisor/launch.cpp",
+    "src/supervisor/launch.hpp",
+    "src/supervisor/main.cpp",
+    "src/testing/authority_launch_probe.cpp",
+    "tests/native/test_control_owner_binding.py"
+  ],
+  "new_checks": 6,
+  "locked_files_unchanged": 41,
+  "production_changed": false,
+  "test_status": "unrun",
+  "integration_ready": false,
+  "review": "Derives registration identity only from retained live compositor ownership. Fencing shares the same generation construction. No actor-supplied owner fields, activation proof, or cleanup receipt is introduced.",
+  "remaining": [
+    "Observe baseline failures on the preceding candidate.",
+    "Run focused Debug and sanitizer checks on both hosts.",
+    "Run cumulative profiles before integration.",
+    "Connect the binding to the surviving broker coordinator."
+  ],
+  "drivers": {
+    "sb16": 1774639,
+    "sb16-2": 1540587
+  },
+  "driver_sha256": "c28b718df5d98e232ba11a440c0552f241241d73453dcd34138646e764123aeb",
+  "qualification": "Queued after exact owner04 driver exit and successful full profile results. Baseline expects five failures among six checks; correction must pass all six and cumulative profiles."
+}

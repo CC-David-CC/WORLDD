@@ -1,5 +1,16 @@
 # Implementation status
 
+## 2026-10-09: Retained-launch control binding prepared in isolation
+
+The binding01 draft adds control owner derivation to AuthorityLaunch and its private supervisor interface.
+The owner uses the retained issuer, authorization, generation, process launch, and compositor scope identities.
+The query cannot create activation or cleanup evidence. A reopened journal cannot reconstruct live ownership.
+Six new checks cover exact binding, failed local commits, reopened journals, native role, and the production supervisor.
+All six checks remain unrun. Both drivers wait for successful owner04 full qualification before building.
+Read docs/CONTROL_OWNER_BINDING.txt and evidence/control-recovery-2026-10-09/control-binding-review-01.json.
+The draft contains 298 source files. All 41 locked files remain unchanged.
+Production remains a3a926d. The surviving broker coordinator and selective recovery release remain required.
+
 ## 2026-10-09: Candidate04 static review and integration guard prepared
 
 The primary agent reviewed all eight changed files against the ownership contract.
