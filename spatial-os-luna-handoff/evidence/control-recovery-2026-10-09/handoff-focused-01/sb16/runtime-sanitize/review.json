@@ -1,0 +1,18 @@
+{
+  "reviewer": "primary agent",
+  "host": "sb16",
+  "profile": "runtime-sanitize",
+  "handoff_checks": 2,
+  "harness_checks": 51,
+  "native_world_checks": 3,
+  "source_files": 304,
+  "locked_files_unchanged": 41,
+  "source_and_binary_hashes_verified": true,
+  "log_hashes": {
+    "handoff.log": "32eab75146b8e88ad0ba9439793443545d09d78787cb0fbd7ef94bf34b99b591",
+    "harness.log": "28bb22ede285eb188236c7bfed07672845e28769ebb270b473bf337d87a1141e",
+    "world.log": "ed175f484155d8d09ce7757a9eac53bee86e8694683eccd77d4a70446b782324"
+  },
+  "full_qualification": false,
+  "integration_ready": false
+}

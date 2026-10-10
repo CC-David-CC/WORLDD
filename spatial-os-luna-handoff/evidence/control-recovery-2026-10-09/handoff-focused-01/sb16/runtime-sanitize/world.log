@@ -1,0 +1,8 @@
+test_native_revocation_releases_managed_reservation (__main__.ControlOwnerWorldTests.test_native_revocation_releases_managed_reservation) ... ok
+test_world_crash_retains_only_its_owned_reservations (__main__.ControlOwnerWorldTests.test_world_crash_retains_only_its_owned_reservations) ... ok
+test_explicit_channel_fence_releases_native_input_without_stopping_application (__main__.ControlOwnerWorldTests.test_explicit_channel_fence_releases_native_input_without_stopping_application) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 17.652s
+
+OK
