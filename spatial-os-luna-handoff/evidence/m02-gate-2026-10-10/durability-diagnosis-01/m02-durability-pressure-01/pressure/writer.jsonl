@@ -1,0 +1,5 @@
+{"monotonic_ns": 341337050367377, "event": "start", "pid": 2998018}
+{"monotonic_ns": 341337261242848, "event": "ready", "bytes_written": 67108864}
+{"monotonic_ns": 341343059541320, "event": "fdatasync", "pass_index": 0, "duration_ns": 5309904705, "bytes_written": 536870912}
+{"monotonic_ns": 341348412340525, "event": "fdatasync", "pass_index": 1, "duration_ns": 5281843983, "bytes_written": 1073741824}
+{"monotonic_ns": 341348412475965, "event": "stopped", "bytes_written": 1073741824}

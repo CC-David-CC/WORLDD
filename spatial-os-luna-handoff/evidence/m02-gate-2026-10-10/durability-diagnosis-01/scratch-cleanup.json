@@ -1,0 +1,19 @@
+{
+  "free_bytes_before": 17225891840,
+  "removed_scratch_files": [
+    {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-durability-pressure-01/pressure/scratch.bin",
+      "bytes": 536870912
+    },
+    {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-durability-budget-02/pressure/scratch.bin",
+      "bytes": 536870912
+    },
+    {
+      "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-production-budget-03/pressure/scratch.bin",
+      "bytes": 536870912
+    }
+  ],
+  "raw_evidence_removed": false,
+  "free_bytes_after": 18836508672
+}

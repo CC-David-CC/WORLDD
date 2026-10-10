@@ -1,0 +1,6 @@
+smartmontools:
+  Installed: (none)
+  Candidate: 7.4-2build1
+  Version table:
+     7.4-2build1 500
+        500 http://us.archive.ubuntu.com/ubuntu noble/main amd64 Packages

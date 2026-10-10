@@ -1,3 +1,20 @@
+2026-10-10: Storage-pressure diagnosis and timeout comparison
+
+All nine selected diagnostic cases ran on sb16 using the frozen runtime-sanitize binaries.
+Baseline and recovery passed at 700 ms, 2000 ms, and the existing 5000 ms client default.
+Pressure caused a 705 ms release timeout and a 2009 ms applied-acknowledgement timeout.
+The five-second pressure case passed. These are single realizations of the same bounded workload.
+The second and third cases changed generated diagnostic client budgets only.
+No production source, tracked fixture, locked acceptance file, or durability setting changed.
+The collector verified 135 attachments and scanned 59 logs without selected sanitizer markers.
+Read evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json.
+
+This establishes a current storage-contention reproduction. It does not prove every older failure's cause.
+Do not turn the two failed diagnostics into qualification passes.
+Retain the five-second production default. Separate normal-operation and deliberate fault-test budgets in an explicit proposal.
+Workload I/O containment and issuer responsiveness remain follow-up work. Preserve durable commit ordering.
+The existing complete local and cross-host matrix remains reviewed. Final audit and host adoption remain pending.
+
 2026-10-10: Complete cross-host M02 matrix reviewed
 
 All eight coordinated scenarios passed on unchanged candidate02 source and binaries.

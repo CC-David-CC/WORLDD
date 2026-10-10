@@ -1,0 +1,72 @@
+{
+  "system_packages_changed": false,
+  "purpose": "Read-only SSD health diagnosis; extract an Ubuntu package without installing services.",
+  "package-policy": {
+    "exit_code": 0
+  },
+  "package-download": {
+    "exit_code": 0
+  },
+  "package_sha256": "8859c62e6346dcf0a1db77a3647f75bb7e009fd28750f5fe0f4f5a95e5078f90",
+  "smartctl_sha256": "8cfa774cfe41ada1eb39f84b552250655293dae1a0b9e2497129430d4d0c9cef",
+  "smartctl_exit_code": 0,
+  "health": {
+    "smartctl": {
+      "version": [
+        7,
+        4
+      ],
+      "pre_release": false,
+      "svn_revision": "5530",
+      "platform_info": "x86_64-linux-7.0.0-38-generic",
+      "build_info": "(local build)",
+      "exit_status": 0
+    },
+    "device": {
+      "name": "/dev/nvme0",
+      "info_name": "/dev/nvme0",
+      "type": "nvme",
+      "protocol": "NVMe"
+    },
+    "model_name": "SAMSUNG MZFLW256HEHP-000MV",
+    "firmware_version": "CXB72M0Q",
+    "user_capacity": {
+      "blocks": 500118192,
+      "bytes": 256060514304
+    },
+    "smart_status": {
+      "passed": true,
+      "nvme": {
+        "value": 0
+      }
+    },
+    "nvme_smart_health_information_log": {
+      "critical_warning": 0,
+      "temperature": 33,
+      "available_spare": 100,
+      "available_spare_threshold": 10,
+      "percentage_used": 2,
+      "data_units_read": 9379088,
+      "data_units_written": 11700730,
+      "host_reads": 83321997,
+      "host_writes": 126668026,
+      "controller_busy_time": 1089,
+      "power_cycles": 466,
+      "power_on_hours": 326,
+      "unsafe_shutdowns": 125,
+      "media_errors": 0,
+      "num_err_log_entries": 2450
+    }
+  },
+  "kernel_errors": [
+    "[   10.326529] nvme nvme0: using unchecked data buffer",
+    "[145941.416958] pcieport 0000:00:1c.0: unlocked secondary bus reset via: pci_reset_bus_function+0x196/0x1c0"
+  ],
+  "kernel_read_exit_code": 0,
+  "queue": {
+    "scheduler": "[none] mq-deadline",
+    "nr_requests": "1023",
+    "write_cache": "write back",
+    "rotational": "0"
+  }
+}

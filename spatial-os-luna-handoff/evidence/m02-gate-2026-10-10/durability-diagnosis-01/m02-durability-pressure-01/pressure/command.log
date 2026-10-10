@@ -1,0 +1,7 @@
+Running as unit: spatial-m02-durability01-pressure.service; invocation ID: ebd8bc75d1a2467eb9c3fb446bb0fac4
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 12.719s
+CPU time consumed: 1.791s
+Memory peak: 1.5M
+Memory swap peak: 0B

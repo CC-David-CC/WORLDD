@@ -1259,3 +1259,34 @@ Both local gates and the cross-host matrix now have reviewed passing evidence.
 Historical timeout disposition and the final M02 requirement audit remain pending.
 Software-display evidence does not qualify physical devices, GPU performance, or shared-world geometry.
 M02 and Spatial-M1 remain incomplete. Do not repeat the completed matrix without a new evidence-based reason.
+
+2026-10-10: Additional durability diagnosis and timeout comparison
+
+The unchanged 700 ms fixture passed baseline and recovery but failed under bounded disk writes.
+The failure occurred at release, with a 705 ms client deadline and 1365 ms issuer work.
+An explicit 2000 ms diagnostic client also passed baseline and recovery but failed under pressure.
+That failure occurred at applied acknowledgement, with a 2009 ms deadline and 2948 ms issuer work.
+The existing 5000 ms client default passed baseline, pressure, and recovery in this experiment.
+These are nine single-case runs: seven passed, two failed, none skipped.
+No production code, tracked fixture, locked acceptance assertion, or database durability setting changed.
+The two budget variants changed only generated diagnostic configuration.
+The server fixture stayed at 700 ms I/O and 3000 ms idle. This was not a full production deployment test.
+Each pressure run wrote 1 GiB into a file with 512 MiB maximum extent.
+All 135 collected attachments verified. All 59 scanned logs lacked selected sanitizer markers.
+Evidence: spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json
+
+Read-only SSD health: no critical warning, zero media errors, 33 C, reported percentage_used 2.
+The sixteen recent error entries say Invalid Field in Command. Their historical origins remain unknown.
+Downloaded smartmontools 7.4-2build1 and extracted it under local/m02-storage-health-01 on sb16.
+No system package, service, kernel setting, or mount setting changed.
+Health command: sudo -n <that-directory>/extracted/usr/sbin/smartctl -a -j /dev/nvme0
+Error command: sudo -n <that-directory>/extracted/usr/sbin/smartctl -l error,16 -j /dev/nvme0
+
+Recommendation: retain the existing five-second production client default.
+A two-second setting alone does not resolve the reproduced contention.
+Separate normal-operation fixture budgets from deliberate short fault-test deadlines through an explicit change.
+Investigate workload I/O containment and issuer transport blocking without weakening durable authority ordering.
+A database worker cannot make a pending durable commit finish sooner.
+No worst-case latency bound, power-loss result, or physical/GPU result follows from these runs.
+The older approval and revocation-read failures remain individually unproven.
+M02 final audit and host adoption remain pending. Completed local and cross-host results remain reviewed.

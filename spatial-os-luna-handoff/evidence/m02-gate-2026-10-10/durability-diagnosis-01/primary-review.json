@@ -1,0 +1,176 @@
+{
+  "status": "primary_review_complete",
+  "phase_complete": false,
+  "production_changed": false,
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "archive_sha256": "f0951c83ff43eafbc02bb3f7699818f3300f8b94270f8fd91c2c0a72cee51887",
+  "verified_attachments": 135,
+  "passed": 7,
+  "failed": 2,
+  "skipped": 0,
+  "scanned_logs": 59,
+  "sanitizer_matches": 0,
+  "runs": [
+    {
+      "run": "m02-durability-pressure-01",
+      "client_timeout_ms": 700,
+      "phases": [
+        {
+          "phase": "baseline",
+          "result": {
+            "passed": true,
+            "tests": 1,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "maximum_fdatasync_us": 15136,
+          "maximum_logged_issuer_work_ms": 0,
+          "participant_failures": []
+        },
+        {
+          "phase": "pressure",
+          "result": {
+            "passed": false,
+            "tests": 1,
+            "failures": 1,
+            "errors": 0,
+            "skipped": 0
+          },
+          "maximum_fdatasync_us": 729863,
+          "maximum_logged_issuer_work_ms": 1365,
+          "participant_failures": [
+            "authority participant failed: code=26 request=3 stage=release cause=Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=705 gap_ms=10 tick_ms=0",
+            "authority participant failed: code=26 request=3 stage=private_channel cause=Authority participant channel failed; reconciliation is required"
+          ]
+        },
+        {
+          "phase": "recovery",
+          "result": {
+            "passed": true,
+            "tests": 1,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "maximum_fdatasync_us": 13612,
+          "maximum_logged_issuer_work_ms": 0,
+          "participant_failures": []
+        }
+      ],
+      "scratch_extent_limit_bytes": 536870912,
+      "total_pressure_bytes": 1073741824
+    },
+    {
+      "run": "m02-durability-budget-02",
+      "client_timeout_ms": 2000,
+      "phases": [
+        {
+          "phase": "baseline",
+          "result": {
+            "passed": true,
+            "tests": 1,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "maximum_fdatasync_us": 18812,
+          "maximum_logged_issuer_work_ms": 0,
+          "participant_failures": []
+        },
+        {
+          "phase": "pressure",
+          "result": {
+            "passed": false,
+            "tests": 1,
+            "failures": 1,
+            "errors": 0,
+            "skipped": 0
+          },
+          "maximum_fdatasync_us": 1329720,
+          "maximum_logged_issuer_work_ms": 2948,
+          "participant_failures": [
+            "authority participant failed: code=26 request=2 stage=applied cause=Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=2009 gap_ms=10 tick_ms=0",
+            "authority participant failed: code=26 request=2 stage=private_channel cause=Authority participant channel failed; reconciliation is required"
+          ]
+        },
+        {
+          "phase": "recovery",
+          "result": {
+            "passed": true,
+            "tests": 1,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "maximum_fdatasync_us": 13714,
+          "maximum_logged_issuer_work_ms": 0,
+          "participant_failures": []
+        }
+      ],
+      "scratch_extent_limit_bytes": 536870912,
+      "total_pressure_bytes": 1073741824
+    },
+    {
+      "run": "m02-production-budget-03",
+      "client_timeout_ms": 5000,
+      "phases": [
+        {
+          "phase": "baseline",
+          "result": {
+            "passed": true,
+            "tests": 1,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "maximum_fdatasync_us": 13677,
+          "maximum_logged_issuer_work_ms": 0,
+          "participant_failures": []
+        },
+        {
+          "phase": "pressure",
+          "result": {
+            "passed": true,
+            "tests": 1,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "maximum_fdatasync_us": 1133152,
+          "maximum_logged_issuer_work_ms": 1546,
+          "participant_failures": []
+        },
+        {
+          "phase": "recovery",
+          "result": {
+            "passed": true,
+            "tests": 1,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0
+          },
+          "maximum_fdatasync_us": 16054,
+          "maximum_logged_issuer_work_ms": 0,
+          "participant_failures": []
+        }
+      ],
+      "scratch_extent_limit_bytes": 536870912,
+      "total_pressure_bytes": 1073741824
+    }
+  ],
+  "conclusion": "Bounded filesystem writes reproduce durable-commit stalls and terminal participant deadlines. Both 700 ms and 2000 ms pressure cases failed. The existing 5000 ms client default passed this single pressure trial.",
+  "limits": [
+    "Three different timing realizations of the same bounded workload. No worst-case guarantee or latency percentile is established.",
+    "Failures occurred at release and applied acknowledgement. Older approval and revocation-read failures remain individually unproven.",
+    "Server timeout stayed at 700 ms and idle timeout at 3000 ms. This is not full production-configuration qualification.",
+    "Only sb16 and the runtime-sanitize profile were exercised.",
+    "Software displays do not establish physical device or GPU performance.",
+    "No power-loss test was performed. Durability settings were unchanged."
+  ],
+  "next": [
+    "Retain the existing five-second production client default.",
+    "Propose separate normal-operation fixture configuration and explicit short fault-test budgets before any test change.",
+    "Investigate bounded workspace/build I/O and issuer head-of-line blocking, preserving durable authority ordering."
+  ]
+}

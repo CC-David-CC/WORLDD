@@ -1,0 +1,5 @@
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Get:1 http://us.archive.ubuntu.com/ubuntu noble/main amd64 smartmontools amd64 7.4-2build1 [643 kB]
+Fetched 643 kB in 0s (2,354 kB/s)

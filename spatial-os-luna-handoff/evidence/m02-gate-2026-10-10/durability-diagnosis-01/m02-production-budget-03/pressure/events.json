@@ -1,0 +1,40 @@
+[
+  {
+    "event": "case_start",
+    "monotonic_ns": 341645416736057,
+    "method": "test_revocation_requires_child_acknowledgement_with_automatic_delivery",
+    "pressure_hook": true
+  },
+  {
+    "event": "before_pressure",
+    "monotonic_ns": 341646350678740,
+    "issuer_pids": [
+      2999134
+    ],
+    "fixture_device": 66306,
+    "scratch_device": 66306
+  },
+  {
+    "event": "revoke_start",
+    "monotonic_ns": 341646439471116,
+    "writer_pid": 2999150
+  },
+  {
+    "event": "revoke_return",
+    "monotonic_ns": 341648614433521
+  },
+  {
+    "event": "case_end",
+    "monotonic_ns": 341656675844404,
+    "passed": true,
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "event": "writer_exit",
+    "monotonic_ns": 341658251780260,
+    "exit_code": 0
+  }
+]

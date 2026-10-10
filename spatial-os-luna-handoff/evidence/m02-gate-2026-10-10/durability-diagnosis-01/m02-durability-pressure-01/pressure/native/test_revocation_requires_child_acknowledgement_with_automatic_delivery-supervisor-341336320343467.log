@@ -1,0 +1,4 @@
+authority participant failed: code=26 request=3 stage=release cause=Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=705 gap_ms=10 tick_ms=0
+authority participant failed: code=26 request=3 stage=private_channel cause=Authority participant channel failed; reconciliation is required
+authority supervisor: Private participant channel closed
+authority supervisor crash fencing unresolved: Issuer rejected owned authority fence challenge

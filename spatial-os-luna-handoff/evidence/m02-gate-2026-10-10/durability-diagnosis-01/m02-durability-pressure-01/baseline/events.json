@@ -1,0 +1,17 @@
+[
+  {
+    "event": "case_start",
+    "monotonic_ns": 341332310164887,
+    "method": "test_revocation_requires_child_acknowledgement_with_automatic_delivery",
+    "pressure_hook": false
+  },
+  {
+    "event": "case_end",
+    "monotonic_ns": 341333903937549,
+    "passed": true,
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+]

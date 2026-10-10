@@ -20,6 +20,9 @@ See docs/M03_QUALIFICATION_AUDIT.txt for existing confinement checks and the rem
 
 Current development focuses on the final M02 requirement audit and historical timeout disposition.
 Both hosts passed reviewed Debug and sanitizer local gates. All eight cross-host scenarios also passed review.
+Bounded disk interference now reproduces participant deadlines. Two-second clients also failed under that interference.
+The existing five-second client default passed one pressure trial. Retain it while investigating contention and transport blocking.
+Read evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json for the nine selected diagnostic results.
 Read the newest CURRENT_STATE.md section and tasks/m1/identity.control_recovery.json for current results.
 Full M02 sign-off remains pending.
 

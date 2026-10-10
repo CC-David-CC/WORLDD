@@ -1,0 +1,301 @@
+{
+  "json_format_version": [
+    1,
+    0
+  ],
+  "smartctl": {
+    "version": [
+      7,
+      4
+    ],
+    "pre_release": false,
+    "svn_revision": "5530",
+    "platform_info": "x86_64-linux-7.0.0-38-generic",
+    "build_info": "(local build)",
+    "exit_status": 0
+  },
+  "local_time": {
+    "time_t": 1791672689,
+    "asctime": "Sat Oct 10 18:51:29 2026 EDT"
+  },
+  "device": {
+    "name": "/dev/nvme0",
+    "info_name": "/dev/nvme0",
+    "type": "nvme",
+    "protocol": "NVMe"
+  },
+  "nvme_error_information_log": {
+    "size": 64,
+    "read": 16,
+    "unread": 48,
+    "table": [
+      {
+        "error_count": 2450,
+        "submission_queue_id": 0,
+        "command_id": 1,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        }
+      },
+      {
+        "error_count": 2449,
+        "submission_queue_id": 0,
+        "command_id": 1,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        }
+      },
+      {
+        "error_count": 2448,
+        "submission_queue_id": 0,
+        "command_id": 32,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        },
+        "nsid": 1
+      },
+      {
+        "error_count": 2447,
+        "submission_queue_id": 0,
+        "command_id": 29,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "parm_error_location": 40,
+        "lba": {
+          "value": 0
+        },
+        "nsid": 1
+      },
+      {
+        "error_count": 2446,
+        "submission_queue_id": 0,
+        "command_id": 28,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        },
+        "nsid": 1
+      },
+      {
+        "error_count": 2445,
+        "submission_queue_id": 0,
+        "command_id": 1,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        }
+      },
+      {
+        "error_count": 2444,
+        "submission_queue_id": 0,
+        "command_id": 1,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        }
+      },
+      {
+        "error_count": 2443,
+        "submission_queue_id": 0,
+        "command_id": 1,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        }
+      },
+      {
+        "error_count": 2442,
+        "submission_queue_id": 0,
+        "command_id": 32,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        },
+        "nsid": 1
+      },
+      {
+        "error_count": 2441,
+        "submission_queue_id": 0,
+        "command_id": 29,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "parm_error_location": 40,
+        "lba": {
+          "value": 0
+        },
+        "nsid": 1
+      },
+      {
+        "error_count": 2440,
+        "submission_queue_id": 0,
+        "command_id": 28,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        },
+        "nsid": 1
+      },
+      {
+        "error_count": 2439,
+        "submission_queue_id": 0,
+        "command_id": 1,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        }
+      },
+      {
+        "error_count": 2438,
+        "submission_queue_id": 0,
+        "command_id": 1,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        }
+      },
+      {
+        "error_count": 2437,
+        "submission_queue_id": 0,
+        "command_id": 1,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        }
+      },
+      {
+        "error_count": 2436,
+        "submission_queue_id": 0,
+        "command_id": 32,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "lba": {
+          "value": 0
+        },
+        "nsid": 1
+      },
+      {
+        "error_count": 2435,
+        "submission_queue_id": 0,
+        "command_id": 29,
+        "status_field": {
+          "value": 8194,
+          "do_not_retry": false,
+          "status_code_type": 0,
+          "status_code": 2,
+          "string": "Invalid Field in Command"
+        },
+        "phase_tag": false,
+        "parm_error_location": 40,
+        "lba": {
+          "value": 0
+        },
+        "nsid": 1
+      }
+    ]
+  }
+}

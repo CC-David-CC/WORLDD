@@ -1,0 +1,6 @@
+test_revocation_requires_child_acknowledgement_with_automatic_delivery (test_authority_supervisor.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.593s
+
+OK

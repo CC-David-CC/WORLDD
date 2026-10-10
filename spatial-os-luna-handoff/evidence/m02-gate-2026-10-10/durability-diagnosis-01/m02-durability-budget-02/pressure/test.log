@@ -1,0 +1,23 @@
+test_revocation_requires_child_acknowledgement_with_automatic_delivery (test_authority_supervisor.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery) ... FAIL
+
+======================================================================
+FAIL: test_revocation_requires_child_acknowledgement_with_automatic_delivery (test_authority_supervisor.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/source/tests/native/test_authority_supervisor.py", line 182, in test_revocation_requires_child_acknowledgement_with_automatic_delivery
+    self.assertEqual(self.child_update(proc, 'applied').applied.applied_revision, 1)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/source/tests/native/test_authority_supervisor.py", line 120, in child_update
+    self.assertTrue(reply.HasField(field), reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 2
+error {
+  code: UNAVAILABLE
+  message: "Authority participant channel failed; reconciliation is required"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 10.799s
+
+FAILED (failures=1)

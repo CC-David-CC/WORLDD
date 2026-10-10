@@ -1,0 +1,7 @@
+Running as unit: spatial-m02-durability01-recovery.service; invocation ID: f31888c068344a4dbf84ab405d854bc3
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 2.079s
+CPU time consumed: 701ms
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -1,0 +1,7 @@
+Running as unit: spatial-m02-durability01-baseline.service; invocation ID: 262754c1e804482fb515b32b7787d317
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 1.661s
+CPU time consumed: 655ms
+Memory peak: 1.5M
+Memory swap peak: 0B

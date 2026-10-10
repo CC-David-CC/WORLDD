@@ -1,5 +1,28 @@
 # Implementation status
 
+## 2026-10-10: Disk interference and client timeout comparison reviewed
+
+Bounded scratch writes reproduced issuer durability stalls on sb16 without compiling or changing production code.
+The unchanged 700 ms case timed out during release. A 2000 ms diagnostic client timed out during applied acknowledgement.
+The existing 5000 ms client default passed its pressure case. All six baseline and recovery cases passed.
+The nine selected runs therefore contain seven passes and two preserved failures. No case skipped.
+Three comparisons used the same original test method, assertions, binaries, and database durability settings.
+Only the second and third comparisons changed generated diagnostic client configuration.
+These configuration comparisons do not replace the unchanged qualification results.
+
+Kernel traces recorded successful fdatasync calls and issuer work stalls up to 2948 ms.
+All 135 collected attachments passed hash verification. All 59 scanned logs lack selected sanitizer markers.
+The SSD reported no critical warning and zero media errors at 33 degrees Celsius.
+Its sixteen recent error entries report Invalid Field in Command. They do not establish failed data writes.
+Read evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json.
+
+Keep the existing five-second production client default. A two-second budget does not resolve this reproduction.
+Keep deliberate short deadlines in fault tests. Propose normal-operation fixture changes explicitly before integration.
+Investigate workload I/O contention and issuer transport blocking while preserving durable authority ordering.
+One successful five-second pressure case does not establish a worst-case latency bound.
+The older approval and revocation-read failures remain individually unproven.
+The completed local and cross-host qualification results remain valid. Final M02 audit and adoption remain pending.
+
 ## 2026-10-10: Complete cross-host M02 matrix reviewed
 
 All eight coordinated scenarios passed on unchanged candidate02 source and binaries.

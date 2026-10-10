@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "m02_failure_evidence_and_gate_audit",
+  "current_step": "m02_storage_contention_reproduced_timeout_policy_and_final_audit_pending",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,9 +12,9 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Audit remaining M02 recovery and cancellation requirements against current evidence before freezing the gate.",
-    "Resolve the preserved participant-approval startup failure and active-generation revocation-read timeout.",
-    "Run complete required M02 Debug, runtime sanitizer, harness, acceptance, native, and cross-host qualification on both hosts."
+    "Complete the final M02 requirement audit and reviewed host adoption. Reuse the reviewed local and cross-host gate evidence.",
+    "Disposition the older approval and revocation-read failures without claiming an uncaptured cause.",
+    "Address reproduced storage-contention availability. Retain the production five-second client default. Propose normal-operation fixture and fault-test budgets explicitly."
   ],
   "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
   "candidate": {
@@ -453,5 +453,46 @@
   },
   "operator_completion_task": "tasks/m1/identity.revocation_command.json",
   "operator_native_evidence": "evidence/operator-native-2026-10-10/candidate-01/primary-review.json",
-  "gate_coverage_map": "docs/M02_GATE_COVERAGE.txt"
+  "gate_coverage_map": "docs/M02_GATE_COVERAGE.txt",
+  "reviewed_final_gate_2026_10_10": {
+    "local_hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "profiles": [
+      "debug",
+      "runtime-sanitize"
+    ],
+    "per_host_per_profile": {
+      "core_checks": 1668,
+      "core_suites": 124,
+      "harness_checks": 51,
+      "acceptance_cases": 151,
+      "failed": 0,
+      "skipped": 0
+    },
+    "crosshost_scenarios_passed": 8,
+    "local_evidence_commit": "f772e38",
+    "crosshost_evidence_commit": "3b56c4e",
+    "crosshost_review": "evidence/m02-gate-2026-10-10/crosshost03-final/primary-review.json",
+    "phase_complete": false
+  },
+  "durability_diagnosis_2026_10_10": {
+    "status": "reviewed",
+    "host": "sb16",
+    "profile": "runtime-sanitize",
+    "review": "evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json",
+    "passed": 7,
+    "failed": 2,
+    "skipped": 0,
+    "production_changed": false,
+    "tracked_tests_changed": false,
+    "pressure_results": {
+      "700_ms": "release_timeout",
+      "2000_ms": "applied_acknowledgement_timeout",
+      "5000_ms_default": "passed_one_trial"
+    },
+    "historical_causes_proved": false,
+    "phase_complete": false
+  }
 }
