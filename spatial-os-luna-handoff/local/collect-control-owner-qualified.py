@@ -10,7 +10,7 @@ import tarfile
 import time
 
 parser=argparse.ArgumentParser()
-parser.add_argument('--candidate',choices=('03','04','binding01','reply01','handoff01','admin01'),required=True)
+parser.add_argument('--candidate',choices=('03','04','binding01','reply01','handoff01','admin01','handle01'),required=True)
 parser.add_argument('--mode',choices=('debug','final'),required=True)
 args=parser.parse_args()
 r=Path('/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff')
@@ -20,7 +20,8 @@ binding_candidate=args.candidate=='binding01'
 reply_candidate=args.candidate=='reply01'
 handoff_candidate=args.candidate=='handoff01'
 admin_candidate=args.candidate=='admin01'
-candidate_name=('control-admin-01' if admin_candidate else 'supervisor-handoff-01' if handoff_candidate else 'control-reply-01' if reply_candidate else
+handle_candidate=args.candidate=='handle01'
+candidate_name=('retained-child-handle-01' if handle_candidate else 'control-admin-01' if admin_candidate else 'supervisor-handoff-01' if handoff_candidate else 'control-reply-01' if reply_candidate else
                 'control-binding-01' if binding_candidate else 'control-owner-'+args.candidate)
 root=r/'local'/('m02-'+candidate_name)
 out=root/'qualification'
@@ -28,7 +29,7 @@ manifest=json.loads((root/'manifest.json').read_text())
 raw_summary=(out/'summary.json').read_bytes()
 run=json.loads(raw_summary)
 assert run['host']==host and run['source_manifest']==manifest['files']
-source_count=309 if admin_candidate else 304 if handoff_candidate else 303 if reply_candidate else 298 if binding_candidate else 297
+source_count=311 if handle_candidate else 309 if admin_candidate else 304 if handoff_candidate else 303 if reply_candidate else 298 if binding_candidate else 297
 assert len(manifest['files'])==source_count and len(manifest['locked_files'])==41
 assert not run['compiler_overlap']
 assert run['status']=='passed' if args.mode=='final' else run['status'] in ('qualifying','passed')
@@ -73,7 +74,7 @@ for profile in profiles:
     value=run['profiles'][profile]
     build=Path(value['build']);folder=out/profile
     steps={x['name']:x for x in value['results']}
-    required=['harness','admin' if admin_candidate else 'handoff' if handoff_candidate else 'reply' if reply_candidate else 'binding' if binding_candidate else 'owners','core','P10']
+    required=['harness','handle' if handle_candidate else 'admin' if admin_candidate else 'handoff' if handoff_candidate else 'reply' if reply_candidate else 'binding' if binding_candidate else 'owners','core','P10']
     if args.candidate!='03':required.insert(2,'world')
     assert all(name in steps and steps[name]['exit_code']==0 for name in required), (profile,steps)
     assert all(sha((build/name).read_bytes())==digest for name,digest in value['binaries'].items())
@@ -87,7 +88,12 @@ for profile in profiles:
     attachments[profile+'/sanitizer-config.json']=(json.dumps(dict(profile=profile,cmake_sanitizers=expected,
         ASAN_OPTIONS='detect_leaks=1:abort_on_error=1',UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1',
         qualifier_sha256=sha((r/'local'/('qualify-'+candidate_name+'.py')).read_bytes())),indent=2)+'\n').encode()
-    if admin_candidate:
+    if handle_candidate:
+        focused=collect(folder/'handle.log').decode();clean(focused)
+        assert re.findall(r'^\s*Start\s+\d+:\s+(\S+)',focused,re.M)==['retained-child-handle']
+        assert re.findall(r'^\d+: Ran (\d+) tests? in ',focused,re.M)==['5']
+        assert '100% tests passed, 0 tests failed out of 1' in focused
+    elif admin_candidate:
         focused=collect(folder/'admin.log').decode();clean(focused)
         assert re.findall(r'^\s*Start\s+\d+:\s+(\S+)',focused,re.M)==['control-administrative-transport']
         assert re.findall(r'^\d+: Ran (\d+) tests? in ',focused,re.M)==['11']
@@ -114,16 +120,17 @@ for profile in profiles:
     core=collect(folder/'core.log').decode();clean(core)
     names=re.findall(r'^\s*Start\s+\d+:\s+(\S+)',core,re.M)
     counts=list(map(int,re.findall(r'^\d+: Ran (\d+) tests? in ',core,re.M)))
-    core_suites=103 if admin_candidate else 102 if handoff_candidate else 101 if reply_candidate else 100 if binding_candidate else 99
-    core_checks=1498 if admin_candidate else 1496 if handoff_candidate else 1480 if reply_candidate else 1474 if binding_candidate else 1453
-    excluded='control-administrative-transport' if admin_candidate else 'supervisor-handoff-lifetime' if handoff_candidate else 'control-supervisor-reply' if reply_candidate else 'authority-control-binding' if binding_candidate else 'control-owner-channels'
+    core_suites=104 if handle_candidate else 103 if admin_candidate else 102 if handoff_candidate else 101 if reply_candidate else 100 if binding_candidate else 99
+    core_checks=1509 if handle_candidate else 1498 if admin_candidate else 1496 if handoff_candidate else 1480 if reply_candidate else 1474 if binding_candidate else 1453
+    excluded='retained-child-handle' if handle_candidate else 'control-administrative-transport' if admin_candidate else 'supervisor-handoff-lifetime' if handoff_candidate else 'control-supervisor-reply' if reply_candidate else 'authority-control-binding' if binding_candidate else 'control-owner-channels'
     assert len(names)==len(set(names))==len(counts)==core_suites and sum(counts)==core_checks
     assert f'100% tests passed, 0 tests failed out of {core_suites}' in core
     assert excluded not in names
-    if binding_candidate or reply_candidate or handoff_candidate or admin_candidate:assert dict(zip(names,counts))['control-owner-channels']==21
-    if reply_candidate or handoff_candidate or admin_candidate:assert dict(zip(names,counts))['authority-control-binding']==6
-    if handoff_candidate or admin_candidate:assert dict(zip(names,counts))['control-supervisor-reply']==16
-    if admin_candidate:assert dict(zip(names,counts))['supervisor-handoff-lifetime']==2
+    if binding_candidate or reply_candidate or handoff_candidate or admin_candidate or handle_candidate:assert dict(zip(names,counts))['control-owner-channels']==21
+    if reply_candidate or handoff_candidate or admin_candidate or handle_candidate:assert dict(zip(names,counts))['authority-control-binding']==6
+    if handoff_candidate or admin_candidate or handle_candidate:assert dict(zip(names,counts))['control-supervisor-reply']==16
+    if admin_candidate or handle_candidate:assert dict(zip(names,counts))['supervisor-handoff-lifetime']==2
+    if handle_candidate:assert dict(zip(names,counts))['control-administrative-transport']==11
     inventory=subprocess.check_output(['ctest','--test-dir',str(build),'--show-only=json-v1'])
     entries=json.loads(inventory)['tests']
     assert {entry['name'] for entry in entries}==set(names)|{excluded}
@@ -145,13 +152,14 @@ for profile in profiles:
     for name in ('configure.log','build.log'):
         if (folder/name).exists():collect(folder/name)
     for path in (folder/'native').rglob('*.log'):collect(path)
-    result['profiles'][profile]=dict(core_checks=core_checks+(11 if admin_candidate else 2 if handoff_candidate else 16 if reply_candidate else 6 if binding_candidate else expected_owners),core_suites=core_suites+1,
+    result['profiles'][profile]=dict(core_checks=core_checks+(5 if handle_candidate else 11 if admin_candidate else 2 if handoff_candidate else 16 if reply_candidate else 6 if binding_candidate else expected_owners),core_suites=core_suites+1,
         owner_checks=expected_owners,native_world_checks=native_checks,harness_checks=51,P10_cases=151,
         failed=0,skipped=0,commands=value['results'],binaries=value['binaries'],core_parts=dict(zip(names,counts)))
-    if binding_candidate or reply_candidate or handoff_candidate or admin_candidate:result['profiles'][profile]['binding_checks']=6
-    if reply_candidate or handoff_candidate or admin_candidate:result['profiles'][profile]['reply_checks']=16
-    if handoff_candidate or admin_candidate:result['profiles'][profile]['handoff_checks']=2
-    if admin_candidate:result['profiles'][profile]['admin_checks']=11
+    if binding_candidate or reply_candidate or handoff_candidate or admin_candidate or handle_candidate:result['profiles'][profile]['binding_checks']=6
+    if reply_candidate or handoff_candidate or admin_candidate or handle_candidate:result['profiles'][profile]['reply_checks']=16
+    if handoff_candidate or admin_candidate or handle_candidate:result['profiles'][profile]['handoff_checks']=2
+    if admin_candidate or handle_candidate:result['profiles'][profile]['admin_checks']=11
+    if handle_candidate:result['profiles'][profile]['handle_checks']=5
 
 if handoff_candidate:
     for profile in ('debug','runtime-sanitize'):

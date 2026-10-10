@@ -1,0 +1,15 @@
+{
+  "candidate": "handle01",
+  "collector": "local/collect-control-owner-qualified.py",
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "result": "Both final collection attempts refused waiting qualification",
+  "expected_exit": 1,
+  "evidence_promoted": false,
+  "expected_core_checks": 1514,
+  "expected_core_suites": 105,
+  "expected_handle_checks": 5,
+  "checks_status": "unrun"
+}
