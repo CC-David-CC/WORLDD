@@ -1,0 +1,87 @@
+{
+  "monotonic": 324515.311311415,
+  "broker_pid": 2332691,
+  "broker_supervisor_pid": 2332689,
+  "processes": [
+    {
+      "pid": 2332689,
+      "pidfd": 30,
+      "exited": true,
+      "status": "Name:\tspatial-authori\nState:\tZ (zombie)\nTgid:\t2332689\nNgid:\t0\nPid:\t2332689\nPPid:\t2332688\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t0\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t2332689\nNSpid:\t2332689\nNSpgid:\t2332319\nNSsid:\t2332319\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56237\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t0000000100004002\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t585\nnonvoluntary_ctxt_switches:\t1\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-deferred-fence-b5954124c4d8a480db012bab32409c37412b937a71dcce07a7f0f8cb64be355a.service\n"
+    },
+    {
+      "pid": 2332691,
+      "pidfd": 31,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2332728,
+      "pidfd": 32,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2332729,
+      "pidfd": 33,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2332730,
+      "pidfd": 34,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2332731,
+      "pidfd": 35,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2332732,
+      "pidfd": 36,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2332695,
+      "pidfd": 38,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2332696,
+      "pidfd": 39,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2332693,
+      "pidfd": 40,
+      "exited": true,
+      "status": "Name:\tspatial-authori\nState:\tZ (zombie)\nTgid:\t2332693\nNgid:\t0\nPid:\t2332693\nPPid:\t2332688\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t0\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t2332693\nNSpid:\t2332693\nNSpgid:\t2332319\nNSsid:\t2332319\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56237\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t0000000100004002\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t468\nnonvoluntary_ctxt_switches:\t1\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-deferred-fence-b5954124c4d8a480db012bab32409c37412b937a71dcce07a7f0f8cb64be355a.service\n"
+    }
+  ]
+}

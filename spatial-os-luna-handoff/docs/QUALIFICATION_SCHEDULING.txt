@@ -70,3 +70,18 @@ Installed help confirms this option on both hosts. The synchronization step rema
 The measured stall identifies a delayed operation in candidate02. The timing supports residual build contention.
 It does not prove the cause of every historical failure or qualify operation under arbitrary disk contention.
 Native performance and resource testing must still cover workload contention under production settings.
+
+2026-10-10 retry execution checkpoint
+
+The sb16 retry executed sync -f successfully in 0.039 seconds before testing.
+Both hosts are now running untraced Debug qualification. Full results remain pending.
+Initial passing suites do not establish that synchronization fixes all historical failures.
+
+CMake embeds native evidence paths in systemd-run test arguments during configuration.
+Changing an inherited environment variable cannot override those explicit arguments.
+When reusing the frozen build, change only those generated evidence-directory arguments.
+Preserve the generated file before and after the change.
+Require complete CTest inventory equality except for the exact log-directory replacement.
+Do not change test source, assertions, timeouts, executable bytes, or other metadata.
+The sb16 Debug inventory verified all 26 such argument changes before core execution.
+Read evidence/m02-gate-2026-10-10/untraced03-launch-sb16.json.

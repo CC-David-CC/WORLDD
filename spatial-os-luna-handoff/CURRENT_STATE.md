@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-10: Both hosts now run untraced Debug qualification
+
+The complete failed sb16 diagnostic and its 3567 raw attachments are preserved in commit c4d9b16.
+The unchanged-binary retry is live on sb16. Its filesystem synchronization succeeded in 0.039 seconds.
+Its Debug inventory comparison verified exactly 26 native log-destination changes and no other metadata changes.
+All 51 Debug harness cases passed. The first 16 core suites passed, including world-revision-interleave.
+These early results do not complete qualification or prove that synchronization resolves every prior timeout.
+Read evidence/m02-gate-2026-10-10/untraced03-launch-sb16.json.
+
+On sb16-2, all 124 diagnostic suites passed and its complete trace passed integrity checks.
+The original runner has started untraced Debug qualification. It was not replaced or restarted.
+A read-only checkpoint preserves all diagnostic native logs before embedded paths can be reused.
+All 3567 checkpoint attachment hashes were verified after copying the archive.
+Read evidence/m02-gate-2026-10-10/sb16-2-diagnostic-checkpoint/primary-review.json.
+The checkpoint is not terminal full-gate evidence. Both local profiles and cross-host qualification remain pending.
+M02 and Spatial-M1 remain incomplete. Historical failures remain individually unresolved.
+
 ## 2026-10-10: sb16 diagnostic complete; retry evidence paths corrected
 
 The sb16 diagnostic completed all 124 suites. It passed 123 suites and failed world-revision-interleave.

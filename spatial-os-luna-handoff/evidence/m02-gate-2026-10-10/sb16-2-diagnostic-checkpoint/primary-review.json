@@ -1,0 +1,14 @@
+{
+  "host": "sb16-2",
+  "status": "diagnostic_passed_untraced_qualification_still_running",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "archive_sha256": "a50c6069ce45fc1a8399f489685fca8d81f09f4dfc3b4fee3947dcdbdadfb526",
+  "raw_attachments_verified": 3567,
+  "diagnostic_passed_suites": 124,
+  "diagnostic_failed_suites": [],
+  "trace_complete": true,
+  "qualification": false,
+  "phase_complete": false,
+  "historical_failures_resolved": false,
+  "limitation": "Read-only checkpoint of the completed diagnostic and its native logs before configured paths can be reused by the original untraced sequence. The complete original gate remains active; this is not its terminal archive."
+}

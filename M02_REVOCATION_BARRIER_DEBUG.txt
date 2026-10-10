@@ -1171,3 +1171,10 @@ CMake embeds native log destinations for systemd tests during configuration.
 The retry must redirect only those generated arguments and verify complete inventory equality.
 Original failure logs remain archived. Source, binaries, assertions, and deadlines remain unchanged.
 See spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/untraced03-evidence-path-correction.json.
+
+2026-10-10: Untraced qualification active on both hosts
+sb16 original diagnostic: 123 passed suites, one failed suite; complete raw evidence committed as c4d9b16.
+sb16 retry: synchronization succeeded, all 26 generated log-path changes verified, first 16 core suites passed.
+sb16-2 diagnostic: all 124 suites passed; all 3567 checkpoint attachments verified.
+Both hosts now run untraced qualification. Full Debug, runtime sanitizers, and cross-host checks remain incomplete.
+See CURRENT_STATE.md in spatial-os-luna-handoff for exact evidence paths.
