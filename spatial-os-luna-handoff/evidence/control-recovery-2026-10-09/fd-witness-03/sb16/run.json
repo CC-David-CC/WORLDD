@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_channels_03.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/spatial-issuer-client",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/worldd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/spatial-security-auth",
+    "ControlOwnerTests.test_invalid_descriptors_and_ancillary_truncation_do_not_leak"
+  ],
+  "exit_code": 0
+}

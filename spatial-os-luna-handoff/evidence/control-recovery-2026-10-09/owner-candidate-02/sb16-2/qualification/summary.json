@@ -1,0 +1,83 @@
+{
+  "host": "sb16-2",
+  "source_files": 297,
+  "status": "failed",
+  "profiles": {
+    "debug": {
+      "results": [
+        {
+          "name": "configure",
+          "command": [
+            "cmake",
+            "-S",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/source",
+            "-B",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build",
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Debug",
+            "-DSPATIAL_INPUT_TESTS=ON",
+            "-DSPATIAL_SANITIZERS=OFF",
+            "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
+            "-DCMAKE_C_COMPILER_LAUNCHER=ccache"
+          ],
+          "start": 1791595993.7373857,
+          "end": 1791595994.8020442,
+          "exit_code": 0
+        },
+        {
+          "name": "build",
+          "command": [
+            "cmake",
+            "--build",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build",
+            "--parallel",
+            "2"
+          ],
+          "start": 1791595994.81927,
+          "end": 1791596139.0088277,
+          "exit_code": 0
+        },
+        {
+          "name": "harness",
+          "command": [
+            "python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests/harness",
+            "-t",
+            ".",
+            "-q"
+          ],
+          "start": 1791596139.0758407,
+          "end": 1791596139.9180386,
+          "exit_code": 0
+        },
+        {
+          "name": "owners",
+          "command": [
+            "ctest",
+            "--test-dir",
+            "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build",
+            "-V",
+            "-R",
+            "^control-owner-channels$"
+          ],
+          "start": 1791596139.936021,
+          "end": 1791596184.657911,
+          "exit_code": 8
+        }
+      ],
+      "build": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build"
+    }
+  },
+  "started": 1791595845.65538,
+  "preceding_pid": 1445986,
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "ended": 1791596184.6584144
+}

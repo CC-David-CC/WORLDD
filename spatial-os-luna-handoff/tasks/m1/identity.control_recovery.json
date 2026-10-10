@@ -3,19 +3,36 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "define_and_test_immutable_recovery_owner",
+  "current_step": "qualify_immutable_owner_channels",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
   "invariant": "Release only a fenced generation's owned control reservations after verified native cancellation, while preserving independently authorized applications.",
   "baseline": "Both hosts reproduced native release with a surviving application and an unreleased broker reservation. One corrected Debug diagnostic passed per host.",
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": false,
   "remaining": [
-    "Record the additive protobuf interface and trust boundary.",
-    "Bind control reservations to an immutable exact launch owner.",
-    "Retain broker communication independently of the world process.",
-    "Account for lost acquisition replies and stop new acquisitions before cleanup.",
-    "Verify selective release and preserve unrelated reservations and applications.",
+    "Complete both-host Debug and sanitizer qualification before integrating owner channels.",
+    "Construct owner bindings from the production supervisor retained exact launch.",
+    "Retain production broker communication independently of the world process.",
+    "Verify selective recovery release after checked native cancellation; preserve unrelated reservations and applications.",
     "Persist a checked dependent receipt before issuer retirement.",
-    "Qualify focused and cumulative Debug and sanitizer profiles on both hosts."
+    "Qualify the complete recovery path and cumulative profiles on both hosts."
+  ],
+  "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
+  "candidate": {
+    "version": 3,
+    "source_files": 297,
+    "changed_files": 8,
+    "new_checks": 19,
+    "production_changed": false,
+    "evidence": "evidence/control-recovery-2026-10-09/control-owner-review-03.json",
+    "state": "Full both-host qualification launched. Complete runtime compilation before tests.",
+    "drivers": {
+      "sb16": 1679232,
+      "sb16-2": 1463045
+    }
+  },
+  "preserved_failures": [
+    "Both hosts:103 existing checks and51 harness passed;12 new checks errored on a fixture helper collision.",
+    "Both hosts:18 new checks and51 harness passed;1 descriptor-count witness errored on protected procfs."
   ]
 }

@@ -1,0 +1,79 @@
+sb16-2 configure 0
+sb16-2 build 0
+sb16-2 harness 0
+sb16-2 owners 8
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 69
+    Start 69: control-owner-channels
+
+69: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/source/tests/core/test_control_owner_channels.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/spatial-security-auth"
+69: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build
+69: Environment variables: 
+69:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/source
+69: Test timeout computed to be: 180
+69: test_admin_disconnect_fences_owners_without_stopping_application (__main__.ControlOwnerTests.test_admin_disconnect_fences_owners_without_stopping_application) ... ok
+69: test_administration_is_not_accepted_on_world_channel (__main__.ControlOwnerTests.test_administration_is_not_accepted_on_world_channel) ... ok
+69: test_changed_admin_sender_fences_channels (__main__.ControlOwnerTests.test_changed_admin_sender_fences_channels) ... ok
+69: test_duplicate_endpoint_cannot_receive_another_owner (__main__.ControlOwnerTests.test_duplicate_endpoint_cannot_receive_another_owner) ... ok
+69: test_exact_binding_required_for_inspection_and_fence (__main__.ControlOwnerTests.test_exact_binding_required_for_inspection_and_fence) ... ok
+69: test_fence_is_processed_during_root_process_wait (__main__.ControlOwnerTests.test_fence_is_processed_during_root_process_wait) ... ok
+69: test_fence_preserves_other_owner_and_live_applications (__main__.ControlOwnerTests.test_fence_preserves_other_owner_and_live_applications) ... ok
+69: test_invalid_bindings_cannot_create_owner (__main__.ControlOwnerTests.test_invalid_bindings_cannot_create_owner) ... ok
+69: test_invalid_descriptors_and_ancillary_truncation_do_not_leak (__main__.ControlOwnerTests.test_invalid_descriptors_and_ancillary_truncation_do_not_leak) ... ERROR
+69: test_lost_acquisition_reply_remains_inspectable_after_eof (__main__.ControlOwnerTests.test_lost_acquisition_reply_remains_inspectable_after_eof) ... ok
+69: test_malformed_unknown_and_oversized_packets_leave_admin_usable (__main__.ControlOwnerTests.test_malformed_unknown_and_oversized_packets_leave_admin_usable) ... ok
+69: test_owner_binding_cannot_grant_actor_control (__main__.ControlOwnerTests.test_owner_binding_cannot_grant_actor_control) ... ok
+69: test_query_cannot_transfer_a_descriptor (__main__.ControlOwnerTests.test_query_cannot_transfer_a_descriptor) ... ok
+69: test_registration_cannot_rebind_launch_or_endpoint (__main__.ControlOwnerTests.test_registration_cannot_rebind_launch_or_endpoint) ... ok
+69: test_revocation_event_goes_only_to_owning_world (__main__.ControlOwnerTests.test_revocation_event_goes_only_to_owning_world) ... ok
+69: test_same_actor_cannot_reuse_or_release_other_owner (__main__.ControlOwnerTests.test_same_actor_cannot_reuse_or_release_other_owner) ... ok
+69: test_tombstones_reject_rebinding_and_bound_owner_table (__main__.ControlOwnerTests.test_tombstones_reject_rebinding_and_bound_owner_table) ... ok
+69: test_transferred_channel_with_different_creator_is_rejected (__main__.ControlOwnerTests.test_transferred_channel_with_different_creator_is_rejected) ... ok
+69: test_two_owner_channels_have_distinct_reservations (__main__.ControlOwnerTests.test_two_owner_channels_have_distinct_reservations) ... ok
+69: 
+69: ======================================================================
+69: ERROR: test_invalid_descriptors_and_ancillary_truncation_do_not_leak (__main__.ControlOwnerTests.test_invalid_descriptors_and_ancillary_truncation_do_not_leak)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/source/tests/core/test_control_owner_channels.py", line 230, in test_invalid_descriptors_and_ancillary_truncation_do_not_leak
+69:     before = count()
+69:              ^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/source/tests/core/test_control_owner_channels.py", line 229, in <lambda>
+69:     count = lambda: len(list(access.Path(f'/proc/{self.broker.proc.pid}/fd').iterdir()))
+69:                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+69:   File "/usr/lib/python3.12/pathlib.py", line 1058, in iterdir
+69:     for name in os.listdir(self):
+69:                 ^^^^^^^^^^^^^^^^
+69: PermissionError: [Errno 13] Permission denied: '/proc/1461835/fd'
+69: 
+69: ----------------------------------------------------------------------
+69: Ran 19 tests in 44.512s
+69: 
+69: FAILED (errors=1)
+1/1 Test #69: control-owner-channels ...........***Failed   44.71 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  44.71 sec
+
+The following tests FAILED:
+	 69 - control-owner-channels (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-02/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/qualify-control-owner-02.py", line 91, in <module>
+    raise RuntimeError(profile+' '+name+' failed')
+RuntimeError: debug owners failed

@@ -1,0 +1,27 @@
+{
+  "reviewer": "primary agent",
+  "status": "candidate; qualification pending",
+  "production_changed": false,
+  "source_files": 297,
+  "locked_files_unchanged": 41,
+  "changed_files": [
+    "CMakeLists.txt",
+    "tests/core/test_control_owner_channels.py",
+    "src/workspace/control.cpp",
+    "src/workspace/control.hpp",
+    "src/workspace/control_channels.cpp",
+    "src/workspace/control_channels.hpp",
+    "src/workspace/main.cpp",
+    "proto/spatial/workspace/v1/broker.proto"
+  ],
+  "static_corrections": [
+    "Preserve descriptor ownership if stream allocation fails.",
+    "Bound per-owner reservation encoding so complete inspection fits the administrative packet."
+  ],
+  "fixture_correction": "Rename owner() to owner_binding(); the inherited fixture stores a Path in self.owner. Preserve all original assertions.",
+  "new_checks": 19,
+  "limitations": [
+    "Real-broker primitive only. The production supervisor does not yet create these bindings.",
+    "Recovery release, checked dependent receipt, issuer retirement, and full cumulative qualification remain pending."
+  ]
+}

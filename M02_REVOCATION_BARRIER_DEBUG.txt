@@ -407,3 +407,29 @@ Commit a3a926d51b89a2715486fa52ab81ecfc57584ff2 is adopted cleanly on sb16 and s
 All294 source hashes match qualification. No runtime restart or operator-state migration occurred.
 The next task is spatial-os-luna-handoff/tasks/m1/identity.control_recovery.json.
 M02 remains incomplete until dependent control cleanup, verified retirement, and cross-host cancellation pass.
+
+2026-10-09: Control owner channels under qualification
+Both hosts reproduced the missing supervisor transport on the qualified broker.
+Candidate01 compiled and passed51 harness checks on both hosts.
+Its12 new tests hit a fixture naming collision: self.owner is an inherited path.
+Candidate02 renames that helper and preserves all original assertions.
+It also corrects descriptor allocation ownership and bounds complete inspection replies.
+The candidate has19 new checks and leaves all41 locked files unchanged.
+Drivers1672116(sb16) and1454857(sb16-2) wait for their preceding run before compiling.
+Production source remains a3a926d. No operator session changed.
+No recovery release, checked dependent receipt, or issuer retirement is implemented yet.
+Read spatial-os-luna-handoff/docs/CONTROL_OWNER_CHANNELS.txt.
+
+2026-10-09: Descriptor witness corrected; full candidate03 qualification launched
+Candidate01 finished with103 existing checks and51 harness passes on each host.
+All12 new checks errored on the inherited fixture name; original logs are preserved.
+Candidate02 passed18 new checks on each host. One procfs witness lacked read permission.
+NativeLaunch deliberately sets PR_SET_DUMPABLE=0. Do not disable that protection.
+The corrected witness uses read-only sudo against the exact unreaped fixture child.
+It passed on sb16. Candidate03 changes only this test from candidate02.
+Debug reuses byte-identical production binaries. The corrected19-check suite runs explicitly.
+The original owner suite is excluded from CTest because its corrected copy runs separately.
+No other suite or assertion is excluded or weakened.
+Full drivers1679232(sb16) and1463045(sb16-2) compile runtime sanitizers before qualification.
+Expected per profile:1472 core checks across100 suites,51 harness checks,and151 P10 cases.
+These are expected counts, not completed results. Production remains a3a926d.

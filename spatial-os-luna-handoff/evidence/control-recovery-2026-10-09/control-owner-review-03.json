@@ -1,0 +1,39 @@
+{
+  "reviewer": "primary agent",
+  "status": "full qualification launched; not integrated",
+  "production_changed": false,
+  "source_files": 297,
+  "locked_files_unchanged": 41,
+  "changed_files": [
+    "CMakeLists.txt",
+    "tests/core/test_control_owner_channels.py",
+    "src/workspace/control.cpp",
+    "src/workspace/control.hpp",
+    "src/workspace/control_channels.cpp",
+    "src/workspace/control_channels.hpp",
+    "src/workspace/main.cpp",
+    "proto/spatial/workspace/v1/broker.proto"
+  ],
+  "new_checks": 19,
+  "changed_from_candidate02": [
+    "tests/core/test_control_owner_channels.py"
+  ],
+  "correction": "Use read-only sudo to count descriptors of the exact unreaped fixture child. Preserve all19 tests and the leak assertion.",
+  "debug_reuse": "Candidate02 Debug binaries have byte-identical production, schema, config, and CMake inputs. Run the corrected test explicitly and exclude only its previous copy from CTest.",
+  "prior_evidence": {
+    "candidate01": "Both hosts:103 existing checks and51 harness passed;12 new checks errored on a fixture helper collision.",
+    "candidate02": "Both hosts:18 new checks and51 harness passed;1 descriptor-count witness errored on protected procfs.",
+    "corrected_fd_witness": "One corrected Debug check passed on sb16; no production change."
+  },
+  "active_drivers": {
+    "sb16": 1679232,
+    "sb16-2": 1463045
+  },
+  "expected_per_profile": {
+    "core": 1472,
+    "core_suites": 100,
+    "harness": 51,
+    "P10": 151
+  },
+  "scope": "Immutable broker owner channels, inspection, and fencing. No recovery release or issuer retirement yet."
+}

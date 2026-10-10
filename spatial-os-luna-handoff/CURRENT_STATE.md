@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-09: Control owner channels enter full qualification
+
+The isolated candidate binds broker reservations to immutable world-channel owners.
+It adds exact-owner inspection and fencing without terminating independently authorized applications.
+Production source remains a3a926d. No operator session changed.
+
+Candidate01 passed103 existing checks and51 harness checks on each host.
+Its12 new checks hit a fixture helper-name collision. All failures remain preserved.
+Candidate02 passed18 new checks and51 harness checks on each host.
+One descriptor-count witness could not inspect the hardened broker's procfs directory.
+The corrected witness uses read-only sudo. Its assertion and broker protections remain unchanged.
+That corrected check passed on sb16 against the unchanged candidate02 Debug broker.
+
+Candidate03 contains297 files and19 new checks. All41 locked files remain unchanged.
+Full Debug and runtime sanitizer qualification is launched on both hosts.
+Debug reuses identical production binaries and runs the corrected owner suite explicitly.
+Read evidence/control-recovery-2026-10-09/control-owner-review-03.json.
+
+Supervisor binding production, selective recovery release, durable dependent receipts, and issuer retirement remain pending.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Qualified native handoff and crash fencing adopted on both hosts
 
 Commit a3a926d integrates the exact 294-file qualified source.

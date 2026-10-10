@@ -1,0 +1,16 @@
+{
+  "host": "sb16",
+  "command": [
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/debug/build/workspaced",
+    "--state-dir",
+    "/tmp/control-owner-baseline-wufdhn3h",
+    "--control-supervisor-fd",
+    "4",
+    "--control-supervisor-pid",
+    "1660738"
+  ],
+  "exit_code": 2,
+  "binary_sha256": "22928c57f56a9dce181586a79d418cbcbdba47a1387b9bdf6fb6d32ef7c93535",
+  "missing_interface_reproduced": true,
+  "acceptance_pass": false
+}

@@ -1,0 +1,360 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 66
+    Start 66: broker-control-client-live
+
+66: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_broker_control_client_live.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-security-auth"
+66: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build
+66: Environment variables: 
+66:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source
+66: Test timeout computed to be: 180
+66: test_actor_revocation_notifies_during_an_unrelated_process_wait (__main__.BrokerControlClientLiveTests.test_actor_revocation_notifies_during_an_unrelated_process_wait) ... ok
+66: test_actor_revocation_notifies_idle_controller (__main__.BrokerControlClientLiveTests.test_actor_revocation_notifies_idle_controller) ... ok
+66: test_application_exit_notifies_without_an_actor_wait_request (__main__.BrokerControlClientLiveTests.test_application_exit_notifies_without_an_actor_wait_request) ... ok
+66: test_control_revocation_emits_event_and_keeps_execution (__main__.BrokerControlClientLiveTests.test_control_revocation_emits_event_and_keeps_execution) ... ok
+66: test_explicit_control_acquires_live_application (__main__.BrokerControlClientLiveTests.test_explicit_control_acquires_live_application) ... ok
+66: test_independent_applications_have_independent_controllers (__main__.BrokerControlClientLiveTests.test_independent_applications_have_independent_controllers) ... ok
+66: test_independent_control_grant_survives_other_grant_revocation (__main__.BrokerControlClientLiveTests.test_independent_control_grant_survives_other_grant_revocation) ... ok
+66: test_missing_principal_cannot_acquire_control (__main__.BrokerControlClientLiveTests.test_missing_principal_cannot_acquire_control) ... ok
+66: test_nonnative_application_cannot_acquire_control (__main__.BrokerControlClientLiveTests.test_nonnative_application_cannot_acquire_control) ... ok
+66: test_observation_does_not_grant_control (__main__.BrokerControlClientLiveTests.test_observation_does_not_grant_control) ... ok
+66: test_observation_revocation_invalidates_control_reservation (__main__.BrokerControlClientLiveTests.test_observation_revocation_invalidates_control_reservation) ... ok
+66: test_one_application_has_only_one_controller_until_release (__main__.BrokerControlClientLiveTests.test_one_application_has_only_one_controller_until_release) ... ok
+66: test_other_actor_cannot_release_reservation (__main__.BrokerControlClientLiveTests.test_other_actor_cannot_release_reservation) ... ok
+66: test_partial_private_request_does_not_block_revocation_notification (__main__.BrokerControlClientLiveTests.test_partial_private_request_does_not_block_revocation_notification) ... ok
+66: test_readonly_actor_can_control_readonly_application (__main__.BrokerControlClientLiveTests.test_readonly_actor_can_control_readonly_application) ... ok
+66: test_readonly_actor_cannot_control_writable_application (__main__.BrokerControlClientLiveTests.test_readonly_actor_cannot_control_writable_application) ... ok
+66: test_released_id_cannot_release_a_new_reservation (__main__.BrokerControlClientLiveTests.test_released_id_cannot_release_a_new_reservation) ... ok
+66: test_repeated_acquire_preserves_the_same_live_reservation (__main__.BrokerControlClientLiveTests.test_repeated_acquire_preserves_the_same_live_reservation) ... ok
+66: test_revocation_event_is_emitted_once (__main__.BrokerControlClientLiveTests.test_revocation_event_is_emitted_once) ... ok
+66: test_revoked_actor_can_acknowledge_input_cancellation (__main__.BrokerControlClientLiveTests.test_revoked_actor_can_acknowledge_input_cancellation) ... ok
+66: test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation (__main__.BrokerControlClientLiveTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation) ... ok
+66: test_revoked_reservation_does_not_resurrect_when_permission_returns (__main__.BrokerControlClientLiveTests.test_revoked_reservation_does_not_resurrect_when_permission_returns) ... ok
+66: test_unknown_and_malformed_release_cannot_change_reservation (__main__.BrokerControlClientLiveTests.test_unknown_and_malformed_release_cannot_change_reservation) ... ok
+66: test_unowned_and_wrongly_attributed_applications_cannot_acquire_control (__main__.BrokerControlClientLiveTests.test_unowned_and_wrongly_attributed_applications_cannot_acquire_control) ... ok
+66: test_workspace_access_revocation_releases_control_without_stopping_execution (__main__.BrokerControlClientLiveTests.test_workspace_access_revocation_releases_control_without_stopping_execution) ... ok
+66: 
+66: ----------------------------------------------------------------------
+66: Ran 25 tests in 47.505s
+66: 
+66: OK
+1/5 Test #66: broker-control-client-live .......   Passed   47.66 sec
+test 69
+    Start 69: control-owner-channels
+
+69: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-security-auth"
+69: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build
+69: Environment variables: 
+69:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source
+69: Test timeout computed to be: 180
+69: test_admin_disconnect_fences_owners_without_stopping_application (__main__.ControlOwnerTests.test_admin_disconnect_fences_owners_without_stopping_application) ... ERROR
+69: test_administration_is_not_accepted_on_world_channel (__main__.ControlOwnerTests.test_administration_is_not_accepted_on_world_channel) ... ERROR
+69: test_exact_binding_required_for_inspection_and_fence (__main__.ControlOwnerTests.test_exact_binding_required_for_inspection_and_fence) ... ERROR
+69: test_fence_preserves_other_owner_and_live_applications (__main__.ControlOwnerTests.test_fence_preserves_other_owner_and_live_applications) ... ERROR
+69: test_invalid_descriptors_and_ancillary_truncation_do_not_leak (__main__.ControlOwnerTests.test_invalid_descriptors_and_ancillary_truncation_do_not_leak) ... ERROR
+69: test_lost_acquisition_reply_remains_inspectable_after_eof (__main__.ControlOwnerTests.test_lost_acquisition_reply_remains_inspectable_after_eof) ... ERROR
+69: test_owner_binding_cannot_grant_actor_control (__main__.ControlOwnerTests.test_owner_binding_cannot_grant_actor_control) ... ERROR
+69: test_query_cannot_transfer_a_descriptor (__main__.ControlOwnerTests.test_query_cannot_transfer_a_descriptor) ... ERROR
+69: test_registration_cannot_rebind_launch_or_endpoint (__main__.ControlOwnerTests.test_registration_cannot_rebind_launch_or_endpoint) ... ERROR
+69: test_revocation_event_goes_only_to_owning_world (__main__.ControlOwnerTests.test_revocation_event_goes_only_to_owning_world) ... ERROR
+69: test_same_actor_cannot_reuse_or_release_other_owner (__main__.ControlOwnerTests.test_same_actor_cannot_reuse_or_release_other_owner) ... ERROR
+69: test_two_owner_channels_have_distinct_reservations (__main__.ControlOwnerTests.test_two_owner_channels_have_distinct_reservations) ... ERROR
+69: 
+69: ======================================================================
+69: ERROR: test_admin_disconnect_fences_owners_without_stopping_application (__main__.ControlOwnerTests.test_admin_disconnect_fences_owners_without_stopping_application)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 284, in test_admin_disconnect_fences_owners_without_stopping_application
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_administration_is_not_accepted_on_world_channel (__main__.ControlOwnerTests.test_administration_is_not_accepted_on_world_channel)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 276, in test_administration_is_not_accepted_on_world_channel
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_exact_binding_required_for_inspection_and_fence (__main__.ControlOwnerTests.test_exact_binding_required_for_inspection_and_fence)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 196, in test_exact_binding_required_for_inspection_and_fence
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_fence_preserves_other_owner_and_live_applications (__main__.ControlOwnerTests.test_fence_preserves_other_owner_and_live_applications)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 179, in test_fence_preserves_other_owner_and_live_applications
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_invalid_descriptors_and_ancillary_truncation_do_not_leak (__main__.ControlOwnerTests.test_invalid_descriptors_and_ancillary_truncation_do_not_leak)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 230, in test_invalid_descriptors_and_ancillary_truncation_do_not_leak
+69:     before = count()
+69:              ^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 229, in <lambda>
+69:     count = lambda: len(list(access.Path(f'/proc/{self.broker.proc.pid}/fd').iterdir()))
+69:                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+69:   File "/usr/lib/python3.12/pathlib.py", line 1058, in iterdir
+69:     for name in os.listdir(self):
+69:                 ^^^^^^^^^^^^^^^^
+69: PermissionError: [Errno 13] Permission denied: '/proc/1665533/fd'
+69: 
+69: ======================================================================
+69: ERROR: test_lost_acquisition_reply_remains_inspectable_after_eof (__main__.ControlOwnerTests.test_lost_acquisition_reply_remains_inspectable_after_eof)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 165, in test_lost_acquisition_reply_remains_inspectable_after_eof
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_owner_binding_cannot_grant_actor_control (__main__.ControlOwnerTests.test_owner_binding_cannot_grant_actor_control)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 267, in test_owner_binding_cannot_grant_actor_control
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_query_cannot_transfer_a_descriptor (__main__.ControlOwnerTests.test_query_cannot_transfer_a_descriptor)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 245, in test_query_cannot_transfer_a_descriptor
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_registration_cannot_rebind_launch_or_endpoint (__main__.ControlOwnerTests.test_registration_cannot_rebind_launch_or_endpoint)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 211, in test_registration_cannot_rebind_launch_or_endpoint
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_revocation_event_goes_only_to_owning_world (__main__.ControlOwnerTests.test_revocation_event_goes_only_to_owning_world)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 255, in test_revocation_event_goes_only_to_owning_world
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_same_actor_cannot_reuse_or_release_other_owner (__main__.ControlOwnerTests.test_same_actor_cannot_reuse_or_release_other_owner)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 153, in test_same_actor_cannot_reuse_or_release_other_owner
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ======================================================================
+69: ERROR: test_two_owner_channels_have_distinct_reservations (__main__.ControlOwnerTests.test_two_owner_channels_have_distinct_reservations)
+69: ----------------------------------------------------------------------
+69: Traceback (most recent call last):
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 142, in test_two_owner_channels_have_distinct_reservations
+69:     owner, world = self.register()
+69:                    ^^^^^^^^^^^^^^^
+69:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_control_owner_channels.py", line 108, in register
+69:     owner = owner or self.owner()
+69:                      ^^^^^^^^^^^^
+69: TypeError: 'PosixPath' object is not callable
+69: 
+69: ----------------------------------------------------------------------
+69: Ran 12 tests in 20.608s
+69: 
+69: FAILED (errors=12)
+2/5 Test #69: control-owner-channels ...........***Failed   20.72 sec
+test 70
+    Start 70: application-control-lease
+
+70: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_application_control_lease.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-security-auth"
+70: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build
+70: Environment variables: 
+70:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source
+70: Test timeout computed to be: 180
+70: test_actor_revocation_notifies_during_an_unrelated_process_wait (__main__.ApplicationControlLeaseTests.test_actor_revocation_notifies_during_an_unrelated_process_wait) ... ok
+70: test_actor_revocation_notifies_idle_controller (__main__.ApplicationControlLeaseTests.test_actor_revocation_notifies_idle_controller) ... ok
+70: test_application_exit_notifies_without_an_actor_wait_request (__main__.ApplicationControlLeaseTests.test_application_exit_notifies_without_an_actor_wait_request) ... ok
+70: test_control_revocation_emits_event_and_keeps_execution (__main__.ApplicationControlLeaseTests.test_control_revocation_emits_event_and_keeps_execution) ... ok
+70: test_explicit_control_acquires_live_application (__main__.ApplicationControlLeaseTests.test_explicit_control_acquires_live_application) ... ok
+70: test_independent_applications_have_independent_controllers (__main__.ApplicationControlLeaseTests.test_independent_applications_have_independent_controllers) ... ok
+70: test_independent_control_grant_survives_other_grant_revocation (__main__.ApplicationControlLeaseTests.test_independent_control_grant_survives_other_grant_revocation) ... ok
+70: test_missing_principal_cannot_acquire_control (__main__.ApplicationControlLeaseTests.test_missing_principal_cannot_acquire_control) ... ok
+70: test_nonnative_application_cannot_acquire_control (__main__.ApplicationControlLeaseTests.test_nonnative_application_cannot_acquire_control) ... ok
+70: test_observation_does_not_grant_control (__main__.ApplicationControlLeaseTests.test_observation_does_not_grant_control) ... ok
+70: test_observation_revocation_invalidates_control_reservation (__main__.ApplicationControlLeaseTests.test_observation_revocation_invalidates_control_reservation) ... ok
+70: test_one_application_has_only_one_controller_until_release (__main__.ApplicationControlLeaseTests.test_one_application_has_only_one_controller_until_release) ... ok
+70: test_other_actor_cannot_release_reservation (__main__.ApplicationControlLeaseTests.test_other_actor_cannot_release_reservation) ... ok
+70: test_partial_private_request_does_not_block_revocation_notification (__main__.ApplicationControlLeaseTests.test_partial_private_request_does_not_block_revocation_notification) ... ok
+70: test_readonly_actor_can_control_readonly_application (__main__.ApplicationControlLeaseTests.test_readonly_actor_can_control_readonly_application) ... ok
+70: test_readonly_actor_cannot_control_writable_application (__main__.ApplicationControlLeaseTests.test_readonly_actor_cannot_control_writable_application) ... ok
+70: test_released_id_cannot_release_a_new_reservation (__main__.ApplicationControlLeaseTests.test_released_id_cannot_release_a_new_reservation) ... ok
+70: test_repeated_acquire_preserves_the_same_live_reservation (__main__.ApplicationControlLeaseTests.test_repeated_acquire_preserves_the_same_live_reservation) ... ok
+70: test_revocation_event_is_emitted_once (__main__.ApplicationControlLeaseTests.test_revocation_event_is_emitted_once) ... ok
+70: test_revoked_actor_can_acknowledge_input_cancellation (__main__.ApplicationControlLeaseTests.test_revoked_actor_can_acknowledge_input_cancellation) ... ok
+70: test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation (__main__.ApplicationControlLeaseTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation) ... ok
+70: test_revoked_reservation_does_not_resurrect_when_permission_returns (__main__.ApplicationControlLeaseTests.test_revoked_reservation_does_not_resurrect_when_permission_returns) ... ok
+70: test_unknown_and_malformed_release_cannot_change_reservation (__main__.ApplicationControlLeaseTests.test_unknown_and_malformed_release_cannot_change_reservation) ... ok
+70: test_unowned_and_wrongly_attributed_applications_cannot_acquire_control (__main__.ApplicationControlLeaseTests.test_unowned_and_wrongly_attributed_applications_cannot_acquire_control) ... ok
+70: test_workspace_access_revocation_releases_control_without_stopping_execution (__main__.ApplicationControlLeaseTests.test_workspace_access_revocation_releases_control_without_stopping_execution) ... ok
+70: 
+70: ----------------------------------------------------------------------
+70: Ran 25 tests in 47.208s
+70: 
+70: OK
+3/5 Test #70: application-control-lease ........   Passed   47.32 sec
+test 72
+    Start 72: world-application-control
+
+72: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_world_application_control.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-security-auth"
+72: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build
+72: Environment variables: 
+72:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source
+72: Test timeout computed to be: 240
+72: test_authorized_native_input_without_workspace_selection (__main__.WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection) ... ok
+72: test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control) ... ok
+72: test_readonly_actor_cannot_control_writable_application (__main__.WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application) ... ok
+72: test_readonly_actor_can_control_readonly_application (__main__.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application) ... ok
+72: test_one_application_has_one_actor_controller (__main__.WorldApplicationControlTests.test_one_application_has_one_actor_controller) ... ok
+72: test_unfocus_releases_native_input_before_handoff (__main__.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff) ... ok
+72: test_idle_control_revocation_releases_input_and_preserves_execution (__main__.WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution) ... ok
+72: test_observation_revocation_cancels_control (__main__.WorldApplicationControlTests.test_observation_revocation_cancels_control) ... ok
+72: test_independent_control_grant_survives_other_revocation (__main__.WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation) ... ok
+72: test_stop_releases_application_reservation (__main__.WorldApplicationControlTests.test_stop_releases_application_reservation) ... ok
+72: test_scroll_uses_real_native_events (__main__.WorldApplicationControlTests.test_scroll_uses_real_native_events) ... ok
+72: test_independent_applications_allow_simultaneous_actors (__main__.WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors) ... ok
+72: test_session_close_releases_before_handoff (__main__.WorldApplicationControlTests.test_session_close_releases_before_handoff) ... ok
+72: test_controller_disconnect_releases_before_handoff (__main__.WorldApplicationControlTests.test_controller_disconnect_releases_before_handoff) ... ok
+72: test_restored_grant_does_not_restore_held_input (__main__.WorldApplicationControlTests.test_restored_grant_does_not_restore_held_input) ... ok
+72: test_popup_uses_same_application_reservation (__main__.WorldApplicationControlTests.test_popup_uses_same_application_reservation) ... ok
+72: test_resized_aim_rejects_stale_pixels (__main__.WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels) ... ok
+72: test_unmapped_capture_releases_reservation (__main__.WorldApplicationControlTests.test_unmapped_capture_releases_reservation) ... ok
+72: test_actor_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_actor_revocation_releases_native_input) ... ok
+72: test_credential_revocation_releases_native_input (__main__.WorldApplicationControlTests.test_credential_revocation_releases_native_input) ... ok
+72: test_actor_revocation_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_actor_revocation_cancels_during_broker_wait) ... ok
+72: test_credential_revocation_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_credential_revocation_cancels_during_broker_wait) ... ok
+72: test_disconnect_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_disconnect_cancels_during_broker_wait) ... ok
+72: test_revocation_during_renderer_wait_does_not_replay_input (__main__.WorldApplicationControlTests.test_revocation_during_renderer_wait_does_not_replay_input) ... ok
+72: test_revocation_during_native_cancel_closes_actor_devices (__main__.WorldApplicationControlTests.test_revocation_during_native_cancel_closes_actor_devices) ... ok
+72: 
+72: ----------------------------------------------------------------------
+72: Ran 25 tests in 112.999s
+72: 
+72: OK
+4/5 Test #72: world-application-control ........   Passed  113.12 sec
+test 74
+    Start 74: application-access
+
+74: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_application_access.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-security-auth"
+74: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build
+74: Environment variables: 
+74:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source
+74: Test timeout computed to be: 180
+74: test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access) ... ok
+74: test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application) ... ok
+74: test_application_scoped_execution_grant_does_not_authorize_project_execution (__main__.ApplicationAccessTests.test_application_scoped_execution_grant_does_not_authorize_project_execution) ... ok
+74: test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets) ... ok
+74: test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority) ... ok
+74: test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation) ... ok
+74: test_control_requires_application_execution_authority (__main__.ApplicationAccessTests.test_control_requires_application_execution_authority) ... ok
+74: test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution) ... ok
+74: test_corrupt_recorded_execution_rights_cannot_reduce_control_requirement (__main__.ApplicationAccessTests.test_corrupt_recorded_execution_rights_cannot_reduce_control_requirement) ... ok
+74: test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application) ... ok
+74: test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access) ... ok
+74: test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application) ... ok
+74: test_foreign_issuer_principal_cannot_use_local_grants (__main__.ApplicationAccessTests.test_foreign_issuer_principal_cannot_use_local_grants) ... ok
+74: test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation) ... ok
+74: test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control) ... ok
+74: test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions) ... ok
+74: test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority) ... ok
+74: test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants) ... ok
+74: test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control) ... ok
+74: test_parent_revocation_invalidates_dependent_application_grant (__main__.ApplicationAccessTests.test_parent_revocation_invalidates_dependent_application_grant) ... ok
+74: test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application) ... ok
+74: test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application) ... ok
+74: test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application) ... ok
+74: test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal) ... ok
+74: test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority) ... ok
+74: test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes) ... ok
+74: test_workspace_policy_limits_recorded_application_authority (__main__.ApplicationAccessTests.test_workspace_policy_limits_recorded_application_authority) ... ok
+74: test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied) ... ok
+74: 
+74: ----------------------------------------------------------------------
+74: Ran 28 tests in 52.261s
+74: 
+74: OK
+5/5 Test #74: application-access ...............   Passed   52.36 sec
+
+The following tests passed:
+	broker-control-client-live
+	application-control-lease
+	world-application-control
+	application-access
+
+80% tests passed, 1 tests failed out of 5
+
+Total Test time (real) = 281.18 sec
+
+The following tests FAILED:
+	 69 - control-owner-channels (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

@@ -1,0 +1,19 @@
+{
+  "host": "sb16-2",
+  "source_files": 297,
+  "locked_files": 41,
+  "status": "failed",
+  "new_checks_errored": 12,
+  "regression_checks_passed": 103,
+  "harness_passed": 51,
+  "sanitizer_profile": "unrun because Debug failed",
+  "failure": "Inherited fixture self.owner path shadows the new owner() helper.",
+  "binaries": {
+    "workspaced": "ef5c12a103ec6f01b533855b2545fe53c9b1dff3200f836563d346e83f0b3923",
+    "worldd": "7472ad22b783a2b85aeb636c86f63eeaa7b49a1625a26781426ec838ca410ac3",
+    "identityd": "795ad1f0d4e5a3e7c9ff2ba3f31b2b640560e4b160c68dcea0b66650fc846417",
+    "spatialwm": "85f86d9f8234163339fd341ed7bd30cf99450fe3d6e45c87861b5ccbb635b1d2",
+    "spatial-issuer-client": "5421023d1dfc8d4e1b63c17a066a60582f5048f98d3d7f973747dbe3651256f5",
+    "spatial-security-auth": "a5f0b7c8b55f1f0a4dda1d1742f57aec77f33ca13a6145664d4fc0f65e58e0fb"
+  }
+}

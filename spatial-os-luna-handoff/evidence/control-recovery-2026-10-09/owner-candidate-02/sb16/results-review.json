@@ -1,0 +1,22 @@
+{
+  "host": "sb16",
+  "source_files": 297,
+  "locked_files": 41,
+  "status": "failed",
+  "new_checks_passed": 18,
+  "new_checks_errored": 1,
+  "harness_passed": 51,
+  "remaining_regressions": "unrun after owner-suite failure",
+  "sanitizer_profile": "unrun",
+  "failure": "The independent descriptor-count witness cannot read the hardened broker procfs directory.",
+  "correction": "Use read-only sudo enumeration of this exact unreaped fixture child; keep broker protections and assertions.",
+  "production_changed_by_correction": false,
+  "binaries": {
+    "workspaced": "c666046d68c5be7e6d1c99b65ea9c655747a7b3c352c83f3db6b2906d6a2c46b",
+    "worldd": "1fa3fa61bb3ebe144c947691cc5b4dd6297ec6317c42ce4e3a814283c366f9d7",
+    "identityd": "f77671178989e094349288cb1fd95605f1b262e010d02caaafa88b008b709236",
+    "spatialwm": "2b8be8221a5807e7b60fce3a6e4dfa1fda2d0457215455b06143624b98628479",
+    "spatial-issuer-client": "6cd6e24e4296746da08a85110654fd22be8a9d0f80c18b258e08386d739e3f5a",
+    "spatial-security-auth": "23aeac3744ea0842e495acd6b70b91f67f31e6178fa432d2b37e7275a89c2d54"
+  }
+}

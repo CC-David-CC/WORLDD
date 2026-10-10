@@ -1,0 +1,873 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -86,11 +86,12 @@
+     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
++        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/broker.proto
+-    DEPENDS proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
++    DEPENDS proto/spatial/supervisor/v1/native_scope.proto proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
+         proto/spatial/identity/v1/issuer.proto proto/spatial/identity/v1/key.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+ add_custom_target(broker-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py")
+ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/key_pb2.py"
+@@ -216,7 +217,7 @@
+ add_dependencies(worldd spatialwm)
+ add_executable(spatial-app-init src/workspace/app_init.cpp)
+ target_link_libraries(spatial-app-init PRIVATE spatial-scene)
+-add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp)
++add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp src/workspace/control_channels.cpp)
+ target_include_directories(workspaced PRIVATE src)
+ target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
+ add_dependencies(workspaced spatial-app-init)
+@@ -666,6 +667,11 @@
+             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant_settlement.py" $<TARGET_FILE:identityd>
+             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+         set_tests_properties(workspace-participant-settlement PROPERTIES TIMEOUT 120
++            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++        add_test(NAME control-owner-channels COMMAND "${Python3_EXECUTABLE}"
++            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_control_owner_channels.py" $<TARGET_FILE:identityd>
++            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
++        set_tests_properties(control-owner-channels PROPERTIES TIMEOUT 180
+             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+         add_test(NAME application-control-lease COMMAND "${Python3_EXECUTABLE}"
+             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_control_lease.py" $<TARGET_FILE:identityd>
+--- /dev/null
++++ b/tests/core/test_control_owner_channels.py
+@@ -0,0 +1,294 @@
++"""Independent requests to real owner-bound brokers and confined native applications."""
++import array
++import os
++import select
++import socket
++import subprocess
++import unittest
++from unittest.mock import patch
++import broker_pb2 as pb
++import core_pb2 as core
++import issuer_pb2 as issuer
++import native_scope_pb2 as native_scope
++import security_pb2 as security
++from harness.wire import frame, make_request
++import test_application_access as access
++import test_application_control_lease as leases
++from test_world_identity import WorldIdentityFixture, receive
++
++
++class OwnedBroker(leases.LeaseBroker):
++    def __init__(self, *args, **kwargs):
++        self.admin, child = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
++        self.admin.settimeout(5)
++        original = subprocess.Popen
++
++        def launch(command, **options):
++            command = [*command, '--control-supervisor-fd', str(child.fileno()),
++                       '--control-supervisor-pid', str(os.getpid())]
++            options['pass_fds'] = (*options.get('pass_fds', ()), child.fileno())
++            return original(command, **options)
++
++        try:
++            with patch.object(access.subprocess, 'Popen', launch):
++                super().__init__(*args, **kwargs)
++        finally:
++            child.close()
++
++    def close(self):
++        if self.stream.fileno() < 0:
++            return
++        if self.proc.poll() is None:
++            self.stream.shutdown(socket.SHUT_WR)
++            try:
++                self.proc.wait(timeout=8)
++            except subprocess.TimeoutExpired:
++                self.proc.kill()
++                self.proc.wait(timeout=3)
++                raise
++        self.stream.close()
++        self.admin.close()
++        self.log.close()
++        text = self.path.read_text()
++        # These tests deliberately retain fenced reservations. No recovery release exists yet.
++        if self.proc.returncode == 2:
++            self.fixture.assertTrue(text.rstrip().endswith('Workspace control release remains unresolved'), text)
++        else:
++            self.fixture.assertEqual(self.proc.returncode, 0, text)
++        for marker in ('AddressSanitizer', 'LeakSanitizer', 'runtime error:'):
++            self.fixture.assertNotIn(marker, text)
++
++
++class ControlOwnerTests(WorldIdentityFixture):
++    close_brokers = access.ApplicationAccessTests.close_brokers
++    launch_application = access.ApplicationAccessTests.launch_application
++    finish_application = access.ApplicationAccessTests.finish_application
++    data = access.ApplicationAccessTests.data
++    principal = access.ApplicationAccessTests.principal
++    workspace_terms = access.ApplicationAccessTests.workspace_terms
++    enroll_second = access.ApplicationAccessTests.enroll_second
++    delegate = access.ApplicationAccessTests.delegate
++    revoke_record = access.ApplicationAccessTests.revoke_record
++
++    def setUp(self):
++        super().setUp()
++        self.brokers = []
++        self.sequence = self.admin_sequence = self.world_sequence = 0
++        self.addCleanup(self.close_brokers)
++        with patch.object(access, 'Broker', OwnedBroker):
++            self.app = access.ApplicationAccessTests.setup_application(self)
++
++    def owner(self):
++        launch_id = os.urandom(32)
++        return pb.ControlOwner(issuer_id=self.principal().issuer_id,
++            launch=issuer.AuthorityFenceBegin(participant_id=os.urandom(32), registered_revision=1,
++                generation=1, service_incarnation=os.urandom(32), launch_id=launch_id,
++                supervision_revision=1, authorization_id=os.urandom(32)),
++            native=native_scope.NativeScopeIdentity(launch_id=launch_id, server_id=self.server_id,
++                credential_id=os.urandom(32), role=security.COMPOSITOR))
++
++    def admin(self, operation, owner, fds=()):
++        self.admin_sequence += 1
++        request = pb.ControlSupervisorRequest(protocol_version=1, request_id=self.admin_sequence,
++                                               **{operation: owner})
++        ancillary = [(socket.SOL_SOCKET, socket.SCM_RIGHTS, array.array('i', fds))] if fds else []
++        self.broker.admin.sendmsg([request.SerializeToString()], ancillary)
++        reply = pb.ControlSupervisorReply.FromString(self.broker.admin.recv(65536))
++        self.assertEqual(reply.protocol_version, 1)
++        self.assertEqual(reply.request_id, self.admin_sequence)
++        return reply
++
++    def inspect(self, owner):
++        reply = self.admin('inspect', owner)
++        self.assertTrue(reply.HasField('state'), reply)
++        self.assertEqual(reply.state.owner, owner)
++        return reply.state
++
++    def register(self, owner=None):
++        owner = owner or self.owner()
++        world, endpoint = socket.socketpair()
++        world.settimeout(5)
++        self.addCleanup(world.close)
++        try:
++            reply = self.admin('register', owner, [endpoint.fileno()])
++        finally:
++            endpoint.close()
++        self.assertTrue(reply.HasField('state'), reply)
++        self.assertEqual(reply.state.owner, owner)
++        self.assertFalse(reply.state.channel_fenced)
++        return owner, world
++
++    def request(self, world, **operation):
++        self.world_sequence += 1
++        world.sendall(frame(pb.Request(protocol_version=1, request_id=self.world_sequence, **operation)))
++        reply = receive(world.recv, world, pb.Reply)
++        self.assertEqual(reply.protocol_version, 1)
++        self.assertEqual(reply.request_id, self.world_sequence)
++        return reply
++
++    def acquire(self, world, app=None, claims=None):
++        return self.request(world, control_acquire=pb.ApplicationControlRequest(
++            principal=self.principal(claims), application=app or self.app))
++
++    def lease(self, world, app=None):
++        reply = self.acquire(world, app)
++        self.assertTrue(reply.HasField('control_lease'), reply)
++        return reply.control_lease
++
++    def release(self, world, lease):
++        return self.request(world, control_release=pb.ApplicationControlRelease(id=lease.id, principal=lease.principal))
++
++    def test_two_owner_channels_have_distinct_reservations(self):
++        owner, world = self.register()
++        other, second = self.register()
++        a = self.lease(world)
++        b = self.lease(second, self.launch_application())
++        self.assertNotEqual(a.id, b.id)
++        self.assertEqual(list(self.inspect(owner).reservations), [a])
++        self.assertEqual(list(self.inspect(other).reservations), [b])
++        self.assertTrue(self.release(world, a).HasField('control_released'))
++        self.assertTrue(self.release(second, b).HasField('control_released'))
++
++    def test_same_actor_cannot_reuse_or_release_other_owner(self):
++        owner, world = self.register()
++        other, second = self.register()
++        lease = self.lease(world)
++        self.denied(self.acquire(second), core.BUSY)
++        self.denied(self.release(second, lease), core.FORBIDDEN)
++        self.denied(self.broker.request(control_release=pb.ApplicationControlRelease(
++            id=lease.id, principal=lease.principal)), core.FORBIDDEN)
++        self.assertEqual(self.lease(world), lease)
++        self.assertEqual(list(self.inspect(owner).reservations), [lease])
++        self.assertFalse(self.inspect(other).reservations)
++
++    def test_lost_acquisition_reply_remains_inspectable_after_eof(self):
++        owner, world = self.register()
++        world.sendall(frame(pb.Request(protocol_version=1, request_id=1,
++            control_acquire=pb.ApplicationControlRequest(principal=self.principal(), application=self.app))))
++        self.assertTrue(select.select([world], [], [], 5)[0], 'No committed acquisition response')
++        # Do not consume the acquisition reply. Its lease ID is learned only from broker inspection.
++        world.close()
++        state = self.until(lambda: self.inspect(owner), lambda value: value.channel_fenced)
++        self.assertEqual(len(state.reservations), 1)
++        self.assertEqual(state.reservations[0].application, self.app)
++        self.denied(self.broker.request(control_acquire=pb.ApplicationControlRequest(
++            principal=self.principal(), application=self.app)), core.BUSY)
++        self.finish_application(self.app)
++
++    def test_fence_preserves_other_owner_and_live_applications(self):
++        owner, world = self.register()
++        other, second = self.register()
++        a = self.lease(world)
++        other_app = self.launch_application()
++        b = self.lease(second, other_app)
++        fenced = self.admin('fence', owner)
++        self.assertTrue(fenced.state.channel_fenced)
++        self.assertEqual(list(fenced.state.reservations), [a])
++        self.assertEqual(world.recv(1), b'')
++        self.assertEqual(self.admin('fence', owner).state, fenced.state)
++        self.assertFalse(self.inspect(other).channel_fenced)
++        self.assertEqual(self.lease(second, other_app), b)
++        self.assertTrue(self.release(second, b).HasField('control_released'))
++        self.finish_application(self.app)
++        self.finish_application(other_app)
++
++    def test_exact_binding_required_for_inspection_and_fence(self):
++        owner, world = self.register()
++        for field in ('participant_id', 'launch_id', 'authorization_id', 'service_incarnation',
++                      'generation', 'registered_revision', 'supervision_revision'):
++            changed = pb.ControlOwner()
++            changed.CopyFrom(owner)
++            old = getattr(changed.launch, field)
++            setattr(changed.launch, field, old+1 if isinstance(old, int) else os.urandom(32))
++            if field == 'launch_id':
++                changed.native.launch_id = changed.launch.launch_id
++            for operation in ('inspect', 'fence'):
++                self.denied(self.admin(operation, changed), core.NOT_FOUND)
++        self.assertFalse(self.inspect(owner).channel_fenced)
++        self.lease(world)
++
++    def test_registration_cannot_rebind_launch_or_endpoint(self):
++        owner, world = self.register()
++        for field in ('launch_id', 'authorization_id', 'generation'):
++            changed = self.owner()
++            if field == 'generation':
++                changed.launch.participant_id = owner.launch.participant_id
++            else:
++                setattr(changed.launch, field, getattr(owner.launch, field))
++            if field == 'launch_id':
++                changed.native.launch_id = changed.launch.launch_id
++            a, b = socket.socketpair()
++            try:
++                self.denied(self.admin('register', changed, [b.fileno()]), core.ALREADY_EXISTS)
++            finally:
++                a.close(); b.close()
++        self.assertFalse(self.inspect(owner).channel_fenced)
++        self.lease(world)
++
++    def test_invalid_descriptors_and_ancillary_truncation_do_not_leak(self):
++        count = lambda: len(list(access.Path(f'/proc/{self.broker.proc.pid}/fd').iterdir()))
++        before = count()
++        fd = os.open('/dev/null', os.O_RDONLY)
++        a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_DGRAM)
++        try:
++            for descriptors in ([], [fd], [b.fileno()], [fd]*2, [fd]*40):
++                reply = self.admin('register', self.owner(), descriptors)
++                self.assertTrue(reply.HasField('error'), reply)
++            # Synchronize after all rejected descriptor destructors have run.
++            self.broker.call('system.hello')
++            self.assertEqual(count(), before)
++        finally:
++            os.close(fd); a.close(); b.close()
++        self.register()
++
++    def test_query_cannot_transfer_a_descriptor(self):
++        owner, world = self.register()
++        a, b = socket.socketpair()
++        try:
++            for operation in ('inspect', 'fence'):
++                self.denied(self.admin(operation, owner, [b.fileno()]), core.INVALID_ARGUMENT)
++        finally:
++            a.close(); b.close()
++        self.assertFalse(self.inspect(owner).channel_fenced)
++
++    def test_revocation_event_goes_only_to_owning_world(self):
++        owner, world = self.register()
++        other, second = self.register()
++        lease = self.lease(world)
++        self.revoke(kind=issuer.ACTOR_TARGET)
++        event = receive(world.recv, world, pb.Reply)
++        self.assertEqual(event.request_id, 0)
++        self.assertEqual(event.control_revoked, lease)
++        self.assertFalse(select.select([second, self.broker.stream], [], [], .1)[0])
++        self.assertTrue(self.release(world, lease).HasField('control_released'))
++
++    def test_owner_binding_cannot_grant_actor_control(self):
++        self.enroll_second()
++        owner, world = self.register()
++        self.denied(self.acquire(world, claims=self.second), core.FORBIDDEN)
++        changed = pb.ApplicationRef()
++        changed.CopyFrom(self.app)
++        changed.server_id = os.urandom(32)
++        self.denied(self.acquire(world, changed), core.FORBIDDEN)
++        self.assertFalse(self.inspect(owner).reservations)
++
++    def test_administration_is_not_accepted_on_world_channel(self):
++        owner, world = self.register()
++        world.sendall(frame(pb.ControlSupervisorRequest(protocol_version=1, request_id=42, fence=owner)))
++        reply = receive(world.recv, world, pb.Reply)
++        self.assertTrue(reply.HasField('error'), reply)
++        self.assertFalse(self.inspect(owner).channel_fenced)
++        self.lease(world)
++
++    def test_admin_disconnect_fences_owners_without_stopping_application(self):
++        owner, world = self.register()
++        self.lease(world)
++        self.broker.admin.close()
++        self.assertEqual(world.recv(1), b'')
++        self.finish_application(self.app)
++        self.denied(self.broker.request(control_acquire=pb.ApplicationControlRequest(
++            principal=self.principal(), application=self.app)), core.FORBIDDEN)
++
++
++if __name__ == '__main__':
++    unittest.main(defaultTest='ControlOwnerTests', verbosity=2)
+--- a/src/workspace/control.cpp
++++ b/src/workspace/control.cpp
+@@ -23,41 +23,57 @@
+     *result.add_applications() = lease.application(); return result;
+ }
+ }
+-ControlLeases::ControlLeases(ExecutionStore& store, std::function<void(const Lease&)> revoked)
++ControlLeases::ControlLeases(ExecutionStore& store, std::function<void(const std::string&, const Lease&)> revoked)
+     : store_(store), revoked_(std::move(revoked)) {}
+-ControlLeases::Lease ControlLeases::acquire(const pb::ApplicationControlRequest& request) {
++ControlLeases::Lease ControlLeases::acquire(const pb::ApplicationControlRequest& request, const std::string& owner) {
++    if (fenced_.contains(owner)) throw WorldError(wire::FORBIDDEN, "Control owner is fenced");
+     Lease lease;
+     if (request.has_principal()) *lease.mutable_principal() = request.principal();
+     if (request.has_application()) *lease.mutable_application() = request.application();
+     if (!store_.application_access(query(lease)).applications(0).control())
+         throw WorldError(wire::FORBIDDEN, "Application control authority is required");
+     tick();
++    // Authority refresh can pump supervisor fencing while acquisition is in flight.
++    if (fenced_.contains(owner)) throw WorldError(wire::FORBIDDEN, "Control owner is fenced");
+     const auto group = lease.application().SerializeAsString();
+     const auto previous = groups_.find(group);
+     if (previous != groups_.end()) {
+         const auto& current = leases_.at(previous->second);
+-        if (!current.revoked && current.lease.principal().SerializeAsString() == lease.principal().SerializeAsString())
++        if (!current.revoked && current.owner == owner && current.lease.principal().SerializeAsString() == lease.principal().SerializeAsString())
+             return current.lease;
+         throw WorldError(wire::BUSY, "Application control reservation requires release");
+     }
+     if (leases_.size() >= 256) throw WorldError(wire::RESOURCE_EXHAUSTED, "Application control reservation limit reached");
+     do { lease.set_id(identifier()); } while (leases_.contains(lease.id()));
+-    leases_.emplace(lease.id(), Reservation{lease}); groups_.emplace(group, lease.id()); return lease;
++    leases_.emplace(lease.id(), Reservation{lease, owner}); groups_.emplace(group, lease.id()); return lease;
+ }
+-pb::ApplicationControlReleased ControlLeases::release(const pb::ApplicationControlRelease& request) {
++pb::ApplicationControlReleased ControlLeases::release(const pb::ApplicationControlRelease& request, const std::string& owner) {
++    if (fenced_.contains(owner)) throw WorldError(wire::FORBIDDEN, "Control owner is fenced");
+     if (request.id().size() != 32 || !request.has_principal() || request.principal().issuer_id().size() != 32 ||
+             request.principal().actor_id().size() != 32) throw std::invalid_argument("Invalid control release identity");
+     const auto found = leases_.find(request.id());
+     if (found == leases_.end()) throw WorldError(wire::NOT_FOUND, "Control reservation does not exist");
+-    if (found->second.lease.principal().SerializeAsString() != request.principal().SerializeAsString())
++    if (found->second.owner != owner || found->second.lease.principal().SerializeAsString() != request.principal().SerializeAsString())
+         throw WorldError(wire::FORBIDDEN, "Control reservation belongs to another actor");
+     groups_.erase(found->second.lease.application().SerializeAsString()); leases_.erase(found);
+     pb::ApplicationControlReleased result; result.set_id(request.id()); return result;
+ }
++void ControlLeases::fence(const std::string& owner) {
++    if (owner.empty()) throw std::invalid_argument("Cannot fence the root management owner");
++    fenced_.insert(owner);
++}
++void ControlLeases::inspect(const std::string& owner, pb::ControlOwnerState& state) const {
++    state.clear_reservations();
++    state.set_channel_fenced(fenced_.contains(owner));
++    for (const auto& [id, reservation] : leases_) {
++        (void)id;
++        if (reservation.owner == owner) *state.add_reservations() = reservation.lease;
++    }
++}
+ bool ControlLeases::cancellation_settled() const {
+     for (const auto& [id, reservation] : leases_) {
+         (void)id;
+-        if (reservation.revoked) return false;
++        if (reservation.revoked || fenced_.contains(reservation.owner)) return false;
+     }
+     return true;
+ }
+@@ -70,7 +86,7 @@
+         catch (const WorldError&) { /* Unavailable authority cannot retain control. */ }
+         if (!allowed) {
+             // Keep the group reserved until the trusted world releases native input.
+-            reservation.revoked = true; revoked_(reservation.lease);
++            reservation.revoked = true; revoked_(reservation.owner, reservation.lease);
+         }
+     }
+ }
+--- a/src/workspace/control.hpp
++++ b/src/workspace/control.hpp
+@@ -2,25 +2,29 @@
+ #include "broker.pb.h"
+ #include <functional>
+ #include <map>
++#include <set>
+ 
+ namespace spatial {
+ class ExecutionStore;
+-// One private supervisor connection owns these ephemeral reservations.
++// Owners come from admitted private channels, never from actor request fields.
+ class ControlLeases {
+ public:
+     using Lease = workspace::v1::ApplicationControlLease;
+-    ControlLeases(ExecutionStore& store, std::function<void(const Lease&)> revoked);
+-    Lease acquire(const workspace::v1::ApplicationControlRequest&);
+-    workspace::v1::ApplicationControlReleased release(const workspace::v1::ApplicationControlRelease&);
++    ControlLeases(ExecutionStore& store, std::function<void(const std::string&, const Lease&)> revoked);
++    Lease acquire(const workspace::v1::ApplicationControlRequest&, const std::string& owner = {});
++    workspace::v1::ApplicationControlReleased release(const workspace::v1::ApplicationControlRelease&, const std::string& owner = {});
++    void fence(const std::string& owner);
++    void inspect(const std::string& owner, workspace::v1::ControlOwnerState&) const;
+     // Uses already prepared issuer state. Performs no issuer exchange or process reaping.
+     void tick();
+     bool cancellation_settled() const;
+     bool empty() const { return leases_.empty(); }
+ private:
+-    struct Reservation { Lease lease; bool revoked = false; };
++    struct Reservation { Lease lease; std::string owner; bool revoked = false; };
+     ExecutionStore& store_;
+-    std::function<void(const Lease&)> revoked_;
++    std::function<void(const std::string&, const Lease&)> revoked_;
+     std::map<std::string, Reservation> leases_;
+     std::map<std::string, std::string> groups_;
++    std::set<std::string> fenced_;
+ };
+ }
+--- /dev/null
++++ b/src/workspace/control_channels.cpp
+@@ -0,0 +1,232 @@
++#include "workspace/control_channels.hpp"
++#include "identity/participant_stream.hpp"
++#include "world/store.hpp"
++#include <climits>
++#include <cstring>
++#include <iostream>
++#include <poll.h>
++#include <vector>
++#include <sys/syscall.h>
++
++namespace spatial {
++namespace {
++namespace pb = workspace::v1;
++using Stream = identity::ParticipantStream;
++using Clock = std::chrono::steady_clock;
++constexpr std::size_t packet_limit = 65536;
++void require(bool okay, const char* message) {
++    if (!okay) throw std::invalid_argument(message);
++}
++void owner_valid(const pb::ControlOwner& owner) {
++    validate_message(owner);
++    const auto& launch = owner.launch();
++    const auto& native = owner.native();
++    require(owner.issuer_id().size() == 32 && launch.participant_id().size() == 32 &&
++        launch.registered_revision() > 0 && launch.registered_revision() <= INT64_MAX &&
++        launch.generation() > 0 && launch.generation() <= INT64_MAX &&
++        launch.service_incarnation().size() == 32 && launch.launch_id().size() == 32 &&
++        launch.supervision_revision() > 0 && launch.supervision_revision() <= INT64_MAX &&
++        launch.authorization_id().size() == 32 && native.launch_id() == launch.launch_id() &&
++        native.server_id().size() == 32 && native.credential_id().size() == 32 &&
++        native.role() == security::v1::COMPOSITOR, "Invalid control owner binding");
++}
++struct Received {
++    std::vector<int> fds;
++    ~Received() { for (int fd : fds) close(fd); }
++    int take() { int fd = fds.front(); fds.clear(); return fd; }
++};
++}
++struct ControlChannels::Impl {
++    struct Owner {
++        pb::ControlOwner binding;
++        std::shared_ptr<Stream> channel;
++        dev_t device;
++        ino_t inode;
++    };
++    int fd = -1, peer = 0, pidfd = -1;
++    ControlLeases& controls;
++    std::map<std::string, Owner> owners;
++    std::string output;
++    Clock::time_point deadline;
++    Impl(int descriptor, int expected, ControlLeases& leases) : fd(descriptor), peer(expected), controls(leases) {
++        try {
++            require(fd >= 3 && peer > 0, "Invalid control supervisor descriptor or peer");
++            sockaddr_un address{}; socklen_t size = sizeof(address);
++            int type = 0; socklen_t type_size = sizeof(type);
++            ucred cred{}; socklen_t cred_size = sizeof(cred);
++            require(getpeername(fd, reinterpret_cast<sockaddr*>(&address), &size) == 0 && address.sun_family == AF_UNIX &&
++                getsockopt(fd, SOL_SOCKET, SO_TYPE, &type, &type_size) == 0 && type == SOCK_SEQPACKET &&
++                getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &cred, &cred_size) == 0 && cred_size == sizeof(cred) &&
++                cred.pid == peer && cred.uid == geteuid(), "Unexpected control supervisor kernel peer");
++            pidfd = static_cast<int>(syscall(SYS_pidfd_open, peer, 0));
++            const int flags = fcntl(fd, F_GETFL), enabled = 1;
++            require(pidfd >= 0 && flags >= 0 && fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0 &&
++                fcntl(fd, F_SETFD, FD_CLOEXEC) == 0 &&
++                setsockopt(fd, SOL_SOCKET, SO_PASSCRED, &enabled, sizeof(enabled)) == 0,
++                "Cannot configure control supervisor channel");
++        } catch (...) { close_all(); throw; }
++    }
++    ~Impl() { close_all(); }
++    void close_all() {
++        if (fd >= 3) close(fd);
++        if (pidfd >= 0) close(pidfd);
++        fd = pidfd = -1;
++    }
++    void fence(const std::string& key, Owner& owner) {
++        controls.fence(key);
++        // shutdown also disables descriptors retained by an in-flight dispatch.
++        if (owner.channel) shutdown(owner.channel->descriptor(), SHUT_RDWR);
++        owner.channel.reset();
++    }
++    void fail() {
++        for (auto& [key, owner] : owners) fence(key, owner);
++        output.clear(); close_all();
++    }
++    pb::ControlOwnerState state(const std::string& key, const Owner& owner) {
++        pb::ControlOwnerState result;
++        *result.mutable_owner() = owner.binding;
++        controls.inspect(key, result);
++        return result;
++    }
++    pb::ControlOwnerState dispatch(const pb::ControlSupervisorRequest& request, Received& received) {
++        validate_message(request);
++        if (request.protocol_version() != 1) throw WorldError(wire::UNSUPPORTED_VERSION, "Unsupported control supervisor protocol");
++        const pb::ControlOwner* binding = nullptr;
++        if (request.has_register_()) binding = &request.register_();
++        else if (request.has_inspect()) binding = &request.inspect();
++        else if (request.has_fence()) binding = &request.fence();
++        else throw WorldError(wire::UNKNOWN_METHOD, "No control supervisor operation");
++        owner_valid(*binding);
++        const auto key = binding->SerializeAsString();
++        if (request.has_register_()) {
++            require(received.fds.size() == 1, "Register requires exactly one descriptor");
++            if (owners.size() >= 256) throw WorldError(wire::RESOURCE_EXHAUSTED, "Control owner limit reached");
++            const auto& launch = binding->launch();
++            struct stat info{};
++            require(fstat(received.fds.front(), &info) == 0, "Cannot inspect admitted channel");
++            for (const auto& [existing_key, owner] : owners) {
++                (void)existing_key;
++                const auto& previous = owner.binding.launch();
++                if (previous.launch_id() == launch.launch_id() || previous.authorization_id() == launch.authorization_id() ||
++                    (owner.binding.issuer_id() == binding->issuer_id() && previous.participant_id() == launch.participant_id() &&
++                        previous.generation() == launch.generation()) || (owner.device == info.st_dev && owner.inode == info.st_ino))
++                    throw WorldError(wire::ALREADY_EXISTS, "Control launch or channel already registered");
++            }
++            auto channel = std::make_shared<Stream>(received.take(), peer);
++            auto [position, inserted] = owners.emplace(key, Owner{*binding, std::move(channel), info.st_dev, info.st_ino});
++            require(inserted, "Control owner already registered");
++            return state(key, position->second);
++        }
++        require(received.fds.empty(), "Control query cannot transfer descriptors");
++        const auto found = owners.find(key);
++        if (found == owners.end()) throw WorldError(wire::NOT_FOUND, "Exact control owner does not exist");
++        if (request.has_fence()) fence(key, found->second);
++        return state(key, found->second);
++    }
++    void administrative() {
++        if (fd < 0) return;
++        pollfd live{pidfd, POLLIN, 0};
++        const auto status = poll(&live, 1, 0);
++        if (status < 0 && errno == EINTR) return;
++        require(status >= 0 && !live.revents, "Control supervisor exited");
++        if (!output.empty()) {
++            require(Clock::now() < deadline, "Control supervisor response expired");
++            const auto count = send(fd, output.data(), output.size(), MSG_NOSIGNAL | MSG_DONTWAIT);
++            if (count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) return;
++            require(count == static_cast<ssize_t>(output.size()), "Control supervisor response failed");
++            output.clear();
++        }
++        std::array<char,packet_limit> bytes{};
++        alignas(cmsghdr) std::array<char,CMSG_SPACE(sizeof(int)*16)+CMSG_SPACE(sizeof(ucred))> ancillary{};
++        iovec vector{bytes.data(), bytes.size()}; msghdr message{};
++        message.msg_iov = &vector; message.msg_iovlen = 1;
++        message.msg_control = ancillary.data(); message.msg_controllen = ancillary.size();
++        const auto count = recvmsg(fd, &message, MSG_DONTWAIT | MSG_CMSG_CLOEXEC);
++        if (count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) return;
++        require(count >= 0, "Control supervisor request failed");
++        Received received; bool unexpected = false; unsigned credentials = 0;
++        ucred sender{};
++        for (auto* header = CMSG_FIRSTHDR(&message); header; header = CMSG_NXTHDR(&message, header)) {
++            require(header->cmsg_len >= CMSG_LEN(0), "Invalid ancillary header");
++            if (header->cmsg_level == SOL_SOCKET && header->cmsg_type == SCM_RIGHTS) {
++                const auto size = header->cmsg_len-CMSG_LEN(0);
++                unexpected |= size % sizeof(int) != 0;
++                for (std::size_t offset = 0; offset+sizeof(int) <= size; offset += sizeof(int)) {
++                    int descriptor; std::memcpy(&descriptor, CMSG_DATA(header)+offset, sizeof(descriptor));
++                    received.fds.push_back(descriptor);
++                }
++            } else if (header->cmsg_level == SOL_SOCKET && header->cmsg_type == SCM_CREDENTIALS && header->cmsg_len == CMSG_LEN(sizeof(ucred))) {
++                ++credentials; std::memcpy(&sender, CMSG_DATA(header), sizeof(sender));
++            } else unexpected = true;
++        }
++        require(count > 0 && credentials == 1 && sender.pid == peer && sender.uid == geteuid(),
++            "Control supervisor sender disconnected or changed");
++        pb::ControlSupervisorRequest request; pb::ControlSupervisorReply reply; reply.set_protocol_version(1);
++        try {
++            require(!(message.msg_flags & MSG_TRUNC), "Truncated administrative payload");
++            require(request.ParseFromArray(bytes.data(), static_cast<int>(count)), "Malformed control supervisor protobuf");
++            reply.set_request_id(request.request_id());
++            require(!(message.msg_flags & MSG_CTRUNC) && !unexpected, "Truncated or unexpected administrative packet");
++            *reply.mutable_state() = dispatch(request, received);
++        } catch (const WorldError& error) {
++            reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
++        } catch (const std::invalid_argument& error) {
++            reply.mutable_error()->set_code(wire::INVALID_ARGUMENT); reply.mutable_error()->set_message(error.what());
++        } catch (const std::exception&) {
++            reply.mutable_error()->set_code(wire::INTERNAL_ERROR); reply.mutable_error()->set_message("Control registration failed");
++        }
++        output = reply.SerializeAsString();
++        require(output.size() <= packet_limit, "Control owner response exceeds packet limit");
++        deadline = Clock::now()+std::chrono::seconds(5);
++    }
++};
++ControlChannels::ControlChannels(int fd, int peer, ControlLeases& controls) : impl_(std::make_unique<Impl>(fd, peer, controls)) {}
++ControlChannels::~ControlChannels() = default;
++void ControlChannels::administrative() {
++    try { impl_->administrative(); }
++    catch (const std::exception& error) {
++        std::cerr << "control supervisor channel fenced: " << error.what() << '\n';
++        impl_->fail();
++    }
++}
++void ControlChannels::serve(const Dispatch& dispatch) {
++    administrative();
++    for (auto& [key, owner] : impl_->owners) {
++        auto channel = owner.channel;
++        if (!channel) continue;
++        try {
++            channel->flush();
++            if (channel->pending_output()) continue;
++            const auto bytes = channel->receive();
++            if (!bytes) continue;
++            pb::Request request; pb::Reply reply;
++            if (!request.ParseFromString(*bytes)) {
++                reply.set_protocol_version(1); reply.mutable_error()->set_code(wire::INVALID_ARGUMENT);
++                reply.mutable_error()->set_message("Malformed broker protobuf payload");
++            } else if (request.has_control_acquire() && request.control_acquire().application().server_id() != owner.binding.native().server_id()) {
++                reply.set_protocol_version(1); reply.set_request_id(request.request_id());
++                reply.mutable_error()->set_code(wire::FORBIDDEN); reply.mutable_error()->set_message("Control owner native server mismatch");
++            } else reply = dispatch(request, key);
++            if (owner.channel) { channel->send(reply.SerializeAsString()); channel->flush(); }
++        } catch (const std::exception& error) {
++            std::cerr << "control owner channel fenced: " << error.what() << '\n';
++            impl_->fence(key, owner);
++        }
++    }
++}
++void ControlChannels::revoked(const std::string& key, const ControlLeases::Lease& lease) {
++    auto& owner = impl_->owners.at(key);
++    if (!owner.channel) return;
++    try {
++        pb::Reply event; event.set_protocol_version(1); *event.mutable_control_revoked() = lease;
++        owner.channel->send(event.SerializeAsString()); owner.channel->flush();
++    } catch (const std::exception&) { impl_->fence(key, owner); }
++}
++bool ControlChannels::pending_output() const {
++    for (const auto& [key, owner] : impl_->owners) {
++        (void)key;
++        if (owner.channel && owner.channel->pending_output()) return true;
++    }
++    return false;
++}
++}
+--- /dev/null
++++ b/src/workspace/control_channels.hpp
+@@ -0,0 +1,22 @@
++#pragma once
++#include "workspace/control.hpp"
++#include <memory>
++
++namespace spatial {
++// Owns a separate supervisor transport and the channels admitted through it.
++class ControlChannels final {
++public:
++    using Dispatch = std::function<workspace::v1::Reply(const workspace::v1::Request&, const std::string&)>;
++    ControlChannels(int fd, int peer, ControlLeases&);
++    ~ControlChannels();
++    ControlChannels(const ControlChannels&) = delete;
++    ControlChannels& operator=(const ControlChannels&) = delete;
++    void administrative();
++    void serve(const Dispatch&);
++    void revoked(const std::string&, const ControlLeases::Lease&);
++    bool pending_output() const;
++private:
++    struct Impl;
++    std::unique_ptr<Impl> impl_;
++};
++}
+--- a/src/workspace/main.cpp
++++ b/src/workspace/main.cpp
+@@ -2,6 +2,7 @@
+ #include "workspace/authority.hpp"
+ #include "workspace/native_launch.hpp"
+ #include "workspace/control.hpp"
++#include "workspace/control_channels.hpp"
+ #include "world/store.hpp"
+ #include "build_id.hpp"
+ #include <csignal>
+@@ -56,7 +57,8 @@
+     return reply;
+ }
+ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store,
+-                                            spatial::WorkspaceAuthority* authority, spatial::ControlLeases& controls) {
++                                            spatial::WorkspaceAuthority* authority, spatial::ControlLeases& controls,
++                                            const std::string& owner = {}) {
+     namespace broker = spatial::workspace::v1;
+     namespace wire = spatial::wire;
+     broker::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+@@ -69,8 +71,8 @@
+         } else if (request.has_access()) *reply.mutable_access() = store.access(request.access());
+         else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
+         else if (request.has_application_access()) *reply.mutable_application_access() = store.application_access(request.application_access());
+-        else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire());
+-        else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release());
++        else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire(), owner);
++        else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release(), owner);
+         else if (request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
+             if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
+             if (request.has_bootstrap_bind()) *reply.mutable_binding() = authority->bind_bootstrap(request.bootstrap_bind());
+@@ -99,6 +101,7 @@
+         std::filesystem::path state, authority_config, seed;
+         unsigned migration = 0; bool fixture_faults = false;
+         int native_fd = -1;
++        int control_fd = -1, control_peer = -1;
+         for (int i = 1; i < argc; ++i) {
+             const std::string_view argument(argv[i]);
+             if (argument == "--state-dir" && state.empty() && i+1 < argc) state = argv[++i];
+@@ -110,13 +113,22 @@
+                 native_fd = std::stoi(value, &used);
+                 if (used != value.size() || native_fd < 3) throw std::invalid_argument("Invalid native security descriptor");
+             }
++            else if ((argument == "--control-supervisor-fd" || argument == "--control-supervisor-pid") && i+1 < argc) {
++                int& target = argument == "--control-supervisor-fd" ? control_fd : control_peer;
++                if (target != -1) throw std::invalid_argument("Repeated control supervisor argument");
++                const std::string value(argv[++i]); std::size_t used = 0;
++                target = std::stoi(value, &used);
++                if (used != value.size() || target < 3) throw std::invalid_argument("Invalid control supervisor argument");
++            }
+             else if (argument == "--migrate-v1" && !migration) migration = 1;
+             else if (argument == "--migrate-v2" && !migration) migration = 2;
+             else if (argument == "--migrate-v3" && !migration) migration = 3;
+             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
+         }
+         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
+-        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || native_fd >= 0)) || (migration && !seed.empty()))
++        if ((control_fd < 0) != (control_peer < 0) || (control_fd >= 0 && control_fd == native_fd))
++            throw std::invalid_argument("Control supervisor requires a separate descriptor and peer");
++        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || native_fd >= 0 || control_fd >= 0)) || (migration && !seed.empty()))
+             throw std::invalid_argument("Provisioning and migration require an exclusive stopped broker");
+         umask(0077); signal(SIGPIPE, SIG_IGN);
+         // Destroy jobs before their authority callback target.
+@@ -165,17 +177,23 @@
+                 if (sent == output.size()) { output.clear(); sent = 0; }
+             }
+         };
+-        spatial::ControlLeases controls(store, [&](const auto& lease) {
++        std::unique_ptr<spatial::ControlChannels> channels;
++        spatial::ControlLeases controls(store, [&](const std::string& owner, const auto& lease) {
++            if (!owner.empty()) { channels->revoked(owner, lease); return; }
+             spatial::workspace::v1::Reply event; event.set_protocol_version(1);
+             *event.mutable_control_revoked() = lease; enqueue(event);
+         });
++        if (control_fd >= 0) channels = std::make_unique<spatial::ControlChannels>(control_fd, control_peer, controls);
+         struct ClearObserver {
+             spatial::WorkspaceAuthority* authority;
+             ~ClearObserver() { if (authority) authority->set_observer([] {}); }
+         } clear_observer{authority.get()};
+         // Issuer and process waits call this on the same broker thread.
+         // Cached lease checks neither recurse into issuer I/O nor reap a borrowed job.
+-        if (authority) authority->set_observer([&] { controls.tick(); flush(); });
++        if (authority) authority->set_observer([&] {
++            controls.tick(); flush();
++            if (channels) channels->administrative();
++        });
+         const auto enforce = [&] {
+             if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
+             if (native) native->check();
+@@ -192,6 +210,18 @@
+         for (;;) {
+             enforce();
+             if (authority) { authority->keepalive(); enforce(); }
++            if (channels) channels->serve([&](const auto& request, const std::string& owner) {
++                const auto cancellation = authority ? authority->cancellation_sequence() : 0;
++                auto reply = dispatch_broker(request, store, authority.get(), controls, owner);
++                enforce();
++                if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
++                        !request.has_management() && !request.has_control_release()) {
++                    reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
++                    reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
++                    reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
++                }
++                return reply;
++            });
+             const auto now = Clock::now();
+             if ((!input.empty() && now-input_started > std::chrono::seconds(10)) ||
+                     (!output.empty() && now-output_started > std::chrono::seconds(10)))
+@@ -227,7 +257,7 @@
+                 }
+                 return 0;
+             }
+-            if (authority) authority->settle(output.empty() && controls.cancellation_settled());
++            if (authority) authority->settle(output.empty() && (!channels || !channels->pending_output()) && controls.cancellation_settled());
+             pollfd fds[2]{{!eof && output.empty() ? STDIN_FILENO : -1, POLLIN, 0},
+                           {STDOUT_FILENO, static_cast<short>(output.empty() ? 0 : POLLOUT), 0}};
+             const int ready = poll(fds, 2, 10);
+--- a/proto/spatial/workspace/v1/broker.proto
++++ b/proto/spatial/workspace/v1/broker.proto
+@@ -3,6 +3,7 @@
+ import "core.proto";
+ import "grants.proto";
+ import "issuer.proto";
++import "native_scope.proto";
+ 
+ // Sealed, inherited supervisor input. Never store cookies in workspace state.
+ message NativeLaunchConfig {
+@@ -60,6 +61,37 @@
+ // The trusted world releases native input before releasing this reservation.
+ message ApplicationControlRelease { bytes id = 1; spatial.authority.v1.ActorRef principal = 2; }
+ message ApplicationControlReleased { bytes id = 1; }
++// Only a retained local supervisor assigns this binding to an inherited world channel.
++// The binding is an ownership key, not proof that fencing or cleanup occurred.
++message ControlOwner {
++  bytes issuer_id = 1;
++  spatial.identity.v1.AuthorityFenceBegin launch = 2;
++  spatial.supervisor.v1.NativeScopeIdentity native = 3;
++}
++message ControlOwnerState {
++  ControlOwner owner = 1;
++  bool channel_fenced = 2;
++  repeated ApplicationControlLease reservations = 3;
++}
++// One protobuf per private SOCK_SEQPACKET packet. Register carries one SCM_RIGHTS fd.
++// This envelope is never accepted on world or actor channels.
++message ControlSupervisorRequest {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof operation {
++    ControlOwner register = 10;
++    ControlOwner inspect = 11;
++    ControlOwner fence = 12;
++  }
++}
++message ControlSupervisorReply {
++  uint32 protocol_version = 1;
++  uint64 request_id = 2;
++  oneof outcome {
++    ControlOwnerState state = 10;
++    spatial.core.v1.Error error = 11;
++  }
++}
+ message LaunchRequest {
+   string workspace = 1; string actor = 2; spatial.core.v1.ProcessLaunchRequest command = 3;
+   spatial.authority.v1.ActorRef principal = 4;

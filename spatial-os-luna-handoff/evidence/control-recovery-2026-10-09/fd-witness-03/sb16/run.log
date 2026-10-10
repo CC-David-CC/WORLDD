@@ -1,0 +1,6 @@
+test_invalid_descriptors_and_ancillary_truncation_do_not_leak (__main__.ControlOwnerTests.test_invalid_descriptors_and_ancillary_truncation_do_not_leak) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.845s
+
+OK

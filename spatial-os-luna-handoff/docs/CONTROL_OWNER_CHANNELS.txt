@@ -1,0 +1,90 @@
+Control reservation ownership: additive interface contract
+Status: Candidate design. Production recovery is incomplete.
+
+Invariant
+
+Each admitted world channel has one immutable launch owner for its complete lifetime.
+Only that channel can acquire or normally release its control reservations.
+Channel failure stops new requests but preserves reservations until checked recovery.
+Application execution remains independent of this channel.
+
+Trust boundary
+
+The broker retains its existing private root management channel.
+The session supervisor also supplies a separate private AF_UNIX SOCK_SEQPACKET administrative channel.
+The broker checks its configured peer PID, UID, socket type, and a retained peer pidfd.
+Each administrative packet must contain the same kernel sender credentials.
+Worlds and applications never receive the administrative endpoint.
+
+Registration transfers one connected AF_UNIX SOCK_STREAM endpoint with SCM_RIGHTS.
+The supervisor creates that socket pair and gives its other endpoint to the exact retained world launch.
+The broker checks the transferred endpoint's kernel peer against the administrative peer.
+The endpoint's credentials identify its creator. They do not identify a later process that inherits it.
+The supervisor therefore owns the mapping between the endpoint and the retained launch.
+The production supervisor must construct this mapping from its checked launch record.
+An actor cannot supply, replace, or choose the mapping.
+
+The binding contains the issuer ID and the exact AuthorityFenceBegin launch identity.
+It also contains the native scope identity for that launch.
+No credential, cookie, or private key appears in the binding.
+The binding does not itself prove issuer fencing or native cleanup.
+
+Protocol
+
+Use versioned Protocol Buffers in broker.proto.
+Administrative packets contain exactly one protobuf message, without a stream length prefix.
+Limit each packet to 65536 bytes.
+Use the existing length-prefixed broker protocol on admitted world channels.
+Register requires exactly one transferred descriptor.
+Inspect and fence require no transferred descriptors and an exact complete owner binding.
+Reject truncated payloads, truncated ancillary data, unknown fields, unexpected descriptors, and malformed bindings.
+Close every rejected transferred descriptor.
+
+Registration is immutable and cannot replace a channel.
+Reject duplicate launch IDs, authorization IDs, and issuer-participant-generation tuples.
+Keep fenced entries as tombstones for the broker's lifetime.
+Bound the owner table to 256 entries, including tombstones.
+Normal requests carry no owner selector. The broker derives ownership from their receiving channel.
+Keep the existing private root channel in a separate legacy ownership scope.
+Root control release cannot release a managed world's reservation.
+
+Inspect returns the exact binding, channel-fenced state, and all reservations owned by that channel.
+Include acquisitions committed before a reply was lost.
+Reject acquisition when that owner's encoded reservations would exceed 60000 bytes, including per-entry framing allowance.
+This leaves room for the binding and envelope within the 65536-byte packet limit.
+Fence closes the channel before acknowledging its state.
+Fence retains reservations and blocks normal release through that channel.
+Repeated fence of the same exact binding is idempotent.
+Changed bindings cannot inspect or fence another owner.
+Administrative transport failure fences all managed channels and preserves their reservations.
+It does not stop otherwise authorized applications.
+
+Existing actor and application authority checks still apply to every operation.
+Same-actor acquisition on another owner channel cannot reuse the first owner's reservation.
+Revocation events go only to the reservation's owning channel.
+Pending fenced reservations prevent cancellation from being acknowledged as settled.
+
+Scope of the first implementation
+
+Implement registration, immutable ownership, inspection, and fencing through the real broker.
+Do not expose recovery release before the supervisor verifies native and process cleanup.
+Do not issue an issuer-retirement receipt from inspection or fencing alone.
+Keep the complete recovery task open until selective release and checked durable receipts work.
+
+Required tests
+
+Use a real broker, issuer, native server, and confined application.
+Verify two independent owner channels and independent application reservations.
+Reject cross-owner release, same-actor reservation reuse, and modified owner bindings.
+Verify lost acquisition replies through broker inspection.
+Verify channel EOF and explicit fencing preserve applications and unrelated reservations.
+Verify revocation delivery and unchanged actor authority enforcement.
+Reject malformed packets, invalid descriptors, wrong peers, duplicate registration, and owner-table overflow.
+Verify rejection does not leak descriptors or grant owner-administration authority to world channels.
+Run existing lease tests and full Debug and runtime sanitizer profiles on both hosts before integration.
+
+Reference
+
+Linux unix(7): https://man7.org/linux/man-pages/man7/unix.7.html
+Linux recvmsg(2): https://man7.org/linux/man-pages/man2/recvmsg.2.html
+No locked acceptance assertion changes in this contract.

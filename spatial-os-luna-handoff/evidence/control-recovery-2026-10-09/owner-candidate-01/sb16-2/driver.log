@@ -1,0 +1,77 @@
+sb16-2 configure 0
+sb16-2 build 0
+sb16-2 harness 0
+sb16-2 focused 8
+_revocation_cancels_during_broker_wait) ... ok
+72: test_disconnect_cancels_during_broker_wait (__main__.WorldApplicationControlTests.test_disconnect_cancels_during_broker_wait) ... ok
+72: test_revocation_during_renderer_wait_does_not_replay_input (__main__.WorldApplicationControlTests.test_revocation_during_renderer_wait_does_not_replay_input) ... ok
+72: test_revocation_during_native_cancel_closes_actor_devices (__main__.WorldApplicationControlTests.test_revocation_during_native_cancel_closes_actor_devices) ... ok
+72: 
+72: ----------------------------------------------------------------------
+72: Ran 25 tests in 137.678s
+72: 
+72: OK
+4/5 Test #72: world-application-control ........   Passed  137.84 sec
+test 74
+    Start 74: application-access
+
+74: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source/tests/core/test_application_access.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/spatial-security-auth"
+74: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build
+74: Environment variables: 
+74:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/source
+74: Test timeout computed to be: 180
+74: test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access) ... ok
+74: test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application) ... ok
+74: test_application_scoped_execution_grant_does_not_authorize_project_execution (__main__.ApplicationAccessTests.test_application_scoped_execution_grant_does_not_authorize_project_execution) ... ok
+74: test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets) ... ok
+74: test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority) ... ok
+74: test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation) ... ok
+74: test_control_requires_application_execution_authority (__main__.ApplicationAccessTests.test_control_requires_application_execution_authority) ... ok
+74: test_control_revocation_preserves_independent_process_execution (__main__.ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution) ... ok
+74: test_corrupt_recorded_execution_rights_cannot_reduce_control_requirement (__main__.ApplicationAccessTests.test_corrupt_recorded_execution_rights_cannot_reduce_control_requirement) ... ok
+74: test_deeper_scope_cannot_authorize_parent_application (__main__.ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application) ... ok
+74: test_exited_application_loses_access (__main__.ApplicationAccessTests.test_exited_application_loses_access) ... ok
+74: test_explicit_grants_authorize_live_application (__main__.ApplicationAccessTests.test_explicit_grants_authorize_live_application) ... ok
+74: test_foreign_issuer_principal_cannot_use_local_grants (__main__.ApplicationAccessTests.test_foreign_issuer_principal_cannot_use_local_grants) ... ok
+74: test_independent_application_grant_survives_other_revocation (__main__.ApplicationAccessTests.test_independent_application_grant_survives_other_revocation) ... ok
+74: test_launch_authority_does_not_imply_observation_or_control (__main__.ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control) ... ok
+74: test_malformed_target_does_not_leave_partial_decisions (__main__.ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions) ... ok
+74: test_nonnative_process_does_not_gain_native_application_authority (__main__.ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority) ... ok
+74: test_observation_does_not_require_filesystem_or_execution_grants (__main__.ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants) ... ok
+74: test_observation_revocation_also_removes_control (__main__.ApplicationAccessTests.test_observation_revocation_also_removes_control) ... ok
+74: test_parent_revocation_invalidates_dependent_application_grant (__main__.ApplicationAccessTests.test_parent_revocation_invalidates_dependent_application_grant) ... ok
+74: test_partial_write_grants_do_not_control_writable_application (__main__.ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application) ... ok
+74: test_readonly_actor_can_control_readonly_application (__main__.ApplicationAccessTests.test_readonly_actor_can_control_readonly_application) ... ok
+74: test_readonly_actor_cannot_control_writable_application (__main__.ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application) ... ok
+74: test_request_requires_authenticated_principal (__main__.ApplicationAccessTests.test_request_requires_authenticated_principal) ... ok
+74: test_revoked_actor_cannot_query_application_authority (__main__.ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority) ... ok
+74: test_scope_components_are_exact_not_string_prefixes (__main__.ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes) ... ok
+74: test_workspace_policy_limits_recorded_application_authority (__main__.ApplicationAccessTests.test_workspace_policy_limits_recorded_application_authority) ... ok
+74: test_wrong_native_server_unknown_application_and_workspace_are_denied (__main__.ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied) ... ok
+74: 
+74: ----------------------------------------------------------------------
+74: Ran 28 tests in 64.915s
+74: 
+74: OK
+5/5 Test #74: application-access ...............   Passed   65.05 sec
+
+The following tests passed:
+	broker-control-client-live
+	application-control-lease
+	world-application-control
+	application-access
+
+80% tests passed, 1 tests failed out of 5
+
+Total Test time (real) = 346.36 sec
+
+The following tests FAILED:
+	 69 - control-owner-channels (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-owner-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/qualify-control-owner-01.py", line 68, in <module>
+    raise RuntimeError(profile+' '+name+' failed')
+RuntimeError: debug focused failed
