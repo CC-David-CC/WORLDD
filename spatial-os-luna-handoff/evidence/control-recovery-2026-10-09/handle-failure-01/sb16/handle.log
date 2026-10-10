@@ -1,0 +1,131 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 105
+    Start 105: retained-child-handle
+
+105: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-retained-handle-3f4bfd9be2e63f1e92bf88ef43f059b99aaa9f85348e7f2f33dc34a73e91961a" "--property=Delegate=yes" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build/spatial-retained-child-handle-probe"
+105: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build
+105: Test timeout computed to be: 120
+105: Running as unit: spatial-retained-handle-3f4bfd9be2e63f1e92bf88ef43f059b99aaa9f85348e7f2f33dc34a73e91961a.service; invocation ID: 980802f8f1174968a9c98a6f54f5bb7f
+105: test_exited_child_rejects_handle (__main__.HandleTests.test_exited_child_rejects_handle) ... FAIL
+105: test_live_handle_preserves_original_and_observes_exit (__main__.HandleTests.test_live_handle_preserves_original_and_observes_exit) ... FAIL
+105: test_prepared_scope_rejects_handle (__main__.HandleTests.test_prepared_scope_rejects_handle) ... FAIL
+105: test_stopped_scope_rejects_handle (__main__.HandleTests.test_stopped_scope_rejects_handle) ... FAIL
+105: test_surviving_descendant_does_not_replace_direct_child (__main__.HandleTests.test_surviving_descendant_does_not_replace_direct_child) ... FAIL
+105: 
+105: ======================================================================
+105: FAIL: test_exited_child_rejects_handle (__main__.HandleTests.test_exited_child_rejects_handle)
+105: ----------------------------------------------------------------------
+105: Traceback (most recent call last):
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 33, in test_exited_child_rejects_handle
+105:     def test_exited_child_rejects_handle(self): self.check_scenario('exited')
+105:                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 25, in check_scenario
+105:     self.assertEqual(list(root.iterdir()), [], 'Production cleanup left a scope')
+105: AssertionError: Lists differ: [PosixPath('/sys/fs/cgroup/user.slice/user[3700 chars]re')] != []
+105: 
+105: First list contains 18 additional elements.
+105: First extra element 0:
+105: PosixPath('/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-retained-handle-3f4bfd9be2e63f1e92bf88ef43f059b99aaa9f85348e7f2f33dc34a73e91961a.service/tmpwffllhfk/cgroup.events')
+105: 
+105: Diff is 3806 characters long. Set self.maxDiff to None to see it. : Production cleanup left a scope
+105: 
+105: ======================================================================
+105: FAIL: test_live_handle_preserves_original_and_observes_exit (__main__.HandleTests.test_live_handle_preserves_original_and_observes_exit)
+105: ----------------------------------------------------------------------
+105: Traceback (most recent call last):
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 31, in test_live_handle_preserves_original_and_observes_exit
+105:     def test_live_handle_preserves_original_and_observes_exit(self): self.check_scenario('live')
+105:                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 25, in check_scenario
+105:     self.assertEqual(list(root.iterdir()), [], 'Production cleanup left a scope')
+105: AssertionError: Lists differ: [PosixPath('/sys/fs/cgroup/user.slice/user[3700 chars]re')] != []
+105: 
+105: First list contains 18 additional elements.
+105: First extra element 0:
+105: PosixPath('/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-retained-handle-3f4bfd9be2e63f1e92bf88ef43f059b99aaa9f85348e7f2f33dc34a73e91961a.service/tmplipxuy2c/cgroup.events')
+105: 
+105: Diff is 3806 characters long. Set self.maxDiff to None to see it. : Production cleanup left a scope
+105: 
+105: ======================================================================
+105: FAIL: test_prepared_scope_rejects_handle (__main__.HandleTests.test_prepared_scope_rejects_handle)
+105: ----------------------------------------------------------------------
+105: Traceback (most recent call last):
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 30, in test_prepared_scope_rejects_handle
+105:     def test_prepared_scope_rejects_handle(self): self.check_scenario('prepared')
+105:                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 25, in check_scenario
+105:     self.assertEqual(list(root.iterdir()), [], 'Production cleanup left a scope')
+105: AssertionError: Lists differ: [PosixPath('/sys/fs/cgroup/user.slice/user[3700 chars]re')] != []
+105: 
+105: First list contains 18 additional elements.
+105: First extra element 0:
+105: PosixPath('/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-retained-handle-3f4bfd9be2e63f1e92bf88ef43f059b99aaa9f85348e7f2f33dc34a73e91961a.service/tmpgmlspuqo/cgroup.events')
+105: 
+105: Diff is 3806 characters long. Set self.maxDiff to None to see it. : Production cleanup left a scope
+105: 
+105: ======================================================================
+105: FAIL: test_stopped_scope_rejects_handle (__main__.HandleTests.test_stopped_scope_rejects_handle)
+105: ----------------------------------------------------------------------
+105: Traceback (most recent call last):
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 32, in test_stopped_scope_rejects_handle
+105:     def test_stopped_scope_rejects_handle(self): self.check_scenario('stopped')
+105:                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 25, in check_scenario
+105:     self.assertEqual(list(root.iterdir()), [], 'Production cleanup left a scope')
+105: AssertionError: Lists differ: [PosixPath('/sys/fs/cgroup/user.slice/user[3700 chars]re')] != []
+105: 
+105: First list contains 18 additional elements.
+105: First extra element 0:
+105: PosixPath('/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-retained-handle-3f4bfd9be2e63f1e92bf88ef43f059b99aaa9f85348e7f2f33dc34a73e91961a.service/tmp38macfuf/cgroup.events')
+105: 
+105: Diff is 3806 characters long. Set self.maxDiff to None to see it. : Production cleanup left a scope
+105: 
+105: ======================================================================
+105: FAIL: test_surviving_descendant_does_not_replace_direct_child (__main__.HandleTests.test_surviving_descendant_does_not_replace_direct_child)
+105: ----------------------------------------------------------------------
+105: Traceback (most recent call last):
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 34, in test_surviving_descendant_does_not_replace_direct_child
+105:     def test_surviving_descendant_does_not_replace_direct_child(self): self.check_scenario('descendant')
+105:                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+105:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/source/tests/core/test_retained_child_handle.py", line 25, in check_scenario
+105:     self.assertEqual(list(root.iterdir()), [], 'Production cleanup left a scope')
+105: AssertionError: Lists differ: [PosixPath('/sys/fs/cgroup/user.slice/user[3700 chars]re')] != []
+105: 
+105: First list contains 18 additional elements.
+105: First extra element 0:
+105: PosixPath('/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-retained-handle-3f4bfd9be2e63f1e92bf88ef43f059b99aaa9f85348e7f2f33dc34a73e91961a.service/tmpsxvndbxe/cgroup.events')
+105: 
+105: Diff is 3806 characters long. Set self.maxDiff to None to see it. : Production cleanup left a scope
+105: 
+105: ----------------------------------------------------------------------
+105: Ran 5 tests in 0.086s
+105: 
+105: FAILED (failures=5)
+105: Finished with result: exit-code
+105: Main processes terminated with: code=exited/status=1
+105: Service runtime: 140ms
+105: CPU time consumed: 97ms
+105: Memory peak: 1.5M
+105: Memory swap peak: 0B
+1/1 Test #105: retained-child-handle ............***Failed    0.16 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.16 sec
+
+The following tests FAILED:
+	105 - retained-child-handle (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-retained-child-handle-01/debug/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

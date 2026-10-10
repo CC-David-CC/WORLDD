@@ -1,0 +1,11 @@
+{
+  "reviewer": "primary agent",
+  "observed_failures": 5,
+  "diagnosis": "The cleanup oracle incorrectly counted kernel cgroup control files as child scopes.",
+  "correction": "Require no child directories, no direct processes, and populated 0.",
+  "locked_tests_changed": false,
+  "frozen_candidate_changed": false,
+  "corrected_checks": "unrun",
+  "failure_log_sha256": "198dbfcdd699f0d4c12b8638e2f7085d87bf801dcf4201b2b207e603d8c0eb61",
+  "corrected_helper_sha256": "15f4179383f19bc609725c2ad6eb499c2e210faa88b41bf45a1506898997d359"
+}
