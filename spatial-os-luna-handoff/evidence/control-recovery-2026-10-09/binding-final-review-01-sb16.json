@@ -1,0 +1,22 @@
+{
+  "reviewer": "primary agent",
+  "host": "sb16",
+  "candidate": "binding01",
+  "mode": "final",
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "summary_sha256": "7023fbf90a7fcc79929d212d2500777dabad776e9d7a3550df4131a045301130",
+  "core_checks_per_profile": 1480,
+  "core_suites_per_profile": 101,
+  "binding_checks_per_profile": 6,
+  "harness_checks_per_profile": 51,
+  "P10_cases_per_profile": 151,
+  "native_world_checks_per_profile": 3,
+  "failed": 0,
+  "skipped": 0,
+  "integration_ready": false,
+  "production_recovery_complete": false,
+  "remaining": "Both-host complete runtime qualification and final integration review."
+}

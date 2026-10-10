@@ -1,0 +1,7 @@
+{
+  "profile": "runtime-sanitize",
+  "cmake_sanitizers": "ON",
+  "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+  "qualifier_sha256": "c28b718df5d98e232ba11a440c0552f241241d73453dcd34138646e764123aeb"
+}

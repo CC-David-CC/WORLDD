@@ -550,3 +550,10 @@ These copies can delay kernel EOF after child exit and broker world-channel fenc
 Prepared handoff01: release the copies, reserve slots 0/1 with /dev/null, preserve management/stderr/native/process ownership.
 Two kernel EOF witnesses are unrun. Drivers wait after reply01: sb16 PID2020931; sb16-2 PID1739758.
 Read spatial-os-luna-handoff/docs/SUPERVISOR_HANDOFF_LIFETIME.txt. No production handoff code is integrated.
+
+2026-10-10: Binding01 sb16 passed full Debug and runtime sanitizers; sb16-2 passed full Debug.
+Each completed profile: 1480 core / 101 suites, 51 harness, 151 P10, and three native-world checks; no failures or skips.
+Reply01 sb16 focused Debug passed 16 reply checks, 51 harness, and three native-world checks.
+The first sb16 final archive copy started before its collector finished and returned No such file or directory.
+Retried both copies after collector completion. Extracted archives and verified all recorded attachment hashes.
+Second-host binding sanitizers and first-host reply qualification remain active. Handoff tests remain unrun.

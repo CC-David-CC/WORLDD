@@ -1,0 +1,63 @@
+{
+  "host": "sb16",
+  "candidate": "reply01",
+  "profile": "debug",
+  "reply_checks": 16,
+  "harness_checks": 51,
+  "native_world_checks": 3,
+  "completed_commands": [
+    {
+      "name": "harness",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/harness",
+        "-t",
+        ".",
+        "-q"
+      ],
+      "started": 1791606871.8236272,
+      "ended": 1791606872.6358585,
+      "exit_code": 0
+    },
+    {
+      "name": "reply",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/debug/build",
+        "-V",
+        "-R",
+        "^control-supervisor-reply$"
+      ],
+      "started": 1791606872.6597085,
+      "ended": 1791606872.896342,
+      "exit_code": 0
+    },
+    {
+      "name": "world",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_owner_world_01.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/debug/build/worldd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-control-reply-01/debug/build/spatial-security-auth"
+      ],
+      "started": 1791606872.9212692,
+      "ended": 1791606886.8108056,
+      "exit_code": 0
+    }
+  ],
+  "attachment_hashes": {
+    "harness.log": "d6d671388ad2eeccace8710ff8fe11e514b77c4ffc8482eee494127be906145e",
+    "reply.log": "3d9839924ebd89c786eafc31c611adc364ccf9eec18cb3d4175bdea04ed23cea",
+    "world.log": "13d539c2c4e9af8108fbf3e64a647a93f729ff82092346242bed6826b8abacf5"
+  },
+  "full_profile_passed": false,
+  "integration_ready": false,
+  "production_transport_implemented": false
+}

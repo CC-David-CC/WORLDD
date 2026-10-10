@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-10: Binding full profiles pass on sb16; reply checks pass in Debug
+
+sb16 passed binding01 Debug and runtime sanitizers.
+Each profile passed 1,480 core checks across 101 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed per profile. No case failed or skipped.
+sb16-2 passed the same complete Debug profile and continues sanitizer qualification.
+Read evidence/control-recovery-2026-10-09/binding-final-review-01-sb16.json and binding-debug-review-01-sb16-2.json.
+Binding source remains isolated until both hosts finish full qualification and final review.
+
+Reply01 passed 16 focused Debug checks, 51 harness checks, and three native-world checks on sb16.
+Read evidence/control-recovery-2026-10-09/reply-focused-01/sb16/debug/focused-review.json.
+Its full qualification remains active. The second host still waits.
+The handoff correction remains queued and untested. Complete control recovery and M02 remain incomplete.
+
 ## 2026-10-10: Supervisor descriptor handoff correction prepared
 
 Source review found retained supervisor copies of selected descriptors and child stdin/stdout after launch.
