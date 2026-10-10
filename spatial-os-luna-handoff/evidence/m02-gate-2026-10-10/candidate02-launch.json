@@ -1,0 +1,72 @@
+{
+  "status": "running_not_qualified",
+  "preparation_commit": "c757e64ac9958d90c4574758eb3da97a5a453bd7",
+  "hosts": {
+    "sb16": {
+      "host": "sb16",
+      "observed": 1791661001.7905638,
+      "candidate": "m02-phase-gate-02",
+      "status": "building",
+      "runner_pid": 2788613,
+      "runner_start_ticks": "32985717",
+      "runner_command": "python3 -u /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/qualify-m02-gate-02.py f39471ca91385d0f2bee702e5beed0383e7e0e8308ddf69b403d379afbc170dd ",
+      "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+      "source_files": 351,
+      "locked_files": 41,
+      "archive_sha256": "f39471ca91385d0f2bee702e5beed0383e7e0e8308ddf69b403d379afbc170dd",
+      "runner_sha256": "4cab69f6c005aaacff9cc0eb23b852b24e83b55ffd2ad955c789d47ed6c66bb3",
+      "compiler_overlap": [],
+      "profiles": {
+        "debug": {
+          "status": "building",
+          "commands": [
+            {
+              "label": "configure",
+              "exit_code": 0
+            },
+            {
+              "label": "build",
+              "exit_code": null
+            }
+          ]
+        }
+      }
+    },
+    "sb16-2": {
+      "host": "sb16-2",
+      "observed": 1791661001.6812158,
+      "candidate": "m02-phase-gate-02",
+      "status": "building",
+      "runner_pid": 2271090,
+      "runner_start_ticks": "32216790",
+      "runner_command": "python3 -u /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/qualify-m02-gate-02.py f39471ca91385d0f2bee702e5beed0383e7e0e8308ddf69b403d379afbc170dd ",
+      "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+      "source_files": 351,
+      "locked_files": 41,
+      "archive_sha256": "f39471ca91385d0f2bee702e5beed0383e7e0e8308ddf69b403d379afbc170dd",
+      "runner_sha256": "4cab69f6c005aaacff9cc0eb23b852b24e83b55ffd2ad955c789d47ed6c66bb3",
+      "compiler_overlap": [],
+      "profiles": {
+        "debug": {
+          "status": "building",
+          "commands": [
+            {
+              "label": "configure",
+              "exit_code": 0
+            },
+            {
+              "label": "build",
+              "exit_code": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  "tool_sessions": {
+    "sb16": 36741,
+    "sb16-2": 66553
+  },
+  "phase_complete": false,
+  "historical_failures_resolved": false
+}

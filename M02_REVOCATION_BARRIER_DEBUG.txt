@@ -1101,3 +1101,11 @@ Untraced Debug and sanitizer qualification remain required. Diagnostic native lo
 Assertions, client deadlines, durability, and failure-stop behavior remain unchanged.
 This preparation is not execution evidence. The original startup and historical timeouts remain unresolved.
 M02 and Spatial-M1 remain incomplete.
+
+2026-10-10 candidate02 launched
+Both hosts passed Debug configuration and entered isolated builds.
+Verified runners: sb16 PID 2788613, start ticks 32985717; sb16-2 PID 2271090, start ticks 32216790.
+Retained tool sessions: 36741 and 66553. Do not restart after an observation timeout.
+Launch evidence: spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/candidate02-launch.json.
+Traced Debug is diagnostic. Untraced Debug and sanitizer qualification remain required.
+The original startup and historical timeouts remain unresolved. M02 and Spatial-M1 remain incomplete.

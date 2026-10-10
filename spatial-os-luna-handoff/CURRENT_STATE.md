@@ -1,5 +1,17 @@
 # Implementation status
 
+## 2026-10-10: Corrected M02 candidate running on both hosts
+
+Both hosts passed Debug configuration and started their isolated builds.
+The source archive freezes 351 files at 1f5088e. All 41 locked files remain unchanged.
+The reviewed runner and tracer evidence are pushed to box-git at c757e64ac9958d90c4574758eb3da97a5a453bd7.
+Read evidence/m02-gate-2026-10-10/candidate02-launch.json for the verified process identities and source pins.
+The complete traced Debug sequence is diagnostic only. Untraced Debug and sanitizer qualification follow.
+Diagnostic native logs remain separate from qualification logs. Test assertions and deadlines are unchanged.
+Builds precede testing. One qualification runner owns each host.
+The original startup and historical timeout failures remain open. M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Corrected M02 candidate and broader timing prepared
 
 The exact-executable tracer passed positive and negative controls on both hosts.
