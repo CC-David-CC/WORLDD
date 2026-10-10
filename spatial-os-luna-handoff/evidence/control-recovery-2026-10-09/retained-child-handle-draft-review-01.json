@@ -24,5 +24,11 @@
     "Closing returned copy does not change original ownership",
     "Concurrent exit closes rejected duplicate without leaks"
   ],
-  "remaining": "Production supervisor authorization, descriptor-capable private transfer, and coordinator integration"
+  "remaining": "Build targets, full frozen candidate, queued Linux qualification, production supervisor authorization, descriptor-capable private transfer, and coordinator integration",
+  "new_checks": 5,
+  "checks_status": "unrun",
+  "test_files": [
+    "src/testing/retained_child_handle_probe.cpp",
+    "tests/core/test_retained_child_handle.py"
+  ]
 }
