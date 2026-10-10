@@ -1,0 +1,16 @@
+test_broker_stop_closes_descendants_preserves_independent_application (__main__.NativeScopeTests.test_broker_stop_closes_descendants_preserves_independent_application) ... ok
+test_compositor_stop_closes_only_owned_connections (__main__.NativeScopeTests.test_compositor_stop_closes_only_owned_connections) ... ok
+test_compositor_stop_releases_real_native_key_and_button (__main__.NativeScopeTests.test_compositor_stop_releases_real_native_key_and_button) ... ok
+test_missing_credential_is_not_accepted_as_a_cleanup_receipt (__main__.NativeScopeTests.test_missing_credential_is_not_accepted_as_a_cleanup_receipt) ... ok
+test_stop_waits_for_disposable_server_resume (__main__.NativeScopeTests.test_stop_waits_for_disposable_server_resume) ... ok
+test_stopped_server_timeout_cannot_report_cleanup (__main__.NativeScopeTests.test_stopped_server_timeout_cannot_report_cleanup) ... ok
+test_server_exit_cannot_replace_a_cleanup_reply (__main__.NativeScopeTests.test_server_exit_cannot_replace_a_cleanup_reply) ... ok
+test_checked_stop_retry_needs_no_new_server_operation (__main__.NativeScopeTests.test_checked_stop_retry_needs_no_new_server_operation) ... ok
+test_unsealed_config_does_not_issue_a_credential (__main__.NativeScopeTests.test_unsealed_config_does_not_issue_a_credential) ... ok
+test_application_role_is_not_an_authority_scope (__main__.NativeScopeTests.test_application_role_is_not_an_authority_scope) ... ok
+test_wrong_server_identity_does_not_issue_a_credential (__main__.NativeScopeTests.test_wrong_server_identity_does_not_issue_a_credential) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 4.290s
+
+OK

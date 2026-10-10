@@ -1,0 +1,6 @@
+test_partial_file_write_grants_do_not_mount_entire_project_writable (__main__.WorkspaceAuthorityTests.test_partial_file_write_grants_do_not_mount_entire_project_writable) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.199s
+
+OK

@@ -1,0 +1,107 @@
+[
+  {
+    "backtrace": 1,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/core/test_control_reply.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-control-reply-probe"
+    ],
+    "name": "control-supervisor-reply",
+    "properties": [
+      {
+        "name": "ENVIRONMENT",
+        "value": [
+          "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/python"
+        ]
+      },
+      {
+        "name": "TIMEOUT",
+        "value": 180.0
+      },
+      {
+        "name": "WORKING_DIRECTORY",
+        "value": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build"
+      }
+    ]
+  },
+  {
+    "backtrace": 3,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/native/test_native_scope_config_ownership.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-native-config-witness",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-security-auth"
+    ],
+    "name": "authority-native-config",
+    "properties": [
+      {
+        "name": "ENVIRONMENT",
+        "value": [
+          "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source"
+        ]
+      },
+      {
+        "name": "TIMEOUT",
+        "value": 30.0
+      },
+      {
+        "name": "WORKING_DIRECTORY",
+        "value": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build"
+      }
+    ]
+  },
+  {
+    "backtrace": 5,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/native/test_authority_native_scope.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-native-scope-probe",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-security-auth"
+    ],
+    "name": "authority-native-scope",
+    "properties": [
+      {
+        "name": "ENVIRONMENT",
+        "value": [
+          "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source"
+        ]
+      },
+      {
+        "name": "TIMEOUT",
+        "value": 90.0
+      },
+      {
+        "name": "WORKING_DIRECTORY",
+        "value": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build"
+      }
+    ]
+  },
+  {
+    "backtrace": 7,
+    "command": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/core/test_world_revision_interleave.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/worldd"
+    ],
+    "name": "world-revision-interleave",
+    "properties": [
+      {
+        "name": "ENVIRONMENT",
+        "value": [
+          "PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source"
+        ]
+      },
+      {
+        "name": "TIMEOUT",
+        "value": 90.0
+      },
+      {
+        "name": "WORKING_DIRECTORY",
+        "value": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build"
+      }
+    ]
+  }
+]

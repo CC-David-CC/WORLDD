@@ -1,0 +1,13 @@
+diff --git a/spatial-os-luna-handoff/src/world/authority.cpp b/spatial-os-luna-handoff/src/world/authority.cpp
+index 790d0502..5d7cc48a 100644
+--- a/spatial-os-luna-handoff/src/world/authority.cpp
++++ b/spatial-os-luna-handoff/src/world/authority.cpp
+@@ -53,7 +53,7 @@ pb::GrantRecord WorldAuthority::delegate(const pb::ActorRef& actor, const std::s
+ }
+ pb::GrantRecord WorldAuthority::revoke(const pb::ActorRef& actor, const std::string& id, std::uint64_t revision) {
+     const auto result = store_.revoke(actor, id, revision, [this](const auto& subject) { return active(subject); });
+-    decisions_.clear(); return result;
++    return result;
+ }
+ pb::BootstrapBinding WorldAuthority::bind_bootstrap(const pb::ActorRef& actor,
+     const pb::BootstrapSelector& selector, const std::string& parent, const pb::GrantTerms& terms, std::uint64_t revision) {

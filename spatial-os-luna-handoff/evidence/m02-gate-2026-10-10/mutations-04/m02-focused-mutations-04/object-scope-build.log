@@ -1,0 +1,37 @@
+[0/2] Re-checking globbed directories...
+[1/2] Re-running CMake...
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build
+[0/2] Re-checking globbed directories...
+[1/31] Building CXX object CMakeFiles/spatial-authority.dir/src/authority/store.cpp.o
+[2/31] Linking CXX static library libspatial-authority.a
+[3/31] Linking CXX executable spatial-authority-launch-probe
+[4/31] Linking CXX executable spatial-authority-supervisor
+[5/31] Linking CXX executable spatial-issuer-client
+[6/31] Linking CXX executable spatial-revoke
+[7/31] Linking CXX executable spatial-participant-runtime-probe
+[8/31] Linking CXX executable spatial-issuer-watch
+[9/31] Linking CXX executable spatial-authority-migrate
+[10/31] Building CXX object CMakeFiles/spatial-issuer.dir/src/identity/protocol.cpp.o
+[11/31] Linking CXX static library libspatial-issuer.a
+[12/31] Linking CXX executable identityd
+[13/31] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[14/31] Building CXX object CMakeFiles/spatial-core.dir/src/world/objects.cpp.o
+[15/31] Linking CXX static library libspatial-core.a
+[16/31] Linking CXX executable worldd
+[17/31] Linking CXX executable spatial-native-config-witness
+[18/31] Linking CXX executable spatial-process-termination-probe
+[19/31] Linking CXX executable spatial-render-observation-probe
+[20/31] Linking CXX executable spatial-broker-control-client-probe
+[21/31] Linking CXX executable spatial-authority-probe
+[22/31] Linking CXX executable spatial-issuer-client-probe
+[23/31] Linking CXX executable spatial-issuer-watch-probe
+[24/31] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[25/31] Linking CXX executable spatial-session-broker-probe
+[26/31] Linking CXX executable workspaced
+[27/31] Linking CXX executable spatial-test-host
+[28/31] Linking CXX executable spatial-session-launch-exit-probe
+[29/31] Linking CXX executable spatial-session-world-probe
+[30/31] Linking CXX executable spatial-session-application-probe
+[31/31] Linking CXX executable spatial-child-handle-client-probe

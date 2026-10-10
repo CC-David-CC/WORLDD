@@ -1,0 +1,6 @@
+test_revocation_stops_motion_without_a_recipient_request (__main__.WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.353s
+
+OK

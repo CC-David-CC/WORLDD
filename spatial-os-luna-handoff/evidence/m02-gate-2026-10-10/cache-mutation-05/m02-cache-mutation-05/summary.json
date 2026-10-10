@@ -1,0 +1,120 @@
+{
+  "status": "completed",
+  "source_commit": "54715f9a78aaa92911d2bb0a9c782f316f78902f",
+  "host": "sb16",
+  "profile": "Debug",
+  "phase_complete": false,
+  "test": "WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request",
+  "file": "src/world/authority.cpp",
+  "before_sha256": "b5857cd285998e1d0cbbf8b2f1a8effb956268b8fbb4156dfe9a09dcd531f81e",
+  "after_sha256": "8b7d517d0f95fa75225cb41ddd065d53c4bf798148868f78ce9a0a52ededd5db",
+  "commands": [
+    {
+      "label": "baseline",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/worktree/spatial-os-luna-handoff/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/worktree/spatial-os-luna-handoff/tests/core/test_world_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build/worldd",
+        "WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request"
+      ],
+      "started": 1791659554.9590967,
+      "exit_code": 0,
+      "ended": 1791659557.5494344,
+      "sha256": "7988b626cc92d8c3482d65711f34557d6787f31a59df1ef5d5841c299c0f6294"
+    },
+    {
+      "label": "mutant-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build",
+        "--parallel",
+        "2",
+        "--target",
+        "worldd"
+      ],
+      "started": 1791659557.6893945,
+      "exit_code": 0,
+      "ended": 1791659562.768255,
+      "sha256": "50a1b63bc6e6c8012c1fe308a054d13275898350f7c05bf7fa69388246f8b686"
+    },
+    {
+      "label": "mutant",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/worktree/spatial-os-luna-handoff/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/worktree/spatial-os-luna-handoff/tests/core/test_world_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build/worldd",
+        "WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request"
+      ],
+      "started": 1791659562.8762972,
+      "exit_code": 1,
+      "ended": 1791659565.4601824,
+      "sha256": "1230898c67be97215292f3f45dbc625eec179046b13868d17ce23a4e4cea3787"
+    },
+    {
+      "label": "restored-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build",
+        "--parallel",
+        "2",
+        "--target",
+        "worldd"
+      ],
+      "started": 1791659565.4674861,
+      "exit_code": 0,
+      "ended": 1791659570.6976907,
+      "sha256": "50a1b63bc6e6c8012c1fe308a054d13275898350f7c05bf7fa69388246f8b686"
+    },
+    {
+      "label": "restored",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/worktree/spatial-os-luna-handoff/tools/with_test_display.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/worktree/spatial-os-luna-handoff/tests/core/test_world_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/build/worldd",
+        "WorldAuthorityTests.test_revocation_stops_motion_without_a_recipient_request"
+      ],
+      "started": 1791659570.8030076,
+      "exit_code": 0,
+      "ended": 1791659573.3872986,
+      "sha256": "08aa6d5955fbcf7b72db5e8a57dd6bdb0f45e8d0bcfbe9cbf44dad857f8d5fd7"
+    }
+  ],
+  "binary_pins": {
+    "baseline": {
+      "identityd": "6ed64139427147304d76123ae2128da9b4ac987e53eb22643b625f4eacc19f87",
+      "spatial-issuer-client": "d29aa78410899fc1572371d50e6fcd7c71a085eae95e4a1ac086dbb0925b7f77",
+      "worldd": "b4897b785cf738bc56e153009cf6256d7ef18996c22b60797169ad9b6c333b9b"
+    },
+    "mutant": {
+      "identityd": "6ed64139427147304d76123ae2128da9b4ac987e53eb22643b625f4eacc19f87",
+      "spatial-issuer-client": "d29aa78410899fc1572371d50e6fcd7c71a085eae95e4a1ac086dbb0925b7f77",
+      "worldd": "8626574bad0d9e1f4356290807bc5d63b866a71099af7c3952196d716dfd36ee"
+    },
+    "restored": {
+      "identityd": "6ed64139427147304d76123ae2128da9b4ac987e53eb22643b625f4eacc19f87",
+      "spatial-issuer-client": "d29aa78410899fc1572371d50e6fcd7c71a085eae95e4a1ac086dbb0925b7f77",
+      "worldd": "9b6c2f5e3269b8a1d933cf2cc28b7e03cc480efda2cc9e66ff3b83e0696aacfd"
+    }
+  },
+  "started": 1791659554.830481,
+  "mutation_result": "intended_assertion_failed",
+  "source_restored": true,
+  "ended": 1791659573.6660874
+}

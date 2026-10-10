@@ -1,0 +1,13 @@
+diff --git a/spatial-os-luna-handoff/src/identity/issuer.cpp b/spatial-os-luna-handoff/src/identity/issuer.cpp
+index b9a84bb5..99ce805e 100644
+--- a/spatial-os-luna-handoff/src/identity/issuer.cpp
++++ b/spatial-os-luna-handoff/src/identity/issuer.cpp
+@@ -394,7 +394,7 @@ struct Issuer::Impl {
+         count.integer(1, request.revision());
+         storage(count.step() == SQLITE_ROW && count.integer(0) == row.integer(0) && count.integer(1) >= 0 &&
+                 count.integer(1) <= count.integer(0), "Inconsistent barrier obligation count");
+-        result.set_pending_count(count.integer(1)); result.set_complete(count.integer(1) == 0);
++        result.set_pending_count(count.integer(1)); result.set_complete(true);
+         const auto limit = request.limit() ? request.limit() : 16;
+         Query page(db.get(), "SELECT participant_id,generation FROM authority_obligation WHERE revision=? AND participant_id>? "
+                              "ORDER BY participant_id LIMIT ?");

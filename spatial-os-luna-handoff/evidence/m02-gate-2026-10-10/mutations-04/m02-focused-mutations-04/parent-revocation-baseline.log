@@ -1,0 +1,6 @@
+test_parent_revocation_invalidates_all_descendants (__main__.AuthorityTests.test_parent_revocation_invalidates_all_descendants) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.144s
+
+OK

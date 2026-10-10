@@ -1,0 +1,26 @@
+[
+  {
+    "suite": "control-supervisor-reply",
+    "started_ns": 319392695529632,
+    "argv": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/core/test_control_reply.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-control-reply-probe"
+    ],
+    "ended_ns": 319393010796794,
+    "exit_code": 0
+  },
+  {
+    "suite": "authority-native-config",
+    "started_ns": 319393011256260,
+    "argv": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/native/test_native_scope_config_ownership.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-native-config-witness",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-security-auth"
+    ],
+    "ended_ns": 319393126122756,
+    "exit_code": 1
+  }
+]

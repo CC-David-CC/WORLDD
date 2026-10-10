@@ -1,0 +1,6 @@
+test_object_scope_and_visibility_are_enforced_in_actor_engine (__main__.WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.408s
+
+OK

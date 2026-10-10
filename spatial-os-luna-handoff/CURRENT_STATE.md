@@ -1,5 +1,48 @@
 # Implementation status
 
+## 2026-10-10: Five focused mutation witnesses verified
+
+Five isolated Debug mutations on sb16 each caused the intended existing assertion to fail.
+Each witness passed before mutation and after restoration: ten positive passes and five expected failures.
+The checks cover parent revocation, object scope, partial write authority, premature barrier completion, and world-cache invalidation.
+The cache mutation allowed motion after grant revocation. Its witness detected changed position after the revocation.
+All 351 source files were restored. All 41 locked files remain unchanged.
+No defective mutation entered the project branch or the frozen qualification binaries.
+
+Read evidence/m02-gate-2026-10-10/mutations-04/primary-review.json and cache-mutation-05/primary-review.json under the same parent.
+The first four checks retain patches, build logs, exact commands, intended failures, and restored passes.
+Their individual mutant executable hashes were not recorded. The fifth check records binary hashes for all three states.
+The two setup failures remain preserved. These were an SSH authentication failure and an empty sparse-checkout index.
+The reviewed Git bundle avoided credential changes. Explicit index population fixed the isolated checkout preparation.
+
+The required regression-sensitivity witnesses have current focused evidence against frozen commit 54715f9.
+Reassess this evidence when affected source changes. It does not qualify the complete M02 phase.
+Next: retain broader timing during the original full qualification workflow, with the corrected enrollment fixture.
+The startup timeout and historical timeouts remain unresolved. M02 and Spatial-M1 remain incomplete.
+
+## 2026-10-10: Bounded startup traces remain inconclusive
+
+The four-suite prefix passed 39 cases on a quiet sb16-2 host.
+It passed another 39 cases after an isolated sanitizer rebuild of the same frozen source.
+Both attempts used the original Debug binaries. No production code or deadline changed.
+The quiet trace measured maximum issuer fsync and fdatasync durations of 31100 and 31193 microseconds.
+The rebuilt attempt measured 32285 and 10433 microseconds. Neither trace recorded a 100 ms issuer stall.
+
+The rebuilt attempt omitted the gate inventory and harness commands before the four-suite prefix.
+Its target started 6.48 seconds after the build. Its writeback timing differs from the original failed gate.
+These successful repetitions do not explain the original 985 ms event-loop delay.
+The first wrapper failed before the target because it omitted SPATIAL_TEST_XSERVER.
+Its raw failure_reproduced label is incorrect. The reviewed report classifies that attempt as a setup failure.
+Read evidence/m02-gate-2026-10-10/startup-timing-01/primary-review.json.
+All 97 raw attachments are preserved. The original failure and historical timeouts remain unresolved.
+
+Independent focused mutation witnesses were prepared on sb16 from the same frozen production source.
+The first fetch lacked SSH permission. A verified Git bundle supplied the reviewed history without credential changes.
+An empty sparse-checkout index needed explicit population. All 351 source hashes then matched.
+These setup failures are distinct from test results. The completed witness results are recorded above.
+Next: retain broader timing during the original full qualification workflow.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: M02 gate found migration-fixture and startup failures
 
 The frozen candidate remains unchanged. sb16 completed all 124 Debug core suites; 123 passed and one failed.

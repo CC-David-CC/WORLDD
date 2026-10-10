@@ -1028,3 +1028,57 @@ They had not entered the Git index through the enclosing evidence directory.
 Each was added explicitly, without modifying its bytes. The earlier sb16 commit remains in history.
 The terminal evidence commit supplies the omitted sb16 attachments and the complete sb16-2 archive contents.
 Source and test results are unchanged. The final index check requires every listed raw attachment to exist in Git.
+
+2026-10-10 bounded startup timing and witness preparation
+Prior goal turn made progress: corrected the version-one fixture, passed 128 focused cases, and preserved both terminal gate failures.
+The complete failed gate evidence is pushed at 93204ef87998cd30bd770dcee3ddb8f8765084d4.
+The subsequent quiet-host trace on sb16-2 passed 21 control-reply, 3 native-config, 11 native-scope, and 4 revision-interleaving cases.
+A second trace after an isolated sanitizer rebuild passed the same 39 cases with the original Debug binaries.
+Quiet issuer syscall maxima: fsync 31100 us; fdatasync 31193 us.
+After-rebuild maxima: fsync 32285 us; fdatasync 10433 us.
+Neither successful trace captured an issuer syscall or scheduler wait of at least 100 ms.
+The rebuilt attempt ran the target 6.48 seconds after build completion and omitted pre-core inventory and harness commands.
+Its observation window differs from the original failed gate. No root cause or runtime fix is established.
+The original 985 ms issuer-loop delay remains unexplained. These repetitions do not resolve historical timeouts.
+The first wrapper omitted SPATIAL_TEST_XSERVER and stopped before the target suite.
+Its raw failure_reproduced label is incorrect. The primary review explicitly records a setup failure with the target unrun.
+Evidence: spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/startup-timing-01/primary-review.json.
+Archive SHA-256: 45e5ecd18cabd1cfcdc47ce0505ac7e74277c7f22c38d304bc6271efd8e89848.
+All 97 raw attachments matched their recorded hashes. Production code, acceptance locks, and deadlines remain unchanged.
+
+The independent sb16 mutation setup first failed because sb16 cannot authenticate to box-git over SSH.
+The controller transferred reviewed Git history as an incremental bundle instead of changing credentials.
+Bundle SHA-256: 88407a30c2109a5565b478ed7bf28e3864babf5afd1f9dff5ce3928de36a326f.
+The next setup exposed an empty index after worktree creation with --no-checkout.
+Explicit git read-tree -mu HEAD populated only the new sparse worktree. All 351 source hashes matched afterward.
+Both setup failures remain under local/m02-focused-mutations-02 and local/m02-focused-mutations-03 on sb16.
+The corrected runner is local/run-m02-focused-mutations-04.py. Its isolated output is local/m02-focused-mutations-04.
+Selected witnesses cover parent revocation, object scope, partial write authority, and premature barrier completion.
+Each must pass before mutation, fail by its intended assertion with the mutation, and pass after restoration.
+This focused preparation does not require or claim a passed full phase gate. The selected suites already passed the original Debug gate.
+M02 and Spatial-M1 remain incomplete. Broader original-context timing and full qualification remain required.
+
+2026-10-10 five mutation witnesses verified
+The first four isolated Debug mutations each produced the intended existing assertion failure.
+Parent revocation incorrectly allowed a descendant; object-scope bypass incorrectly accepted a forbidden action.
+Partial write authority incorrectly let a confined process create a file; the independent process reported exit code 21.
+Premature barrier completion returned complete=true with two pending obligations.
+All four positive baselines and all four restored checks passed. Their 351-file source checkout was restored.
+Evidence: spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/mutations-04/primary-review.json.
+Archive SHA-256: 59694131ef5f969e98df4c41f20877c066fdb65170379074ed1603c8c5c0d5cc.
+The archive preserves 76 attachments, including the two setup failures and the checkout repair probe.
+Individual mutant executable hashes were not captured for these four checks. Source patches, builds, commands, and behavioral witnesses are preserved.
+
+The completion audit identified the separately required world-cache mutation witness.
+It reused the restored isolated build and rebuilt only worldd for each changed source state.
+Removing revoke-time cache invalidation allowed motion to continue after grant revocation.
+The unchanged witness failed its position-preservation assertion. Its baseline and restored checks passed.
+Evidence: spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/cache-mutation-05/primary-review.json.
+Archive SHA-256: 9269f7565f313cb855e1540a79885d68e7d035f642ab9e462ed013bc98f7c1b6.
+All 14 raw attachments are preserved. Binary hashes are recorded for baseline, mutant, and restored states.
+Total focused result: ten positive passes and five expected mutation failures, in Debug on sb16.
+All 351 source files were restored and all 41 locked-file hashes remain unchanged.
+No defective mutation was integrated. The original frozen gate binaries and operator sessions remain untouched.
+No diagnostic or mutation runner remains active. The original startup and historical timeout failures remain unresolved.
+Next: broader syscall timing in the complete original qualification context, using the corrected enrollment fixture.
+M02 and Spatial-M1 remain incomplete. No full Debug/sanitizer gate or later milestone is implied by these focused witnesses.

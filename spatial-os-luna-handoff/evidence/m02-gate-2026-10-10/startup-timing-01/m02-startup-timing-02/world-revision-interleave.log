@@ -1,0 +1,9 @@
+test_old_credential_reply_does_not_disable_unrelated_actor (__main__.RevisionInterleaveTests.test_old_credential_reply_does_not_disable_unrelated_actor) ... ok
+test_old_actor_reply_does_not_disable_unrelated_actor (__main__.RevisionInterleaveTests.test_old_actor_reply_does_not_disable_unrelated_actor) ... ok
+test_credential_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_credential_reply_older_than_query_context_is_terminal) ... ok
+test_actor_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_actor_reply_older_than_query_context_is_terminal) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 9.123s
+
+OK

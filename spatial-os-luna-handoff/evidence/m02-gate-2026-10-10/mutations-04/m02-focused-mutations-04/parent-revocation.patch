@@ -1,0 +1,13 @@
+diff --git a/spatial-os-luna-handoff/src/authority/store.cpp b/spatial-os-luna-handoff/src/authority/store.cpp
+index 6726ea2b..d9711f80 100644
+--- a/spatial-os-luna-handoff/src/authority/store.cpp
++++ b/spatial-os-luna-handoff/src/authority/store.cpp
+@@ -244,7 +244,7 @@ struct Store::Impl {
+         for (;;) {
+             stored(seen.size() <= 32 && seen.insert(record.id()).second);
+             // Validate the whole ancestry even if one ancestor is revoked.
+-            if (record.revoked_revision() || !identity(record.terms().subject())) valid = false;
++            if (!identity(record.terms().subject())) valid = false;
+             if (record.parent_id().empty()) return valid;
+             pb::GrantRecord parent;
+             try { parent = get(record.parent_id()); }

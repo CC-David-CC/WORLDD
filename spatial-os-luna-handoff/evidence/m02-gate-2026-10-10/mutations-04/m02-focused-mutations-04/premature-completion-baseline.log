@@ -1,0 +1,6 @@
+test_revocation_stays_pending_until_both_generations_apply (__main__.BarrierTests.test_revocation_stays_pending_until_both_generations_apply) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.813s
+
+OK

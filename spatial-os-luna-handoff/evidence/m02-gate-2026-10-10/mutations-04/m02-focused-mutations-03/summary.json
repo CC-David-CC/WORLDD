@@ -1,0 +1,111 @@
+{
+  "host": "sb16",
+  "source_commit": "54715f9a78aaa92911d2bb0a9c782f316f78902f",
+  "status": "failed",
+  "commands": [
+    {
+      "label": "verify-bundle",
+      "argv": [
+        "git",
+        "bundle",
+        "verify",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-mutation-source-01.bundle"
+      ],
+      "started": 1791658948.5546727,
+      "exit_code": 0,
+      "ended": 1791658948.571671,
+      "sha256": "06d8a02c083c0d982da0a701514157ec951e718c25585f0d5b5d955289b2299b"
+    },
+    {
+      "label": "fetch",
+      "argv": [
+        "git",
+        "fetch",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-mutation-source-01.bundle",
+        "m02/control-recovery"
+      ],
+      "started": 1791658948.58146,
+      "exit_code": 0,
+      "ended": 1791658949.3498185,
+      "sha256": "fee208b3bbdcd96f95515a98419acacc94c592cd84d52f0452b1aa6a319c7c5f"
+    },
+    {
+      "label": "worktree",
+      "argv": [
+        "git",
+        "worktree",
+        "add",
+        "--detach",
+        "--no-checkout",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-03/worktree",
+        "54715f9a78aaa92911d2bb0a9c782f316f78902f"
+      ],
+      "started": 1791658949.3601847,
+      "exit_code": 0,
+      "ended": 1791658949.3684092,
+      "sha256": "8f31412caa1528a761c51169cbf2319bc1b7ac014b91fdf93495be9045fb776f"
+    },
+    {
+      "label": "sparse-checkout",
+      "argv": [
+        "git",
+        "sparse-checkout",
+        "set",
+        "--no-cone",
+        "--stdin"
+      ],
+      "started": 1791658949.3786294,
+      "exit_code": 0,
+      "ended": 1791658949.3831232,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "mutations": [],
+  "source_files": 351,
+  "locked_files_unchanged": 41,
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+  },
+  "started": 1791658948.5326335,
+  "phase_complete": false,
+  "original_gate_status": "failed",
+  "purpose": "Independent focused mutation witnesses on unchanged production inputs. Full phase qualification remains pending.",
+  "selection": [
+    {
+      "name": "parent-revocation",
+      "file": "src/authority/store.cpp",
+      "suite": "authority-store",
+      "test": "AuthorityTests.test_parent_revocation_invalidates_all_descendants",
+      "old": "if (record.revoked_revision() || !identity(record.terms().subject())) valid = false;",
+      "new": "if (!identity(record.terms().subject())) valid = false;"
+    },
+    {
+      "name": "object-scope",
+      "file": "src/world/objects.cpp",
+      "suite": "world-authority",
+      "test": "WorldAuthorityTests.test_object_scope_and_visibility_are_enforced_in_actor_engine",
+      "old": "if (!granted(actor, \"world.write\", {object.room(), object.id()})) throw",
+      "new": "if (false && !granted(actor, \"world.write\", {object.room(), object.id()})) throw"
+    },
+    {
+      "name": "partial-write",
+      "file": "src/workspace/authority.cpp",
+      "suite": "workspace-authority",
+      "test": "WorkspaceAuthorityTests.test_partial_file_write_grants_do_not_mount_entire_project_writable",
+      "old": "if (std::all_of(mutation_rights.begin(), mutation_rights.end(), has)) mask |= 1u << wire::FILES_WRITE;",
+      "new": "if (has(mutation_rights[1])) mask |= 1u << wire::FILES_WRITE;"
+    },
+    {
+      "name": "premature-completion",
+      "file": "src/identity/issuer.cpp",
+      "suite": "identity-participant-barrier",
+      "test": "BarrierTests.test_revocation_stays_pending_until_both_generations_apply",
+      "old": "result.set_complete(count.integer(1) == 0);",
+      "new": "result.set_complete(true);"
+    }
+  ],
+  "bundle_sha256": "88407a30c2109a5565b478ed7bf28e3864babf5afd1f9dff5ce3928de36a326f",
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-03/worktree/spatial-os-luna-handoff/CMakeLists.txt'",
+  "ended": 1791658949.3849878
+}

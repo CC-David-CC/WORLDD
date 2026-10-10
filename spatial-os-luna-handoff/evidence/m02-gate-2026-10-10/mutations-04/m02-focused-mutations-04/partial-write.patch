@@ -1,0 +1,13 @@
+diff --git a/spatial-os-luna-handoff/src/workspace/authority.cpp b/spatial-os-luna-handoff/src/workspace/authority.cpp
+index 889539c1..d2921033 100644
+--- a/spatial-os-luna-handoff/src/workspace/authority.cpp
++++ b/spatial-os-luna-handoff/src/workspace/authority.cpp
+@@ -307,7 +307,7 @@ unsigned WorkspaceAuthority::rights(const pb::AccessRequest& request, bool fresh
+     if (has(a::FILE_BROWSE) && has(a::FILE_READ)) mask |= 1u << wire::FILES_READ;
+     const std::array<a::Right, 8> mutation_rights{a::FILE_CREATE, a::FILE_EDIT, a::FILE_RENAME, a::FILE_MOVE, a::FILE_COPY,
+                                                a::FILE_TRASH, a::FILE_RESTORE, a::FILE_PERMANENT_DELETE};
+-    if (std::all_of(mutation_rights.begin(), mutation_rights.end(), has)) mask |= 1u << wire::FILES_WRITE;
++    if (has(mutation_rights[1])) mask |= 1u << wire::FILES_WRITE;
+     if (has(a::PROCESS_EXECUTE)) mask |= 1u << wire::PROCESS_LAUNCH;
+     return mask;
+ }

@@ -1,0 +1,22 @@
+test_caller_owned_configuration_and_reused_descriptor_survive_native_scope (__main__.NativeConfigOwnershipTests.test_caller_owned_configuration_and_reused_descriptor_survive_native_scope) ... ERROR
+test_native_scope_rejection_preserves_caller_configuration (__main__.NativeConfigOwnershipTests.test_native_scope_rejection_preserves_caller_configuration) ... PASS: NativeScope rejection preserves caller configuration ownership
+ok
+test_native_launch_rejection_still_consumes_configuration (__main__.NativeConfigOwnershipTests.test_native_launch_rejection_still_consumes_configuration) ... PASS: NativeLaunch rejection retains its consuming interface
+ok
+
+======================================================================
+ERROR: test_caller_owned_configuration_and_reused_descriptor_survive_native_scope (__main__.NativeConfigOwnershipTests.test_caller_owned_configuration_and_reused_descriptor_survive_native_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/native/test_native_scope_config_ownership.py", line 19, in test_caller_owned_configuration_and_reused_descriptor_survive_native_scope
+    self.start()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/native/test_security_identity.py", line 103, in start
+    binary = Path(os.environ['SPATIAL_TEST_XSERVER'])
+                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 685, in __getitem__
+KeyError: 'SPATIAL_TEST_XSERVER'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.008s
+
+FAILED (errors=1)

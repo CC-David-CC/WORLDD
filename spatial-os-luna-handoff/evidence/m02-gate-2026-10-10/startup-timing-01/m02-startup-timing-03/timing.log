@@ -1,0 +1,769 @@
+READY root=2267825
+FORK parent=2267825 child=2267836
+EXEC pid=2267836 path=/usr/bin/python3
+FORK parent=2267836 child=2267837
+EXEC pid=2267837 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267838
+EXEC pid=2267838 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267839
+EXEC pid=2267839 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267840
+EXEC pid=2267840 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267841
+EXEC pid=2267841 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267842
+EXEC pid=2267842 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267843
+EXEC pid=2267843 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267844
+EXEC pid=2267844 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267845
+EXEC pid=2267845 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267846
+EXEC pid=2267846 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267847
+EXEC pid=2267847 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267848
+EXEC pid=2267848 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267849
+EXEC pid=2267849 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267850
+EXEC pid=2267850 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267851
+EXEC pid=2267851 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267852
+EXEC pid=2267852 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267853
+EXEC pid=2267853 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267854
+EXEC pid=2267854 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267855
+EXEC pid=2267855 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267856
+EXEC pid=2267856 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267857
+EXEC pid=2267857 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267858
+EXEC pid=2267858 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267859
+EXEC pid=2267859 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267860
+EXEC pid=2267860 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267861
+EXEC pid=2267861 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267862
+EXEC pid=2267862 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267863
+EXEC pid=2267863 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267864
+EXEC pid=2267864 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267865
+EXEC pid=2267865 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267866
+EXEC pid=2267866 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267867
+EXEC pid=2267867 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267868
+EXEC pid=2267868 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267869
+EXEC pid=2267869 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267870
+EXEC pid=2267870 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267871
+EXEC pid=2267871 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267872
+EXEC pid=2267872 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267873
+EXEC pid=2267873 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267874
+EXEC pid=2267874 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267875
+EXEC pid=2267875 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267876
+EXEC pid=2267876 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267877
+EXEC pid=2267877 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267878
+EXEC pid=2267878 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267879
+EXEC pid=2267879 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267880
+EXEC pid=2267880 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267881
+EXEC pid=2267881 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267882
+EXEC pid=2267882 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267883
+EXEC pid=2267883 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267836 child=2267884
+EXEC pid=2267884 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267825 child=2267885
+EXEC pid=2267885 path=/usr/bin/python3
+FORK parent=2267885 child=2267886
+EXEC pid=2267886 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267886 child=2267887
+EXEC pid=2267887 path=/bin/sh
+FORK parent=2267887 child=2267888
+EXEC pid=2267888 path=/usr/bin/xkbcomp
+FORK parent=2267885 child=2267889
+EXEC pid=2267889 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267885 child=2267890
+EXEC pid=2267890 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267885 child=2267891
+EXEC pid=2267891 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267825 child=2267892
+EXEC pid=2267892 path=/usr/bin/python3
+FORK parent=2267892 child=2267893
+EXEC pid=2267893 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267893 child=2267894
+EXEC pid=2267894 path=/bin/sh
+FORK parent=2267894 child=2267895
+EXEC pid=2267895 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267896
+EXEC pid=2267896 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267897
+EXEC pid=2267897 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267897 child=2267898
+EXEC pid=2267898 path=/bin/sh
+FORK parent=2267898 child=2267899
+EXEC pid=2267899 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267900
+EXEC pid=2267900 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267901
+EXEC pid=2267901 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267901 child=2267902
+EXEC pid=2267902 path=/bin/sh
+FORK parent=2267902 child=2267903
+EXEC pid=2267903 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267904
+EXEC pid=2267904 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267905
+EXEC pid=2267905 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267906
+EXEC pid=2267906 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267907
+FORK parent=2267892 child=2267908
+EXEC pid=2267908 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267908 child=2267909
+EXEC pid=2267909 path=/bin/sh
+FORK parent=2267909 child=2267910
+EXEC pid=2267910 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267911
+EXEC pid=2267911 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267912
+EXEC pid=2267912 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267912 child=2267913
+EXEC pid=2267913 path=/bin/sh
+FORK parent=2267913 child=2267914
+EXEC pid=2267914 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267915
+EXEC pid=2267915 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319893702030701 tid=2267892 comm=python3 us=150674 state=1
+WAIT ns=319893702252210 tid=2267912 comm=Xvfb us=150902 state=4
+FORK parent=2267892 child=2267916
+EXEC pid=2267916 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267916 child=2267917
+EXEC pid=2267917 path=/bin/sh
+FORK parent=2267917 child=2267918
+EXEC pid=2267918 path=/usr/bin/xkbcomp
+WAIT ns=319893849705079 tid=2267892 comm=python3 us=104502 state=1
+FORK parent=2267892 child=2267919
+EXEC pid=2267919 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319896859987939 tid=2267892 comm=python3 us=3004883 state=1
+WAIT ns=319896861884958 tid=2267916 comm=Xvfb us=3006777 state=4
+FORK parent=2267892 child=2267922
+EXEC pid=2267922 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267922 child=2267923
+EXEC pid=2267923 path=/bin/sh
+FORK parent=2267923 child=2267924
+EXEC pid=2267924 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267925
+EXEC pid=2267925 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267926
+EXEC pid=2267926 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267926 child=2267927
+EXEC pid=2267927 path=/bin/sh
+FORK parent=2267927 child=2267928
+EXEC pid=2267928 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267929
+EXEC pid=2267929 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267930
+EXEC pid=2267930 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267930 child=2267931
+EXEC pid=2267931 path=/bin/sh
+FORK parent=2267931 child=2267932
+EXEC pid=2267932 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267933
+EXEC pid=2267933 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267934
+EXEC pid=2267934 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267934 child=2267935
+EXEC pid=2267935 path=/bin/sh
+FORK parent=2267935 child=2267936
+EXEC pid=2267936 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267937
+EXEC pid=2267937 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267892 child=2267938
+EXEC pid=2267938 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267938 child=2267939
+EXEC pid=2267939 path=/bin/sh
+FORK parent=2267939 child=2267940
+EXEC pid=2267940 path=/usr/bin/xkbcomp
+FORK parent=2267892 child=2267941
+EXEC pid=2267941 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267825 child=2267942
+EXEC pid=2267942 path=/usr/bin/python3
+FORK parent=2267942 child=2267943
+EXEC pid=2267943 path=/usr/bin/openssl
+FORK parent=2267942 child=2267944
+EXEC pid=2267944 path=/usr/bin/openssl
+FORK parent=2267942 child=2267945
+EXEC pid=2267945 path=/usr/bin/openssl
+FORK parent=2267942 child=2267946
+EXEC pid=2267946 path=/usr/bin/openssl
+FORK parent=2267942 child=2267947
+EXEC pid=2267947 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2267948
+EXEC pid=2267948 path=/usr/bin/openssl
+FORK parent=2267942 child=2267949
+EXEC pid=2267949 path=/usr/bin/openssl
+FORK parent=2267942 child=2267950
+EXEC pid=2267950 path=/usr/bin/openssl
+FORK parent=2267942 child=2267951
+EXEC pid=2267951 path=/usr/bin/openssl
+FORK parent=2267942 child=2267952
+EXEC pid=2267952 path=/usr/bin/openssl
+FORK parent=2267942 child=2267953
+EXEC pid=2267953 path=/usr/bin/openssl
+FORK parent=2267942 child=2267954
+EXEC pid=2267954 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2267955
+EXEC pid=2267955 path=/usr/bin/openssl
+FORK parent=2267942 child=2267956
+EXEC pid=2267956 path=/usr/bin/openssl
+FORK parent=2267942 child=2267957
+EXEC pid=2267957 path=/usr/bin/openssl
+FORK parent=2267942 child=2267958
+EXEC pid=2267958 path=/usr/bin/openssl
+FORK parent=2267942 child=2267959
+EXEC pid=2267959 path=/usr/bin/openssl
+FORK parent=2267942 child=2267960
+EXEC pid=2267960 path=/usr/bin/openssl
+FORK parent=2267942 child=2267962
+EXEC pid=2267962 path=/usr/bin/openssl
+FORK parent=2267942 child=2267963
+EXEC pid=2267963 path=/usr/bin/openssl
+FORK parent=2267942 child=2267964
+FORK parent=2267942 child=2267965
+EXEC pid=2267965 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2267966
+EXEC pid=2267966 path=/usr/bin/openssl
+FORK parent=2267942 child=2267967
+EXEC pid=2267967 path=/usr/bin/openssl
+WAIT ns=319898166765484 tid=2267964 comm=python3 us=100306 state=1
+SLOW ns=319898166774952 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100337 result=0
+FORK parent=2267942 child=2267968
+EXEC pid=2267968 path=/usr/bin/openssl
+FORK parent=2267942 child=2267969
+EXEC pid=2267969 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319898266987364 tid=2267964 comm=python3 us=100188 state=1
+SLOW ns=319898267044041 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100247 result=0
+WAIT ns=319898367317963 tid=2267964 comm=python3 us=100198 state=1
+SLOW ns=319898367351576 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100251 result=0
+FORK parent=2267969 child=2267970
+WAIT ns=319898467644525 tid=2267964 comm=python3 us=100201 state=1
+SLOW ns=319898467675196 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100255 result=0
+WAIT ns=319898567933212 tid=2267964 comm=python3 us=100173 state=1
+SLOW ns=319898567965260 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100226 result=0
+WAIT ns=319898639104185 tid=2267942 comm=python3 us=377577 state=1
+WAIT ns=319898668109933 tid=2267964 comm=python3 us=100041 state=1
+SLOW ns=319898668141864 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100092 result=0
+WAIT ns=319898768444440 tid=2267964 comm=python3 us=100210 state=1
+SLOW ns=319898768480773 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100270 result=0
+FORK parent=2267942 child=2267972
+EXEC pid=2267972 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319898868741833 tid=2267964 comm=python3 us=100166 state=1
+SLOW ns=319898868760763 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100224 result=0
+FORK parent=2267942 child=2267973
+EXEC pid=2267973 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2267974
+EXEC pid=2267974 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267964 child=2267975
+FORK parent=2267974 child=2267976
+FORK parent=2267964 child=2267977
+WAIT ns=319899099933228 tid=2267964 comm=python3 us=100140 state=1
+SLOW ns=319899099963085 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100173 result=0
+WAIT ns=319899200186491 tid=2267964 comm=python3 us=100129 state=1
+SLOW ns=319899200218533 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100178 result=0
+WAIT ns=319899229630996 tid=2267977 comm=python3 us=116298 state=1
+SLOW ns=319899229664425 pid=2267942 tid=2267977 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=116348 result=1
+WAIT ns=319899263827299 tid=2267942 comm=python3 us=372299 state=1
+WAIT ns=319899275669361 tid=2267975 comm=python3 us=286939 state=1
+SLOW ns=319899275705146 pid=2267942 tid=2267975 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=286994 result=1
+WAIT ns=319899300507674 tid=2267964 comm=python3 us=100193 state=1
+SLOW ns=319899300539745 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100249 result=0
+FORK parent=2267942 child=2267978
+EXEC pid=2267978 path=/usr/bin/openssl
+WAIT ns=319899377178115 tid=2267977 comm=python3 us=115212 state=1
+SLOW ns=319899377219494 pid=2267942 tid=2267977 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=115271 result=1
+WAIT ns=319899400792312 tid=2267964 comm=python3 us=100135 state=1
+SLOW ns=319899400820521 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100210 result=0
+WAIT ns=319899498000809 tid=2267977 comm=python3 us=119110 state=1
+SLOW ns=319899498059662 pid=2267942 tid=2267977 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=119182 result=1
+FORK parent=2267975 child=2267980
+WAIT ns=319899501082413 tid=2267964 comm=python3 us=100185 state=1
+SLOW ns=319899501107965 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100228 result=0
+EXEC pid=2267980 path=/usr/bin/openssl
+WAIT ns=319899601777183 tid=2267964 comm=python3 us=100608 state=1
+SLOW ns=319899601817196 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100666 result=0
+WAIT ns=319899643983864 tid=2267942 comm=python3 us=233211 state=1
+WAIT ns=319899668374065 tid=2267977 comm=python3 us=116504 state=1
+SLOW ns=319899668409863 pid=2267942 tid=2267977 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=116554 result=1
+WAIT ns=319899702127971 tid=2267964 comm=python3 us=100221 state=1
+SLOW ns=319899702166763 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100281 result=0
+WAIT ns=319899802474656 tid=2267964 comm=python3 us=100216 state=1
+SLOW ns=319899802511775 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100275 result=0
+WAIT ns=319899808563960 tid=2267977 comm=python3 us=116017 state=1
+SLOW ns=319899808597448 pid=2267942 tid=2267977 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=116068 result=1
+WAIT ns=319899841267064 tid=2267975 comm=python3 us=149188 state=1
+SLOW ns=319899841296889 pid=2267942 tid=2267975 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=149235 result=1
+WAIT ns=319899903192671 tid=2267964 comm=python3 us=100597 state=1
+SLOW ns=319899903232776 pid=2267942 tid=2267964 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100655 result=1
+FORK parent=2267942 child=2267981
+EXEC pid=2267981 path=/usr/bin/openssl
+FORK parent=2267942 child=2267982
+EXEC pid=2267982 path=/usr/bin/openssl
+FORK parent=2267942 child=2267983
+EXEC pid=2267983 path=/usr/bin/openssl
+FORK parent=2267942 child=2267984
+EXEC pid=2267984 path=/usr/bin/openssl
+FORK parent=2267942 child=2267985
+EXEC pid=2267985 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2267986
+EXEC pid=2267986 path=/usr/bin/openssl
+FORK parent=2267942 child=2267987
+EXEC pid=2267987 path=/usr/bin/openssl
+FORK parent=2267942 child=2267988
+EXEC pid=2267988 path=/usr/bin/openssl
+FORK parent=2267942 child=2267989
+EXEC pid=2267989 path=/usr/bin/openssl
+FORK parent=2267942 child=2267990
+EXEC pid=2267990 path=/usr/bin/openssl
+FORK parent=2267942 child=2267991
+EXEC pid=2267991 path=/usr/bin/openssl
+FORK parent=2267942 child=2267992
+EXEC pid=2267992 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2267993
+EXEC pid=2267993 path=/usr/bin/openssl
+FORK parent=2267942 child=2267994
+EXEC pid=2267994 path=/usr/bin/openssl
+FORK parent=2267942 child=2267995
+EXEC pid=2267995 path=/usr/bin/openssl
+FORK parent=2267942 child=2267996
+EXEC pid=2267996 path=/usr/bin/openssl
+FORK parent=2267942 child=2267997
+EXEC pid=2267997 path=/usr/bin/openssl
+FORK parent=2267942 child=2267998
+EXEC pid=2267998 path=/usr/bin/openssl
+FORK parent=2267942 child=2267999
+EXEC pid=2267999 path=/usr/bin/openssl
+FORK parent=2267942 child=2268000
+EXEC pid=2268000 path=/usr/bin/openssl
+FORK parent=2267942 child=2268001
+FORK parent=2267942 child=2268002
+EXEC pid=2268002 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268003
+EXEC pid=2268003 path=/usr/bin/openssl
+FORK parent=2267942 child=2268004
+EXEC pid=2268004 path=/usr/bin/openssl
+WAIT ns=319900538914436 tid=2268001 comm=python3 us=100265 state=1
+SLOW ns=319900538923654 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100295 result=0
+FORK parent=2267942 child=2268005
+EXEC pid=2268005 path=/usr/bin/openssl
+FORK parent=2267942 child=2268006
+EXEC pid=2268006 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319900639091646 tid=2268001 comm=python3 us=100147 state=1
+SLOW ns=319900639119029 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100177 result=0
+WAIT ns=319900739585321 tid=2268001 comm=python3 us=100404 state=1
+SLOW ns=319900739615451 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100452 result=0
+FORK parent=2268006 child=2268007
+WAIT ns=319900839868907 tid=2268001 comm=python3 us=100169 state=1
+SLOW ns=319900839896978 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100216 result=0
+WAIT ns=319900940146912 tid=2268001 comm=python3 us=100178 state=1
+SLOW ns=319900940178158 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100225 result=0
+WAIT ns=319901013641992 tid=2267942 comm=python3 us=385286 state=1
+WAIT ns=319901040435330 tid=2268001 comm=python3 us=100179 state=1
+SLOW ns=319901040470120 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100230 result=0
+WAIT ns=319901140716297 tid=2268001 comm=python3 us=100165 state=1
+SLOW ns=319901140745394 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100212 result=0
+FORK parent=2267942 child=2268008
+EXEC pid=2268008 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319901240981326 tid=2268001 comm=python3 us=100152 state=1
+SLOW ns=319901241012112 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100195 result=0
+FORK parent=2267942 child=2268009
+EXEC pid=2268009 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268010
+EXEC pid=2268010 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2268001 child=2268011
+FORK parent=2268010 child=2268012
+FORK parent=2268001 child=2268013
+WAIT ns=319901495869446 tid=2268001 comm=python3 us=100174 state=1
+SLOW ns=319901495896319 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100204 result=0
+WAIT ns=319901596026182 tid=2268001 comm=python3 us=100069 state=1
+SLOW ns=319901596053325 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100115 result=0
+WAIT ns=319901623346842 tid=2268013 comm=python3 us=115841 state=1
+SLOW ns=319901623381442 pid=2267942 tid=2268013 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=115893 result=1
+WAIT ns=319901657770298 tid=2267942 comm=python3 us=373200 state=1
+WAIT ns=319901669654688 tid=2268011 comm=python3 us=284919 state=1
+SLOW ns=319901669689817 pid=2267942 tid=2268011 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=284973 result=1
+WAIT ns=319901696242709 tid=2268001 comm=python3 us=100120 state=1
+SLOW ns=319901696274387 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100162 result=0
+FORK parent=2267942 child=2268015
+EXEC pid=2268015 path=/usr/bin/openssl
+WAIT ns=319901767337516 tid=2268013 comm=python3 us=111626 state=1
+SLOW ns=319901767372240 pid=2267942 tid=2268013 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=111678 result=1
+WAIT ns=319901796565866 tid=2268001 comm=python3 us=100210 state=1
+SLOW ns=319901796597014 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100260 result=0
+WAIT ns=319901873924317 tid=2268013 comm=python3 us=104846 state=1
+SLOW ns=319901873961403 pid=2267942 tid=2268013 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=104901 result=1
+WAIT ns=319901896848387 tid=2268001 comm=python3 us=100161 state=1
+SLOW ns=319901896884332 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100223 result=0
+FORK parent=2268011 child=2268016
+EXEC pid=2268016 path=/usr/bin/openssl
+WAIT ns=319901997127562 tid=2268001 comm=python3 us=100162 state=1
+SLOW ns=319901997157633 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100210 result=0
+WAIT ns=319902046257904 tid=2267942 comm=python3 us=233633 state=1
+WAIT ns=319902070546777 tid=2268013 comm=python3 us=116790 state=1
+SLOW ns=319902070584298 pid=2267942 tid=2268013 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=116839 result=1
+WAIT ns=319902097291369 tid=2268001 comm=python3 us=100055 state=1
+SLOW ns=319902097330448 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100111 result=0
+WAIT ns=319902197583349 tid=2268001 comm=python3 us=100163 state=1
+SLOW ns=319902197612670 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100215 result=0
+WAIT ns=319902208600593 tid=2268013 comm=python3 us=115044 state=1
+SLOW ns=319902208637317 pid=2267942 tid=2268013 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=115099 result=1
+WAIT ns=319902242267673 tid=2268011 comm=python3 us=149120 state=1
+SLOW ns=319902242298310 pid=2267942 tid=2268011 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=149168 result=1
+WAIT ns=319902298282615 tid=2268001 comm=python3 us=100601 state=1
+SLOW ns=319902298321590 pid=2267942 tid=2268001 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100657 result=1
+FORK parent=2267942 child=2268018
+EXEC pid=2268018 path=/usr/bin/openssl
+FORK parent=2267942 child=2268019
+EXEC pid=2268019 path=/usr/bin/openssl
+FORK parent=2267942 child=2268020
+EXEC pid=2268020 path=/usr/bin/openssl
+FORK parent=2267942 child=2268021
+EXEC pid=2268021 path=/usr/bin/openssl
+FORK parent=2267942 child=2268022
+EXEC pid=2268022 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268023
+EXEC pid=2268023 path=/usr/bin/openssl
+FORK parent=2267942 child=2268024
+EXEC pid=2268024 path=/usr/bin/openssl
+FORK parent=2267942 child=2268025
+EXEC pid=2268025 path=/usr/bin/openssl
+FORK parent=2267942 child=2268026
+EXEC pid=2268026 path=/usr/bin/openssl
+FORK parent=2267942 child=2268027
+EXEC pid=2268027 path=/usr/bin/openssl
+FORK parent=2267942 child=2268028
+EXEC pid=2268028 path=/usr/bin/openssl
+FORK parent=2267942 child=2268029
+EXEC pid=2268029 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268030
+EXEC pid=2268030 path=/usr/bin/openssl
+FORK parent=2267942 child=2268031
+EXEC pid=2268031 path=/usr/bin/openssl
+FORK parent=2267942 child=2268032
+EXEC pid=2268032 path=/usr/bin/openssl
+FORK parent=2267942 child=2268033
+EXEC pid=2268033 path=/usr/bin/openssl
+FORK parent=2267942 child=2268034
+EXEC pid=2268034 path=/usr/bin/openssl
+FORK parent=2267942 child=2268035
+EXEC pid=2268035 path=/usr/bin/openssl
+FORK parent=2267942 child=2268036
+EXEC pid=2268036 path=/usr/bin/openssl
+FORK parent=2267942 child=2268037
+EXEC pid=2268037 path=/usr/bin/openssl
+FORK parent=2267942 child=2268038
+FORK parent=2267942 child=2268039
+EXEC pid=2268039 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268040
+EXEC pid=2268040 path=/usr/bin/openssl
+FORK parent=2267942 child=2268041
+EXEC pid=2268041 path=/usr/bin/openssl
+WAIT ns=319902915601653 tid=2268038 comm=python3 us=100271 state=1
+SLOW ns=319902915625006 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100314 result=0
+FORK parent=2267942 child=2268042
+EXEC pid=2268042 path=/usr/bin/openssl
+FORK parent=2267942 child=2268043
+EXEC pid=2268043 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319903015849272 tid=2268038 comm=python3 us=100172 state=1
+SLOW ns=319903015875254 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100207 result=0
+WAIT ns=319903116294950 tid=2268038 comm=python3 us=100358 state=1
+SLOW ns=319903116332120 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100412 result=0
+FORK parent=2268043 child=2268044
+WAIT ns=319903216606304 tid=2268038 comm=python3 us=100181 state=1
+SLOW ns=319903216634804 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100231 result=0
+WAIT ns=319903316887598 tid=2268038 comm=python3 us=100172 state=1
+SLOW ns=319903316918903 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100220 result=0
+WAIT ns=319903396083168 tid=2267942 comm=python3 us=381708 state=1
+WAIT ns=319903417128421 tid=2268038 comm=python3 us=100125 state=1
+SLOW ns=319903417157167 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100171 result=0
+WAIT ns=319903517434342 tid=2268038 comm=python3 us=100203 state=1
+SLOW ns=319903517471483 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100256 result=0
+FORK parent=2267942 child=2268045
+EXEC pid=2268045 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319903617652121 tid=2268038 comm=python3 us=100092 state=1
+SLOW ns=319903617667964 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100126 result=0
+FORK parent=2267942 child=2268046
+EXEC pid=2268046 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268047
+EXEC pid=2268047 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2268038 child=2268048
+FORK parent=2268047 child=2268049
+FORK parent=2268038 child=2268050
+WAIT ns=319903862602506 tid=2268038 comm=python3 us=100105 state=1
+SLOW ns=319903862626853 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100141 result=0
+WAIT ns=319903962853628 tid=2268038 comm=python3 us=100168 state=1
+SLOW ns=319903962885491 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100212 result=0
+WAIT ns=319904002141052 tid=2268050 comm=python3 us=115522 state=1
+SLOW ns=319904002177442 pid=2267942 tid=2268050 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=115577 result=1
+WAIT ns=319904037597489 tid=2267942 comm=python3 us=385584 state=1
+WAIT ns=319904049301946 tid=2268048 comm=python3 us=300703 state=1
+SLOW ns=319904049336913 pid=2267942 tid=2268048 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=300754 result=1
+WAIT ns=319904063111370 tid=2268038 comm=python3 us=100143 state=1
+SLOW ns=319904063146632 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100196 result=0
+FORK parent=2267942 child=2268051
+EXEC pid=2268051 path=/usr/bin/openssl
+WAIT ns=319904150994606 tid=2268050 comm=python3 us=115652 state=1
+SLOW ns=319904151052623 pid=2267942 tid=2268050 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=115729 result=1
+WAIT ns=319904163417673 tid=2268038 comm=python3 us=100159 state=1
+SLOW ns=319904163450003 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100211 result=0
+FORK parent=2267942 child=2268052
+EXEC pid=2268052 path=/usr/bin/openssl
+WAIT ns=319904263706997 tid=2268038 comm=python3 us=100166 state=1
+SLOW ns=319904263735723 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100219 result=0
+WAIT ns=319904284123255 tid=2268050 comm=python3 us=131540 state=1
+SLOW ns=319904284160454 pid=2267942 tid=2268050 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=131598 result=1
+WAIT ns=319904286494883 tid=2268048 comm=python3 us=134409 state=1
+SLOW ns=319904286523804 pid=2267942 tid=2268048 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=134453 result=1
+WAIT ns=319904363989199 tid=2268038 comm=python3 us=100189 state=1
+SLOW ns=319904364067923 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100283 result=0
+WAIT ns=319904394665988 tid=2268050 comm=python3 us=105598 state=1
+SLOW ns=319904394700650 pid=2267942 tid=2268050 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=105652 result=1
+WAIT ns=319904464337886 tid=2268038 comm=python3 us=100178 state=1
+SLOW ns=319904464371656 pid=2267942 tid=2268038 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100233 result=1
+FORK parent=2267942 child=2268054
+EXEC pid=2268054 path=/usr/bin/openssl
+FORK parent=2267942 child=2268055
+EXEC pid=2268055 path=/usr/bin/openssl
+FORK parent=2267942 child=2268056
+EXEC pid=2268056 path=/usr/bin/openssl
+FORK parent=2267942 child=2268057
+EXEC pid=2268057 path=/usr/bin/openssl
+FORK parent=2267942 child=2268058
+EXEC pid=2268058 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268059
+EXEC pid=2268059 path=/usr/bin/openssl
+FORK parent=2267942 child=2268060
+EXEC pid=2268060 path=/usr/bin/openssl
+FORK parent=2267942 child=2268061
+EXEC pid=2268061 path=/usr/bin/openssl
+FORK parent=2267942 child=2268062
+EXEC pid=2268062 path=/usr/bin/openssl
+FORK parent=2267942 child=2268063
+EXEC pid=2268063 path=/usr/bin/openssl
+FORK parent=2267942 child=2268064
+EXEC pid=2268064 path=/usr/bin/openssl
+FORK parent=2267942 child=2268065
+EXEC pid=2268065 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268066
+EXEC pid=2268066 path=/usr/bin/openssl
+FORK parent=2267942 child=2268067
+EXEC pid=2268067 path=/usr/bin/openssl
+FORK parent=2267942 child=2268068
+EXEC pid=2268068 path=/usr/bin/openssl
+FORK parent=2267942 child=2268069
+EXEC pid=2268069 path=/usr/bin/openssl
+FORK parent=2267942 child=2268070
+EXEC pid=2268070 path=/usr/bin/openssl
+FORK parent=2267942 child=2268071
+EXEC pid=2268071 path=/usr/bin/openssl
+FORK parent=2267942 child=2268072
+EXEC pid=2268072 path=/usr/bin/openssl
+FORK parent=2267942 child=2268074
+EXEC pid=2268074 path=/usr/bin/openssl
+FORK parent=2267942 child=2268075
+FORK parent=2267942 child=2268076
+EXEC pid=2268076 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268077
+EXEC pid=2268077 path=/usr/bin/openssl
+FORK parent=2267942 child=2268078
+EXEC pid=2268078 path=/usr/bin/openssl
+WAIT ns=319905109508454 tid=2268075 comm=python3 us=100511 state=1
+SLOW ns=319905109549552 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100565 result=0
+FORK parent=2267942 child=2268079
+EXEC pid=2268079 path=/usr/bin/openssl
+FORK parent=2267942 child=2268080
+EXEC pid=2268080 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319905209798933 tid=2268075 comm=python3 us=100150 state=1
+SLOW ns=319905209813237 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100192 result=0
+FORK parent=2268080 child=2268081
+WAIT ns=319905310023437 tid=2268075 comm=python3 us=100174 state=1
+SLOW ns=319905310046491 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100205 result=0
+WAIT ns=319905410226128 tid=2268075 comm=python3 us=100117 state=1
+SLOW ns=319905410254794 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100158 result=0
+WAIT ns=319905510538865 tid=2268075 comm=python3 us=100206 state=1
+SLOW ns=319905510568843 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100254 result=0
+WAIT ns=319905554075635 tid=2267942 comm=python3 us=375580 state=1
+WAIT ns=319905610831549 tid=2268075 comm=python3 us=100185 state=1
+SLOW ns=319905610867793 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100238 result=0
+WAIT ns=319905711153868 tid=2268075 comm=python3 us=100199 state=1
+SLOW ns=319905711185801 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100250 result=0
+FORK parent=2267942 child=2268082
+EXEC pid=2268082 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2267942 child=2268083
+EXEC pid=2268083 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+WAIT ns=319905811435839 tid=2268075 comm=python3 us=100170 state=1
+SLOW ns=319905811463230 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100215 result=0
+FORK parent=2267942 child=2268084
+EXEC pid=2268084 path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/loca..
+FORK parent=2268075 child=2268085
+FORK parent=2268084 child=2268086
+FORK parent=2268075 child=2268087
+WAIT ns=319906038749789 tid=2268075 comm=python3 us=100143 state=1
+SLOW ns=319906038779411 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100182 result=0
+WAIT ns=319906139068281 tid=2268075 comm=python3 us=100212 state=1
+SLOW ns=319906139098256 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100254 result=0
+WAIT ns=319906177626103 tid=2268087 comm=python3 us=115698 state=1
+SLOW ns=319906177658961 pid=2267942 tid=2268087 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=115748 result=1
+WAIT ns=319906210403663 tid=2267942 comm=python3 us=381883 state=1
+WAIT ns=319906222233126 tid=2268085 comm=python3 us=297576 state=1
+SLOW ns=319906222269014 pid=2267942 tid=2268085 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=297632 result=1
+WAIT ns=319906239295687 tid=2268075 comm=python3 us=100110 state=1
+SLOW ns=319906239322348 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100157 result=0
+FORK parent=2267942 child=2268088
+EXEC pid=2268088 path=/usr/bin/openssl
+WAIT ns=319906322124232 tid=2268087 comm=python3 us=113124 state=1
+SLOW ns=319906322165126 pid=2267942 tid=2268087 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=113182 result=1
+WAIT ns=319906339572689 tid=2268075 comm=python3 us=100185 state=1
+SLOW ns=319906339608023 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100239 result=0
+FORK parent=2267942 child=2268089
+EXEC pid=2268089 path=/usr/bin/openssl
+WAIT ns=319906439875265 tid=2268075 comm=python3 us=100179 state=1
+SLOW ns=319906439901368 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100226 result=0
+WAIT ns=319906461413216 tid=2268087 comm=python3 us=137741 state=1
+SLOW ns=319906461474346 pid=2267942 tid=2268087 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=137820 result=1
+WAIT ns=319906462920589 tid=2268085 comm=python3 us=139700 state=1
+SLOW ns=319906462950260 pid=2267942 tid=2268085 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=139746 result=1
+WAIT ns=319906540167986 tid=2268075 comm=python3 us=100200 state=1
+SLOW ns=319906540207414 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100256 result=0
+WAIT ns=319906575679404 tid=2268087 comm=python3 us=109957 state=1
+SLOW ns=319906575710461 pid=2267942 tid=2268087 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=110012 result=1
+WAIT ns=319906640523793 tid=2268075 comm=python3 us=100222 state=1
+SLOW ns=319906640563039 pid=2267942 tid=2268075 comm=python3 call=tracepoint:syscalls:sys_exit_poll us=100283 result=1
+ROOT_EXIT
+
+
+@calls[spatial-xprobe, tracepoint:syscalls:sys_exit_pread64]: 2
+@calls[spatial-input-b, tracepoint:syscalls:sys_exit_pread64]: 2
+@calls[worldd, tracepoint:syscalls:sys_exit_fsync]: 4
+@calls[spatial-input-b, tracepoint:syscalls:sys_exit_futex]: 4
+@calls[spatial-native-, tracepoint:syscalls:sys_exit_write]: 6
+@calls[python3, tracepoint:syscalls:sys_exit_pread64]: 8
+@calls[openssl, tracepoint:syscalls:sys_exit_write]: 9
+@calls[sh, tracepoint:syscalls:sys_exit_read]: 12
+@calls[identityd, tracepoint:syscalls:sys_exit_fsync]: 12
+@calls[spatial-input-b, tracepoint:syscalls:sys_exit_read]: 18
+@calls[xkbcomp, tracepoint:syscalls:sys_exit_pread64]: 24
+@calls[sh, tracepoint:syscalls:sys_exit_pread64]: 24
+@calls[worldd, tracepoint:syscalls:sys_exit_write]: 32
+@calls[identityd, tracepoint:syscalls:sys_exit_write]: 32
+@calls[spatial-input-b, tracepoint:syscalls:sys_exit_poll]: 33
+@calls[Xvfb, tracepoint:syscalls:sys_exit_pread64]: 36
+@calls[spatial-native-, tracepoint:syscalls:sys_exit_pread64]: 39
+@calls[spatial-xprobe, tracepoint:syscalls:sys_exit_poll]: 45
+@calls[spatial-native-, tracepoint:syscalls:sys_exit_futex]: 54
+@calls[spatial-xprobe, tracepoint:syscalls:sys_exit_read]: 65
+@calls[worldd, tracepoint:syscalls:sys_exit_fdatasync]: 80
+@calls[spatial-control, tracepoint:syscalls:sys_exit_pread64]: 96
+@calls[spatial-native-, tracepoint:syscalls:sys_exit_read]: 98
+@calls[python3, tracepoint:syscalls:sys_exit_write]: 99
+@calls[identityd, tracepoint:syscalls:sys_exit_pwrite64]: 131
+@calls[Xvfb, tracepoint:syscalls:sys_exit_write]: 166
+@calls[xkbcomp, tracepoint:syscalls:sys_exit_write]: 168
+@calls[openssl, tracepoint:syscalls:sys_exit_pread64]: 184
+@calls[identityd, tracepoint:syscalls:sys_exit_fdatasync]: 220
+@calls[identityd, tracepoint:syscalls:sys_exit_futex]: 224
+@calls[spatial-control, tracepoint:syscalls:sys_exit_read]: 344
+@calls[spatial-native-, tracepoint:syscalls:sys_exit_poll]: 346
+@calls[python3, tracepoint:syscalls:sys_exit_futex]: 412
+@calls[worldd, tracepoint:syscalls:sys_exit_futex]: 416
+@calls[spatial-control, tracepoint:syscalls:sys_exit_futex]: 466
+@calls[worldd, tracepoint:syscalls:sys_exit_pread64]: 574
+@calls[identityd, tracepoint:syscalls:sys_exit_pread64]: 769
+@calls[identityd, tracepoint:syscalls:sys_exit_read]: 904
+@calls[openssl, tracepoint:syscalls:sys_exit_read]: 912
+@calls[identityd, tracepoint:syscalls:sys_exit_poll]: 1122
+@calls[python3, tracepoint:syscalls:sys_exit_poll]: 1126
+@calls[worldd, tracepoint:syscalls:sys_exit_read]: 1240
+@calls[Xvfb, tracepoint:syscalls:sys_exit_futex]: 1704
+@calls[openssl, tracepoint:syscalls:sys_exit_futex]: 1872
+@calls[xkbcomp, tracepoint:syscalls:sys_exit_read]: 1944
+@calls[python3, tracepoint:syscalls:sys_exit_read]: 3188
+@calls[Xvfb, tracepoint:syscalls:sys_exit_read]: 3895
+@calls[worldd, tracepoint:syscalls:sys_exit_poll]: 5295
+@maximum_us[spatial-input-b, tracepoint:syscalls:sys_exit_pread64]: 0
+@maximum_us[spatial-control, tracepoint:syscalls:sys_exit_pread64]: 0
+@maximum_us[spatial-input-b, tracepoint:syscalls:sys_exit_futex]: 1
+@maximum_us[spatial-xprobe, tracepoint:syscalls:sys_exit_pread64]: 1
+@maximum_us[xkbcomp, tracepoint:syscalls:sys_exit_pread64]: 1
+@maximum_us[sh, tracepoint:syscalls:sys_exit_pread64]: 1
+@maximum_us[python3, tracepoint:syscalls:sys_exit_pread64]: 2
+@maximum_us[sh, tracepoint:syscalls:sys_exit_read]: 2
+@maximum_us[spatial-control, tracepoint:syscalls:sys_exit_futex]: 2
+@maximum_us[spatial-native-, tracepoint:syscalls:sys_exit_pread64]: 3
+@maximum_us[xkbcomp, tracepoint:syscalls:sys_exit_read]: 4
+@maximum_us[spatial-native-, tracepoint:syscalls:sys_exit_write]: 4
+@maximum_us[spatial-input-b, tracepoint:syscalls:sys_exit_read]: 4
+@maximum_us[openssl, tracepoint:syscalls:sys_exit_pread64]: 5
+@maximum_us[worldd, tracepoint:syscalls:sys_exit_fsync]: 6
+@maximum_us[spatial-xprobe, tracepoint:syscalls:sys_exit_read]: 6
+@maximum_us[Xvfb, tracepoint:syscalls:sys_exit_pread64]: 8
+@maximum_us[spatial-native-, tracepoint:syscalls:sys_exit_futex]: 9
+@maximum_us[identityd, tracepoint:syscalls:sys_exit_futex]: 9
+@maximum_us[spatial-control, tracepoint:syscalls:sys_exit_read]: 9
+@maximum_us[Xvfb, tracepoint:syscalls:sys_exit_futex]: 10
+@maximum_us[xkbcomp, tracepoint:syscalls:sys_exit_write]: 13
+@maximum_us[Xvfb, tracepoint:syscalls:sys_exit_write]: 14
+@maximum_us[openssl, tracepoint:syscalls:sys_exit_read]: 23
+@maximum_us[openssl, tracepoint:syscalls:sys_exit_futex]: 24
+@maximum_us[Xvfb, tracepoint:syscalls:sys_exit_read]: 32
+@maximum_us[worldd, tracepoint:syscalls:sys_exit_pread64]: 38
+@maximum_us[identityd, tracepoint:syscalls:sys_exit_read]: 42
+@maximum_us[worldd, tracepoint:syscalls:sys_exit_futex]: 43
+@maximum_us[worldd, tracepoint:syscalls:sys_exit_read]: 46
+@maximum_us[openssl, tracepoint:syscalls:sys_exit_write]: 53
+@maximum_us[identityd, tracepoint:syscalls:sys_exit_pread64]: 59
+@maximum_us[identityd, tracepoint:syscalls:sys_exit_pwrite64]: 64
+@maximum_us[python3, tracepoint:syscalls:sys_exit_write]: 114
+@maximum_us[worldd, tracepoint:syscalls:sys_exit_write]: 142
+@maximum_us[identityd, tracepoint:syscalls:sys_exit_write]: 151
+@maximum_us[spatial-xprobe, tracepoint:syscalls:sys_exit_poll]: 2220
+@maximum_us[python3, tracepoint:syscalls:sys_exit_read]: 2382
+@maximum_us[spatial-input-b, tracepoint:syscalls:sys_exit_poll]: 2904
+@maximum_us[worldd, tracepoint:syscalls:sys_exit_fdatasync]: 7479
+@maximum_us[identityd, tracepoint:syscalls:sys_exit_fdatasync]: 10433
+@maximum_us[spatial-native-, tracepoint:syscalls:sys_exit_poll]: 10662
+@maximum_us[worldd, tracepoint:syscalls:sys_exit_poll]: 10719
+@maximum_us[identityd, tracepoint:syscalls:sys_exit_poll]: 10758
+@maximum_us[spatial-native-, tracepoint:syscalls:sys_exit_read]: 11049
+@maximum_us[identityd, tracepoint:syscalls:sys_exit_fsync]: 32285
+@maximum_us[python3, tracepoint:syscalls:sys_exit_futex]: 91436
+@maximum_us[python3, tracepoint:syscalls:sys_exit_poll]: 300754
+
+
+
+
+

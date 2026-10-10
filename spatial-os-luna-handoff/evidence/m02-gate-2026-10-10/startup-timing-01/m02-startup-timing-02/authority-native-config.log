@@ -1,0 +1,11 @@
+test_caller_owned_configuration_and_reused_descriptor_survive_native_scope (__main__.NativeConfigOwnershipTests.test_caller_owned_configuration_and_reused_descriptor_survive_native_scope) ... PASS: caller configuration ownership and unrelated descriptor preserved
+ok
+test_native_scope_rejection_preserves_caller_configuration (__main__.NativeConfigOwnershipTests.test_native_scope_rejection_preserves_caller_configuration) ... PASS: NativeScope rejection preserves caller configuration ownership
+ok
+test_native_launch_rejection_still_consumes_configuration (__main__.NativeConfigOwnershipTests.test_native_launch_rejection_still_consumes_configuration) ... PASS: NativeLaunch rejection retains its consuming interface
+ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.092s
+
+OK

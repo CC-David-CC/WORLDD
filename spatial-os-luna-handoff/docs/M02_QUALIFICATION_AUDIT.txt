@@ -59,6 +59,15 @@ Reassess their source pins and run affected mutations in a separate candidate co
 Do not mutate the active qualification source or binaries.
 Do not compile mutation candidates while qualification runs on the same host.
 
+2026-10-10 focused witness checkpoint:
+The parent-revocation, object-scope, and world-cache mutations each caused their intended existing assertion to fail on sb16.
+Additional mutations checked partial file-write authority and premature barrier completion.
+All five witnesses passed before mutation and after restoration: ten positive passes and five expected failures.
+All 351 source files were restored. All 41 locked files remain unchanged.
+Read evidence/m02-gate-2026-10-10/mutations-04/primary-review.json and cache-mutation-05/primary-review.json under the same parent.
+These witnesses used the frozen 54715f9 production inputs in an isolated Debug checkout.
+They do not replace both-host qualification or resolve the retained timeout failures.
+
 Open evidence
 The earlier participant approval startup failure remains unexplained.
 The earlier revocation-read timeout and the diagnostic candidate's 705 ms reply-header timeout remain unexplained.

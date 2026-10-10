@@ -1,0 +1,51 @@
+[
+  {
+    "suite": "control-supervisor-reply",
+    "started_ns": 319431728140982,
+    "argv": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/core/test_control_reply.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-control-reply-probe"
+    ],
+    "ended_ns": 319432043319135,
+    "exit_code": 0
+  },
+  {
+    "suite": "authority-native-config",
+    "started_ns": 319432043708938,
+    "argv": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/native/test_native_scope_config_ownership.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-native-config-witness",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-security-auth"
+    ],
+    "ended_ns": 319432258984643,
+    "exit_code": 0
+  },
+  {
+    "suite": "authority-native-scope",
+    "started_ns": 319432259572639,
+    "argv": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/native/test_authority_native_scope.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-native-scope-probe",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-security-auth"
+    ],
+    "ended_ns": 319436657460918,
+    "exit_code": 0
+  },
+  {
+    "suite": "world-revision-interleave",
+    "started_ns": 319436657986384,
+    "argv": [
+      "/usr/bin/python3",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/source/tests/core/test_world_revision_interleave.py",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/identityd",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/spatial-issuer-client",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-01/debug/build/worldd"
+    ],
+    "ended_ns": 319445963782716,
+    "exit_code": 0
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "command": [
+    "git",
+    "read-tree",
+    "-mu",
+    "HEAD"
+  ],
+  "original_index_empty": true,
+  "source_files_verified": 351,
+  "worktree_clean": true
+}

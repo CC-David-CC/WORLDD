@@ -1,0 +1,22 @@
+test_revocation_stays_pending_until_both_generations_apply (__main__.BarrierTests.test_revocation_stays_pending_until_both_generations_apply) ... FAIL
+
+======================================================================
+FAIL: test_revocation_stays_pending_until_both_generations_apply (__main__.BarrierTests.test_revocation_stays_pending_until_both_generations_apply)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-focused-mutations-04/worktree/spatial-os-luna-handoff/tests/core/test_identity_participant_barrier.py", line 100, in test_revocation_stays_pending_until_both_generations_apply
+    state = self.barrier(); self.assertEqual((state.participant_count,state.pending_count,state.complete),(2,2,False))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (2, 2, True) != (2, 2, False)
+
+First differing element 2:
+True
+False
+
+- (2, 2, True)
++ (2, 2, False)
+
+----------------------------------------------------------------------
+Ran 1 test in 0.684s
+
+FAILED (failures=1)
