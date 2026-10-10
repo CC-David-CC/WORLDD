@@ -652,3 +652,12 @@ All 330 tested source hashes match. All 41 locked files remain unchanged.
 The additive cleanup_record field and its validation rules are recorded in docs/SESSION_CONTROL_COORDINATOR.txt.
 Actor transport admission, native application survival, selective reservation release, dependent receipts, and issuer retirement remain pending.
 Shared compositor lifetime and the complete M02/M1 gates remain pending. No running session adopted the development branch.
+
+2026-10-10: Coordinator actor TLS handoff
+Unchanged connected04 rejected a valid inherited listener before world ownership. The baseline is preserved.
+The new production path passed 117 selected cases per profile in Debug and ASan/UBSan on sb16.
+Actor proof, navigation, management rejection, observation denial, and private descriptor isolation were observed.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/connected-actors-01/sb16/primary-review.json
+Confined application recovery is next. Selective release, dependent receipt, issuer retirement, and the earlier startup failure remain unresolved.
+Full two-host M02 qualification, physical-input evidence, model acceptance, and full M1 qualification remain pending.
+Controller setup retried an early archive transfer and a malformed SSH Python command. The corrected transfer and extraction succeeded before testing.

@@ -1,0 +1,14 @@
+Running as unit: spatial-actor-listener-baseline01.service; invocation ID: 6394295b87be48a08cdccfce07bec1f0
+test_actor_listener_mapping_is_not_yet_supported (__main__.ActorListenerBaseline.test_actor_listener_mapping_is_not_yet_supported) ... CONFIRMED: valid inherited TCP listener rejected before world launch
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.989s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 1.109s
+CPU time consumed: 367ms
+Memory peak: 1.5M
+Memory swap peak: 0B

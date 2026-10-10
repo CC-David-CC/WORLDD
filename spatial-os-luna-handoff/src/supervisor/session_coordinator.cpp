@@ -7,6 +7,7 @@
 #include "identity/tls_support.hpp"
 #include <map>
 #include <iostream>
+#include <netinet/in.h>
 #include <sys/socket.h>
 
 namespace spatial::supervisor {
@@ -14,6 +15,21 @@ namespace {
 using File = identity::tls_detail::Fd;
 using Clock = std::chrono::steady_clock;
 void require(bool value, const char* message) { if (!value) throw std::runtime_error(message); }
+int retain_actor_listener(int borrowed) {
+    require(borrowed >= 3, "Actor listener must be above stderr");
+    File retained(fcntl(borrowed, F_DUPFD_CLOEXEC, 3));
+    require(retained.value >= 3, "Cannot retain actor listener");
+    sockaddr_storage address{}; socklen_t size = sizeof(address);
+    int accepting = 0, type = 0, protocol = 0; socklen_t option = sizeof(int);
+    require(getsockname(retained.value, reinterpret_cast<sockaddr*>(&address), &size) == 0 &&
+        (address.ss_family == AF_INET || address.ss_family == AF_INET6) &&
+        getsockopt(retained.value, SOL_SOCKET, SO_ACCEPTCONN, &accepting, &option) == 0 && accepting &&
+        getsockopt(retained.value, SOL_SOCKET, SO_TYPE, &type, &option) == 0 && type == SOCK_STREAM &&
+        getsockopt(retained.value, SOL_SOCKET, SO_PROTOCOL, &protocol, &option) == 0 && protocol == IPPROTO_TCP,
+        "Session actor transport requires a listening TCP socket");
+    // Private coordinator endpoints are UNIX sockets. No duplicate of one can pass this check.
+    return std::exchange(retained.value, -1);
+}
 struct Pair {
     File parent, child;
     Pair() {
@@ -65,7 +81,7 @@ SessionCoordinator::SessionCoordinator(const std::filesystem::path& executable, 
     : impl_(std::make_unique<Impl>(executable, path, std::move(config), native)) {}
 SessionCoordinator::~SessionCoordinator() = default;
 workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesystem::path& path,
-    v1::AuthoritySupervisorConfig config, int native) {
+    v1::AuthoritySupervisorConfig config, int native, int actor_listener) {
     auto& state = *impl_; state.live(); validate_message(config);
     require(config.has_compositor_native_target_fd() && !config.has_broker_native_target_fd() &&
         config.inherited_source_fds_size() == 0 && config.launch().inherited_fds_size() == 0,
@@ -76,19 +92,39 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
     for (const auto& arg : config.launch().arguments())
         require(arg != "--workspace-fd" && arg != "--workspace-pid" && arg != "--control-supervisor-fd" && arg != "--control-supervisor-pid",
             "Session owns world broker endpoint arguments");
+    unsigned identity_configs = 0, tls_configs = 0;
+    for (int i = 0; i < config.launch().arguments_size(); ++i) {
+        const auto& arg = config.launch().arguments(i);
+        require(arg != "--actor-fd" && arg != "--actor-listen-fd", "Session owns world actor endpoint arguments");
+        if (arg == "--identity-config" || arg == "--actor-tls-config") {
+            require(i + 1 < config.launch().arguments_size() &&
+                std::filesystem::path(config.launch().arguments(i + 1)).is_absolute(), "Actor configuration requires an absolute path");
+            if (arg == "--identity-config") ++identity_configs; else ++tls_configs;
+        }
+    }
+    require(actor_listener == -1 ? identity_configs == 0 && tls_configs == 0 : identity_configs == 1 && tls_configs == 1,
+        "Actor listener, identity configuration, and TLS configuration are required together");
+    File listener;
+    if (actor_listener != -1) listener.reset(retain_actor_listener(actor_listener));
     int target = 255;
     while (target == static_cast<int>(config.participant_target_fd()) || target == static_cast<int>(config.compositor_native_target_fd())) --target;
     Pair endpoint, channel;
     config.add_inherited_source_fds(endpoint.child.value); config.mutable_launch()->add_inherited_fds(target);
     config.mutable_launch()->add_arguments("--workspace-fd"); config.mutable_launch()->add_arguments(std::to_string(target));
     config.mutable_launch()->add_arguments("--workspace-pid"); config.mutable_launch()->add_arguments(std::to_string(state.broker.broker_pid()));
+    if (listener.value >= 3) {
+        do { --target; } while (target == static_cast<int>(config.participant_target_fd()) ||
+            target == static_cast<int>(config.compositor_native_target_fd()));
+        config.add_inherited_source_fds(listener.value); config.mutable_launch()->add_inherited_fds(target);
+        config.mutable_launch()->add_arguments("--actor-listen-fd"); config.mutable_launch()->add_arguments(std::to_string(target));
+    }
     auto [position, inserted] = state.worlds.emplace(key, std::make_unique<World>());
     require(inserted, "Session world insertion failed");
     auto& world = *position->second;
     try {
         world.supervisor = std::make_unique<SessionLaunch>(state.executable, path, config, native,
             std::array<int, 3>{channel.child.value, channel.child.value, STDERR_FILENO}, false);
-        endpoint.child.reset(); channel.child.reset();
+        endpoint.child.reset(); channel.child.reset(); listener.reset();
         world.record = world.supervisor->record();
         require(world.record.native().server_id() == state.broker.launch().native().server_id(), "World and broker have different native server identities");
         world.owner = world.supervisor->control_owner();

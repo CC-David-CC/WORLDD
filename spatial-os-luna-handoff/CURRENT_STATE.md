@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-10: Authenticated actor transport through the session coordinator
+
+SessionCoordinator now admits an explicitly supplied TCP listener for the existing TLS actor interface.
+It rejects private sockets, unlistening sockets, missing TLS configuration, and caller-selected actor descriptor arguments.
+The real supervised world authenticates an issuer-signed actor and accepts its granted navigation actions.
+Anonymous access, management commands, and ungranted observation remain denied.
+Independent descriptor checks found no private coordinator socket in worldd or spatialwm.
+
+All 117 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+The unchanged connected04 baseline confirmed the missing listener handoff before this candidate ran.
+All 41 locked files remain unchanged. No native host session adopted this branch.
+Read evidence/control-recovery-2026-10-09/connected-actors-01/sb16/primary-review.json.
+
+Next: connect real workspace authority and a confined application to this actor path.
+Verify held-input release, application survival, and exact reservation retention before implementing selective recovery.
+Dependent receipts, issuer retirement, the earlier startup failure, and complete two-host M02 qualification remain pending.
+Shared compositor lifetime across world transitions also remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: World registration and final cleanup delivery candidate
 
 SessionCoordinator now retains a world supervisor and registers its exact owner with the independently retained broker.

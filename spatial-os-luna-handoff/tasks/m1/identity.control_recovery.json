@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "connect_actor_transport_and_native_selective_control_recovery",
+  "current_step": "connect_confined_application_and_native_selective_control_recovery",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,7 +12,7 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Admit real actor transport through the coordinator and retain broker authority independently of each world.",
+    "Connect real workspace execution authority and confined applications to the authenticated coordinator actor path.",
     "Verify native application survival and selective reservation release after checked world cleanup.",
     "Persist a checked dependent receipt before issuer retirement.",
     "Resolve the preserved participant-approval startup failure before the full phase gate.",
@@ -221,5 +221,19 @@
       "runtime-sanitize"
     ]
   },
-  "multi_world_presentation_limit": "Current worldd starts its own compositor. Shared compositor lifetime must be implemented before M1 world-transition acceptance."
+  "multi_world_presentation_limit": "Current worldd starts its own compositor. Shared compositor lifetime must be implemented before M1 world-transition acceptance.",
+  "actor_transport": {
+    "state": "Focused checks passed. Real signed actors use a validated TLS listener through retained production world ownership.",
+    "evidence": "evidence/control-recovery-2026-10-09/connected-actors-01/sb16/primary-review.json",
+    "cases_per_profile": 117,
+    "new_actor_cases": 5,
+    "host": "sb16",
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  }
 }

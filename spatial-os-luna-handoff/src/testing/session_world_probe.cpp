@@ -7,7 +7,7 @@
 // Transport-only fixture for the production coordinator and real broker/world children.
 int main(int argc, char** argv) {
     try {
-        if (argc != 5) throw std::runtime_error("Expected broker and world configs with sealed native descriptors");
+        if (argc != 5 && argc != 6) throw std::runtime_error("Expected broker and world configs with sealed native descriptors and optional actor listener");
         const auto binary = std::filesystem::canonical("/proc/self/exe").parent_path();
         const auto load = [](const char* path) {
             spatial::supervisor::v1::AuthoritySupervisorConfig config;
@@ -25,7 +25,9 @@ int main(int argc, char** argv) {
         spatial::core::v1::Request hello; hello.set_protocol_version(1); hello.set_request_id(44); hello.mutable_hello();
         spatial::workspace::v1::ControlOwner owner;
         try {
-            owner = session.start_world(std::string(argv[3]) + ".owned", load(argv[3]), std::stoi(argv[4]));
+            owner = session.start_world(std::string(argv[3]) + ".owned", load(argv[3]), std::stoi(argv[4]),
+                argc == 6 ? std::stoi(argv[5]) : -1);
+            if (argc == 6) close(std::stoi(argv[5]));
         } catch (const std::exception& error) {
             std::cerr << "world start rejected: " << error.what() << '\n';
             spatial::write_frame(std::cout, session.root().call(hello)); report(session.stop()); return 2;

@@ -1,10 +1,14 @@
 """Real coordinator registration binds one supervised world to its actual launch owner."""
 import fcntl
+import io
 import json
 import os
 from pathlib import Path
 import select
 import signal
+import socket
+import ssl
+import struct
 import sqlite3
 import subprocess
 import unittest
@@ -17,13 +21,14 @@ import launch_pb2 as launch
 import native_scope_pb2 as native
 import process_scope_pb2 as process
 import security_pb2 as security
-from harness.wire import frame
+import world_session_pb2 as session
+from harness.wire import frame, make_request, read_message
 
 
 class SessionWorldTests(base.BrokerHandoffRegressionTests):
     def world_config(self):
         signer, public = self.issuer.key('world-authority')
-        registration = self.issuer.register(identity=b'w' * 32, public=public, domain='world-one', revision=1)
+        registration = self.issuer.register(identity=b'w' * 32, public=public, domain=getattr(self, 'world_domain', 'world-one'), revision=1)
         approved = self.issuer.bind(participant=registration.participant.id, registration=registration.registered_revision)
         self.assertTrue(approved.HasField('supervision'), approved)
         config = self.config()
@@ -62,11 +67,15 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
             fcntl.fcntl(descriptor, fcntl.F_ADD_SEALS, fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
             descriptors.append(descriptor); arguments += [str(path), str(descriptor)]
         self.logpath = self.root / 'session-world.log'; log = self.logpath.open('wb')
+        listener = getattr(self, 'actor_listener', None)
+        if listener is not None: arguments.append(str(listener.fileno()))
         try:
             proc = subprocess.Popen([str(base.baseline.supervisor.owned.existing.PROBE.with_name('spatial-session-world-probe')), *arguments],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log, pass_fds=tuple(descriptors))
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log,
+                pass_fds=tuple(descriptors) + (() if listener is None else (listener.fileno(),)))
         finally:
             for descriptor in descriptors: os.close(descriptor)
+            if listener is not None: listener.close()
         def cleanup():
             if proc.poll() is None:
                 proc.stdin.close()
@@ -231,6 +240,116 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
         self.assertFalse((self.world_journal / 'launch.db').exists())
 
 
+class SessionActorTests(SessionWorldTests):
+    def world_config(self):
+        binary = base.baseline.supervisor.owned.existing.PROBE.with_name('worldd')
+        result = subprocess.run([str(binary), '--state-dir', str(self.root / 'world')],
+            input=frame(make_request('world.info', {})), capture_output=True, timeout=8)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        reply = read_message(io.BytesIO(result.stdout), core.Reply)
+        self.assertTrue(reply.HasField('world_info'), reply)
+        self.world_domain = reply.world_info.world_id
+        config = super().world_config()
+        self.actor = self.issuer.decide(self.issuer.peer, self.issuer.enroll(self.issuer.peer)).enrollment
+        self.claims = self.issuer.claims(self.actor, self.issuer.info)
+        identity_config = session.WorldIdentityConfig(protocol_version=1,
+            issuer_client_config=str(self.issuer.config_file()), participant_runtime_config=config.child_participant_config,
+            admission=session.EXPLICIT_ACTORS, admitted_actor_ids=[self.claims.actor_id],
+            actor_grants=[session.WorldActorGrants(actor_id=self.claims.actor_id, grants=['navigate'])])
+        tls = session.WorldActorTlsConfig(protocol_version=1, certificate_path=str(self.issuer.server_cert),
+            private_key_path=str(self.issuer.server_key), client_ca_path=str(self.issuer.service_cert))
+        for name, value, flag in [('actor-identity', identity_config, '--identity-config'), ('actor-tls', tls, '--actor-tls-config')]:
+            path = self.root / (name + '.textproto'); path.write_text(text_format.MessageToString(value)); path.chmod(0o600)
+            config.launch.arguments.extend([flag, str(path)])
+        self.actor_listener = socket.socket(); self.addCleanup(self.actor_listener.close)
+        self.actor_listener.bind(('127.0.0.1', 0)); self.actor_listener.listen(8)
+        self.actor_port = self.actor_listener.getsockname()[1]
+        self.actor_sequence = 0
+        return config
+
+    def connect_actor(self):
+        raw = socket.create_connection(('127.0.0.1', self.actor_port), timeout=3)
+        try: stream = self.issuer.context().wrap_socket(raw, server_hostname='issuer.test')
+        except BaseException: raw.close(); raise
+        self.addCleanup(stream.close)
+        self.assertEqual(stream.version(), 'TLSv1.3')
+        return stream
+
+    def actor_call(self, stream, request=None, **operation):
+        self.actor_sequence += 1
+        request = request or session.WorldSessionRequest(protocol_version=1, **operation)
+        request.request_id = self.actor_sequence
+        stream.sendall(frame(request))
+        def exact(size):
+            data = b''
+            while len(data) < size:
+                part = stream.recv(size - len(data))
+                if not part: raise EOFError('Actor stream closed')
+                data += part
+            return data
+        size, = struct.unpack('!I', exact(4)); self.assertLessEqual(size, 1048576)
+        reply = session.WorldSessionReply.FromString(exact(size))
+        self.assertEqual(reply.protocol_version, 1); self.assertEqual(reply.request_id, self.actor_sequence)
+        return reply
+
+    def test_listener_admits_real_signed_actor_without_management_authority(self):
+        proc, owner, record = self.ready()
+        self.assert_private_channels_stay_in_coordinator(proc)
+        stream = self.connect_actor()
+        reply = self.actor_call(stream, inspect=session.WorldSessionInspect())
+        self.assertEqual(reply.error.code, core.UNAUTHORIZED, reply)
+        reply = self.actor_call(stream, begin=session.WorldAuthenticationBegin(credential=self.actor.credential))
+        self.assertTrue(reply.HasField('challenge'), reply)
+        proof = self.issuer.proof(reply.challenge, self.issuer.actor_key, self.issuer.actor_public)
+        opened = self.actor_call(stream, complete=identity.AuthenticationComplete(nonce=reply.challenge.nonce, proof=proof))
+        self.assertTrue(opened.HasField('opened'), opened)
+        self.assertEqual(opened.opened.identity.actor_id, self.claims.actor_id)
+        self.assertEqual(opened.opened.world_id, self.world_domain)
+        state = self.actor_call(stream, inspect=session.WorldSessionInspect()).state
+        self.assertEqual(state.id, opened.opened.actor_id)
+        self.assertFalse(state.workspace)
+        reply = self.actor_call(stream, action=core.ActorActionRequest(seq=1, input=core.ActorInputRequest(axes=[1, 0, 0, 0, 0, 0])))
+        self.assertTrue(reply.HasField('action'), reply)
+        reply = self.actor_call(stream, action=core.ActorActionRequest(seq=2, stop=core.ActorStopRequest()))
+        self.assertTrue(reply.HasField('action'), reply)
+        reply = self.actor_call(stream, request=core.Request(protocol_version=1, actor_open=core.ActorOpenRequest(id='forged')))
+        self.assertEqual(reply.error.code, core.INVALID_ARGUMENT, reply)
+        reply = self.actor_call(stream, action=core.ActorActionRequest(seq=3, observe=core.ActorObserveRequest()))
+        self.assertEqual(reply.error.code, core.FORBIDDEN, reply)
+        stream.close()
+        self.finish(proc, owner)
+
+    def test_private_socket_cannot_be_admitted_as_actor_listener(self):
+        def substitute(config):
+            self.actor_listener.close()
+            self.actor_listener, peer = socket.socketpair()
+            self.addCleanup(self.actor_listener.close); self.addCleanup(peer.close)
+        diagnostic = self.rejected_world(substitute)
+        self.assertIn('Session actor transport requires a listening TCP socket', diagnostic)
+        self.assertFalse((self.world_journal / 'launch.db').exists())
+
+    def test_unlistening_tcp_socket_cannot_be_admitted(self):
+        def substitute(config):
+            self.actor_listener.close()
+            self.actor_listener = socket.socket(); self.addCleanup(self.actor_listener.close)
+            self.actor_listener.bind(('127.0.0.1', 0))
+        self.assertIn('Session actor transport requires a listening TCP socket', self.rejected_world(substitute))
+        self.assertFalse((self.world_journal / 'launch.db').exists())
+
+    def test_listener_requires_tls_configuration(self):
+        def remove(config):
+            arguments = list(config.launch.arguments); position = arguments.index('--actor-tls-config')
+            del arguments[position:position + 2]; del config.launch.arguments[:]; config.launch.arguments.extend(arguments)
+        self.assertIn('Actor listener, identity configuration, and TLS configuration are required together', self.rejected_world(remove))
+        self.assertFalse((self.world_journal / 'launch.db').exists())
+
+    def test_actor_descriptor_arguments_cannot_select_private_endpoints(self):
+        self.assertIn('Session owns world actor endpoint arguments',
+            self.rejected_world(lambda config: config.launch.arguments.extend(['--actor-fd', '3'])))
+        self.assertFalse((self.world_journal / 'launch.db').exists())
+
+
 if __name__ == '__main__':
-    suite = unittest.TestSuite(SessionWorldTests(name) for name in SessionWorldTests.__dict__ if name.startswith('test_'))
+    suite = unittest.TestSuite(cls(name) for cls in (SessionWorldTests, SessionActorTests)
+        for name in cls.__dict__ if name.startswith('test_'))
     raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

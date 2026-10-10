@@ -182,7 +182,22 @@ All 77 selected checks passed per profile. Full M02 qualification remains pendin
 Current implementation limits
 
 The coordinator accepts an unmapped world launch configuration and supplies its broker endpoint.
-Explicit actor socket or listener admission through this coordinator remains unfinished.
+The actor-listener candidate accepts one explicitly supplied TCP listening descriptor.
+It duplicates and checks the descriptor before creating world ownership.
+Require AF_INET or AF_INET6, SOCK_STREAM, IPPROTO_TCP, and SO_ACCEPTCONN.
+Require one absolute identity configuration path and one absolute TLS configuration path.
+Reject caller-supplied actor descriptor arguments and generic descriptor mappings.
+Allocate the child descriptor without colliding with participant, native, or broker targets.
+Close the coordinator's duplicate after the supervisor accepts the launch.
+The caller retains ownership of its original descriptor and must close that copy after handoff.
+The test probe closes its original descriptor after successful handoff.
+Private coordinator sockets use AF_UNIX. Their duplicates cannot pass listener validation.
+Worldd applies the existing mutual TLS, signed actor proof, admission, and action authorization checks.
+The listener does not grant actor identity, workspace access, or management authority.
+Local actor socket admission remains unimplemented in this coordinator.
+All 117 selected cases passed in Debug and runtime sanitizers on sb16.
+Read evidence/control-recovery-2026-10-09/connected-actors-01/sb16/primary-review.json.
+Full M02 qualification remains pending on both hosts.
 The six focused native cases use one world and its actual compositor on a disposable native server.
 They do not prove native application survival or selective reservation release after a world crash.
 The current world process starts its own compositor.
