@@ -1,0 +1,2 @@
+authority participant failed: code=26 request=0 stage=revocations cause=Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=700 gap_ms=10 tick_ms=0
+authority supervisor: Participant failed during supervisor approval

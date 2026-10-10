@@ -1,0 +1,1628 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="124"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="sb16"
+	time="2108"
+	timestamp="2026-10-10T16:45:41"
+	>
+	<testcase name="control-supervisor-reply" classname="control-supervisor-reply" time="2.31606" status="run">
+		<properties/>
+		<system-out>.....................
+----------------------------------------------------------------------
+Ran 21 tests in 2.245s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="authority-native-config" classname="authority-native-config" time="0.26163" status="run">
+		<properties/>
+		<system-out>test_caller_owned_configuration_and_reused_descriptor_survive_native_scope (__main__.NativeConfigOwnershipTests.test_caller_owned_configuration_and_reused_descriptor_survive_native_scope) ... PASS: caller configuration ownership and unrelated descriptor preserved
+ok
+test_native_scope_rejection_preserves_caller_configuration (__main__.NativeConfigOwnershipTests.test_native_scope_rejection_preserves_caller_configuration) ... PASS: NativeScope rejection preserves caller configuration ownership
+ok
+test_native_launch_rejection_still_consumes_configuration (__main__.NativeConfigOwnershipTests.test_native_launch_rejection_still_consumes_configuration) ... PASS: NativeLaunch rejection retains its consuming interface
+ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.198s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="authority-native-scope" classname="authority-native-scope" time="4.5569" status="run">
+		<properties/>
+		<system-out>test_broker_stop_closes_descendants_preserves_independent_application (__main__.NativeScopeTests.test_broker_stop_closes_descendants_preserves_independent_application) ... ok
+test_compositor_stop_closes_only_owned_connections (__main__.NativeScopeTests.test_compositor_stop_closes_only_owned_connections) ... ok
+test_compositor_stop_releases_real_native_key_and_button (__main__.NativeScopeTests.test_compositor_stop_releases_real_native_key_and_button) ... ok
+test_missing_credential_is_not_accepted_as_a_cleanup_receipt (__main__.NativeScopeTests.test_missing_credential_is_not_accepted_as_a_cleanup_receipt) ... ok
+test_stop_waits_for_disposable_server_resume (__main__.NativeScopeTests.test_stop_waits_for_disposable_server_resume) ... ok
+test_stopped_server_timeout_cannot_report_cleanup (__main__.NativeScopeTests.test_stopped_server_timeout_cannot_report_cleanup) ... ok
+test_server_exit_cannot_replace_a_cleanup_reply (__main__.NativeScopeTests.test_server_exit_cannot_replace_a_cleanup_reply) ... ok
+test_checked_st...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-revision-interleave" classname="world-revision-interleave" time="9.83731" status="run">
+		<properties/>
+		<system-out>test_old_credential_reply_does_not_disable_unrelated_actor (__main__.RevisionInterleaveTests.test_old_credential_reply_does_not_disable_unrelated_actor) ... ok
+test_old_actor_reply_does_not_disable_unrelated_actor (__main__.RevisionInterleaveTests.test_old_actor_reply_does_not_disable_unrelated_actor) ... ok
+test_credential_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_credential_reply_older_than_query_context_is_terminal) ... ok
+test_actor_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_actor_reply_older_than_query_context_is_terminal) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 9.739s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="workspace-bootstrap-owner-idle" classname="workspace-bootstrap-owner-idle" time="7.91867" status="run">
+		<properties/>
+		<system-out>test_idle_owner_does_not_block_workspace_bootstrap (__main__.BootstrapOwnerIdleTests.test_idle_owner_does_not_block_workspace_bootstrap) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 7.827s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="supervisor-handoff-lifetime" classname="supervisor-handoff-lifetime" time="2.84198" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-handoff-lifetime-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 42a80a39bb8d491282aeea8e9d8bc680
+test_selected_endpoint_has_no_supervisor_copy_after_handoff (__main__.HandoffTests.test_selected_endpoint_has_no_supervisor_copy_after_handoff) ... ok
+test_child_stdout_has_no_supervisor_writer_after_handoff (__main__.HandoffTests.test_child_stdout_has_no_supervisor_writer_after_handoff) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 2.705s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 2.825s
+CPU time consumed: 1.069s
+Memory peak: 1.5M
+Memory swap peak: 0B
+</system-out>
+	</testcase>
+	<testcase name="authority-supervisor" classname="authority-supervisor" time="15.4684" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-supervisor-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 2cea461e9cc04343a0642324fce8f2c9
+test_production_supervisor_is_available_for_owned_authority_execution (__main__.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution) ... ok
+test_real_child_activates_releases_and_exits_without_manual_pumping (__main__.AuthoritySupervisorTests.test_real_child_activates_releases_and_exits_without_manual_pumping) ... ok
+test_revocation_requires_child_acknowledgement_with_automatic_delivery (__main__.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery) ... ok
+test_management_cannot_inject_participant_commands_or_repeat_start (__main__.AuthoritySupervisorTests.test_management_cannot_inject_participant_commands_or_repeat_start) ... ok
+test_explicit_stop_preserves_unresolved_issuer_generation (__main__.AuthoritySupervisorTests.test_explicit_stop_preserves_unresolved_issuer_ge...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-approval-interruption" classname="authority-approval-interruption" time="7.81984" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-approval-interruption-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: e1ba5c30e1a5467daf98dd2a13ac46a2
+test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch (__main__.ApprovalInterruptionTests.test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch) ... ok
+test_participant_timeout_during_approval_never_executes (__main__.ApprovalInterruptionTests.test_participant_timeout_during_approval_never_executes) ... ok
+test_lost_committed_approval_reply_never_retries_or_executes (__main__.ApprovalInterruptionTests.test_lost_committed_approval_reply_never_retries_or_executes) ... ok
+test_active_revocation_timeout_stops_scopes_without_completing_barrier (__main__.ApprovalInterruptionTests.test_active_revocation_timeout_stops_scopes_without_completing_barrier) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 7.667s
+
+OK
+Finished with result: success
+Main ...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-broker-handoff" classname="authority-broker-handoff" time="1.28652" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-broker-handoff-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 991117178f1b4f0eb6ae21eb6be0e8e1
+test_supervised_real_broker_receives_native_configuration (__main__.BrokerHandoffTests.test_supervised_real_broker_receives_native_configuration) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.142s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 1.253s
+CPU time consumed: 574ms
+Memory peak: 1.5M
+Memory swap peak: 0B
+</system-out>
+	</testcase>
+	<testcase name="authority-broker-handoff-regressions" classname="authority-broker-handoff-regressions" time="9.20582" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-broker-handoff-regressions-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 1c0dba40b49d45c8abf4cac55e51820f
+test_privileged_observer_detects_open_and_closed_fd_on_non_dumpable_process (__main__.BrokerHandoffRegressionTests.test_privileged_observer_detects_open_and_closed_fd_on_non_dumpable_process) ... ok
+test_owned_broker_launches_confined_native_application_and_stop_closes_only_its_scope (__main__.BrokerHandoffRegressionTests.test_owned_broker_launches_confined_native_application_and_stop_closes_only_its_scope) ... ok
+test_broker_death_preserves_issuer_state_and_revokes_native_descendants (__main__.BrokerHandoffRegressionTests.test_broker_death_preserves_issuer_state_and_revokes_native_descendants) ... ok
+test_invalid_native_targets_fail_before_scope_ownership (__main__.BrokerHandoffRegressionTests.test_invalid_native_targets_fail_before_scope_ownership) ... ok
+test_native_target_cannot_replace_an_explicit_descriptor (__main__.BrokerHandoffRe...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-world-handoff" classname="authority-world-handoff" time="1.49235" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-world-handoff-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 5e3a180d25c7456882b6f6a686b8f097
+test_supervised_world_starts_real_compositor_with_owned_native_configuration (__main__.WorldNativeHandoffTests.test_supervised_world_starts_real_compositor_with_owned_native_configuration) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.354s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 1.463s
+CPU time consumed: 749ms
+Memory peak: 1.5M
+Memory swap peak: 0B
+</system-out>
+	</testcase>
+	<testcase name="authority-world-handoff-regressions" classname="authority-world-handoff-regressions" time="11.3649" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-world-handoff-regressions-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 8e2e453da21f4c749429692079374f88
+test_owned_world_renders_real_application_pixels_and_releases_held_input (__main__.WorldHandoffRegressionTests.test_owned_world_renders_real_application_pixels_and_releases_held_input) ... ok
+test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application (__main__.WorldHandoffRegressionTests.test_world_death_cleans_compositor_and_held_input_without_revoking_independent_application) ... ok
+test_owned_native_credential_revocation_disconnects_compositor_and_preserves_cleanup_uncertainty (__main__.WorldHandoffRegressionTests.test_owned_native_credential_revocation_disconnects_compositor_and_preserves_cleanup_uncertainty) ... ok
+test_world_and_compositor_consume_the_native_configuration_descriptor (__main__.WorldHandoffRegressionTests.test_world_and_compositor_consume_the_native_configuration_descriptor) ... ok
+test_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-supervisor-fencing" classname="authority-supervisor-fencing" time="13.909" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-supervisor-fencing-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: c7fc0f215c10448098a5859f803f9305
+test_supervisor_fences_its_actual_activated_child_before_checked_cleanup (__main__.SupervisorFencingBaselineTests.test_supervisor_fences_its_actual_activated_child_before_checked_cleanup) ... ok
+test_pending_revocation_survives_fenced_cleanup (__main__.SupervisorFenceFailures.test_pending_revocation_survives_fenced_cleanup) ... ok
+test_unconsumed_authorization_cannot_be_fenced (__main__.SupervisorFenceFailures.test_unconsumed_authorization_cannot_be_fenced) ... ok
+test_replaced_signing_key_cannot_fence_owned_launch (__main__.SupervisorFenceFailures.test_replaced_signing_key_cannot_fence_owned_launch) ... ok
+test_native_cleanup_uncertainty_preserves_committed_fence (__main__.SupervisorFenceFailures.test_native_cleanup_uncertainty_preserves_committed_fence) ... ok
+test_failed_local_commit_never_reports_success (__main__.SupervisorFenceFailures.test...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-control-binding" classname="authority-control-binding" time="6.83003" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-control-binding-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 6d02e653db724fad9f5772577902b8b5
+test_prepared_owner_matches_activation_and_exact_issuer_fence (__main__.BindingTests.test_prepared_owner_matches_activation_and_exact_issuer_fence) ... ok
+test_reopened_authorized_record_cannot_reconstruct_control_owner (__main__.BindingTests.test_reopened_authorized_record_cannot_reconstruct_control_owner) ... ok
+test_failed_authorization_commit_cannot_expose_owner (__main__.BindingTests.test_failed_authorization_commit_cannot_expose_owner) ... ok
+test_query_rejects_nested_unknown_owner_selector_without_mutation (__main__.BindingTests.test_query_rejects_nested_unknown_owner_selector_without_mutation) ... ok
+test_broker_native_role_cannot_become_world_control_owner (__main__.BrokerBindingTests.test_broker_native_role_cannot_become_world_control_owner) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.Supe...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-supervisor-crash-fencing" classname="authority-supervisor-crash-fencing" time="14.2346" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-supervisor-crash-fencing-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 7b1cd3974af54167a0f09fc26c6aadb2
+test_child_crash_fences_exact_generation_and_preserves_obligation (__main__.SupervisorCrashFencingTests.test_child_crash_fences_exact_generation_and_preserves_obligation) ... ok
+test_management_loss_fences_exact_generation_and_preserves_obligation (__main__.SupervisorCrashFencingTests.test_management_loss_fences_exact_generation_and_preserves_obligation) ... ok
+test_termination_signal_fences_activated_service (__main__.SupervisorCrashFailureTests.test_termination_signal_fences_activated_service) ... ok
+test_unconsumed_start_is_cleaned_without_fabricated_fence (__main__.SupervisorCrashFailureTests.test_unconsumed_start_is_cleaned_without_fabricated_fence) ... ok
+test_graceful_release_does_not_create_fence (__main__.SupervisorCrashFailureTests.test_graceful_release_does_not_create_fence) ... ok
+test_explicit_stop_preserves_existing_unfenced_s...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-participant-relay" classname="authority-participant-relay" time="11.8716" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-participant-relay-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: ec78e9fb364c4121b737f8310f6f0bd5
+test_channel_configuration_requires_owned_approval_and_contains_no_signing_material (__main__.ParticipantRelayTests.test_channel_configuration_requires_owned_approval_and_contains_no_signing_material) ... ok
+test_channel_requires_approval_and_a_valid_unique_target (__main__.ParticipantRelayTests.test_channel_requires_approval_and_a_valid_unique_target) ... ok
+test_relay_excludes_external_polling_and_commands (__main__.ParticipantRelayTests.test_relay_excludes_external_polling_and_commands) ... ok
+test_real_owned_child_activates_and_releases_exact_approved_generation (__main__.ParticipantRelayTests.test_real_owned_child_activates_and_releases_exact_approved_generation) ... ok
+test_parent_receipt_and_child_delivery_do_not_acknowledge_revocation (__main__.ParticipantRelayTests.test_parent_receipt_and_child_delivery_do_not_acknowledge_revocation) ... ...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-owned-participant" classname="authority-owned-participant" time="10.7508" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-owned-participant-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 3a6a8d31033f434088055c3ac1293d24
+test_supervised_child_cannot_execute_without_durable_authorization (__main__.OwnedParticipantTests.test_supervised_child_cannot_execute_without_durable_authorization) ... ok
+test_coordinator_owns_real_authenticated_participant_connection (__main__.OwnedParticipantTests.test_coordinator_owns_real_authenticated_participant_connection) ... ok
+test_child_observes_durable_exact_approval_and_retained_connection_activates (__main__.OwnedParticipantTests.test_child_observes_durable_exact_approval_and_retained_connection_activates) ... ok
+test_identity_mismatch_is_rejected_before_attaching_a_worker (__main__.OwnedParticipantTests.test_identity_mismatch_is_rejected_before_attaching_a_worker) ... ok
+test_wrong_supervisor_keys_cannot_approve_or_start_the_owned_launch (__main__.OwnedParticipantTests.test_wrong_supervisor_keys_cannot_approve_or_start_the_owned_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-launch-coordinator" classname="authority-launch-coordinator" time="5.21653" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-coordinator-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: fc26366821434f0bb0f2cc1489acdf3d
+test_child_reads_exact_durable_start_before_execution (__main__.AuthorityLaunchTests.test_child_reads_exact_durable_start_before_execution) ... ok
+test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants (__main__.AuthorityLaunchTests.test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants) ... ok
+test_paused_native_server_keeps_durable_cleanup_pending (__main__.AuthorityLaunchTests.test_paused_native_server_keeps_durable_cleanup_pending) ... ok
+test_failed_journal_commit_prevents_execution (__main__.AuthorityLaunchTests.test_failed_journal_commit_prevents_execution) ... ok
+test_failed_exec_retains_start_attempt_and_cannot_retry (__main__.AuthorityLaunchTests.test_failed_exec_retains_start_attempt_and_cannot_retry) ... ok
+test_failed_prepared_commit_can_stop_retained_native_scope (__main__.AuthorityLaunchTests....
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-prepared-launch" classname="authority-prepared-launch" time="0.437926" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-prepared-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: cd908ae73778427986b98bad172de977
+test_prepared_identity_and_membership_precede_child_execution (__main__.PreparedLaunchTests.test_prepared_identity_and_membership_precede_child_execution) ... ok
+test_stopped_prepared_scope_cannot_execute (__main__.PreparedLaunchTests.test_stopped_prepared_scope_cannot_execute) ... ok
+test_second_start_cannot_execute_or_replace_live_identity (__main__.PreparedLaunchTests.test_second_start_cannot_execute_or_replace_live_identity) ... ok
+test_only_explicit_descriptors_survive_exec_without_source_collision (__main__.PreparedLaunchTests.test_only_explicit_descriptors_survive_exec_without_source_collision) ... ok
+test_invalid_targets_are_rejected_before_start (__main__.PreparedLaunchTests.test_invalid_targets_are_rejected_before_start) ... ok
+test_mismatched_descriptor_table_is_rejected_before_start (__main__.PreparedLaunchTests.test_mismatched_descriptor_table...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-process-scope" classname="authority-process-scope" time="0.450048" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-scope-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 732182a8714d486a987c9acf5a2f87eb
+test_detached_descendants_exit_before_receipt (__main__.ProcessScopeTests.test_detached_descendants_exit_before_receipt) ... ok
+test_exec_failure_removes_scope (__main__.ProcessScopeTests.test_exec_failure_removes_scope) ... ok
+test_invalid_executable_rejected_without_scope (__main__.ProcessScopeTests.test_invalid_executable_rejected_without_scope) ... ok
+test_kernel_denied_kill_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_kill_never_returns_stopped) ... ok
+test_kernel_denied_wait_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_wait_never_returns_stopped) ... ok
+test_leader_exit_does_not_hide_live_detached_child (__main__.ProcessScopeTests.test_leader_exit_does_not_hide_live_detached_child) ... ok
+test_ordinary_directory_rejected_before_execution (__main__.ProcessScopeTests.test_ordinary_directory_rejected_before_e...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="process-termination" classname="process-termination" time="0.785305" status="run">
+		<properties/>
+		<system-out>test_already_exited_process_can_be_stopped_twice (__main__.ProcessTerminationTests.test_already_exited_process_can_be_stopped_twice) ... ok
+test_confirmed_stop_has_already_terminated_detached_descendants (__main__.ProcessTerminationTests.test_confirmed_stop_has_already_terminated_detached_descendants) ... ok
+test_destructor_signal_error_cannot_return_broker_success (__main__.ProcessTerminationTests.test_destructor_signal_error_cannot_return_broker_success) ... ok
+test_destructor_wait_error_cannot_return_broker_success (__main__.ProcessTerminationTests.test_destructor_wait_error_cannot_return_broker_success) ... ok
+test_signal_error_returns_failure_without_waiting_for_live_child (__main__.ProcessTerminationTests.test_signal_error_returns_failure_without_waiting_for_live_child) ... ok
+test_wait_error_cannot_be_reported_as_confirmed_stop (__main__.ProcessTerminationTests.test_wait_error_cannot_be_reported_as_confirmed_stop) ... ok
+
+----------------------------------------------------------------------
+Ran 6 test...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="workspace-participant-races" classname="workspace-participant-races" time="13.0236" status="run">
+		<properties/>
+		<system-out>test_exact_multi_workspace_registration_allows_both_bindings (__main__.WorkspaceParticipantMultiTests.test_exact_multi_workspace_registration_allows_both_bindings) ... ok
+test_actor_revocation_during_delayed_reply_waits_for_handler_and_process_exit (__main__.WorkspaceParticipantRaceTests.test_actor_revocation_during_delayed_reply_waits_for_handler_and_process_exit) ... ok
+test_credential_revocation_rejects_late_reply_without_killing_actor_execution (__main__.WorkspaceParticipantRaceTests.test_credential_revocation_rejects_late_reply_without_killing_actor_execution) ... ok
+test_registered_service_rejects_a_different_workspace (__main__.WorkspaceParticipantRaceTests.test_registered_service_rejects_a_different_workspace) ... ok
+test_registration_must_cover_every_configured_workspace (__main__.WorkspaceParticipantRaceTests.test_registration_must_cover_every_configured_workspace) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 12.919s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="workspace-participant" classname="workspace-participant" time="13.3886" status="run">
+		<properties/>
+		<system-out>test_authority_broker_requires_participant_configuration (__main__.WorkspaceParticipantTests.test_authority_broker_requires_participant_configuration) ... ok
+test_broker_activates_before_protected_work_and_cleanly_releases (__main__.WorkspaceParticipantTests.test_broker_activates_before_protected_work_and_cleanly_releases) ... ok
+test_clean_restart_uses_new_generation (__main__.WorkspaceParticipantTests.test_clean_restart_uses_new_generation) ... ok
+test_completion_waits_for_real_detached_process_exit (__main__.WorkspaceParticipantTests.test_completion_waits_for_real_detached_process_exit) ... ok
+test_crash_retains_obligation_and_blocks_replacement (__main__.WorkspaceParticipantTests.test_crash_retains_obligation_and_blocks_replacement) ... ok
+test_credential_revocation_preserves_actor_owned_execution (__main__.WorkspaceParticipantTests.test_credential_revocation_preserves_actor_owned_execution) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 13.295s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="world-participant" classname="world-participant" time="8.58867" status="run">
+		<properties/>
+		<system-out>test_actor_serving_world_requires_participant_configuration (__main__.WorldParticipantTests.test_actor_serving_world_requires_participant_configuration) ... ok
+test_barrier_stays_pending_until_held_event_stops_real_actor_motion (__main__.WorldParticipantTests.test_barrier_stays_pending_until_held_event_stops_real_actor_motion) ... ok
+test_clean_restart_preserves_world_and_uses_new_generation (__main__.WorldParticipantTests.test_clean_restart_preserves_world_and_uses_new_generation) ... ok
+test_crash_retains_obligation_and_rejects_unfenced_replacement (__main__.WorldParticipantTests.test_crash_retains_obligation_and_rejects_unfenced_replacement) ... ok
+test_service_cannot_activate_a_different_world (__main__.WorldParticipantTests.test_service_cannot_activate_a_different_world) ... ok
+test_world_activates_before_admitting_actor_and_cleanly_releases (__main__.WorldParticipantTests.test_world_activates_before_admitting_actor_and_cleanly_releases) ... ok
+
+-----------------------------------------------------------...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-revocation-receipts" classname="world-revocation-receipts" time="7.02786" status="run">
+		<properties/>
+		<system-out>test_issuer_revocation_before_local_commit_cannot_receive_success_receipt (__main__.WorldRevocationReceiptTests.test_issuer_revocation_before_local_commit_cannot_receive_success_receipt) ... ok
+test_private_self_revocation_returns_receipt_then_denies_further_actions (__main__.WorldRevocationReceiptTests.test_private_self_revocation_returns_receipt_then_denies_further_actions) ... ok
+test_public_self_revocation_preserves_admission_but_not_navigation (__main__.WorldRevocationReceiptTests.test_public_self_revocation_preserves_admission_but_not_navigation) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 6.936s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="identity-authority-retirement" classname="identity-authority-retirement" time="18.8387" status="run">
+		<properties/>
+		<system-out>test_retirement_completes_barrier_without_fabricating_applied_history (__main__.RetirementTests.test_retirement_completes_barrier_without_fabricating_applied_history) ... ok
+test_other_participant_keeps_obligations_and_active_generation (__main__.RetirementTests.test_other_participant_keeps_obligations_and_active_generation) ... ok
+test_revocation_between_fence_challenge_and_completion_is_covered (__main__.RetirementTests.test_revocation_between_fence_challenge_and_completion_is_covered) ... ok
+test_retired_generation_gets_no_new_revocation_obligations (__main__.RetirementTests.test_retired_generation_gets_no_new_revocation_obligations) ... ok
+test_fresh_exact_retry_and_nonce_replay_preserve_original_record (__main__.RetirementTests.test_fresh_exact_retry_and_nonce_replay_preserve_original_record) ... ok
+test_unread_completion_reply_can_retry_on_a_fresh_connection (__main__.RetirementTests.test_unread_completion_reply_can_retry_on_a_fresh_connection) ... ok
+test_management_pipe_cannot_retire (__main__.Retirem...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-authority-retirement-client" classname="identity-authority-retirement-client" time="10.7813" status="run">
+		<properties/>
+		<system-out>test_substituted_retirement_challenge_is_rejected (__main__.RetirementClientTests.test_substituted_retirement_challenge_is_rejected) ... ok
+test_substituted_result_or_invalid_proof_is_rejected (__main__.RetirementClientTests.test_substituted_result_or_invalid_proof_is_rejected) ... ok
+test_typed_denial_consumes_pending_retirement_context (__main__.RetirementClientTests.test_typed_denial_consumes_pending_retirement_context) ... ok
+test_unsolicited_retirement_success_is_rejected (__main__.RetirementClientTests.test_unsolicited_retirement_success_is_rejected) ... ok
+test_changed_connection_context_is_rejected (__main__.RetirementClientTests.test_changed_connection_context_is_rejected) ... ok
+test_barrier_cannot_claim_retirement_for_another_generation_or_history (__main__.RetirementClientTests.test_barrier_cannot_claim_retirement_for_another_generation_or_history) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 10.690s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="identity-authority-fencing" classname="identity-authority-fencing" time="17.9203" status="run">
+		<properties/>
+		<system-out>test_supervisor_fences_exact_active_launch_without_changing_acknowledgement_history (__main__.AuthorityFencingTests.test_supervisor_fences_exact_active_launch_without_changing_acknowledgement_history) ... ok
+test_owner_service_and_unknown_keys_cannot_fence (__main__.AuthorityFencingTests.test_owner_service_and_unknown_keys_cannot_fence) ... ok
+test_fence_proof_cannot_use_launch_signature_purpose (__main__.AuthorityFencingTests.test_fence_proof_cannot_use_launch_signature_purpose) ... ok
+test_fence_proof_cannot_cross_connections_and_consumes_nonce (__main__.AuthorityFencingTests.test_fence_proof_cannot_cross_connections_and_consumes_nonce) ... ok
+test_replayed_nonce_fails_but_fresh_identical_proof_returns_same_fence (__main__.AuthorityFencingTests.test_replayed_nonce_fails_but_fresh_identical_proof_returns_same_fence) ... ok
+test_mismatched_target_fields_do_not_create_fences (__main__.AuthorityFencingTests.test_mismatched_target_fields_do_not_create_fences) ... ok
+test_malformed_and_overflowed_target_fields_ar...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-authority-fencing-client" classname="identity-authority-fencing-client" time="7.77508" status="run">
+		<properties/>
+		<system-out>test_client_rejects_substituted_fence_challenge (__main__.FencingClientTests.test_client_rejects_substituted_fence_challenge) ... ok
+test_client_rejects_substituted_fence_result_or_invalid_proof (__main__.FencingClientTests.test_client_rejects_substituted_fence_result_or_invalid_proof) ... ok
+test_typed_denial_consumes_client_fence_context (__main__.FencingClientTests.test_typed_denial_consumes_client_fence_context) ... ok
+test_client_rejects_unsolicited_fence_success (__main__.FencingClientTests.test_client_rejects_unsolicited_fence_success) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 7.685s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="identity-launch-authorization" classname="identity-launch-authorization" time="19.3714" status="run">
+		<properties/>
+		<system-out>test_supervisor_authorizes_exact_service_connection_through_production_client (__main__.LaunchAuthorizationTests.test_supervisor_authorizes_exact_service_connection_through_production_client) ... ok
+test_other_service_connection_cannot_consume_authorization (__main__.LaunchAuthorizationTests.test_other_service_connection_cannot_consume_authorization) ... ok
+test_wrong_signers_cannot_authorize_launch (__main__.LaunchAuthorizationTests.test_wrong_signers_cannot_authorize_launch) ... ok
+test_completion_cannot_cross_supervisor_connections (__main__.LaunchAuthorizationTests.test_completion_cannot_cross_supervisor_connections) ... ok
+test_replayed_nonce_cannot_repeat_authorization (__main__.LaunchAuthorizationTests.test_replayed_nonce_cannot_repeat_authorization) ... ok
+test_supervisor_rotation_invalidates_unused_authorization (__main__.LaunchAuthorizationTests.test_supervisor_rotation_invalidates_unused_authorization) ... ok
+test_authorization_consumption_and_activation_roll_back_together (__main__.LaunchAuthoriza...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-supervisor-registry" classname="identity-supervisor-registry" time="12.231" status="run">
+		<properties/>
+		<system-out>test_owner_binds_exact_registration_through_production_client (__main__.SupervisorRegistryTests.test_owner_binds_exact_registration_through_production_client) ... ok
+test_stale_revision_cannot_replace_supervisor (__main__.SupervisorRegistryTests.test_stale_revision_cannot_replace_supervisor) ... ok
+test_service_and_supervisor_keys_cannot_bind_themselves (__main__.SupervisorRegistryTests.test_service_and_supervisor_keys_cannot_bind_themselves) ... ok
+test_active_generation_cannot_be_adopted_or_cleared (__main__.SupervisorRegistryTests.test_active_generation_cannot_be_adopted_or_cleared) ... ok
+test_binding_requires_launch_authorization_on_old_and_new_service_connections (__main__.SupervisorRegistryTests.test_binding_requires_launch_authorization_on_old_and_new_service_connections) ... ok
+test_key_roles_stay_separate_in_both_directions (__main__.SupervisorRegistryTests.test_key_roles_stay_separate_in_both_directions) ... ok
+test_pending_actor_enrollment_cannot_reuse_new_supervisor_key (__main__.SupervisorRegist...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-participant-incarnation" classname="identity-participant-incarnation" time="3.70421" status="run">
+		<properties/>
+		<system-out>test_exact_preassigned_incarnation_reaches_durable_activation (__main__.IncarnationTests.test_exact_preassigned_incarnation_reaches_durable_activation) ... ok
+test_explicit_invalid_incarnation_is_rejected_before_network_access (__main__.IncarnationTests.test_explicit_invalid_incarnation_is_rejected_before_network_access) ... ok
+test_preassigned_incarnation_cannot_be_reused_after_release (__main__.IncarnationTests.test_preassigned_incarnation_cannot_be_reused_after_release) ... ok
+test_assignment_does_not_bypass_registered_domains (__main__.IncarnationTests.test_assignment_does_not_bypass_registered_domains) ... ok
+test_assignment_does_not_bypass_service_key_proof (__main__.IncarnationTests.test_assignment_does_not_bypass_service_key_proof) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 3.615s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="identity-participant-channel" classname="identity-participant-channel" time="19.9483" status="run">
+		<properties/>
+		<system-out>test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key (__main__.ParticipantChannelTests.test_inherited_channel_activates_and_releases_real_issuer_generation_without_child_key) ... ok
+test_child_acknowledges_real_revocation_only_after_explicit_command (__main__.ParticipantChannelTests.test_child_acknowledges_real_revocation_only_after_explicit_command) ... ok
+test_activation_race_requires_child_resynchronization_and_explicit_retry (__main__.ParticipantChannelTests.test_activation_race_requires_child_resynchronization_and_explicit_retry) ... ok
+test_mixed_signing_configuration_is_rejected_before_channel_use (__main__.ParticipantChannelTests.test_mixed_signing_configuration_is_rejected_before_channel_use) ... ok
+test_regular_file_cannot_be_used_as_private_channel (__main__.ParticipantChannelTests.test_regular_file_cannot_be_used_as_private_channel) ... ok
+test_channel_is_nonblocking_and_closed_by_later_exec (__main__.ParticipantChannelTests.test_channel_is_nonblocking_and_closed_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-participant-runtime" classname="identity-participant-runtime" time="13.3707" status="run">
+		<properties/>
+		<system-out>test_activation_race_requires_explicit_resynchronization_and_new_request (__main__.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request) ... ok
+test_application_acknowledgement_cannot_skip_committed_events (__main__.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events) ... ok
+test_authentication_and_baseline_do_not_activate_execution (__main__.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution) ... ok
+test_clean_release_allows_new_incarnation_and_generation (__main__.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation) ... ok
+test_command_queue_overflow_is_permanent_before_activation (__main__.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation) ... ok
+test_destructor_preserves_pending_obligation_and_blocks_replacement (__main__.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement) ... ok
+test_domain_mism...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-participant-barrier-client" classname="identity-participant-barrier-client" time="15.756" status="run">
+		<properties/>
+		<system-out>test_activation_context_and_registration_cannot_be_substituted (__main__.BarrierClientTests.test_activation_context_and_registration_cannot_be_substituted) ... ok
+test_activation_must_match_synchronized_revision_and_valid_state (__main__.BarrierClientTests.test_activation_must_match_synchronized_revision_and_valid_state) ... ok
+test_applied_reply_cannot_claim_wrong_generation_revision_or_inactive_state (__main__.BarrierClientTests.test_applied_reply_cannot_claim_wrong_generation_revision_or_inactive_state) ... ok
+test_barrier_identity_and_global_counts_are_checked (__main__.BarrierClientTests.test_barrier_identity_and_global_counts_are_checked) ... ok
+test_barrier_obligations_and_pagination_are_checked (__main__.BarrierClientTests.test_barrier_obligations_and_pagination_are_checked) ... ok
+test_checked_client_completes_real_activation_application_and_release (__main__.BarrierClientTests.test_checked_client_completes_real_activation_application_and_release) ... ok
+test_owner_challenge_cannot_substitute_context...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-participant-barrier" classname="identity-participant-barrier" time="13.3947" status="run">
+		<properties/>
+		<system-out>test_activation_records_original_service_and_connection (__main__.BarrierTests.test_activation_records_original_service_and_connection) ... ok
+test_another_connection_cannot_replace_acknowledge_or_release (__main__.BarrierTests.test_another_connection_cannot_replace_acknowledge_or_release) ... ok
+test_application_rejects_gaps_future_revisions_and_foreign_generations (__main__.BarrierTests.test_application_rejects_gaps_future_revisions_and_foreign_generations) ... ok
+test_clean_release_cannot_skip_pending_cancellation (__main__.BarrierTests.test_clean_release_cannot_skip_pending_cancellation) ... ok
+test_disconnect_keeps_obligation_and_blocks_replacement (__main__.BarrierTests.test_disconnect_keeps_obligation_and_blocks_replacement) ... ok
+test_duplicate_application_is_idempotent (__main__.BarrierTests.test_duplicate_application_is_idempotent) ... ok
+test_failed_v5_migration_rolls_back_tables_and_version (__main__.BarrierTests.test_failed_v5_migration_rolls_back_tables_and_version) ... ok
+test_issuer_restart_k...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-participant-session-client" classname="identity-participant-session-client" time="11.4621" status="run">
+		<properties/>
+		<system-out>test_checked_client_completes_real_registered_service_proof (__main__.SessionClientTests.test_checked_client_completes_real_registered_service_proof) ... ok
+test_claimed_success_for_invalid_proof_poison_client (__main__.SessionClientTests.test_claimed_success_for_invalid_proof_poison_client) ... ok
+test_connection_context_and_fresh_nonce_remain_consistent (__main__.SessionClientTests.test_connection_context_and_fresh_nonce_remain_consistent) ... ok
+test_denial_cannot_leave_a_reusable_expected_challenge (__main__.SessionClientTests.test_denial_cannot_leave_a_reusable_expected_challenge) ... ok
+test_invalid_challenge_context_poison_client (__main__.SessionClientTests.test_invalid_challenge_context_poison_client) ... ok
+test_invalid_challenge_envelope_poison_client (__main__.SessionClientTests.test_invalid_challenge_envelope_poison_client) ... ok
+test_invalid_result_context_poison_client (__main__.SessionClientTests.test_invalid_result_context_poison_client) ... ok
+test_real_authenticated_connection_cannot_repla...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-participant-session" classname="identity-participant-session" time="11.2204" status="run">
+		<properties/>
+		<system-out>test_actor_owner_and_transport_keys_do_not_prove_registered_service (__main__.ParticipantSessionTests.test_actor_owner_and_transport_keys_do_not_prove_registered_service) ... ok
+test_altered_challenge_binding_is_not_an_authority_proof (__main__.ParticipantSessionTests.test_altered_challenge_binding_is_not_an_authority_proof) ... ok
+test_altered_service_incarnation_or_audience_is_rejected (__main__.ParticipantSessionTests.test_altered_service_incarnation_or_audience_is_rejected) ... ok
+test_authenticated_connection_cannot_switch_service_identity (__main__.ParticipantSessionTests.test_authenticated_connection_cannot_switch_service_identity) ... ok
+test_completed_proof_cannot_replay (__main__.ParticipantSessionTests.test_completed_proof_cannot_replay) ... ok
+test_completion_reports_revocation_committed_after_challenge (__main__.ParticipantSessionTests.test_completion_reports_revocation_committed_after_challenge) ... ok
+test_disconnect_requires_fresh_connection_proof (__main__.ParticipantSessionTests.test_disconn...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-participants" classname="identity-participants" time="6.61978" status="run">
+		<properties/>
+		<system-out>test_actor_cannot_register_and_bad_proof_consumes_challenge (__main__.ParticipantTests.test_actor_cannot_register_and_bad_proof_consumes_challenge) ... ok
+test_all_64_domains_are_preserved (__main__.ParticipantTests.test_all_64_domains_are_preserved) ... ok
+test_binary_participant_ids_have_stable_pagination_order (__main__.ParticipantTests.test_binary_participant_ids_have_stable_pagination_order) ... ok
+test_corrupt_record_and_domain_index_fail_closed (__main__.ParticipantTests.test_corrupt_record_and_domain_index_fail_closed) ... ok
+test_domain_insert_failure_rolls_back_registration_and_revision (__main__.ParticipantTests.test_domain_insert_failure_rolls_back_registration_and_revision) ... ok
+test_domains_are_canonical_and_support_multiple_workspaces (__main__.ParticipantTests.test_domains_are_canonical_and_support_multiple_workspaces) ... ok
+test_duplicate_identity_key_and_domain_do_not_replace_record (__main__.ParticipantTests.test_duplicate_identity_key_and_domain_do_not_replace_record) ... ok
+test_empty_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-participant-client" classname="identity-participant-client" time="6.82343" status="run">
+		<properties/>
+		<system-out>test_checked_client_registers_and_reads_real_owner_signed_records (__main__.ParticipantClientTests.test_checked_client_registers_and_reads_real_owner_signed_records) ... ok
+test_conflicting_registry_entries_poison_client (__main__.ParticipantClientTests.test_conflicting_registry_entries_poison_client) ... ok
+test_duplicate_registration_revision_poison_client (__main__.ParticipantClientTests.test_duplicate_registration_revision_poison_client) ... ok
+test_invalid_record_domains_poison_client (__main__.ParticipantClientTests.test_invalid_record_domains_poison_client) ... ok
+test_invalid_record_identity_and_revision_poison_client (__main__.ParticipantClientTests.test_invalid_record_identity_and_revision_poison_client) ... ok
+test_invalid_registry_context_poison_client (__main__.ParticipantClientTests.test_invalid_registry_context_poison_client) ... ok
+test_invalid_registry_continuation_poison_client (__main__.ParticipantClientTests.test_invalid_registry_continuation_poison_client) ... ok
+test_rejected_registratio...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-remote-retries" classname="world-remote-retries" time="0.940234" status="run">
+		<properties/>
+		<system-out>test_authenticated_idle_has_no_io_deadline (__main__.ActorTlsRetryTests.test_authenticated_idle_has_no_io_deadline) ... ok
+test_completed_read_clears_retry_deadline (__main__.ActorTlsRetryTests.test_completed_read_clears_retry_deadline) ... ok
+test_read_retry_transition_preserves_deadline (__main__.ActorTlsRetryTests.test_read_retry_transition_preserves_deadline) ... ok
+test_repeated_retry_does_not_refresh_deadline (__main__.ActorTlsRetryTests.test_repeated_retry_does_not_refresh_deadline) ... ok
+test_stalled_read_to_write_retry_expires (__main__.ActorTlsRetryTests.test_stalled_read_to_write_retry_expires) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.890s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="world-remote-security" classname="world-remote-security" time="42.9348" status="run">
+		<properties/>
+		<system-out>test_plaintext_is_rejected_without_disrupting_an_actor (__main__.RemoteSecurityTests.test_plaintext_is_rejected_without_disrupting_an_actor) ... ok
+test_missing_client_certificate_is_rejected (__main__.RemoteSecurityTests.test_missing_client_certificate_is_rejected) ... ok
+test_untrusted_client_certificate_is_rejected (__main__.RemoteSecurityTests.test_untrusted_client_certificate_is_rejected) ... ok
+test_server_name_mismatch_fails_verification (__main__.RemoteSecurityTests.test_server_name_mismatch_fails_verification) ... ok
+test_untrusted_server_fails_verification (__main__.RemoteSecurityTests.test_untrusted_server_fails_verification) ... ok
+test_tls12_cannot_reach_actor_dispatch (__main__.RemoteSecurityTests.test_tls12_cannot_reach_actor_dispatch) ... ok
+test_fragmented_frame_reaches_existing_actor (__main__.RemoteSecurityTests.test_fragmented_frame_reaches_existing_actor) ... ok
+test_excessive_frame_closes_only_its_remote_channel (__main__.RemoteSecurityTests.test_excessive_frame_closes_only_its_remote_ch...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-remote-lifecycle" classname="world-remote-lifecycle" time="20.3851" status="run">
+		<properties/>
+		<system-out>test_stalled_handshake_expires_and_does_not_block_valid_actor (__main__.RemoteLifecycleTests.test_stalled_handshake_expires_and_does_not_block_valid_actor) ... ok
+test_connection_limit_rejects_excess_and_recovers_after_close (__main__.RemoteLifecycleTests.test_connection_limit_rejects_excess_and_recovers_after_close) ... ok
+test_disconnect_stops_real_motion_before_motion_expiry (__main__.RemoteLifecycleTests.test_disconnect_stops_real_motion_before_motion_expiry) ... ok
+test_credential_revocation_cancels_idle_remote_actor (__main__.RemoteLifecycleTests.test_credential_revocation_cancels_idle_remote_actor) ... ok
+test_replayed_proof_cannot_reopen_closed_session (__main__.RemoteLifecycleTests.test_replayed_proof_cannot_reopen_closed_session) ... ok
+test_restart_preserves_checkpoint_and_rejects_old_challenge (__main__.RemoteLifecycleTests.test_restart_preserves_checkpoint_and_rejects_old_challenge) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 20.285s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="world-remote-native" classname="world-remote-native" time="19.0848" status="run">
+		<properties/>
+		<system-out>test_remote_geometry_omits_authorized_live_application_pixels_and_metadata (__main__.RemoteNativeTests.test_remote_geometry_omits_authorized_live_application_pixels_and_metadata) ... ok
+test_same_actor_restores_local_application_observation_after_remote_session (__main__.RemoteNativeTests.test_same_actor_restores_local_application_observation_after_remote_session) ... ok
+test_stalled_large_reply_closes_remote_channel_and_preserves_local_actor (__main__.RemoteNativeTests.test_stalled_large_reply_closes_remote_channel_and_preserves_local_actor) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 18.966s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="world-remote-races" classname="world-remote-races" time="7.21028" status="run">
+		<properties/>
+		<system-out>test_remote_credential_revocation_during_profile_reply_creates_no_grant (__main__.RemoteRaceTests.test_remote_credential_revocation_during_profile_reply_creates_no_grant) ... ok
+test_remote_disconnect_during_profile_reply_creates_no_grant (__main__.RemoteRaceTests.test_remote_disconnect_during_profile_reply_creates_no_grant) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 7.119s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="world-remote-config" classname="world-remote-config" time="25.4772" status="run">
+		<properties/>
+		<system-out>test_listener_requires_identity_configuration (__main__.RemoteConfigTests.test_listener_requires_identity_configuration) ... ok
+test_listener_requires_tls_configuration (__main__.RemoteConfigTests.test_listener_requires_tls_configuration) ... ok
+test_mismatched_private_key_is_rejected (__main__.RemoteConfigTests.test_mismatched_private_key_is_rejected) ... ok
+test_non_listening_tcp_descriptor_is_rejected (__main__.RemoteConfigTests.test_non_listening_tcp_descriptor_is_rejected) ... ok
+test_readable_private_key_is_rejected (__main__.RemoteConfigTests.test_readable_private_key_is_rejected) ... ok
+test_relative_certificate_and_missing_trust_are_rejected (__main__.RemoteConfigTests.test_relative_certificate_and_missing_trust_are_rejected) ... ok
+test_reused_actor_listener_descriptor_is_rejected (__main__.RemoteConfigTests.test_reused_actor_listener_descriptor_is_rejected) ... ok
+test_reused_broker_listener_descriptor_is_rejected (__main__.RemoteConfigTests.test_reused_broker_listener_descriptor_is_rejected) ... o...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-remote" classname="world-remote" time="14.0282" status="run">
+		<properties/>
+		<system-out>test_remote_authentication_proof_is_bound_to_its_channel (__main__.RemoteWorldTests.test_remote_authentication_proof_is_bound_to_its_channel) ... ok
+test_remote_channel_cannot_execute_trusted_management_request (__main__.RemoteWorldTests.test_remote_channel_cannot_execute_trusted_management_request) ... ok
+test_remote_private_admission_remains_separate_from_valid_identity (__main__.RemoteWorldTests.test_remote_private_admission_remains_separate_from_valid_identity) ... ok
+test_remote_proof_uses_persistent_world_authority_and_real_actor (__main__.RemoteWorldTests.test_remote_proof_uses_persistent_world_authority_and_real_actor) ... ok
+test_tls_identity_alone_does_not_authenticate_an_actor (__main__.RemoteWorldTests.test_tls_identity_alone_does_not_authenticate_an_actor) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 13.937s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="workspace-bootstrap-races" classname="workspace-bootstrap-races" time="42.2866" status="run">
+		<properties/>
+		<system-out>test_binding_credential_revoked_during_profile_read_creates_no_binding (__main__.WorkspaceBootstrapRaceTests.test_binding_credential_revoked_during_profile_read_creates_no_binding) ... ok
+test_binding_revoke_credential_race_keeps_binding_active (__main__.WorkspaceBootstrapRaceTests.test_binding_revoke_credential_race_keeps_binding_active) ... ok
+test_credential_revoked_during_actor_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_actor_reply_preserves_authorized_process) ... ok
+test_credential_revoked_during_broker_parent_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_parent_read_creates_no_grant) ... ok
+test_credential_revoked_during_broker_profile_read_creates_no_grant (__main__.WorkspaceBootstrapRaceTests.test_credential_revoked_during_broker_profile_read_creates_no_grant) ... ok
+test_credential_revoked_during_credential_reply_preserves_authorized_process (__main__.WorkspaceBootstrapRaceTests.test_cred...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="workspace-bootstrap" classname="workspace-bootstrap" time="50.2299" status="run">
+		<properties/>
+		<system-out>test_actor_cannot_bind_another_holders_parent (__main__.WorkspaceBootstrapTests.test_actor_cannot_bind_another_holders_parent) ... ok
+test_application_does_not_make_workspace_available (__main__.WorkspaceBootstrapTests.test_application_does_not_make_workspace_available) ... ok
+test_binding_revocation_blocks_new_recipients_but_preserves_existing_access (__main__.WorkspaceBootstrapTests.test_binding_revocation_blocks_new_recipients_but_preserves_existing_access) ... ok
+test_broker_and_world_restart_preserve_binding_receipt_and_real_file (__main__.WorkspaceBootstrapTests.test_broker_and_world_restart_preserve_binding_receipt_and_real_file) ... ok
+test_broker_rejects_mismatched_missing_and_forged_credentials (__main__.WorkspaceBootstrapTests.test_broker_rejects_mismatched_missing_and_forged_credentials) ... ok
+test_explicit_application_enables_confined_real_file_write (__main__.WorkspaceBootstrapTests.test_explicit_application_enables_confined_real_file_write) ... ok
+test_read_only_bootstrap_does_not_authorize_wr...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-bootstrap-races" classname="world-bootstrap-races" time="17.0069" status="run">
+		<properties/>
+		<system-out>test_credential_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+test_credential_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_credential_revoked_during_profile_read_creates_no_receipt) ... ok
+test_independent_grant_survives_bootstrap_parent_revocation (__main__.WorldBootstrapRaceTests.test_independent_grant_survives_bootstrap_parent_revocation) ... ok
+test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_binding_ancestry_read_creates_no_receipt) ... ok
+test_parent_actor_revoked_during_profile_read_creates_no_receipt (__main__.WorldBootstrapRaceTests.test_parent_actor_revoked_during_profile_read_creates_no_receipt) ... ok
+test_partial_profile_reports_missing_binding_and_preserves_one_grant_on_retry (__main__.WorldBootstrapRaceTests.test_partial_profile_reports_missi...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="broker-bootstrap-client" classname="broker-bootstrap-client" time="1.48137" status="run">
+		<properties/>
+		<system-out>test_binding_cannot_assign_recipient (__main__.BrokerBootstrapClientTests.test_binding_cannot_assign_recipient) ... ok
+test_binding_cannot_return_world_right (__main__.BrokerBootstrapClientTests.test_binding_cannot_return_world_right) ... ok
+test_binding_cannot_substitute_authorizer (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_authorizer) ... ok
+test_binding_cannot_substitute_parent (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_parent) ... ok
+test_binding_cannot_substitute_profile (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_profile) ... ok
+test_binding_cannot_substitute_workspace (__main__.BrokerBootstrapClientTests.test_binding_cannot_substitute_workspace) ... ok
+test_binding_revision_must_follow_request (__main__.BrokerBootstrapClientTests.test_binding_revision_must_follow_request) ... ok
+test_binding_revoke_cannot_substitute_identity (__main__.BrokerBootstrapClientTests.test_binding_revoke_cannot_substitute_identity) ... ok
+test_binding_r...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-bootstrap" classname="world-bootstrap" time="41.2474" status="run">
+		<properties/>
+		<system-out>test_administration_cannot_bind_without_explicit_delegation (__main__.WorldBootstrapTests.test_administration_cannot_bind_without_explicit_delegation) ... ok
+test_anonymous_channels_cannot_administer_or_apply_bootstrap (__main__.WorldBootstrapTests.test_anonymous_channels_cannot_administer_or_apply_bootstrap) ... ok
+test_binding_requires_authenticated_parent_holder (__main__.WorldBootstrapTests.test_binding_requires_authenticated_parent_holder) ... ok
+test_bound_profile_admits_private_actor_and_routes_real_navigation (__main__.WorldBootstrapTests.test_bound_profile_admits_private_actor_and_routes_real_navigation) ... ok
+test_challenge_and_failed_proof_do_not_materialize_grants (__main__.WorldBootstrapTests.test_challenge_and_failed_proof_do_not_materialize_grants) ... ok
+test_checked_template_cannot_bind_to_another_world (__main__.WorldBootstrapTests.test_checked_template_cannot_bind_to_another_world) ... ok
+test_domain_binding_revoke_stops_new_actors_but_preserves_existing_grants (__main__.WorldBootstrapTest...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-display-ready" classname="native-display-ready" time="0.186768" status="run">
+		<properties/>
+		<system-out>test_digits_in_separate_writes (__main__.DisplayReadyTests.test_digits_in_separate_writes) ... ok
+test_eof_does_not_invent_a_complete_notice (__main__.DisplayReadyTests.test_eof_does_not_invent_a_complete_notice) ... ok
+test_newline_in_separate_write (__main__.DisplayReadyTests.test_newline_in_separate_write) ... ok
+test_partial_notice_does_not_refresh_or_bypass_deadline (__main__.DisplayReadyTests.test_partial_notice_does_not_refresh_or_bypass_deadline) ... ok
+test_unterminated_notice_is_bounded (__main__.DisplayReadyTests.test_unterminated_notice_is_bounded) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.144s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="render-observation-client" classname="render-observation-client" time="0.889202" status="run">
+		<properties/>
+		<system-out>test_changed_or_zero_image_dimensions_are_rejected (__main__.RenderObservationClientTests.test_changed_or_zero_image_dimensions_are_rejected) ... ok
+test_excessive_pixel_request_is_not_sent_to_compositor (__main__.RenderObservationClientTests.test_excessive_pixel_request_is_not_sent_to_compositor) ... ok
+test_extra_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_extra_rgb_data_is_rejected) ... ok
+test_metadata_only_reply_has_no_image (__main__.RenderObservationClientTests.test_metadata_only_reply_has_no_image) ... ok
+test_missing_requested_image_is_rejected (__main__.RenderObservationClientTests.test_missing_requested_image_is_rejected) ... ok
+test_truncated_rgb_data_is_rejected (__main__.RenderObservationClientTests.test_truncated_rgb_data_is_rejected) ... ok
+test_unknown_image_field_is_rejected (__main__.RenderObservationClientTests.test_unknown_image_field_is_rejected) ... ok
+test_unsolicited_image_is_rejected (__main__.RenderObservationClientTests.test_unsolicited_image_is_rejected) ... o...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="broker-control-client" classname="broker-control-client" time="11.9246" status="run">
+		<properties/>
+		<system-out>test_acquire_cannot_substitute_application (__main__.BrokerControlClientTests.test_acquire_cannot_substitute_application) ... ok
+test_acquire_cannot_substitute_principal (__main__.BrokerControlClientTests.test_acquire_cannot_substitute_principal) ... ok
+test_acquire_requires_full_lease_identity (__main__.BrokerControlClientTests.test_acquire_requires_full_lease_identity) ... ok
+test_acquire_returns_exact_lease (__main__.BrokerControlClientTests.test_acquire_returns_exact_lease) ... ok
+test_broker_denial_keeps_transport_usable (__main__.BrokerControlClientTests.test_broker_denial_keeps_transport_usable) ... ok
+test_duplicate_event_fails_closed (__main__.BrokerControlClientTests.test_duplicate_event_fails_closed) ... ok
+test_early_revocation_cannot_target_different_acquisition (__main__.BrokerControlClientTests.test_early_revocation_cannot_target_different_acquisition) ... ok
+test_empty_principal_cannot_be_confirmed (__main__.BrokerControlClientTests.test_empty_principal_cannot_be_confirmed) ... ok
+test_event_r...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-store" classname="authority-store" time="8.33917" status="run">
+		<properties/>
+		<system-out>test_administration_delegation_requires_explicit_permission (__main__.AuthorityTests.test_administration_delegation_requires_explicit_permission) ... ok
+test_administration_does_not_imply_other_rights_or_delegation (__main__.AuthorityTests.test_administration_does_not_imply_other_rights_or_delegation) ... ok
+test_bounded_scopes (__main__.AuthorityTests.test_bounded_scopes) ... ok
+test_changed_parent_policy_is_detected (__main__.AuthorityTests.test_changed_parent_policy_is_detected) ... ok
+test_child_cannot_retain_parent_depth (__main__.AuthorityTests.test_child_cannot_retain_parent_depth) ... ok
+test_corrupt_parent_chain_fails_closed (__main__.AuthorityTests.test_corrupt_parent_chain_fails_closed) ... ok
+test_database_has_real_durable_parent_and_scope_records (__main__.AuthorityTests.test_database_has_real_durable_parent_and_scope_records) ... ok
+test_delegable_right_requires_held_right (__main__.AuthorityTests.test_delegable_right_requires_held_right) ... ok
+test_delegable_subset_is_explicit (__main__.Author...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-bootstrap" classname="authority-bootstrap" time="31.1741" status="run">
+		<properties/>
+		<system-out>test_administration_without_delegation_cannot_bind (__main__.BootstrapAuthorityTests.test_administration_without_delegation_cannot_bind) ... ok
+test_binding_does_not_grant_until_authorized_materialization (__main__.BootstrapAuthorityTests.test_binding_does_not_grant_until_authorized_materialization) ... ok
+test_binding_limit_preserves_existing_bindings_and_revision (__main__.BootstrapAuthorityTests.test_binding_limit_preserves_existing_bindings_and_revision) ... ok
+test_binding_requires_parent_holder_and_current_ancestry (__main__.BootstrapAuthorityTests.test_binding_requires_parent_holder_and_current_ancestry) ... ok
+test_binding_revision_conflict_does_not_change_store (__main__.BootstrapAuthorityTests.test_binding_revision_conflict_does_not_change_store) ... ok
+test_binding_revocation_stops_new_grants_without_revoking_existing_grants (__main__.BootstrapAuthorityTests.test_binding_revocation_stops_new_grants_without_revoking_existing_grants) ... ok
+test_binding_write_failure_preserves_revision_and_records (_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="workspace-authority" classname="workspace-authority" time="82.1815" status="run">
+		<properties/>
+		<system-out>test_access_revocation_keeps_valid_process_execution (__main__.WorkspaceAuthorityTests.test_access_revocation_keeps_valid_process_execution) ... ok
+test_actor_revocation_interrupts_a_blocked_process_wait (__main__.WorkspaceAuthorityTests.test_actor_revocation_interrupts_a_blocked_process_wait) ... ok
+test_actor_revocation_stops_execution_while_broker_is_idle (__main__.WorkspaceAuthorityTests.test_actor_revocation_stops_execution_while_broker_is_idle) ... ok
+test_authenticated_workspace_selection_and_confined_process (__main__.WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process) ... ok
+test_bound_workspace_rejects_static_authority_edits (__main__.WorkspaceAuthorityTests.test_bound_workspace_rejects_static_authority_edits) ... ok
+test_credential_revocation_preserves_valid_workspace_process (__main__.WorkspaceAuthorityTests.test_credential_revocation_preserves_valid_workspace_process) ... ok
+test_cross_domain_unknown_and_foreign_grants_are_rejected (__main__.WorkspaceAuthorityTest...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-keys" classname="identity-keys" time="3.92663" status="run">
+		<properties/>
+		<system-out>test_concurrent_creation_has_one_winner_and_a_complete_key (__main__.IdentityKeyTests.test_concurrent_creation_has_one_winner_and_a_complete_key) ... ok
+test_corrupt_oversized_and_trailing_key_data_are_rejected (__main__.IdentityKeyTests.test_corrupt_oversized_and_trailing_key_data_are_rejected) ... ok
+test_distinct_keys_persist_with_private_permissions_and_external_public_keys (__main__.IdentityKeyTests.test_distinct_keys_persist_with_private_permissions_and_external_public_keys) ... ok
+test_empty_and_maximum_payload_are_explicit_and_bounded (__main__.IdentityKeyTests.test_empty_and_maximum_payload_are_explicit_and_bounded) ... ok
+test_exposed_key_permissions_are_rejected_and_read_only_private_key_works (__main__.IdentityKeyTests.test_exposed_key_permissions_are_rejected_and_read_only_private_key_works) ... ok
+test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected (__main__.IdentityKeyTests.test_external_ed25519_keys_are_supported_and_other_algorithms_are_rejected) ... ok
+test_generation_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-issuer" classname="identity-issuer" time="4.82655" status="run">
+		<properties/>
+		<system-out>test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed (__main__.IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed) ... ok
+test_challenge_binds_issuer_incarnation_owner_operation_and_audience (__main__.IssuerTests.test_challenge_binds_issuer_incarnation_owner_operation_and_audience) ... ok
+test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation (__main__.IssuerTests.test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation) ... ok
+test_competing_revision_updates_have_one_winner (__main__.IssuerTests.test_competing_revision_updates_have_one_winner) ... ok
+test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy (__main__.IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy) ... ok
+test_initialization_and_startup_never_replace_missing_or_existing_identity (__main__.IssuerTests.test_initialization_and_startup_never_replace_missing_or_existing_identity) ... ok
+test_inv...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-enrollment" classname="identity-enrollment" time="7.38988" status="run">
+		<properties/>
+		<system-out>test_a_key_cannot_create_a_second_request_by_changing_its_intent (__main__.EnrollmentTests.test_a_key_cannot_create_a_second_request_by_changing_its_intent) ... ok
+test_another_key_cannot_enroll_and_failed_completion_consumes_nonce (__main__.EnrollmentTests.test_another_key_cannot_enroll_and_failed_completion_consumes_nonce) ... ok
+test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants (__main__.EnrollmentTests.test_approve_always_uses_the_same_credential_format_without_owner_or_workspace_grants) ... ok
+test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance (__main__.EnrollmentTests.test_attach_rejects_missing_actor_or_incompatible_kind_without_partial_issuance) ... ok
+test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment (__main__.EnrollmentTests.test_auto_policy_rejects_unknown_profile_without_persisting_partial_enrollment) ... ok
+test_changed_enrollment_intent_or_purpose_is_rejected (__main__.EnrollmentTests.test_changed_enrol...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-bootstrap" classname="identity-bootstrap" time="5.70501" status="run">
+		<properties/>
+		<system-out>test_active_profile_update_invalidates_pending_manual_approval (__main__.BootstrapTests.test_active_profile_update_invalidates_pending_manual_approval) ... ok
+test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state (__main__.BootstrapTests.test_automatic_enrollment_never_issues_administration_and_leaves_no_partial_state) ... ok
+test_automatic_enrollment_uses_the_same_nonempty_profile (__main__.BootstrapTests.test_automatic_enrollment_uses_the_same_nonempty_profile) ... ok
+test_builtin_empty_profile_is_readable_and_immutable (__main__.BootstrapTests.test_builtin_empty_profile_is_readable_and_immutable) ... ok
+test_corrupt_profile_blocks_reads_and_issuance (__main__.BootstrapTests.test_corrupt_profile_blocks_reads_and_issuance) ... ok
+test_explicit_v3_migration_preserves_credentials_and_is_repeatable (__main__.BootstrapTests.test_explicit_v3_migration_preserves_credentials_and_is_repeatable) ... ok
+test_failed_credential_write_rolls_back_nonempty_profile_issuance (__main__.BootstrapTes...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-revocation" classname="identity-revocation" time="8.28892" status="run">
+		<properties/>
+		<system-out>test_actor_revocation_disables_all_its_credentials_but_not_another_actor (__main__.RevocationTests.test_actor_revocation_disables_all_its_credentials_but_not_another_actor) ... ok
+test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge (__main__.RevocationTests.test_another_key_cannot_authenticate_and_failed_attempt_consumes_challenge) ... ok
+test_authentication_expiry_and_restart_reject_old_proofs (__main__.RevocationTests.test_authentication_expiry_and_restart_reject_old_proofs) ... ok
+test_authentication_uses_the_same_bounded_challenge_pool (__main__.RevocationTests.test_authentication_uses_the_same_bounded_challenge_pool) ... ok
+test_changed_audience_binding_or_signature_purpose_is_rejected (__main__.RevocationTests.test_changed_audience_binding_or_signature_purpose_is_rejected) ... ok
+test_credential_revocation_preserves_other_credential_and_pending_proof (__main__.RevocationTests.test_credential_revocation_preserves_other_credential_and_pending_proof) ... ok
+test_credentials_and_proof...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-tls" classname="identity-tls" time="12.5019" status="run">
+		<properties/>
+		<system-out>test_connection_limit_rejects_excess_peer_then_recovers (__main__.TlsTests.test_connection_limit_rejects_excess_peer_then_recovers) ... ok
+test_connections_share_enrollment_authentication_and_revocation (__main__.TlsTests.test_connections_share_enrollment_authentication_and_revocation) ... ok
+test_disconnect_mid_payload_does_not_kill_issuer (__main__.TlsTests.test_disconnect_mid_payload_does_not_kill_issuer) ... ok
+test_encrypted_private_key_fails_without_prompting (__main__.TlsTests.test_encrypted_private_key_fails_without_prompting) ... ok
+test_excessive_frame_closes_only_offending_peer (__main__.TlsTests.test_excessive_frame_closes_only_offending_peer) ... ok
+test_expired_service_certificate_rejected (__main__.TlsTests.test_expired_service_certificate_rejected) ... ok
+test_idle_timeout_reclaims_peer (__main__.TlsTests.test_idle_timeout_reclaims_peer) ... ok
+test_independent_client_rejects_wrong_server_name_and_trust (__main__.TlsTests.test_independent_client_rejects_wrong_server_name_and_trust) ... ok
+test...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-status" classname="actor-status" time="12.5314" status="run">
+		<properties/>
+		<system-out>test_actor_revocation_is_visible_without_a_new_credential (__main__.ActorStatusTests.test_actor_revocation_is_visible_without_a_new_credential) ... ok
+test_actor_status_discloses_no_labels_keys_or_credentials (__main__.ActorStatusTests.test_actor_status_discloses_no_labels_keys_or_credentials) ... ok
+test_batch_accepts_exactly_128_distinct_identities (__main__.ActorStatusTests.test_batch_accepts_exactly_128_distinct_identities) ... ok
+test_checked_client_remains_usable_after_typed_request_error (__main__.ActorStatusTests.test_checked_client_remains_usable_after_typed_request_error) ... ok
+test_client_rejects_inconsistent_actor_flags (__main__.ActorStatusTests.test_client_rejects_inconsistent_actor_flags) ... ok
+test_client_rejects_missing_or_extra_subject (__main__.ActorStatusTests.test_client_rejects_missing_or_extra_subject) ... ok
+test_client_rejects_reordered_or_substituted_subjects (__main__.ActorStatusTests.test_client_rejects_reordered_or_substituted_subjects) ... ok
+test_client_rejects_unknown_fields_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-revocation-command" classname="identity-revocation-command" time="12.5984" status="run">
+		<properties/>
+		<system-out>test_command_waits_for_authenticated_application_acknowledgement (__main__.RevocationCommandTests.test_command_waits_for_authenticated_application_acknowledgement) ... ok
+test_credential_revocation_keeps_actor_identity_valid (__main__.RevocationCommandTests.test_credential_revocation_keeps_actor_identity_valid) ... ok
+test_failed_or_substituted_barrier_preserves_commit_without_completion (__main__.RevocationCommandTests.test_failed_or_substituted_barrier_preserves_commit_without_completion) ... ok
+test_invalid_commit_replies_never_claim_confirmation (__main__.RevocationCommandTests.test_invalid_commit_replies_never_claim_confirmation) ... ok
+test_invalid_requests_fail_before_contacting_issuer (__main__.RevocationCommandTests.test_invalid_requests_fail_before_contacting_issuer) ... ok
+test_lost_commit_reply_is_uncertain_and_explicit_resume_reconciles (__main__.RevocationCommandTests.test_lost_commit_reply_is_uncertain_and_explicit_resume_reconciles) ... ok
+test_no_participants_completes_actual_actor_revocation...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="issuer-client" classname="issuer-client" time="16.4581" status="run">
+		<properties/>
+		<system-out>test_bad_reply_envelopes_poison_client (__main__.ClientTests.test_bad_reply_envelopes_poison_client) ... ok
+test_bootstrap_invalid_local_revision_does_not_send_or_poison (__main__.ClientTests.test_bootstrap_invalid_local_revision_does_not_send_or_poison) ... ok
+test_bootstrap_profile_publication_and_exact_read_reach_real_issuer (__main__.ClientTests.test_bootstrap_profile_publication_and_exact_read_reach_real_issuer) ... ok
+test_bootstrap_substituted_or_malformed_reply_poisons_client (__main__.ClientTests.test_bootstrap_substituted_or_malformed_reply_poisons_client) ... ok
+test_bootstrap_valid_fragmented_reply_and_error_keep_client_usable (__main__.ClientTests.test_bootstrap_valid_fragmented_reply_and_error_keep_client_usable) ... ok
+test_client_certificate_must_be_trusted_by_issuer (__main__.ClientTests.test_client_certificate_must_be_trusted_by_issuer) ... ok
+test_client_reaches_real_issuer_and_preserves_caller_request_ids (__main__.ClientTests.test_client_reaches_real_issuer_and_preserves_caller_request_id...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-watch" classname="identity-watch" time="16.8634" status="run">
+		<properties/>
+		<system-out>test_actor_and_credential_events_keep_global_order (__main__.WatchTests.test_actor_and_credential_events_keep_global_order) ... ok
+test_bounded_queue_failure_is_visible_to_world_consumer (__main__.WatchTests.test_bounded_queue_failure_is_visible_to_world_consumer) ... ok
+test_committed_revocation_wakes_wait_without_waiting_for_heartbeat (__main__.WatchTests.test_committed_revocation_wakes_wait_without_waiting_for_heartbeat) ... ok
+test_current_baseline_and_committed_history_are_distinct (__main__.WatchTests.test_current_baseline_and_committed_history_are_distinct) ... ok
+test_duplicate_revocation_does_not_create_another_event (__main__.WatchTests.test_duplicate_revocation_does_not_create_another_event) ... ok
+test_future_cursor_and_excessive_wait_are_rejected (__main__.WatchTests.test_future_cursor_and_excessive_wait_are_rejected) ... ok
+test_history_is_bounded_to_128_contiguous_events (__main__.WatchTests.test_history_is_bounded_to_128_contiguous_events) ... ok
+test_history_survives_issuer_restart (__main__....
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="render-runtime" classname="render-runtime" time="5.91364" status="run">
+		<properties/>
+		<system-out>test_compositor_is_owned_separate_process_and_death_closes_session (__main__.RenderRuntimeTests.test_compositor_is_owned_separate_process_and_death_closes_session) ... ok
+test_configuration_controls_fov_background_and_clipping (__main__.RenderRuntimeTests.test_configuration_controls_fov_background_and_clipping) ... ok
+test_coplanar_tie_order_agrees_with_pick (__main__.RenderRuntimeTests.test_coplanar_tie_order_agrees_with_pick) ... ok
+test_existing_wm_is_not_replaced (__main__.RenderRuntimeTests.test_existing_wm_is_not_replaced) ... ok
+test_graceful_shutdown_releases_graphics_without_sanitizer_errors (__main__.RenderRuntimeTests.test_graceful_shutdown_releases_graphics_without_sanitizer_errors) ... ok
+test_half_open_panel_edges_match_pixel_center_rays (__main__.RenderRuntimeTests.test_half_open_panel_edges_match_pixel_center_rays) ... ok
+test_inclusive_clip_planes_and_quad_crossing_camera_plane (__main__.RenderRuntimeTests.test_inclusive_clip_planes_and_quad_crossing_camera_plane) ... ok
+test_invalid_dimensio...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="surface-runtime" classname="surface-runtime" time="13.8073" status="run">
+		<properties/>
+		<system-out>test_concurrent_resize_and_damage_leave_latest_pixels_and_live_runtime (__main__.SurfaceRuntimeTests.test_concurrent_resize_and_damage_leave_latest_pixels_and_live_runtime) ... ok
+test_concurrent_slot_attachment_has_one_winner (__main__.SurfaceRuntimeTests.test_concurrent_slot_attachment_has_one_winner) ... ok
+test_current_handle_validation_is_read_only_and_does_not_grant_control (__main__.SurfaceRuntimeTests.test_current_handle_validation_is_read_only_and_does_not_grant_control) ... ok
+test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover (__main__.SurfaceRuntimeTests.test_cyclic_transients_do_not_break_unrelated_rendering_and_can_recover) ... ok
+test_existing_client_is_imported_on_compositor_start (__main__.SurfaceRuntimeTests.test_existing_client_is_imported_on_compositor_start) ... ok
+test_failed_durable_surface_move_preserves_slot_pixels_and_live_placement (__main__.SurfaceRuntimeTests.test_failed_durable_surface_move_preserves_slot_pixels_and_live_placement) ... ok
+test_graceful_shutdo...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-observation" classname="actor-observation" time="4.19245" status="run">
+		<properties/>
+		<system-out>test_coplanar_tie_uses_render_order (__main__.ObservationTests.test_coplanar_tie_uses_render_order) ... ok
+test_native_surface_is_hidden_by_world_geometry (__main__.ObservationTests.test_native_surface_is_hidden_by_world_geometry) ... ok
+test_native_surface_visibility_generation_and_action_agree (__main__.ObservationTests.test_native_surface_visibility_generation_and_action_agree) ... ok
+test_observation_does_not_grant_control_or_refresh_motion (__main__.ObservationTests.test_observation_does_not_grant_control_or_refresh_motion) ... ok
+test_observation_keeps_other_actor_presentation_even_after_expose (__main__.ObservationTests.test_observation_keeps_other_actor_presentation_even_after_expose) ... ok
+test_partial_and_union_occlusion_use_all_visible_pixels (__main__.ObservationTests.test_partial_and_union_occlusion_use_all_visible_pixels) ... ok
+test_room_frustum_facing_and_clip_filter_match_pixels (__main__.ObservationTests.test_room_frustum_facing_and_clip_filter_match_pixels) ... ok
+test_rotated_camera_non_s...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-collision" classname="actor-collision" time="5.05294" status="run">
+		<properties/>
+		<system-out>test_all_six_barrier_faces_render_and_pick (__main__.CollisionTests.test_all_six_barrier_faces_render_and_pick) ... ok
+test_barrier_occludes_native_surface_and_clears_application_pixel (__main__.CollisionTests.test_barrier_occludes_native_surface_and_clears_application_pixel) ... ok
+test_body_twist_arc_cannot_skip_wall_when_endpoints_miss (__main__.CollisionTests.test_body_twist_arc_cannot_skip_wall_when_endpoints_miss) ... ok
+test_each_face_and_endpoint_contact (__main__.CollisionTests.test_each_face_and_endpoint_contact) ... ok
+test_false_box_contacts_and_grazing (__main__.CollisionTests.test_false_box_contacts_and_grazing) ... ok
+test_initial_overlap_normal_is_deterministic (__main__.CollisionTests.test_initial_overlap_normal_is_deterministic) ... ok
+test_initial_overlap_separates_without_teleporting_along_input (__main__.CollisionTests.test_initial_overlap_separates_without_teleporting_along_input) ... ok
+test_multiple_visible_faces_report_one_solid (__main__.CollisionTests.test_multiple_visible_faces_rep...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="broker-control-client-live" classname="broker-control-client-live" time="61.621" status="run">
+		<properties/>
+		<system-out>test_actor_revocation_notifies_during_an_unrelated_process_wait (__main__.BrokerControlClientLiveTests.test_actor_revocation_notifies_during_an_unrelated_process_wait) ... ok
+test_actor_revocation_notifies_idle_controller (__main__.BrokerControlClientLiveTests.test_actor_revocation_notifies_idle_controller) ... ok
+test_application_exit_notifies_without_an_actor_wait_request (__main__.BrokerControlClientLiveTests.test_application_exit_notifies_without_an_actor_wait_request) ... ok
+test_control_revocation_emits_event_and_keeps_execution (__main__.BrokerControlClientLiveTests.test_control_revocation_emits_event_and_keeps_execution) ... ok
+test_explicit_control_acquires_live_application (__main__.BrokerControlClientLiveTests.test_explicit_control_acquires_live_application) ... ok
+test_independent_applications_have_independent_controllers (__main__.BrokerControlClientLiveTests.test_independent_applications_have_independent_controllers) ... ok
+test_independent_control_grant_survives_other_grant_revocation (__main__...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="workspace-participant-native" classname="workspace-participant-native" time="4.88528" status="run">
+		<properties/>
+		<system-out>test_process_exit_does_not_acknowledge_unreleased_control (__main__.WorkspaceParticipantNativeTests.test_process_exit_does_not_acknowledge_unreleased_control) ... ok
+test_shutdown_with_unreleased_control_preserves_obligation (__main__.WorkspaceParticipantNativeTests.test_shutdown_with_unreleased_control_preserves_obligation) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 4.767s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="workspace-participant-settlement" classname="workspace-participant-settlement" time="11.9496" status="run">
+		<properties/>
+		<system-out>test_stopped_server_cannot_confirm_native_credential_cleanup (__main__.NativeSettlementRelay.test_stopped_server_cannot_confirm_native_credential_cleanup) ... ok
+test_stopped_server_cannot_confirm_native_credential_cleanup (__main__.NativeSettlementWitness.test_stopped_server_cannot_confirm_native_credential_cleanup) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 11.831s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="control-owner-channels" classname="control-owner-channels" time="70.1282" status="run">
+		<properties/>
+		<system-out>test_admin_disconnect_fences_owners_without_stopping_application (__main__.ControlOwnerTests.test_admin_disconnect_fences_owners_without_stopping_application) ... ok
+test_administration_is_not_accepted_on_world_channel (__main__.ControlOwnerTests.test_administration_is_not_accepted_on_world_channel) ... ok
+test_changed_admin_sender_fences_channels (__main__.ControlOwnerTests.test_changed_admin_sender_fences_channels) ... ok
+test_duplicate_endpoint_cannot_receive_another_owner (__main__.ControlOwnerTests.test_duplicate_endpoint_cannot_receive_another_owner) ... ok
+test_empty_recovery_retains_fence_and_does_not_enable_rebinding (__main__.ControlOwnerTests.test_empty_recovery_retains_fence_and_does_not_enable_rebinding) ... ok
+test_exact_binding_required_for_inspection_and_fence (__main__.ControlOwnerTests.test_exact_binding_required_for_inspection_and_fence) ... ok
+test_fence_is_processed_during_root_process_wait (__main__.ControlOwnerTests.test_fence_is_processed_during_root_process_wait) ... ok
+test_fence_pre...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="application-control-lease" classname="application-control-lease" time="60.8197" status="run">
+		<properties/>
+		<system-out>test_actor_revocation_notifies_during_an_unrelated_process_wait (__main__.ApplicationControlLeaseTests.test_actor_revocation_notifies_during_an_unrelated_process_wait) ... ok
+test_actor_revocation_notifies_idle_controller (__main__.ApplicationControlLeaseTests.test_actor_revocation_notifies_idle_controller) ... ok
+test_application_exit_notifies_without_an_actor_wait_request (__main__.ApplicationControlLeaseTests.test_application_exit_notifies_without_an_actor_wait_request) ... ok
+test_control_revocation_emits_event_and_keeps_execution (__main__.ApplicationControlLeaseTests.test_control_revocation_emits_event_and_keeps_execution) ... ok
+test_explicit_control_acquires_live_application (__main__.ApplicationControlLeaseTests.test_explicit_control_acquires_live_application) ... ok
+test_independent_applications_have_independent_controllers (__main__.ApplicationControlLeaseTests.test_independent_applications_have_independent_controllers) ... ok
+test_independent_control_grant_survives_other_grant_revocation (__main__...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="application-observation" classname="application-observation" time="84.6955" status="run">
+		<properties/>
+		<system-out>test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application) ... ok
+test_authorized_aim_uses_same_filtered_scene (__main__.ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene) ... ok
+test_broker_reply_cannot_grant_control_without_observation (__main__.ApplicationObservationTests.test_broker_reply_cannot_grant_control_without_observation) ... ok
+test_broker_reply_cannot_substitute_application_identity (__main__.ApplicationObservationTests.test_broker_reply_cannot_substitute_application_identity) ... ok
+test_broker_reply_requires_explicit_observation_decision (__main__.ApplicationObservationTests.test_broker_reply_requires_explicit_observation_decision) ... ok
+test_broker_reply_requires_matching_group_count (__main__.ApplicationObservationTests.test_broker_reply_requires_matching_group_count) ... ok
+test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.tes...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-application-control" classname="world-application-control" time="147.236" status="run">
+		<properties/>
+		<system-out>test_authorized_native_input_without_workspace_selection (__main__.WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection) ... ok
+test_observation_does_not_grant_control (__main__.WorldApplicationControlTests.test_observation_does_not_grant_control) ... ok
+test_readonly_actor_cannot_control_writable_application (__main__.WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application) ... ok
+test_readonly_actor_can_control_readonly_application (__main__.WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application) ... ok
+test_one_application_has_one_actor_controller (__main__.WorldApplicationControlTests.test_one_application_has_one_actor_controller) ... ok
+test_unfocus_releases_native_input_before_handoff (__main__.WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff) ... ok
+test_idle_control_revocation_releases_input_and_preserves_execution (__main__.WorldApplicationControlTests.test_idle_control_revocation_re...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-pixels" classname="actor-pixels" time="75.1115" status="run">
+		<properties/>
+		<system-out>test_authorized_pixels_have_native_quadrants_and_top_left_rows (__main__.ActorPixelTests.test_authorized_pixels_have_native_quadrants_and_top_left_rows) ... ok
+test_ungranted_application_pixels_match_empty_world (__main__.ActorPixelTests.test_ungranted_application_pixels_match_empty_world) ... ok
+test_observation_grant_without_workspace_access_has_no_application_pixels (__main__.ActorPixelTests.test_observation_grant_without_workspace_access_has_no_application_pixels) ... ok
+test_live_paint_changes_the_next_pixel_observation (__main__.ActorPixelTests.test_live_paint_changes_the_next_pixel_observation) ... ok
+test_revoked_pixels_disappear_without_terminating_application (__main__.ActorPixelTests.test_revoked_pixels_disappear_without_terminating_application) ... ok
+test_other_application_scope_does_not_export_its_pixels (__main__.ActorPixelTests.test_other_application_scope_does_not_export_its_pixels) ... ok
+test_resize_and_unmap_update_image_and_surface_metadata (__main__.ActorPixelTests.test_resize_and_unmap_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="application-access" classname="application-access" time="66.9583" status="run">
+		<properties/>
+		<system-out>test_application_grants_do_not_imply_workspace_access (__main__.ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access) ... ok
+test_application_scope_does_not_authorize_another_application (__main__.ApplicationAccessTests.test_application_scope_does_not_authorize_another_application) ... ok
+test_application_scoped_execution_grant_does_not_authorize_project_execution (__main__.ApplicationAccessTests.test_application_scoped_execution_grant_does_not_authorize_project_execution) ... ok
+test_batch_rejects_duplicate_empty_and_excessive_targets (__main__.ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets) ... ok
+test_broker_restart_does_not_restore_old_process_authority (__main__.ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority) ... ok
+test_control_grant_does_not_imply_observation (__main__.ApplicationAccessTests.test_control_grant_does_not_imply_observation) ... ok
+test_control_requires_application_execution_authority (__main__.Appl...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-surface_identity" classname="native-surface_identity" time="1.16362" status="run">
+		<properties/>
+		<system-out>test_application_cannot_query_foreign_attribution (__main__.SurfaceIdentityTests.test_application_cannot_query_foreign_attribution) ... ok
+test_child_window_uses_its_creator_connection (__main__.SurfaceIdentityTests.test_child_window_uses_its_creator_connection) ... ok
+test_non_application_window_has_no_application_identity (__main__.SurfaceIdentityTests.test_non_application_window_has_no_application_identity) ... ok
+test_non_controller_compositor_cannot_query_attribution (__main__.SurfaceIdentityTests.test_non_controller_compositor_cannot_query_attribution) ... ok
+test_owner_disconnect_removes_attribution (__main__.SurfaceIdentityTests.test_owner_disconnect_removes_attribution) ... ok
+test_owner_labels_share_the_geometry_and_generation_reply (__main__.SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply) ... ok
+test_remap_changes_generation_without_changing_owner (__main__.SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner) ... ok
+test_resize_returns_new_geome...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-compositor_identity" classname="native-compositor_identity" time="1.96836" status="run">
+		<properties/>
+		<system-out>test_non_application_window_is_not_a_workspace_surface (__main__.CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface) ... ok
+test_properties_do_not_choose_snapshot_identity (__main__.CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity) ... ok
+test_revoked_application_disappears_from_snapshot (__main__.CompositorIdentityTests.test_revoked_application_disappears_from_snapshot) ... ok
+test_same_group_new_connection_has_distinct_attribution (__main__.CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution) ... ok
+test_separate_workspaces_remain_distinct_in_one_snapshot (__main__.CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot) ... ok
+test_snapshot_contains_authenticated_application_identity (__main__.CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity) ... ok
+test_unmap_clears_attribution_and_remap_restores_it (__main__.CompositorIdentityTests.test_unmap_clears_attribution_and_rema...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-world_surface_groups" classname="native-world_surface_groups" time="6.7991" status="run">
+		<properties/>
+		<system-out>test_cross_application_grandparent_hides_descendants (__main__.WorldSurfaceGroupTests.test_cross_application_grandparent_hides_descendants) ... ok
+test_cross_application_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_application_hint_cannot_inherit_placement) ... ok
+test_cross_application_reparent_releases_input (__main__.WorldSurfaceGroupTests.test_cross_application_reparent_releases_input) ... ok
+test_cross_workspace_hint_cannot_inherit_placement (__main__.WorldSurfaceGroupTests.test_cross_workspace_hint_cannot_inherit_placement) ... ok
+test_cyclic_same_application_hints_remain_unplaced (__main__.WorldSurfaceGroupTests.test_cyclic_same_application_hints_remain_unplaced) ... ok
+test_destroyed_parent_releases_descendant_input (__main__.WorldSurfaceGroupTests.test_destroyed_parent_releases_descendant_input) ... ok
+test_distinct_applications_allow_simultaneous_control (__main__.WorldSurfaceGroupTests.test_distinct_applications_allow_simultaneous_control) ... ok
+test_equal_application_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-application-launch" classname="native-application-launch" time="19.12" status="run">
+		<properties/>
+		<system-out>test_application_cannot_issue_native_credentials (__main__.NativeLaunchTests.test_application_cannot_issue_native_credentials) ... ok
+test_broker_loss_revokes_native_access (__main__.NativeLaunchTests.test_broker_loss_revokes_native_access) ... ok
+test_confined_application_has_real_native_identity (__main__.NativeLaunchTests.test_confined_application_has_real_native_identity) ... ok
+test_denial_wait_does_not_accept_a_live_credential (__main__.NativeLaunchTests.test_denial_wait_does_not_accept_a_live_credential) ... ok
+test_denied_launch_never_creates_application_state (__main__.NativeLaunchTests.test_denied_launch_never_creates_application_state) ... ok
+test_execution_revocation_revokes_native_access (__main__.NativeLaunchTests.test_execution_revocation_revokes_native_access) ... ok
+test_exit_revokes_credentials_without_a_wait_request (__main__.NativeLaunchTests.test_exit_revokes_credentials_without_a_wait_request) ... ok
+test_failed_exec_releases_the_only_free_credential_slot (__main__.NativeLaunchTests.test...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-actor-binding" classname="native-actor-binding" time="1.89998" status="run">
+		<properties/>
+		<system-out>test_actor_close_returns_application_to_idle (__main__.ActorBindingTests.test_actor_close_returns_application_to_idle) ... ok
+test_application_dialog_uses_same_lease (__main__.ActorBindingTests.test_application_dialog_uses_same_lease) ... ok
+test_application_focus_change_stays_within_group (__main__.ActorBindingTests.test_application_focus_change_stays_within_group) ... ok
+test_application_uses_genuine_actor_device (__main__.ActorBindingTests.test_application_uses_genuine_actor_device) ... ok
+test_binding_releases_idle_active_grabs (__main__.ActorBindingTests.test_binding_releases_idle_active_grabs) ... ok
+test_busy_acquisition_preserves_existing_application (__main__.ActorBindingTests.test_busy_acquisition_preserves_existing_application) ... ok
+test_cancel_clears_locked_and_held_modifiers (__main__.ActorBindingTests.test_cancel_clears_locked_and_held_modifiers) ... ok
+test_cancel_delivers_button_release (__main__.ActorBindingTests.test_cancel_delivers_button_release) ... ok
+test_cancel_drains_frozen_key_even...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-application-input" classname="native-application-input" time="1.38673" status="run">
+		<properties/>
+		<system-out>test_application_keyboard_grabs_do_not_compete (__main__.ApplicationInputTests.test_application_keyboard_grabs_do_not_compete) ... ok
+test_application_pointer_grabs_do_not_compete (__main__.ApplicationInputTests.test_application_pointer_grabs_do_not_compete) ... ok
+test_application_warp_cannot_move_another_pointer (__main__.ApplicationInputTests.test_application_warp_cannot_move_another_pointer) ... ok
+test_device_exhaustion_denies_connection_and_recovers (__main__.ApplicationInputTests.test_device_exhaustion_denies_connection_and_recovers) ... ok
+test_foreign_application_cannot_change_focus (__main__.ApplicationInputTests.test_foreign_application_cannot_change_focus) ... ok
+test_foreign_application_cannot_read_focus (__main__.ApplicationInputTests.test_foreign_application_cannot_read_focus) ... ok
+test_last_disconnect_reclaims_device_pairs (__main__.ApplicationInputTests.test_last_disconnect_reclaims_device_pairs) ... ok
+test_late_connection_joins_existing_application_input (__main__.ApplicationInputTests.te...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-device-administration" classname="native-device-administration" time="0.985464" status="run">
+		<properties/>
+		<system-out>test_application_can_read_public_keyboard_mapping (__main__.DeviceAdministrationTests.test_application_can_read_public_keyboard_mapping) ... ok
+test_application_can_read_public_modifier_mapping (__main__.DeviceAdministrationTests.test_application_can_read_public_modifier_mapping) ... ok
+test_application_can_read_public_pointer_mapping (__main__.DeviceAdministrationTests.test_application_can_read_public_pointer_mapping) ... ok
+test_application_cannot_change_keyboard_controls (__main__.DeviceAdministrationTests.test_application_cannot_change_keyboard_controls) ... ok
+test_application_cannot_change_pointer_controls (__main__.DeviceAdministrationTests.test_application_cannot_change_pointer_controls) ... ok
+test_application_cannot_clear_modifier_mapping (__main__.DeviceAdministrationTests.test_application_cannot_clear_modifier_mapping) ... ok
+test_application_cannot_replace_keyboard_mapping (__main__.DeviceAdministrationTests.test_application_cannot_replace_keyboard_mapping) ... ok
+test_application_cannot_replace_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-global-isolation" classname="native-global-isolation" time="1.42478" status="run">
+		<properties/>
+		<system-out>test_application_can_list_public_font_information (__main__.GlobalIsolationTests.test_application_can_list_public_font_information) ... ok
+test_application_can_list_public_fonts (__main__.GlobalIsolationTests.test_application_can_list_public_fonts) ... ok
+test_application_cannot_change_access_control (__main__.GlobalIsolationTests.test_application_cannot_change_access_control) ... ok
+test_application_cannot_change_font_path (__main__.GlobalIsolationTests.test_application_cannot_change_font_path) ... ok
+test_application_cannot_change_host_acl (__main__.GlobalIsolationTests.test_application_cannot_change_host_acl) ... ok
+test_application_cannot_change_screen_saver_settings (__main__.GlobalIsolationTests.test_application_cannot_change_screen_saver_settings) ... ok
+test_application_cannot_force_screen_saver (__main__.GlobalIsolationTests.test_application_cannot_force_screen_saver) ... ok
+test_application_cannot_grab_server (__main__.GlobalIsolationTests.test_application_cannot_grab_server) ... ok
+test_application...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-selection-isolation" classname="native-selection-isolation" time="1.06302" status="run">
+		<properties/>
+		<system-out>test_application_name_in_another_workspace_is_not_same_identity (__main__.SelectionIsolationTests.test_application_name_in_another_workspace_is_not_same_identity) ... ok
+test_broker_cannot_query_application_selection (__main__.SelectionIsolationTests.test_broker_cannot_query_application_selection) ... ok
+test_claiming_secondary_does_not_grant_primary_access (__main__.SelectionIsolationTests.test_claiming_secondary_does_not_grant_primary_access) ... ok
+test_compositor_can_query_owner (__main__.SelectionIsolationTests.test_compositor_can_query_owner) ... ok
+test_foreign_conversion_is_denied (__main__.SelectionIsolationTests.test_foreign_conversion_is_denied) ... ok
+test_foreign_owner_clear_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_clear_is_denied) ... ok
+test_foreign_owner_query_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_query_is_denied) ... ok
+test_foreign_owner_replacement_is_denied (__main__.SelectionIsolationTests.test_foreign_owner_replacement_is_denied) ... ok
+test...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-extension-isolation" classname="native-extension-isolation" time="2.51682" status="run">
+		<properties/>
+		<system-out>test_animated_cursor_timer_survives_use_then_releases_with_cursor (__main__.ExtensionIsolationTests.test_animated_cursor_timer_survives_use_then_releases_with_cursor) ... ok
+test_application_discovery_exposes_only_approved_extensions (__main__.ExtensionIsolationTests.test_application_discovery_exposes_only_approved_extensions) ... ok
+test_big_requests_and_client_local_ids_remain_usable (__main__.ExtensionIsolationTests.test_big_requests_and_client_local_ids_remain_usable) ... ok
+test_broker_has_only_credential_and_transport_extensions (__main__.ExtensionIsolationTests.test_broker_has_only_credential_and_transport_extensions) ... ok
+test_compositor_retains_service_extension_access (__main__.ExtensionIsolationTests.test_compositor_retains_service_extension_access) ... ok
+test_direct_resource_enumeration_is_rejected (__main__.ExtensionIsolationTests.test_direct_resource_enumeration_is_rejected) ... ok
+test_direct_spatial_input_is_rejected (__main__.ExtensionIsolationTests.test_direct_spatial_input_is_rejected) ....
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-resource-isolation" classname="native-resource-isolation" time="2.61064" status="run">
+		<properties/>
+		<system-out>test_application_resources_cannot_be_retained_after_disconnect (__main__.ResourceIsolationTests.test_application_resources_cannot_be_retained_after_disconnect) ... ok
+test_broker_role_does_not_grant_application_pixels (__main__.ResourceIsolationTests.test_broker_role_does_not_grant_application_pixels) ... ok
+test_compositor_can_observe_application_resources (__main__.ResourceIsolationTests.test_compositor_can_observe_application_resources) ... ok
+test_copy_area_cannot_read_foreign_pixels (__main__.ResourceIsolationTests.test_copy_area_cannot_read_foreign_pixels) ... ok
+test_copy_area_cannot_write_foreign_pixels (__main__.ResourceIsolationTests.test_copy_area_cannot_write_foreign_pixels) ... ok
+test_explicit_border_copy_cannot_read_private_root_color (__main__.ResourceIsolationTests.test_explicit_border_copy_cannot_read_private_root_color) ... ok
+test_foreign_graphics_context_cannot_be_used_or_changed (__main__.ResourceIsolationTests.test_foreign_graphics_context_cannot_be_used_or_changed) ... ok
+test_foreign_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-security-identity" classname="native-security-identity" time="1.6269" status="run">
+		<properties/>
+		<system-out>test_application_cannot_revoke_any_credentials (__main__.SecurityIdentityTests.test_application_cannot_revoke_any_credentials) ... ok
+test_application_labels_are_immutable_and_connections_are_distinct (__main__.SecurityIdentityTests.test_application_labels_are_immutable_and_connections_are_distinct) ... ok
+test_bad_cookies_cannot_use_disabled_host_access_control (__main__.SecurityIdentityTests.test_bad_cookies_cannot_use_disabled_host_access_control) ... ok
+test_bootstrap_binds_supervisor_before_native_requests (__main__.SecurityIdentityTests.test_bootstrap_binds_supervisor_before_native_requests) ... ok
+test_bootstrap_rejects_unknown_fields_empty_and_excessive_payloads (__main__.SecurityIdentityTests.test_bootstrap_rejects_unknown_fields_empty_and_excessive_payloads) ... ok
+test_bootstrap_requires_sealed_valid_protobuf (__main__.SecurityIdentityTests.test_bootstrap_requires_sealed_valid_protobuf) ... ok
+test_broker_can_issue_only_application_credentials (__main__.SecurityIdentityTests.test_broker_can_issue_o...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-participant-native" classname="world-participant-native" time="4.30994" status="run">
+		<properties/>
+		<system-out>test_completion_waits_for_native_key_and_button_release (__main__.WorldParticipantNativeTests.test_completion_waits_for_native_key_and_button_release) ... ok
+test_revocation_during_renderer_request_does_not_ack_or_replay_late_input (__main__.WorldParticipantNativeTests.test_revocation_during_renderer_request_does_not_ack_or_replay_late_input) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 4.113s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="world-identity" classname="world-identity" time="33.6794" status="run">
+		<properties/>
+		<system-out>test_actor_channel_does_not_expose_management (__main__.WorldIdentityTests.test_actor_channel_does_not_expose_management) ... ok
+test_actor_revocation_releases_native_input (__main__.WorldIdentityTests.test_actor_revocation_releases_native_input) ... ok
+test_anonymous_channel_cannot_act_or_inspect (__main__.WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect) ... ok
+test_caller_token_cannot_select_another_actor (__main__.WorldIdentityTests.test_caller_token_cannot_select_another_actor) ... ok
+test_credential_revocation_preserves_another_credential_for_actor (__main__.WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor) ... ok
+test_credential_revocation_releases_native_input_without_another_actor_request (__main__.WorldIdentityTests.test_credential_revocation_releases_native_input_without_another_actor_request) ... ok
+test_current_status_blocks_actions_after_committed_revocation (__main__.WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocati...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="world-authority" classname="world-authority" time="68.6907" status="run">
+		<properties/>
+		<system-out>test_administration_and_held_rights_do_not_imply_delegation (__main__.WorldAuthorityTests.test_administration_and_held_rights_do_not_imply_delegation) ... ok
+test_ancestor_credential_revocation_preserves_delegated_actor_rights (__main__.WorldAuthorityTests.test_ancestor_credential_revocation_preserves_delegated_actor_rights) ... ok
+test_credential_revocation_during_ancestor_preparation_prevents_entry (__main__.WorldAuthorityTests.test_credential_revocation_during_ancestor_preparation_prevents_entry) ... ok
+test_delegation_uses_authenticated_principal (__main__.WorldAuthorityTests.test_delegation_uses_authenticated_principal) ... ok
+test_explicit_seed_and_real_actor_navigation (__main__.WorldAuthorityTests.test_explicit_seed_and_real_actor_navigation) ... ok
+test_grant_cannot_cross_world_identity (__main__.WorldAuthorityTests.test_grant_cannot_cross_world_identity) ... ok
+test_grant_listing_is_subject_filtered_and_paginated (__main__.WorldAuthorityTests.test_grant_listing_is_subject_filtered_and_paginated) ......
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-objects" classname="actor-objects" time="9.79474" status="run">
+		<properties/>
+		<system-out>test_barrier_occlusion_denies_grab (__main__.ObjectTests.test_barrier_occlusion_denies_grab) ... ok
+test_cancel_and_repeated_cancel_discard_preview_without_writes (__main__.ObjectTests.test_cancel_and_repeated_cancel_discard_preview_without_writes) ... ok
+test_close_discards_preview_and_releases_lease (__main__.ObjectTests.test_close_discards_preview_and_releases_lease) ... ok
+test_crash_does_not_persist_preview_or_lease (__main__.ObjectTests.test_crash_does_not_persist_preview_or_lease) ... ok
+test_delete_and_recreate_cannot_reuse_an_old_lease (__main__.ObjectTests.test_delete_and_recreate_cannot_reuse_an_old_lease) ... ok
+test_edit_conflict_discards_draft_and_never_overwrites_new_data (__main__.ObjectTests.test_edit_conflict_discards_draft_and_never_overwrites_new_data) ... ok
+test_held_preview_can_move_beyond_reach (__main__.ObjectTests.test_held_preview_can_move_beyond_reach) ... ok
+test_missing_fields_and_invalid_pose_do_not_change_held_draft (__main__.ObjectTests.test_missing_fields_and_invalid_pose_do_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-portals" classname="actor-portals" time="7.02108" status="run">
+		<properties/>
+		<system-out>test_aperture_edges_are_half_open (__main__.PortalTests.test_aperture_edges_are_half_open) ... ok
+test_checkpoint_restores_destination_without_old_session (__main__.PortalTests.test_checkpoint_restores_destination_without_old_session) ... ok
+test_committed_portal_update_invalidates_cached_mapping (__main__.PortalTests.test_committed_portal_update_invalidates_cached_mapping) ... ok
+test_crossing_releases_native_input_without_disturbing_another_actor (__main__.PortalTests.test_crossing_releases_native_input_without_disturbing_another_actor) ... ok
+test_curved_path_crosses_when_whole_interval_chord_misses (__main__.PortalTests.test_curved_path_crosses_when_whole_interval_chord_misses) ... ok
+test_destination_wall_constrains_remaining_displacement (__main__.PortalTests.test_destination_wall_constrains_remaining_displacement) ... ok
+test_exact_plane_endpoint_preserves_partitioned_crossing (__main__.PortalTests.test_exact_plane_endpoint_preserves_partitioned_crossing) ... ok
+test_frame_is_visible_aperture_is_open_a...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="native-actor-input" classname="native-actor-input" time="8.07793" status="run">
+		<properties/>
+		<system-out>test_actor_close_reclaims_native_devices_and_revokes_old_tokens (__main__.ActorInputTests.test_actor_close_reclaims_native_devices_and_revokes_old_tokens) ... ok
+test_additional_buttons_and_unprojectable_aim_preserve_capture_position (__main__.ActorInputTests.test_additional_buttons_and_unprojectable_aim_preserve_capture_position) ... ok
+test_body_motion_updates_the_captured_ray_before_clock_reply (__main__.ActorInputTests.test_body_motion_updates_the_captured_ray_before_clock_reply) ... ok
+test_capture_projection_uses_camera_and_surface_rotations (__main__.ActorInputTests.test_capture_projection_uses_camera_and_surface_rotations) ... ok
+test_changed_placement_or_occluder_invalidates_saved_aim (__main__.ActorInputTests.test_changed_placement_or_occluder_invalidates_saved_aim) ... ok
+test_denied_input_precedes_target_and_consumes_sequence (__main__.ActorInputTests.test_denied_input_precedes_target_and_consumes_sequence) ... ok
+test_drag_motion_keeps_signed_pixels_on_original_surface (__main__.ActorInputTests.t...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="core-protocol" classname="core-protocol" time="4.57184" status="run">
+		<properties/>
+		<system-out>test_integer_ids_preserve_precision (__main__.ProtocolBoundaryTests.test_integer_ids_preserve_precision) ... ok
+test_malformed_payload_recovers_at_next_frame (__main__.ProtocolBoundaryTests.test_malformed_payload_recovers_at_next_frame) ... ok
+test_missing_motion_fields_rejected (__main__.ProtocolBoundaryTests.test_missing_motion_fields_rejected) ... ok
+test_motion_overflow_is_not_success (__main__.ProtocolBoundaryTests.test_motion_overflow_is_not_success) ... ok
+test_nonfinite_numbers_rejected_on_wire (__main__.ProtocolBoundaryTests.test_nonfinite_numbers_rejected_on_wire) ... ok
+test_oversized_frame_closes_before_body_allocation (__main__.ProtocolBoundaryTests.test_oversized_frame_closes_before_body_allocation) ... ok
+test_small_angular_rate_preserves_linear_motion (__main__.ProtocolBoundaryTests.test_small_angular_rate_preserves_linear_motion) ... ok
+test_state_directory_must_be_absolute (__main__.ProtocolBoundaryTests.test_state_directory_must_be_absolute) ... ok
+test_truncated_frames_are_fatal (__main__....
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="worldd-lifecycle" classname="worldd-lifecycle" time="3.35135" status="run">
+		<properties/>
+		<system-out>test_database_symlink_is_refused (__main__.WorldDaemonTests.test_database_symlink_is_refused) ... ok
+test_duplicate_authority_refused_without_mutation (__main__.WorldDaemonTests.test_duplicate_authority_refused_without_mutation) ... ok
+test_idle_proxy_closes_when_worker_dies_and_recovers_state (__main__.WorldDaemonTests.test_idle_proxy_closes_when_worker_dies_and_recovers_state) ... ok
+test_parent_only_kill_terminates_worker_and_releases_lock (__main__.WorldDaemonTests.test_parent_only_kill_terminates_worker_and_releases_lock) ... ok
+test_portal_references_and_invalid_enum_rejected_atomically (__main__.WorldDaemonTests.test_portal_references_and_invalid_enum_rejected_atomically) ... ok
+test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate (__main__.WorldDaemonTests.test_snapshot_limit_is_typed_and_does_not_truncate_or_mutate) ... ok
+test_sqlite_write_failure_rolls_back_entity_and_world_revision (__main__.WorldDaemonTests.test_sqlite_write_failure_rolls_back_entity_and_world_revision) ... ok
+test_standa...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="actor-runtime" classname="actor-runtime" time="2.65153" status="run">
+		<properties/>
+		<system-out>test_bad_configuration_fails_before_creating_world (__main__.ActorRuntimeTests.test_bad_configuration_fails_before_creating_world) ... ok
+test_checkpoint_rollback_covers_all_actors_and_revisions (__main__.ActorRuntimeTests.test_checkpoint_rollback_covers_all_actors_and_revisions) ... ok
+test_close_and_reopen_preserves_live_pose_with_new_grants (__main__.ActorRuntimeTests.test_close_and_reopen_preserves_live_pose_with_new_grants) ... ok
+test_default_entry_spawn_and_actor_management_boundary (__main__.ActorRuntimeTests.test_default_entry_spawn_and_actor_management_boundary) ... ok
+test_denied_and_invalid_actions_consume_sequence_without_refresh (__main__.ActorRuntimeTests.test_denied_and_invalid_actions_consume_sequence_without_refresh) ... ok
+test_partial_request_does_not_extend_motion_lifetime (__main__.ActorRuntimeTests.test_partial_request_does_not_extend_motion_lifetime) ... ok
+test_real_clock_expires_motion_and_disallows_clock_override (__main__.ActorRuntimeTests.test_real_clock_expires_motion_and_disallo...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="recovery-boundaries" classname="recovery-boundaries" time="5.20253" status="run">
+		<properties/>
+		<system-out>test_actor_action_cannot_arm_management_fault (__main__.RecoveryBoundaryTests.test_actor_action_cannot_arm_management_fault) ... ok
+test_before_commit_preserves_real_rows_for_create_update_and_delete (__main__.RecoveryBoundaryTests.test_before_commit_preserves_real_rows_for_create_update_and_delete) ... ok
+test_checkpoint_crash_preserves_saved_actor_pose (__main__.RecoveryBoundaryTests.test_checkpoint_crash_preserves_saved_actor_pose) ... ok
+test_default_and_clock_only_daemons_cannot_arm_faults (__main__.RecoveryBoundaryTests.test_default_and_clock_only_daemons_cannot_arm_faults) ... ok
+test_failed_real_commit_does_not_exit_or_consume_post_commit_fault (__main__.RecoveryBoundaryTests.test_failed_real_commit_does_not_exit_or_consume_post_commit_fault) ... ok
+test_fault_is_local_to_one_process_and_never_restored (__main__.RecoveryBoundaryTests.test_fault_is_local_to_one_process_and_never_restored) ... ok
+test_invalid_or_unsupported_arms_do_not_enable_a_fault (__main__.RecoveryBoundaryTests.test_invalid_or_unsup...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="workspace-git" classname="workspace-git" time="41.0515" status="run">
+		<properties/>
+		<system-out>.............................................
+----------------------------------------------------------------------
+Ran 45 tests in 40.942s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="workspace-context" classname="workspace-context" time="13.1759" status="run">
+		<properties/>
+		<system-out>.............
+----------------------------------------------------------------------
+Ran 13 tests in 13.096s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="workspace-processes" classname="workspace-processes" time="15.3485" status="run">
+		<properties/>
+		<system-out>test_native_namespaces_capabilities_resource_limits_and_descriptor_closure (__main__.ProcessTests.test_native_namespaces_capabilities_resource_limits_and_descriptor_closure) ... ok
+test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible (__main__.ProcessTests.test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible) ... ok
+test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access (__main__.ProcessTests.test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access) ... ok
+test_nonzero_signal_exits_and_wait_timeout_preserve_the_actual_child_result (__main__.ProcessTests.test_nonzero_signal_exits_and_wait_timeout_preserve_the_actual_child_result) ... ok
+test_invalid_requests_create_no_process_record_and_missing_exec_is_not_success (__main__.ProcessTests.test_invalid_requests_create_no_process_record_and_missing_exec_is_not_success) ... ok
+test_operation_identity_is_actor_scoped_and_binds_arguments_and_profile (__main__.ProcessTests.test_operation_ide...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="storage-faults" classname="storage-faults" time="6.0127" status="run">
+		<properties/>
+		<system-out>test_checkpoint_write_failure_keeps_live_pose_and_old_durable_pose (__main__.StorageFaultTests.test_checkpoint_write_failure_keeps_live_pose_and_old_durable_pose) ... ok
+test_create_update_delete_errors_preserve_rows_and_allow_real_retry (__main__.StorageFaultTests.test_create_update_delete_errors_preserve_rows_and_allow_real_retry) ... ok
+test_fault_does_not_cross_worlds_or_survive_restart (__main__.StorageFaultTests.test_fault_does_not_cross_worlds_or_survive_restart) ... ok
+test_normal_daemon_rejects_storage_faults_and_retains_writes (__main__.StorageFaultTests.test_normal_daemon_rejects_storage_faults_and_retains_writes) ... ok
+test_reads_rejections_and_rearming_preserve_next_write_failure (__main__.StorageFaultTests.test_reads_rejections_and_rearming_preserve_next_write_failure) ... ok
+test_real_vfs_lifecycles_delegate_io_and_isolate_pending_faults (__main__.StorageFaultTests.test_real_vfs_lifecycles_delegate_io_and_isolate_pending_faults) ... ok
+
+---------------------------------------------------------...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="control-administrative-transport" classname="control-administrative-transport" time="5.96464" status="run">
+		<properties/>
+		<system-out>test_child_exit_is_uncertain (__main__.TransportTests.test_child_exit_is_uncertain) ... ok
+test_exact_child_reply (__main__.TransportTests.test_exact_child_reply) ... ok
+test_malformed_rejected (__main__.TransportTests.test_malformed_rejected) ... ok
+test_other_process_cannot_reply (__main__.TransportTests.test_other_process_cannot_reply) ... ok
+test_oversize_rejected (__main__.TransportTests.test_oversize_rejected) ... ok
+test_remote_error_stays_error (__main__.TransportTests.test_remote_error_stays_error) ... ok
+test_reply_descriptors_rejected (__main__.TransportTests.test_reply_descriptors_rejected) ... ok
+test_reply_timeout_is_uncertain (__main__.TransportTests.test_reply_timeout_is_uncertain) ... ok
+test_wrong_owner_rejected (__main__.TransportTests.test_wrong_owner_rejected) ... ok
+test_wrong_request_rejected (__main__.TransportTests.test_wrong_request_rejected) ... ok
+test_wrong_version_rejected (__main__.TransportTests.test_wrong_version_rejected) ... ok
+
+----------------------------------------------...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="retained-child-handle" classname="retained-child-handle" time="0.258587" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-retained-handle-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 6d5087181565403282a38bbd689d1955
+test_exited_child_rejects_handle (__main__.HandleTests.test_exited_child_rejects_handle) ... ok
+test_live_handle_preserves_original_and_observes_exit (__main__.HandleTests.test_live_handle_preserves_original_and_observes_exit) ... ok
+test_prepared_scope_rejects_handle (__main__.HandleTests.test_prepared_scope_rejects_handle) ... ok
+test_stopped_scope_rejects_handle (__main__.HandleTests.test_stopped_scope_rejects_handle) ... ok
+test_surviving_descendant_does_not_replace_direct_child (__main__.HandleTests.test_surviving_descendant_does_not_replace_direct_child) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.190s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 243ms
+CPU time consumed: 170ms
+Memory peak: 1.7M
+Memory swap peak: 0B
+</system-out>
+	</testcase>
+	<testcase name="supervisor-child-handle" classname="supervisor-child-handle" time="8.53279" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-child-handle-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 062610ab8cfe43418c063754f29ffc15
+test_transferred_pidfd_matches_real_broker_and_observes_cleanup (__main__.ChildHandleTests.test_transferred_pidfd_matches_real_broker_and_observes_cleanup) ... ok
+test_other_launch_snapshot_is_rejected_without_a_descriptor (__main__.ChildHandleTests.test_other_launch_snapshot_is_rejected_without_a_descriptor) ... ok
+test_unknown_field_and_version_are_rejected_without_a_descriptor (__main__.ChildHandleTests.test_unknown_field_and_version_are_rejected_without_a_descriptor) ... ok
+test_child_mapping_cannot_alias_private_handle_channel (__main__.ChildHandleTests.test_child_mapping_cannot_alias_private_handle_channel) ... ok
+test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned (__main__.ChildHandleTests.test_non_parent_sender_is_rejected_and_owned_broker_is_cleaned) ... ok
+test_request_descriptors_are_rejected_and_owned_broker_is_cleaned (__main__...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="supervisor-session-exit" classname="supervisor-session-exit" time="0.718179" status="run">
+		<properties/>
+		<system-out>test_failed_exit_cannot_become_success_on_retry (__main__.SessionExitTests.test_failed_exit_cannot_become_success_on_retry) ... ok
+test_matching_exit_allows_exact_completed_retry (__main__.SessionExitTests.test_matching_exit_allows_exact_completed_retry) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.649s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="session-broker" classname="session-broker" time="3.6868" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-session-broker-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: a7aaad57756d4c588d87abc771f30133
+test_real_broker_root_and_administration_share_verified_live_child (__main__.SessionBrokerTests.test_real_broker_root_and_administration_share_verified_live_child) ... ok
+test_coordinator_rejects_supplied_administrative_endpoint_arguments (__main__.SessionBrokerTests.test_coordinator_rejects_supplied_administrative_endpoint_arguments) ... ok
+test_failed_broker_exec_preserves_checked_owned_cleanup (__main__.SessionBrokerTests.test_failed_broker_exec_preserves_checked_owned_cleanup) ... ok
+test_wrong_native_role_cannot_supply_a_broker_handle (__main__.SessionBrokerTests.test_wrong_native_role_cannot_supply_a_broker_handle) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 3.553s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 3.664s
+CPU time consumed: 1....
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-world" classname="session-world" time="20.5444" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-session-world-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 1314e84310d340198f81fa255a10e9c0
+test_actual_world_owner_registers_and_broker_survives_world_shutdown (__main__.SessionWorldTests.test_actual_world_owner_registers_and_broker_survives_world_shutdown) ... ok
+test_caller_cannot_substitute_another_owner_generation (__main__.SessionWorldTests.test_caller_cannot_substitute_another_owner_generation) ... ok
+test_world_crash_delivers_checked_cleanup_after_supervisor_exit (__main__.SessionWorldTests.test_world_crash_delivers_checked_cleanup_after_supervisor_exit) ... ok
+test_supervisor_crash_without_receipt_cannot_claim_cleanup (__main__.SessionWorldTests.test_supervisor_crash_without_receipt_cannot_claim_cleanup) ... ok
+test_world_cannot_supply_its_own_broker_endpoint (__main__.SessionWorldTests.test_world_cannot_supply_its_own_broker_endpoint) ... ok
+test_broker_native_role_cannot_register_as_world (__main__.SessionWorldTests.test_broker_na...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-operator-revocation" classname="session-operator-revocation" time="16.1537" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-operator-revocation-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: e6b8128a25934713894195bd631f4b9b
+test_completion_waits_for_real_key_button_and_lease_release (__main__.OperatorRevocationTests.test_completion_waits_for_real_key_button_and_lease_release) ... ok
+test_pending_timeout_resumes_without_another_revocation (__main__.OperatorRevocationTests.test_pending_timeout_resumes_without_another_revocation) ... ok
+test_crash_requires_checked_recovery_and_retirement_before_completion (__main__.OperatorRevocationTests.test_crash_requires_checked_recovery_and_retirement_before_completion) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 15.998s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 16.125s
+CPU time consumed: 7.367s
+Memory peak: 1.5M
+Memory swap peak: 0B
+</system-out>
+	</testcase>
+	<testcase name="session-application" classname="session-application" time="14.4701" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-session-application-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: d433f8880067436082a85a2527082fe7
+test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionApplicationTests.test_actor_stop_releases_native_input_and_its_reservation) ... ok
+test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionApplicationTests.test_world_crash_preserves_application_and_pending_owned_reservation) ... ok
+test_recovery_requires_checked_cleanup_and_preserves_live_application (__main__.SessionApplicationTests.test_recovery_requires_checked_cleanup_and_preserves_live_application) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 14.312s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 14.430s
+CPU time consumed: 6.486s
+Memory peak: 1.5M
+Memory swap peak: 0B
+</system-out>
+	</testcase>
+	<testcase name="session-dependent-cleanup" classname="session-dependent-cleanup" time="24.5951" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-dependent-cleanup-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 5be19ba516684029b32687f80e8347c3
+test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch (__main__.DependentCleanupTests.test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch) ... ok
+test_readonly_journal_reports_failure_after_release_then_retries (__main__.DependentCleanupTests.test_readonly_journal_reports_failure_after_release_then_retries) ... ok
+test_journal_lock_failure_preserves_exact_retry (__main__.DependentCleanupTests.test_journal_lock_failure_preserves_exact_retry) ... ok
+test_changed_launch_record_cannot_replace_retained_cleanup (__main__.DependentCleanupTests.test_changed_launch_record_cannot_replace_retained_cleanup) ... ok
+test_corrupted_or_changed_dependent_receipt_is_not_overwritten (__main__.DependentCleanupTests.test_corrupted_or_changed_dependent_receipt_is_not_overwritten) ... ok
+
+----------------------------------------...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-coordinator-retirement" classname="session-coordinator-retirement" time="42.2976" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-coordinator-retirement-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 5f92fa3da1db4c8b97fd50cc3a37aee9
+test_actual_cleanup_retires_exact_generation_and_retry_preserves_application (__main__.CoordinatorRetirementTests.test_actual_cleanup_retires_exact_generation_and_retry_preserves_application) ... ok
+test_live_unrecovered_and_substituted_owners_cannot_retire (__main__.CoordinatorRetirementTests.test_live_unrecovered_and_substituted_owners_cannot_retire) ... ok
+test_unfenced_graceful_cleanup_cannot_retire (__main__.CoordinatorRetirementTests.test_unfenced_graceful_cleanup_cannot_retire) ... ok
+test_tampered_dependent_bytes_cannot_create_retirement_proof (__main__.CoordinatorRetirementTests.test_tampered_dependent_bytes_cannot_create_retirement_proof) ... ok
+test_wrong_signing_key_and_readonly_journal_do_not_retire (__main__.CoordinatorRetirementTests.test_wrong_signing_key_and_readonly_journal_do_not_retire) ... ok
+test_issuer_write_failure_pre...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-broker-cleanup" classname="session-broker-cleanup" time="18.8188" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-broker-cleanup-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 38cef68527d142028fe30865fa9dcbe7
+test_crashed_broker_delivers_checked_receipt_and_exact_retry (__main__.SessionBrokerCleanupTests.test_crashed_broker_delivers_checked_receipt_and_exact_retry) ... ok
+test_broker_cleanup_does_not_replace_unconfirmed_world_cleanup (__main__.SessionBrokerCleanupTests.test_broker_cleanup_does_not_replace_unconfirmed_world_cleanup) ... ok
+test_process_exit_waits_for_actual_native_cleanup_reply (__main__.SessionBrokerCleanupTests.test_process_exit_waits_for_actual_native_cleanup_reply) ... ok
+test_supervisor_death_without_receipt_cannot_claim_cleanup (__main__.SessionBrokerCleanupTests.test_supervisor_death_without_receipt_cannot_claim_cleanup) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 18.668s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 18.786s
+C...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-broker-retirement" classname="session-broker-retirement" time="45.712" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-broker-retirement-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 8e8a163e982240cbaf07d28a378f9160
+test_actual_broker_retirement_preserves_other_generation_and_exact_retry (__main__.BrokerRetirementTests.test_actual_broker_retirement_preserves_other_generation_and_exact_retry) ... ok
+test_live_and_unchecked_broker_cannot_retire (__main__.BrokerRetirementTests.test_live_and_unchecked_broker_cannot_retire) ... ok
+test_unfenced_shutdown_cannot_claim_failed_generation_retirement (__main__.BrokerRetirementTests.test_unfenced_shutdown_cannot_claim_failed_generation_retirement) ... ok
+test_changed_or_reordered_cleanup_bytes_cannot_authorize_retirement (__main__.BrokerRetirementTests.test_changed_or_reordered_cleanup_bytes_cannot_authorize_retirement) ... ok
+test_wrong_key_locked_and_readonly_journal_leave_issuer_unchanged (__main__.BrokerRetirementTests.test_wrong_key_locked_and_readonly_journal_leave_issuer_unchanged) ... ok
+test_issuer_write_failure...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-stopped-broker-dependency" classname="session-stopped-broker-dependency" time="50.6916" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-stopped-broker-dependency-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: ccbf9208daae40e2ab7626eae17e8178
+test_actual_pair_cleanup_persists_scope_proof_and_retires_world (__main__.StoppedBrokerDependencyTests.test_actual_pair_cleanup_persists_scope_proof_and_retires_world) ... ok
+test_live_unchecked_and_substituted_owners_cannot_recover (__main__.StoppedBrokerDependencyTests.test_live_unchecked_and_substituted_owners_cannot_recover) ... ok
+test_missing_world_supervisor_receipt_cannot_be_replaced_by_broker_cleanup (__main__.StoppedBrokerDependencyTests.test_missing_world_supervisor_receipt_cannot_be_replaced_by_broker_cleanup) ... ok
+test_missing_broker_supervisor_receipt_keeps_world_dependency_pending (__main__.StoppedBrokerDependencyTests.test_missing_broker_supervisor_receipt_keeps_world_dependency_pending) ... ok
+test_failed_local_storage_cannot_authorize_world_retirement (__main__.StoppedBrokerDependencyTests.test_failed_local_storage_cann...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-deferred-fence" classname="session-deferred-fence" time="41.2555" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-deferred-fence-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 1f6a5329903141509ed52fb1b89e1a9f
+test_issuer_restart_retires_exact_failed_generations (__main__.DeferredFenceTests.test_issuer_restart_retires_exact_failed_generations) ... ok
+test_failed_local_fence_commit_retries_original_remote_fence (__main__.DeferredFenceTests.test_failed_local_fence_commit_retries_original_remote_fence) ... ok
+test_pending_fences_survive_restart_and_reject_changed_fence (__main__.DeferredFenceTests.test_pending_fences_survive_restart_and_reject_changed_fence) ... ok
+test_wrong_key_and_changed_cleanup_cannot_request_a_fence (__main__.DeferredFenceTests.test_wrong_key_and_changed_cleanup_cannot_request_a_fence) ... ok
+test_remote_retirement_commit_survives_failed_local_write (__main__.DeferredFenceTests.test_remote_retirement_commit_survives_failed_local_write) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 41.089s
+...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-replacement" classname="session-replacement" time="18.3426" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-session-replacement-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: b6ff04747440463b8b218c4ff9cad9d5
+test_replacement_preserves_world_and_application_without_old_control (__main__.SessionReplacementTests.test_replacement_preserves_world_and_application_without_old_control) ... ok
+test_unretired_generation_rejects_replacement_before_execution (__main__.SessionReplacementTests.test_unretired_generation_rejects_replacement_before_execution) ... ok
+test_replacement_synchronizes_revocation_before_actor_admission (__main__.SessionReplacementTests.test_replacement_synchronizes_revocation_before_actor_admission) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 18.194s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 18.315s
+CPU time consumed: 8.401s
+Memory peak: 1.7M
+Memory swap peak: 0B
+</system-out>
+	</testcase>
+	<testcase name="session-broker-replacement" classname="session-broker-replacement" time="24.2172" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-broker-replacement-8c4974b5506b1928b11385feffcf19c88ddb39f86df7457c7d04d5142a9e49c0.service; invocation ID: 80efa63b648f4c51a8cf2ef91ab07f45
+test_fresh_session_preserves_data_and_requires_explicit_application_launch (__main__.BrokerReplacementTests.test_fresh_session_preserves_data_and_requires_explicit_application_launch) ... ok
+test_fresh_session_synchronizes_revocation_before_actor_admission (__main__.BrokerReplacementTests.test_fresh_session_synchronizes_revocation_before_actor_admission) ... ok
+test_pending_broker_retirement_prevents_new_session_execution (__main__.BrokerReplacementTests.test_pending_broker_retirement_prevents_new_session_execution) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 24.066s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 24.187s
+CPU time consumed: 10.274s
+Memory peak: 1.5M
+Memory swap peak: 0B
+</system-out>
+	</testcase>
+	<testcase name="supervisor-child-handle-client" classname="supervisor-child-handle-client" time="6.44345" status="run">
+		<properties/>
+		<system-out>test_dead_handle_rejected (__main__.ReceiverTests.test_dead_handle_rejected) ... ok
+test_duplicate_descriptors (__main__.ReceiverTests.test_duplicate_descriptors) ... ok
+test_error_cannot_carry_rights (__main__.ReceiverTests.test_error_cannot_carry_rights) ... ok
+test_foreign_parent_rejected (__main__.ReceiverTests.test_foreign_parent_rejected) ... ok
+test_foreign_sender (__main__.ReceiverTests.test_foreign_sender) ... ok
+test_malformed_packet (__main__.ReceiverTests.test_malformed_packet) ... ok
+test_missing_descriptor (__main__.ReceiverTests.test_missing_descriptor) ... ok
+test_oversize_packet (__main__.ReceiverTests.test_oversize_packet) ... ok
+test_plain_file_is_not_process_handle (__main__.ReceiverTests.test_plain_file_is_not_process_handle) ... ok
+test_timeout (__main__.ReceiverTests.test_timeout) ... ok
+test_unknown_field (__main__.ReceiverTests.test_unknown_field) ... ok
+test_valid_live_direct_child (__main__.ReceiverTests.test_valid_live_direct_child) ... ok
+test_wrong_launch (__main__.ReceiverTests....
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

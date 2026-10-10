@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-10: sb16 complete local qualification reviewed
+
+sb16 passed complete Debug and runtime sanitizer qualification using unchanged candidate02 source and binaries.
+Each profile passed 1668 checks across 124 core suites, 51 harness checks, and 151 acceptance cases.
+No selected case failed or skipped. Both generated native evidence-path inventories matched the permitted 26 changes.
+The copied terminal archive contains 7122 verified attachments.
+The complete child-log scan checked 7115 text logs and found no selected sanitizer markers.
+Read evidence/m02-gate-2026-10-10/untraced03-final/sb16-review.json.
+
+Both sb16 cross-host preflights accepted the reviewed local attempt in check-only mode.
+No cross-host runtime scenario started. All eight coordinated scenarios remain unrun.
+The earlier failed diagnostic remains preserved and distinct from this successful qualification.
+This pass does not determine every historical issuer timeout cause.
+
+sb16-2 passed all 124 Debug core suites, 51 harness checks, and 151 acceptance cases without skips.
+Its runtime sanitizer qualification remains live. Complete terminal review remains pending on that host.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-10: sb16 sanitizer active; sb16-2 isolated retry active
 
 The complete failed sb16-2 attempt and all 6716 verified attachments are preserved in commit 58e2de0.

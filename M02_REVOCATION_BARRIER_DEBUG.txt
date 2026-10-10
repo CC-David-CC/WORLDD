@@ -1212,3 +1212,13 @@ All 51 Debug harness checks passed. Original source and binaries are unchanged.
 sb16 retains PID 2852219 and session 13868. Its full Debug sequence passed; runtime sanitizers are active.
 After full local review, crosshost03 must select m02-untraced-03 on both hosts.
 The old sb16-2 session 66553 is terminal and must not be polled or restarted.
+
+2026-10-10: sb16 local qualification complete and reviewed
+The sb16 retry ended successfully. Session 13868 is terminal and must not be polled or restarted.
+Both profiles passed 1668 core checks across 124 suites, 51 harness checks, and 151 acceptance cases.
+All 7122 copied attachment hashes match. The scan of 7115 text logs found no selected sanitizer markers.
+The failed original diagnostic remains preserved. Historical issuer causes are not all determined by this pass.
+Both local cross-host preflights passed in check-only mode. No cross-host runtime scenario executed.
+Read spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/untraced03-final/sb16-review.json.
+sb16-2 passed its full Debug sequence and remains live under session 60054 for runtime sanitizers.
+M02 still requires the second-host terminal review, all eight cross-host scenarios, and the remaining failure audit.

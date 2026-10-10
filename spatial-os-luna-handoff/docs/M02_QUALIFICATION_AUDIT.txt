@@ -1,3 +1,13 @@
+Completed sb16 local review, 2026-10-10
+
+The unchanged candidate02 retry passed both complete local profiles on sb16.
+Each profile passed 1668 core checks across 124 suites, 51 harness checks, and 151 acceptance cases.
+All 7122 terminal attachment hashes match. The 7115-log sanitizer scan found no selected markers.
+Read evidence/m02-gate-2026-10-10/untraced03-final/sb16-review.json.
+The check-only cross-host preflight accepted both completed profiles and their exact evidence hashes.
+The second host's runtime sanitizer qualification, all eight cross-host scenarios, and historical failure disposition remain pending.
+This closes the first host's local automated gate. It does not close M02 or Spatial-M1.
+
 Terminal log review, 2026-10-10
 
 Scan all preserved native child logs before approving terminal qualification or starting cross-host checks.

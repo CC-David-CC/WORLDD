@@ -1,0 +1,44 @@
+{
+  "host": "sb16",
+  "status": "reviewed_local_debug_and_runtime_sanitizer_passed",
+  "archive_sha256": "2a84b7bd6563972087dbc048e51a7533d245f3557762dd0cb896ae59727f727c",
+  "attachments_verified": 7122,
+  "collector_review_sha256": "a2e9b096cbc461aa32999add0a3204029dddef47693f66cd0f1fa4a83522c518",
+  "profiles": {
+    "debug": {
+      "core_suites_passed": 124,
+      "core_case_executions": 1668,
+      "harness_passed": 51,
+      "acceptance_passed": 151,
+      "failed": 0,
+      "skipped": 0,
+      "issuer_loop_delay_records": 15,
+      "maximum_logged_issuer_work_ms": 163
+    },
+    "runtime-sanitize": {
+      "core_suites_passed": 124,
+      "core_case_executions": 1668,
+      "harness_passed": 51,
+      "acceptance_passed": 151,
+      "failed": 0,
+      "skipped": 0,
+      "issuer_loop_delay_records": 15,
+      "maximum_logged_issuer_work_ms": 172
+    }
+  },
+  "prior_failed_archive_sha256": "c6a61a1f225bd7ab4ea21ad1482c4c62de8bedeeeac523107dbf27b0abb805db",
+  "historical_failures_resolved": false,
+  "phase_complete": false,
+  "remaining": [
+    "Complete and review the second-host qualification.",
+    "Run all eight coordinated cross-host scenarios.",
+    "Complete the M02 requirement audit and historical failure disposition."
+  ],
+  "sanitizer_scan": {
+    "report": "sb16-sanitizer-scan.json",
+    "sha256": "35f0a26952be59f902303e663c1f5ac13e79267d1ea384c2d310b7b5e26f073e",
+    "scanned_logs": 7115,
+    "findings": 0
+  },
+  "timing_limit": "These are logged work intervals from this passing run. They do not establish GPU performance or explain every historical timeout."
+}
