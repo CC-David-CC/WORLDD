@@ -1,0 +1,106 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 34
+    Start 34: identity-participant-runtime
+
+34: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/source/tests/core/test_identity_participant_runtime.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build/spatial-participant-runtime-probe"
+34: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build
+34: Environment variables: 
+34:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/source
+34: Test timeout computed to be: 180
+34: test_activation_race_requires_explicit_resynchronization_and_new_request (__main__.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request) ... ok
+34: test_application_acknowledgement_cannot_skip_committed_events (__main__.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events) ... ok
+34: test_authentication_and_baseline_do_not_activate_execution (__main__.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution) ... ok
+34: test_clean_release_allows_new_incarnation_and_generation (__main__.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation) ... ok
+34: test_command_queue_overflow_is_permanent_before_activation (__main__.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation) ... ok
+34: test_destructor_preserves_pending_obligation_and_blocks_replacement (__main__.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement) ... ok
+34: test_domain_mismatch_never_activates (__main__.ParticipantRuntimeTests.test_domain_mismatch_never_activates) ... ok
+34: test_exposed_private_key_is_rejected_before_service_authentication (__main__.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication) ... ok
+34: test_future_revision_cannot_be_acknowledged (__main__.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged) ... ok
+34: test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines (__main__.ParticipantRuntimeTests.test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines) ... ok
+34: test_real_barrier_waits_for_explicit_application_acknowledgement (__main__.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement) ... FAIL
+34: test_release_cannot_discard_unapplied_revocation (__main__.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation) ... ok
+34: test_stalled_transport_records_operation_and_cause_without_reconnect (__main__.ParticipantRuntimeTests.test_stalled_transport_records_operation_and_cause_without_reconnect) ... ok
+34: test_transport_loss_never_releases_or_reconnects (__main__.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects) ... ok
+34: test_wrong_registration_revision_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates) ... ok
+34: test_wrong_service_key_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates) ... ok
+34: 
+34: ======================================================================
+34: FAIL: test_real_barrier_waits_for_explicit_application_acknowledgement (__main__.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement)
+34: ----------------------------------------------------------------------
+34: Traceback (most recent call last):
+34:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/source/tests/core/test_identity_participant_runtime.py", line 165, in test_real_barrier_waits_for_explicit_application_acknowledgement
+34:     self.revoke();self.event(runtime,1);status=self.barrier()
+34:                   ^^^^^^^^^^^^^^^^^^^^^
+34:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/source/tests/core/test_identity_participant_runtime.py", line 134, in event
+34:     update=runtime.receive();self.assertTrue(update.HasField('revocations'),update)
+34:                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+34: AssertionError: False is not true : protocol_version: 1
+34: error {
+34:   code: UNAVAILABLE
+34:   message: "Authority participant channel failed; reconciliation is required"
+34: }
+34: 
+34: 
+34: ----------------------------------------------------------------------
+34: Ran 16 tests in 14.305s
+34: 
+34: FAILED (failures=1)
+1/1 Test #34: identity-participant-runtime .....***Failed   14.39 sec
+test_activation_race_requires_explicit_resynchronization_and_new_request (__main__.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request) ... ok
+test_application_acknowledgement_cannot_skip_committed_events (__main__.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events) ... ok
+test_authentication_and_baseline_do_not_activate_execution (__main__.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution) ... ok
+test_clean_release_allows_new_incarnation_and_generation (__main__.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation) ... ok
+test_command_queue_overflow_is_permanent_before_activation (__main__.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation) ... ok
+test_destructor_preserves_pending_obligation_and_blocks_replacement (__main__.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement) ... ok
+test_domain_mismatch_never_activates (__main__.ParticipantRuntimeTests.test_domain_mismatch_never_activates) ... ok
+test_exposed_private_key_is_rejected_before_service_authentication (__main__.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication) ... ok
+test_future_revision_cannot_be_acknowledged (__main__.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged) ... ok
+test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines (__main__.ParticipantRuntimeTests.test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines) ... ok
+test_real_barrier_waits_for_explicit_application_acknowledgement (__main__.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement) ... FAIL
+test_release_cannot_discard_unapplied_revocation (__main__.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation) ... ok
+test_stalled_transport_records_operation_and_cause_without_reconnect (__main__.ParticipantRuntimeTests.test_stalled_transport_records_operation_and_cause_without_reconnect) ... ok
+test_transport_loss_never_releases_or_reconnects (__main__.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects) ... ok
+test_wrong_registration_revision_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates) ... ok
+test_wrong_service_key_never_authenticates (__main__.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates) ... ok
+
+======================================================================
+FAIL: test_real_barrier_waits_for_explicit_application_acknowledgement (__main__.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/source/tests/core/test_identity_participant_runtime.py", line 165, in test_real_barrier_waits_for_explicit_application_acknowledgement
+    self.revoke();self.event(runtime,1);status=self.barrier()
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-01/source/tests/core/test_identity_participant_runtime.py", line 134, in event
+    update=runtime.receive();self.assertTrue(update.HasField('revocations'),update)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : protocol_version: 1
+error {
+  code: UNAVAILABLE
+  message: "Authority participant channel failed; reconciliation is required"
+}
+
+
+----------------------------------------------------------------------
+Ran 16 tests in 14.305s
+
+FAILED (failures=1)
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  14.40 sec
+
+The following tests FAILED:
+	 34 - identity-participant-runtime (Failed)
+Errors while running CTest

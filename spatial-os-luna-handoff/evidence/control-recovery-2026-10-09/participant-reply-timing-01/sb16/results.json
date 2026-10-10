@@ -1,0 +1,26 @@
+[
+  {
+    "attempt": 1,
+    "passed": true,
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "attempt": 2,
+    "passed": true,
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "attempt": 3,
+    "passed": true,
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+]

@@ -911,3 +911,18 @@ Coverage map: spatial-os-luna-handoff/docs/M02_GATE_COVERAGE.txt
 Physical input and GPU performance were not demonstrated by these software native-session checks.
 Two earlier intermittent failures remain unresolved. Full both-host M02 qualification remains pending.
 Next: original suite-context timing diagnosis, then freeze the complete phase gate.
+
+2026-10-10 reply-header timeout diagnostic checkpoint
+The unintegrated candidate passed 64 Debug cases on sb16.
+Sanitizers passed 30 client cases, then 15 participant cases and one failure.
+The two later sanitizer native suites were not run.
+Failure: active revocation read; reply_header; wait=read; progress=0/4; elapsed_ms=705; gap_ms=10; tick_ms=0.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-failure01/primary-review.json
+All 351 source hashes and 41 locked file hashes are preserved. Existing deadlines remain unchanged.
+Three traced repetitions passed 48 cases; no issuer stall reached 100 ms in those successful attempts.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/participant-reply-timing-01/primary-review.json
+The original-order diagnostic is preserved in revocation-sequence-01.
+None of these passing repetitions resolves the failed qualification or proves the historical cause.
+The production diagnostic and two changed tests remain unintegrated in the worktree.
+Next: issuer TLS progress/readiness and kernel timing. Both historical failures remain open.
+M02 and Spatial-M1 remain incomplete. No normal desktop changed.

@@ -1,5 +1,30 @@
 # Implementation status
 
+## 2026-10-10: Revocation timeout reproduced with transport diagnostics
+
+An unintegrated client patch records the transport stage, transfer progress, elapsed time, and maximum check and callback intervals.
+It keeps existing deadlines, validation, and permanent failure behavior.
+All 64 selected Debug cases passed on sb16.
+The sanitizer client suite passed 30 cases. The participant suite passed 15 cases and failed one.
+Its active revocation read timed out before receiving any reply-header bytes.
+The diagnostic recorded elapsed_ms=705, gap_ms=10, and tick_ms=0.
+The two later sanitizer native suites were not run after this failure.
+
+Read evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-failure01/primary-review.json.
+All 351 candidate source hashes and 41 unchanged locked files are preserved.
+The diagnostic patch and its two changed test files remain unintegrated in the worktree.
+The missing diagnostic itself was reproduced with three expected failures against the previous binary.
+
+Earlier original-order timing passed three interruption and fourteen supervisor cases without reproducing the historical failure.
+After the new failure, three traced participant suites passed 48 case executions.
+No issuer syscall or off-CPU wait reached 100 ms during those successful traced attempts.
+Read revocation-sequence-01 and participant-reply-timing-01 under the same evidence directory.
+These passes do not resolve the failed qualification or establish its root cause.
+
+Next: capture issuer TLS progress and readiness together with kernel timing around the reproduced failure class.
+Keep the two historical failures and this failed candidate open. Do not increase deadlines to obtain a pass.
+M02 and Spatial-M1 remain incomplete. Full both-host qualification remains pending.
+
 ## 2026-10-10: Operator revocation passes connected native checks
 
 All three operator scenarios passed in Debug and runtime ASan/UBSan on sb16: six native case results.

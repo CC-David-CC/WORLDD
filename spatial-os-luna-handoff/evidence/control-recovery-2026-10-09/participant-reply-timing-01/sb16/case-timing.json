@@ -1,0 +1,578 @@
+[
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request",
+    "monotonic_ns": 322357141153461
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request",
+    "monotonic_ns": 322358425388494
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events",
+    "monotonic_ns": 322358425561123
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events",
+    "monotonic_ns": 322359720626723
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution",
+    "monotonic_ns": 322359720815953
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution",
+    "monotonic_ns": 322360220238519
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation",
+    "monotonic_ns": 322360220413452
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation",
+    "monotonic_ns": 322361334957389
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation",
+    "monotonic_ns": 322361335195143
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation",
+    "monotonic_ns": 322361701232690
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement",
+    "monotonic_ns": 322361701422837
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement",
+    "monotonic_ns": 322363000440822
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_domain_mismatch_never_activates",
+    "monotonic_ns": 322363000642557
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_domain_mismatch_never_activates",
+    "monotonic_ns": 322363830657408
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication",
+    "monotonic_ns": 322363830860357
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication",
+    "monotonic_ns": 322364186454214
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged",
+    "monotonic_ns": 322364186667173
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged",
+    "monotonic_ns": 322364950415392
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines",
+    "monotonic_ns": 322364950656560
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines",
+    "monotonic_ns": 322365459233354
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322365459467845
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322366599171000
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation",
+    "monotonic_ns": 322366599431064
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation",
+    "monotonic_ns": 322367642128865
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_stalled_transport_records_operation_and_cause_without_reconnect",
+    "monotonic_ns": 322367642385947
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_stalled_transport_records_operation_and_cause_without_reconnect",
+    "monotonic_ns": 322368746226410
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects",
+    "monotonic_ns": 322368746471088
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects",
+    "monotonic_ns": 322369444348750
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates",
+    "monotonic_ns": 322369444816966
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates",
+    "monotonic_ns": 322369921148636
+  },
+  {
+    "attempt": 1,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates",
+    "monotonic_ns": 322369921441106
+  },
+  {
+    "attempt": 1,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates",
+    "monotonic_ns": 322370405959398
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request",
+    "monotonic_ns": 322370406749292
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request",
+    "monotonic_ns": 322371635300184
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events",
+    "monotonic_ns": 322371635588585
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events",
+    "monotonic_ns": 322372963344221
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution",
+    "monotonic_ns": 322372963636115
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution",
+    "monotonic_ns": 322373449227393
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation",
+    "monotonic_ns": 322373449529239
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation",
+    "monotonic_ns": 322374566256903
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation",
+    "monotonic_ns": 322374566568398
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation",
+    "monotonic_ns": 322374957089591
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement",
+    "monotonic_ns": 322374957392208
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement",
+    "monotonic_ns": 322376255380472
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_domain_mismatch_never_activates",
+    "monotonic_ns": 322376255717422
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_domain_mismatch_never_activates",
+    "monotonic_ns": 322377080605182
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication",
+    "monotonic_ns": 322377080933064
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication",
+    "monotonic_ns": 322377470249074
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged",
+    "monotonic_ns": 322377470602444
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged",
+    "monotonic_ns": 322378225233731
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines",
+    "monotonic_ns": 322378225619345
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines",
+    "monotonic_ns": 322378721207060
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322378721548195
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322379861297519
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation",
+    "monotonic_ns": 322379861647691
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation",
+    "monotonic_ns": 322380917260333
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_stalled_transport_records_operation_and_cause_without_reconnect",
+    "monotonic_ns": 322380917618419
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_stalled_transport_records_operation_and_cause_without_reconnect",
+    "monotonic_ns": 322382018964022
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects",
+    "monotonic_ns": 322382019335880
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects",
+    "monotonic_ns": 322382718252417
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates",
+    "monotonic_ns": 322382718643604
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates",
+    "monotonic_ns": 322383192186925
+  },
+  {
+    "attempt": 2,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates",
+    "monotonic_ns": 322383192556932
+  },
+  {
+    "attempt": 2,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates",
+    "monotonic_ns": 322383681321900
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request",
+    "monotonic_ns": 322383682254147
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_activation_race_requires_explicit_resynchronization_and_new_request",
+    "monotonic_ns": 322384948285119
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events",
+    "monotonic_ns": 322384948686172
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_application_acknowledgement_cannot_skip_committed_events",
+    "monotonic_ns": 322386241336365
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution",
+    "monotonic_ns": 322386241738954
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_authentication_and_baseline_do_not_activate_execution",
+    "monotonic_ns": 322386759058966
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation",
+    "monotonic_ns": 322386759480248
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_clean_release_allows_new_incarnation_and_generation",
+    "monotonic_ns": 322387878461334
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation",
+    "monotonic_ns": 322387878875175
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_command_queue_overflow_is_permanent_before_activation",
+    "monotonic_ns": 322388242899232
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement",
+    "monotonic_ns": 322388243328854
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_destructor_preserves_pending_obligation_and_blocks_replacement",
+    "monotonic_ns": 322389558358357
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_domain_mismatch_never_activates",
+    "monotonic_ns": 322389558772050
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_domain_mismatch_never_activates",
+    "monotonic_ns": 322390384478820
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication",
+    "monotonic_ns": 322390384886545
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_exposed_private_key_is_rejected_before_service_authentication",
+    "monotonic_ns": 322390739170695
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged",
+    "monotonic_ns": 322390739620189
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_future_revision_cannot_be_acknowledged",
+    "monotonic_ns": 322391505317384
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines",
+    "monotonic_ns": 322391505757102
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_peer_failure_diagnostic_is_bounded_and_cannot_add_log_lines",
+    "monotonic_ns": 322392018187803
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322392018646220
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_real_barrier_waits_for_explicit_application_acknowledgement",
+    "monotonic_ns": 322393141968118
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation",
+    "monotonic_ns": 322393142548304
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_release_cannot_discard_unapplied_revocation",
+    "monotonic_ns": 322394185095224
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_stalled_transport_records_operation_and_cause_without_reconnect",
+    "monotonic_ns": 322394185565103
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_stalled_transport_records_operation_and_cause_without_reconnect",
+    "monotonic_ns": 322395294979279
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects",
+    "monotonic_ns": 322395295486186
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_transport_loss_never_releases_or_reconnects",
+    "monotonic_ns": 322395987201113
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates",
+    "monotonic_ns": 322395987680624
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_registration_revision_never_authenticates",
+    "monotonic_ns": 322396485155279
+  },
+  {
+    "attempt": 3,
+    "event": "start",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates",
+    "monotonic_ns": 322396485623727
+  },
+  {
+    "attempt": 3,
+    "event": "stop",
+    "test": "test_identity_participant_runtime.ParticipantRuntimeTests.test_wrong_service_key_never_authenticates",
+    "monotonic_ns": 322396988116269
+  }
+]

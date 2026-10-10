@@ -75,7 +75,11 @@ Its original evidence is in evidence/control-recovery-2026-10-09/connected-01/sb
 Resolve the preserved active-generation revocation-read timeout.
 Its original evidence is in evidence/control-recovery-2026-10-09/approval-interruption-failure02.
 Successful isolated repetitions do not resolve either original failure.
-The next timeout diagnostic should preserve the original suite context and capture timing across its process tree.
+Original-order timing is preserved in evidence/control-recovery-2026-10-09/revocation-sequence-01.
+The diagnostic candidate reproduced a reply-header timeout in identity-participant-runtime under sanitizers.
+Read evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-failure01.
+The candidate remains unintegrated. Successful traced repetitions do not resolve its failed qualification.
+The next diagnostic should capture issuer TLS progress and readiness alongside kernel timing.
 Do not keep repeating the isolated case without a changed diagnostic hypothesis.
 
 Gate execution

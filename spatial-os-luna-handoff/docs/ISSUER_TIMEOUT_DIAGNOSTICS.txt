@@ -1,0 +1,44 @@
+Issuer timeout diagnostics
+
+Purpose
+Two intermittent M02 failures remain unexplained.
+One occurred during participant approval. Its original worker cause was not retained.
+The other occurred during an active participant's revocation read.
+Original-order timing did not reproduce the second failure.
+Read evidence/control-recovery-2026-10-09/revocation-sequence-01/primary-review.json.
+
+Invariant
+Keep the existing deadline, checked transport, and permanent failure behavior.
+Record bounded transport stage and timing when the client deadline expires.
+Use fixed stage names and numeric counters. Exclude payloads, credentials, endpoints, identities, and paths.
+A diagnostic must distinguish request write, reply header, reply payload, and TLS handshake waits.
+Measure elapsed time, the longest interval between checks, and time spent inside the caller's tick callback.
+Timing alone cannot distinguish all scheduler delays from blocking work.
+Do not infer the historical cause from a new injected failure.
+
+Selected checks
+issuer-client: checked real issuer transport, fragmented replies, deadlines, and no replay.
+New stalled header and payload cases: assert exact diagnostic stages and transfer progress.
+The existing handshake timeout case: assert the handshake stage and bounded failure.
+identity-participant-runtime: preserve bounded stage and cause in the participant's failure log.
+authority-approval-interruption: retain fail-closed approval and active-generation interruption behavior.
+authority-supervisor: retain original native execution, cancellation, and cleanup behavior.
+Run these suites in Debug and runtime ASan/UBSan on sb16.
+Build each profile with two jobs. Run suites sequentially to avoid fixture conflicts.
+
+Limits
+These focused checks do not resolve either historical failure by themselves.
+The complete both-host M02 phase gate remains pending.
+No inference, physical input, or normal desktop change is needed for this diagnostic increment.
+
+Current result
+The diagnostic candidate remains unintegrated.
+Debug passed all 64 selected cases on sb16.
+Sanitizers passed 30 client cases, then 15 participant cases with one participant failure.
+The two later sanitizer native suites were not run.
+The failed revocation read received zero of four reply-header bytes before its deadline.
+Its diagnostic reports elapsed_ms=705, gap_ms=10, and tick_ms=0.
+Read evidence/control-recovery-2026-10-09/issuer-timeout-diagnostics-failure01/primary-review.json.
+Three traced repetitions passed 48 participant case executions. They do not explain the failed run.
+Read evidence/control-recovery-2026-10-09/participant-reply-timing-01/primary-review.json.
+Capture issuer TLS read/write progress and readiness with kernel timing next.

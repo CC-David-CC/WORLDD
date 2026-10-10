@@ -1,0 +1,36 @@
+test_stalled_reply_header_reports_phase_and_partial_progress (__main__.ClientTests.test_stalled_reply_header_reports_phase_and_partial_progress) ... FAIL
+test_stalled_reply_payload_reports_phase_and_partial_progress (__main__.ClientTests.test_stalled_reply_payload_reports_phase_and_partial_progress) ... FAIL
+test_tcp_handshake_timeout_is_bounded (__main__.ClientTests.test_tcp_handshake_timeout_is_bounded) ... FAIL
+
+======================================================================
+FAIL: test_stalled_reply_header_reports_phase_and_partial_progress (__main__.ClientTests.test_stalled_reply_header_reports_phase_and_partial_progress)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-baseline-01/test_issuer_client.py", line 351, in test_stalled_reply_header_reports_phase_and_partial_progress
+    self.stalled_reply_diagnostic('reply_header', lambda data: data[:1], 1)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-baseline-01/test_issuer_client.py", line 343, in stalled_reply_diagnostic
+    self.assertRegex(diagnostic, r'^spatial-issuer-client: Issuer client deadline exceeded '
+AssertionError: Regex didn't match: '^spatial-issuer-client: Issuer client deadline exceeded phase=reply_header wait=read progress=1/[0-9]+ elapsed_ms=[0-9]+ gap_ms=[0-9]+ tick_ms=[0-9]+$' not found in 'spatial-issuer-client: Issuer client deadline exceeded'
+
+======================================================================
+FAIL: test_stalled_reply_payload_reports_phase_and_partial_progress (__main__.ClientTests.test_stalled_reply_payload_reports_phase_and_partial_progress)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-baseline-01/test_issuer_client.py", line 354, in test_stalled_reply_payload_reports_phase_and_partial_progress
+    self.stalled_reply_diagnostic('reply_payload', lambda data: data[:6], 2)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-baseline-01/test_issuer_client.py", line 343, in stalled_reply_diagnostic
+    self.assertRegex(diagnostic, r'^spatial-issuer-client: Issuer client deadline exceeded '
+AssertionError: Regex didn't match: '^spatial-issuer-client: Issuer client deadline exceeded phase=reply_payload wait=read progress=2/[0-9]+ elapsed_ms=[0-9]+ gap_ms=[0-9]+ tick_ms=[0-9]+$' not found in 'spatial-issuer-client: Issuer client deadline exceeded'
+
+======================================================================
+FAIL: test_tcp_handshake_timeout_is_bounded (__main__.ClientTests.test_tcp_handshake_timeout_is_bounded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-timeout-baseline-01/test_issuer_client.py", line 368, in test_tcp_handshake_timeout_is_bounded
+    self.assertIn('Issuer client deadline exceeded phase=tls_handshake wait=read progress=0/0 ',
+AssertionError: 'Issuer client deadline exceeded phase=tls_handshake wait=read progress=0/0 ' not found in 'spatial-issuer-client: Issuer client deadline exceeded\n'
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.991s
+
+FAILED (failures=3)

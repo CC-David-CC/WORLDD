@@ -1,0 +1,142 @@
+[
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution",
+    "monotonic_ns": 321471258827106
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution",
+    "monotonic_ns": 321471654447789
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_real_child_activates_releases_and_exits_without_manual_pumping",
+    "monotonic_ns": 321471654735537
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_real_child_activates_releases_and_exits_without_manual_pumping",
+    "monotonic_ns": 321472923457447
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery",
+    "monotonic_ns": 321472923723653
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery",
+    "monotonic_ns": 321474580560064
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_management_cannot_inject_participant_commands_or_repeat_start",
+    "monotonic_ns": 321474580833160
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_management_cannot_inject_participant_commands_or_repeat_start",
+    "monotonic_ns": 321475651157709
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_explicit_stop_preserves_unresolved_issuer_generation",
+    "monotonic_ns": 321475651437609
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_explicit_stop_preserves_unresolved_issuer_generation",
+    "monotonic_ns": 321476961407132
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_management_loss_stops_owned_child_and_records_cleanup",
+    "monotonic_ns": 321476961688479
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_management_loss_stops_owned_child_and_records_cleanup",
+    "monotonic_ns": 321478359415542
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_child_death_is_failure_with_checked_cleanup",
+    "monotonic_ns": 321478359707127
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_child_death_is_failure_with_checked_cleanup",
+    "monotonic_ns": 321479606428873
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_nonzero_exit_after_release_is_not_successful_completion",
+    "monotonic_ns": 321479606722727
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_nonzero_exit_after_release_is_not_successful_completion",
+    "monotonic_ns": 321480840471359
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_excessive_management_frame_stops_owned_execution",
+    "monotonic_ns": 321480840780601
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_excessive_management_frame_stops_owned_execution",
+    "monotonic_ns": 321481994554406
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_termination_signal_stops_owned_child_and_records_cleanup",
+    "monotonic_ns": 321481994877441
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_termination_signal_stops_owned_child_and_records_cleanup",
+    "monotonic_ns": 321483129493032
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_existing_child_configuration_is_preserved_and_prevents_execution",
+    "monotonic_ns": 321483129851168
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_existing_child_configuration_is_preserved_and_prevents_execution",
+    "monotonic_ns": 321484068432279
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_privileged_descriptor_mapping_is_rejected_before_ownership",
+    "monotonic_ns": 321484068774138
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_privileged_descriptor_mapping_is_rejected_before_ownership",
+    "monotonic_ns": 321484556564230
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_privileged_descriptor_alias_is_rejected_before_ownership",
+    "monotonic_ns": 321484556899608
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_privileged_descriptor_alias_is_rejected_before_ownership",
+    "monotonic_ns": 321485089531820
+  },
+  {
+    "event": "start",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_reopened_journal_cannot_replay_execution",
+    "monotonic_ns": 321485089888752
+  },
+  {
+    "event": "stop",
+    "test": "test_authority_supervisor.AuthoritySupervisorTests.test_reopened_journal_cannot_replay_execution",
+    "monotonic_ns": 321486179438517
+  }
+]

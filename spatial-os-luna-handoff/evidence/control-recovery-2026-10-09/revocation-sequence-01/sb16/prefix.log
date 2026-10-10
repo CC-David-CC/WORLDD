@@ -1,0 +1,15 @@
+Running as unit: spatial-revocation-sequence01-prefix.service; invocation ID: cbb7747004ce4495bdd864c8a2d2bd0d
+test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch (__main__.ApprovalInterruptionTests.test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch) ... ok
+test_participant_timeout_during_approval_never_executes (__main__.ApprovalInterruptionTests.test_participant_timeout_during_approval_never_executes) ... ok
+test_lost_committed_approval_reply_never_retries_or_executes (__main__.ApprovalInterruptionTests.test_lost_committed_approval_reply_never_retries_or_executes) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 4.813s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 4.940s
+CPU time consumed: 1.667s
+Memory peak: 1.5M
+Memory swap peak: 0B

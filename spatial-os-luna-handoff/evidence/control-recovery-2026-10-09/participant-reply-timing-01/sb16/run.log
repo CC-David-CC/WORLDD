@@ -1,0 +1,10 @@
+Running as unit: spatial-participant-reply-timing01.service; invocation ID: 655491418a734b3c9d0c8ef601b72499
+{'attempt': 1, 'passed': True, 'tests': 16, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 2, 'passed': True, 'tests': 16, 'failures': 0, 'errors': 0, 'skipped': 0}
+{'attempt': 3, 'passed': True, 'tests': 16, 'failures': 0, 'errors': 0, 'skipped': 0}
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 40.516s
+CPU time consumed: 15.589s
+Memory peak: 1.5M
+Memory swap peak: 0B
