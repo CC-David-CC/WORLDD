@@ -1,0 +1,35 @@
+{
+  "id": "workspace.resources",
+  "phase": "M03",
+  "status": "pending",
+  "contract": "docs/M03_QUALIFICATION_AUDIT.txt",
+  "invariant": "Every workspace process and descendant remains inside its effective aggregate resource budget. Exhaustion cannot widen authority or produce a false durable acknowledgement.",
+  "required": [
+    "Define workspace and application budgets for aggregate memory, processes, CPU, storage, and competing I/O.",
+    "Derive effective application budgets from workspace policy, launching actor authority, and requested profile.",
+    "Apply limits before releasing held application startup. Keep resource-control paths and descriptors outside the application.",
+    "Account for project files, Git objects, application state, cache, temporary files, and trash within bounded workspace storage.",
+    "Verify inheritance after fork, exec, detachment, and broker recovery.",
+    "Verify independent applications and workspaces retain usable authority after another exhausts its budget.",
+    "Use independent bounded exhaustion and escape witnesses on both hosts in Debug and runtime sanitizers.",
+    "Qualify issuer availability and safe recovery under bounded competing writes. Preserve durable commit ordering.",
+    "Run the complete M03 phase gate after focused implementation checks pass."
+  ],
+  "known_limitations": [
+    "Existing setrlimit controls are per process and do not establish aggregate workspace or application budgets.",
+    "The root ext4 filesystem does not currently advertise project quotas. Do not claim storage quotas exist.",
+    "Only cpu, memory, and pids delegation has been verified. Check I/O controller support before selecting enforcement.",
+    "A five-second client passed one bounded write-pressure trial. This does not establish worst-case latency.",
+    "Moving database work to a worker does not make durable commits complete faster or authorize stale authority decisions."
+  ],
+  "availability_evidence": [
+    "evidence/m02-gate-2026-10-10/writeback-snapshot-01/primary-review.json",
+    "evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json",
+    "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json"
+  ],
+  "remaining": [
+    "Finish reviewed M02 source adoption.",
+    "Select the aggregate resource and bounded storage design from verified host capabilities.",
+    "Implement one coherent enforcement boundary and its independent regression witnesses."
+  ]
+}

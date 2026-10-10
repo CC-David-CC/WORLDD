@@ -69,7 +69,15 @@ Older authority task limitations describe earlier component boundaries. Do not t
    Require pending results while effects remain unresolved. Require explicit resume after timeout or uncertainty.
    A commit-only identity_status is insufficient to report completed revocation.
 
-Gate prerequisites still open
+Historical failure disposition
+
+Read docs/M02_FAILURE_DISPOSITION.txt for the reviewed integration decision and its evidence limits.
+The old attempts remain failed. Their unrecorded underlying causes remain unknown.
+Current complete gates and targeted failure tests qualify the authority and recovery behavior.
+Storage-contention availability remains mandatory follow-up at M03 and the M1 performance gate.
+Source adoption still requires exact verification on both hosts.
+
+The following paragraphs preserve the earlier investigation prerequisites.
 
 Resolve the preserved participant-approval startup failure.
 Its original evidence is in evidence/control-recovery-2026-10-09/connected-01/sb16/checks-retry02/runtime-sanitize/related.log.
