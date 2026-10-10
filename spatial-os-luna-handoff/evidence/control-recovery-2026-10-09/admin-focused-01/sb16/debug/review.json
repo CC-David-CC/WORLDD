@@ -1,0 +1,19 @@
+{
+  "reviewer": "primary agent",
+  "host": "sb16",
+  "profile": "debug",
+  "admin_checks": 11,
+  "harness_checks": 51,
+  "native_world_checks": 3,
+  "source_files": 309,
+  "locked_files_unchanged": 41,
+  "source_and_binary_hashes_verified": true,
+  "log_hashes": {
+    "admin.log": "3ee1675355b68c409064dabcc4f2adad20c7fcfc2b4b1974d3932ca28e02b9fa",
+    "harness.log": "653a0481ef14db9b64bef821627b7992f0fa0168ca3cd9046b13a11db0a7cfbe",
+    "world.log": "925ba867cb5d34ab227145207b01c1267787a0e760501c53f27bb0d98b35a520"
+  },
+  "full_qualification": false,
+  "integration_ready": false,
+  "production_coordinator_implemented": false
+}
