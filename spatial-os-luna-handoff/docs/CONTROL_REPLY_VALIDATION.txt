@@ -1,5 +1,5 @@
 Private control reply validation
-Status: Isolated reply01 draft. All 16 new checks remain unrun.
+Status: All 16 focused Debug checks passed on sb16. Complete qualification and integration remain pending.
 
 Invariant
 
@@ -42,7 +42,9 @@ These functions alone do not provide automatic reservation release or issuer ret
 Qualification
 
 Both hosts have isolated copies of all 303 source files and 41 unchanged locked files.
-Their drivers wait for successful binding01 qualification on the same host.
+Each driver starts after successful binding01 qualification on the same host.
+sb16 passed its focused Debug checks and runs the full profile.
+Read evidence/control-recovery-2026-10-09/reply-focused-01/sb16/debug/focused-review.json.
 Then each driver builds Debug and runtime sanitizer profiles with two compiler jobs.
 Builds finish before qualification starts.
 Each profile runs 16 reply checks, the preceding cumulative core suite, harness checks, P10, and native-world checks.
