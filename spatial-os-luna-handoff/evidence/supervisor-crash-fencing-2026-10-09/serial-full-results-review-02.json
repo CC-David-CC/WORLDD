@@ -1,0 +1,49 @@
+{
+  "reviewer": "primary agent",
+  "source_files": 294,
+  "hosts": {
+    "sb16": {
+      "debug": {
+        "core_checks": 1453,
+        "core_suites": 99,
+        "harness_checks": 51,
+        "P10_cases": 151,
+        "failed": 0,
+        "skipped": 0
+      },
+      "runtime-sanitize": {
+        "core_checks": 1453,
+        "core_suites": 99,
+        "harness_checks": 51,
+        "P10_cases": 151,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "sb16-2": {
+      "debug": {
+        "core_checks": 1453,
+        "core_suites": 99,
+        "harness_checks": 51,
+        "P10_cases": 151,
+        "failed": 0,
+        "skipped": 0
+      },
+      "runtime-sanitize": {
+        "core_checks": 1453,
+        "core_suites": 99,
+        "harness_checks": 51,
+        "P10_cases": 151,
+        "failed": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "summary_hashes": {
+    "sb16": "64dfdd79b71548179c850273f53ed1e9c46d15a225bd72163ebe29904a4c5486",
+    "sb16-2": "5436baeefc05e387311f4b66227ab445036e5103c6fce616981f6926ce60fe1e"
+  },
+  "compiler_overlap": false,
+  "integrated": false,
+  "scope": "Both complete profiles passed on both hosts; integration follows this review."
+}

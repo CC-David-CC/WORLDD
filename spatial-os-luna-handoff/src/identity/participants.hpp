@@ -59,6 +59,16 @@ inline void validate_launch_begin(const v1::AuthorityLaunchBegin& request, const
             "Invalid authority launch context");
     validate_participant_record(service.registration(), issuer);
 }
+inline void validate_fence_begin(const v1::AuthorityFenceBegin& request) {
+    using participant_detail::require;
+    validate_message(request);
+    require(request.participant_id().size() == 32 && request.service_incarnation().size() == 32 &&
+            request.launch_id().size() == 32 && request.authorization_id().size() == 32 &&
+            request.registered_revision() > 0 && request.registered_revision() <= INT64_MAX &&
+            request.generation() > 0 && request.generation() <= INT64_MAX &&
+            request.supervision_revision() > 0 && request.supervision_revision() <= INT64_MAX,
+            "Invalid authority fence context");
+}
 inline void validate_registry_page(const v1::AuthorityRegistryPage& page, const std::string& issuer) {
     using participant_detail::require;
     validate_message(page);

@@ -391,3 +391,13 @@ No failures, skips, or recorded compiler overlap. Full runtime sanitizers remain
 The sb16-2 Debug collector first refused an unfinished P10 run. Collection succeeded only after P10 passed.
 Production remains broker283. The dependent control-recovery witness is queued, not run.
 Evidence: spatial-os-luna-handoff/evidence/supervisor-crash-fencing-2026-10-09/serial-debug-results-review-02.json
+
+2026-10-09: Combined294 integration approved
+Both hosts passed full Debug and runtime sanitizers:1453 core,99 suites,51 harness,151 P10 per profile.
+Four unchanged supervised-world participation checks also passed in each host/profile combination.
+The exact37-file source change is applied after primary review. Host adoption follows its commit.
+Both hosts confirmed the remaining broker reservation gap after native cleanup and world death.
+The first diagnostic launcher failed during imports because spatial-security-auth was missing.
+Its failure and the cancelled waiting copy are preserved; corrected assertions passed on both hosts.
+CTest inventory queries rewrite ancillary LastTest.log timestamps. Complete captured suite logs remain the execution evidence.
+No operator session or database changed. M02 and full Spatial-M1 remain incomplete.

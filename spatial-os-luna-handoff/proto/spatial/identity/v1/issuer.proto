@@ -310,6 +310,40 @@ message AuthorityLaunchAuthorization {
   uint64 generation = 3;
   bytes supervisor_public_key = 4;
 }
+// Fencing stops issuer-side service mutations. It does not prove external cleanup.
+message AuthorityFenceBegin {
+  bytes participant_id = 1;
+  uint64 registered_revision = 2;
+  uint64 generation = 3;
+  bytes service_incarnation = 4;
+  bytes launch_id = 5;
+  uint64 supervision_revision = 6;
+  bytes authorization_id = 7;
+}
+message AuthorityFenceChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes issuer_incarnation = 3;
+  bytes nonce = 4;
+  bytes connection_binding = 5;
+  AuthorityFenceBegin request = 6;
+  bytes supervisor_public_key = 7;
+  uint32 lifetime_ms = 8;
+  string audience = 9;
+}
+message AuthorityFenceComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthorityFenceState {
+  bytes issuer_id = 1;
+  AuthorityParticipantRecord registration = 2;
+  uint64 generation = 3;
+  bytes service_incarnation = 4;
+  bytes authorization_id = 5;
+  bytes launch_id = 6;
+  uint64 supervision_revision = 7;
+  bytes fence_id = 8;
+  uint64 security_revision = 9;
+  bytes supervisor_public_key = 10;
+}
 message IssuerRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -334,6 +368,8 @@ message IssuerRequest {
     AuthorityStateRead authority_state = 27;
     AuthorityLaunchBegin authority_launch_begin = 28;
     AuthorityLaunchComplete authority_launch_complete = 29;
+    AuthorityFenceBegin authority_fence_begin = 30;
+    AuthorityFenceComplete authority_fence_complete = 31;
   }
 }
 message IssuerReply {
@@ -358,6 +394,7 @@ message IssuerReply {
     AuthorityBarrierStatus authority_barrier = 25;
     AuthoritySupervisorBinding supervision = 26;
     AuthorityLaunchAuthorization authority_launch_authorization = 27;
+    AuthorityFenceState authority_fence = 28;
   }
 }
 

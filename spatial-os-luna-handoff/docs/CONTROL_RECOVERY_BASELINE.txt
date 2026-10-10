@@ -1,5 +1,5 @@
 Application-control recovery: baseline and next invariant
-Status: The diagnostic is queued. No recovery result is claimed.
+Status: Both corrected Debug diagnostics reproduced the reservation gap. Production recovery remains unimplemented.
 
 Required behavior
 
@@ -39,7 +39,7 @@ proto/spatial/workspace/v1/broker.proto
 proto/spatial/supervisor/v1/launch.proto
 docs/AUTHORITY_SUPERVISOR_RECOVERY.txt
 
-Queued diagnostic
+Executed diagnostic
 
 Use the unchanged frozen294 Debug binaries after that host passes full qualification.
 Use a disposable native server and real confined application.
@@ -75,3 +75,13 @@ Do not kill independently authorized applications to obtain an empty reservation
 
 The additive protobuf interface and its ownership checks require a separate implementation review.
 No existing acceptance assertion or locked contract changes in this baseline.
+
+Observed result on 2026-10-09
+
+Both hosts passed one diagnostic check against frozen294 Debug binaries.
+The first launcher omitted spatial-security-auth and failed during Python imports on sb16.
+The waiting sb16-2 copy was cancelled before execution. Both original outcomes remain preserved.
+The corrected launcher supplied the existing CMake fixture arguments. No assertion changed.
+Both hosts confirmed native input release and a responsive application after world and compositor exit.
+Both brokers retained the reservation until explicit diagnostic release.
+Read evidence/control-recovery-2026-10-09/baseline-results-review-02.json.

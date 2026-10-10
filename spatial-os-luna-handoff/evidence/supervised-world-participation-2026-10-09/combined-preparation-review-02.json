@@ -1,0 +1,15 @@
+{
+  "reviewer": "primary agent",
+  "reason": "Existing world participation evidence used candidate290. Automatic crash fencing changes that supervised crash path, so recheck the exact combined294 binaries before integration.",
+  "test_assertions_unchanged": true,
+  "test_sha256": "ea867d7d6f6caaf68902e238b5491740cc20c3d776ef2402a41beb47b56d4d4d",
+  "source_files": 294,
+  "expected_checks_per_host_profile": 4,
+  "source_changed": false,
+  "prerequisite": "Full serial02 qualification and corrected control-recovery diagnostic must finish successfully on the same host.",
+  "jobs": {
+    "sb16": 1658739,
+    "sb16-2": 1432734
+  },
+  "status": "sb16 passed both profiles. sb16-2 waits behind its current qualifier."
+}

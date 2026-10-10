@@ -31,6 +31,10 @@ public:
     bool child_completed() const;
     v1::AuthorityLaunchRecord inspect() const;
     v1::AuthorityLaunchRecord stop();
+    // Fence the exact authorized generation. This does not retire issuer obligations.
+    v1::AuthorityLaunchRecord fence();
+    // Exceptional shutdown only. Checked graceful release needs no fence.
+    void fence_after_failure();
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

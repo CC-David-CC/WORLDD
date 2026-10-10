@@ -1,0 +1,40 @@
+{
+  "reviewer": "primary agent",
+  "source_files": 294,
+  "profile": "Debug",
+  "checks_per_host": 1,
+  "failed": 0,
+  "setup_failure_preserved": "setup-correction-review-02.json",
+  "hosts": {
+    "sb16": {
+      "run_sha256": "c0f36b87e182e4d576311527cf7612eedefc0a7998ddb65b07723c0769020a41",
+      "witness": {
+        "world_exit_confirmed": true,
+        "compositor_exit_confirmed": true,
+        "native_release_confirmed": true,
+        "application_answers_after_world_exit": true,
+        "broker_alive": true,
+        "authorized_new_controller_blocked": true,
+        "explicit_diagnostic_release_restores_acquisition": true,
+        "production_recovery_qualified": false,
+        "limitation": "Direct private broker channel retained by the fixture; no recovery supervisor is configured."
+      }
+    },
+    "sb16-2": {
+      "run_sha256": "7e9411be7e825c67d6a5eacbb2b44db07cab5b637f444dfb4126b1e39e53fc73",
+      "witness": {
+        "world_exit_confirmed": true,
+        "compositor_exit_confirmed": true,
+        "native_release_confirmed": true,
+        "application_answers_after_world_exit": true,
+        "broker_alive": true,
+        "authorized_new_controller_blocked": true,
+        "explicit_diagnostic_release_restores_acquisition": true,
+        "production_recovery_qualified": false,
+        "limitation": "Direct private broker channel retained by the fixture; no recovery supervisor is configured."
+      }
+    }
+  },
+  "production_recovery_qualified": false,
+  "next": "Bind reservations to a retained exact recovery owner, then verify dependent cleanup without terminating independently authorized applications."
+}

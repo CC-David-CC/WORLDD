@@ -4,8 +4,10 @@
 #include "world/actor_tls.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
+#include "platform/compositor_config.hpp"
 #include "platform/broker.hpp"
 #include <charconv>
+#include <algorithm>
 #include <csignal>
 #include <set>
 #include <sys/stat.h>
@@ -18,7 +20,7 @@ int main(int argc, char** argv) {
     std::vector<int> actor_channels;
     std::string display;
     bool fixture_clock = false, fixture_faults = false, migration = false;
-    int broker_fd = -1, broker_pid = -1, actor_listener = -1;
+    int broker_fd = -1, broker_pid = -1, actor_listener = -1, native_fd = -1;
     try {
         signal(SIGPIPE, SIG_IGN);
         for (int i = 1; i < argc; ++i) {
@@ -32,6 +34,12 @@ int main(int argc, char** argv) {
             else if (argument == "--init-authority" && authority_seed.empty() && i + 1 < argc) authority_seed = argv[++i];
             else if (argument == "--identity-config" && identity_config.empty() && i + 1 < argc) identity_config = argv[++i];
             else if (argument == "--actor-tls-config" && actor_tls_config.empty() && i + 1 < argc) actor_tls_config = argv[++i];
+            else if (argument == "--native-security-fd" && native_fd == -1 && i + 1 < argc) {
+                const std::string_view number(argv[++i]);
+                const auto parsed = std::from_chars(number.data(), number.data()+number.size(), native_fd);
+                if (parsed.ec != std::errc{} || parsed.ptr != number.data()+number.size() || native_fd <= STDERR_FILENO)
+                    throw std::invalid_argument("Native compositor configuration: invalid inherited descriptor");
+            }
             else if (argument == "--actor-listen-fd" && actor_listener == -1 && i + 1 < argc) {
                 const std::string_view number(argv[++i]);
                 const auto parsed = std::from_chars(number.data(), number.data()+number.size(), actor_listener);
@@ -59,6 +67,9 @@ int main(int argc, char** argv) {
         if ((actor_listener == -1) != actor_tls_config.empty()) throw std::invalid_argument("Actor TLS listener and configuration are required together");
         if (identity_config.empty() != (actor_channels.empty() && actor_listener == -1))
             throw std::invalid_argument("World identity configuration and actor transport are required together");
+        if (native_fd >= 0 && (native_fd == broker_fd || native_fd == actor_listener ||
+                std::find(actor_channels.begin(), actor_channels.end(), native_fd) != actor_channels.end()))
+            throw std::invalid_argument("Native compositor configuration: descriptor shares another channel");
         if (actor_listener >= 0) {
             if (actor_listener == broker_fd) throw std::invalid_argument("Actor listener cannot share the broker descriptor");
             spatial::prepare_actor_listener(actor_listener);
@@ -69,19 +80,26 @@ int main(int argc, char** argv) {
             spatial::prepare_actor_channel(fd);
         }
         if (!authority_seed.empty()) {
-            if (migration || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
+            if (native_fd >= 0 || migration || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
                 throw std::invalid_argument("Authority initialization only accepts --state-dir and --init-authority");
             umask(0077); spatial::WorldStore world(state);
             spatial::initialize_world_authority(authority_seed, world.info().world_id());
             std::cerr << "World authority initialization complete\n"; return 0;
         }
         if (migration) {
-            if (fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
+            if (native_fd >= 0 || fixture_clock || fixture_faults || !config.empty() || !display.empty() || !identity_config.empty() || broker_fd != -1 || broker_pid != -1)
                 throw std::invalid_argument("World migration only accepts --state-dir and --migrate-v1");
             umask(0077); spatial::WorldStore world(state, true);
             std::cerr << "World context schema migration complete\n"; return 0;
         }
         if ((broker_fd == -1) != (broker_pid == -1)) throw std::invalid_argument("Incomplete broker connection");
+        std::unique_ptr<spatial::CompositorConfig> native;
+        if (native_fd >= 0) {
+            native = std::make_unique<spatial::CompositorConfig>(native_fd);
+            if (!display.empty() && display != native->display())
+                throw std::invalid_argument("Native compositor configuration: conflicting display");
+            display = native->display();
+        }
         if (config.empty()) config = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "runtime.textproto";
         // Management pipes and actor-only sockets have separate protobuf interfaces.
         const auto settings = spatial::load_runtime_config(config);
@@ -92,7 +110,8 @@ int main(int argc, char** argv) {
         if (broker_fd >= 0) broker = std::make_unique<spatial::BrokerClient>(broker_fd, broker_pid);
         std::unique_ptr<spatial::RenderWorker> renderer;
         if (!display.empty()) renderer = std::make_unique<spatial::RenderWorker>(
-            std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display);
+            std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display, native ? native->descriptor() : -1);
+        if (native) native->consume();
         spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get());
         std::unique_ptr<spatial::IdentitySessions> sessions;
         if (!identity_config.empty()) sessions = std::make_unique<spatial::IdentitySessions>(identity_config, actor_channels, world, actors, broker.get(), actor_listener, actor_tls_config);

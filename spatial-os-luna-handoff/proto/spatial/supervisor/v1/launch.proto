@@ -32,6 +32,7 @@ message AuthorityLaunchRecord {
   ProcessScopeStopped process_stopped = 7;
   NativeScopeStopped native_stopped = 8;
   spatial.identity.v1.AuthorityLaunchAuthorization authorization = 9;
+  spatial.identity.v1.AuthorityFenceState fence = 10;
 }
 message AuthorityParticipantAttach {
   string runtime_config = 1;
@@ -56,6 +57,7 @@ message AuthoritySupervisorConfig {
   uint32 participant_target_fd = 9;
   repeated uint32 inherited_source_fds = 10;
   optional uint32 broker_native_target_fd = 11; // Sealed issued broker credential; never the supervisor credential.
+  optional uint32 compositor_native_target_fd = 12; // Sealed issued compositor credential; never the supervisor credential.
 }
 message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
 message AuthorityLaunchQuery {}
@@ -73,6 +75,7 @@ message AuthorityLaunchRequest {
     spatial.identity.v1.ParticipantCommand participant_command = 17;
     AuthorityParticipantChannelPrepare prepare_channel = 18;
     AuthorityLaunchQuery pump_channel = 19;
+    AuthorityLaunchQuery fence = 20;
   }
 }
 message AuthorityLaunchView {

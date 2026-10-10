@@ -1,4 +1,5 @@
 #include "render/renderer.hpp"
+#include "x11/compositor_connection.hpp"
 #include "core/scene.hpp"
 #include "x11/surfaces.hpp"
 #include "x11/input_router.hpp"
@@ -101,7 +102,7 @@ struct Renderer::Impl {
         glFinish(); check_gl(); check_x(display);
     }
 };
-Renderer::Renderer(const std::string& name, const std::filesystem::path& state) : impl_(std::make_unique<Impl>()) {
+Renderer::Renderer(const std::string& name, const std::filesystem::path& state, const render::v1::NativeCompositorConfig* native) : impl_(std::make_unique<Impl>()) {
     auto& r = *impl_;
     if (name.empty()) throw std::invalid_argument("An explicit X display is required");
     r.captures = state / "captures";
@@ -109,7 +110,7 @@ Renderer::Renderer(const std::string& name, const std::filesystem::path& state) 
     if (std::filesystem::is_symlink(status) || (std::filesystem::exists(status) && !std::filesystem::is_directory(status)))
         throw std::invalid_argument("Unsafe capture directory");
     std::filesystem::create_directory(r.captures);
-    r.display = XOpenDisplay(name.c_str());
+    r.display = native ? open_compositor_display(name, *native) : XOpenDisplay(name.c_str());
     if (!r.display) throw std::runtime_error("Cannot open explicit X display");
     XSetErrorHandler(record_x_error);
     const auto root = DefaultRootWindow(r.display);

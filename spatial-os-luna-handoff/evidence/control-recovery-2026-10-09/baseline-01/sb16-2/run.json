@@ -1,0 +1,9 @@
+{
+  "host": "sb16-2",
+  "state": "not_run_cancelled",
+  "qualifier_pid": 1334189,
+  "production_recovery_qualified": false,
+  "started": 1791592068.6074355,
+  "reason": "Identical launcher on sb16 omitted the native-probe argument; cancelled while waiting, before test execution.",
+  "ended": 1791593787.8527339
+}

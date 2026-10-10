@@ -1,0 +1,6 @@
+test_native_cleanup_does_not_release_orphan_broker_reservation (__main__.ControlRecoveryBaseline.test_native_cleanup_does_not_release_orphan_broker_reservation) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 5.118s
+
+OK

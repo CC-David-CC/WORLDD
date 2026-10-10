@@ -1,5 +1,28 @@
 # Implementation status
 
+## 2026-10-09: Combined294 passes both full profiles and enters source integration
+
+Both hosts passed full Debug and runtime ASan, LeakSanitizer, and UBSan qualification.
+Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases.
+No final check failed or skipped. No compiler overlap was recorded.
+Four unchanged supervised-world integration checks also passed in every host/profile combination.
+Read evidence/supervisor-crash-fencing-2026-10-09/integration-primary-review-04.json.
+
+The primary agent approved all 37 changed files and applied the exact frozen294 source.
+All 41 locked files remain unchanged. Host adoption follows the reviewed commit.
+This increment adds native world/compositor handoff and issuer, supervisor, and automatic crash fencing.
+Fencing preserves unresolved obligations. It does not complete recovery or authorize replacement execution.
+
+Both hosts reproduced the dependent control-reservation gap with real native input and a surviving application.
+The world and compositor exited. Native input released. The broker reservation still required explicit diagnostic release.
+The first diagnostic launcher omitted a required argument and failed before test execution.
+The corrected launcher preserved all assertions. Both corrected Debug diagnostics passed one check each.
+Read evidence/control-recovery-2026-10-09/baseline-results-review-02.json.
+
+Next: bind control reservations to exact recovery ownership and verify their cleanup before issuer retirement.
+No operator database migration or session restart is part of source integration.
+M02, Spatial-M1, native hardware qualification, and LOCAL_READY remain incomplete.
+
 ## 2026-10-09: Combined294 full Debug passes on both hosts
 
 Both hosts passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 acceptance cases.

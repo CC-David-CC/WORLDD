@@ -2,6 +2,7 @@
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
 #include "broker.pb.h"
+#include "compositor_native.pb.h"
 #include <google/protobuf/text_format.h>
 #include <charconv>
 #include <chrono>
@@ -51,7 +52,8 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         absolute(value.journal_directory()) && absolute(value.delegated_cgroup()) &&
         absolute(value.child_participant_config()) && absolute(value.launch().executable()) &&
         value.participant_target_fd() >= 3 && value.participant_target_fd() <= 255 &&
-        value.inherited_source_fds_size() + (value.has_broker_native_target_fd() ? 2 : 1) <= 16 &&
+        !(value.has_broker_native_target_fd() && value.has_compositor_native_target_fd()) &&
+        value.inherited_source_fds_size() + ((value.has_broker_native_target_fd() || value.has_compositor_native_target_fd()) ? 2 : 1) <= 16 &&
         value.inherited_source_fds_size() == value.launch().inherited_fds_size(),
         "Invalid supervisor configuration");
     std::set<std::uint32_t> targets{value.participant_target_fd()}, sources;
@@ -59,6 +61,11 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         const auto target = value.broker_native_target_fd();
         require(target >= 3 && target <= 255 && targets.insert(target).second,
             "Invalid broker native descriptor target");
+    }
+    if (value.has_compositor_native_target_fd()) {
+        const auto target = value.compositor_native_target_fd();
+        require(target >= 3 && target <= 255 && targets.insert(target).second,
+            "Invalid compositor native descriptor target");
     }
     struct stat native_info{}, management_info{};
     require(fstat(native, &native_info) == 0 && fstat(management, &management_info) == 0,
@@ -78,7 +85,7 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
     }
     return value;
 }
-pb::NativeScopeConfig broker_source(int fd) {
+pb::NativeScopeConfig handoff_source(int fd, bool compositor) {
     constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
     struct stat info{};
     const int actual = fcntl(fd, F_GET_SEALS);
@@ -90,7 +97,8 @@ pb::NativeScopeConfig broker_source(int fd) {
     pb::NativeScopeConfig value;
     require(value.ParseFromString(bytes), "Malformed broker handoff source");
     spatial::validate_message(value);
-    require(value.role() == spatial::security::v1::BROKER, "Broker handoff requires a broker native scope");
+    require(value.role() == (compositor ? spatial::security::v1::COMPOSITOR : spatial::security::v1::BROKER),
+        compositor ? "Compositor handoff requires a compositor native scope" : "Broker handoff requires a broker native scope");
     // AuthorityLaunch::prepare validates all source pins against the live native server.
     return value;
 }
@@ -117,6 +125,30 @@ void seal_broker_config(File& file, const pb::NativeScopeConfig& source, const p
     }
     require(fcntl(file.value, F_ADD_SEALS, F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL) == 0,
         "Cannot seal broker configuration");
+}
+void seal_compositor_config(File& file, const pb::NativeScopeConfig& source, const pb::NativeScopeReady& ready) {
+    require(ready.identity().role() == spatial::security::v1::COMPOSITOR &&
+        ready.identity().server_id() == source.server_id() &&
+        ready.credential().role() == spatial::security::v1::COMPOSITOR &&
+        ready.credential().id() == ready.identity().credential_id() &&
+        ready.credential().cookie().size() == 32 && ready.credential().cookie() != source.supervisor_cookie(),
+        "Compositor handoff requires the owned issued native credential");
+    spatial::render::v1::NativeCompositorConfig config;
+    config.set_protocol_version(1); config.set_display_number(source.display_number());
+    config.set_compositor_cookie(ready.credential().cookie()); config.set_server_id(source.server_id());
+    config.set_server_pid(source.server_pid()); config.set_server_uid(source.server_uid());
+    const auto bytes = config.SerializeAsString();
+    file.reset(memfd_create("supervised-compositor-native", MFD_CLOEXEC | MFD_ALLOW_SEALING));
+    require(file.value >= 0, "Cannot allocate sealed compositor configuration");
+    std::size_t written = 0;
+    while (written < bytes.size()) {
+        const auto count = write(file.value, bytes.data()+written, bytes.size()-written);
+        if (count < 0 && errno == EINTR) continue;
+        require(count > 0, "Cannot write sealed compositor configuration");
+        written += static_cast<std::size_t>(count);
+    }
+    require(fcntl(file.value, F_ADD_SEALS, F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL) == 0,
+        "Cannot seal compositor configuration");
 }
 void write_child_config(const std::filesystem::path& path,
                         const spatial::identity::v1::AuthorityParticipantRuntimeConfig& config) {
@@ -154,6 +186,7 @@ void drain(spatial::identity::ParticipantStream& channel) {
 int main(int argc, char** argv) {
     std::unique_ptr<spatial::supervisor::AuthorityLaunch> launch;
     std::unique_ptr<spatial::identity::ParticipantStream> management;
+    bool explicit_shutdown = false;
     std::signal(SIGPIPE, SIG_IGN);
     std::signal(SIGTERM, terminate); std::signal(SIGINT, terminate);
     try {
@@ -164,12 +197,15 @@ int main(int argc, char** argv) {
         management = std::make_unique<spatial::identity::ParticipantStream>(control, getppid());
         File native_config(native);
         File broker_config;
+        File compositor_config;
         std::optional<pb::NativeScopeConfig> source;
-        if (config.has_broker_native_target_fd()) source = broker_source(native);
+        if (config.has_broker_native_target_fd() || config.has_compositor_native_target_fd())
+            source = handoff_source(native, config.has_compositor_native_target_fd());
         parent_alive(control);
         launch = std::make_unique<spatial::supervisor::AuthorityLaunch>(config.journal_directory());
         const auto prepared = launch->prepare(config.delegated_cgroup(), config.binding(), native);
-        if (source) seal_broker_config(broker_config, *source, prepared.ready());
+        if (config.has_broker_native_target_fd()) seal_broker_config(broker_config, *source, prepared.ready());
+        if (config.has_compositor_native_target_fd()) seal_compositor_config(compositor_config, *source, prepared.ready());
         native_config.reset();
         launch->attach(config.participant());
         bool authenticated = false, baseline = false;
@@ -195,8 +231,13 @@ int main(int argc, char** argv) {
             config.mutable_launch()->add_inherited_fds(config.broker_native_target_fd());
             inherited.push_back(broker_config.value);
         }
+        if (config.has_compositor_native_target_fd()) {
+            config.mutable_launch()->add_inherited_fds(config.compositor_native_target_fd());
+            inherited.push_back(compositor_config.value);
+        }
         view(*management, launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited));
         broker_config.reset();
+        compositor_config.reset();
         for (;;) {
             require(!interrupted, "Supervisor termination requested");
             // Inspect the private parent channel before accepting more child commands.
@@ -208,11 +249,14 @@ int main(int argc, char** argv) {
                     require(request.ParseFromString(*bytes), "Malformed supervisor request");
                     reply.set_request_id(request.request_id()); spatial::validate_message(request);
                     require(request.protocol_version() == 1, "Unsupported supervisor request version");
-                    require(request.has_inspect() || request.has_stop(), "Supervisor supports only inspect and stop");
-                    stop = request.has_stop();
+                    require(request.has_inspect() || request.has_stop() || request.has_fence(), "Supervisor supports only inspect, stop, and fence");
+                    stop = request.has_stop() || request.has_fence();
                 } catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
                 if (!reply.has_error()) {
+                    // An explicit shutdown failure must not trigger an implicit fence retry.
+                    explicit_shutdown = stop;
                     // Cleanup errors are fatal and cannot resume child routing.
+                    if (request.has_fence()) launch->fence();
                     *reply.mutable_view()->mutable_record() = stop ? launch->stop() : launch->inspect();
                 }
                 management->send(reply.SerializeAsString());
@@ -227,6 +271,12 @@ int main(int argc, char** argv) {
     } catch (const std::exception& error) {
         std::cerr << "authority supervisor: " << error.what() << '\n';
         if (launch && launch->inspect().revision()) {
+            if (!explicit_shutdown) {
+                try { launch->fence_after_failure(); }
+                catch (const std::exception& fencing) {
+                    std::cerr << "authority supervisor crash fencing unresolved: " << fencing.what() << '\n';
+                }
+            }
             try { launch->stop(); }
             catch (const std::exception& cleanup) { std::cerr << "authority supervisor cleanup unresolved: " << cleanup.what() << '\n'; }
         }

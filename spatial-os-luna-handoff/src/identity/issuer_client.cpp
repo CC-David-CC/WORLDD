@@ -42,10 +42,11 @@ bool dns_name(const std::string& name) {
 bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& reply) {
     return (request.has_hello() && reply.has_hello()) || (request.has_info() && reply.has_info()) ||
         ((request.has_challenge() || request.has_enrollment_begin() || request.has_authentication_begin() ||
-            request.has_authority_authentication_begin() || request.has_authority_launch_begin()) && reply.has_challenge()) ||
+            request.has_authority_authentication_begin() || request.has_authority_launch_begin() || request.has_authority_fence_begin()) && reply.has_challenge()) ||
         (request.has_execute() && (reply.has_policy() || reply.has_enrollment() || reply.has_identity_status() || reply.has_profile() ||
             reply.has_participant() || reply.has_registry() || reply.has_authority_barrier() || reply.has_supervision())) ||
         (request.has_authority_launch_complete() && reply.has_authority_launch_authorization()) ||
+        (request.has_authority_fence_complete() && reply.has_authority_fence()) ||
         (request.has_profile_read() && reply.has_profile()) ||
         (request.has_enrollment_complete() && reply.has_enrollment()) ||
         (request.has_authentication_complete() && reply.has_authentication()) ||
@@ -132,6 +133,57 @@ struct IssuerClient::Impl {
     std::map<std::string, BarrierChallenge> barrier_challenges;
     std::map<std::string, BarrierChallenge> supervision_challenges;
 
+    struct FenceChallenge {
+        v1::SignRequest signing_request;
+        v1::AuthorityFenceChallenge context;
+        Clock::time_point expires;
+    };
+    std::map<std::string, FenceChallenge> fence_challenges;
+    void remember_fence_challenge(const v1::AuthorityFenceBegin& request, const v1::ChallengeReply& reply, Clock::time_point sent) {
+        require(reply.nonce().size() == 32 && reply.has_signing_request() &&
+                reply.signing_request().purpose() == v1::AUTHORITY_FENCING && reply.signing_request().has_payload(),
+                "Invalid fence challenge envelope");
+        FenceChallenge pending; pending.signing_request = reply.signing_request(); auto& value = pending.context;
+        require(value.ParseFromString(pending.signing_request.payload()), "Invalid fence challenge payload");
+        try { validate_message(value); validate_fence_begin(request); }
+        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid fence challenge fields"); }
+        require(value.protocol_version() == 1 && value.issuer_id() == config.issuer_id() &&
+                value.issuer_incarnation().size() == 32 && value.nonce() == reply.nonce() &&
+                value.connection_binding().size() == 32 && value.has_request() &&
+                value.request().SerializeAsString() == request.SerializeAsString() && value.supervisor_public_key().size() == 32 &&
+                value.supervisor_public_key() != config.issuer_public_key() && value.lifetime_ms() >= 50 && value.lifetime_ms() <= 60000 &&
+                value.audience() == "identityd/authority-fence/v1", "Invalid fence challenge context");
+        require((issuer_incarnation.empty() || issuer_incarnation == value.issuer_incarnation()) &&
+                (launch_binding.empty() || launch_binding == value.connection_binding()) &&
+                (service_binding.empty() || service_binding == value.connection_binding()), "Fence challenge changed connection context");
+        require(!fence_challenges.contains(reply.nonce()), "Duplicate fence challenge nonce");
+        std::erase_if(fence_challenges, [](const auto& item) { return item.second.expires <= Clock::now(); });
+        require(fence_challenges.size() < 256, "Too many fence challenges");
+        pending.expires = sent + std::chrono::milliseconds(value.lifetime_ms());
+        require(Clock::now() < pending.expires, "Fence challenge expired in transit");
+        issuer_incarnation = value.issuer_incarnation(); launch_binding = value.connection_binding();
+        fence_challenges.emplace(reply.nonce(), std::move(pending));
+    }
+    void check_fence_result(const v1::AuthorityFenceComplete& request, const v1::AuthorityFenceState& result,
+                            const std::optional<FenceChallenge>& pending) {
+        require(pending && Clock::now() < pending->expires, "Unrequested or expired fence success");
+        const auto& expected = pending->context;
+        const auto& target = expected.request();
+        try { validate_participant_record(result.registration(), config.issuer_id()); }
+        catch (const std::invalid_argument&) { throw std::runtime_error("Invalid fence registration"); }
+        require(result.issuer_id() == config.issuer_id() && result.registration().participant().id() == target.participant_id() &&
+                result.registration().registered_revision() == target.registered_revision() && result.generation() == target.generation() &&
+                result.service_incarnation() == target.service_incarnation() && result.authorization_id() == target.authorization_id() &&
+                result.launch_id() == target.launch_id() && result.supervision_revision() == target.supervision_revision() &&
+                result.fence_id().size() == 32 && result.security_revision() <= INT64_MAX &&
+                result.supervisor_public_key() == expected.supervisor_public_key() &&
+                result.supervisor_public_key() != result.registration().participant().public_key(), "Invalid fence result context");
+        try {
+            v1::VerifyRequest verification; *verification.mutable_content() = pending->signing_request;
+            *verification.mutable_proof() = request.proof(); verification.set_expected_public_key(expected.supervisor_public_key());
+            require(verify(verification), "Fence accepted an invalid supervisor proof");
+        } catch (const std::invalid_argument&) { throw std::runtime_error("Invalid fence proof"); }
+    }
     struct LaunchChallenge {
         v1::SignRequest signing_request;
         v1::AuthorityLaunchChallenge context;
@@ -496,6 +548,11 @@ struct IssuerClient::Impl {
             auto node = supervision_challenges.extract(request.execute().nonce());
             if (!node.empty()) supervision_pending = std::move(node.mapped());
         }
+        std::optional<FenceChallenge> fence_pending;
+        if (request.has_authority_fence_complete()) {
+            auto node = fence_challenges.extract(request.authority_fence_complete().nonce());
+            if (!node.empty()) fence_pending = std::move(node.mapped());
+        }
         std::optional<LaunchChallenge> launch_pending;
         if (request.has_authority_launch_complete()) {
             auto node = launch_challenges.extract(request.authority_launch_complete().nonce());
@@ -533,6 +590,8 @@ struct IssuerClient::Impl {
             if (reply.has_supervision()) check_supervision_result(request.execute(), reply.supervision(), supervision_pending);
             if (barrier_pending) require(reply.has_authority_barrier(), "Barrier query returned another outcome");
             if (reply.has_authority_barrier()) check_barrier_result(request.execute(), reply.authority_barrier(), barrier_pending);
+            if (request.has_authority_fence_begin()) remember_fence_challenge(request.authority_fence_begin(), reply.challenge(), sent);
+            if (request.has_authority_fence_complete()) check_fence_result(request.authority_fence_complete(), reply.authority_fence(), fence_pending);
             if (request.has_authority_launch_begin()) remember_launch_challenge(request.authority_launch_begin(), reply.challenge(), sent);
             if (request.has_authority_launch_complete()) check_launch_result(request.authority_launch_complete(), reply.authority_launch_authorization(), launch_pending);
             if (reply.has_authority_activation()) check_activation_result(request, reply.authority_activation());

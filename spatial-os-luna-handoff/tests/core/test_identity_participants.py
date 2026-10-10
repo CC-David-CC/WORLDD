@@ -7,7 +7,7 @@ import grants_pb2 as grants
 import issuer_pb2 as pb
 from test_identity_enrollment import EnrollmentFixture,BINARY
 
-DROP_REGISTRY='DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; '
+DROP_REGISTRY='DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; '
 
 class ParticipantTests(EnrollmentFixture):
     def setUp(self):
@@ -179,7 +179,7 @@ class ParticipantTests(EnrollmentFixture):
         for _ in range(2):
             result=subprocess.run(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
         with sqlite3.connect(self.state/'identity.db') as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
             self.assertEqual({table:db.execute('SELECT * FROM '+table).fetchall() for table in before},before)
         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
         self.client=self.start();self.assertFalse(self.client.call(credential_check=enrolled.credential).identity_status.active)

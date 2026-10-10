@@ -101,6 +101,21 @@ void validate_record(const v1::AuthorityLaunchRecord& value) {
             service.service_incarnation() == binding.service_incarnation() &&
             request.launch_id() == process.launch_id(), "Invalid durable participant approval");
     }
+    if (value.has_fence()) {
+        const auto& fence = value.fence();
+        const auto& approval = value.authorization();
+        const auto& request = approval.request();
+        require(value.has_authorization() && binding.supervised() && value.stage() >= v1::START_ATTEMPTED &&
+            request.previous_generation() < INT64_MAX && fence.issuer_id() == binding.issuer_id() &&
+            fence.registration().SerializeAsString() == request.service().registration().SerializeAsString() &&
+            fence.generation() == request.previous_generation()+1 &&
+            fence.service_incarnation() == binding.service_incarnation() &&
+            fence.authorization_id() == approval.authorization_id() && fence.launch_id() == process.launch_id() &&
+            fence.supervision_revision() == request.supervision_revision() &&
+            fence.supervisor_public_key() == approval.supervisor_public_key() &&
+            fence.fence_id().size() == 32 && fence.security_revision() <= INT64_MAX,
+            "Invalid durable authority fence");
+    }
     require(!binding.supervised() || value.stage() != v1::START_ATTEMPTED || value.has_authorization(),
         "Supervised execution requires durable approval");
     require(native.credential_id().size() == 32 ||
@@ -123,6 +138,7 @@ struct AuthorityLaunch::Impl {
     std::unique_ptr<NativeScope> native;
     std::unique_ptr<identity::ParticipantRuntime> participant;
     std::optional<identity::v1::AuthorityAuthenticationResult> authenticated;
+    std::optional<v1::AuthorityLaunchAuthorize> authorization_config;
     bool attached = false, stopping = false, started = false;
     bool relay_prepared = false, relay_terminal = false, relay_finished = false, relay_failed = false;
     bool relay_released = false;
@@ -354,6 +370,52 @@ v1::AuthorityLaunchRecord AuthorityLaunch::authorize(const v1::AuthorityLaunchAu
     require(!impl_->participant->failed(), "Participant failed during supervisor approval");
     auto next = impl_->record; *next.mutable_authorization() = result.authority_launch_authorization();
     impl_->persist(next); // The remote approval alone never releases child execution.
+    impl_->authorization_config = request; // Private paths stay in this live supervisor only.
+    return impl_->record;
+}
+void AuthorityLaunch::fence_after_failure() {
+    // A reopened journal has no retained ownership or signing configuration.
+    if (!impl_->record.binding().supervised() || !impl_->record.has_authorization() ||
+        impl_->record.stage() < v1::START_ATTEMPTED || impl_->relay_released ||
+        !impl_->process || !impl_->native || !impl_->authorization_config) return;
+    // The issuer, not this local eligibility check, proves exact activation.
+    fence();
+}
+v1::AuthorityLaunchRecord AuthorityLaunch::fence() {
+    require(impl_->record.binding().supervised() && impl_->record.has_authorization() &&
+        impl_->record.stage() >= v1::START_ATTEMPTED && impl_->process && impl_->native &&
+        impl_->authorization_config, "Fencing requires retained authorized launch ownership");
+    if (impl_->record.has_fence()) return impl_->record;
+    impl_->stopping = true;
+    impl_->relay.reset(); impl_->bootstrap.clear();
+    if (impl_->relay_child.fd >= 0) close(std::exchange(impl_->relay_child.fd, -1));
+    impl_->participant.reset();
+    const auto& approval = impl_->record.authorization();
+    const auto& authorized = approval.request();
+    require(authorized.previous_generation() < INT64_MAX, "Fence candidate generation overflows");
+    auto key = identity::KeyPair::load(impl_->authorization_config->private_key_path());
+    require(key.public_key() == approval.supervisor_public_key(), "Fence signing key differs from owned authorization");
+    identity::IssuerClient client(impl_->authorization_config->issuer_client_config());
+    identity::v1::IssuerRequest begin; begin.set_protocol_version(1);
+    auto* request = begin.mutable_authority_fence_begin();
+    const auto& binding = impl_->record.binding();
+    request->set_participant_id(binding.participant_id());
+    request->set_registered_revision(binding.registered_revision());
+    request->set_generation(authorized.previous_generation()+1);
+    request->set_service_incarnation(binding.service_incarnation());
+    request->set_launch_id(impl_->record.process().launch_id());
+    request->set_supervision_revision(authorized.supervision_revision());
+    request->set_authorization_id(approval.authorization_id());
+    auto result = client.call(std::move(begin));
+    require(result.has_challenge(), "Issuer rejected owned authority fence challenge");
+    identity::v1::IssuerRequest complete; complete.set_protocol_version(1);
+    auto* proof = complete.mutable_authority_fence_complete();
+    proof->set_nonce(result.challenge().nonce());
+    *proof->mutable_proof() = key.sign(result.challenge().signing_request());
+    result = client.call(std::move(complete));
+    require(result.has_authority_fence(), "Issuer did not fence the owned authority launch");
+    auto next = impl_->record; *next.mutable_fence() = result.authority_fence();
+    impl_->persist(next); // Full binding validation precedes the durable local write.
     return impl_->record;
 }
 void AuthorityLaunch::submit_participant(identity::v1::ParticipantCommand command) {

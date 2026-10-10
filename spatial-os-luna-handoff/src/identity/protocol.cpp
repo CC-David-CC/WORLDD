@@ -12,6 +12,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             auto* result = reply.mutable_hello(); result->set_protocol("spatial-identity-protobuf/1");
             result->set_implementation("production"); result->set_build_id(SPATIAL_BUILD_ID);
             result->add_capabilities("identity.issuer-control/v1");
+            result->add_capabilities("identity.authority-fencing/v1");
             result->add_capabilities("identity.enrollment/v1");
             result->add_capabilities("identity.revocation/v1");
             result->add_capabilities("identity.authentication/v1");
@@ -43,6 +44,11 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
         else if (request.has_authentication_begin()) *reply.mutable_challenge() = issuer.authentication_begin(request.authentication_begin());
         else if (request.has_authentication_complete()) *reply.mutable_authentication() = issuer.authentication_complete(request.authentication_complete());
         else if (request.has_revocations()) *reply.mutable_revocations() = issuer.revocations(request.revocations());
+        else if (request.has_authority_fence_begin() || request.has_authority_fence_complete()) {
+            if (!connection) throw spatial::WorldError(spatial::wire::FORBIDDEN, "Fencing requires a TLS connection context");
+            if (request.has_authority_fence_begin()) *reply.mutable_challenge() = issuer.authority_fence_begin(request.authority_fence_begin(), *connection);
+            else *reply.mutable_authority_fence() = issuer.authority_fence_complete(request.authority_fence_complete(), *connection);
+        }
         else if (request.has_authority_launch_begin() || request.has_authority_launch_complete()) {
             if (!connection || connection->binding.size() != 32)
                 throw spatial::WorldError(spatial::wire::FORBIDDEN, "Launch proof requires a TLS connection context");

@@ -17,7 +17,8 @@ def git(*args):
 staged = list(filter(None, git('diff', '--cached', '--name-only', '-z').decode().split('\0')))
 # Enumerate committed/index paths. Read evidence from the index, never an unstaged copy.
 index_record = json.loads(git('show', ':' + prefix + e + 'integration-applied-04.json'))
-tracked = list(filter(None, git('ls-files', '-z', prefix + e).decode().split('\0')))
+participation = 'evidence/supervised-world-participation-2026-10-09/'
+tracked = list(filter(None, git('ls-files', '-z', prefix + e, prefix + participation).decode().split('\0')))
 names = sorted(set(staged) | set(tracked) |
     {prefix + name for name in index_record['files']} |
     {prefix + 'evidence/supervisor-broker-handoff-2026-10-09/integration-applied-02.json'})
@@ -111,6 +112,21 @@ for host in ('sb16', 'sb16-2'):
         p10 = read(folder + profile + '/P10.json')
         assert p10['status'] == 'passed' and p10['executed'] == len(p10['tests']) == 151
         assert all(x['status'] == 'passed' for x in p10['tests'])
+
+assert review['world_participation_summary_hashes'] == record['world_participation_summary_hashes']
+test_digest = read(participation + 'prepared-review-01.json')['test_sha256']
+assert sha(raw(participation + 'scripts/test_supervised_world_participation.py')) == test_digest
+for host in ('sb16', 'sb16-2'):
+    folder = participation + 'combined-02/' + host + '/'
+    result = read(folder + 'summary.json')
+    assert sha(raw(folder + 'summary.json')) == review['world_participation_summary_hashes'][host]
+    assert result['host'] == host and result['source_files'] == 294 and result['test_sha256'] == test_digest
+    assert set(result['profiles']) == {'debug', 'runtime-sanitize'}
+    for profile, value in result['profiles'].items():
+        assert value['exit_code'] == 0 and value['ran'] == 4 and value['passed'] and not value['sanitizer_marker']
+        text = raw(folder + profile + '/test.log').decode()
+        assert re.findall(r'^Ran (\d+) tests? in ', text, re.M) == ['4'] and '\nOK\n' in text
+        assert '... skipped' not in text and 'skipped=' not in text
 
 for name in staged:
     assert not name.startswith('defect blockers/'), name

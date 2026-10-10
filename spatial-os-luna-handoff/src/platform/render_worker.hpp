@@ -8,7 +8,7 @@ namespace spatial {
 // Owned production compositor; one bounded in-flight scene, scheduler serviced while waiting.
 class RenderWorker {
 public:
-    RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display);
+    RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display, int native_fd = -1);
     ~RenderWorker();
     RenderWorker(const RenderWorker&) = delete;
     RenderWorker& operator=(const RenderWorker&) = delete;

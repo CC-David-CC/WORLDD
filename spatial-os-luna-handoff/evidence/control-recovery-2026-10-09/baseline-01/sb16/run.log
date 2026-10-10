@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test_control_recovery_baseline_01.py", line 15, in <module>
+    from test_world_application_control import WorldApplicationControlTests
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/source/tests/core/test_world_application_control.py", line 15, in <module>
+    import test_application_observation as observation
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/source/tests/core/test_application_observation.py", line 19, in <module>
+    import test_application_access as access
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/source/tests/core/test_application_access.py", line 18, in <module>
+    import test_security_identity as native
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-supervisor-crash-fencing-01/source/tests/native/test_security_identity.py", line 16, in <module>
+    PROBE = Path(sys.argv.pop(1)).resolve()
+                 ^^^^^^^^^^^^^^^
+IndexError: pop index out of range

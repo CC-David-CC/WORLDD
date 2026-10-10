@@ -82,14 +82,32 @@ for host in ('sb16','sb16-2'):
         assert p10['status']=='passed' and p10['executed']==len(p10['tests'])==151
         assert all(x['status']=='passed' for x in p10['tests'])
 
+participation=r/'evidence/supervised-world-participation-2026-10-09'
+test_digest=read(participation/'prepared-review-01.json')['test_sha256']
+assert digest((participation/'scripts/test_supervised_world_participation.py').read_bytes())==test_digest
+participation_proofs={}
+for host in ('sb16','sb16-2'):
+    folder=participation/'combined-02'/host
+    result=read(folder/'summary.json')
+    assert result['host']==host and result['source_files']==294 and result['test_sha256']==test_digest
+    assert set(result['profiles'])=={'debug','runtime-sanitize'}
+    for profile,value in result['profiles'].items():
+        assert value['exit_code']==0 and value['ran']==4 and value['passed'] and not value['sanitizer_marker']
+        log=(folder/profile/'test.log').read_text()
+        assert re.findall(r'^Ran (\d+) tests? in ',log,re.M)==['4'] and '\nOK\n' in log
+        assert 'skipped=' not in log and '... skipped' not in log
+    participation_proofs[host]=digest((folder/'summary.json').read_bytes())
+
 final=read(e/'integration-primary-review-04.json')
 assert final['reviewer']=='primary agent' and final['integration_ready'] is True
 assert final['source_files']==manifest and final['reviewed_files']==changed
 assert final['summary_hashes']==proofs and final['unresolved_static_defects']==[]
+assert final['world_participation_summary_hashes']==participation_proofs
 assert final['diagnosed_failures']=='evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json'
 for name in changed:
     (r/name).parent.mkdir(parents=True,exist_ok=True);(r/name).write_bytes(contents[name])
 assert all(digest(normalized(r/n))==v for n,v in manifest.items())
 prepared['integrated']=True;prepared['summary_hashes']=proofs
+prepared['world_participation_summary_hashes']=participation_proofs
 (e/'integration-applied-04.json').write_bytes((json.dumps(prepared,indent=2)+'\n').encode())
 print('Integrated exact frozen294 after four full profiles and primary review.')

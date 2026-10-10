@@ -1,0 +1,11 @@
+{
+  "world_exit_confirmed": true,
+  "compositor_exit_confirmed": true,
+  "native_release_confirmed": true,
+  "application_answers_after_world_exit": true,
+  "broker_alive": true,
+  "authorized_new_controller_blocked": true,
+  "explicit_diagnostic_release_restores_acquisition": true,
+  "production_recovery_qualified": false,
+  "limitation": "Direct private broker channel retained by the fixture; no recovery supervisor is configured."
+}

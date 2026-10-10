@@ -1,0 +1,22 @@
+{
+  "reviewer": "primary agent",
+  "source_files": 294,
+  "test_sha256": "ea867d7d6f6caaf68902e238b5491740cc20c3d776ef2402a41beb47b56d4d4d",
+  "assertions_unchanged": true,
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "profiles": [
+    "debug",
+    "runtime-sanitize"
+  ],
+  "checks_per_profile": 4,
+  "failed": 0,
+  "skipped": 0,
+  "summary_hashes": {
+    "sb16": "d7162eef979fbd867bc12770a4a54d77aafc6fc1784dfbbe64d19704fe6f5640",
+    "sb16-2": "8455dc7536c5dbee83f24abbb0cacb3a1c4b75d19aab0cf4f66cf0a9a0700fbb"
+  },
+  "complete_M02": false
+}

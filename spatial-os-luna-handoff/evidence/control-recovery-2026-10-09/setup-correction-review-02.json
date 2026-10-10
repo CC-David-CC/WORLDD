@@ -1,0 +1,15 @@
+{
+  "reviewer": "primary agent",
+  "original": "sb16 setup failed before test execution: the launcher omitted spatial-security-auth.",
+  "sb16_2_original": "Cancelled the waiting diagnostic through its pinned pidfd before it executed. The qualifier was not interrupted.",
+  "correction": "Match the established CMake fixture arguments: identityd, spatial-issuer-client, worldd, spatial-security-auth. Record the helper hash. Use separate output paths.",
+  "assertions_changed": false,
+  "production_changed": false,
+  "script_sha256": "8cd62bd574429ab47a125df80d52de1f6cf6118cbfb00cc61382e816d54a4426",
+  "result": "Corrected sb16 Debug diagnostic passed one test. sb16-2 remains queued after its qualifier.",
+  "qualified_recovery": false,
+  "queue_pids": {
+    "sb16": 1658074,
+    "sb16-2": 1426431
+  }
+}

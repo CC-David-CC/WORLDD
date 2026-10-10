@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
                 else if (request.has_pump_channel()) { launch.pump_channel(); *reply.mutable_view()->mutable_record() = launch.inspect(); }
                 else if (request.has_inspect()) *reply.mutable_view()->mutable_record() = launch.inspect();
                 else if (request.has_stop()) *reply.mutable_view()->mutable_record() = launch.stop();
+                else if (request.has_fence()) *reply.mutable_view()->mutable_record() = launch.fence();
                 else throw std::runtime_error("Unknown launch operation");
             } catch (const std::exception& error) {
                 reply.mutable_error()->set_message(error.what());
