@@ -956,3 +956,14 @@ All registered CTest suites, 51 harness cases, and 151 P10 cases are selected pe
 Resource pressure and compiler overlap are recorded without TLS payload tracing.
 Cross-host and mutation evidence still need candidate-specific reassessment.
 The historical failures remain open. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10 next-milestone audit during qualification
+The M02 gate remains active on sb16 and sb16-2. Do not start overlapping builds or qualification jobs.
+Both Debug and runtime sanitizer builds completed. Both Debug harness runs passed 51 cases.
+The registered full core matrix contains 124 suites per profile. Its runs remain in progress.
+The next confinement milestone has a concrete remaining resource boundary.
+Application hard limits exist, but aggregate workspace/application budgets and application disk quotas remain unimplemented.
+The existing authority cgroups provide process ownership and cleanup, not configured application resource budgets.
+Read spatial-os-luna-handoff/docs/M03_QUALIFICATION_AUDIT.txt.
+This audit changed no production code, frozen source input, running process, or host configuration.
+Prepared collectors and cross-host wrappers remain local and unexecuted until the full local qualification finishes.

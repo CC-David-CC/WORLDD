@@ -1,0 +1,62 @@
+M03 confinement audit, 2026-10-10
+
+Reviewed source: 54715f9a78aaa92911d2bb0a9c782f316f78902f.
+The current M02 gate uses these same 351 source inputs.
+This audit prepares the next milestone while M02 qualification runs.
+It does not mark either milestone complete.
+
+Existing production boundary
+Actor process requests reach workspaced through the private protobuf broker.
+Workspace policy, actor authority, and the requested profile determine effective access.
+The broker uses ApplicationProcess in src/workspace/process.cpp for application execution.
+Native applications add only their provisioned display socket and application credential.
+The native path uses the same application process boundary.
+
+ApplicationProcess configures separate namespaces through the project Bubblewrap entry point.
+It pins project, repository, and state directories before mounting them.
+System dependencies and the namespace root are read-only.
+Project and Git mounts follow effective write authority.
+The application has its own writable state and temporary directories.
+The environment is explicit. Host SSH agents, desktop buses, and provider credentials are absent.
+The process setup closes unselected descriptors and drops capabilities.
+The application initializer checks no_new_privs before execution.
+The seccomp filter rejects namespace creation, mount changes, process-memory inspection, and selected kernel administration operations.
+The startup pipe holds the namespace until the broker pins its leader.
+Process stop uses retained pidfds and confirms namespace exit.
+
+Existing independent checks
+tests/core/test_processes.py launches actual application code through the production broker.
+Its namespace witness compares six namespace identities with the host.
+It reads kernel status, effective capabilities, inherited descriptors, environment, and hard resource limits.
+Its escape witness attempts host files, an outside-project symlink, a host process environment, and an abstract socket.
+Its syscall witness attempts namespace creation, mount changes, process inspection, BPF, and io_uring setup.
+Other cases check writable private state, read-only project and Git aliases, actual exits, and operation identity.
+Revocation and broker-loss cases check detached descendants and independent surviving applications.
+tests/core/test_workspace_authority.py adds authenticated authority and effective resource-intersection checks.
+The current complete gate includes these registered suites in both build profiles on both hosts.
+Their current results remain pending until the running jobs finish and their evidence is reviewed.
+
+Confirmed remaining resource boundary
+src/workspace/app_init.cpp applies per-process hard limits through setrlimit.
+It limits address space, file size, CPU time, descriptors, process count, and core dumps.
+Those calls do not configure an aggregate application or workspace resource budget.
+The authority process-scope code owns cgroups for lifecycle cleanup.
+It does not configure memory.max, pids.max, or cpu.max for application budgets.
+No application disk quota implementation was found in the reviewed workspace and supervisor source.
+docs/WORKSPACE_PROCESSES.md explicitly leaves aggregate limits, storage quotas, and full M03 attack qualification unfinished.
+Do not treat the existing cgroup cleanup receipt as proof of resource-budget enforcement.
+Do not mark M03 complete from the process limit inspection alone.
+
+Evidence still required
+Define explicit resource budgets at the workspace and application authority boundary.
+Apply effective budgets before releasing application startup.
+Keep child processes inside the same enforced budget after fork, exec, and detachment.
+Keep budget-control descriptors and paths outside application access.
+Verify exhaustion with bounded independent witnesses that preserve the operator's recovery route.
+Verify isolation between two applications and between two workspaces.
+Cover budget inheritance, rejected widening, setup failure, and cleanup after exhaustion.
+Keep ordinary editors, terminals, Git, compilers, and interpreters usable within their declared profiles.
+Run the complete M03 phase gate on both hosts after its focused implementation checks pass.
+
+This audit did not modify production code, the frozen candidate, host configuration, or running jobs.
+The next M03 implementation step follows the M02 gate and its remaining failure, cross-host, and mutation review.

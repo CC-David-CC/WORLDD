@@ -16,6 +16,7 @@ All mandatory M01-M16 and H01-H08 requirements remain unfinished as complete qua
 Existing components provide partial implementation where CURRENT_STATE.md records their evidence.
 The mandatory profile is tasks/spatial-m1.json.
 See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
+See docs/M03_QUALIFICATION_AUDIT.txt for existing confinement checks and the remaining aggregate resource boundary.
 
 Current development focuses on M02 recovery interruption and unresolved failure evidence.
 Read the newest CURRENT_STATE.md section and tasks/m1/identity.control_recovery.json for current results.
