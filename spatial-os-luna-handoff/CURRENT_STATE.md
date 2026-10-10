@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: Cross-host world crash recovery passes focused native checks
+
+Eight coordinated scenarios passed in Debug and runtime ASan/UBSan across both hosts.
+Four cases crash the delayed world. Four cases check ordinary delayed delivery after the fixture refactor.
+The crashed world releases native input, but its issuer obligation remains pending.
+Production dependent recovery releases the exact reservation and persists the cleanup receipt.
+The issuer obligation remains pending until explicit checked retirement.
+Retirement preserves applied revision zero. The other three generations complete through revision-one acknowledgements.
+Both applications keep responding. The other host retains its original world and broker launch identities.
+Read evidence/control-recovery-2026-10-09/crosshost-recovery-02/primary-review.json.
+
+The first candidate failed during fixture teardown after retirement. It sent a second stop for the stopped world.
+Candidate02 uses the checked cleanup receipt. The original failed run remains preserved.
+All 347 source hashes match. All 41 locked files remain unchanged.
+Production compiled inputs remain unchanged. Both profiles reuse verified binaries and separately generated test bindings.
+
+Next: issuer interruption during native recovery and remaining failure races.
+Both earlier intermittent timeout causes remain unresolved. Full M02 qualification remains pending on both hosts.
+M02 and Spatial-M1 remain incomplete. No normal desktop session or database changed.
+
+
 ## 2026-10-10: Cross-host credential cancellation passes focused native checks
 
 Both issuer directions passed in Debug and runtime ASan/UBSan. All four coordinated scenarios passed.

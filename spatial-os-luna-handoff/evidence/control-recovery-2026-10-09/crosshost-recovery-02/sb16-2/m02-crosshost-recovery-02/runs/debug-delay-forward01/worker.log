@@ -1,0 +1,7 @@
+Running as unit: spatial-crosshost-recovery02-debug-delay-forward01-worker.service; invocation ID: d45c9ca5a7b149df8de281d38066cd8a
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 8.070s
+CPU time consumed: 2.520s
+Memory peak: 1.5M
+Memory swap peak: 0B

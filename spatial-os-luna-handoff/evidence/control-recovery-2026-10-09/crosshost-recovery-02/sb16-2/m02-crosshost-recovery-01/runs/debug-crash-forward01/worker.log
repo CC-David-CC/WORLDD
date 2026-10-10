@@ -1,0 +1,27 @@
+Running as unit: spatial-crosshost-recovery01-debug-crash-forward01-worker.service; invocation ID: d31d0616ea9d4d23b0d5b8e4d604f9d5
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/tests/native/crosshost_revocation.py", line 530, in <module>
+    if options.mode == 'worker': worker()
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/tests/native/crosshost_revocation.py", line 349, in worker
+    stopped = fixture.request(stop_world=fixture.owner).cleanup
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/tests/native/test_session_application.py", line 140, in request
+    self.assertEqual(reply.HasField('error'), expect_error, reply)
+  File "/usr/lib/python3.12/unittest/case.py", line 885, in assertEqual
+    assertion_func(first, second, msg=msg)
+  File "/usr/lib/python3.12/unittest/case.py", line 878, in _baseAssertEqual
+    raise self.failureException(msg)
+AssertionError: True != False : protocol_version: 1
+request_id: 22
+error {
+  code: INVALID_ARGUMENT
+  message: "Session world already stopped"
+}
+
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 8.891s
+CPU time consumed: 2.889s
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -857,3 +857,16 @@ Candidate02 fixes fixture ordering. Candidate03 adds a held-byte witness. Produc
 The two previous intermittent timeout causes remain unresolved. Cross-host crash races and full M02 qualification remain pending.
 These disposable native checks do not establish shared-world geometry, physical input, native GPU or performance acceptance.
 M02 and Spatial-M1 remain incomplete. No normal session or database changed.
+
+2026-10-10: Native cross-host crash recovery passed both directions in Debug and runtime sanitizers.
+Four new crash cases and four delayed-delivery regressions passed.
+Native cleanup and dependent reservation recovery each leave the crashed world obligation pending.
+Explicit production retirement completes only that obligation and preserves applied revision zero.
+The other three generations acknowledge revision one. Both applications keep responding.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/crosshost-recovery-02/primary-review.json.
+Candidate01 failed because final fixture teardown stopped an already-retired world. The failure remains preserved.
+The collector initially expected three resize replies; the existing crash helper emits two, making four total.
+Collection was corrected against unchanged native logs. No test or runtime change was needed for that count.
+Historical baseline documents now identify their source findings as historical and link current evidence.
+Next: issuer interruption during native recovery. Both intermittent causes and the full M02 gate remain pending.
+M02 and Spatial-M1 remain incomplete. No normal session or database changed.

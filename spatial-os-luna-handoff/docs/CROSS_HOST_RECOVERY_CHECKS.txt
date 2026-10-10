@@ -1,0 +1,36 @@
+Cross-host crash recovery qualification
+
+Invariant
+Keep the exact crashed world's revocation obligation pending until verified production retirement.
+Require native input release and durable dependent control cleanup before retirement.
+Preserve both independently authorized applications and the other host's authority generations.
+Do not record retirement as an applied acknowledgement.
+
+Scenario
+Start one real issuer and two native production sessions across sb16 and sb16-2.
+Hold one world's encrypted revocation reply after both hosts hold native input.
+Commit credential revocation. Confirm the other host cancels and its application survives.
+Confirm nonzero held bytes and unreleased input on the delayed host.
+Kill the delayed world's exact process through its retained pidfd.
+Require checked process and native cleanup. Require the reservation to remain owned and fenced.
+Reject retirement before dependent recovery. The issuer obligation must remain pending.
+Recover through the production session coordinator. Verify the durable dependent receipt.
+The issuer obligation must remain pending after reservation release.
+Retire through the registered supervisor. Verify the exact receipt at the issuer and local journal.
+Require the crashed world's applied revision to remain zero.
+Require its retirement to complete only that world's obligation.
+Require the other three generations to complete through revision-one acknowledgements.
+Verify exact retirement retry and continued application response on both hosts.
+Repeat with the host roles reversed.
+
+Selected checks
+Run crash recovery in Debug and runtime sanitizers in both directions.
+Run the existing delayed-delivery scenario against the refactored fixture in both directions and profiles.
+The two existing fixture classes and all production compiled inputs remain unchanged.
+Reuse their verified binaries. Generate the changed Python-only test protobuf binding separately on each Linux host.
+Keep original builds, source trees, credentials, and failure evidence separate.
+
+Remaining qualification
+This does not qualify issuer restart during recovery or every supervisor-failure race.
+Both preserved intermittent timeout causes remain unresolved.
+The full M02 phase gate remains pending on both hosts.

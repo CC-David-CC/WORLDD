@@ -1,5 +1,6 @@
 Application-control recovery: baseline and next invariant
-Status: Both corrected Debug diagnostics reproduced the reservation gap. Production recovery remains unimplemented.
+Status: historical baseline. Both corrected Debug diagnostics reproduced the original reservation gap.
+Read CURRENT_STATE.md and tasks/m1/identity.control_recovery.json for subsequent implementation and qualification evidence.
 
 Required behavior
 
@@ -8,7 +9,7 @@ Preserve applications whose execution authority remains valid.
 Keep unrelated reservations and independently valid grants.
 Keep issuer retirement pending until this dependent cleanup is confirmed.
 
-Current source findings
+Historical source findings
 
 ControlLeases stores a lease ID, actor principal, application reference, and revocation flag.
 It has no owning world generation or recovery scope.

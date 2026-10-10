@@ -1,0 +1,8 @@
+Running as unit: spatial-crosshost-recovery02-runtime-sanitize-crash-reverse01-controller.service; invocation ID: ccf9f00b5da3485e878316f72e405893
+Ready for workers
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 17.786s
+CPU time consumed: 1.981s
+Memory peak: 1.5M
+Memory swap peak: 0B

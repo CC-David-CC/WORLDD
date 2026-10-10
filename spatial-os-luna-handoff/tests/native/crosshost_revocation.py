@@ -1,5 +1,6 @@
 """Real two-host cancellation with one issuer and independent native witnesses."""
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -18,6 +19,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('mode', choices=('controller', 'worker'))
 parser.add_argument('--source', type=Path, required=True)
 parser.add_argument('--build', type=Path, required=True)
+parser.add_argument('--bindings', type=Path)
+parser.add_argument('--scenario', choices=('delay', 'crash'), default='delay')
 parser.add_argument('--output', type=Path, required=True)
 parser.add_argument('--bundle', type=Path)
 parser.add_argument('--address')
@@ -30,6 +33,7 @@ options.output.mkdir(mode=0o700, parents=True, exist_ok=False)
 os.environ['SPATIAL_SECURITY_EVIDENCE'] = str(options.output / 'native')
 sys.path[:0] = [str(options.build / 'python'), str(options.source),
     str(options.source / 'tests/native'), str(options.source / 'tests/core')]
+if options.bindings: sys.path.insert(0, str(options.bindings))
 sys.argv = [sys.argv[0], str(options.source), str(options.build / 'spatial-authority-launch-probe'),
     str(options.build / 'spatial-security-auth'), str(options.build / 'identityd'),
     str(options.build / 'spatial-issuer-client')]
@@ -225,14 +229,77 @@ class SharedSession(application.SessionApplicationTests):
         current = self.request(inspect=self.owner).owner
         self.assertFalse(current.channel_fenced)
         self.assertEqual(list(current.reservations), [])
-        try:
-            reply = self.actor_call(self.stream, inspect=session.WorldSessionInspect())
-            self.assertEqual(reply.error.code, core.UNAUTHORIZED, reply)
-        except (EOFError, ConnectionError): pass
+        self.reject_old_actor()
         value = self.state()
         self.assertTrue(value.native_key_release and value.native_button_release)
         value.application_responded_after_cancellation = True
         value.reservation_released = True; value.old_actor_rejected = True
+        return value
+
+    def reject_old_actor(self):
+        try:
+            reply = self.actor_call(self.stream, inspect=session.WorldSessionInspect())
+            self.assertEqual(reply.error.code, core.UNAUTHORIZED, reply)
+        except (EOFError, ConnectionError): pass
+
+    def crashed(self):
+        self.assertTrue(self.feed.snapshot()[0])
+        self.crash_cleanup = self.crash_world()
+        self.assertTrue(self.crash_cleanup.HasField('fence'))
+        # A checked process/native receipt alone cannot retire the retained reservation.
+        self.request(expect_error=True, retire_world=self.owner)
+        self.reject_old_actor()
+        value = self.state()
+        value.world_cleanup.CopyFrom(self.crash_cleanup)
+        value.control_state.CopyFrom(self.request(inspect=self.owner).owner)
+        self.assertTrue(value.control_state.channel_fenced)
+        self.assertEqual(list(value.control_state.reservations), [self.lease])
+        value.application_responded_after_cancellation = True
+        value.old_actor_rejected = True; value.premature_retirement_rejected = True
+        return value
+
+    def recovered(self):
+        self.assertTrue(hasattr(self, 'crash_cleanup'))
+        recovered = self.request(recover_world=self.owner).owner
+        self.assertTrue(recovered.channel_fenced); self.assertFalse(recovered.reservations)
+        self.assertEqual(list(recovered.recovery.released), [self.lease])
+        with sqlite3.connect('file:' + str(self.world_journal / 'launch.db') + '?mode=ro', uri=True) as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 2)
+            saved, = db.execute('SELECT record FROM dependent_cleanup').fetchall()
+        self.dependent_bytes = saved[0]
+        receipt = launch.AuthorityDependentCleanup.FromString(self.dependent_bytes)
+        self.assertEqual(receipt.schema_version, 1)
+        self.assertEqual(receipt.world, self.crash_cleanup)
+        self.assertEqual(receipt.broker, self.read_record())
+        self.assertEqual(receipt.controls, recovered.recovery)
+        (options.output / 'dependent-cleanup.pb').write_bytes(self.dependent_bytes)
+        self.released(); self.reject_old_actor()
+        value = self.state()
+        value.world_cleanup.CopyFrom(self.crash_cleanup); value.control_state.CopyFrom(recovered)
+        value.dependent_cleanup_sha256 = hashlib.sha256(self.dependent_bytes).digest()
+        value.application_responded_after_cancellation = True
+        value.old_actor_rejected = True; value.reservation_released = True
+        return value
+
+    def retired(self):
+        self.assertTrue(hasattr(self, 'dependent_bytes'))
+        receipt = self.request(retire_world=self.owner).retirement
+        self.assertEqual(receipt.request.owner, self.owner.launch)
+        self.assertEqual(receipt.request.fence_id, self.crash_cleanup.fence.fence_id)
+        self.assertEqual(receipt.request.cleanup_sha256, hashlib.sha256(self.dependent_bytes).digest())
+        self.assertEqual(receipt.applied_revision, 0)
+        with sqlite3.connect('file:' + str(self.world_journal / 'launch.db') + '?mode=ro', uri=True) as db:
+            self.assertEqual(db.execute('SELECT record FROM issuer_retirement').fetchall(), [(receipt.SerializeToString(),)])
+            self.assertEqual(db.execute('SELECT record FROM dependent_cleanup').fetchall(), [(self.dependent_bytes,)])
+        self.assertEqual(self.request(retire_world=self.owner).retirement, receipt)
+        self.released(); self.reject_old_actor()
+        value = self.state(); value.retirement.CopyFrom(receipt)
+        value.world_cleanup.CopyFrom(self.crash_cleanup)
+        value.control_state.CopyFrom(self.request(inspect=self.owner).owner)
+        value.dependent_cleanup_sha256 = hashlib.sha256(self.dependent_bytes).digest()
+        self.assertTrue(value.control_state.channel_fenced); self.assertFalse(value.control_state.reservations)
+        value.application_responded_after_cancellation = True
+        value.old_actor_rejected = True; value.reservation_released = True
         return value
 
 def worker():
@@ -246,7 +313,7 @@ def worker():
     raw = socket.create_connection((bootstrap.issuer_address, bootstrap.control_port), timeout=60)
     stream = context.wrap_socket(raw, server_hostname='issuer.test'); stream.settimeout(45)
     fixture = None; completed = False
-    report = dict(status='starting', host=host, production_issuer=bootstrap.issuer.issuer_id.hex())
+    report = dict(status='starting', host=host, scenario=options.scenario, production_issuer=bootstrap.issuer.issuer_id.hex())
     try:
         stream.sendall(frame(wire.CrossHostCommand(protocol_version=1, request_id=0,
             join=wire.CrossHostJoin(run_id=bootstrap.run_id, host=host))))
@@ -270,10 +337,19 @@ def worker():
                     reply.state.CopyFrom(fixture.state())
                 elif operation == 'cancelled':
                     reply.state.CopyFrom(fixture.cancelled()); report['cancelled'] = True
+                elif operation == 'crash_world':
+                    reply.state.CopyFrom(fixture.crashed()); report['crashed'] = True
+                elif operation == 'recover_world':
+                    reply.state.CopyFrom(fixture.recovered()); report['recovered'] = True
+                elif operation == 'retire_world':
+                    reply.state.CopyFrom(fixture.retired()); report['retired'] = True
                 elif operation == 'stop':
                     if fixture:
-                        fixture.feed.set_hold(False)
-                        stopped = fixture.request(stop_world=fixture.owner).cleanup
+                        if hasattr(fixture, 'crash_cleanup'):
+                            stopped = fixture.crash_cleanup
+                        else:
+                            fixture.feed.set_hold(False)
+                            stopped = fixture.request(stop_world=fixture.owner).cleanup
                         fixture.assertEqual(stopped.stage, launch.OWNED_SCOPES_STOPPED)
                         fixture.assertEqual(stopped.process_stopped.identity, fixture.world_record.process)
                         fixture.assertEqual(stopped.native_stopped.identity, fixture.world_record.native)
@@ -310,7 +386,7 @@ def controller():
     fixture.config.io_timeout_ms = 5000; fixture.config.idle_timeout_ms = 60000
     fixture.config.connection_limit = 32
     peers = {}; states = {}; commands = 0; completed = False
-    report = dict(status='starting', issuer_host=host, delayed_host=options.delayed_host)
+    report = dict(status='starting', issuer_host=host, delayed_host=options.delayed_host, scenario=options.scenario)
     listener = socket.socket(); listener.bind((options.address, 0)); listener.listen(2); listener.settimeout(120)
     def call(target, **operation):
         nonlocal commands
@@ -390,9 +466,32 @@ def controller():
         assert not pending.complete and any(value.registration.participant.id == target_id and not value.complete for value in pending.obligations)
         held = call(target, hold_world_feed=wire.CrossHostHold(enabled=True))
         assert held.feed_held and held.held_bytes > 0, 'The relay did not withhold actual encrypted reply bytes'
-        released = call(target, hold_world_feed=wire.CrossHostHold(enabled=False)); assert not released.feed_held
-        cancelled = call(target, cancelled=wire.CrossHostEmpty())
-        assert cancelled.application_responded_after_cancellation and cancelled.reservation_released and cancelled.old_actor_rejected
+        assert not held.native_key_release and not held.native_button_release
+        if options.scenario == 'delay':
+            released = call(target, hold_world_feed=wire.CrossHostHold(enabled=False)); assert not released.feed_held
+            cancelled = call(target, cancelled=wire.CrossHostEmpty())
+            assert cancelled.application_responded_after_cancellation and cancelled.reservation_released and cancelled.old_actor_rejected
+        else:
+            def still_pending(label):
+                value = barrier()
+                outstanding, = [item for item in value.obligations if item.registration.participant.id == target_id]
+                assert not value.complete and not outstanding.complete and outstanding.applied_revision == 0
+                assert not outstanding.HasField('retirement')
+                (options.output / (label + '-barrier.pb')).write_bytes(value.SerializeToString())
+            crashed = call(target, crash_world=wire.CrossHostEmpty())
+            assert crashed.native_key_release and crashed.native_button_release and crashed.old_actor_rejected
+            assert crashed.application_responded_after_cancellation and crashed.premature_retirement_rejected
+            assert crashed.world_cleanup.stage == launch.OWNED_SCOPES_STOPPED
+            assert crashed.control_state.channel_fenced and len(crashed.control_state.reservations) == 1
+            still_pending('crashed')
+            recovered = call(target, recover_world=wire.CrossHostEmpty())
+            assert recovered.control_state.channel_fenced and not recovered.control_state.reservations
+            assert recovered.reservation_released and recovered.application_responded_after_cancellation
+            still_pending('recovered')
+            retired = call(target, retire_world=wire.CrossHostEmpty())
+            assert retired.HasField('retirement') and retired.retirement.applied_revision == 0
+            assert retired.retirement.request.cleanup_sha256 == recovered.dependent_cleanup_sha256
+            assert retired.application_responded_after_cancellation and retired.old_actor_rejected
         deadline = time.monotonic()+8
         while True:
             complete = barrier()
@@ -401,12 +500,23 @@ def controller():
             time.sleep(.02)
         assert complete.participant_count == 4 and complete.pending_count == 0 and len(complete.obligations) == 4
         assert {item.registration.participant.id for item in complete.obligations} == set(expected)
-        assert all(item.complete and item.applied_revision == 1 and not item.HasField('retirement') for item in complete.obligations)
+        for item in complete.obligations:
+            assert item.complete
+            if options.scenario == 'crash' and item.registration.participant.id == target_id:
+                assert item.applied_revision == 0 and item.retirement == retired.retirement
+            else: assert item.applied_revision == 1 and not item.HasField('retirement')
+        # Recovery on one host must not change the other's launch identity or live application.
+        survivor = call(other, cancelled=wire.CrossHostEmpty()) if options.scenario == 'crash' else cancelled
+        if options.scenario == 'crash':
+            assert survivor.world_launch == states[other].world_launch and survivor.broker_launch == states[other].broker_launch
+            assert survivor.application == states[other].application and survivor.application_responded_after_cancellation
         (options.output / 'complete-barrier.pb').write_bytes(complete.SerializeToString())
         for name in HOSTS: call(name, stop=wire.CrossHostEmpty())
         completed = True
         report.update(status='passed', exact_active_generations=4, committed_revision=1, pending_obligation_observed=True,
-            native_cancellation_hosts=list(HOSTS), applications_survived=2, complete_by_acknowledgement=True)
+            native_cancellation_hosts=list(HOSTS), applications_survived=2,
+            complete_by_acknowledgement=options.scenario == 'delay',
+            retired_worlds=1 if options.scenario == 'crash' else 0)
     finally:
         listener.close()
         for stream in peers.values(): stream.close()

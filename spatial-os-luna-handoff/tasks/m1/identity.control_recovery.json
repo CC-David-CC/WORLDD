@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "remaining_recovery_races_and_preserved_timeout_causes",
+  "current_step": "issuer_interruption_during_native_recovery",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -14,7 +14,7 @@
   "remaining": [
     "Qualify failure races and recovery interruptions.",
     "Resolve the preserved participant-approval startup failure before the full phase gate.",
-    "Qualify remaining cross-host crash and recovery races. Complete full M02 qualification on both hosts.",
+    "Qualify issuer interruption and remaining recovery races. Complete full M02 qualification on both hosts.",
     "Resolve the preserved active-generation revocation-read timeout before the full phase gate."
   ],
   "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
@@ -423,5 +423,18 @@
     "full_phase_gate": "pending on both hosts",
     "preserved_failed_candidate": "01",
     "shared_world_geometry_qualified": false
+  },
+  "crosshost_crash_recovery": {
+    "state": "Eight selected coordinated scenarios passed both profiles and directions.",
+    "evidence": "evidence/control-recovery-2026-10-09/crosshost-recovery-02/primary-review.json",
+    "selection": "docs/CROSS_HOST_RECOVERY_CHECKS.txt",
+    "new_crash_cases": 4,
+    "delayed_delivery_regressions": 4,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "full_phase_gate": "pending on both hosts",
+    "preserved_failed_candidate": "01"
   }
 }

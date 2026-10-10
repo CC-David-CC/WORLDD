@@ -1,0 +1,17 @@
+{
+  "command": [
+    "protoc",
+    "--python_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/python",
+    "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/tests/proto",
+    "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/proto/spatial/workspace/v1",
+    "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/proto/spatial/supervisor/v1",
+    "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/proto/spatial/security/v1",
+    "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/proto/spatial/identity/v1",
+    "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/proto/spatial/authority/v1",
+    "--proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/proto/spatial/core/v1",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/tests/proto/crosshost_revocation.proto"
+  ],
+  "exit_code": 0,
+  "schema_sha256": "8f22b11a27f677d48aeab32bc41666fb68ef71aed15c58140d90a39983677924",
+  "binding_sha256": "e70e589f5a0d7035e143e639b5c6010f43a9f1938f40d3b3eff8b96da6500b86"
+}

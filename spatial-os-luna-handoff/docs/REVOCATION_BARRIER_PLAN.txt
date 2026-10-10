@@ -1,8 +1,9 @@
 Distributed cancellation acknowledgement: implementation plan
-Status: planned interfaces; production implementation remains pending.
+Status: historical design plan. Read CURRENT_STATE.md and tasks/m1/identity.control_recovery.json for current implementation evidence.
+The requirements remain in force. The starting point below describes the original baseline.
 This plan extends the existing revocation contract. It does not change locked acceptance tests.
 
-Confirmed starting point
+Historical starting point
 
 The issuer commits a monotonically numbered revocation in SQLite.
 Its reply confirms that commit. The reply does not confirm external cancellation.

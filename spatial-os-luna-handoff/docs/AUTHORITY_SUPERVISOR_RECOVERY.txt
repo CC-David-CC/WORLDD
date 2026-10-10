@@ -1,5 +1,6 @@
 Authority supervisor recovery
-Status: Launch ownership and fencing are qualified. Dependent control cleanup and verified retirement remain unimplemented.
+Status: recovery requirements and historical baseline.
+Read CURRENT_STATE.md and tasks/m1/identity.control_recovery.json for current cleanup, retirement, and qualification evidence.
 
 Invariant
 

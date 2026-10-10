@@ -1,0 +1,46 @@
+﻿{
+    "nodes":  [
+                  {
+                      "exited":  true,
+                      "pid":  6684,
+                      "mode":  "controller",
+                      "machine":  "sb16"
+                  },
+                  {
+                      "exited":  true,
+                      "pid":  28788,
+                      "mode":  "worker",
+                      "machine":  "sb16"
+                  },
+                  {
+                      "exited":  true,
+                      "pid":  29528,
+                      "mode":  "worker",
+                      "machine":  "sb16-2"
+                  }
+              ],
+    "results":  [
+                    {
+                        "exit_code":  1,
+                        "mode":  "controller",
+                        "machine":  "sb16"
+                    },
+                    {
+                        "exit_code":  0,
+                        "mode":  "worker",
+                        "machine":  "sb16"
+                    },
+                    {
+                        "exit_code":  1,
+                        "mode":  "worker",
+                        "machine":  "sb16-2"
+                    }
+                ],
+    "profile":  "debug",
+    "source_tag":  "01",
+    "direction":  "forward",
+    "status":  "failed_or_observation_incomplete",
+    "candidate":  "recovery",
+    "scenario":  "crash",
+    "error":  "One or more cross-host components failed"
+}

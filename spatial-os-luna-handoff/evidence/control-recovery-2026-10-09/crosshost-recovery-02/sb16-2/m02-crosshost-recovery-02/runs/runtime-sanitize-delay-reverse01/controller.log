@@ -1,0 +1,8 @@
+Running as unit: spatial-crosshost-recovery02-runtime-sanitize-delay-reverse01-controller.service; invocation ID: cf2d2b7165ba4d7ab9953f966d73fa7a
+Ready for workers
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 17.021s
+CPU time consumed: 1.660s
+Memory peak: 1.5M
+Memory swap peak: 0B

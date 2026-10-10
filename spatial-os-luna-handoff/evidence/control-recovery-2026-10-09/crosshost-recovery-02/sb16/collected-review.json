@@ -1,0 +1,421 @@
+{
+  "status": "focused_passed_phase_gate_pending",
+  "host": "sb16",
+  "source_files": 347,
+  "locked_files": 41,
+  "coordinated_passed": 8,
+  "preserved_failure": 1,
+  "cases": [
+    {
+      "candidate": "01",
+      "profile": "debug",
+      "scenario": "crash",
+      "direction": "forward",
+      "nodes": {
+        "controller": {
+          "exit_code": 1,
+          "status": "failed"
+        },
+        "worker": {
+          "exit_code": 0,
+          "status": "passed"
+        }
+      }
+    },
+    {
+      "candidate": "02",
+      "profile": "debug",
+      "scenario": "delay",
+      "direction": "forward",
+      "nodes": {
+        "controller": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "exact_generations": 4,
+            "held_bytes": 67,
+            "retirement_obligations": 0,
+            "acknowledged_obligations": 4,
+            "retained_pending_through_dependent_recovery": false,
+            "both_applications_survived": true
+          }
+        },
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_input_released": true,
+            "resize_acknowledgements": 1,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "candidate": "02",
+      "profile": "debug",
+      "scenario": "delay",
+      "direction": "reverse",
+      "nodes": {
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_input_released": true,
+            "resize_acknowledgements": 1,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "candidate": "02",
+      "profile": "debug",
+      "scenario": "crash",
+      "direction": "forward",
+      "nodes": {
+        "controller": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "exact_generations": 4,
+            "held_bytes": 67,
+            "retirement_obligations": 1,
+            "acknowledged_obligations": 3,
+            "retained_pending_through_dependent_recovery": true,
+            "both_applications_survived": true
+          }
+        },
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_input_released": true,
+            "resize_acknowledgements": 2,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "candidate": "02",
+      "profile": "debug",
+      "scenario": "crash",
+      "direction": "reverse",
+      "nodes": {
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_input_released": true,
+            "resize_acknowledgements": 4,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "candidate": "02",
+      "profile": "runtime-sanitize",
+      "scenario": "delay",
+      "direction": "forward",
+      "nodes": {
+        "controller": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "exact_generations": 4,
+            "held_bytes": 113,
+            "retirement_obligations": 0,
+            "acknowledged_obligations": 4,
+            "retained_pending_through_dependent_recovery": false,
+            "both_applications_survived": true
+          }
+        },
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_input_released": true,
+            "resize_acknowledgements": 1,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "candidate": "02",
+      "profile": "runtime-sanitize",
+      "scenario": "delay",
+      "direction": "reverse",
+      "nodes": {
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_input_released": true,
+            "resize_acknowledgements": 1,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "candidate": "02",
+      "profile": "runtime-sanitize",
+      "scenario": "crash",
+      "direction": "forward",
+      "nodes": {
+        "controller": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "exact_generations": 4,
+            "held_bytes": 67,
+            "retirement_obligations": 1,
+            "acknowledged_obligations": 3,
+            "retained_pending_through_dependent_recovery": true,
+            "both_applications_survived": true
+          }
+        },
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_input_released": true,
+            "resize_acknowledgements": 2,
+            "confinement_verified": true
+          }
+        }
+      }
+    },
+    {
+      "candidate": "02",
+      "profile": "runtime-sanitize",
+      "scenario": "crash",
+      "direction": "reverse",
+      "nodes": {
+        "worker": {
+          "exit_code": 0,
+          "status": "passed",
+          "witness": {
+            "native_input_released": true,
+            "resize_acknowledgements": 4,
+            "confinement_verified": true
+          }
+        }
+      }
+    }
+  ],
+  "attachments": {
+    "m02-crosshost-recovery-02/manifest.json": "e7211d6d8af6e27a6bfb9478978df572afc6974169444bceece9901bb6b6f5ff",
+    "m02-crosshost-recovery-02/bindings-review.json": "47d42ae56ef5c6fae692fcd5322eaf55c46a3ce3933f0bd66579ab5ffd59cc7e",
+    "m02-crosshost-recovery-02/bindings.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-recovery-02/source/tests/native/crosshost_revocation.py": "073f5b4a198b7ddd8b763df582f7229e2df74721cd17af8035d40df8257c5e22",
+    "m02-crosshost-recovery-02/source/tests/proto/crosshost_revocation.proto": "8f22b11a27f677d48aeab32bc41666fb68ef71aed15c58140d90a39983677924",
+    "m02-crosshost-recovery-01/manifest.json": "3b387d311cc5c0500406cd7aeaf777f49fe22d48b7fc4cec4a716a5a769366fb",
+    "m02-crosshost-recovery-01/bindings-review.json": "84d264a7ffecbeec69c676b0e44bacbcbbdc9f70871e9a058d13ecd2dbb5dd3a",
+    "m02-crosshost-recovery-01/bindings.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-recovery-01/source/tests/native/crosshost_revocation.py": "5d2dbcf31a6cf9ffcbdabd3400196a56e170a79da5b9f4757c392cb8d6a82e0c",
+    "m02-crosshost-recovery-01/source/tests/proto/crosshost_revocation.proto": "8f22b11a27f677d48aeab32bc41666fb68ef71aed15c58140d90a39983677924",
+    "m02-crosshost-cancellation-01/checks/debug/build-review.json": "70e09dcba492b59d56c871cfa50d3f8c6860eadf0dff230e85855ba5f12c4d16",
+    "m02-crosshost-cancellation-01/checks/runtime-sanitize/build-review.json": "2a963f9f1432317db1ef65403f334244746dddb62e439d7bca03cac1a4936fb4",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller-review.json": "9e48cc74d6de2a0c182c112119dd957d79294795670af32c63be92059dfdbf55",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller.log": "2981e6873ba460c973eba3eb19e53c6e967d7b39e4eb02f6af24b37aed6dc04b",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/complete-barrier.pb": "4fcf9d8956bbd7695c1bbdba28ac3772878ecb533369da23c157dbe5cfbab732",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-2-reply-3.pb": "f5417ee6796c86ad1ab9cfafa6b6930c2e1d67e9fbb612554648402adff2cdb1",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-reply-4.pb": "b10dc6c754d762ee4115d75c6f2f0434efc0825585091798eb225f355bcea78e",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-2-reply-6.pb": "839a0729fd3baea303a6507705fdb58c49a81faa6f9c604087ed85bf4264d46c",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-2-reply-8.pb": "aa295bb60771b5084e83d7c0a1a199bfa589f249c97c842461e52fdf3dee41a8",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/ready.json": "d609af17cac7a3683acf28a2c88426e4594bb7fa9e4b6991c7b1252c3a7ed0a2",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-reply-9.pb": "04d0663ce9db193466ee0431998fdc0a59f5f16352ec383e104b57e6d159b99f",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-2-reply-5.pb": "2877fbcdab89f7060ced988588b48444cf95735eef7fd535f338c9ccaad9e43a",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/crashed-barrier.pb": "442bcb140974f44d071c78b1a7b1f881623749f07e3b092aa3d12d3533ab30e5",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-reply-10.pb": "ad5eeb84e9be2841c01f95e7cd6e0bb84e2778c8d2ec371fd1203a97fba9aaf6",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-2-reply-7.pb": "67d82f8a17f86022a269f6e30c061c02eb0fec004bfa81ce61088a4f1fe04c31",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/pending-barrier.pb": "fa453afce9f7d5180f5b023767dd479592c7019b479d358e395599bf52e9f9cf",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-reply-1.pb": "24cc85fb39b47c4f329b75d68b91fc59182c8e0d0c4ff2206be943645cab9fa0",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/sb16-2-reply-2.pb": "8dd21437c0d8bd7864ec0a42858f31a9d5f465f995416ffa4b1c6649e32bd005",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/recovered-barrier.pb": "442bcb140974f44d071c78b1a7b1f881623749f07e3b092aa3d12d3533ab30e5",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/controller/result.json": "49509b55b0878cc99d3e1bffda0d93afdf35ac5ba9a87ebb382c1718edb74391",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker-review.json": "1752966a99b9401b5cb89141965e88a77a318a171779faeab228a767cda1bbcc",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker.log": "b5731e61ba20979558db9098dac2e4e13ee1f56160326f263e181fd0910ea974",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker/reply-1.pb": "24cc85fb39b47c4f329b75d68b91fc59182c8e0d0c4ff2206be943645cab9fa0",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker/reply-9.pb": "04d0663ce9db193466ee0431998fdc0a59f5f16352ec383e104b57e6d159b99f",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker/reply-4.pb": "b10dc6c754d762ee4115d75c6f2f0434efc0825585091798eb225f355bcea78e",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker/result.json": "4940176470ae664f45204f7d123122b3590abc7270764374cdbad9e12975f456",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker/native/runTest-coordinator.log": "971dbe652846061103dc5c166d3d4399d534354187c6735426ddd2c5fb4b1249",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker/native/runTest-probe.jsonl.log": "78e1d2dff47dcdfcc31a114b8c7576b123e755cb3d29ba5e579dcede33fbcf56",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/worker/native/runTest-server-0.log": "a9153757438dfc146f9669cb04a4b5e271de37d0d3b6f047976fe4e94c5003ed",
+    "m02-crosshost-recovery-01/runs/debug-crash-forward01/launcher-used.py": "cf76c5df2a8c58c4f3b715a72a1c40ae26a5c23c7c81381914ae7e02f825fcb3",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller-review.json": "fba8c28e53200d801a7ec3e7e41a087c2ec61b0dde057ed3c6e6d8718a31bbaa",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller.log": "4d4497f1d4e451db8348a0227f2790f8eac4721bc172444695be05a9a06fe934",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/complete-barrier.pb": "60e302923060b9d145022b0c5633478ed2fcb43ae7e5fbab9f5820f690b06a90",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/sb16-2-reply-3.pb": "eb1435cfe3b697f46e0ee1db2b18a59cc14bdfd2aa65654f0848ada9db0a71f3",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/sb16-reply-4.pb": "8a3832ae175908a0cb7d8a7e8e504cd8fc5400de3172c98b757dd74334d188b8",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/sb16-2-reply-6.pb": "881ce617b0a977ca7821e49f3e1b97ff977fdc3203b40955f01447b0153876a9",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/ready.json": "f0870707a3f812b892ef837857001eafe029d45da4e3dc319f22e148e663b1df",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/sb16-2-reply-5.pb": "ca8193b0c62045ae97c9045f7cda11a70bc4434506720bf68121c653466414a9",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/sb16-2-reply-9.pb": "0a760371fb12d2504cf238e92ecaa4e4c6c5c94ba4d7f049f9d2968c82baf7b7",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/sb16-2-reply-7.pb": "022bed1aa951e87eace9e710ae04da29cdbb0b437333b56606fc6c3eeead8085",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/pending-barrier.pb": "bd428334dfc62bace46e600c3988dab96a083af127f04088b19ffff94a92853e",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/sb16-reply-1.pb": "031f60b125af1d94a9f4f746086ea3d3d2120a56808b697e8ba0a8abfba97440",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/sb16-2-reply-2.pb": "9ad509aff6d9b36c93a89edf18b05033c7e01e5f0cd7103b46672f2c8e7d1e11",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/sb16-reply-8.pb": "1edbf0651136758030267eeea7b53e8cca50011251bff68985dfc87ba39274eb",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/controller/result.json": "fdc2e3ed243bc40b70a97da090b23622af8178ab6555071ca14f2ab141293d7c",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/worker-review.json": "6a3c495fe4878b1d7066bdb85ca642d733e9b51a8dd77d74c9c7a661689347e1",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/worker.log": "7cdbaae8575b8c31124fac8b25f4a0df5e3b38cbaa71e15fde50a065b2d87577",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/worker/reply-1.pb": "031f60b125af1d94a9f4f746086ea3d3d2120a56808b697e8ba0a8abfba97440",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/worker/reply-4.pb": "8a3832ae175908a0cb7d8a7e8e504cd8fc5400de3172c98b757dd74334d188b8",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/worker/result.json": "c7ae3c320fbfaf3a26e68a22829aad454dd86c8d55c95bbb9066ba9ff51e8c47",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/worker/native/runTest-coordinator.log": "54c93535a3cec10e0afbabb7dc1d03609b83b3b7bcea14e90bcdf229a65d533e",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-recovery-02/runs/debug-delay-forward01/worker/native/runTest-server-0.log": "05ccb24b5f88b8a7d1983f03cb2158be29e768e621b3e3b19daefb785f4631b5",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker-review.json": "95350e9e071201c7a8c95530592e11bf0bbc31b1e66af62060aeab83949ac42a",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker.log": "d54e83e60d90e24fcd5b9837a5b9ad7786dfd07734357a1b7b04dd7e673a8d3d",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/reply-6.pb": "696a0aa40ba8388d81f2e77aac443f4808074f65c8ed9ab30f7a6826c28f42b2",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/reply-5.pb": "ca525b0c8e72e8d73ef4bbc65e0b709c84cfafda4cb023a47ce4c8e57d80c8aa",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/reply-1.pb": "d252bcc80781644b05ecfb35aff202f57a184cc1a035ed013994767e3d718a97",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/reply-3.pb": "4f99f6e39bf5ffedf82f2a3b58e85f50c3b53417a5033236d9212c0818f4a031",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/reply-7.pb": "955318596365bf91847f8d11a012e4c1440d5f23be5fef3b11c374d8d93eb8e3",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/result.json": "ed059baeedcc4df380236944a2abb1d76ede26e4faa4908716693c73db3d7006",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/native/runTest-coordinator.log": "971dbe652846061103dc5c166d3d4399d534354187c6735426ddd2c5fb4b1249",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-recovery-02/runs/debug-delay-reverse01/worker/native/runTest-server-0.log": "16e5683cbe8929fb3958e1cbc5c1932d9d068b02da7b4fb3b37ff83cf84dd499",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller-review.json": "2aa23bd47b2a5e4d1d0cd8ffaebbaf4f4dfa29f2b214cc128d400ec8bc320b42",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller.log": "905a81e33ee2a6a9e85854f284ce6190e6c6896d4a02ab2be46e4a941ab6b0f0",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/complete-barrier.pb": "05a405e231f9a3f32b1438a1a45605e1fda9fdfea1fb08dc2e8d4e367c11a32a",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-2-reply-3.pb": "168441d6237538fc96b7bbf01152a3c8bf34abc1c681a7e3f7f00155cb1c9193",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-reply-4.pb": "49ac0efa69f9165fae287ce3700180d0b7da4e2343a1a0343af5b5a4950ab10a",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-2-reply-6.pb": "c42c4f3a59bdd2fe9339dd95b1f64852f682ccbc04b8c4eeb0f57809a5a26a69",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-2-reply-8.pb": "1470e3dfadb1fe41cdad870671f6da1bed6804efe492aa7e674e3a1b86f768bb",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/ready.json": "28c7943c2aac38b17f4e7fdd06a42c550a077bbd0111d4602cc01de329c9b646",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-reply-9.pb": "6301fe90a2f069381e4901dc64aa028c6f13174ec51cbb59c5b4d1f0d65ab0ca",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-2-reply-5.pb": "116aa4b75304bf44723b6fcc951bfc795f6393ee3471a7304c0a86c64ab0fe59",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/crashed-barrier.pb": "ed07ecbb4c17cd4ed41a90062ae049b4ec16117b664cc9c81ce6c690ae2459c7",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-reply-10.pb": "ad5eeb84e9be2841c01f95e7cd6e0bb84e2778c8d2ec371fd1203a97fba9aaf6",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-2-reply-7.pb": "1802dd8ee4cff32475865b7130cccdcd22e301e297f721d86a1254bfb6d2ccd9",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/pending-barrier.pb": "30454b4576f54228167fcaa71e6c7b65ce54d655e50fc6ef9be133347f315b71",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-2-reply-11.pb": "7d689a27bd900946a53990a4e631f4459a5e9b311e3c803a41f31324cc718e34",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-reply-1.pb": "ebc2eb56950eb38c4a933300ba3df3a26da51ec61641cff5d04a1779d64d6aba",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/sb16-2-reply-2.pb": "19df62d1086cf248e86763f63643e09e4811088f09ad0c6f94d1f246e37a79ec",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/recovered-barrier.pb": "ed07ecbb4c17cd4ed41a90062ae049b4ec16117b664cc9c81ce6c690ae2459c7",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/controller/result.json": "d647e931460cbc36fd2bb1a1ede4285fa9f7f962bc0c6ab2c567440ba1a65775",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker-review.json": "f8cac3d84341ab506c766ec83dbab32285f4cbb82fb83dca3088f289a8473332",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker.log": "36e8ab596eb2d23a1f6fda550b64d8708bcf4c84ac8e4c794603956ec8024dbd",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker/reply-1.pb": "ebc2eb56950eb38c4a933300ba3df3a26da51ec61641cff5d04a1779d64d6aba",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker/reply-9.pb": "6301fe90a2f069381e4901dc64aa028c6f13174ec51cbb59c5b4d1f0d65ab0ca",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker/reply-4.pb": "49ac0efa69f9165fae287ce3700180d0b7da4e2343a1a0343af5b5a4950ab10a",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker/result.json": "3719348b32a1c54030dc059bb84a9da5bc0ae141577e357796d3a3f912b8c32d",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker/native/runTest-coordinator.log": "519439f5df65326b4f5d796ccade9608a97b5bdcd9ec8159c56050b71a41444d",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker/native/runTest-probe.jsonl.log": "78e1d2dff47dcdfcc31a114b8c7576b123e755cb3d29ba5e579dcede33fbcf56",
+    "m02-crosshost-recovery-02/runs/debug-crash-forward01/worker/native/runTest-server-0.log": "ce23468eea7f00629efbb26db38953498d949fe3c77e0012e8195c319f6b6d0d",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker-review.json": "3c913e07cf669aee291e05651db16f508ca164f1d0f78720525090f5bd1eeccd",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker.log": "d69835c6956e07fa5f4f807cf2bc248e3675a52c7113cf808514bb770bc73fc2",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/reply-6.pb": "eea69a620c9f5e7e4cb2a951eb0f244d14d68d2df5303c758cad7bee281da773",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/reply-8.pb": "49e429c11cab9a717e6263938443cea7cdf4642e388573c8d10cc737025b59e0",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/reply-5.pb": "ba01c0cb6d90e22c0bf57bedfbff1b54a0d9be08c8daeebfc9a3bd3223007aae",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/reply-1.pb": "f4491e1668fc44c498d7c68c607e3f48fa3313bcdfbe2d02779c1c0e33f6ca34",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/reply-3.pb": "07cc68d3b87b5a6962047eb8226203f38235eaecb76ec87c3bbd863bf790da8c",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/reply-7.pb": "4d5a098f0972e628aa86c986b44904e271209d39d7e5ab60ab87731f0221e799",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/dependent-cleanup.pb": "11559acbb4cb6bbf18f8265ec4899e823371460d6dcdcfa7a5cbe13a1aa7481f",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/result.json": "a41199be45353d83c04f7986ebcd1f3d6794d4aafa5136a9e0ae8d391cb4bb3a",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/native/runTest-coordinator.log": "ea4167974dd84bd7e6c0034152ca7ba30b580a576761ec2dc708fffdbf49effd",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/native/runTest-probe.jsonl.log": "f7357b854c5da18d57eb88e72c83a2e8302b2172e7b5b637eae6d483217ba6f2",
+    "m02-crosshost-recovery-02/runs/debug-crash-reverse01/worker/native/runTest-server-0.log": "d6340a36f26db6c735cc8a50d983e94e52674a22315e935edf4adc46c2bcdecb",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller-review.json": "d545c3b627433f52a903717921345b8288f6b18a79159b8ada47c9fd786d1850",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller.log": "2657107e656cfd860e4261da5fc0fa4bcf61e19c1b86c765161d1816ab08a4d4",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/complete-barrier.pb": "cdddca4cc33a63aa2ecd0a2324eabff6d019d1d17e4b7368f26fdef1994221b3",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/sb16-2-reply-3.pb": "801bc4fd96fe2c3e5e0fb67dc6438ec1c1fbb24e45cbd506780671f58cfd70c1",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/sb16-reply-4.pb": "6695092674356dfb3adc176b952890e0f9c768aeaceed67037d2de0904eb8c39",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/sb16-2-reply-6.pb": "8c8c726fde26fdab37d4b09b4f9ef4fae48d1822add36818d70377ee2bb51ea5",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/ready.json": "96828fe9ba6309c943a02eaab199d340173cb3b7faf9fb75e72dc69fb0e56ed7",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/sb16-2-reply-5.pb": "e5d22bd2c52517e8e1ad15ca730a00120e97c69d7eee4dd7d534d7e4ecde885d",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/sb16-2-reply-9.pb": "0a760371fb12d2504cf238e92ecaa4e4c6c5c94ba4d7f049f9d2968c82baf7b7",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/sb16-2-reply-7.pb": "4b3a74f130dc12f74a96be7928171eec3a5f511e11029ec1c81ebd75c6296312",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/pending-barrier.pb": "d355b4f46fe57b9cb23ef071661526d12d27ac943c05089f36467e2d546e1fd2",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/sb16-reply-1.pb": "8cc153ec8270334d0f389abd4a4561b2ade9bb673316306f580da55372ef411a",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/sb16-2-reply-2.pb": "d47a42318276063ad8238dad03d2f0b9ab274a3def878e28993e31ec26cdec00",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/sb16-reply-8.pb": "1edbf0651136758030267eeea7b53e8cca50011251bff68985dfc87ba39274eb",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/controller/result.json": "8bad86abd6b12f2c12deadd144224a9fb3a6b472379cd559c34bbd2e27b011da",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/worker-review.json": "192881f4e8e95f83533ddcf3550b422f2315a8615822e668b84f6075f88ab2ee",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/worker.log": "d6a713063f92d1cd38b5ef0d790d75fea9c29675dd764d7153dc87239da3873f",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/worker/reply-1.pb": "8cc153ec8270334d0f389abd4a4561b2ade9bb673316306f580da55372ef411a",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/worker/reply-4.pb": "6695092674356dfb3adc176b952890e0f9c768aeaceed67037d2de0904eb8c39",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/worker/result.json": "ae5fe8a07bbb1cda3f1507fb877c23eaedcf4d00c1bca57ff3cdc8c204b0078e",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/worker/native/runTest-coordinator.log": "c95705a0c62ae665ba86334a13ef4efaf54ea97062d37a712615dffecc2a0469",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-forward01/worker/native/runTest-server-0.log": "ad084de71f06083c022a72703f00bfa61e81d748b23df8b35e97a3df96d27535",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker-review.json": "c74e1d2bb804f6e2b614c0a072fe3a1ee8df3a248baf2e29f6cb95948b74c387",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker.log": "c46af424ca047575bfee21039e0540d74665236075038b8ab582987994f96854",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/reply-6.pb": "fed6662d7052ba3322e5763f5ac2682f295f93cba65ecf4e4386b54768bc80a7",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/reply-5.pb": "3964e80bdfc6830dd909a288262a6e6f1d9a41865a87dda84c0c2457fab458c3",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/reply-1.pb": "27666378069ea769ca4960bbcd9678a5a7466eed59fac7d1f86b7f6212c38f99",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/reply-3.pb": "377082ab85f6aef06ca56d2aab2ebdabadba8cced61f2ac2510120cbd96e6516",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/reply-7.pb": "3e38f5c69603646565088b8d2647147c6e34ffc53be701f6108b9825ed1077da",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/result.json": "d25d80fa5e0927b680ab620b17876732e7b17190796ac2c42a1a62ce93bfb819",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/native/runTest-coordinator.log": "6e1bee987f91658f6add0f3cefc346e95de16aa75f8d0b23e6d0df96b769db0a",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/native/runTest-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-delay-reverse01/worker/native/runTest-server-0.log": "a9d960cf5b827006e311724ab2c4d5085e7bb9859156c513ad8a0021ef5ea5fd",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller-review.json": "278dbfb1c5f0eee9a05d8b589732a73ef974ac3f3a9a27209c1970c15c817332",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller.log": "940ef536d3b2e32677a22639522ee42dc2066adf9888d695235edeb7a6bd652f",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/complete-barrier.pb": "9d1c4bbc998a35dac22bdcd3275519d6b5dd24f261f8c474e70884dfc410fe76",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-2-reply-3.pb": "4634be1574a1b136443a1306e00c831e22ac1bab39416d34a8746ec3e5e47f9b",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-reply-4.pb": "c9aa3ab6f2edc69d21071f46ea1a19d90bba1cecde92b3c3a9bb007d1c83a094",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-2-reply-6.pb": "25ff06fc7433bb16cffcd536544229650c070c5d730f9c83d67810b12a633b8b",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-2-reply-8.pb": "27db32d673f70365af7611d515aa34ecc64b935f30942472204ad0eb9f4e1527",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/ready.json": "706536a4eefdf9d98686510dfe9237422dc4840d7dc567f36e335d330554bf5c",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-reply-9.pb": "6fc607cd464b50e86471e6ab3ced1b0f576f0d7716544dd2d909174990052467",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-2-reply-5.pb": "9215303014bcebe5afacfb98a43b202bd44b5cd6e604c15ee037b0d7578f9dfb",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/crashed-barrier.pb": "b603809aeeebdc9da09ac92124826baac53fe146476bdb63f08f2ebc3fc560c4",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-reply-10.pb": "ad5eeb84e9be2841c01f95e7cd6e0bb84e2778c8d2ec371fd1203a97fba9aaf6",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-2-reply-7.pb": "dd982b3854d475ea71b0c05406e7b7260882d144e95f627423f6c10b662ed704",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/pending-barrier.pb": "f89b9a127f4b3e45d589f84e0eec7feee478a9d2a3117041e1e8e5db946bc203",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-2-reply-11.pb": "7d689a27bd900946a53990a4e631f4459a5e9b311e3c803a41f31324cc718e34",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-reply-1.pb": "26f2fb4962b5e980b39847917ffc46548d796d32b053d330777143bb109c80ae",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/sb16-2-reply-2.pb": "bec4d68bec8c80d1cdf0a53ac17e3aa3bfaea0c8525c613dda83326a03035326",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/recovered-barrier.pb": "b603809aeeebdc9da09ac92124826baac53fe146476bdb63f08f2ebc3fc560c4",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/controller/result.json": "c0245312a456742b1f44ce4f270e3005c3618e45eb3e0715498a96ccb29fd372",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker-review.json": "5f05199f40a2a7d9941519694ddfb0f65a57e45c4d94c5ca8d5f892f414aaad8",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker.log": "5a2526a894ae312a3ca6096833d42aec84b891e1bc431c84edee644f47dca105",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker/reply-1.pb": "26f2fb4962b5e980b39847917ffc46548d796d32b053d330777143bb109c80ae",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker/reply-9.pb": "6fc607cd464b50e86471e6ab3ced1b0f576f0d7716544dd2d909174990052467",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker/reply-4.pb": "c9aa3ab6f2edc69d21071f46ea1a19d90bba1cecde92b3c3a9bb007d1c83a094",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker/result.json": "a2189310f3640a7656bb0e5a0c267d79c4e1df5cab272bf9701132b6230e0c9c",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker/native/runTest-coordinator.log": "6e1bee987f91658f6add0f3cefc346e95de16aa75f8d0b23e6d0df96b769db0a",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker/native/runTest-probe.jsonl.log": "78e1d2dff47dcdfcc31a114b8c7576b123e755cb3d29ba5e579dcede33fbcf56",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-forward01/worker/native/runTest-server-0.log": "962c7a8be4cae46d730f3355ef3cefa0d616888a8a6af38d310ddf6ab84d2053",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker-review.json": "7be5401b6b14520be4c222b8a49772ec76c94c503d0eafa80f84edd1cd539b35",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker.log": "457f7b9d061732ca9f62a49d5c37b4a553a8601421dc748fea1ffadcfa525422",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/reply-6.pb": "38391fb04fc118c8f39a2eb051624e4949a47e3c92bf81edc987b61b0fdfdc9f",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/reply-8.pb": "0e6f3d6ff6bc90eb95a698b87062f511d572b8d183864a02cbed2082aaebaf77",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/reply-5.pb": "df79a7a789055d2212f6a0802518d96de4c45ed86c5885db3f036e21cd9c21ec",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/reply-1.pb": "5cff154e29410a32d4b8dc574f75d7afcb8387b4bcd3de0603164f8bb6a1693c",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/reply-3.pb": "d8a8523d4bd4bb736ca905d0e1a756e01c1d4bbd5825ea13d0e20324c27d5e18",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/reply-7.pb": "8f9191cbd5a2fe2ad13673a3aebbebcd9ee240882a3c7f69b73763ddf8fa5e53",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/dependent-cleanup.pb": "3a8107f1feb7235bf4b4d14a0910062ddd8c3ef05cc3a45608327c03d11fb5c5",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/result.json": "4c1cc8f74d8440f9ee724c0a90e0370cad13e3c68f8f39e22e3c971fa72bbc29",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/native/runTest-coordinator.log": "4c77f7941635cab18859b6f764c750af29ff241b61be5374c545c59e794c745b",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/native/runTest-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/native/runTest-probe.jsonl.log": "f7357b854c5da18d57eb88e72c83a2e8302b2172e7b5b637eae6d483217ba6f2",
+    "m02-crosshost-recovery-02/runs/runtime-sanitize-crash-reverse01/worker/native/runTest-server-0.log": "994c1ceed93fc38e4ef0cb66460edfffdf26c0ed345bb91582ddeb7bbc2ebf57"
+  },
+  "limitations": [
+    "Issuer restart and other recovery interruptions remain pending.",
+    "Both earlier intermittent timeout causes remain unresolved.",
+    "Full M02 qualification remains pending on both hosts."
+  ]
+}

@@ -1,0 +1,7 @@
+Running as unit: spatial-crosshost-recovery02-runtime-sanitize-crash-forward01-worker.service; invocation ID: 83c9cc275963409b9a8a04db47f4a0a2
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 11.223s
+CPU time consumed: 4.940s
+Memory peak: 1.5M
+Memory swap peak: 0B

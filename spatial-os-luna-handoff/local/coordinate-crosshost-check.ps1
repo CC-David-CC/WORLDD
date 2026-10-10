@@ -1,23 +1,28 @@
 param(
     [ValidateSet('debug', 'runtime-sanitize')][string]$Profile,
     [ValidateSet('forward', 'reverse')][string]$Direction,
-    [ValidateSet('02', '03')][string]$SourceTag = '03'
+    [ValidateSet('01', '02', '03')][string]$SourceTag = '03',
+    [ValidateSet('cancellation', 'recovery')][string]$Candidate = 'cancellation',
+    [ValidateSet('delay', 'crash')][string]$Scenario = 'delay'
 )
 $ErrorActionPreference = 'Stop'
 $crossRoot = Split-Path -Parent $PSScriptRoot
 $crossRemoteBase = '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local'
 $crossRun = $Direction + '01'
+if ($Candidate -eq 'recovery') { $crossRun = $Scenario + '-' + $crossRun }
+if ($Candidate -eq 'cancellation' -and $Scenario -ne 'delay') { throw 'Cancellation candidates support the delay scenario only' }
 $crossIssuer = if ($Direction -eq 'forward') { 'sb16' } else { 'sb16-2' }
 $crossDelayed = if ($Direction -eq 'forward') { 'sb16-2' } else { 'sb16' }
 $crossAddress = if ($Direction -eq 'forward') { '10.0.7.49' } else { '10.0.7.94' }
-$crossRemoteRun = "$crossRemoteBase/m02-crosshost-cancellation-$SourceTag/runs/$Profile-$crossRun"
-$crossLocal = Join-Path $PSScriptRoot "coordinate-$SourceTag-$Profile-$crossRun"
+$crossRemoteRun = "$crossRemoteBase/m02-crosshost-$Candidate-$SourceTag/runs/$Profile-$crossRun"
+$crossLocalName = if ($Candidate -eq 'recovery') { "coordinate-recovery-$SourceTag-$Profile-$crossRun" } else { "coordinate-$SourceTag-$Profile-$crossRun" }
+$crossLocal = Join-Path $PSScriptRoot $crossLocalName
 if (Test-Path -LiteralPath $crossLocal) { throw "Coordination output already exists: $crossLocal" }
 [void][System.IO.Directory]::CreateDirectory($crossLocal)
 $crossSsh = (Get-Command ssh.exe).Source
 $crossScp = (Get-Command scp.exe).Source
 $crossNodes = [System.Collections.Generic.List[object]]::new()
-$crossState = @{ status = 'starting'; profile = $Profile; direction = $Direction; source_tag = $SourceTag; nodes = @() }
+$crossState = @{ status = 'starting'; profile = $Profile; direction = $Direction; source_tag = $SourceTag; candidate = $Candidate; scenario = $Scenario; nodes = @() }
 
 function Save-CrossState {
     $crossState.nodes = @($crossNodes | ForEach-Object {
@@ -29,7 +34,8 @@ function Save-CrossState {
 
 function Start-CrossNode([string]$Machine, [string]$Mode) {
     $crossArgs = @('-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', "dflanag3@$Machine", 'python3',
-        "$crossRemoteBase/run-crosshost-cancellation-node-01.py", $Mode, $Profile, $crossRun, '--source-tag', $SourceTag)
+        "$crossRemoteBase/run-crosshost-$Candidate-node-01.py", $Mode, $Profile, $crossRun, '--source-tag', $SourceTag)
+    if ($Candidate -eq 'recovery') { $crossArgs += @('--scenario', $Scenario) }
     if ($Mode -eq 'controller') { $crossArgs += @('--address', $crossAddress, '--delayed-host', $crossDelayed) }
     $crossOut = Join-Path $crossLocal "$Machine-$Mode.stdout.log"
     $crossErr = Join-Path $crossLocal "$Machine-$Mode.stderr.log"

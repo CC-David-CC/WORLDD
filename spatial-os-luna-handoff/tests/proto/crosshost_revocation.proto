@@ -28,6 +28,9 @@ message CrossHostCommand {
     CrossHostHold hold_world_feed = 5;
     CrossHostEmpty cancelled = 6;
     CrossHostEmpty stop = 7;
+    CrossHostEmpty crash_world = 8;
+    CrossHostEmpty recover_world = 9;
+    CrossHostEmpty retire_world = 10;
   }
 }
 message CrossHostState {
@@ -46,6 +49,11 @@ message CrossHostState {
   bool old_actor_rejected = 13;
   bool feed_held = 14;
   uint64 held_bytes = 15;
+  spatial.supervisor.v1.AuthorityLaunchRecord world_cleanup = 16;
+  spatial.workspace.v1.ControlOwnerState control_state = 17;
+  spatial.identity.v1.AuthorityRetirementState retirement = 18;
+  bytes dependent_cleanup_sha256 = 19;
+  bool premature_retirement_rejected = 20;
 }
 message CrossHostReply {
   uint32 protocol_version = 1;

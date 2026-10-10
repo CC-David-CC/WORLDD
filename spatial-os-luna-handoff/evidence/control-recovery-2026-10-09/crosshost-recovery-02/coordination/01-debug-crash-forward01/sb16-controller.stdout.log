@@ -1,0 +1,24 @@
+sb16 controller debug crash 1
+Running as unit: spatial-crosshost-recovery01-debug-crash-forward01-controller.service; invocation ID: 77443921e3664645ac36ab7e9d1cd55c
+Ready for workers
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/tests/native/crosshost_revocation.py", line 531, in <module>
+    else: controller()
+          ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/tests/native/crosshost_revocation.py", line 511, in controller
+    for name in HOSTS: call(name, stop=wire.CrossHostEmpty())
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-recovery-01/source/tests/native/crosshost_revocation.py", line 394, in call
+    assert reply.request_id == commands and reply.HasField('state'), reply
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: protocol_version: 1
+request_id: 11
+error: "AssertionError: True != False : protocol_version: 1\nrequest_id: 22\nerror {\n  code: INVALID_ARGUMENT\n  message: \"Session world already stopped\"\n}\n"
+
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 12.860s
+CPU time consumed: 608ms
+Memory peak: 1.5M
+Memory swap peak: 0B
+

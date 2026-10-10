@@ -1,0 +1,7 @@
+Running as unit: spatial-crosshost-recovery02-debug-crash-reverse01-worker.service; invocation ID: 63f829c9dc9c4a8090f51752016e670e
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 8.856s
+CPU time consumed: 1.484s
+Memory peak: 1.5M
+Memory swap peak: 0B
