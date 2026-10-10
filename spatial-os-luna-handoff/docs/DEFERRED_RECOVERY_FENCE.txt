@@ -1,0 +1,49 @@
+Deferred issuer fencing after checked cleanup
+Status: Focused Debug and runtime ASan/UBSan checks passed on sb16. Full M02 qualification remains pending.
+
+Confirmed defect
+Issuer-loss baseline 03 crashes the world and broker while identityd is unavailable.
+Both supervisors stop their exact process and native scopes, then deliver checked final receipts.
+After issuer restart, dependent cleanup succeeds. Both retirements reject the missing issuer fence.
+The original two obligations remain pending with applied revision zero.
+
+Invariant
+The retained session coordinator may finish fencing after verified external cleanup.
+Only its original trusted cleanup and retirement paths may request this operation.
+Require the original supervisor signing key, authorization, exact generation, and checked process/native receipts.
+Require a retained terminal failure receipt and its verified supervisor exit status.
+An ordinary unfenced shutdown remains ineligible. Do not infer failure from missing fencing alone.
+World retirement also requires the retained durable dependent-cleanup receipt.
+Do not expose a caller-supplied fence or an administrative force-clear operation.
+Opening a journal does not recreate coordinator ownership.
+
+Persistence
+Preserve the original launch and dependent-cleanup bytes exactly.
+Store the independently checked issuer fence in a separate recovery_fence table.
+Use that fence when constructing and validating retirement requests.
+Hash the original cleanup bytes, without adding the fence to those bytes.
+Preserve existing schema layouts and validation requirements for versions 1 through 4.
+Schema 5 holds world dependent cleanup and a deferred fence.
+Schema 6 holds broker cleanup and a deferred fence.
+Schema 7 adds retirement to schema 5. Schema 8 adds retirement to schema 6.
+Create each table and change its schema version in one transaction.
+Validate the exact original launch before committing the deferred fence.
+Require exactly one matching fence when reopening schemas 5 through 8.
+Reject a deferred fence beside an original launch fence or a different generation.
+
+Interruption and retry
+Use fresh authenticated issuer challenges for explicit retries.
+The issuer may commit a fence before local persistence fails.
+Its existing exact retry must return the original fence.
+Do not acknowledge an unapplied revocation during recovery.
+Failure or issuer restart must preserve pending obligations until checked retirement commits.
+Never replay application execution or native effects during these retries.
+
+Selected checks
+Run the corrected native issuer-outage scenario against unchanged production first.
+Then require deferred world and broker retirement through their retained production coordinator.
+Verify exact original cleanup hashes, persistent fences, retirement retries, and unchanged applied revisions.
+Exercise local persistence failures, changed journal receipts, and wrong supervisor signing keys.
+Run the affected launch, coordinator-retirement, broker-retirement, and stopped-broker dependency suites.
+Use Debug and runtime ASan/UBSan on sb16 during implementation.
+Full M02 qualification remains pending on both hosts.

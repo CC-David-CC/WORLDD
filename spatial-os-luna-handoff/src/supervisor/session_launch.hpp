@@ -23,6 +23,8 @@ public:
     workspace::v1::ControlOwner control_owner();
     // Exact retry returns the already checked receipt. Rejected child exits stay rejected.
     v1::AuthorityLaunchRecord stop();
+    // Retained receipt and checked child exit only. A journal cannot supply this fact.
+    bool checked_failure(const v1::AuthorityLaunchRecord& expected) const;
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

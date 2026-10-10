@@ -1,0 +1,30 @@
+{
+  "status": "failed",
+  "host": "sb16",
+  "command": [
+    "systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--unit=spatial-issuer-loss-baseline-02",
+    "--property=Delegate=yes",
+    "--property=RuntimeMaxSec=120",
+    "--property=TimeoutStopSec=20",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-loss-baseline-02/test-issuer-loss-baseline-02.py",
+    "--source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source",
+    "--build",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/debug/build",
+    "--output",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-loss-baseline-02/witness"
+  ],
+  "started": 1791649099.6487703,
+  "build_review_sha256": "70e09dcba492b59d56c871cfa50d3f8c6860eadf0dff230e85855ba5f12c4d16",
+  "test_sha256": "bcb4488b63ea58c582cdd5f67b48ee2131f3d522423ee66a324fa0b60f077ddd",
+  "exit_code": 1,
+  "ended": 1791649113.2714305,
+  "log_sha256": "28901f256ad5ca3387b29f80f104b8a34f38a8b8a79f58f0a2b30bd00c2859dd"
+}

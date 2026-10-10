@@ -12,6 +12,9 @@ Do not change the service's applied_revision.
 Do not infer external cleanup from a closed connection, inactive process, or supplied digest alone.
 The trusted coordinator signs only after it verifies and persists actual cleanup.
 The issuer verifies the authorized signer and exact generation. It cannot inspect remote kernel effects.
+An issuer outage may leave checked failed-supervisor cleanup without its original fence.
+Read DEFERRED_RECOVERY_FENCE.txt for retained recovery ownership and separate fence persistence before retirement.
+The original cleanup digest and the issuer retirement protocol remain unchanged.
 
 Protocol
 

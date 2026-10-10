@@ -74,7 +74,8 @@ identity::v1::AuthorityRetirementState SessionBroker::retire() {
     auto& state = *impl_;
     require(state.owner == getpid() && state.cleanup, "Broker retirement requires retained checked cleanup");
     AuthorityLaunch journal(state.journal_directory);
-    auto result = journal.retire_broker_cleanup(*state.cleanup, state.authorization);
+    auto result = journal.retire_broker_cleanup(*state.cleanup, state.authorization,
+        state.launch->checked_failure(*state.cleanup));
     require(!state.retirement || state.retirement->SerializeAsString() == result.SerializeAsString(),
         "Saved broker retirement differs from retained issuer result");
     state.retirement = result;

@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.revocation_barrier",
   "status": "in_progress",
-  "current_step": "dependent_control_reservation_recovery",
+  "current_step": "m02_failure_evidence_and_gate_audit",
   "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
   "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "evidence": "evidence/participant-recovery-2026-10-09",
@@ -20,11 +20,8 @@
     "recovery_qualified": false
   },
   "remaining": [
-    "Bind control reservations to retained exact recovery ownership.",
-    "Verify dependent application-control cleanup before retirement.",
-    "Persist verified cleanup receipts and retire only the exact fenced issuer generation.",
-    "Test replacement recovery, concurrent revocation, replay, and issuer or supervisor failure.",
-    "Complete cross-host cancellation and full M02 qualification."
+    "Follow tasks/m1/identity.control_recovery.json for the current integrated recovery evidence.",
+    "Complete the remaining requirement audit, resolve preserved intermittent failures, and run the full M02 gate on both hosts."
   ],
   "process_scope": {
     "candidate": 3,
@@ -107,5 +104,12 @@
     "evidence": "evidence/supervisor-broker-handoff-2026-10-09",
     "remaining": "World full qualification/integration, fencing, verified recovery, and issuer retirement."
   },
-  "control_recovery_task": "tasks/m1/identity.control_recovery.json"
+  "control_recovery_task": "tasks/m1/identity.control_recovery.json",
+  "historical_remaining_before_control_recovery": [
+    "Bind control reservations to retained exact recovery ownership.",
+    "Verify dependent application-control cleanup before retirement.",
+    "Persist verified cleanup receipts and retire only the exact fenced issuer generation.",
+    "Test replacement recovery, concurrent revocation, replay, and issuer or supervisor failure.",
+    "Complete cross-host cancellation and full M02 qualification."
+  ]
 }

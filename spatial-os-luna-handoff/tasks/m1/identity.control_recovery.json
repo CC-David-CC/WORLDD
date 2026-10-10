@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "issuer_interruption_during_native_recovery",
+  "current_step": "m02_failure_evidence_and_gate_audit",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,10 +12,9 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Qualify failure races and recovery interruptions.",
-    "Resolve the preserved participant-approval startup failure before the full phase gate.",
-    "Qualify issuer interruption and remaining recovery races. Complete full M02 qualification on both hosts.",
-    "Resolve the preserved active-generation revocation-read timeout before the full phase gate."
+    "Audit remaining M02 recovery and cancellation requirements against current evidence before freezing the gate.",
+    "Resolve the preserved participant-approval startup failure and active-generation revocation-read timeout.",
+    "Run complete required M02 Debug, runtime sanitizer, harness, acceptance, native, and cross-host qualification on both hosts."
   ],
   "owner_contract": "docs/CONTROL_OWNER_CHANNELS.txt",
   "candidate": {
@@ -436,5 +435,20 @@
     ],
     "full_phase_gate": "pending on both hosts",
     "preserved_failed_candidate": "01"
+  },
+  "deferred_fencing": {
+    "state": "Focused issuer-outage recovery passed with immutable cleanup and checked deferred fencing.",
+    "evidence": "evidence/control-recovery-2026-10-09/deferred-fence-01/primary-review.json",
+    "contract": "docs/DEFERRED_RECOVERY_FENCE.txt",
+    "host": "sb16",
+    "cases_per_profile": 49,
+    "new_cases": 5,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
   }
 }

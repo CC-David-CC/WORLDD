@@ -1,0 +1,17 @@
+Running as unit: spatial-deferred-01-runtime-sanitize-deferred-fence.service; invocation ID: f056abc461484a1baed230735244e1e0
+test_issuer_restart_retires_exact_failed_generations (__main__.DeferredFenceTests.test_issuer_restart_retires_exact_failed_generations) ... ok
+test_failed_local_fence_commit_retries_original_remote_fence (__main__.DeferredFenceTests.test_failed_local_fence_commit_retries_original_remote_fence) ... ok
+test_pending_fences_survive_restart_and_reject_changed_fence (__main__.DeferredFenceTests.test_pending_fences_survive_restart_and_reject_changed_fence) ... ok
+test_wrong_key_and_changed_cleanup_cannot_request_a_fence (__main__.DeferredFenceTests.test_wrong_key_and_changed_cleanup_cannot_request_a_fence) ... ok
+test_remote_retirement_commit_survives_failed_local_write (__main__.DeferredFenceTests.test_remote_retirement_commit_survives_failed_local_write) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 40.853s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 41.840s
+CPU time consumed: 11.850s
+Memory peak: 1.5M
+Memory swap peak: 0B

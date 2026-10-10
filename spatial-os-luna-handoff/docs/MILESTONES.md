@@ -17,7 +17,12 @@ Existing components provide partial implementation where CURRENT_STATE.md record
 The mandatory profile is tasks/spatial-m1.json.
 See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
 
-The latest qualified source increment adds retained-launch control-owner binding.
+Current development focuses on M02 recovery interruption and unresolved failure evidence.
+Read the newest CURRENT_STATE.md section and tasks/m1/identity.control_recovery.json for current results.
+Full M02 qualification remains pending on both hosts.
+
+The following paragraphs record historical checkpoints. Their remaining-work statements describe those checkpoints.
+The retained-launch control-owner binding checkpoint added exact recovery ownership.
 Both hosts passed Debug and runtime sanitizers: 1,480 core checks across 101 suites per profile.
 Each profile also passed 51 harness checks, 151 P10 cases, and three native-world checks.
 No final case failed or skipped. All 41 locked files remain unchanged.

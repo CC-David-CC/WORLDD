@@ -55,6 +55,15 @@ Required recovery order
 8. Let the issuer retire the exact fenced generation in one checked transaction.
 9. Synchronize current authority before starting a separately authorized replacement generation.
 
+Issuer-outage exception
+Do not delay local safety cleanup because the issuer cannot commit a fence.
+After a checked supervisor failure, stop owned process and native scopes through retained ownership.
+Keep the issuer obligation pending. Persist the original cleanup receipts without adding an unconfirmed fence.
+After issuer recovery, the retained coordinator may obtain and persist the exact missing fence before retirement.
+Require its checked failure receipt, verified supervisor exit, original signing configuration, and required dependent cleanup.
+This exception does not authorize unfenced graceful shutdowns or ownership reconstructed from journals.
+Read DEFERRED_RECOVERY_FENCE.txt for the additional journal states and checks.
+
 Do not restore held input, expired leases, old session tokens, or uncertain command execution.
 Preserve application definitions, committed workspace data, and durable placements.
 Normal revocation must preserve independently authorized applications and grants.

@@ -1,0 +1,27 @@
+Running as unit: spatial-issuer-loss-baseline-03.service; invocation ID: 1e798d2a073449d38af41c4abc97f1ac
+test_issuer_restart_allows_exact_retirement_after_owned_cleanup (__main__.IssuerLossBaseline.test_issuer_restart_allows_exact_retirement_after_owned_cleanup) ... FAIL
+
+======================================================================
+FAIL: test_issuer_restart_allows_exact_retirement_after_owned_cleanup (__main__.IssuerLossBaseline.test_issuer_restart_allows_exact_retirement_after_owned_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-loss-baseline-03/test-issuer-loss-baseline-03.py", line 167, in test_issuer_restart_allows_exact_retirement_after_owned_cleanup
+    self.assertTrue(world_reply.HasField('retirement'), world_reply)
+AssertionError: False is not true : protocol_version: 1
+request_id: 9
+error {
+  code: INVALID_ARGUMENT
+  message: "Retirement requires stopped ownership, an issuer fence, and dependent cleanup"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 4.520s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 4.637s
+CPU time consumed: 947ms
+Memory peak: 1.5M
+Memory swap peak: 0B

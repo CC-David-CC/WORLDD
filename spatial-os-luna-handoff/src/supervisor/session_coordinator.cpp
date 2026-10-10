@@ -253,7 +253,8 @@ identity::v1::AuthorityRetirementState SessionCoordinator::retire_world(const wo
     require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED && world.dependent,
         "Retirement requires retained durable world cleanup");
     AuthorityLaunch journal(world.journal_directory);
-    auto result = journal.retire_control_recovery(*world.dependent, world.authorization);
+    auto result = journal.retire_control_recovery(*world.dependent, world.authorization,
+        world.supervisor->checked_failure(world.record));
     require(!world.retirement || world.retirement->SerializeAsString() == result.SerializeAsString(),
         "Saved retirement differs from retained issuer result");
     world.retirement = result;

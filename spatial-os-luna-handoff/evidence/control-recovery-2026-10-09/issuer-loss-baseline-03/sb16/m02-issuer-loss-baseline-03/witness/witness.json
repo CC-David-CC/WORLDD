@@ -1,0 +1,15 @@
+{
+  "issuer_restarted": true,
+  "same_endpoint": true,
+  "pending_survived_restart": true,
+  "stopped_pinned_processes": 10,
+  "checked_world_cleanup": true,
+  "checked_broker_cleanup": true,
+  "world_fence": false,
+  "broker_fence": false,
+  "independent_native_credential_survived": true,
+  "project_data_preserved": true,
+  "world_retirement_outcome": "error",
+  "broker_retirement_outcome": "error",
+  "final_pending": 2
+}

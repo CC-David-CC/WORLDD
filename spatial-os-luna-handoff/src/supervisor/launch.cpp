@@ -217,6 +217,33 @@ void validate_retirement_config(const v1::AuthorityLaunchAuthorize& original_con
         original_config.supervision_revision() == approved.request().supervision_revision(),
         "Retirement configuration differs from original supervisor approval");
 }
+identity::v1::AuthorityFenceState request_recovery_fence(const v1::AuthorityLaunchRecord& record,
+    const v1::AuthorityLaunchAuthorize& original_config) {
+    auto key = identity::KeyPair::load(original_config.private_key_path());
+    require(key.public_key() == record.authorization().supervisor_public_key(),
+        "Fence signing key differs from owned authorization");
+    identity::IssuerClient client(original_config.issuer_client_config());
+    const auto owned = owned_generation(record);
+    identity::v1::IssuerRequest begin; begin.set_protocol_version(1);
+    *begin.mutable_authority_fence_begin() = owned;
+    auto result = client.call(std::move(begin));
+    require(result.has_challenge(), "Issuer rejected recovery fence challenge");
+    identity::v1::AuthorityFenceChallenge challenge;
+    require(challenge.ParseFromString(result.challenge().signing_request().payload()) &&
+        challenge.issuer_id() == record.binding().issuer_id() &&
+        challenge.supervisor_public_key() == key.public_key() &&
+        challenge.request().SerializeAsString() == owned.SerializeAsString(),
+        "Fence challenge differs from owned issuer context");
+    identity::v1::IssuerRequest complete; complete.set_protocol_version(1);
+    auto* proof = complete.mutable_authority_fence_complete();
+    proof->set_nonce(result.challenge().nonce());
+    *proof->mutable_proof() = key.sign(result.challenge().signing_request());
+    result = client.call(std::move(complete));
+    require(result.has_authority_fence(), "Issuer did not fence the stopped authority launch");
+    auto checked = record; *checked.mutable_fence() = result.authority_fence();
+    validate_record(checked);
+    return result.authority_fence();
+}
 identity::v1::AuthorityRetirementState request_retirement(const v1::AuthorityLaunchRecord& record,
     const std::string& cleanup_bytes, const v1::AuthorityLaunchAuthorize& original_config) {
     const auto request = retirement_request(record, cleanup_bytes);
@@ -254,6 +281,7 @@ struct AuthorityLaunch::Impl {
     std::optional<v1::AuthorityDependentCleanup> dependent;
     std::string dependent_bytes, record_bytes;
     std::optional<identity::v1::AuthorityRetirementState> retirement;
+    std::optional<identity::v1::AuthorityFenceState> recovery_fence;
     int database_version = 1;
     std::unique_ptr<ProcessScope> process;
     std::unique_ptr<NativeScope> native;
@@ -299,7 +327,7 @@ struct AuthorityLaunch::Impl {
         if (existing) {
             Query version(db.get(), "PRAGMA user_version"), application(db.get(), "PRAGMA application_id");
             require(version.step() == SQLITE_ROW &&
-                ((database_version = sqlite3_column_int(version.statement, 0)) >= 1 && database_version <= 4) &&
+                ((database_version = sqlite3_column_int(version.statement, 0)) >= 1 && database_version <= 8) &&
                 application.step() == SQLITE_ROW && sqlite3_column_int(application.statement, 0) == 1397771340,
                 "Unknown launch schema; preserve journal for explicit migration");
         }
@@ -319,7 +347,7 @@ struct AuthorityLaunch::Impl {
             require(bytes.size() <= 65536 && record.ParseFromString(bytes), "Malformed durable launch record");
             validate_record(record); record_bytes = bytes;
         }
-        if (database_version == 2 || database_version == 3) {
+        if (database_version == 2 || database_version == 3 || database_version == 5 || database_version == 7) {
             Query count(db.get(), "SELECT COUNT(*) FROM dependent_cleanup");
             require(count.step() == SQLITE_ROW && sqlite3_column_int(count.statement, 0) == 1,
                 "Dependent cleanup journal requires one receipt");
@@ -333,7 +361,23 @@ struct AuthorityLaunch::Impl {
             dependent = std::move(value);
             dependent_bytes = bytes;
         }
-        if (database_version == 3 || database_version == 4) {
+        if (database_version >= 5) {
+            require(!record.has_fence() && record.stage() == v1::OWNED_SCOPES_STOPPED &&
+                ((dependent && record.native().role() == security::v1::COMPOSITOR) ||
+                    (!dependent && record.native().role() == security::v1::BROKER)),
+                "Deferred fence requires exact stopped world or broker cleanup");
+            Query count(db.get(), "SELECT COUNT(*) FROM recovery_fence");
+            require(count.step() == SQLITE_ROW && sqlite3_column_int(count.statement, 0) == 1,
+                "Deferred fence journal requires one receipt");
+            Query saved(db.get(), "SELECT record FROM recovery_fence WHERE singleton=1");
+            require(saved.step() == SQLITE_ROW, "Missing deferred fence receipt");
+            const auto bytes = saved.bytes(0);
+            identity::v1::AuthorityFenceState value;
+            require(bytes.size() <= 65536 && value.ParseFromString(bytes), "Malformed deferred fence receipt");
+            recovery_fence = std::move(value);
+            validate_record(fenced_record());
+        }
+        if (database_version == 3 || database_version == 4 || database_version == 7 || database_version == 8) {
             Query count(db.get(), "SELECT COUNT(*) FROM issuer_retirement");
             require(count.step() == SQLITE_ROW && sqlite3_column_int(count.statement, 0) == 1,
                 "Retirement journal requires one receipt");
@@ -342,11 +386,51 @@ struct AuthorityLaunch::Impl {
             const auto bytes = saved.bytes(0);
             identity::v1::AuthorityRetirementState value;
             require(bytes.size() <= 65536 && value.ParseFromString(bytes), "Malformed issuer retirement receipt");
-            require(database_version != 4 || record.native().role() == security::v1::BROKER,
+            require((database_version != 4 && database_version != 8) || record.native().role() == security::v1::BROKER,
                 "Broker retirement schema requires a broker launch");
-            validate_retirement(value, record, database_version == 4 ? record_bytes : dependent_bytes);
+            validate_retirement(value, fenced_record(), dependent ? dependent_bytes : record_bytes);
             retirement = std::move(value);
         }
+    }
+    v1::AuthorityLaunchRecord fenced_record() const {
+        auto result = record;
+        if (recovery_fence) *result.mutable_fence() = *recovery_fence;
+        return result;
+    }
+    void ensure_retirement_fence(const v1::AuthorityLaunchAuthorize& original_config, bool checked_failure) {
+        validate_record(record);
+        require(record.stage() == v1::OWNED_SCOPES_STOPPED &&
+            (record.has_fence() || checked_failure),
+            "Retirement requires stopped ownership, an issuer fence, and dependent cleanup");
+        if (record.has_fence()) return;
+        if (recovery_fence) {
+            require(fsync(directory.fd) == 0, "Deferred fence directory durability uncertain");
+            return;
+        }
+        require(database_version == (dependent ? 2 : 1) && sqlite3_db_readonly(db.get(), "main") == 0,
+            "Deferred fence requires a writable checked cleanup journal");
+        const auto value = request_recovery_fence(record, original_config);
+        const auto bytes = value.SerializeAsString();
+        // The remote fence can precede failed local storage. Preserve all original receipt bytes.
+        sql(db.get(), "BEGIN IMMEDIATE");
+        try {
+            { Query current(db.get(), "SELECT record FROM launch WHERE singleton=1");
+              require(current.step() == SQLITE_ROW && current.bytes(0) == record_bytes,
+                  "Launch row changed before deferred fence commit"); }
+            if (dependent) {
+                Query current(db.get(), "SELECT record FROM dependent_cleanup WHERE singleton=1");
+                require(current.step() == SQLITE_ROW && current.bytes(0) == dependent_bytes,
+                    "Dependent receipt changed before deferred fence commit");
+            }
+            sql(db.get(), "CREATE TABLE recovery_fence(singleton INTEGER PRIMARY KEY CHECK(singleton=1), record BLOB NOT NULL)");
+            { Query insert(db.get(), "INSERT INTO recovery_fence VALUES(1,?)");
+              require(sqlite3_bind_blob(insert.statement, 1, bytes.data(), static_cast<int>(bytes.size()), SQLITE_TRANSIENT) == SQLITE_OK,
+                  "Cannot bind deferred fence receipt");
+              require(insert.step() == SQLITE_DONE, "Cannot persist deferred fence receipt"); }
+            sql(db.get(), dependent ? "PRAGMA user_version=5; COMMIT" : "PRAGMA user_version=6; COMMIT");
+        } catch (...) { sqlite3_exec(db.get(), "ROLLBACK", nullptr, nullptr, nullptr); throw; }
+        require(fsync(directory.fd) == 0, "Deferred fence directory durability uncertain");
+        database_version = dependent ? 5 : 6; recovery_fence = value;
     }
     void persist(v1::AuthorityLaunchRecord next) {
         require(record.revision() < UINT64_MAX, "Launch journal revision exhausted");
@@ -416,21 +500,25 @@ v1::AuthorityDependentCleanup AuthorityLaunch::persist_dependent_cleanup(const v
     return value;
 }
 identity::v1::AuthorityRetirementState AuthorityLaunch::retire_control_recovery(
-    const v1::AuthorityDependentCleanup& expected, const v1::AuthorityLaunchAuthorize& original_config) {
+    const v1::AuthorityDependentCleanup& expected, const v1::AuthorityLaunchAuthorize& original_config,
+    bool checked_supervisor_failure) {
     auto& state = *impl_;
     require(!state.process && !state.native && state.dependent &&
         state.record.SerializeAsString() == expected.world().SerializeAsString() &&
+        state.record_bytes == expected.world().SerializeAsString() &&
         state.dependent_bytes == expected.SerializeAsString(),
         "Retirement journal differs from retained dependent cleanup");
-    retirement_request(state.record, state.dependent_bytes);
     validate_retirement_config(original_config, state.record);
+    state.ensure_retirement_fence(original_config, checked_supervisor_failure);
+    const auto fenced = state.fenced_record();
+    retirement_request(fenced, state.dependent_bytes);
     if (state.retirement) {
         require(fsync(state.directory.fd) == 0, "Retirement directory durability uncertain");
         return *state.retirement;
     }
-    require(state.database_version == 2, "Retirement requires launch schema 2");
+    require(state.database_version == (state.recovery_fence ? 5 : 2), "Retirement requires checked world cleanup schema");
     require(sqlite3_db_readonly(state.db.get(), "main") == 0, "Retirement journal is read-only");
-    const auto value = request_retirement(state.record, state.dependent_bytes, original_config);
+    const auto value = request_retirement(fenced, state.dependent_bytes, original_config);
     const auto bytes = value.SerializeAsString();
     // The issuer may already have committed. A local failure requires an exact authenticated retry.
     sql(state.db.get(), "BEGIN IMMEDIATE");
@@ -446,29 +534,32 @@ identity::v1::AuthorityRetirementState AuthorityLaunch::retire_control_recovery(
           require(sqlite3_bind_blob(insert.statement, 1, bytes.data(), static_cast<int>(bytes.size()), SQLITE_TRANSIENT) == SQLITE_OK,
               "Cannot bind issuer retirement receipt");
           require(insert.step() == SQLITE_DONE, "Cannot persist issuer retirement receipt"); }
-        sql(state.db.get(), "PRAGMA user_version=3; COMMIT");
+        sql(state.db.get(), state.recovery_fence ? "PRAGMA user_version=7; COMMIT" : "PRAGMA user_version=3; COMMIT");
     } catch (...) { sqlite3_exec(state.db.get(), "ROLLBACK", nullptr, nullptr, nullptr); throw; }
     require(fsync(state.directory.fd) == 0, "Retirement directory durability uncertain");
-    state.database_version = 3; state.retirement = value;
+    state.database_version = state.recovery_fence ? 7 : 3; state.retirement = value;
     return value;
 }
 identity::v1::AuthorityRetirementState AuthorityLaunch::retire_broker_cleanup(
-    const v1::AuthorityLaunchRecord& expected, const v1::AuthorityLaunchAuthorize& original_config) {
+    const v1::AuthorityLaunchRecord& expected, const v1::AuthorityLaunchAuthorize& original_config,
+    bool checked_supervisor_failure) {
     auto& state = *impl_;
     require(!state.process && !state.native && !state.dependent &&
         expected.native().role() == security::v1::BROKER &&
         state.record.SerializeAsString() == expected.SerializeAsString() &&
         state.record_bytes == expected.SerializeAsString(),
         "Broker retirement journal differs from retained checked cleanup");
-    retirement_request(state.record, state.record_bytes); // Require the exact stopped and fenced generation.
     validate_retirement_config(original_config, state.record);
+    state.ensure_retirement_fence(original_config, checked_supervisor_failure);
+    const auto fenced = state.fenced_record();
+    retirement_request(fenced, state.record_bytes);
     if (state.retirement) {
         require(fsync(state.directory.fd) == 0, "Retirement directory durability uncertain");
         return *state.retirement;
     }
-    require(state.database_version == 1, "Broker retirement requires launch schema 1");
+    require(state.database_version == (state.recovery_fence ? 6 : 1), "Retirement requires checked broker cleanup schema");
     require(sqlite3_db_readonly(state.db.get(), "main") == 0, "Retirement journal is read-only");
-    const auto value = request_retirement(state.record, state.record_bytes, original_config);
+    const auto value = request_retirement(fenced, state.record_bytes, original_config);
     const auto bytes = value.SerializeAsString();
     // Preserve the checked launch. An issuer commit can precede failed local storage.
     sql(state.db.get(), "BEGIN IMMEDIATE");
@@ -481,10 +572,10 @@ identity::v1::AuthorityRetirementState AuthorityLaunch::retire_broker_cleanup(
           require(sqlite3_bind_blob(insert.statement, 1, bytes.data(), static_cast<int>(bytes.size()), SQLITE_TRANSIENT) == SQLITE_OK,
               "Cannot bind broker retirement receipt");
           require(insert.step() == SQLITE_DONE, "Cannot persist broker retirement receipt"); }
-        sql(state.db.get(), "PRAGMA user_version=4; COMMIT");
+        sql(state.db.get(), state.recovery_fence ? "PRAGMA user_version=8; COMMIT" : "PRAGMA user_version=4; COMMIT");
     } catch (...) { sqlite3_exec(state.db.get(), "ROLLBACK", nullptr, nullptr, nullptr); throw; }
     require(fsync(state.directory.fd) == 0, "Retirement directory durability uncertain");
-    state.database_version = 4; state.retirement = value;
+    state.database_version = state.recovery_fence ? 8 : 4; state.retirement = value;
     return value;
 }
 v1::AuthorityLaunchView AuthorityLaunch::prepare(const std::filesystem::path& root,

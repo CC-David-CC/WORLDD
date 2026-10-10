@@ -1,0 +1,34 @@
+Running as unit: spatial-issuer-loss-baseline-02.service; invocation ID: 51a1e12706134db99f7a0c99152f6b98
+test_issuer_restart_allows_exact_retirement_after_owned_cleanup (__main__.IssuerLossBaseline.test_issuer_restart_allows_exact_retirement_after_owned_cleanup) ... FAIL
+
+======================================================================
+FAIL: test_issuer_restart_allows_exact_retirement_after_owned_cleanup (__main__.IssuerLossBaseline.test_issuer_restart_allows_exact_retirement_after_owned_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-loss-baseline-02/test-issuer-loss-baseline-02.py", line 128, in test_issuer_restart_allows_exact_retirement_after_owned_cleanup
+    self.exited()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-issuer-loss-baseline-02/test-issuer-loss-baseline-02.py", line 92, in exited
+    try: super().exited(include_supervisor)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-crosshost-cancellation-01/source/tests/native/test_session_broker_cleanup.py", line 36, in exited
+    for pin in expected.values(): self.assertEqual(select.select([pin], [], [], 8)[0], [pin])
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != [28]
+
+Second list contains 1 additional elements.
+First extra element 0:
+28
+
+- []
++ [28]
+
+----------------------------------------------------------------------
+Ran 1 test in 13.073s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 13.193s
+CPU time consumed: 1.196s
+Memory peak: 1.5M
+Memory swap peak: 0B

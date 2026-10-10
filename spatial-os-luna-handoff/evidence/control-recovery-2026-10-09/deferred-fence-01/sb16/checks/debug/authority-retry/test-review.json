@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "host": "sb16",
+  "profile": "debug",
+  "selected": [
+    [
+      "authority-launch",
+      "test_authority_launch.py"
+    ]
+  ],
+  "started": 1791649795.9384456,
+  "cases": [
+    {
+      "name": "authority-launch",
+      "command": [
+        "systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-deferred-01-debug-authority-launch",
+        "--property=Delegate=yes",
+        "--property=RuntimeMaxSec=240",
+        "--property=TimeoutStopSec=20",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source",
+        "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/checks/debug/authority-retry/authority-launch-native",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/debug/build/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/debug/build/spatial-security-auth"
+      ],
+      "started": 1791649796.423294,
+      "exit_code": 0,
+      "ended": 1791649800.5276475,
+      "count": 14,
+      "log_sha256": "dd48e7d8cfbf69cba5ee65b94eb6877bfe828b3901fa4b3270e431c5b900ff99",
+      "status": "passed"
+    }
+  ],
+  "ended": 1791649800.5278513
+}

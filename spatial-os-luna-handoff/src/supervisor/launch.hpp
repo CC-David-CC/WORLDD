@@ -49,9 +49,9 @@ private:
         const v1::AuthorityLaunchRecord& checked_broker);
     v1::AuthorityDependentCleanup persist_dependent_cleanup(const v1::AuthorityDependentCleanup& value);
     identity::v1::AuthorityRetirementState retire_control_recovery(const v1::AuthorityDependentCleanup& expected,
-        const v1::AuthorityLaunchAuthorize& original_config);
+        const v1::AuthorityLaunchAuthorize& original_config, bool checked_supervisor_failure);
     identity::v1::AuthorityRetirementState retire_broker_cleanup(const v1::AuthorityLaunchRecord& expected,
-        const v1::AuthorityLaunchAuthorize& original_config);
+        const v1::AuthorityLaunchAuthorize& original_config, bool checked_supervisor_failure);
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

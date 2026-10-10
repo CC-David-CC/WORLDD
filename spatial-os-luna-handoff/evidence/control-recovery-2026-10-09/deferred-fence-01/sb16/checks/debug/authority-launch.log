@@ -1,0 +1,250 @@
+Running as unit: spatial-deferred-01-debug-authority-launch.service; invocation ID: ec8a97673332492eb952107bc4e74896
+test_child_reads_exact_durable_start_before_execution (__main__.AuthorityLaunchTests.test_child_reads_exact_durable_start_before_execution) ... ERROR
+test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants (__main__.AuthorityLaunchTests.test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants) ... ERROR
+test_paused_native_server_keeps_durable_cleanup_pending (__main__.AuthorityLaunchTests.test_paused_native_server_keeps_durable_cleanup_pending) ... ERROR
+test_failed_journal_commit_prevents_execution (__main__.AuthorityLaunchTests.test_failed_journal_commit_prevents_execution) ... ERROR
+test_failed_exec_retains_start_attempt_and_cannot_retry (__main__.AuthorityLaunchTests.test_failed_exec_retains_start_attempt_and_cannot_retry) ... ERROR
+test_failed_prepared_commit_can_stop_retained_native_scope (__main__.AuthorityLaunchTests.test_failed_prepared_commit_can_stop_retained_native_scope) ... ERROR
+test_missing_native_grant_never_commits_stopped_record (__main__.AuthorityLaunchTests.test_missing_native_grant_never_commits_stopped_record) ... ERROR
+test_invalid_binding_cannot_create_an_external_scope (__main__.AuthorityLaunchTests.test_invalid_binding_cannot_create_an_external_scope) ... ERROR
+test_stopping_prepared_launch_prevents_later_execution (__main__.AuthorityLaunchTests.test_stopping_prepared_launch_prevents_later_execution) ... ERROR
+test_supervisor_crash_preserves_unresolved_record_and_denies_replacement (__main__.AuthorityLaunchTests.test_supervisor_crash_preserves_unresolved_record_and_denies_replacement) ... ERROR
+test_stopped_receipt_survives_restart_without_repeating_effects (__main__.AuthorityLaunchTests.test_stopped_receipt_survives_restart_without_repeating_effects) ... ERROR
+test_journal_excludes_native_secrets (__main__.AuthorityLaunchTests.test_journal_excludes_native_secrets) ... ERROR
+test_second_coordinator_cannot_open_owned_journal (__main__.AuthorityLaunchTests.test_second_coordinator_cannot_open_owned_journal) ... ERROR
+test_unknown_schema_is_rejected_without_mutation (__main__.AuthorityLaunchTests.test_unknown_schema_is_rejected_without_mutation) ... ERROR
+
+======================================================================
+ERROR: test_child_reads_exact_durable_start_before_execution (__main__.AuthorityLaunchTests.test_child_reads_exact_durable_start_before_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 111, in test_child_reads_exact_durable_start_before_execution
+    proc=self.probe();view=self.prepared(proc);observed=self.root/'observed'
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants (__main__.AuthorityLaunchTests.test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 122, in test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants
+    proc=self.probe();view=self.prepared(proc);broker=self.connect(view.ready.credential.cookie)
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_paused_native_server_keeps_durable_cleanup_pending (__main__.AuthorityLaunchTests.test_paused_native_server_keeps_durable_cleanup_pending)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 134, in test_paused_native_server_keeps_durable_cleanup_pending
+    proc=self.probe();self.prepared(proc)
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_failed_journal_commit_prevents_execution (__main__.AuthorityLaunchTests.test_failed_journal_commit_prevents_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 146, in test_failed_journal_commit_prevents_execution
+    proc=self.probe();self.prepared(proc)
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_failed_exec_retains_start_attempt_and_cannot_retry (__main__.AuthorityLaunchTests.test_failed_exec_retains_start_attempt_and_cannot_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 157, in test_failed_exec_retains_start_attempt_and_cannot_retry
+    proc=self.probe();self.prepared(proc)
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_failed_prepared_commit_can_stop_retained_native_scope (__main__.AuthorityLaunchTests.test_failed_prepared_commit_can_stop_retained_native_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 163, in test_failed_prepared_commit_can_stop_retained_native_scope
+    proc=self.probe()
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_missing_native_grant_never_commits_stopped_record (__main__.AuthorityLaunchTests.test_missing_native_grant_never_commits_stopped_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 175, in test_missing_native_grant_never_commits_stopped_record
+    proc=self.probe();view=self.prepared(proc)
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_invalid_binding_cannot_create_an_external_scope (__main__.AuthorityLaunchTests.test_invalid_binding_cannot_create_an_external_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 184, in test_invalid_binding_cannot_create_an_external_scope
+    proc=self.probe();self.binding.service_incarnation=b'wrong'
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_stopping_prepared_launch_prevents_later_execution (__main__.AuthorityLaunchTests.test_stopping_prepared_launch_prevents_later_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 191, in test_stopping_prepared_launch_prevents_later_execution
+    proc=self.probe();self.prepared(proc);self.stopped(proc);unexpected=self.root/'unexpected'
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_supervisor_crash_preserves_unresolved_record_and_denies_replacement (__main__.AuthorityLaunchTests.test_supervisor_crash_preserves_unresolved_record_and_denies_replacement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 196, in test_supervisor_crash_preserves_unresolved_record_and_denies_replacement
+    proc=self.probe();view=self.prepared(proc);ready=self.root/'ready'
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_stopped_receipt_survives_restart_without_repeating_effects (__main__.AuthorityLaunchTests.test_stopped_receipt_survives_restart_without_repeating_effects)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 209, in test_stopped_receipt_survives_restart_without_repeating_effects
+    proc=self.probe();self.prepared(proc);record=self.stopped(proc)
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_journal_excludes_native_secrets (__main__.AuthorityLaunchTests.test_journal_excludes_native_secrets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 215, in test_journal_excludes_native_secrets
+    proc=self.probe();view=self.prepared(proc);self.stopped(proc)
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_second_coordinator_cannot_open_owned_journal (__main__.AuthorityLaunchTests.test_second_coordinator_cannot_open_owned_journal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 221, in test_second_coordinator_cannot_open_owned_journal
+    proc=self.probe();self.prepared(proc);other=self.probe(start_server=False)
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+======================================================================
+ERROR: test_unknown_schema_is_rejected_without_mutation (__main__.AuthorityLaunchTests.test_unknown_schema_is_rejected_without_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 225, in test_unknown_schema_is_rejected_without_mutation
+    proc=self.probe();self.prepared(proc);self.stopped(proc);proc.stdin.close();self.assertEqual(proc.wait(timeout=5),0)
+         ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source/tests/native/test_authority_launch.py", line 53, in probe
+    try:proc=subprocess.Popen([str(PROBE),str(self.journal),str(self.cgroup),str(fd)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-deferred-fence-01/source'
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.999s
+
+FAILED (errors=14)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 1.075s
+CPU time consumed: 1.038s
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-10: Issuer-outage recovery passes focused native checks
+
+The retained coordinator can now finish fencing after issuer loss during failed-supervisor cleanup.
+It requires the original checked failure receipt, matching supervisor exit, and original signing configuration.
+Original process, native, and dependent cleanup bytes remain unchanged.
+A separate deferred fence precedes authenticated retirement. Unapplied revocations retain applied revision zero.
+Ordinary unfenced shutdowns remain ineligible. A reopened journal cannot recreate session ownership.
+
+All 49 selected checks passed in Debug and runtime ASan/UBSan on sb16: 98 checks total.
+Five new scenarios cover issuer restart, local and remote persistence failure, altered receipts, wrong keys, and exact retries.
+The 44 related checks cover coordinator retirement, broker retirement, stopped-broker dependencies, broker cleanup, and launch ownership.
+Read evidence/control-recovery-2026-10-09/deferred-fence-01/primary-review.json.
+All 348 source hashes match. All 41 locked files remain unchanged.
+
+The original defect remains preserved in issuer-loss-baseline-03.
+Earlier baseline assumptions and the first Debug launch-runner argument error also remain preserved.
+The corrected launch command reran only its affected 14 cases. No runtime or test assertion changed for that correction.
+
+Next: audit remaining M02 requirements and resolve the two preserved intermittent failures before the complete phase gate.
+Full M02 qualification remains pending on both hosts. M02 and Spatial-M1 remain incomplete.
+No normal desktop session or database changed. GPU, physical-input, and performance qualification remain pending.
+
 ## 2026-10-10: Cross-host world crash recovery passes focused native checks
 
 Eight coordinated scenarios passed in Debug and runtime ASan/UBSan across both hosts.

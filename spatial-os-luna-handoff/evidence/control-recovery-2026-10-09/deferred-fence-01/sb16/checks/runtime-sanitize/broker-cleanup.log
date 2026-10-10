@@ -1,0 +1,16 @@
+Running as unit: spatial-deferred-01-runtime-sanitize-broker-cleanup.service; invocation ID: 8c11c08009a949bf963ae9f05bc0284f
+test_crashed_broker_delivers_checked_receipt_and_exact_retry (__main__.SessionBrokerCleanupTests.test_crashed_broker_delivers_checked_receipt_and_exact_retry) ... ok
+test_broker_cleanup_does_not_replace_unconfirmed_world_cleanup (__main__.SessionBrokerCleanupTests.test_broker_cleanup_does_not_replace_unconfirmed_world_cleanup) ... ok
+test_process_exit_waits_for_actual_native_cleanup_reply (__main__.SessionBrokerCleanupTests.test_process_exit_waits_for_actual_native_cleanup_reply) ... ok
+test_supervisor_death_without_receipt_cannot_claim_cleanup (__main__.SessionBrokerCleanupTests.test_supervisor_death_without_receipt_cannot_claim_cleanup) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 18.486s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 18.604s
+CPU time consumed: 8.482s
+Memory peak: 1.5M
+Memory swap peak: 0B

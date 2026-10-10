@@ -1,0 +1,2 @@
+
+jQMRetirement requires stopped ownership, an issuer fence, and dependent cleanup

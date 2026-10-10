@@ -1,0 +1,87 @@
+{
+  "monotonic": 317996.424630028,
+  "broker_pid": 2670925,
+  "broker_supervisor_pid": 2670922,
+  "processes": [
+    {
+      "pid": 2670964,
+      "pidfd": 23,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2670965,
+      "pidfd": 24,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2670966,
+      "pidfd": 25,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2670967,
+      "pidfd": 26,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2670968,
+      "pidfd": 27,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 2670922,
+      "pidfd": 28,
+      "exited": false,
+      "status": "Name:\tspatial-authori\nUmask:\t0002\nState:\tS (sleeping)\nTgid:\t2670922\nNgid:\t0\nPid:\t2670922\nPPid:\t2670921\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t512\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t2670922\nNSpid:\t2670922\nNSpgid:\t2670834\nNSsid:\t2670834\nKthread:\t0\nVmPeak:\t  160024 kB\nVmSize:\t   94488 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t   16864 kB\nVmRSS:\t   16864 kB\nRssAnon:\t    2488 kB\nRssFile:\t   14376 kB\nRssShmem:\t       0 kB\nVmData:\t   10232 kB\nVmStk:\t     132 kB\nVmExe:\t    1916 kB\nVmLib:\t   10372 kB\nVmPTE:\t      96 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t1\nSigQ:\t0/56237\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t0000000100004002\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t1914\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-issuer-loss-baseline-02.service\n"
+    },
+    {
+      "pid": 2670925,
+      "pidfd": 29,
+      "exited": false,
+      "status": "Name:\tworkspaced\nUmask:\t0077\nState:\tS (sleeping)\nTgid:\t2670925\nNgid:\t0\nPid:\t2670925\nPPid:\t2670922\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t512\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t2670925\nNSpid:\t2670925\nNSpgid:\t2670834\nNSsid:\t2670834\nKthread:\t0\nVmPeak:\t  161016 kB\nVmSize:\t   95600 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t   17244 kB\nVmRSS:\t   17244 kB\nRssAnon:\t    2660 kB\nRssFile:\t   14584 kB\nRssShmem:\t       0 kB\nVmData:\t   10468 kB\nVmStk:\t     144 kB\nVmExe:\t    2040 kB\nVmLib:\t   10372 kB\nVmPTE:\t     100 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t1\nSigQ:\t0/56237\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t0000000100000000\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t1053\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-issuer-loss-baseline-02.service/launch-tmpsa084glo/authority-f15a05b9e36be056fa8a0115cc4502d9b97254a4149253df38651ef68364ebe9\n"
+    },
+    {
+      "pid": 2670930,
+      "pidfd": 31,
+      "exited": false,
+      "status": "Name:\tworldd\nUmask:\t0077\nState:\tS (sleeping)\nTgid:\t2670930\nNgid:\t0\nPid:\t2670930\nPPid:\t2670927\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t512\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t2670930\nNSpid:\t2670930\nNSpgid:\t2670834\nNSsid:\t2670834\nKthread:\t0\nVmPeak:\t  161372 kB\nVmSize:\t   96092 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t   17256 kB\nVmRSS:\t   17256 kB\nRssAnon:\t    2728 kB\nRssFile:\t   14528 kB\nRssShmem:\t       0 kB\nVmData:\t   10488 kB\nVmStk:\t     204 kB\nVmExe:\t    2316 kB\nVmLib:\t   10372 kB\nVmPTE:\t     100 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t1\nSigQ:\t0/56237\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t0000000100000000\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t969\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-issuer-loss-baseline-02.service/launch-tmpsa084glo/authority-0bea217709ffb0b5b89b982ad611e2f5eff33032d28b46595e2f884544146754\n"
+    },
+    {
+      "pid": 2670931,
+      "pidfd": 32,
+      "exited": false,
+      "status": "Name:\tspatialwm\nUmask:\t0077\nState:\tS (sleeping)\nTgid:\t2670931\nNgid:\t0\nPid:\t2670931\nPPid:\t2670930\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t256\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t2670931\nNSpid:\t2670931\nNSpgid:\t2670834\nNSsid:\t2670834\nKthread:\t0\nVmPeak:\t 1558592 kB\nVmSize:\t 1534256 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t   93484 kB\nVmRSS:\t   92604 kB\nRssAnon:\t   30556 kB\nRssFile:\t   61748 kB\nRssShmem:\t     300 kB\nVmData:\t  187052 kB\nVmStk:\t     132 kB\nVmExe:\t     876 kB\nVmLib:\t  169248 kB\nVmPTE:\t     572 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t18\nSigQ:\t0/56237\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t0000000100000000\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t185\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-issuer-loss-baseline-02.service/launch-tmpsa084glo/authority-0bea217709ffb0b5b89b982ad611e2f5eff33032d28b46595e2f884544146754\n"
+    },
+    {
+      "pid": 2670927,
+      "pidfd": 33,
+      "exited": false,
+      "status": "Name:\tspatial-authori\nUmask:\t0002\nState:\tS (sleeping)\nTgid:\t2670927\nNgid:\t0\nPid:\t2670927\nPPid:\t2670921\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t512\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t2670927\nNSpid:\t2670927\nNSpgid:\t2670834\nNSsid:\t2670834\nKthread:\t0\nVmPeak:\t  160024 kB\nVmSize:\t   94488 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t   16864 kB\nVmRSS:\t   16864 kB\nRssAnon:\t    2440 kB\nRssFile:\t   14424 kB\nRssShmem:\t       0 kB\nVmData:\t   10232 kB\nVmStk:\t     132 kB\nVmExe:\t    1916 kB\nVmLib:\t   10372 kB\nVmPTE:\t      96 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t1\nSigQ:\t0/56237\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t0000000100004002\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t1807\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/spatial-issuer-loss-baseline-02.service\n"
+    }
+  ]
+}

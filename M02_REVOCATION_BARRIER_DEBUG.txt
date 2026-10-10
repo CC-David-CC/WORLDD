@@ -870,3 +870,20 @@ Collection was corrected against unchanged native logs. No test or runtime chang
 Historical baseline documents now identify their source findings as historical and link current evidence.
 Next: issuer interruption during native recovery. Both intermittent causes and the full M02 gate remain pending.
 M02 and Spatial-M1 remain incomplete. No normal session or database changed.
+
+2026-10-10: Deferred issuer fencing fixes a reproduced outage-recovery gap.
+All 49 selected cases passed in Debug and runtime sanitizers on sb16. Full M02 remains pending on both hosts.
+Actual failed-supervisor process/native cleanup remains separate from issuer fencing and retirement.
+The retained coordinator obtains the missing fence after issuer restart and preserves original cleanup bytes.
+Retirement keeps applied revision zero. Wrong keys, altered cleanup, and altered fences remain rejected.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/deferred-fence-01/primary-review.json.
+Baseline evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/issuer-loss-baseline-03/primary-review.json.
+Baselines 01 and 02 incorrectly expected management daemons to exit automatically after identity-service loss.
+Baseline 03 added actual pinned child crashes and reproduced both rejected retirements.
+The baseline collector initially used the wrong protobuf type name. Correcting that name did not change raw evidence.
+The first Debug launch command passed an extra source argument. Its 14 cases errored before launching production.
+The corrected command reran only those 14 cases. All passed. The five other suites were not repeated.
+All 348 frozen source hashes match. All 41 locked files remain unchanged.
+No normal session or database changed. These checks do not show physical input, GPU scanout, or native performance.
+Next: audit remaining M02 requirements and resolve the two preserved intermittent failures before the phase gate.
+M02 and Spatial-M1 remain incomplete.

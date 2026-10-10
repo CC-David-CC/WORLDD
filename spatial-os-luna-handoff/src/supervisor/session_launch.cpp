@@ -217,6 +217,13 @@ workspace::v1::ControlOwner SessionLaunch::control_owner() {
         launch.authorization_id() == auth.authorization_id(), "Supervisor control owner does not match its retained launch");
     return received;
 }
+bool SessionLaunch::checked_failure(const v1::AuthorityLaunchRecord& expected) const {
+    const auto& state = *impl_;
+    require(state.owner == getpid() && state.stopped && state.reaped &&
+        state.record.SerializeAsString() == expected.SerializeAsString(),
+        "Failure recovery requires retained checked supervisor cleanup");
+    return !state.terminal_failure.empty();
+}
 v1::AuthorityLaunchRecord SessionLaunch::stop() {
     auto& state = *impl_;
     require(state.owner == getpid(), "Session cleanup ownership lost");
