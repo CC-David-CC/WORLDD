@@ -55,6 +55,12 @@ for profile in ('debug', 'runtime-sanitize'):
     build = gate/profile/'build'
     assert run['build_roots'][profile] == str(build)
     target = root/profile/'checks'
+    redirect = entry.get('native_evidence_redirect')
+    if redirect:
+        assert sha(target/'CTestTestfile.before.txt') == redirect['before_sha256']
+        assert sha(target/'CTestTestfile.after.txt') == redirect['after_sha256']
+        assert sha(build/'CTestTestfile.cmake') == redirect['after_sha256']
+        result['native_evidence_redirect'] = redirect
     commands = {item['label']: item for item in entry['commands']}
     for item in commands.values():
         if 'sha256' in item:

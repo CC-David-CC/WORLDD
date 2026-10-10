@@ -1,0 +1,30 @@
+{
+  "status": "reviewed_before_retry_execution",
+  "candidate": "m02-phase-gate-02",
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "runner_sha256": "1f634bfd2304d27e3b6e686384a57dd51a564f87fe1d2f4819a37bf84615c178",
+  "collector_sha256": "d68f766ebfbb7049f2470e692e97ecd2123779607ae4d23fac93625469ccacf6",
+  "defect": "CMake expands SPATIAL_SECURITY_EVIDENCE during configuration for systemd-run tests. Changing the retry environment alone would reuse original native log paths.",
+  "correction": "Replace only the generated --setenv=SPATIAL_SECURITY_EVIDENCE argument after preserving prior evidence. Compare complete CTest inventories before and after the replacement.",
+  "review": [
+    "Only generated CTestTestfile.cmake log-destination arguments change. Source, schemas, locked tests, executable bytes, assertions, and deadlines remain unchanged.",
+    "Preserve exact before and after generated files and record their hashes.",
+    "Require the complete after inventory to equal the prior inventory with only the selected exact argument replaced.",
+    "Verify generated metadata hashes before each later command. Preserve retry native logs in its own directory.",
+    "The collector records redirection metadata and verifies generated-file hashes.",
+    "Python syntax passes. Existing lock and terminal-archive guards are unchanged.",
+    "Positive inventory checks run before the retry core. They remain unrun at preparation.",
+    "The original sb16-2 sequence stays unchanged. A separate read-only snapshot preserves diagnostic logs before its untraced sequence can reuse embedded paths."
+  ],
+  "selected_checks": [
+    "Python syntax",
+    "Actual full CTest inventory comparison per profile before core execution",
+    "Source, locked-file and executable hashes before and after qualification",
+    "Original evidence archive and generated metadata hashes",
+    "Full untraced Debug and runtime sanitizer qualification"
+  ],
+  "production_changes": [],
+  "locked_test_changes": [],
+  "positive_inventory_checks": "unrun",
+  "phase_complete": false
+}

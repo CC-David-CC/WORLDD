@@ -1163,3 +1163,11 @@ Explicit per-host qualification selection now preserves failed original evidence
 Both hosts rejected missing or invalid selections and refused overlap with the live original gates.
 No cross-host runtime scenario executed. All eight remain unrun.
 See spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/crosshost03-preparation.json.
+
+2026-10-10: Terminal sb16 diagnostic and evidence-path correction
+123 of 124 diagnostic suites passed. The captured activation timeout was the only suite failure.
+All 3567 raw attachment hashes match the copied full archive. Untraced qualification remains unrun.
+CMake embeds native log destinations for systemd tests during configuration.
+The retry must redirect only those generated arguments and verify complete inventory equality.
+Original failure logs remain archived. Source, binaries, assertions, and deadlines remain unchanged.
+See spatial-os-luna-handoff/evidence/m02-gate-2026-10-10/untraced03-evidence-path-correction.json.

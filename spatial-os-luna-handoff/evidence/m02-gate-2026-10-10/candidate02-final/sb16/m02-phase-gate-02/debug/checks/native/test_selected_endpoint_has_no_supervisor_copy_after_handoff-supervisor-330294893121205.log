@@ -1,0 +1,2 @@
+authority supervisor: Authority child exited before relay completion
+authority supervisor crash fencing unresolved: Issuer client deadline exceeded phase=reply_header wait=read progress=0/4 elapsed_ms=702 gap_ms=10 tick_ms=0

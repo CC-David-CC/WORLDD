@@ -1,0 +1,33 @@
+{
+  "host": "sb16",
+  "status": "failed_diagnostic_untraced_tests_unrun",
+  "archive_sha256": "c6a61a1f225bd7ab4ea21ad1482c4c62de8bedeeeac523107dbf27b0abb805db",
+  "raw_attachments_verified": 3567,
+  "source_commit": "1f5088e026573d86be8388cf1f41dfce20189db9",
+  "source_files": 351,
+  "locked_files_unchanged": 41,
+  "diagnostic_passed_suites": 123,
+  "diagnostic_failed_suites": [
+    {
+      "name": "world-revision-interleave",
+      "status": "failed"
+    }
+  ],
+  "diagnostic_trace": {
+    "qualification": false,
+    "trace_status": "command_failed_trace_complete",
+    "command_exit_code": 8,
+    "trace_complete": true
+  },
+  "failed_cases": [
+    "test_credential_reply_older_than_query_context_is_terminal (__main__.RevisionInterleaveTests.test_credential_reply_older_than_query_context_is_terminal)"
+  ],
+  "debug_harness_passed": 51,
+  "untraced_debug": "unrun",
+  "runtime_sanitizer_tests": "unrun",
+  "compiler_overlap": [],
+  "monitor_errors": [],
+  "phase_complete": false,
+  "historical_failures_resolved": false,
+  "next_action": "Preserve and commit complete evidence before the untraced retry. Correct only generated evidence-directory arguments, verify all other test metadata unchanged, then synchronize the build filesystem and run qualification."
+}

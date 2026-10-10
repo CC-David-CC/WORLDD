@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-10: sb16 diagnostic complete; retry evidence paths corrected
+
+The sb16 diagnostic completed all 124 suites. It passed 123 suites and failed world-revision-interleave.
+The failed case is the activation timeout already traced to 1.433958 seconds in issuer fdatasync calls.
+Its tracer completed without a tracing failure. Debug harness checks passed all 51 cases.
+Untraced Debug core, Debug acceptance, and runtime sanitizer tests remain unrun in that attempt.
+The full archive was copied and all 3567 raw attachment hashes were verified.
+Read evidence/m02-gate-2026-10-10/candidate02-final/sb16-review.json.
+
+Review found embedded native log paths in CMake-generated systemd test commands.
+The prepared retry now changes only those generated log-destination arguments.
+It requires complete before/after CTest inventory equality apart from those exact arguments.
+It preserves both generated files and verifies source, executable, and locked-file hashes.
+Read evidence/m02-gate-2026-10-10/untraced03-evidence-path-correction.json.
+Positive retry execution remains unrun. The original sb16-2 sequence remains active.
+M02 and Spatial-M1 remain incomplete. Historical failures remain individually unresolved.
+
 ## 2026-10-10: Cross-host checks can select each reviewed local attempt
 
 The version03 launcher requires an explicit qualification attempt for each host.

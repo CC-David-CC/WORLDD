@@ -1,5 +1,6 @@
 """Qualify unchanged candidate02 binaries after preserving the prior terminal run."""
 import fcntl
+import copy
 import hashlib
 import json
 import os
@@ -56,6 +57,10 @@ def audit(binaries=False):
     assert all(manifest['files'][name] == digest for name,digest in manifest['locked_files'].items())
     assert sha(Path(server['path'])) == server['sha256']
     assert sha(gate/'summary.json') == record['prior_summary_sha256']
+    for profile, entry in record['profiles'].items():
+        redirect = entry.get('native_evidence_redirect')
+        if redirect:
+            assert sha(gate/profile/'build/CTestTestfile.cmake') == redirect['after_sha256']
     if binaries:
         for profile in ('debug', 'runtime-sanitize'):
             assert all(sha(gate/profile/'build'/name) == digest
@@ -136,6 +141,42 @@ def run(profile, label, command, timeout):
         print((target/(label+'.log')).read_text()[-10000:], flush=True)
         raise RuntimeError(profile+' '+label+' failed')
 
+def redirect_evidence(profile):
+    """Change only generated log destinations; retain every other test property."""
+    build = gate/profile/'build'
+    target = root/profile/'checks'
+    command = ['ctest', '--test-dir', str(build), '--show-only=json-v1']
+    run(profile, 'ctest-inventory-before-redirect', command, 60)
+    before = json.loads((target/'ctest-inventory-before-redirect.log').read_bytes())
+    old = '--setenv=SPATIAL_SECURITY_EVIDENCE='+str(gate/profile/'checks/native')
+    new = '--setenv=SPATIAL_SECURITY_EVIDENCE='+str(target/'native')
+    expected = copy.deepcopy(before)
+    changed = []
+    for test in expected['tests']:
+        if old in test['command']:
+            assert test['command'].count(old) == 1
+            test['command'] = [new if item == old else item for item in test['command']]
+            changed.append(test['name'])
+    assert changed
+    generated = build/'CTestTestfile.cmake'
+    original = generated.read_bytes()
+    assert original.count(old.encode()) == len(changed)
+    replacement = original.replace(old.encode(), new.encode())
+    (target/'CTestTestfile.before.txt').write_bytes(original)
+    (target/'CTestTestfile.after.txt').write_bytes(replacement)
+    record['profiles'][profile]['native_evidence_redirect'] = dict(
+        before_sha256=sha(target/'CTestTestfile.before.txt'),
+        after_sha256=sha(target/'CTestTestfile.after.txt'),
+        old_argument=old, new_argument=new, affected_suites=changed)
+    generated.write_bytes(replacement)
+    save()
+    run(profile, 'ctest-inventory', command, 60)
+    actual = json.loads((target/'ctest-inventory.log').read_bytes())
+    assert actual == expected, 'A test argument or property changed beyond its evidence directory'
+    record['profiles'][profile]['native_evidence_redirect']['inventory_verified'] = True
+    save()
+    return actual
+
 save()
 thread = threading.Thread(target=monitor)
 thread.start()
@@ -157,8 +198,7 @@ try:
         target = root/profile/'checks'
         target.mkdir(parents=True, exist_ok=False)
         build = gate/profile/'build'
-        run(profile, 'ctest-inventory', ['ctest', '--test-dir', str(build), '--show-only=json-v1'], 60)
-        inventory = json.loads((target/'ctest-inventory.log').read_bytes())
+        inventory = redirect_evidence(profile)
         names = [test['name'] for test in inventory['tests']]
         assert names == prior['profiles']['debug']['selected_ctest_suites'] and len(set(names)) == 124
         record['profiles'][profile]['selected_ctest_suites'] = names
