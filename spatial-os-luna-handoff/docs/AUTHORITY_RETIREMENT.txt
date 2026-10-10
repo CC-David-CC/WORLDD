@@ -67,5 +67,6 @@ Use independent TLS peers to test challenge, result, and barrier-response substi
 Verify explicit schema migration and failed migration rollback.
 Run affected identity, fencing, launch, barrier, migration, and dependent-cleanup checks in both profiles.
 Retained world and broker signers require actual checked cleanup before signing.
-Dependent world recovery with a stopped broker remains pending.
+World retirement accepts durable live-broker control recovery or checked stopped-broker scope recovery.
+Read STOPPED_BROKER_DEPENDENCIES.txt for the two distinct proof versions.
 Full M02 qualification remains pending on both hosts.

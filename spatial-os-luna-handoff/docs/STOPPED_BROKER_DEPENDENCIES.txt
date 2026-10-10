@@ -1,0 +1,51 @@
+World dependency recovery after broker cleanup
+Status: Focused Debug and sanitizer checks passed. Full M02 qualification remains pending.
+
+Invariant
+
+The coordinator retains the original world and broker launch ownership.
+Require successful checked world cleanup and successful checked broker cleanup.
+An exited process or a reopened journal does not establish this ownership.
+The broker cleanup covers its process tree and native credential scope.
+No live broker reservation remains after those scopes are stopped.
+Do not invent a control-channel reply or a list of released reservations.
+Record the checked scope cleanup as a distinct proof.
+
+Versioned receipt
+
+Keep AuthorityDependentCleanup schema version 1 for a live broker's checked control-recovery receipt.
+Add schema version 2 for checked stopped-broker scope cleanup.
+Version 2 stores the exact stopped world record and exact stopped broker record.
+Both records require authorized supervision and matching process and native cleanup identities.
+Require COMPOSITOR for the world and BROKER for the broker.
+Require the same issuer and native server. Require different launch identities.
+Version 2 must not contain the controls field, including an empty controls message.
+Keep the existing record-size limits and protobuf field numbers.
+The coordinator derives both records. Callers supply only the exact retained world owner.
+
+Persistence and retirement
+
+Use the existing explicit launch journal schema 1-to-2 dependency migration.
+Preserve the original world launch bytes and revision.
+Save one immutable dependent receipt. Reject attempts to replace either proof version with another receipt.
+Require successful local durability before returning the receipt or permitting world retirement.
+Failed writes leave recovery pending and permit an exact retry.
+World retirement uses the exact saved dependent bytes and the world's committed issuer fence.
+Use retained coordinator ownership for retirement. Broker liveness is no longer required after durable dependency recovery.
+A valid version 1 receipt remains usable if the broker stops later.
+Broker retirement and world retirement remain separate operations.
+Do not authorize replacement execution from either receipt.
+Reopening the journal does not recreate kernel or native ownership.
+
+Checks
+
+Crash a real world while a confined native application remains alive.
+Then crash its broker and verify actual process and native cleanup.
+Persist version 2 and retire only the exact stopped world generation.
+Verify both proof versions, exact retries, immutable bytes, and issuer/local failure recovery.
+Reject live worlds, live brokers, missing checked receipts, substituted owners, and changed records.
+Reject malformed or reordered bytes and controls embedded in a version 2 receipt.
+Preserve the original receipt if a later recovery request proposes a different proof version.
+Verify reopened journals cannot launch replacement execution.
+Run affected Debug and runtime sanitizer checks.
+Full M02 qualification remains required on both hosts.

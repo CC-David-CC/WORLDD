@@ -19,6 +19,7 @@ message SessionProbeRequest {
     spatial.workspace.v1.ControlOwner retire_world = 16;
     spatial.supervisor.v1.AuthorityLaunchQuery stop_broker = 17;
     spatial.supervisor.v1.AuthorityLaunchQuery retire_broker = 18;
+    spatial.workspace.v1.ControlOwner recover_stopped_broker_world = 19;
   }
 }
 message SessionProbeReply {
@@ -30,5 +31,6 @@ message SessionProbeReply {
     spatial.supervisor.v1.AuthorityLaunchRecord cleanup = 12;
     spatial.core.v1.Error error = 13;
     spatial.identity.v1.AuthorityRetirementState retirement = 14;
+    spatial.supervisor.v1.AuthorityDependentCleanup dependent = 15;
   }
 }

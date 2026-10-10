@@ -23,6 +23,7 @@ public:
     pid_t broker_pid() const;
     void check_alive() const;
     v1::AuthorityLaunchRecord stop();
+    const v1::AuthorityLaunchRecord& cleanup() const;
     identity::v1::AuthorityRetirementState retire();
 private:
     struct Impl;

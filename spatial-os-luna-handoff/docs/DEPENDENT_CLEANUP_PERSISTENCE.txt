@@ -4,7 +4,7 @@ Status: Implemented on the M02 development branch. Focused checks passed. Full p
 Invariant
 
 Report dependent cleanup only after its checked receipt is durable.
-The receipt binds one stopped world to the exact retained broker that released its reservations.
+The receipt binds one stopped world to its exact retained broker and checked dependency cleanup.
 The coordinator must retain the original launch ownership until it verifies and persists that result.
 A saved record cannot recreate lost process handles or authorize replacement execution.
 
@@ -14,7 +14,8 @@ Add AuthorityDependentCleanup to launch.proto.
 Use schema_version field 1, world field 2, broker field 3, and controls field 4.
 World and broker use AuthorityLaunchRecord. Controls uses ControlRecoveryReceipt.
 Do not add recursive receipt fields to AuthorityLaunchRecord.
-Schema version 1 records one complete immutable result.
+Schema version 1 records live-broker control recovery. Schema version 2 records stopped-broker scope cleanup.
+Both versions record one complete immutable result.
 Limit the complete receipt to 262144 bytes.
 Limit each embedded launch record to 65536 bytes.
 Keep the administrative reply and reservation bounds already defined in CONTROL_OWNER_CHANNELS.txt.
@@ -22,14 +23,19 @@ Keep the administrative reply and reservation bounds already defined in CONTROL_
 World must exactly match the stopped launch record checked through the retained supervisor.
 Require OWNED_SCOPES_STOPPED and both matching external cleanup receipts.
 Derive its ControlOwner from the same launch authorization, generation, and native identity.
-Controls must contain that exact owner and those exact process and native cleanup receipts.
+Version 1 controls must contain that exact owner and those exact process and native cleanup receipts.
 Validate released reservation identities, uniqueness, application attribution, and existing size bounds.
 
-Broker must match the retained, live SessionBroker launch snapshot.
+For version 1, broker must match the retained, live SessionBroker launch snapshot.
 Require an authorized supervised broker with BROKER native role and START_ATTEMPTED stage.
 Require the world's issuer and native server identity.
 Record its exact process, native credential, participant, incarnation, authorization, and generation context.
 Do not replace the broker binding with a host name, PID, or display number.
+
+Version 2 instead requires exact checked broker process and native cleanup.
+It must not contain controls. It does not claim a reservation-release reply.
+Read STOPPED_BROKER_DEPENDENCIES.txt for its complete validation and retirement contract.
+The following journal rules apply to both receipt versions.
 
 Journal ownership and migration
 
@@ -58,10 +64,11 @@ Only SessionCoordinator's checked recovery path may invoke the journal writer.
 
 Failure behavior
 
-The broker may release reservations before the journal write fails.
+For version 1, the broker may release reservations before the journal write fails.
 Report that persistence failure. Preserve the broker's cached release receipt.
 A retry uses the original retained world and broker ownership plus the exact broker receipt.
 Do not repeat external cleanup or infer success from an empty reservation list.
+For version 2, retry with both original checked scope records and retained coordinator ownership.
 After coordinator loss, a reopened journal remains evidence only.
 Unknown cleanup stays unresolved until an independently valid recovery path proves it.
 

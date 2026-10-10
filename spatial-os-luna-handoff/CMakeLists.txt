@@ -997,6 +997,17 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(session-broker-retirement PROPERTIES TIMEOUT 240)
+    add_test(NAME session-stopped-broker-dependency COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-stopped-broker-dependency-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_stopped_broker_dependency.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(session-stopped-broker-dependency PROPERTIES TIMEOUT 240)
     add_executable(spatial-child-handle-client-probe src/testing/child_handle_client_probe.cpp)
     target_link_libraries(spatial-child-handle-client-probe PRIVATE spatial-authority-launch)
     add_test(NAME supervisor-child-handle-client COMMAND "${Python3_EXECUTABLE}"

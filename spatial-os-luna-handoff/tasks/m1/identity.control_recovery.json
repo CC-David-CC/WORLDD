@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "stopped_broker_dependencies_and_replacement_recovery",
+  "current_step": "actual_replacement_recovery_and_failure_qualification",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,7 +12,6 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Complete dependent world recovery with a stopped broker.",
     "Verify actual replacement recovery and failure races.",
     "Resolve the preserved participant-approval startup failure before the full phase gate.",
     "Complete cross-host cancellation and full M02 qualification on both hosts."
@@ -189,7 +188,7 @@
     "unresolved": "Existing participant startup failed during supervisor approval. Five unchanged targeted repetitions passed. Root cause remains unproven."
   },
   "session_broker": {
-    "state": "Production library starts a real supervised broker and retains root, administrative, lifecycle, and handle channels. World coordination remains incomplete.",
+    "state": "Broker lifecycle foundation passed focused checks. Later sections record connected world coordination and recovery.",
     "new_receiver_cases": 15,
     "new_session_cases": 4,
     "selected_cases_per_profile": 65,
@@ -236,7 +235,7 @@
     "full_phase_gate": "pending on both hosts"
   },
   "connected_application": {
-    "state": "Focused native recovery passed. Selective reservation release remains unimplemented.",
+    "state": "Focused native application recovery passed. Selective reservation recovery is recorded separately below.",
     "evidence": "evidence/control-recovery-2026-10-09/connected-applications-03/sb16/primary-review.json",
     "cases_per_profile": 100,
     "new_cases": 2,
@@ -251,7 +250,7 @@
     "full_phase_gate": "pending on both hosts"
   },
   "selective_recovery": {
-    "state": "Focused production recovery passed. Durable receipt and issuer retirement remain incomplete.",
+    "state": "Focused selective reservation recovery passed. Durable receipts and actual retirement are recorded separately below.",
     "evidence": "evidence/control-recovery-2026-10-09/selective-recovery-01/sb16/primary-review.json",
     "cases_per_profile": 154,
     "new_cases": 15,
@@ -265,7 +264,7 @@
     "full_phase_gate": "pending on both hosts"
   },
   "dependent_cleanup": {
-    "state": "Durable checked recovery receipt implemented and focused checks passed. Issuer retirement remains incomplete.",
+    "state": "Version 1 durable control-recovery receipts passed focused checks. Version 2 scope receipts are recorded under stopped_broker_dependency.",
     "evidence": "evidence/control-recovery-2026-10-09/dependent-cleanup-01/sb16/primary-review.json",
     "contract": "docs/DEPENDENT_CLEANUP_PERSISTENCE.txt",
     "cases_per_profile": 113,
@@ -280,7 +279,7 @@
     "full_phase_gate": "pending on both hosts"
   },
   "issuer_retirement": {
-    "state": "Issuer and client protocol passed focused checks. Coordinator integration remains pending.",
+    "state": "Issuer and client protocol passed focused checks. Actual coordinator and broker integration are recorded separately below.",
     "evidence": "evidence/control-recovery-2026-10-09/issuer-retirement-01/sb16/primary-review.json",
     "contract": "docs/AUTHORITY_RETIREMENT.txt",
     "host": "sb16",
@@ -330,6 +329,21 @@
     "contract": "docs/BROKER_RETIREMENT.txt",
     "host": "sb16",
     "cases_per_profile": 93,
+    "new_cases": 9,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "stopped_broker_dependency": {
+    "state": "Checked stopped-broker dependency recovery passed focused checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/stopped-broker-dependency-01/sb16/primary-review.json",
+    "contract": "docs/STOPPED_BROKER_DEPENDENCIES.txt",
+    "host": "sb16",
+    "cases_per_profile": 71,
     "new_cases": 9,
     "profiles": [
       "Debug",

@@ -38,7 +38,7 @@ These scopes include its confined application processes and issued native creden
 Retirement completes that broker generation's remaining issuer obligations.
 It does not claim world cleanup or retire a world generation.
 Keep complete session shutdown conditional on checked cleanup of every retained world.
-World dependency recovery with a stopped broker remains a separate required operation.
+World dependency recovery is a separate explicit operation. Read STOPPED_BROKER_DEPENDENCIES.txt.
 Replacement execution still needs fresh authorization and current authority synchronization.
 
 Checks

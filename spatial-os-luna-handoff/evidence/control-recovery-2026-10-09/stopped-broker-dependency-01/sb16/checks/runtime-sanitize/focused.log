@@ -1,0 +1,240 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 17
+    Start  17: authority-launch-coordinator
+
+17: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-coordinator-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source/tests/native/test_authority_launch.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-security-auth"
+17: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+17: Test timeout computed to be: 120
+17: Running as unit: spatial-coordinator-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8.service; invocation ID: 05677ec687a24415a6aa0e3f2ac15a81
+17: test_child_reads_exact_durable_start_before_execution (__main__.AuthorityLaunchTests.test_child_reads_exact_durable_start_before_execution) ... ok
+17: test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants (__main__.AuthorityLaunchTests.test_checked_stop_terminates_descendants_and_revokes_only_owned_native_grants) ... ok
+17: test_paused_native_server_keeps_durable_cleanup_pending (__main__.AuthorityLaunchTests.test_paused_native_server_keeps_durable_cleanup_pending) ... ok
+17: test_failed_journal_commit_prevents_execution (__main__.AuthorityLaunchTests.test_failed_journal_commit_prevents_execution) ... ok
+17: test_failed_exec_retains_start_attempt_and_cannot_retry (__main__.AuthorityLaunchTests.test_failed_exec_retains_start_attempt_and_cannot_retry) ... ok
+17: test_failed_prepared_commit_can_stop_retained_native_scope (__main__.AuthorityLaunchTests.test_failed_prepared_commit_can_stop_retained_native_scope) ... ok
+17: test_missing_native_grant_never_commits_stopped_record (__main__.AuthorityLaunchTests.test_missing_native_grant_never_commits_stopped_record) ... ok
+17: test_invalid_binding_cannot_create_an_external_scope (__main__.AuthorityLaunchTests.test_invalid_binding_cannot_create_an_external_scope) ... ok
+17: test_stopping_prepared_launch_prevents_later_execution (__main__.AuthorityLaunchTests.test_stopping_prepared_launch_prevents_later_execution) ... ok
+17: test_supervisor_crash_preserves_unresolved_record_and_denies_replacement (__main__.AuthorityLaunchTests.test_supervisor_crash_preserves_unresolved_record_and_denies_replacement) ... ok
+17: test_stopped_receipt_survives_restart_without_repeating_effects (__main__.AuthorityLaunchTests.test_stopped_receipt_survives_restart_without_repeating_effects) ... ok
+17: test_journal_excludes_native_secrets (__main__.AuthorityLaunchTests.test_journal_excludes_native_secrets) ... ok
+17: test_second_coordinator_cannot_open_owned_journal (__main__.AuthorityLaunchTests.test_second_coordinator_cannot_open_owned_journal) ... ok
+17: test_unknown_schema_is_rejected_without_mutation (__main__.AuthorityLaunchTests.test_unknown_schema_is_rejected_without_mutation) ... ok
+17: 
+17: ----------------------------------------------------------------------
+17: Ran 14 tests in 4.706s
+17: 
+17: OK
+17: Finished with result: success
+17: Main processes terminated with: code=exited/status=0
+17: Service runtime: 4.782s
+17: CPU time consumed: 2.246s
+17: Memory peak: 1.5M
+17: Memory swap peak: 0B
+1/8 Test  #17: authority-launch-coordinator .....   Passed    4.80 sec
+test 18
+    Start  18: authority-prepared-launch
+
+18: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-prepared-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source/tests/core/test_authority_prepared_launch.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-process-scope-probe"
+18: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+18: Test timeout computed to be: 120
+18: Running as unit: spatial-prepared-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8.service; invocation ID: 0555a7d0df1a42c3b0a98d499e418c80
+18: test_prepared_identity_and_membership_precede_child_execution (__main__.PreparedLaunchTests.test_prepared_identity_and_membership_precede_child_execution) ... ok
+18: test_stopped_prepared_scope_cannot_execute (__main__.PreparedLaunchTests.test_stopped_prepared_scope_cannot_execute) ... ok
+18: test_second_start_cannot_execute_or_replace_live_identity (__main__.PreparedLaunchTests.test_second_start_cannot_execute_or_replace_live_identity) ... ok
+18: test_only_explicit_descriptors_survive_exec_without_source_collision (__main__.PreparedLaunchTests.test_only_explicit_descriptors_survive_exec_without_source_collision) ... ok
+18: test_invalid_targets_are_rejected_before_start (__main__.PreparedLaunchTests.test_invalid_targets_are_rejected_before_start) ... ok
+18: test_mismatched_descriptor_table_is_rejected_before_start (__main__.PreparedLaunchTests.test_mismatched_descriptor_table_is_rejected_before_start) ... ok
+18: test_excessive_descriptor_table_is_rejected_before_start (__main__.PreparedLaunchTests.test_excessive_descriptor_table_is_rejected_before_start) ... ok
+18: test_failed_exec_requires_cleanup_and_cannot_retry_execution (__main__.PreparedLaunchTests.test_failed_exec_requires_cleanup_and_cannot_retry_execution) ... ok
+18: 
+18: ----------------------------------------------------------------------
+18: Ran 8 tests in 0.328s
+18: 
+18: OK
+18: Finished with result: success
+18: Main processes terminated with: code=exited/status=0
+18: Service runtime: 406ms
+18: CPU time consumed: 335ms
+18: Memory peak: 1.5M
+18: Memory swap peak: 0B
+2/8 Test  #18: authority-prepared-launch ........   Passed    0.45 sec
+test 111
+    Start 111: session-world
+
+111: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-world-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source/tests/native/test_session_world.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-issuer-client"
+111: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+111: Test timeout computed to be: 180
+111: Running as unit: spatial-session-world-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8.service; invocation ID: a620c81cee554d9baac48884585e83f1
+111: test_actual_world_owner_registers_and_broker_survives_world_shutdown (__main__.SessionWorldTests.test_actual_world_owner_registers_and_broker_survives_world_shutdown) ... ok
+111: test_caller_cannot_substitute_another_owner_generation (__main__.SessionWorldTests.test_caller_cannot_substitute_another_owner_generation) ... ok
+111: test_world_crash_delivers_checked_cleanup_after_supervisor_exit (__main__.SessionWorldTests.test_world_crash_delivers_checked_cleanup_after_supervisor_exit) ... ok
+111: test_supervisor_crash_without_receipt_cannot_claim_cleanup (__main__.SessionWorldTests.test_supervisor_crash_without_receipt_cannot_claim_cleanup) ... ok
+111: test_world_cannot_supply_its_own_broker_endpoint (__main__.SessionWorldTests.test_world_cannot_supply_its_own_broker_endpoint) ... ok
+111: test_broker_native_role_cannot_register_as_world (__main__.SessionWorldTests.test_broker_native_role_cannot_register_as_world) ... ok
+111: test_listener_admits_real_signed_actor_without_management_authority (__main__.SessionActorTests.test_listener_admits_real_signed_actor_without_management_authority) ... ok
+111: test_private_socket_cannot_be_admitted_as_actor_listener (__main__.SessionActorTests.test_private_socket_cannot_be_admitted_as_actor_listener) ... ok
+111: test_unlistening_tcp_socket_cannot_be_admitted (__main__.SessionActorTests.test_unlistening_tcp_socket_cannot_be_admitted) ... ok
+111: test_listener_requires_tls_configuration (__main__.SessionActorTests.test_listener_requires_tls_configuration) ... ok
+111: test_actor_descriptor_arguments_cannot_select_private_endpoints (__main__.SessionActorTests.test_actor_descriptor_arguments_cannot_select_private_endpoints) ... ok
+111: 
+111: ----------------------------------------------------------------------
+111: Ran 11 tests in 20.117s
+111: 
+111: OK
+111: Finished with result: success
+111: Main processes terminated with: code=exited/status=0
+111: Service runtime: 20.234s
+111: CPU time consumed: 9.261s
+111: Memory peak: 1.7M
+111: Memory swap peak: 0B
+3/8 Test #111: session-world ....................   Passed   20.27 sec
+test 112
+    Start 112: session-application
+
+112: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-application-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source/tests/native/test_session_application.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-issuer-client"
+112: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+112: Test timeout computed to be: 180
+112: Running as unit: spatial-session-application-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8.service; invocation ID: e4d6214598f949598c4d95d9f7ad40f0
+112: test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionApplicationTests.test_actor_stop_releases_native_input_and_its_reservation) ... ok
+112: test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionApplicationTests.test_world_crash_preserves_application_and_pending_owned_reservation) ... ok
+112: test_recovery_requires_checked_cleanup_and_preserves_live_application (__main__.SessionApplicationTests.test_recovery_requires_checked_cleanup_and_preserves_live_application) ... ok
+112: 
+112: ----------------------------------------------------------------------
+112: Ran 3 tests in 14.143s
+112: 
+112: OK
+112: Finished with result: success
+112: Main processes terminated with: code=exited/status=0
+112: Service runtime: 14.261s
+112: CPU time consumed: 6.416s
+112: Memory peak: 1.7M
+112: Memory swap peak: 0B
+4/8 Test #112: session-application ..............   Passed   14.29 sec
+test 113
+    Start 113: session-dependent-cleanup
+
+113: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-dependent-cleanup-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source/tests/native/test_dependent_cleanup.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-issuer-client"
+113: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+113: Test timeout computed to be: 180
+113: Running as unit: spatial-dependent-cleanup-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8.service; invocation ID: 33b2da56818a4a1c8f6391956a1463aa
+113: test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch (__main__.DependentCleanupTests.test_successful_recovery_persists_exact_receipts_and_reopen_cannot_launch) ... ok
+113: test_readonly_journal_reports_failure_after_release_then_retries (__main__.DependentCleanupTests.test_readonly_journal_reports_failure_after_release_then_retries) ... ok
+113: test_journal_lock_failure_preserves_exact_retry (__main__.DependentCleanupTests.test_journal_lock_failure_preserves_exact_retry) ... ok
+113: test_changed_launch_record_cannot_replace_retained_cleanup (__main__.DependentCleanupTests.test_changed_launch_record_cannot_replace_retained_cleanup) ... ok
+113: test_corrupted_or_changed_dependent_receipt_is_not_overwritten (__main__.DependentCleanupTests.test_corrupted_or_changed_dependent_receipt_is_not_overwritten) ... ok
+113: 
+113: ----------------------------------------------------------------------
+113: Ran 5 tests in 24.126s
+113: 
+113: OK
+113: Finished with result: success
+113: Main processes terminated with: code=exited/status=0
+113: Service runtime: 24.244s
+113: CPU time consumed: 10.965s
+113: Memory peak: 1.5M
+113: Memory swap peak: 0B
+5/8 Test #113: session-dependent-cleanup ........   Passed   24.28 sec
+test 114
+    Start 114: session-coordinator-retirement
+
+114: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-coordinator-retirement-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source/tests/native/test_coordinator_retirement.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-issuer-client"
+114: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+114: Test timeout computed to be: 240
+114: Running as unit: spatial-coordinator-retirement-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8.service; invocation ID: ff0c399743b348e893b9842270f4ccf5
+114: test_actual_cleanup_retires_exact_generation_and_retry_preserves_application (__main__.CoordinatorRetirementTests.test_actual_cleanup_retires_exact_generation_and_retry_preserves_application) ... ok
+114: test_live_unrecovered_and_substituted_owners_cannot_retire (__main__.CoordinatorRetirementTests.test_live_unrecovered_and_substituted_owners_cannot_retire) ... ok
+114: test_unfenced_graceful_cleanup_cannot_retire (__main__.CoordinatorRetirementTests.test_unfenced_graceful_cleanup_cannot_retire) ... ok
+114: test_tampered_dependent_bytes_cannot_create_retirement_proof (__main__.CoordinatorRetirementTests.test_tampered_dependent_bytes_cannot_create_retirement_proof) ... ok
+114: test_wrong_signing_key_and_readonly_journal_do_not_retire (__main__.CoordinatorRetirementTests.test_wrong_signing_key_and_readonly_journal_do_not_retire) ... ok
+114: test_issuer_write_failure_preserves_local_receipt_and_allows_exact_retry (__main__.CoordinatorRetirementTests.test_issuer_write_failure_preserves_local_receipt_and_allows_exact_retry) ... ok
+114: test_local_commit_failure_preserves_committed_issuer_receipt_for_retry (__main__.CoordinatorRetirementTests.test_local_commit_failure_preserves_committed_issuer_receipt_for_retry) ... ok
+114: test_completed_journal_rejects_tampering_and_reopen_cannot_launch (__main__.CoordinatorRetirementTests.test_completed_journal_rejects_tampering_and_reopen_cannot_launch) ... ok
+114: 
+114: ----------------------------------------------------------------------
+114: Ran 8 tests in 41.795s
+114: 
+114: OK
+114: Finished with result: success
+114: Main processes terminated with: code=exited/status=0
+114: Service runtime: 41.923s
+114: CPU time consumed: 17.976s
+114: Memory peak: 1.7M
+114: Memory swap peak: 0B
+6/8 Test #114: session-coordinator-retirement ...   Passed   41.95 sec
+test 115
+    Start 115: session-broker-cleanup
+
+115: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-broker-cleanup-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source/tests/native/test_session_broker_cleanup.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-issuer-client"
+115: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+115: Test timeout computed to be: 180
+115: Running as unit: spatial-broker-cleanup-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8.service; invocation ID: 862c925163394b66961a2aa55fca59ff
+115: test_crashed_broker_delivers_checked_receipt_and_exact_retry (__main__.SessionBrokerCleanupTests.test_crashed_broker_delivers_checked_receipt_and_exact_retry) ... ok
+115: test_broker_cleanup_does_not_replace_unconfirmed_world_cleanup (__main__.SessionBrokerCleanupTests.test_broker_cleanup_does_not_replace_unconfirmed_world_cleanup) ... ok
+115: test_process_exit_waits_for_actual_native_cleanup_reply (__main__.SessionBrokerCleanupTests.test_process_exit_waits_for_actual_native_cleanup_reply) ... ok
+115: test_supervisor_death_without_receipt_cannot_claim_cleanup (__main__.SessionBrokerCleanupTests.test_supervisor_death_without_receipt_cannot_claim_cleanup) ... ok
+115: 
+115: ----------------------------------------------------------------------
+115: Ran 4 tests in 18.425s
+115: 
+115: OK
+115: Finished with result: success
+115: Main processes terminated with: code=exited/status=0
+115: Service runtime: 18.543s
+115: CPU time consumed: 8.462s
+115: Memory peak: 1.5M
+115: Memory swap peak: 0B
+7/8 Test #115: session-broker-cleanup ...........   Passed   18.58 sec
+test 116
+    Start 116: session-broker-retirement
+
+116: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-broker-retirement-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source/tests/native/test_broker_retirement.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-issuer-client"
+116: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+116: Test timeout computed to be: 240
+116: Running as unit: spatial-broker-retirement-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8.service; invocation ID: c3eb843b20bd416fa55ce8179cff8de8
+116: test_actual_broker_retirement_preserves_other_generation_and_exact_retry (__main__.BrokerRetirementTests.test_actual_broker_retirement_preserves_other_generation_and_exact_retry) ... ok
+116: test_live_and_unchecked_broker_cannot_retire (__main__.BrokerRetirementTests.test_live_and_unchecked_broker_cannot_retire) ... ok
+116: test_unfenced_shutdown_cannot_claim_failed_generation_retirement (__main__.BrokerRetirementTests.test_unfenced_shutdown_cannot_claim_failed_generation_retirement) ... ok
+116: test_changed_or_reordered_cleanup_bytes_cannot_authorize_retirement (__main__.BrokerRetirementTests.test_changed_or_reordered_cleanup_bytes_cannot_authorize_retirement) ... ok
+116: test_wrong_key_locked_and_readonly_journal_leave_issuer_unchanged (__main__.BrokerRetirementTests.test_wrong_key_locked_and_readonly_journal_leave_issuer_unchanged) ... ok
+116: test_issuer_write_failure_rolls_back_and_retry_completes (__main__.BrokerRetirementTests.test_issuer_write_failure_rolls_back_and_retry_completes) ... ok
+116: test_local_commit_failure_recovers_original_committed_issuer_receipt (__main__.BrokerRetirementTests.test_local_commit_failure_recovers_original_committed_issuer_receipt) ... ok
+116: test_saved_receipt_tampering_is_rejected_and_reopen_cannot_launch (__main__.BrokerRetirementTests.test_saved_receipt_tampering_is_rejected_and_reopen_cannot_launch) ... ok
+116: test_supervisor_death_without_checked_cleanup_cannot_retire (__main__.BrokerRetirementTests.test_supervisor_death_without_checked_cleanup_cannot_retire) ... ok
+116: 
+116: ----------------------------------------------------------------------
+116: Ran 9 tests in 45.289s
+116: 
+116: OK
+116: Finished with result: success
+116: Main processes terminated with: code=exited/status=0
+116: Service runtime: 45.408s
+116: CPU time consumed: 19.355s
+116: Memory peak: 1.5M
+116: Memory swap peak: 0B
+8/8 Test #116: session-broker-retirement ........   Passed   45.44 sec
+
+The following tests passed:
+	authority-launch-coordinator
+	authority-prepared-launch
+	session-world
+	session-application
+	session-dependent-cleanup
+	session-coordinator-retirement
+	session-broker-cleanup
+	session-broker-retirement
+
+100% tests passed, 0 tests failed out of 8
+
+Total Test time (real) = 170.07 sec

@@ -1,0 +1,30 @@
+Running as unit: spatial-stopped-broker-dependency-baseline-01.service; invocation ID: d28f322b6ca34c2e936b5ba2462eb6cc
+test_stopped_broker_requires_durable_world_dependency_recovery (__main__.StoppedBrokerDependencyBaseline.test_stopped_broker_requires_durable_world_dependency_recovery) ... FAIL
+
+======================================================================
+FAIL: test_stopped_broker_requires_durable_world_dependency_recovery (__main__.StoppedBrokerDependencyBaseline.test_stopped_broker_requires_durable_world_dependency_recovery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-stopped-broker-dependency-baseline-01.py", line 40, in test_stopped_broker_requires_durable_world_dependency_recovery
+    self.assertEqual(reply.WhichOneof('outcome'), 'dependent',
+AssertionError: 'error' != 'dependent'
+- error
++ dependent
+ : World dependency recovery is missing after checked broker cleanup: protocol_version: 1
+request_id: 14
+error {
+  code: INVALID_ARGUMENT
+  message: "Unknown protobuf fields"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 3.844s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 3.977s
+CPU time consumed: 936ms
+Memory peak: 1.5M
+Memory swap peak: 0B

@@ -37,6 +37,7 @@ message AuthorityLaunchRecord {
 }
 // Durable evidence from retained coordinator ownership. Reopening it creates no live handles.
 message AuthorityDependentCleanup {
+  // Version 1: running broker plus controls. Version 2: stopped broker, no controls.
   uint32 schema_version = 1;
   AuthorityLaunchRecord world = 2;
   AuthorityLaunchRecord broker = 3;

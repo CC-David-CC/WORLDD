@@ -1,0 +1,35 @@
+{
+  "status": "expected_missing_step_failure",
+  "command": [
+    "systemd-run",
+    "--user",
+    "--wait",
+    "--pipe",
+    "--collect",
+    "--property=Delegate=yes",
+    "--unit=spatial-stopped-broker-dependency-baseline-01",
+    "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/source:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/source/tests/native",
+    "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+    "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-baseline-01/native",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/test-stopped-broker-dependency-baseline-01.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/source",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/debug/build/spatial-authority-launch-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/debug/build/spatial-security-auth",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/debug/build/identityd",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-broker-retirement-01/debug/build/spatial-issuer-client"
+  ],
+  "host": "sb16",
+  "source_files": 341,
+  "attachments": {
+    "baseline.log": "361e1146b0717eca2187913fe63f051be8541af7a44fb5bd03ac968951b389c1",
+    "review.json": "d0989fde122190f49f1719ca3903887f86251df743f338d99b4885809f0be219",
+    "input.py": "b4350ea47a0a450fd8db8032d7463874def7afcb61bcd2ddd499664c3ef8a313",
+    "native/test_stopped_broker_requires_durable_world_dependency_recovery-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "native/test_stopped_broker_requires_durable_world_dependency_recovery-probe.jsonl.log": "90d01f647bf5f0a256589e3b79e71c76ea0b6f4d055eb6877722d2ef4781369c",
+    "native/test_stopped_broker_requires_durable_world_dependency_recovery-coordinator.log": "e6c0a30a8c7c04c945d6fea220ae3d7b5f2f570b78e2ec9c9f18843e4b11a3f1",
+    "native/test_stopped_broker_requires_durable_world_dependency_recovery-server-0.log": "826103220f147c95cfa1b61abec26500c60338ffbaa3d5e5629fbd6002c817da"
+  },
+  "finding": "The actual world has checked fenced cleanup. Its original broker later crashes, completes checked cleanup and retires. The world still has journal schema 1 and an active issuer generation. Durable dependent recovery with the stopped broker is missing.",
+  "limitations": "One baseline case. This is failure evidence, not a qualification pass."
+}

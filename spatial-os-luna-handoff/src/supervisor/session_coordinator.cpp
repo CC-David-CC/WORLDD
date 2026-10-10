@@ -249,7 +249,7 @@ workspace::v1::ControlOwnerState SessionCoordinator::recover_world(const workspa
     return recovered;
 }
 identity::v1::AuthorityRetirementState SessionCoordinator::retire_world(const workspace::v1::ControlOwner& owner) {
-    auto& world = impl_->find(owner);
+    auto& world = impl_->find_owned(owner);
     require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED && world.dependent,
         "Retirement requires retained durable world cleanup");
     AuthorityLaunch journal(world.journal_directory);
@@ -258,6 +258,15 @@ identity::v1::AuthorityRetirementState SessionCoordinator::retire_world(const wo
         "Saved retirement differs from retained issuer result");
     world.retirement = result;
     return result;
+}
+v1::AuthorityDependentCleanup SessionCoordinator::recover_world_after_broker_stop(const workspace::v1::ControlOwner& owner) {
+    auto& state = *impl_; auto& world = state.find_owned(owner);
+    require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED,
+        "Dependency recovery requires checked world cleanup");
+    const auto& broker = state.broker.cleanup();
+    AuthorityLaunch journal(world.journal_directory);
+    world.dependent = journal.record_stopped_broker_recovery(world.record, broker);
+    return *world.dependent;
 }
 const v1::AuthorityLaunchRecord& SessionCoordinator::broker_launch() const { impl_->live(); return impl_->broker.launch(); }
 v1::AuthorityLaunchRecord SessionCoordinator::stop_broker() { impl_->owned(); return impl_->broker.stop(); }

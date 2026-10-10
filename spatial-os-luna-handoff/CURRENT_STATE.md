@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-10: World dependency recovery after broker shutdown passes focused checks
+
+The retained coordinator now recovers a stopped world's dependency after checked broker shutdown.
+Receipt version 2 binds both exact checked scope records. It does not invent a control-channel receipt.
+The original world launch bytes and revision remain unchanged during the explicit journal migration.
+World retirement remains available after broker exit through retained ownership and either durable proof version.
+Existing version 1 receipts remain immutable. Broker and world retirement remain separate operations.
+Neither receipt authorizes replacement execution or reconstructs lost process ownership.
+
+All 71 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These include nine new native cases and eight related suites.
+All 342 tested source files match. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/stopped-broker-dependency-01/sb16/primary-review.json.
+The actual missing-operation baseline remains preserved. No normal host session or database changed.
+
+Next: actual replacement recovery and failure races.
+The earlier participant-approval startup failure, cross-host cancellation, and full two-host qualification remain required work.
+Shared compositor lifetime across world transitions remains required for M1.
+M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Broker retirement after checked cleanup passes focused checks
 
 The retained coordinator now retires a failed broker generation after checked process and native cleanup.

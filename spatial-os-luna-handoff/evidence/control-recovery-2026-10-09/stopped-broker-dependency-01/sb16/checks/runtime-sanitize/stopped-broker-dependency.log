@@ -1,0 +1,47 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 117
+    Start 117: session-stopped-broker-dependency
+
+117: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-stopped-broker-dependency-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source/tests/native/test_stopped_broker_dependency.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build/spatial-issuer-client"
+117: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-stopped-broker-dependency-01/runtime-sanitize/build
+117: Test timeout computed to be: 240
+117: Running as unit: spatial-stopped-broker-dependency-e9ec4045bcaf7250a6b9215f77f1d1a2ba3987d3d0db3e40d15dc8a71354d3d8.service; invocation ID: d1527bd7a8034f9499fe279a7ced2695
+117: test_actual_pair_cleanup_persists_scope_proof_and_retires_world (__main__.StoppedBrokerDependencyTests.test_actual_pair_cleanup_persists_scope_proof_and_retires_world) ... ok
+117: test_live_unchecked_and_substituted_owners_cannot_recover (__main__.StoppedBrokerDependencyTests.test_live_unchecked_and_substituted_owners_cannot_recover) ... ok
+117: test_missing_world_supervisor_receipt_cannot_be_replaced_by_broker_cleanup (__main__.StoppedBrokerDependencyTests.test_missing_world_supervisor_receipt_cannot_be_replaced_by_broker_cleanup) ... ok
+117: test_missing_broker_supervisor_receipt_keeps_world_dependency_pending (__main__.StoppedBrokerDependencyTests.test_missing_broker_supervisor_receipt_keeps_world_dependency_pending) ... ok
+117: test_failed_local_storage_cannot_authorize_world_retirement (__main__.StoppedBrokerDependencyTests.test_failed_local_storage_cannot_authorize_world_retirement) ... ok
+117: test_changed_launch_and_dependent_bytes_are_not_replaced_or_signed (__main__.StoppedBrokerDependencyTests.test_changed_launch_and_dependent_bytes_are_not_replaced_or_signed) ... ok
+117: test_existing_live_broker_proof_survives_broker_exit_without_replacement (__main__.StoppedBrokerDependencyTests.test_existing_live_broker_proof_survives_broker_exit_without_replacement) ... ok
+117: test_issuer_and_local_failure_preserve_exact_scope_proof_for_retry (__main__.StoppedBrokerDependencyTests.test_issuer_and_local_failure_preserve_exact_scope_proof_for_retry) ... ok
+117: test_reopened_dependency_and_retirement_journals_cannot_recreate_execution (__main__.StoppedBrokerDependencyTests.test_reopened_dependency_and_retirement_journals_cannot_recreate_execution) ... ok
+117: 
+117: ----------------------------------------------------------------------
+117: Ran 9 tests in 51.133s
+117: 
+117: OK
+117: Finished with result: success
+117: Main processes terminated with: code=exited/status=0
+117: Service runtime: 51.293s
+117: CPU time consumed: 19.740s
+117: Memory peak: 1.5M
+117: Memory swap peak: 0B
+1/1 Test #117: session-stopped-broker-dependency ...   Passed   51.31 sec
+
+The following tests passed:
+	session-stopped-broker-dependency
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  51.32 sec

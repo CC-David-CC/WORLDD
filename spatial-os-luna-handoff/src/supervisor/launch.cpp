@@ -149,18 +149,23 @@ identity::v1::AuthorityFenceBegin owned_generation(const v1::AuthorityLaunchReco
 void validate_dependent_cleanup(const v1::AuthorityDependentCleanup& value) {
     validate_message(value);
     const auto& world = value.world(); const auto& broker = value.broker();
-    require(value.schema_version() == 1 && value.ByteSizeLong() <= 262144 &&
+    require((value.schema_version() == 1 || value.schema_version() == 2) && value.ByteSizeLong() <= 262144 &&
         world.ByteSizeLong() <= 65536 && broker.ByteSizeLong() <= 65536,
         "Invalid dependent cleanup version or size");
     validate_record(world); validate_record(broker);
     require(world.binding().supervised() && world.has_authorization() &&
         world.stage() == v1::OWNED_SCOPES_STOPPED && world.native().role() == security::v1::COMPOSITOR &&
-        broker.binding().supervised() && broker.has_authorization() && broker.stage() == v1::START_ATTEMPTED &&
-        broker.native().role() == security::v1::BROKER && !broker.has_fence() &&
-        !broker.has_process_stopped() && !broker.has_native_stopped() &&
+        broker.binding().supervised() && broker.has_authorization() && broker.native().role() == security::v1::BROKER &&
         world.binding().issuer_id() == broker.binding().issuer_id() &&
         world.native().server_id() == broker.native().server_id() &&
         world.process().launch_id() != broker.process().launch_id(), "Invalid dependent cleanup launch context");
+    if (value.schema_version() == 2) {
+        require(broker.stage() == v1::OWNED_SCOPES_STOPPED && !value.has_controls(),
+            "Stopped broker dependency requires checked scope cleanup without control receipts");
+        return; // validate_record already checked both exact process/native cleanup identities.
+    }
+    require(broker.stage() == v1::START_ATTEMPTED && !broker.has_fence() &&
+        !broker.has_process_stopped() && !broker.has_native_stopped(), "Control recovery requires a running broker snapshot");
     workspace::v1::ControlOwner owner;
     owner.set_issuer_id(world.binding().issuer_id());
     *owner.mutable_launch() = owned_generation(world); *owner.mutable_native() = world.native();
@@ -373,6 +378,20 @@ v1::AuthorityDependentCleanup AuthorityLaunch::record_control_recovery(const v1:
     require(recovered.channel_fenced() && recovered.reservations().empty() &&
         recovered.owner().SerializeAsString() == value.controls().cleanup().owner().SerializeAsString(),
         "Dependent cleanup requires checked fenced broker recovery");
+    return persist_dependent_cleanup(value);
+}
+v1::AuthorityDependentCleanup AuthorityLaunch::record_stopped_broker_recovery(const v1::AuthorityLaunchRecord& expected_world,
+    const v1::AuthorityLaunchRecord& checked_broker) {
+    v1::AuthorityDependentCleanup value; value.set_schema_version(2);
+    *value.mutable_world() = expected_world; *value.mutable_broker() = checked_broker;
+    return persist_dependent_cleanup(value);
+}
+v1::AuthorityDependentCleanup AuthorityLaunch::persist_dependent_cleanup(const v1::AuthorityDependentCleanup& value) {
+    validate_dependent_cleanup(value);
+    const auto& expected_world = value.world();
+    require(!impl_->process && !impl_->native && impl_->record.SerializeAsString() == expected_world.SerializeAsString() &&
+        impl_->record_bytes == expected_world.SerializeAsString(),
+        "Dependent cleanup journal differs from retained stopped world");
     const auto bytes = value.SerializeAsString();
     if (impl_->dependent) {
         require(impl_->dependent_bytes == bytes, "Dependent cleanup retry changed its receipt");

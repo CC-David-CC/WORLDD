@@ -80,4 +80,8 @@ identity::v1::AuthorityRetirementState SessionBroker::retire() {
     state.retirement = result;
     return result;
 }
+const v1::AuthorityLaunchRecord& SessionBroker::cleanup() const {
+    require(impl_->owner == getpid() && impl_->cleanup, "Broker dependency recovery requires retained checked cleanup");
+    return *impl_->cleanup;
+}
 }
