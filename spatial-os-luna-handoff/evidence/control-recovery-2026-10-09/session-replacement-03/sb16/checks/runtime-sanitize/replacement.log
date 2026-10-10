@@ -1,0 +1,39 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-03/checks/runtime-sanitize/ctest
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-03/checks/runtime-sanitize/ctest/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-03/checks/runtime-sanitize/ctest/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-03/checks/runtime-sanitize/ctest
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 8
+    Start 8: session-replacement
+
+8: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-replacement-2c97f3cf6c936b4cc186238941a5d1943b5c9b5062149e8b7a4896bd88819079" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-03/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-03/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-03/source/tests/native/test_session_replacement.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-03/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/spatial-issuer-client"
+8: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build
+8: Test timeout computed to be: 240
+8: Running as unit: spatial-session-replacement-2c97f3cf6c936b4cc186238941a5d1943b5c9b5062149e8b7a4896bd88819079.service; invocation ID: df819645f22b40ed9fde18ee10afbc7c
+8: test_replacement_preserves_world_and_application_without_old_control (__main__.SessionReplacementTests.test_replacement_preserves_world_and_application_without_old_control) ... ok
+8: test_unretired_generation_rejects_replacement_before_execution (__main__.SessionReplacementTests.test_unretired_generation_rejects_replacement_before_execution) ... ok
+8: test_replacement_synchronizes_revocation_before_actor_admission (__main__.SessionReplacementTests.test_replacement_synchronizes_revocation_before_actor_admission) ... ok
+8: 
+8: ----------------------------------------------------------------------
+8: Ran 3 tests in 18.067s
+8: 
+8: OK
+8: Finished with result: success
+8: Main processes terminated with: code=exited/status=0
+8: Service runtime: 18.185s
+8: CPU time consumed: 8.283s
+8: Memory peak: 1.5M
+8: Memory swap peak: 0B
+1/1 Test #8: session-replacement ..............   Passed   18.20 sec
+
+The following tests passed:
+	session-replacement
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  18.21 sec

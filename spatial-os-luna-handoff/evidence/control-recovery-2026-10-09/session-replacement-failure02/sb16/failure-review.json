@@ -1,0 +1,10 @@
+{
+  "status": "preserved_failure",
+  "debug_passed": 52,
+  "sanitizer_passed": 2,
+  "sanitizer_errors": 1,
+  "unrun": "Seven related runtime sanitizer suites",
+  "archive_sha256": "e7d8b9f2e526f2de4b9fba2517aa40eba695a72493168be72a7d5ee763690353",
+  "attachments_verified": 206,
+  "finding": "The revocation request uses the original test administrator TLS connection after native recovery. Its fixture idle timeout is 3000 ms. The peer has closed before challenge reception. Open a fresh authenticated peer for this operation without increasing the timeout or replaying any uncertain effect."
+}

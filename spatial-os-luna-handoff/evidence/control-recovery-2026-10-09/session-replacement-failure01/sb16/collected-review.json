@@ -1,0 +1,33 @@
+{
+  "status": "preserved_failure",
+  "host": "sb16",
+  "source_files": 343,
+  "locked_files": 41,
+  "profiles": {},
+  "attachments": {
+    "checks/review.json": "7de1d93f7a3fee8ebf303d7cae9396dc806df15f31e36ec44d90082334e99ad9",
+    "checks/debug/replacement.log": "b50af410506ad81ac937525c2d3a5471308044d86c990b3c5a4a797bd6c5896e",
+    "checks/debug/build.log": "6a39208da96fea3b2c83ecacd32e1a7f0dea4bfe5c1d9fe05709a14dd74ce650",
+    "checks/debug/configure.log": "8184572fd6a7fef5180ab4ae96023e5cac4d907125f765939494fd0d03ed682c",
+    "checks/debug/native/test_unretired_generation_rejects_replacement_before_execution-probe.jsonl.log": "13bdcc3d6c893206555743b0c6147ecaa1994bf01c7f60472f2063a3c788e0d7",
+    "checks/debug/native/test_replacement_preserves_world_and_application_without_old_control-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/debug/native/test_unretired_generation_rejects_replacement_before_execution-coordinator.log": "7128107fcc064bc23d5c4984d41594220e6d7e5e067762895294cc2a4ecb3f5d",
+    "checks/debug/native/test_replacement_synchronizes_revocation_before_actor_admission-probe.jsonl.log": "79137fff2f0b738d58256d6835601e93b02bbcbeba507ae95b7ad0bd94420c24",
+    "checks/debug/native/test_replacement_synchronizes_revocation_before_actor_admission-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_unretired_generation_rejects_replacement_before_execution-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_replacement_preserves_world_and_application_without_old_control-coordinator.log": "48ef00ee03519112ed4ffc27fd44817623e65e48938d47ccde824209d9d2b630",
+    "checks/debug/native/test_replacement_preserves_world_and_application_without_old_control-server-0.log": "6cee88ef60d14cb120b8377c2260ac15684d759b94ade65c98a4e09f87d1bafa",
+    "checks/debug/native/test_unretired_generation_rejects_replacement_before_execution-server-0.log": "7c6bf2983b00b0854cb60114252b7eefc5742762add2c3cf4d5e2fd4d59e0700",
+    "checks/debug/native/test_replacement_preserves_world_and_application_without_old_control-confinement.json.log": "5c996b606dc9ed1a1f3148eafe043dabf7039cc70354e13cdc422dff34c436c7",
+    "checks/debug/native/test_replacement_synchronizes_revocation_before_actor_admission-server-0.log": "03c441a095b6895b1a7f6c4083226dc62b2cf3fe962c4f3f780150d712fc6161",
+    "checks/debug/native/test_replacement_synchronizes_revocation_before_actor_admission-coordinator.log": "0cb11b1ca46f5309a8ae2875ecc4e0525654d70c7282ad501de39fefd5a4d4f0"
+  },
+  "selected_cases_per_profile": 0,
+  "production_launch_changed": false,
+  "limitations": [
+    "Full M02 qualification remains pending on both hosts.",
+    "Broker replacement, failure races and cross-host cancellation remain required.",
+    "The earlier participant-approval startup failure remains unresolved.",
+    "Automatic application placement restoration and shared compositor lifetime remain required for M1."
+  ]
+}

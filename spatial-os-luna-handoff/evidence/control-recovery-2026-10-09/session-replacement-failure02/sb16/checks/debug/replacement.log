@@ -1,0 +1,41 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 118
+    Start 118: session-replacement
+
+118: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-replacement-632e192e540a8370f52464731129fe9628ff9f164ef65f9b38bd1d902d2abeda" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/checks/debug/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source/tests/native/test_session_replacement.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build/spatial-issuer-client"
+118: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/debug/build
+118: Test timeout computed to be: 240
+118: Running as unit: spatial-session-replacement-632e192e540a8370f52464731129fe9628ff9f164ef65f9b38bd1d902d2abeda.service; invocation ID: ff5969010bcc441dbfc1c3b3b1ed87aa
+118: test_replacement_preserves_world_and_application_without_old_control (__main__.SessionReplacementTests.test_replacement_preserves_world_and_application_without_old_control) ... ok
+118: test_unretired_generation_rejects_replacement_before_execution (__main__.SessionReplacementTests.test_unretired_generation_rejects_replacement_before_execution) ... ok
+118: test_replacement_synchronizes_revocation_before_actor_admission (__main__.SessionReplacementTests.test_replacement_synchronizes_revocation_before_actor_admission) ... ok
+118: 
+118: ----------------------------------------------------------------------
+118: Ran 3 tests in 14.378s
+118: 
+118: OK
+118: Finished with result: success
+118: Main processes terminated with: code=exited/status=0
+118: Service runtime: 14.559s
+118: CPU time consumed: 3.338s
+118: Memory peak: 1.5M
+118: Memory swap peak: 0B
+1/1 Test #118: session-replacement ..............   Passed   14.58 sec
+
+The following tests passed:
+	session-replacement
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  14.59 sec

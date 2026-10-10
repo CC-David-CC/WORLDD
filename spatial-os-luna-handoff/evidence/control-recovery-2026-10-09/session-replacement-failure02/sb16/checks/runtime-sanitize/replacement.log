@@ -1,0 +1,68 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 118
+    Start 118: session-replacement
+
+118: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-session-replacement-2c97f3cf6c936b4cc186238941a5d1943b5c9b5062149e8b7a4896bd88819079" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/checks/runtime-sanitize/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source/tests/native/test_session_replacement.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/spatial-issuer-client"
+118: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build
+118: Test timeout computed to be: 240
+118: Running as unit: spatial-session-replacement-2c97f3cf6c936b4cc186238941a5d1943b5c9b5062149e8b7a4896bd88819079.service; invocation ID: 4318ae05d3b54081b700208eb81508e8
+118: test_replacement_preserves_world_and_application_without_old_control (__main__.SessionReplacementTests.test_replacement_preserves_world_and_application_without_old_control) ... ok
+118: test_unretired_generation_rejects_replacement_before_execution (__main__.SessionReplacementTests.test_unretired_generation_rejects_replacement_before_execution) ... ok
+118: test_replacement_synchronizes_revocation_before_actor_admission (__main__.SessionReplacementTests.test_replacement_synchronizes_revocation_before_actor_admission) ... ERROR
+118: 
+118: ======================================================================
+118: ERROR: test_replacement_synchronizes_revocation_before_actor_admission (__main__.SessionReplacementTests.test_replacement_synchronizes_revocation_before_actor_admission)
+118: ----------------------------------------------------------------------
+118: Traceback (most recent call last):
+118:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source/tests/native/test_session_replacement.py", line 185, in test_replacement_synchronizes_revocation_before_actor_admission
+118:     revoked = self.issuer.execute(self.issuer.peer, self.issuer.challenge(self.issuer.peer, operation))
+118:                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+118:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source/tests/core/test_identity_issuer.py", line 116, in challenge
+118:     reply = client.call(challenge=operation or self.operation())
+118:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+118:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source/tests/core/test_identity_tls.py", line 47, in call
+118:     return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+118:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+118:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source/tests/core/test_identity_tls.py", line 41, in request
+118:     reply = self.receive()
+118:             ^^^^^^^^^^^^^^
+118:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source/tests/core/test_identity_tls.py", line 34, in receive
+118:     length = struct.unpack('!I', exact(4))[0]
+118:                                  ^^^^^^^^
+118:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/source/tests/core/test_identity_tls.py", line 31, in exact
+118:     if not part: raise EOFError('Issuer TLS stream closed')
+118:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+118: EOFError: Issuer TLS stream closed
+118: 
+118: ----------------------------------------------------------------------
+118: Ran 3 tests in 18.177s
+118: 
+118: FAILED (errors=1)
+118: Finished with result: exit-code
+118: Main processes terminated with: code=exited/status=1
+118: Service runtime: 18.325s
+118: CPU time consumed: 7.701s
+118: Memory peak: 1.5M
+118: Memory swap peak: 0B
+1/1 Test #118: session-replacement ..............***Failed   18.34 sec
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  18.35 sec
+
+The following tests FAILED:
+	118 - session-replacement (Failed)
+Errors while running CTest
+Output from these tests are in: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-session-replacement-02/runtime-sanitize/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

@@ -1,0 +1,9 @@
+{
+  "status": "preserved_failure",
+  "passed": 1,
+  "failed": 2,
+  "unrun": "Related suites and runtime sanitizer profile",
+  "archive_sha256": "f777085d1d05541589efc988bea9731795b59438aa7766343df9b9e0957d1791",
+  "attachments_verified": 16,
+  "finding": "Both failures inspect activation immediately after authorized launch. The coordinator returns before asynchronous IdentitySessions activation. Replace this immediate observation with a bounded wait on the actual issuer record, then keep admission and generation assertions unchanged. Production launch code remains unchanged."
+}

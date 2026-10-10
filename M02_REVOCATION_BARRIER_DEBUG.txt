@@ -772,3 +772,29 @@ No control reply is invented. Separate world retirement remains available after 
 Actual replacement recovery, failure races, cross-host cancellation, and full two-host qualification remain pending.
 The earlier participant-approval startup failure remains unresolved.
 No normal session or database changed. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10: Actual world replacement candidate01 preserved one pass and two failures.
+The retirement barrier passed. Both replacement checks observed issuer activation immediately after authorized launch.
+Source inspection shows asynchronous IdentitySessions activation after coordinator registration.
+Candidate02 uses a bounded wait for the actual activation record. Admission and generation requirements remain unchanged.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/session-replacement-failure01/sb16/failure-review.json.
+Related suites and sanitizers were unrun for candidate01. No production launch code changed.
+
+2026-10-10: Replacement candidate02 passed 52 Debug cases and two sanitizer cases.
+The third sanitizer case reused an administrator TLS peer after its 3000 ms idle timeout.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/session-replacement-failure02/sb16/failure-review.json.
+Candidate03 opens a fresh authenticated connection before revocation. No timeout or assertion changed.
+All compiled inputs match candidate02. Both original builds are reused with hash checks before and after each selected run.
+Candidate03 records separate CTest commands and evidence paths. Its checks remain in progress.
+
+2026-10-10: Actual world replacement passed 52 cases per profile on sb16.
+Three new scenarios and seven related native suites passed in Debug and runtime ASan/UBSan.
+Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/session-replacement-03/sb16/primary-review.json.
+The original activation-observation failures remain preserved in session-replacement-failure01/sb16.
+The expired administrator-connection failure remains preserved in session-replacement-failure02/sb16.
+Candidate03 reused both candidate02 builds. All compiled inputs and binary hashes were verified before and after testing.
+Production launch code remains unchanged. Tests prove actual generation replacement with preserved world/workspace state.
+The surviving application requires fresh actor authentication and a new lease. Old retirement does not cancel new control.
+Broker replacement, failure races, the earlier startup defect, cross-host cancellation, and the full gate remain pending.
+Automatic placement restoration and shared compositor lifetime remain required for M1.
+No normal host session or database changed. M02 and Spatial-M1 remain incomplete.

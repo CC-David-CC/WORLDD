@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "actual_replacement_recovery_and_failure_qualification",
+  "current_step": "actual_broker_replacement_and_failure_qualification",
   "development_branch": "m02/control-recovery",
   "test_schedule": "Run affected checks during implementation and connected recovery scenarios during integration. Run complete qualification on both hosts at the M02 phase gate. See root AGENTS.md.",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
@@ -12,7 +12,7 @@
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
   "production_changed": true,
   "remaining": [
-    "Verify actual replacement recovery and failure races.",
+    "Verify actual broker replacement and failure races.",
     "Resolve the preserved participant-approval startup failure before the full phase gate.",
     "Complete cross-host cancellation and full M02 qualification on both hosts."
   ],
@@ -345,6 +345,21 @@
     "host": "sb16",
     "cases_per_profile": 71,
     "new_cases": 9,
+    "profiles": [
+      "Debug",
+      "runtime ASan/UBSan"
+    ],
+    "failed": 0,
+    "skipped": 0,
+    "full_phase_gate": "pending on both hosts"
+  },
+  "actual_world_replacement": {
+    "state": "Actual world replacement passed focused native checks.",
+    "evidence": "evidence/control-recovery-2026-10-09/session-replacement-03/sb16/primary-review.json",
+    "contract": "docs/SESSION_REPLACEMENT_RECOVERY.txt",
+    "host": "sb16",
+    "cases_per_profile": 52,
+    "new_cases": 3,
     "profiles": [
       "Debug",
       "runtime ASan/UBSan"

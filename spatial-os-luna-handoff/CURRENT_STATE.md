@@ -1,5 +1,31 @@
 # Implementation status
 
+## 2026-10-10: Actual world replacement passes focused native checks
+
+The existing production coordinator starts a fresh world generation after checked recovery and issuer retirement.
+Native tests reuse the original world, workspace, project directory, and authority policy.
+World identity, saved geometry, actor context, workspace selection, and uncommitted project data survive.
+The application remains alive. Fresh actor authentication and a new control lease are required.
+Old-owner routing is rejected. Retrying old retirement does not cancel replacement control.
+Replacement is rejected before retirement. A previously revoked credential cannot enter the replacement.
+The test driver changed. Production launch code did not change.
+
+All 52 selected cases passed in Debug and runtime sanitizers on sb16, without failures or skips.
+These include three new native scenarios and seven related suites.
+All 343 tested source files match. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/session-replacement-03/sb16/primary-review.json.
+The first candidate observed asynchronous activation too early. Its two failures remain preserved.
+The correction waits for the actual issuer record before checking admission and persistent state.
+The second candidate's sanitizer run used an expired test administrator connection. That failure is also preserved.
+The final fixture opens a fresh authenticated connection. Its idle timeout and assertions remain unchanged.
+Compiled inputs match candidate02. Both profiles reused its verified binaries with separate commands and evidence paths.
+
+Next: actual broker replacement, failure races, the earlier startup defect, and cross-host cancellation.
+Full M02 qualification remains pending on both hosts.
+Automatic application placement restoration and shared compositor lifetime remain required for M1.
+No normal host session or database changed. M02 and Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: World dependency recovery after broker shutdown passes focused checks
 
 The retained coordinator now recovers a stopped world's dependency after checked broker shutdown.

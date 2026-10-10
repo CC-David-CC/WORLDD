@@ -6,6 +6,18 @@ import "launch.proto";
 import "issuer.proto";
 
 // Test-driver transport only. Actors never receive this coordinator interface.
+message SessionWorldStart {
+  string configuration_path = 1;
+  int32 native_fd = 2; // One of the fixture's explicitly inherited sealed configurations.
+}
+message SessionWorldStarted {
+  spatial.workspace.v1.ControlOwner owner = 1;
+  spatial.supervisor.v1.AuthorityLaunchRecord record = 2;
+}
+message SessionWorldCall {
+  spatial.workspace.v1.ControlOwner owner = 1;
+  spatial.core.v1.Request request = 2;
+}
 message SessionProbeRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -20,6 +32,8 @@ message SessionProbeRequest {
     spatial.supervisor.v1.AuthorityLaunchQuery stop_broker = 17;
     spatial.supervisor.v1.AuthorityLaunchQuery retire_broker = 18;
     spatial.workspace.v1.ControlOwner recover_stopped_broker_world = 19;
+    SessionWorldStart start_world = 20;
+    SessionWorldCall owned_world = 21;
   }
 }
 message SessionProbeReply {
@@ -32,5 +46,6 @@ message SessionProbeReply {
     spatial.core.v1.Error error = 13;
     spatial.identity.v1.AuthorityRetirementState retirement = 14;
     spatial.supervisor.v1.AuthorityDependentCleanup dependent = 15;
+    SessionWorldStarted started = 16;
   }
 }
