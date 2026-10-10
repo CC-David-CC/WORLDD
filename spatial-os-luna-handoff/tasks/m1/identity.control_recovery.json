@@ -25,11 +25,12 @@
     "new_checks": 19,
     "production_changed": false,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-review-03.json",
-    "state": "Full both-host qualification launched. Complete runtime compilation before tests.",
+    "state": "Both hosts passed19 new Debug checks and51 harness checks. Runtime compilation complete. Full cumulative qualification remains active.",
     "drivers": {
       "sb16": 1679232,
       "sb16-2": 1463045
-    }
+    },
+    "debug_evidence": "evidence/control-recovery-2026-10-09/owner-debug-03"
   },
   "preserved_failures": [
     "Both hosts:103 existing checks and51 harness passed;12 new checks errored on a fixture helper collision.",

@@ -1,0 +1,23 @@
+{
+  "host": "sb16-2",
+  "profile": "Debug",
+  "checks_passed": 19,
+  "harness_passed": 51,
+  "failed": 0,
+  "skipped": 0,
+  "production_integrated": false,
+  "cumulative_state": "running; not passed",
+  "source_files": 297,
+  "source_manifest_sha256": "19bce862e0cf70d14306daf1e68db6daeac1d91e901ac4a2700060e333b99dc0",
+  "binaries": {
+    "workspaced": "c666046d68c5be7e6d1c99b65ea9c655747a7b3c352c83f3db6b2906d6a2c46b",
+    "worldd": "1fa3fa61bb3ebe144c947691cc5b4dd6297ec6317c42ce4e3a814283c366f9d7",
+    "identityd": "f77671178989e094349288cb1fd95605f1b262e010d02caaafa88b008b709236",
+    "spatialwm": "2b8be8221a5807e7b60fce3a6e4dfa1fda2d0457215455b06143624b98628479",
+    "spatial-test-host": "5654f7ad924ad0504251cca515f32dbb6cdec4e07cefcfa763f716121b4b73d6",
+    "spatial-issuer-client": "6cd6e24e4296746da08a85110654fd22be8a9d0f80c18b258e08386d739e3f5a",
+    "spatial-security-auth": "23aeac3744ea0842e495acd6b70b91f67f31e6178fa432d2b37e7275a89c2d54",
+    "spatial-authority-supervisor": "b810672461f801f69addbfbe975b74eb68f1940cc5f5da32c4e2505c92c71138"
+  },
+  "owners_log_sha256": "2ad918deb6c0c8d76285e345b60288fb476ec96e241dc32024cffe35d204805b"
+}

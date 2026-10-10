@@ -1,5 +1,13 @@
 # Implementation status
 
+## 2026-10-09: Owner-channel Debug checks pass on both hosts
+
+Candidate03 passed all19 owner-channel checks and51 harness checks on sb16 and sb16-2.
+Both runtime sanitizer builds completed. Full cumulative qualification now runs on both hosts.
+Read evidence/control-recovery-2026-10-09/owner-debug-03.
+The candidate remains unintegrated. Production source remains a3a926d.
+Selective recovery release and checked dependent receipts remain required.
+
 ## 2026-10-09: Control owner channels enter full qualification
 
 The isolated candidate binds broker reservations to immutable world-channel owners.

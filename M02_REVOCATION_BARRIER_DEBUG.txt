@@ -433,3 +433,9 @@ No other suite or assertion is excluded or weakened.
 Full drivers1679232(sb16) and1463045(sb16-2) compile runtime sanitizers before qualification.
 Expected per profile:1472 core checks across100 suites,51 harness checks,and151 P10 cases.
 These are expected counts, not completed results. Production remains a3a926d.
+
+2026-10-09: All19 owner-channel Debug checks passed on both hosts
+Each host also passed51 harness checks. Both runtime sanitizer builds completed.
+Full cumulative Debug and sanitizer qualification remains active under1679232 and1463045.
+Read spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/owner-debug-03.
+The candidate is not integrated. Production source remains a3a926d.
