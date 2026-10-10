@@ -522,3 +522,8 @@ Source remains unintegrated. sb16-2 owner04 sanitizers continue.
 Binding01 sb16: both builds passed. Focused Debug passed six binding checks, three native-world checks, and 51 harness checks.
 Full Debug regression is active. Sanitizer qualification and all second-host binding checks remain required.
 Focused evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/binding-focused-01/sb16/debug/focused-review.json.
+
+Prepared local/adopt-control-owner-04.py for exact-source checkout adoption after integration.
+It requires terminal full qualification, matching local binaries, a clean main checkout, and matching target Git blobs.
+It uses a fast-forward merge and records that no runtime restart or operator-state migration occurred.
+Adoption remains unrun. sb16-2 owner04 sanitizers and sb16 binding01 Debug remain live.

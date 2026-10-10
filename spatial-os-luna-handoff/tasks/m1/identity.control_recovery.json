@@ -68,7 +68,8 @@
     "sb16_full_debug_evidence": "evidence/control-recovery-2026-10-09/debug-full-review-04-sb16.json",
     "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/debug-full-review-04-sb16-2.json",
     "debug_matrix_evidence": "evidence/control-recovery-2026-10-09/debug-matrix-review-04.json",
-    "sb16_full_evidence": "evidence/control-recovery-2026-10-09/full-review-04-sb16.json"
+    "sb16_full_evidence": "evidence/control-recovery-2026-10-09/full-review-04-sb16.json",
+    "adoption_script": "local/adopt-control-owner-04.py"
   },
   "retained_launch_binding": {
     "candidate": "binding01",
