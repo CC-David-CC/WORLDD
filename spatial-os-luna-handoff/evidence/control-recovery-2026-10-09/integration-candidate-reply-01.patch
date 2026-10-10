@@ -1,0 +1,365 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -161,6 +161,11 @@
+ add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
+ target_include_directories(spatial-scene PUBLIC src)
+ target_link_libraries(spatial-scene PUBLIC spatial-protobuf)
++add_library(spatial-control-reply STATIC src/supervisor/control_reply.cpp)
++target_link_libraries(spatial-control-reply PUBLIC spatial-scene)
++add_executable(spatial-control-reply-probe src/testing/control_reply_probe.cpp)
++target_link_libraries(spatial-control-reply-probe PRIVATE spatial-control-reply)
++add_dependencies(spatial-control-reply-probe broker-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
+ add_library(spatial-compositor-config STATIC src/platform/compositor_config.cpp)
+ target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
+ add_library(spatial-identity STATIC src/identity/keys.cpp)
+@@ -234,6 +239,10 @@
+     add_dependencies(spatial-native-scope-probe native-scope-python-protobuf security-python-protobuf python-protobuf)
+     add_executable(spatial-native-config-witness src/testing/native_scope_config_witness.cpp)
+     target_link_libraries(spatial-native-config-witness PRIVATE spatial-authority-launch)
++    add_test(NAME control-supervisor-reply COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_control_reply.py" $<TARGET_FILE:spatial-control-reply-probe>)
++    set_tests_properties(control-supervisor-reply PROPERTIES
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python" TIMEOUT 180)
+     add_test(NAME authority-native-config COMMAND "${Python3_EXECUTABLE}"
+         "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_scope_config_ownership.py"
+         $<TARGET_FILE:spatial-native-config-witness> "${CMAKE_CURRENT_SOURCE_DIR}" $<TARGET_FILE:spatial-security-auth>)
+--- /dev/null
++++ b/src/supervisor/control_reply.cpp
+@@ -0,0 +1,53 @@
++#include "supervisor/control_reply.hpp"
++#include "workspace/control_owner.hpp"
++#include <set>
++
++namespace spatial::supervisor {
++namespace {
++void require(bool valid, const char* message) {
++    if (!valid) throw std::invalid_argument(message);
++}
++}
++void validate_control_reply(const workspace::v1::ControlSupervisorRequest& request,
++                            const workspace::v1::ControlSupervisorReply& reply) {
++    require(request.ByteSizeLong() <= 65536 && reply.ByteSizeLong() <= 65536,
++        "Control message exceeds packet limit");
++    validate_message(request);
++    validate_message(reply);
++    require(request.protocol_version() == 1 && reply.protocol_version() == 1,
++        "Unsupported control protocol version");
++    require(reply.request_id() == request.request_id(), "Control reply request mismatch");
++    const workspace::v1::ControlOwner* expected = nullptr;
++    if (request.has_register_()) expected = &request.register_();
++    else if (request.has_inspect()) expected = &request.inspect();
++    else if (request.has_fence()) expected = &request.fence();
++    require(expected != nullptr, "Missing control request operation");
++    validate_control_owner(*expected);
++    if (reply.has_error()) {
++        require(reply.error().code() != wire::ERROR_CODE_UNSPECIFIED, "Missing control error code");
++        return;
++    }
++    require(reply.has_state(), "Missing control reply outcome");
++    const auto& state = reply.state();
++    require(state.owner().SerializeAsString() == expected->SerializeAsString(), "Control reply owner mismatch");
++    require(!request.has_fence() || state.channel_fenced(), "Control fence was not confirmed");
++    // Registration replies are generated before any request can run on that channel.
++    require(!request.has_register_() || (!state.channel_fenced() && state.reservations().empty()),
++        "Invalid initial control owner state");
++    require(state.reservations_size() <= 256, "Control reservation count exceeds limit");
++    std::set<std::string> identifiers, applications;
++    std::size_t snapshot_bytes = 0;
++    for (const auto& reservation : state.reservations()) {
++        const auto& principal = reservation.principal();
++        const auto& application = reservation.application();
++        require(reservation.id().size() == 32 && principal.issuer_id().size() == 32 &&
++            principal.actor_id().size() == 32 && !application.workspace().empty() &&
++            !application.application().empty() && application.server_id() == expected->native().server_id(),
++            "Invalid control reservation identity");
++        require(identifiers.insert(reservation.id()).second &&
++            applications.insert(application.SerializeAsString()).second, "Duplicate control reservation");
++        snapshot_bytes += reservation.ByteSizeLong()+16;
++        require(snapshot_bytes <= 60000, "Control reservation snapshot exceeds limit");
++    }
++}
++}
+--- /dev/null
++++ b/src/supervisor/control_reply.hpp
+@@ -0,0 +1,9 @@
++#pragma once
++#include "broker.pb.h"
++
++namespace spatial::supervisor {
++// Validate before interpreting either outcome. A validated error remains an error.
++// This checks protocol evidence, not transport authentication or native cleanup.
++void validate_control_reply(const workspace::v1::ControlSupervisorRequest& request,
++                            const workspace::v1::ControlSupervisorReply& reply);
++}
+--- /dev/null
++++ b/src/testing/control_reply_probe.cpp
+@@ -0,0 +1,22 @@
++#include "supervisor/control_reply.hpp"
++#include "core/protocol.hpp"
++#include <iostream>
++#include <stdexcept>
++
++int main() {
++    try {
++        std::string bytes;
++        spatial::workspace::v1::ControlSupervisorRequest request;
++        spatial::workspace::v1::ControlSupervisorReply reply;
++        if (!spatial::read_frame(std::cin, bytes) || !request.ParseFromString(bytes))
++            throw std::invalid_argument("Expected control request frame");
++        if (!spatial::read_frame(std::cin, bytes) || !reply.ParseFromString(bytes))
++            throw std::invalid_argument("Expected control reply frame");
++        spatial::supervisor::validate_control_reply(request, reply);
++        spatial::write_frame(std::cout, reply);
++        return 0;
++    } catch (const std::exception& error) {
++        std::cerr << "control reply rejected: " << error.what() << '\n';
++        return 2;
++    }
++}
+--- a/src/workspace/control_channels.cpp
++++ b/src/workspace/control_channels.cpp
+@@ -1,7 +1,7 @@
+ #include "workspace/control_channels.hpp"
++#include "workspace/control_owner.hpp"
+ #include "identity/participant_stream.hpp"
+ #include "world/store.hpp"
+-#include <climits>
+ #include <cstring>
+ #include <iostream>
+ #include <poll.h>
+@@ -16,19 +16,6 @@
+ constexpr std::size_t packet_limit = 65536;
+ void require(bool okay, const char* message) {
+     if (!okay) throw std::invalid_argument(message);
+-}
+-void owner_valid(const pb::ControlOwner& owner) {
+-    validate_message(owner);
+-    const auto& launch = owner.launch();
+-    const auto& native = owner.native();
+-    require(owner.issuer_id().size() == 32 && launch.participant_id().size() == 32 &&
+-        launch.registered_revision() > 0 && launch.registered_revision() <= INT64_MAX &&
+-        launch.generation() > 0 && launch.generation() <= INT64_MAX &&
+-        launch.service_incarnation().size() == 32 && launch.launch_id().size() == 32 &&
+-        launch.supervision_revision() > 0 && launch.supervision_revision() <= INT64_MAX &&
+-        launch.authorization_id().size() == 32 && native.launch_id() == launch.launch_id() &&
+-        native.server_id().size() == 32 && native.credential_id().size() == 32 &&
+-        native.role() == security::v1::COMPOSITOR, "Invalid control owner binding");
+ }
+ struct Received {
+     std::vector<int> fds;
+@@ -96,7 +83,7 @@
+         else if (request.has_inspect()) binding = &request.inspect();
+         else if (request.has_fence()) binding = &request.fence();
+         else throw WorldError(wire::UNKNOWN_METHOD, "No control supervisor operation");
+-        owner_valid(*binding);
++        validate_control_owner(*binding);
+         const auto key = binding->SerializeAsString();
+         if (request.has_register_()) {
+             require(received.fds.size() == 1, "Register requires exactly one descriptor");
+--- /dev/null
++++ b/src/workspace/control_owner.hpp
+@@ -0,0 +1,23 @@
++#pragma once
++#include "broker.pb.h"
++#include "core/protocol.hpp"
++#include <climits>
++#include <stdexcept>
++
++namespace spatial {
++// The same shape checks apply at both ends of the private control protocol.
++inline void validate_control_owner(const workspace::v1::ControlOwner& owner) {
++    validate_message(owner);
++    const auto& launch = owner.launch();
++    const auto& native = owner.native();
++    if (!(owner.issuer_id().size() == 32 && launch.participant_id().size() == 32 &&
++        launch.registered_revision() > 0 && launch.registered_revision() <= INT64_MAX &&
++        launch.generation() > 0 && launch.generation() <= INT64_MAX &&
++        launch.service_incarnation().size() == 32 && launch.launch_id().size() == 32 &&
++        launch.supervision_revision() > 0 && launch.supervision_revision() <= INT64_MAX &&
++        launch.authorization_id().size() == 32 && native.launch_id() == launch.launch_id() &&
++        native.server_id().size() == 32 && native.credential_id().size() == 32 &&
++        native.role() == security::v1::COMPOSITOR))
++        throw std::invalid_argument("Invalid control owner binding");
++}
++}
+--- /dev/null
++++ b/tests/core/test_control_reply.py
+@@ -0,0 +1,178 @@
++"""Counterexamples for the production control-reply validator, not transport authentication."""
++from pathlib import Path
++import copy
++import struct
++import subprocess
++import sys
++import unittest
++import broker_pb2 as pb
++import core_pb2 as core
++import security_pb2 as security
++
++PROBE = Path(sys.argv.pop(1)).resolve()
++
++
++def frame(message):
++    data = message.SerializeToString()
++    return struct.pack('!I', len(data)) + data
++
++
++class ReplyTests(unittest.TestCase):
++    def setUp(self):
++        self.owner = pb.ControlOwner(issuer_id=b'i'*32)
++        self.owner.launch.participant_id = b'p'*32
++        self.owner.launch.registered_revision = 1
++        self.owner.launch.generation = 2
++        self.owner.launch.service_incarnation = b's'*32
++        self.owner.launch.launch_id = b'l'*32
++        self.owner.launch.supervision_revision = 3
++        self.owner.launch.authorization_id = b'a'*32
++        self.owner.native.launch_id = b'l'*32
++        self.owner.native.server_id = b'n'*32
++        self.owner.native.credential_id = b'c'*32
++        self.owner.native.role = security.COMPOSITOR
++        self.request = pb.ControlSupervisorRequest(protocol_version=1, request_id=71, inspect=self.owner)
++        self.reply = pb.ControlSupervisorReply(protocol_version=1, request_id=71)
++        self.reply.state.owner.CopyFrom(self.owner)
++
++    def reservation(self, identifier=b'r'*32, application=b'editor'):
++        value = self.reply.state.reservations.add(id=identifier)
++        value.principal.issuer_id = b'i'*32
++        value.principal.actor_id = b'u'*32
++        value.application.workspace = b'project'
++        value.application.application = application
++        value.application.server_id = b'n'*32
++        return value
++
++    def check(self, accepted):
++        result = subprocess.run([str(PROBE)], input=frame(self.request)+frame(self.reply), capture_output=True, timeout=10)
++        for marker in (b'AddressSanitizer', b'LeakSanitizer', b'runtime error:'):
++            self.assertNotIn(marker, result.stderr)
++        self.assertEqual(result.returncode, 0 if accepted else 2, result.stderr.decode(errors='replace'))
++        if accepted:
++            self.assertEqual(result.stdout, frame(self.reply))
++        else:
++            self.assertEqual(result.stdout, b'')
++            self.assertIn(b'control reply rejected:', result.stderr)
++
++    def test_each_success_operation_preserves_exact_reply(self):
++        for operation in ('register', 'inspect', 'fence'):
++            with self.subTest(operation=operation):
++                self.request.ClearField('operation')
++                getattr(self.request, operation).CopyFrom(self.owner)
++                self.reply.state.channel_fenced = operation == 'fence'
++                self.check(True)
++
++    def test_typed_remote_error_is_preserved_as_error(self):
++        self.reply.error.code = core.NOT_FOUND
++        self.reply.error.message = 'Exact owner absent'
++        self.check(True)
++
++    def test_zero_and_unknown_error_codes_are_rejected(self):
++        for code in (0, 9999):
++            with self.subTest(code=code):
++                self.reply.error.code = code
++                self.check(False)
++
++    def test_wrong_request_id_and_version_are_rejected(self):
++        self.reply.request_id += 1
++        self.check(False)
++        self.reply.request_id = self.request.request_id
++        self.reply.protocol_version = 2
++        self.check(False)
++        self.reply.protocol_version = 1
++        self.request.protocol_version = 2
++        self.check(False)
++
++    def test_missing_request_or_reply_operation_is_rejected(self):
++        saved = copy.deepcopy(self.request)
++        self.request.ClearField('operation')
++        self.check(False)
++        self.request.CopyFrom(saved)
++        self.reply.ClearField('outcome')
++        self.check(False)
++
++    def test_owner_substitution_is_rejected(self):
++        for path in ('issuer_id', 'launch.generation', 'launch.authorization_id', 'native.credential_id', 'native.server_id'):
++            with self.subTest(path=path):
++                self.reply.state.owner.CopyFrom(self.owner)
++                target = self.reply.state.owner
++                parts = path.split('.')
++                for part in parts[:-1]:
++                    target = getattr(target, part)
++                value = getattr(target, parts[-1])
++                setattr(target, parts[-1], value+1 if isinstance(value, int) else b'x'*32)
++                self.check(False)
++
++    def test_matching_but_invalid_owner_cannot_validate_reply(self):
++        self.request.inspect.native.launch_id = b'x'*32
++        self.reply.state.owner.CopyFrom(self.request.inspect)
++        self.check(False)
++
++    def test_fence_requires_fenced_acknowledgement(self):
++        self.request.fence.CopyFrom(self.owner)
++        self.check(False)
++        self.reply.state.channel_fenced = True
++        self.check(True)
++
++    def test_registration_cannot_report_existing_reservations_or_fencing(self):
++        getattr(self.request, 'register').CopyFrom(self.owner)
++        self.reservation()
++        self.check(False)
++        self.reply.state.ClearField('reservations')
++        self.reply.state.channel_fenced = True
++        self.check(False)
++
++    def test_inspection_preserves_multiple_principals_and_fenced_reservations(self):
++        self.reservation()
++        other = self.reservation(b'v'*32, b'terminal')
++        other.principal.actor_id = b'z'*32
++        # Owner authority and actor identity are separate protocol concepts.
++        other.principal.issuer_id = b'd'*32
++        self.reply.state.channel_fenced = True
++        self.check(True)
++
++    def test_malformed_reservation_fields_are_rejected(self):
++        original = copy.deepcopy(self.reservation())
++        for path in ('id', 'principal.issuer_id', 'principal.actor_id', 'application.workspace', 'application.application', 'application.server_id'):
++            with self.subTest(path=path):
++                value = self.reply.state.reservations[0]
++                value.CopyFrom(original)
++                parts = path.split('.')
++                for part in parts[:-1]:
++                    value = getattr(value, part)
++                setattr(value, parts[-1], b'')
++                self.check(False)
++
++    def test_wrong_native_server_is_rejected(self):
++        self.reservation().application.server_id = b'x'*32
++        self.check(False)
++
++    def test_duplicate_reservation_or_application_is_rejected(self):
++        self.reservation()
++        self.reservation(application=b'terminal')
++        self.check(False)
++        self.reply.state.reservations[1].id = b'v'*32
++        self.reply.state.reservations[1].application.application = b'editor'
++        self.check(False)
++
++    def test_nested_unknown_fields_are_rejected(self):
++        self.reservation().principal.MergeFromString(b'\xf8\x07\x01')
++        self.check(False)
++
++    def test_reservation_count_and_snapshot_bounds_are_enforced(self):
++        for index in range(257):
++            self.reservation(index.to_bytes(32, 'big'), str(index).encode())
++        self.check(False)
++        self.reply.state.ClearField('reservations')
++        self.reservation(application=b'a'*60000)
++        self.check(False)
++
++    def test_packet_limit_applies_to_error_replies(self):
++        self.reply.error.code = core.INTERNAL_ERROR
++        self.reply.error.message = 'x'*65536
++        self.check(False)
++
++
++if __name__ == '__main__':
++    unittest.main()

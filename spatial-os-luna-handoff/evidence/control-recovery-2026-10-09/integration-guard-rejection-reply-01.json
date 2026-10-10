@@ -1,0 +1,13 @@
+{
+    "candidate":  "reply01",
+    "guard":  "local/integrate-control-reply-01.py",
+    "preparation_exit":  0,
+    "apply_exit":  1,
+    "reason":  "Missing final reply01 evidence for sb16",
+    "production_changed":  false,
+    "source_files":  303,
+    "base_files":  298,
+    "changed_files":  7,
+    "locked_files_unchanged":  41,
+    "full_qualification_required_on_both_hosts":  true
+}
