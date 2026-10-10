@@ -1,0 +1,19 @@
+{
+  "host": "sb16-2",
+  "argv": [
+    "sudo",
+    "-n",
+    "tune2fs",
+    "-l",
+    "/dev/nvme0n1p2"
+  ],
+  "exit_code": 0,
+  "stdout": "tune2fs 1.47.0 (5-Feb-2023)\nFilesystem volume name:   <none>\nLast mounted on:          /\nFilesystem UUID:          ce2c2bdf-76df-4226-840d-af3c8966d632\nFilesystem magic number:  0xEF53\nFilesystem revision #:    1 (dynamic)\nFilesystem features:      has_journal ext_attr resize_inode dir_index filetype needs_recovery extent 64bit flex_bg sparse_super large_file huge_file dir_nlink extra_isize metadata_csum\nFilesystem flags:         signed_directory_hash \nDefault mount options:    user_xattr acl\nFilesystem state:         clean\nErrors behavior:          Continue\nFilesystem OS type:       Linux\nInode count:              15564800\nBlock count:              62238976\nReserved block count:     3111948\nOverhead clusters:        1254569\nFree blocks:              24112257\nFree inodes:              13713904\nFirst block:              0\nBlock size:               4096\nFragment size:            4096\nGroup descriptor size:    64\nReserved GDT blocks:      1024\nBlocks per group:         32768\nFragments per group:      32768\nInodes per group:         8192\nInode blocks per group:   512\nFlex block group size:    16\nFilesystem created:       Tue Oct  6 21:48:05 2026\nLast mount time:          Tue Oct  6 22:06:46 2026\nLast write time:          Sat Oct 10 16:10:05 2026\nMount count:              2\nMaximum mount count:      -1\nLast checked:             Tue Oct  6 21:48:05 2026\nCheck interval:           0 (<none>)\nLifetime writes:          517 GB\nReserved blocks uid:      0 (user root)\nReserved blocks gid:      0 (group root)\nFirst inode:              11\nInode size:\t          256\nRequired extra isize:     32\nDesired extra isize:      32\nJournal inode:            8\nFirst orphan inode:       7077997\nDefault directory hash:   half_md4\nDirectory Hash Seed:      3418a79a-5421-483e-9170-1c96f76a45c4\nJournal backup:           inode blocks\nChecksum type:            crc32c\nChecksum:                 0x25737ea1\n",
+  "stderr": "",
+  "quota_tools": {
+    "quotaon": null,
+    "setquota": null,
+    "repquota": null
+  },
+  "changed_host_state": false
+}

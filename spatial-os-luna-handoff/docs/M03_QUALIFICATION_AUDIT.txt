@@ -1,3 +1,26 @@
+Read-only host prerequisites, 2026-10-10
+
+Both hosts expose cpu, memory, and pids under David's delegated user service.
+Both report systemd 255 and kernel 7.0.0-38-generic.
+The user service reports Delegate=yes and DelegateControllers=cpu memory pids.
+This proves controller availability. It does not prove application budget enforcement.
+No cgroup, process placement, mount, filesystem feature, or host setting changed during this inspection.
+
+Both project checkouts use the root ext4 filesystem on /dev/nvme0n1p2.
+Its recorded features include neither project nor quota. Quota administration tools were not found in the command search path.
+Do not assume a project-quota storage backend is ready.
+Select and qualify a bounded storage backend before claiming M03 storage enforcement.
+Include project files, Git objects, application state, cache, temporary files, and trash in its accounting design.
+Preserve the normal root filesystem, desktop, and recovery route during implementation.
+
+The kernel requires empty internal domain cgroups before enabling domain controllers for children.
+Prepare limits before application startup. Keep controller descriptors outside application access.
+Use the existing held-start boundary and verify inherited limits with independent descendants.
+Reference: https://docs.kernel.org/admin-guide/cgroup-v2.html#no-internal-process-constraint
+These are implementation constraints, not newly executed qualification results.
+Raw observations and hashes are in evidence/m03-host-prerequisites-2026-10-10/primary-review.json.
+M03 production work and its selected runtime checks still follow the M02 gate.
+
 M03 confinement audit, 2026-10-10
 
 Reviewed source: 54715f9a78aaa92911d2bb0a9c782f316f78902f.

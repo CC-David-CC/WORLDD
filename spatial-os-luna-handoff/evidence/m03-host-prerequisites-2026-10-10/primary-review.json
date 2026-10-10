@@ -1,0 +1,33 @@
+{
+  "status": "read_only_prerequisite_inspection_complete",
+  "reviewed_utc": "2026-10-10T20:44:01.145177+00:00",
+  "source_commit": "1302911b27807f1c5254774e4e4b36a15699b628",
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "attachments": {
+    "sb16-controls.json": "69ae49470715b1742fc41c83bba3904777857c3ad98c88bbf6c1b2224edb390e",
+    "sb16-storage.json": "444b50d4d20c30d9a2c2beb704d6d2f78496511f9ceb34da5f2446dee2aa99b3",
+    "sb16-2-controls.json": "971c8fdcd0b922182d8cc344144abe23895ab8f67a7b972ba555dc8553099365",
+    "sb16-2-storage.json": "d51593f63a35642851d94776c0bee04b92ad9ef71bb32f31e38402b28db47918"
+  },
+  "observations": [
+    "Both delegated user services expose cpu, memory, and pids controllers.",
+    "Both project directories reside on the root ext4 filesystem. Its feature list lacks project and quota.",
+    "quotaon, setquota, and repquota were absent from each command search path."
+  ],
+  "implementation_consequences": [
+    "Use delegated application and workspace cgroups with startup held until limits and membership are verified.",
+    "Design bounded storage explicitly; do not assume ext4 project quotas are available.",
+    "Keep production budget implementation separate from the live frozen M02 qualification."
+  ],
+  "primary_reference": "https://docs.kernel.org/admin-guide/cgroup-v2.html#no-internal-process-constraint",
+  "limitations": [
+    "Read-only state observations do not establish enforceable runtime budgets.",
+    "No cgroup controls, host settings, filesystem features, mounts, or process placements changed.",
+    "No builds, storage exhaustion, fork exhaustion, or application memory stress ran during this inspection.",
+    "M02 qualification and M03 implementation remain incomplete."
+  ],
+  "phase_complete": false
+}
