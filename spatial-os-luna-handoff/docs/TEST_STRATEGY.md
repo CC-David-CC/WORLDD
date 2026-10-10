@@ -28,7 +28,28 @@ The renderer's own resource counters are only diagnostics. A token permission te
 
 ## Driver loop
 
-Read one primitive ticket and the referenced assertions. First run the focused case and retain the failure. Implement the smallest production change that makes it true. Run the focused case again, then the **entire cumulative gate through that phase**. Inspect real evidence, not just the terminal's final line. Record the actual source commit, machine/build pin, command, report and remaining gaps.
+The root AGENTS.md defines the test schedule. Use focused checks during implementation. Run full qualification at the phase gate.
+
+Read the current ticket and its assertions. Record the selected test IDs and their purpose before execution.
+Select checks for the changed behavior, its callers, and affected authority boundaries.
+Reproduce defects and preserve failure evidence. Implement the production change, then run its regression and related checks.
+Run related integration scenarios when components connect.
+Include focused Debug and runtime sanitizer checks for process, descriptor, memory, input, and lifetime changes.
+Broaden testing when shared infrastructure changes or failures reveal wider effects.
+Do not rerun the complete cumulative matrix after each small change.
+
+Use the host required by each focused check. Test both hosts when behavior depends on host configuration or communication.
+Independent checks may run on both hosts in parallel. Prevent conflicts over native sessions, fixture resources, and build capacity.
+
+Review each increment and keep small Git commits. Record source and build pins, commands, results, and remaining gaps.
+Preserve unexplained failures even when later repetitions pass. Report unrun checks separately.
+Use git bisect when a reproducible regression has known good and bad commits.
+
+At the phase gate, freeze the candidate and run all required qualification on both hosts.
+Include Debug, sanitizer, harness, acceptance, and required native, cross-host, recovery, physical-input, and performance checks.
+Run the cumulative acceptance gate through the phase. Earlier requirements remain mandatory.
+After a source change, reassess affected evidence before declaring the phase complete.
+This schedule changes test frequency. It does not change acceptance requirements or locked tests.
 
 Do not mark a phase complete from `--case`. Earlier phases remain mandatory after later server changes. A failed prerequisite is BLOCKED, not skipped or passed. The runner rejects missing SUT/display configuration, altered baseline files, missing baseline test IDs, empty selections, skips and expected failures.
 
