@@ -108,5 +108,19 @@
     "evidence": "evidence/control-recovery-2026-10-09/control-reply-review-01.json",
     "production_changed": false,
     "transport_implemented": false
+  },
+  "supervisor_handoff_lifetime": {
+    "candidate": "handoff01",
+    "base": "reply01",
+    "state": "Source lifetime defect identified. Isolated three-file fix reviewed and queued; both new checks remain unrun.",
+    "source_files": 304,
+    "changed_files": 3,
+    "new_checks": 2,
+    "drivers": {
+      "sb16": 2020931,
+      "sb16-2": 1739758
+    },
+    "evidence": "evidence/control-recovery-2026-10-09/supervisor-handoff-review-01.json",
+    "production_changed": false
   }
 }

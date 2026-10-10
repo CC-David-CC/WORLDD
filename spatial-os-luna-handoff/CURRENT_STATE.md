@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-10: Supervisor descriptor handoff correction prepared
+
+Source review found retained supervisor copies of selected descriptors and child stdin/stdout after launch.
+Those copies can delay EOF after the child exits, including broker world-channel fencing.
+The isolated handoff01 draft releases the copies and reserves standard descriptor slots with /dev/null.
+It preserves management, stderr, process ownership, and native ownership.
+Two independent kernel EOF checks remain unrun. They stop only disposable test supervisors and kill their pinned children.
+
+Both frozen drivers wait for reply01 qualification before reproducing the defect or building the correction.
+The draft contains 304 source files and 41 unchanged locked files.
+Read docs/SUPERVISOR_HANDOFF_LIFETIME.txt and evidence/control-recovery-2026-10-09/supervisor-handoff-review-01.json.
+No handoff source is integrated. Binding qualification remains active; reply validation remains queued.
+Complete production control recovery and M02 remain incomplete.
+
 ## 2026-10-10: Qualified owner source adopted on both hosts
 
 Both hosts adopted commit 4779f731 with all 297 qualified source hashes.

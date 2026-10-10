@@ -1,0 +1,55 @@
+Supervisor descriptor handoff lifetime
+Status: Isolated handoff01 draft. Both new checks remain unrun.
+
+Invariant
+
+After successful child exec, the supervisor releases its copies of selected descriptors and the child's standard input and output.
+Keep the supervisor's standard descriptor slots occupied by /dev/null.
+Keep management, stderr, process ownership, and native ownership intact.
+
+Source finding
+
+AuthorityLaunch duplicates selected descriptors into the owned child.
+The supervisor retains the original selected descriptors after that handoff.
+It also retains the child stdin and stdout streams.
+These copies can prevent a peer from receiving EOF when the child dies.
+A world endpoint retained by its supervisor can delay broker channel fencing.
+This finding requires the independent runtime reproducer before integration.
+
+Correction
+
+Release the selected source copies after successful child start.
+Replace supervisor stdin and stdout with /dev/null using dup2.
+Do not shutdown the shared socket endpoint. The child's references remain valid.
+Keep slots 0 and 1 occupied because private descriptor helpers require descriptors above stderr.
+Retain stderr for failure diagnostics.
+Do not transfer or close the supervisor's management channel or native ownership handles.
+No protocol schema or locked acceptance file changes.
+
+Independent checks
+
+Run a real production supervisor, issuer, native server, and owned participant child.
+Wait for the child's real activation.
+Pin the supervisor and child with pidfds.
+Stop only that disposable supervisor and confirm its kernel stopped state.
+Kill only its pinned child and confirm child exit through the retained pidfd.
+Observe kernel EOF on the selected endpoint and child stdout before resuming the supervisor.
+The preceding implementation should retain both endpoints and fail the two EOF assertions.
+Resume the supervisor in every cleanup path.
+Then check its actual process and native cleanup records.
+
+Evidence limits
+
+These checks prove descriptor-reference lifetime, not native cancellation or reservation cleanup.
+The supervisor still owns checked process cleanup and native revocation.
+The broker still preserves fenced reservations until selective recovery is verified.
+Do not issue an issuer-retirement receipt from EOF alone.
+
+Qualification
+
+The draft contains 304 source files and 41 unchanged locked files.
+Qualification waits for successful reply01 completion on each host.
+Preserve both baseline failures before building the correction.
+Run both new checks and full Debug and sanitizer profiles on both hosts.
+Expected totals are 1498 core checks across 103 suites, 51 harness checks, 151 P10 cases, and three native-world checks.
+Expected totals are not execution results.

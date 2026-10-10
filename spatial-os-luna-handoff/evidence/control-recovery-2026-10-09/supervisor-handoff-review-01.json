@@ -1,0 +1,29 @@
+{
+  "reviewer": "primary agent",
+  "candidate": "handoff01",
+  "base": "reply01",
+  "source_files": 304,
+  "reviewed_files": [
+    "CMakeLists.txt",
+    "src/supervisor/main.cpp",
+    "tests/native/test_supervisor_handoff_lifetime.py"
+  ],
+  "locked_files_unchanged": 41,
+  "new_checks": 2,
+  "test_status": "unrun",
+  "production_changed": false,
+  "integration_ready": false,
+  "invariant": "After successful child exec, the supervisor retains no source copy of selected descriptors or child stdin/stdout. Standard descriptor slots remain occupied by /dev/null.",
+  "review": "The child retains its mapped descriptors. The supervisor retains management, stderr, process handles, and native ownership. Tests pin and stop only disposable test processes, then independently observe kernel EOF after owned-child death.",
+  "remaining": [
+    "Preserve the baseline failure against the preceding candidate.",
+    "Run corrected Debug and sanitizer checks on both hosts.",
+    "Run cumulative qualification before integration."
+  ],
+  "drivers": {
+    "sb16": 2020931,
+    "sb16-2": 1739758
+  },
+  "driver_sha256": "8b36d5b67e3baef2b028553bc0ed06e2f603945b13f21b729043e97dcc2b6755",
+  "qualification": "Both drivers wait for exact reply01 exit and success. The baseline must produce two failures with no test errors before corrected builds."
+}

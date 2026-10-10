@@ -544,3 +544,9 @@ Both checkouts are clean. Sessions and operator state were preserved. Active qua
 Adoption evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/adoption-review-04.json.
 Binding01 full Debug passed on sb16: 1480 core / 101 suites, 51 harness, 151 P10, and three native-world checks.
 Binding sanitizer qualification on sb16 and full Debug on sb16-2 remain active. Complete recovery remains pending.
+
+2026-10-10: Supervisor main retains selected descriptor copies and child stdin/stdout after handoff.
+These copies can delay kernel EOF after child exit and broker world-channel fencing.
+Prepared handoff01: release the copies, reserve slots 0/1 with /dev/null, preserve management/stderr/native/process ownership.
+Two kernel EOF witnesses are unrun. Drivers wait after reply01: sb16 PID2020931; sb16-2 PID1739758.
+Read spatial-os-luna-handoff/docs/SUPERVISOR_HANDOFF_LIFETIME.txt. No production handoff code is integrated.
