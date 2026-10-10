@@ -18,7 +18,12 @@ launch=json.loads((r/'local/m02-control-binding-01/launch.json').read_text())
 try:active=(Path('/proc')/str(launch['pid'])/'cmdline').read_bytes()
 except FileNotFoundError:active=b''
 assert b'qualify-control-binding-01.py' not in active,'Full qualification is still active'
-assert git('status','--porcelain')=='' and git('branch','--show-current')=='main'
+assert git('branch','--show-current')=='main'
+entries=[x for x in subprocess.check_output(['git','-C',str(repo),'status','--porcelain','-z']).decode().split('\0') if x]
+dirty_paths=[]
+for entry in entries:
+    assert entry.startswith(' M ') and entry[3:]=='spatial-os-luna-handoff/local/collect-control-owner-qualified.py', 'Unexpected local checkout change: '+entry
+    dirty_paths.append(entry[3:])
 assert git('remote','get-url','origin')=='dflanag3@box-git:/srv/data/git/spacial_desktop.git'
 manifest=json.loads((r/'local/m02-control-binding-01/manifest.json').read_text())['files']
 assert len(manifest)==298
@@ -57,6 +62,11 @@ helpers=('local/test_control_owner_world_01.py','local/test_control_owner_bindin
 for name in helpers:
     target=subprocess.check_output(['git','-C',str(repo),'show',expected+':spatial-os-luna-handoff/'+name])
     assert (r/name).read_bytes()==target, 'Checkout would change a qualification helper: '+name
+# Only the exact collector bytes already verified above may enter the target index.
+# Staging changes no runtime input; the fast-forward consumes that matching blob.
+if dirty_paths:
+    subprocess.run(['git','-C',str(repo),'add','--',*dirty_paths],check=True)
+subprocess.run(['git','-C',str(repo),'read-tree','--dry-run','-m','-u','HEAD',expected],check=True)
 subprocess.run(['git','-C',str(repo),'merge','--ff-only',expected],check=True,stdout=subprocess.DEVNULL)
 assert git('rev-parse','HEAD')==expected and git('status','--porcelain')==''
 assert all(sha(r/n)==v for n,v in manifest.items())

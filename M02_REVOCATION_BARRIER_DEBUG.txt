@@ -571,3 +571,8 @@ Both-host sanitizer qualification and handoff lifetime checks remain pending.
 Each host/profile: 1480 core / 101 suites, 51 harness, 151 P10, and three native-world checks. No final failures, skips, or compiler overlap.
 The owner query derives identity from retained launch handles. It does not prove activation or cleanup.
 Coordinator, administrative transport, selective recovery release, and issuer retirement remain incomplete.
+
+Binding adoption stopped at the clean-checkout guard on both hosts. Only the tracked evidence collector differed.
+Corrected the helper to permit only collector bytes that exactly match the reviewed target commit.
+It stages those unchanged bytes and checks fast-forward feasibility; all other local changes remain rejected.
+Failure evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/binding-adoption-collector-state-failure-01.json.

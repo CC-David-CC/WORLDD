@@ -1,0 +1,15 @@
+{
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "command": "adopt-control-binding-01.py 86f2ddaf66142d1b3094d4e0ccac689b136a4d14",
+  "exit_code": 1,
+  "failure": "Clean-checkout assertion rejected the updated tracked evidence collector.",
+  "observed_paths": [
+    "spatial-os-luna-handoff/local/collect-control-owner-qualified.py"
+  ],
+  "mutation_boundary": "Stopped before fetch or checkout mutation.",
+  "correction": "Permit only that collector update, require exact equality with the target Git blob, stage its unchanged bytes, and check fast-forward feasibility. Reject all other local changes.",
+  "status": "Corrected helper; adoption retry pending."
+}
