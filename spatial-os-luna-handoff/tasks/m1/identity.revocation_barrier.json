@@ -2,7 +2,7 @@
   "id": "identity.revocation_barrier",
   "phase": "M02",
   "status": "in_progress",
-  "current_step": "supervisor02_full_runtime_sanitizer_qualification",
+  "current_step": "dependent_control_reservation_recovery",
   "scope": "Confirm distributed cancellation before reporting completed revocation",
   "profile": "tasks/spatial-m1.json",
   "preceding_component": "identity.world_session",
@@ -35,7 +35,7 @@
     "No model inference or additional host is needed for this component.",
     "Do not modify the active remote-transport candidate."
   ],
-  "next_test": "Finish exact supervisor candidate02 full runtime sanitizer qualification on sb16 and sb16-2. Full Debug passed on both hosts. Collect final evidence, apply the reviewed guarded integration, and run the queued real-broker handoff baseline. Do not restart live workers.",
+  "next_test": "The native reservation gap is reproduced on both hosts. Bind reservations to exact recovery ownership, then prove selective cleanup without terminating independently authorized applications.",
   "limitations": [
     "Issuer barrier and checked process cleanup are integrated and adopted on both hosts.",
     "Combined candidate04 passed 1226 core checks and failed one self-revocation receipt test on each host. Debug P10 and runtime sanitizer were unrun after that failure.",
@@ -57,6 +57,15 @@
   ],
   "next_component_design": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "current_supervisor": {
+    "source_files": 294,
+    "integrated": true,
+    "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+    "full_debug": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+    "full_runtime_sanitizers": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+    "evidence": "evidence/supervisor-crash-fencing-2026-10-09",
+    "remaining": "Dependent control cleanup, verified cleanup receipts, issuer retirement, replacement recovery, and cross-host cancellation."
+  },
+  "historical_supervisor": {
     "candidate": 2,
     "source_files": 281,
     "integrated": true,
@@ -66,5 +75,6 @@
     "full_runtime_sanitizers": "Passed on both hosts: 1383 core checks, 51 harness checks, and 151 P10 cases per host; zero failures or skips.",
     "evidence": "evidence/authority-supervisor-2026-10-09",
     "next_component": "tasks/m1/identity.supervisor_broker_handoff.json"
-  }
+  },
+  "control_recovery_task": "tasks/m1/identity.control_recovery.json"
 }

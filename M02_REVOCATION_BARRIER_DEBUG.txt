@@ -401,3 +401,9 @@ The first diagnostic launcher failed during imports because spatial-security-aut
 Its failure and the cancelled waiting copy are preserved; corrected assertions passed on both hosts.
 CTest inventory queries rewrite ancillary LastTest.log timestamps. Complete captured suite logs remain the execution evidence.
 No operator session or database changed. M02 and full Spatial-M1 remain incomplete.
+
+2026-10-09: Exact source adopted
+Commit a3a926d51b89a2715486fa52ab81ecfc57584ff2 is adopted cleanly on sb16 and sb16-2.
+All294 source hashes match qualification. No runtime restart or operator-state migration occurred.
+The next task is spatial-os-luna-handoff/tasks/m1/identity.control_recovery.json.
+M02 remains incomplete until dependent control cleanup, verified retirement, and cross-host cancellation pass.

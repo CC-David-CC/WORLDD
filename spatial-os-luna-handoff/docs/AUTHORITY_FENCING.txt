@@ -1,5 +1,5 @@
 Authority fencing
-Status: Proposed additive contract. Production fencing is not implemented.
+Status: Qualified, integrated at a3a926d, and adopted on both hosts. Complete recovery remains pending.
 
 Invariant
 

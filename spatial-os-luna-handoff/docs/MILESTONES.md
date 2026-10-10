@@ -17,21 +17,23 @@ Existing components provide partial implementation where CURRENT_STATE.md record
 The mandatory profile is tasks/spatial-m1.json.
 See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
 
-The latest fully qualified production increment is the broker native handoff at f4c4148.
-Both hosts adopted all 283 qualified source hashes without restarting sessions or migrating operator state.
-Both hosts passed full Debug and runtime ASan/UBSan qualification.
-Each profile passed 1,393 core checks across 93 suites, 51 harness checks, and 151 P10 cases.
+The latest fully qualified production increment is native world handoff and authority crash fencing at a3a926d.
+Both hosts adopted all 294 qualified source hashes without restarting sessions or migrating operator state.
+Both hosts passed full Debug and runtime ASan, LeakSanitizer, and UBSan qualification.
+Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases.
+Four unchanged supervised-world integration checks also passed in every host/profile combination.
 No final case failed or skipped. All integrated source hashes match the qualified manifests.
-World handoff and issuer/supervisor fencing candidates remain isolated after cumulative qualification failures.
-A diagnostic reproduced authority-channel loss after an 881 ms issuer event-loop gap exceeded a 700 ms client deadline.
-A syscall trace identified consecutive durable sync calls exceeding that deadline during compilation.
-The combined294 candidate passed full Debug on both hosts: 1453 core checks, 51 harness checks, and 151 P10 cases each.
-Its full runtime sanitizer qualification continues without compiler overlap. Production integration remains pending.
-Read evidence/supervisor-crash-fencing-2026-10-09/serial-debug-results-review-02.json.
-Diagnostic passes do not establish candidate qualification.
-Complete trusted recovery, fencing, and cross-host cancellation remain required.
-See evidence/supervisor-broker-handoff-2026-10-09 for the qualified production increment.
-See evidence/world-bootstrap-runtime-failure-2026-10-09 for preserved failures and transport diagnostics.
+Read evidence/supervisor-crash-fencing-2026-10-09/integration-primary-review-04.json and adoption-review-04.json in that folder.
+
+A reproduced authority timeout came from durable sync latency during concurrent compilation.
+The final qualification used unchanged source, assertions, deadlines, and durability settings without compiler overlap.
+Original failed runs remain preserved. The diagnosis does not individually prove every historical failure's cause.
+Read evidence/world-bootstrap-runtime-failure-2026-10-09/issuer-sync-review-09.json.
+
+Both hosts reproduced the remaining control-reservation recovery gap after world death and verified native input release.
+The application remained responsive. Its broker reservation still required explicit diagnostic release.
+Next: implement exact recovery ownership and dependent control cleanup, then verified issuer retirement and cross-host cancellation.
+Read docs/CONTROL_RECOVERY_BASELINE.txt. M02 remains incomplete.
 The original P00-P10 baseline and walkthrough evidence remain in evidence/walkthroughs-2026-10-07.
 
 Qualified components now include actor identity, persistent grants, confined execution, and several native X isolation boundaries.

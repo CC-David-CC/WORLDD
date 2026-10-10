@@ -2,10 +2,10 @@
   "id": "identity.supervisor_fencing",
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
-  "status": "in_progress",
+  "status": "complete",
   "contract": "docs/SUPERVISOR_AUTHORITY_FENCING.txt",
   "evidence": "evidence/supervisor-fencing-2026-10-09",
-  "production_changed": false,
+  "production_changed": true,
   "invariant": "Only retained exact launch ownership can request and persist an issuer fence before checked fenced cleanup.",
   "candidate": {
     "number": 1,
@@ -15,19 +15,28 @@
     "locked_files_unchanged": 41
   },
   "baseline": "One confirmed missing-operation failure per host/profile; four profiles total.",
-  "qualification": "Full Debug passed on both hosts. Full runtime sanitizers failed two test methods on sb16 and three on sb16-2. Runtime P10 is unrun.",
-  "remaining": [
-    "Qualify new and existing checks in both profiles on both hosts.",
-    "Complete cumulative qualification and review before integration.",
-    "Keep automatic crash coordination, dependent control cleanup, and issuer retirement as required recovery work."
-  ],
+  "qualification": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+  "remaining": [],
   "debug_review": "evidence/supervisor-fencing-2026-10-09/debug-results-review-01.json",
   "focused_review": "evidence/supervisor-fencing-2026-10-09/focused-results-review-01.json",
-  "integration_dependency": "Resolve world bootstrap authority-channel failure before integrating the candidate chain.",
   "full_debug_review": "evidence/supervisor-fencing-2026-10-09/full-debug-review-01.json",
   "terminal_drivers": {
     "sb16": 1266474,
     "sb16_2": 1047059
   },
-  "full_failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/full-failure-review-04.json"
+  "full_failure_review": "evidence/world-bootstrap-runtime-failure-2026-10-09/full-failure-review-04.json",
+  "historical_qualification": "Full Debug passed on both hosts. Full runtime sanitizers failed two test methods on sb16 and three on sb16-2. Runtime P10 is unrun.",
+  "integration": {
+    "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+    "source_files": 294,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "source_delta": "none: exact frozen294",
+    "review": "evidence/supervisor-crash-fencing-2026-10-09/integration-primary-review-04.json",
+    "adoption": "evidence/supervisor-crash-fencing-2026-10-09/adoption-review-04.json"
+  },
+  "followup_task": "tasks/m1/identity.control_recovery.json",
+  "historical_integration_dependency": "Resolve world bootstrap authority-channel failure before integrating the candidate chain."
 }

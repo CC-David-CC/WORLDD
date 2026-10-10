@@ -3,7 +3,7 @@
   "phase": "M02",
   "parent": "identity.revocation_barrier",
   "status": "in_progress",
-  "current_step": "world_and_fencing_full_qualification_then_supervisor_receipts_and_retirement",
+  "current_step": "dependent_control_reservation_recovery",
   "invariant": "Retire a crashed authority generation only after its registered supervisor verifies all required external cleanup.",
   "contract": "docs/AUTHORITY_SUPERVISOR_RECOVERY.txt",
   "evidence": "evidence/participant-recovery-2026-10-09",
@@ -20,13 +20,11 @@
     "recovery_qualified": false
   },
   "remaining": [
-    "Complete world/compositor full qualification and source integration.",
-    "Complete issuer fencing qualification and integration. Connect the production supervisor to exact fencing.",
-    "Bind registered supervisor cleanup proofs to exact launches and fenced generations.",
-    "Reject stale service connections and unauthorized replacement activation.",
-    "Verify dependent application-control reservation cleanup before retirement.",
-    "Test crash recovery, concurrent revocation, replay, and issuer or supervisor failure.",
-    "Qualify Debug and runtime sanitizer profiles on both hosts."
+    "Bind control reservations to retained exact recovery ownership.",
+    "Verify dependent application-control cleanup before retirement.",
+    "Persist verified cleanup receipts and retire only the exact fenced issuer generation.",
+    "Test replacement recovery, concurrent revocation, replay, and issuer or supervisor failure.",
+    "Complete cross-host cancellation and full M02 qualification."
   ],
   "process_scope": {
     "candidate": 3,
@@ -61,13 +59,13 @@
   "authority_supervisor_task": "tasks/m1/identity.authority_supervisor.json",
   "native_configuration_ownership": "docs/NATIVE_SCOPE_DESCRIPTOR_OWNERSHIP.txt",
   "current_supervisor": {
-    "source_files": 283,
+    "source_files": 294,
     "integrated": true,
-    "commit": "f4c41482aa9d92eec42436bf0c73dadb8674a6e5",
-    "full_debug": "Both hosts passed1393 core checks across93 suites,51 harness checks,151 P10 cases.",
-    "full_runtime_sanitizers": "Both hosts passed the same1393/93+51+151 with zero failures or skips.",
-    "evidence": "evidence/supervisor-broker-handoff-2026-10-09",
-    "remaining": "World full qualification/integration, fencing, verified recovery, and issuer retirement."
+    "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+    "full_debug": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+    "full_runtime_sanitizers": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+    "evidence": "evidence/supervisor-crash-fencing-2026-10-09",
+    "remaining": "Dependent control cleanup, verified cleanup receipts, issuer retirement, replacement recovery, and cross-host cancellation."
   },
   "supervised_broker_participation_task": "tasks/m1/identity.supervised_broker_participation.json",
   "supervisor_world_handoff_task": "tasks/m1/identity.supervisor_world_handoff.json",
@@ -99,5 +97,15 @@
       "Test replacement, recovery races, and cross-host cancellation."
     ]
   },
-  "supervisor_fencing_task": "tasks/m1/identity.supervisor_fencing.json"
+  "supervisor_fencing_task": "tasks/m1/identity.supervisor_fencing.json",
+  "historical_supervisor": {
+    "source_files": 283,
+    "integrated": true,
+    "commit": "f4c41482aa9d92eec42436bf0c73dadb8674a6e5",
+    "full_debug": "Both hosts passed1393 core checks across93 suites,51 harness checks,151 P10 cases.",
+    "full_runtime_sanitizers": "Both hosts passed the same1393/93+51+151 with zero failures or skips.",
+    "evidence": "evidence/supervisor-broker-handoff-2026-10-09",
+    "remaining": "World full qualification/integration, fencing, verified recovery, and issuer retirement."
+  },
+  "control_recovery_task": "tasks/m1/identity.control_recovery.json"
 }

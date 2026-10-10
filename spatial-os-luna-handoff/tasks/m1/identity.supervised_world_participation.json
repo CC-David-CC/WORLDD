@@ -1,7 +1,7 @@
 {
   "id": "identity.supervised_world_participation",
   "phase": "M02",
-  "status": "in_progress",
+  "status": "complete",
   "parent": "identity.supervisor_recovery",
   "contract": "docs/SUPERVISED_WORLD_PARTICIPATION.txt",
   "evidence": "evidence/supervised-world-participation-2026-10-09",
@@ -12,9 +12,21 @@
     "test_revocation_waits_for_world_cancellation_and_denies_further_actor_actions",
     "test_world_crash_cleans_native_processes_but_retains_issuer_obligation"
   ],
-  "qualification": "Both hosts passed all four checks in Debug and runtime ASan/UBSan against unchanged candidate02. Raw evidence independently reviewed.",
-  "remaining": [
-    "Complete full world candidate qualification and integrate its reviewed source."
-  ],
-  "scope": "These local integration checks do not complete trusted recovery or cross-host cancellation."
+  "qualification": "Both hosts passed all four unchanged checks in both profiles on exact combined294. Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
+  "remaining": [],
+  "scope": "These local integration checks do not complete trusted recovery or cross-host cancellation.",
+  "historical_qualification": "Both hosts passed all four checks in Debug and runtime ASan/UBSan against unchanged candidate02. Raw evidence independently reviewed.",
+  "integration": {
+    "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+    "source_files": 294,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "source_delta": "none: exact frozen294",
+    "review": "evidence/supervisor-crash-fencing-2026-10-09/integration-primary-review-04.json",
+    "adoption": "evidence/supervisor-crash-fencing-2026-10-09/adoption-review-04.json"
+  },
+  "followup_task": "tasks/m1/identity.control_recovery.json",
+  "combined_review": "evidence/supervised-world-participation-2026-10-09/combined-results-review-02.json"
 }

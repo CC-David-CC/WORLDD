@@ -1,0 +1,28 @@
+{
+  "reviewer": "primary agent",
+  "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+  "hosts": {
+    "sb16": {
+      "host": "sb16",
+      "before": "f4c41482aa9d92eec42436bf0c73dadb8674a6e5",
+      "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+      "source_hashes_matched": 294,
+      "qualified_source_exact": true,
+      "worktree_clean": true,
+      "runtime_restarted": false,
+      "operator_state_migrated": false
+    },
+    "sb16-2": {
+      "host": "sb16-2",
+      "before": "f4c41482aa9d92eec42436bf0c73dadb8674a6e5",
+      "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+      "source_hashes_matched": 294,
+      "qualified_source_exact": true,
+      "worktree_clean": true,
+      "runtime_restarted": false,
+      "operator_state_migrated": false
+    }
+  },
+  "source_files": 294,
+  "operator_state_changed": false
+}

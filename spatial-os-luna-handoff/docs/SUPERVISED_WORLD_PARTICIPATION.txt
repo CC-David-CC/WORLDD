@@ -30,7 +30,7 @@ Preserve the unresolved issuer obligation after that crash.
 Execution and scope
 
 Run Debug and runtime ASan/UBSan on both authorized hosts.
-Use the frozen 290-file candidate after its focused qualification passes.
+The four unchanged checks also passed on integrated combined294 in both profiles on both hosts.
 Verify all source, acceptance-lock, and relevant binary hashes before execution.
 Run in unique disposable systemd units, databases, and native displays.
 Full cumulative qualification remains required before candidate integration.

@@ -1,5 +1,5 @@
 Supervisor authority fencing
-Status: Contract recorded. Production integration is pending.
+Status: Qualified, integrated at a3a926d, and adopted on both hosts. Complete recovery remains pending.
 
 Invariant
 

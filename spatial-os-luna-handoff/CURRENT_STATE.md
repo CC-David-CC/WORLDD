@@ -1,5 +1,20 @@
 # Implementation status
 
+## 2026-10-09: Qualified native handoff and crash fencing adopted on both hosts
+
+Commit a3a926d integrates the exact 294-file qualified source.
+Both host checkouts fast-forwarded cleanly. All 294 source hashes match the qualification manifest.
+No runtime restarted. No operator database migrated.
+Each host/profile passed 1,453 core checks, 51 harness checks, and 151 P10 cases.
+Four additional supervised-world integration checks passed in each host/profile combination.
+Read evidence/supervisor-crash-fencing-2026-10-09/adoption-review-04.json.
+
+The native world handoff, issuer fencing, explicit supervisor fencing, and automatic crash-fencing primitives are complete.
+Supervised-world participation is verified on the integrated source.
+The next task is tasks/m1/identity.control_recovery.json.
+Both hosts reproduced its dependent reservation gap. The production fix is not implemented.
+M02, Spatial-M1, physical-device acceptance, and LOCAL_READY remain incomplete.
+
 ## 2026-10-09: Combined294 passes both full profiles and enters source integration
 
 Both hosts passed full Debug and runtime ASan, LeakSanitizer, and UBSan qualification.

@@ -1,5 +1,5 @@
 Supervisor world and compositor native handoff
-Status: Thirteen focused Debug checks pass on both hosts. Candidate02 full qualification is active.
+Status: Qualified, integrated at a3a926d, and adopted on both hosts. Complete recovery remains pending.
 
 Invariant
 

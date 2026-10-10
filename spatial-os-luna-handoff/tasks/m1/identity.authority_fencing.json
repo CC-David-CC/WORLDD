@@ -2,26 +2,35 @@
   "id": "identity.authority_fencing",
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
-  "status": "in_progress",
+  "status": "complete",
   "contract": "docs/AUTHORITY_FENCING.txt",
   "evidence": "evidence/authority-fencing-2026-10-09",
-  "production_changed": false,
+  "production_changed": true,
   "invariant": "Only the registered supervisor can fence its exact active authorized generation; fencing preserves unresolved cleanup obligations.",
   "baseline": "Both hosts returned INVALID_ARGUMENT: Unknown protobuf fields for the new fence request in Debug and runtime ASan/UBSan. Each profile has one expected missing-feature failure. Durable state remained unchanged.",
-  "remaining": [
-    "Complete both-host focused and cumulative qualification. Preserve and resolve any failure.",
-    "Review exact client/server authority boundaries and migration counterexamples.",
-    "Integrate only after both-host Debug/runtime sanitizers pass; world candidate qualification remains required."
-  ],
+  "remaining": [],
   "scope": "Fencing alone does not complete recovery. Verified cleanup receipts and issuer retirement remain required.",
   "candidate": "Frozen candidate01: 292 files, 18 changed files, 26 new checks. Both hosts passed focused Debug.",
   "candidate_review": "evidence/authority-fencing-2026-10-09/candidate-prepared-review-01.json",
-  "implementation_status": "Implemented in isolated source. Full cumulative qualification and production integration remain pending.",
-  "qualification": "sb16-2 passed full Debug and runtime ASan/UBSan. sb16 passed Debug; runtime core failed one owner-idle bootstrap check.",
+  "implementation_status": "Qualified, integrated, and adopted on both hosts.",
+  "qualification": "Both hosts passed full Debug and runtime ASan/LeakSanitizer/UBSan. Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases. No failures or skips.",
   "debug_review": "evidence/authority-fencing-2026-10-09/debug-results-review-01.json",
   "focused_review": "evidence/authority-fencing-2026-10-09/focused-results-review-01.json",
   "real_world_review": "evidence/supervised-world-fencing-2026-10-09/results-review-01.json",
   "full_debug_review": "evidence/authority-fencing-2026-10-09/full-debug-results-review-01.json",
-  "integration_dependency": "Resolve bootstrap participant-channel failures; do not replace failed qualification with passing repetitions.",
-  "full_review": "evidence/authority-fencing-2026-10-09/full-results-review-02.json"
+  "full_review": "evidence/authority-fencing-2026-10-09/full-results-review-02.json",
+  "historical_qualification": "sb16-2 passed full Debug and runtime ASan/UBSan. sb16 passed Debug; runtime core failed one owner-idle bootstrap check.",
+  "integration": {
+    "commit": "a3a926d51b89a2715486fa52ab81ecfc57584ff2",
+    "source_files": 294,
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "source_delta": "none: exact frozen294",
+    "review": "evidence/supervisor-crash-fencing-2026-10-09/integration-primary-review-04.json",
+    "adoption": "evidence/supervisor-crash-fencing-2026-10-09/adoption-review-04.json"
+  },
+  "followup_task": "tasks/m1/identity.control_recovery.json",
+  "historical_integration_dependency": "Resolve bootstrap participant-channel failures; do not replace failed qualification with passing repetitions."
 }

@@ -1,5 +1,5 @@
 Authority supervisor recovery
-Status: crash witnesses verified. Supervisor recovery is not implemented.
+Status: Launch ownership and fencing are qualified. Dependent control cleanup and verified retirement remain unimplemented.
 
 Invariant
 

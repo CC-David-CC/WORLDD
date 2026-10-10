@@ -1,6 +1,5 @@
 Automatic supervisor crash fencing
-Status: Missing behavior reproduced. Candidate01 is implemented. Qualification is running.
-Production integration remains pending.
+Status: Qualified, integrated at a3a926d, and adopted on both hosts. Complete recovery remains pending.
 
 Invariant
 
