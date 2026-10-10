@@ -1,0 +1,26 @@
+{
+    "candidate":  "control-admin-transport-draft-01",
+    "reviewer":  "primary agent",
+    "state":  "Isolated draft. Not compiled or integrated.",
+    "files":  [
+                  "src/supervisor/control_admin.hpp",
+                  "src/supervisor/control_admin.cpp"
+              ],
+    "tests":  "unrun",
+    "production_transport_implemented":  false,
+    "review_corrections":  [
+                               "Duplicate the retained supervisor pidfd instead of opening a fresh PID handle."
+                           ],
+    "required_checks":  [
+                            "Exact live broker child credentials.",
+                            "Reject wrong process and UID.",
+                            "Reject received descriptors without leaks.",
+                            "Reject oversized and truncated packets.",
+                            "Preserve typed remote errors.",
+                            "Reject correlation and owner mismatches.",
+                            "Timeout leaves uncertain effects and closes transport.",
+                            "Real supervised broker registration, inspect, and fence.",
+                            "Cumulative Debug and runtime sanitizers on both hosts."
+                        ],
+    "remaining":  "Add thin transport probe, independent subprocess witnesses, build integration, and coordinator endpoint mapping."
+}
