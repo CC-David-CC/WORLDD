@@ -3,6 +3,7 @@ M02 gate coverage map
 Scope: delegation and immediate scoped revocation in tasks/spatial-m1.json and docs/MILESTONES.md.
 This map identifies required evidence. It does not mark the phase complete.
 Read CURRENT_STATE.md for current execution results and preserved failures.
+Read docs/M02_QUALIFICATION_AUDIT.txt for the frozen candidate and witness review.
 Older authority task limitations describe earlier component boundaries. Do not treat them as current implementation status.
 
 1. Structural authority and delegation

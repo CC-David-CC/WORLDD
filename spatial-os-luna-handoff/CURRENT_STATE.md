@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-10: Complete M02 candidate qualification started on both hosts
+
+The reviewed timing diagnostics are committed and pushed to box-git at 54715f9a78aaa92911d2bb0a9c782f316f78902f.
+The gate archive freezes all 351 source inputs and preserves all 41 locked files.
+Its SHA-256 is 2755d25b62b9acdd2d2b8b6f4a71460a46de0dcf544e9beb63e14b574e16eb51.
+Both hosts started isolated Debug and runtime sanitizer builds. Builds precede tests on each host.
+The selected matrix includes all registered CTest suites, 51 harness cases, and 151 P00-P10 cases per profile.
+The runner records resource pressure, compiler overlap, source pins, binary pins, and command results.
+Read docs/M02_QUALIFICATION_AUDIT.txt for the requirement and witness review.
+Cross-host and mutation evidence still need reassessment against this candidate.
+The historical startup and timeout failures remain open. This launch does not certify a phase.
+M02 and Spatial-M1 remain incomplete. No normal desktop or operator database changed.
+
 ## 2026-10-10: Client and issuer timing diagnostics pass focused qualification
 
 The client now reports the failed transport stage and bounded timing counters.

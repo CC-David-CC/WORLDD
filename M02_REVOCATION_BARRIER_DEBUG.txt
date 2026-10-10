@@ -940,3 +940,19 @@ Evidence: spatial-os-luna-handoff/evidence/control-recovery-2026-10-09/participa
 An older compiler-overlap diagnosis found slow durable writes. It does not prove the newer failure cause.
 Next: M02 evidence audit and broader both-host qualification with timing and resource evidence.
 All 351 source hashes and 41 unchanged locked files verified. M02 and Spatial-M1 remain incomplete.
+
+2026-10-10 both-host gate launch
+Reviewed diagnostics committed and pushed to box-git: 54715f9a78aaa92911d2bb0a9c782f316f78902f.
+Verified 745 staged blobs, including 376 byte-identical raw attachments.
+The preparation check found all 23 concrete structural, world, and workspace cases named in the coverage map.
+It also found no tracked source, schema, test, harness, native, configuration, or tool input missing from the archive.
+Source archive: local/m02-phase-gate-source-01.tar under spatial-os-luna-handoff.
+SHA-256: 2755d25b62b9acdd2d2b8b6f4a71460a46de0dcf544e9beb63e14b574e16eb51.
+Both sb16 and sb16-2 started local/m02-phase-gate-01 builds after workload checks.
+The retained runner PIDs were verified as 2714666 on sb16 and 2202390 on sb16-2.
+Tool sessions: 29732 and 19307. Recheck actual process or session state before acting.
+Both profiles build before tests. Compilation uses two jobs per host.
+All registered CTest suites, 51 harness cases, and 151 P10 cases are selected per host/profile.
+Resource pressure and compiler overlap are recorded without TLS payload tracing.
+Cross-host and mutation evidence still need candidate-specific reassessment.
+The historical failures remain open. M02 and Spatial-M1 remain incomplete.

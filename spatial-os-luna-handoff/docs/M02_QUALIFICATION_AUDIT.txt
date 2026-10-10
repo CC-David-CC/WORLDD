@@ -1,0 +1,80 @@
+M02 qualification audit, 2026-10-10
+
+Candidate: 54715f9a78aaa92911d2bb0a9c782f316f78902f.
+Source archive SHA-256: 2755d25b62b9acdd2d2b8b6f4a71460a46de0dcf544e9beb63e14b574e16eb51.
+The archive contains 351 source files and the same 41 locked files.
+All tracked source, schema, test, harness, native, configuration, and tool inputs are included.
+This audit defines evidence coverage. It does not certify M02 completion.
+
+1. Structural delegation
+The production authority store checks authenticated subjects, scope containment, rights, depth, and the complete parent chain.
+Its check method accepts one valid grant chain. It does not combine siblings into a wider delegation.
+Review locations: src/authority/store.cpp, Store::delegate, Impl::active, and Impl::check.
+tests/core/test_authority.py exercises denied widening, explicit delegation, parent revocation, and independent surviving grants.
+It also checks restart persistence and database failure through the production store.
+The fixture principal is not evidence of transport authentication. The world tests provide that separate layer.
+
+2. World authority
+tests/core/test_world_authority.py uses authenticated actor sessions and the production world daemon.
+The selected cases check caller identity, separate workspace authority, revoked ancestors, scoped objects, and cancelled object drafts.
+The coverage map names seven concrete assertions for this boundary.
+Additional observation revocation checks cover removal of an existing object lease.
+
+3. Workspace and execution authority
+tests/core/test_workspace_authority.py checks actual confined processes and project-file effects.
+Credential or access revocation can preserve independently authorized execution.
+Actor or required execution revocation must stop the affected process tree.
+Independent execution grants preserve the process. A narrow file scope cannot authorize a whole-project mount.
+The surviving-process cases require the process to write its completion file after revocation.
+The termination cases check real process disappearance and absent completion effects.
+
+4. Observation and application control
+The application-access, application-observation, application-control-lease, and world-application-control suites cover separate decisions.
+tests/core/test_world_application_control.py checks actual application events and native input release.
+Observation alone does not permit control. Read-only authority cannot control a writable application.
+Control revocation releases input while the independently authorized application stays mapped and observable.
+Observation revocation removes pixels and cancels control. Independent control grants remain usable.
+These checks use the dedicated software display. They do not certify physical devices or GPU performance.
+
+5. Distributed completion
+Participant barrier, checked client, and participant runtime suites cover durable obligations and acknowledgement validation.
+Connection loss cannot count as completed cancellation.
+The previous cross-host cancellation and recovery runs cover both directions and both build profiles.
+Their evidence is under evidence/control-recovery-2026-10-09/crosshost-cancellation-03 and crosshost-recovery-02.
+Those older binary pins do not qualify this new candidate automatically.
+Repeat the required cross-host scenarios after the local candidate checks and reassess their independent witnesses.
+
+6. Recovery and operator completion
+Registered native session suites cover retained ownership, child exit, native cleanup, dependent cleanup, and retirement.
+The deferred-fence suite covers issuer loss during recovery.
+The revocation-command and session-operator-revocation suites connect operator completion to actual cancellation.
+The earlier native evidence requires pending results while input remains held or dependent cleanup remains incomplete.
+It also verifies explicit resume without a second mutation and preservation of uncommitted application data.
+Run these registered suites against the frozen candidate on both hosts in both profiles.
+
+7. Regression sensitivity
+Existing mutation helpers deliberately remove parent-revocation enforcement, world cache invalidation, or object-scope enforcement.
+Their expected failing witnesses remain required evidence of regression sensitivity.
+Reassess their source pins and run affected mutations in a separate candidate copy.
+Do not mutate the active qualification source or binaries.
+Do not compile mutation candidates while qualification runs on the same host.
+
+Open evidence
+The earlier participant approval startup failure remains unexplained.
+The earlier revocation-read timeout and the diagnostic candidate's 705 ms reply-header timeout remain unexplained.
+Later passing repetitions do not close those failures.
+The new diagnostics passed 88 selected cases per profile on sb16.
+Those results prove the diagnostic behavior, not a timeout fix or a complete phase gate.
+
+Current gate
+Both hosts build Debug and runtime ASan/UBSan first, with two compiler jobs per host.
+Each host then runs all registered CTest suites, 51 harness cases, and 151 locked P00-P10 cases.
+Enumerate the selected suites and case IDs before executing them.
+Record source and binary hashes, commands, raw logs, resource pressure, and compiler overlap.
+Keep ASan, LeakSanitizer, and UBSan enabled. Keep original assertions and deadlines.
+A failed segment preserves its results and leaves later segments unrun.
+No phase passes until required evidence is reviewed and unresolved defects are resolved.
+
+The preliminary map check found all 23 explicitly named structural, world, and workspace cases.
+Finding a test name is a coverage check only. Its execution and assertions must also pass.
+Full M02 qualification and Spatial-M1 completion remain pending.
