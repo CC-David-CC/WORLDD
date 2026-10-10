@@ -20,7 +20,7 @@ except FileNotFoundError:active=b''
 assert b'qualify-control-owner-04.py' not in active,'Full qualification is still active'
 assert git('status','--porcelain')=='' and git('branch','--show-current')=='main'
 assert git('remote','get-url','origin')=='dflanag3@box-git:/srv/data/git/spacial_desktop.git'
-manifest=json.loads((r/'local/control-owner-candidate-04.json').read_text())['files']
+manifest=json.loads((r/'local/m02-control-owner-04/manifest.json').read_text())['files']
 assert len(manifest)==297
 source=r/'local/m02-control-owner-04/source'
 assert all(sha(source/n)==v for n,v in manifest.items())

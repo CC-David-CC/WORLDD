@@ -533,3 +533,8 @@ Each host/profile passed 1474 core / 100 suites, 51 harness, 151 P10, and three 
 All 41 locked files remain unchanged. No final failures, skips, or compiler overlap.
 Native-world fixtures still provide owner bindings. Coordinator, selective cleanup, and issuer retirement remain incomplete.
 Host checkout adoption follows the reviewed source commit and protects active qualification helper files.
+
+2026-10-10: Adoption stopped before checkout mutation on both hosts.
+FileNotFoundError: local/control-owner-candidate-04.json.
+The helper used the packaging filename instead of the deployed manifest path.
+Corrected it to read local/m02-control-owner-04/manifest.json. Adoption retry follows the reviewed fix.

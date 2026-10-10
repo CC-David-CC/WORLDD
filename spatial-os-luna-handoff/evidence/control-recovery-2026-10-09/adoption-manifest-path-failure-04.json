@@ -1,0 +1,13 @@
+{
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "command": "adopt-control-owner-04.py 89132bbe42a6f984232f41dd00c40982c54605f0",
+  "exit_code": 1,
+  "failure": "FileNotFoundError: local/control-owner-candidate-04.json",
+  "cause": "The helper used the local packaging filename instead of the deployed frozen manifest path.",
+  "mutation_boundary": "The exception occurred before fetch, merge, or checkout mutation.",
+  "correction": "Read local/m02-control-owner-04/manifest.json, which is the tested source manifest used by the qualifier.",
+  "status": "Corrected helper; adoption retry pending."
+}
