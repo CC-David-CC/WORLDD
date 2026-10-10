@@ -17,7 +17,14 @@ Existing components provide partial implementation where CURRENT_STATE.md record
 The mandatory profile is tasks/spatial-m1.json.
 See docs/M01_QUALIFICATION_AUDIT.txt for verified identity components and their remaining cancellation dependency.
 
-The latest fully qualified production increment is native world handoff and authority crash fencing at a3a926d.
+The latest qualified source increment adds immutable owner channels and scoped control reservations.
+Both hosts passed Debug and runtime sanitizers: 1,474 core checks, 51 harness checks, and 151 P10 cases per profile.
+Three native-world checks also passed per profile. No final case failed or skipped.
+Read evidence/control-recovery-2026-10-09/integration-primary-review-04.json.
+Exact host source adoption follows the reviewed integration commit.
+Production supervisor binding, session coordination, selective recovery release, and issuer retirement remain required.
+
+The previous qualified increment is native world handoff and authority crash fencing at a3a926d.
 Both hosts adopted all 294 qualified source hashes without restarting sessions or migrating operator state.
 Both hosts passed full Debug and runtime ASan, LeakSanitizer, and UBSan qualification.
 Each profile passed 1,453 core checks across 99 suites, 51 harness checks, and 151 P10 cases.

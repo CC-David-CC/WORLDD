@@ -48,6 +48,14 @@ for name in names:
     header=stream.readline().split();assert len(header)==3 and header[1]==b'blob',name
     data=stream.read(int(header[2]));assert stream.read(1)==b'\n'
     assert hashlib.sha256(data).hexdigest()==manifest[name],name
+# The active and queued qualifiers use these helpers outside their frozen source trees.
+# Refuse a checkout update that would change those inputs.
+helpers=('local/test_control_owner_world_01.py','local/test_control_owner_binding_01.py',
+         'local/qualify-control-owner-04.py','local/qualify-control-binding-01.py',
+         'local/qualify-control-reply-01.py','local/collect-control-owner-qualified.py')
+for name in helpers:
+    target=subprocess.check_output(['git','-C',str(repo),'show',expected+':spatial-os-luna-handoff/'+name])
+    assert (r/name).read_bytes()==target, 'Checkout would change a qualification helper: '+name
 subprocess.run(['git','-C',str(repo),'merge','--ff-only',expected],check=True,stdout=subprocess.DEVNULL)
 assert git('rev-parse','HEAD')==expected and git('status','--porcelain')==''
 assert all(sha(r/n)==v for n,v in manifest.items())

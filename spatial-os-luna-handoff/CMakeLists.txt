@@ -86,11 +86,12 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/broker.proto
-    DEPENDS proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
+    DEPENDS proto/spatial/supervisor/v1/native_scope.proto proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
         proto/spatial/identity/v1/issuer.proto proto/spatial/identity/v1/key.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(broker-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/key_pb2.py"
@@ -216,7 +217,7 @@ target_link_libraries(worldd PRIVATE spatial-compositor-config spatial-core spat
 add_dependencies(worldd spatialwm)
 add_executable(spatial-app-init src/workspace/app_init.cpp)
 target_link_libraries(spatial-app-init PRIVATE spatial-scene)
-add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp)
+add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp src/workspace/control_channels.cpp)
 target_include_directories(workspaced PRIVATE src)
 target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
 add_dependencies(workspaced spatial-app-init)
@@ -666,6 +667,11 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant_settlement.py" $<TARGET_FILE:identityd>
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(workspace-participant-settlement PROPERTIES TIMEOUT 120
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME control-owner-channels COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_control_owner_channels.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(control-owner-channels PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME application-control-lease COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_control_lease.py" $<TARGET_FILE:identityd>

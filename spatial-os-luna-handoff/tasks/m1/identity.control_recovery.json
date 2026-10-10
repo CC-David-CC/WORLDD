@@ -3,14 +3,14 @@
   "phase": "M02",
   "parent": "identity.supervisor_recovery",
   "status": "in_progress",
-  "current_step": "qualify_owner_channels_and_correct_protocol_validation_order",
+  "current_step": "qualify_retained_launch_binding_and_complete_dependent_recovery",
   "contract": "docs/CONTROL_RECOVERY_BASELINE.txt",
   "invariant": "Release only a fenced generation's owned control reservations after verified native cancellation, while preserving independently authorized applications.",
   "baseline": "Both hosts reproduced native release with a surviving application and an unreleased broker reservation. One corrected Debug diagnostic passed per host.",
   "evidence": "evidence/control-recovery-2026-10-09/baseline-results-review-02.json",
-  "production_changed": false,
+  "production_changed": true,
   "remaining": [
-    "Complete both-host Debug and sanitizer qualification before integrating owner channels.",
+    "Complete retained-launch binding qualification and connect owner registration to the production session coordinator.",
     "Construct owner bindings from the production supervisor retained exact launch.",
     "Retain production broker communication independently of the world process.",
     "Verify selective recovery release after checked native cancellation; preserve unrelated reservations and applications.",
@@ -56,7 +56,7 @@
   "candidate03_integration_ready": false,
   "validation_order_correction": {
     "candidate": 4,
-    "state": "sb16 passed both complete profiles. sb16-2 continues full sanitizer qualification after passing Debug.",
+    "state": "Both hosts passed full Debug and sanitizer qualification. Exact owner04 source is integrated; host adoption follows the reviewed commit.",
     "total_owner_checks": 21,
     "evidence": "evidence/control-recovery-2026-10-09/control-owner-validation-review-04.json",
     "drivers": {
@@ -69,7 +69,9 @@
     "sb16_2_full_debug_evidence": "evidence/control-recovery-2026-10-09/debug-full-review-04-sb16-2.json",
     "debug_matrix_evidence": "evidence/control-recovery-2026-10-09/debug-matrix-review-04.json",
     "sb16_full_evidence": "evidence/control-recovery-2026-10-09/full-review-04-sb16.json",
-    "adoption_script": "local/adopt-control-owner-04.py"
+    "adoption_script": "local/adopt-control-owner-04.py",
+    "integrated": true,
+    "integration_evidence": "evidence/control-recovery-2026-10-09/integration-applied-04.json"
   },
   "retained_launch_binding": {
     "candidate": "binding01",

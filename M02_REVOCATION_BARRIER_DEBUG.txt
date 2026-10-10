@@ -527,3 +527,9 @@ Prepared local/adopt-control-owner-04.py for exact-source checkout adoption afte
 It requires terminal full qualification, matching local binaries, a clean main checkout, and matching target Git blobs.
 It uses a fast-forward merge and records that no runtime restart or operator-state migration occurred.
 Adoption remains unrun. sb16-2 owner04 sanitizers and sb16 binding01 Debug remain live.
+
+Owner04 fully qualified on both hosts and integrated as the exact eight-file source change.
+Each host/profile passed 1474 core / 100 suites, 51 harness, 151 P10, and three native-world checks.
+All 41 locked files remain unchanged. No final failures, skips, or compiler overlap.
+Native-world fixtures still provide owner bindings. Coordinator, selective cleanup, and issuer retirement remain incomplete.
+Host checkout adoption follows the reviewed source commit and protects active qualification helper files.

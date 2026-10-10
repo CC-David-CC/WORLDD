@@ -1,5 +1,5 @@
 Control reservation ownership: additive interface contract
-Status: Candidate design. Production recovery is incomplete.
+Status: Owner channels are integrated after both-host qualification. Production recovery is incomplete.
 
 Invariant
 

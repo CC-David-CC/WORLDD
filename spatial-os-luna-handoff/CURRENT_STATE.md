@@ -1,5 +1,21 @@
 # Implementation status
 
+## 2026-10-09: Qualified owner channels integrated
+
+The exact eight-file owner04 change is integrated into project source.
+Both hosts passed full Debug and runtime ASan, LeakSanitizer, and UBSan qualification.
+Each profile passed 1,474 core checks across 100 suites, 51 harness checks, and 151 P10 cases.
+Three native-world checks also passed per profile. No final check failed or skipped. No compiler overlap was recorded.
+Both protocol-validation baseline failures remain preserved. All 41 locked files remain unchanged.
+Read evidence/control-recovery-2026-10-09/integration-primary-review-04.json and integration-applied-04.json.
+
+The broker now binds control reservations to immutable admitted world channels.
+Fencing stops new owner requests and preserves reservations and independently authorized applications.
+The native-world fixtures still supply owner bindings. Complete production recovery remains unimplemented.
+Retained-launch binding qualification continues on both hosts. Reply validation remains queued.
+Host source adoption follows the reviewed commit. No operator session restart is required.
+M02 and Spatial-M1 remain incomplete.
+
 ## 2026-10-09: Corrected owner04 passes both profiles on sb16
 
 sb16 passed complete Debug and runtime ASan, LeakSanitizer, and UBSan qualification.

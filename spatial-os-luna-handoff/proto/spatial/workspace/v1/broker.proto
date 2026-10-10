@@ -3,6 +3,7 @@ package spatial.workspace.v1;
 import "core.proto";
 import "grants.proto";
 import "issuer.proto";
+import "native_scope.proto";
 
 // Sealed, inherited supervisor input. Never store cookies in workspace state.
 message NativeLaunchConfig {
@@ -60,6 +61,37 @@ message ApplicationControlLease {
 // The trusted world releases native input before releasing this reservation.
 message ApplicationControlRelease { bytes id = 1; spatial.authority.v1.ActorRef principal = 2; }
 message ApplicationControlReleased { bytes id = 1; }
+// Only a retained local supervisor assigns this binding to an inherited world channel.
+// The binding is an ownership key, not proof that fencing or cleanup occurred.
+message ControlOwner {
+  bytes issuer_id = 1;
+  spatial.identity.v1.AuthorityFenceBegin launch = 2;
+  spatial.supervisor.v1.NativeScopeIdentity native = 3;
+}
+message ControlOwnerState {
+  ControlOwner owner = 1;
+  bool channel_fenced = 2;
+  repeated ApplicationControlLease reservations = 3;
+}
+// One protobuf per private SOCK_SEQPACKET packet. Register carries one SCM_RIGHTS fd.
+// This envelope is never accepted on world or actor channels.
+message ControlSupervisorRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    ControlOwner register = 10;
+    ControlOwner inspect = 11;
+    ControlOwner fence = 12;
+  }
+}
+message ControlSupervisorReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    ControlOwnerState state = 10;
+    spatial.core.v1.Error error = 11;
+  }
+}
 message LaunchRequest {
   string workspace = 1; string actor = 2; spatial.core.v1.ProcessLaunchRequest command = 3;
   spatial.authority.v1.ActorRef principal = 4;

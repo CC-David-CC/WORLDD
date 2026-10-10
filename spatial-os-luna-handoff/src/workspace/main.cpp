@@ -2,6 +2,7 @@
 #include "workspace/authority.hpp"
 #include "workspace/native_launch.hpp"
 #include "workspace/control.hpp"
+#include "workspace/control_channels.hpp"
 #include "world/store.hpp"
 #include "build_id.hpp"
 #include <csignal>
@@ -56,21 +57,25 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Ex
     return reply;
 }
 spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store,
-                                            spatial::WorkspaceAuthority* authority, spatial::ControlLeases& controls) {
+                                            spatial::WorkspaceAuthority* authority, spatial::ControlLeases& controls,
+                                            const std::string& owner = {}, const std::string& native_server = {}) {
     namespace broker = spatial::workspace::v1;
     namespace wire = spatial::wire;
     broker::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     try {
         spatial::validate_message(request);
         if (request.protocol_version() != 1) throw spatial::WorldError(wire::UNSUPPORTED_VERSION, "Unsupported private broker protocol version");
+        // Transport validation precedes attribution on every private channel.
+        if (!owner.empty() && request.has_control_acquire() && request.control_acquire().application().server_id() != native_server)
+            throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
         if (request.has_management()) {
             if (request.management().request_id() != request.request_id()) throw std::invalid_argument("Broker management identity mismatch");
             *reply.mutable_management() = dispatch(request.management(), store);
         } else if (request.has_access()) *reply.mutable_access() = store.access(request.access());
         else if (request.has_launch()) *reply.mutable_launched() = store.launch(request.launch());
         else if (request.has_application_access()) *reply.mutable_application_access() = store.application_access(request.application_access());
-        else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire());
-        else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release());
+        else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire(), owner);
+        else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release(), owner);
         else if (request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
             if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
             if (request.has_bootstrap_bind()) *reply.mutable_binding() = authority->bind_bootstrap(request.bootstrap_bind());
@@ -99,6 +104,7 @@ int main(int argc, char** argv) {
         std::filesystem::path state, authority_config, seed;
         unsigned migration = 0; bool fixture_faults = false;
         int native_fd = -1;
+        int control_fd = -1, control_peer = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string_view argument(argv[i]);
             if (argument == "--state-dir" && state.empty() && i+1 < argc) state = argv[++i];
@@ -110,13 +116,22 @@ int main(int argc, char** argv) {
                 native_fd = std::stoi(value, &used);
                 if (used != value.size() || native_fd < 3) throw std::invalid_argument("Invalid native security descriptor");
             }
+            else if ((argument == "--control-supervisor-fd" || argument == "--control-supervisor-pid") && i+1 < argc) {
+                int& target = argument == "--control-supervisor-fd" ? control_fd : control_peer;
+                if (target != -1) throw std::invalid_argument("Repeated control supervisor argument");
+                const std::string value(argv[++i]); std::size_t used = 0;
+                target = std::stoi(value, &used);
+                if (used != value.size() || target < 3) throw std::invalid_argument("Invalid control supervisor argument");
+            }
             else if (argument == "--migrate-v1" && !migration) migration = 1;
             else if (argument == "--migrate-v2" && !migration) migration = 2;
             else if (argument == "--migrate-v3" && !migration) migration = 3;
             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
-        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || native_fd >= 0)) || (migration && !seed.empty()))
+        if ((control_fd < 0) != (control_peer < 0) || (control_fd >= 0 && control_fd == native_fd))
+            throw std::invalid_argument("Control supervisor requires a separate descriptor and peer");
+        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || native_fd >= 0 || control_fd >= 0)) || (migration && !seed.empty()))
             throw std::invalid_argument("Provisioning and migration require an exclusive stopped broker");
         umask(0077); signal(SIGPIPE, SIG_IGN);
         // Destroy jobs before their authority callback target.
@@ -165,17 +180,23 @@ int main(int argc, char** argv) {
                 if (sent == output.size()) { output.clear(); sent = 0; }
             }
         };
-        spatial::ControlLeases controls(store, [&](const auto& lease) {
+        std::unique_ptr<spatial::ControlChannels> channels;
+        spatial::ControlLeases controls(store, [&](const std::string& owner, const auto& lease) {
+            if (!owner.empty()) { channels->revoked(owner, lease); return; }
             spatial::workspace::v1::Reply event; event.set_protocol_version(1);
             *event.mutable_control_revoked() = lease; enqueue(event);
         });
+        if (control_fd >= 0) channels = std::make_unique<spatial::ControlChannels>(control_fd, control_peer, controls);
         struct ClearObserver {
             spatial::WorkspaceAuthority* authority;
             ~ClearObserver() { if (authority) authority->set_observer([] {}); }
         } clear_observer{authority.get()};
         // Issuer and process waits call this on the same broker thread.
         // Cached lease checks neither recurse into issuer I/O nor reap a borrowed job.
-        if (authority) authority->set_observer([&] { controls.tick(); flush(); });
+        if (authority) authority->set_observer([&] {
+            controls.tick(); flush();
+            if (channels) channels->administrative();
+        });
         const auto enforce = [&] {
             if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
             if (native) native->check();
@@ -192,6 +213,18 @@ int main(int argc, char** argv) {
         for (;;) {
             enforce();
             if (authority) { authority->keepalive(); enforce(); }
+            if (channels) channels->serve([&](const auto& request, const std::string& owner, const std::string& native_server) {
+                const auto cancellation = authority ? authority->cancellation_sequence() : 0;
+                auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server);
+                enforce();
+                if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
+                        !request.has_management() && !request.has_control_release()) {
+                    reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+                    reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
+                    reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
+                }
+                return reply;
+            });
             const auto now = Clock::now();
             if ((!input.empty() && now-input_started > std::chrono::seconds(10)) ||
                     (!output.empty() && now-output_started > std::chrono::seconds(10)))
@@ -227,7 +260,7 @@ int main(int argc, char** argv) {
                 }
                 return 0;
             }
-            if (authority) authority->settle(output.empty() && controls.cancellation_settled());
+            if (authority) authority->settle(output.empty() && (!channels || !channels->pending_output()) && controls.cancellation_settled());
             pollfd fds[2]{{!eof && output.empty() ? STDIN_FILENO : -1, POLLIN, 0},
                           {STDOUT_FILENO, static_cast<short>(output.empty() ? 0 : POLLOUT), 0}};
             const int ready = poll(fds, 2, 10);
