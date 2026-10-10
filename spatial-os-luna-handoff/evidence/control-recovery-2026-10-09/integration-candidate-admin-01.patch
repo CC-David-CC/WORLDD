@@ -1,0 +1,378 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -847,3 +847,16 @@
+     set_tests_properties(storage-faults PROPERTIES TIMEOUT 60
+         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+ endif()
++
++# Private administrative transport; the fixture launches only an independent packet witness.
++add_library(spatial-control-admin STATIC src/supervisor/control_admin.cpp)
++target_link_libraries(spatial-control-admin PUBLIC spatial-control-reply)
++if(BUILD_TESTING)
++    add_executable(spatial-control-admin-probe src/testing/control_admin_probe.cpp)
++    target_link_libraries(spatial-control-admin-probe PRIVATE spatial-control-admin)
++    add_dependencies(spatial-control-admin-probe broker-python-protobuf security-python-protobuf python-protobuf)
++    add_test(NAME control-administrative-transport COMMAND "${Python3_EXECUTABLE}"
++        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_control_admin.py" $<TARGET_FILE:spatial-control-admin-probe>)
++    set_tests_properties(control-administrative-transport PROPERTIES TIMEOUT 180
++        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
++endif()
+--- /dev/null
++++ b/src/supervisor/control_admin.cpp
+@@ -0,0 +1,137 @@
++#include "supervisor/control_admin.hpp"
++#include "supervisor/control_reply.hpp"
++#include "workspace/control_owner.hpp"
++#include <array>
++#include <cerrno>
++#include <cstring>
++#include <fcntl.h>
++#include <fstream>
++#include <poll.h>
++#include <stdexcept>
++#include <sys/socket.h>
++#include <sys/syscall.h>
++#include <sys/un.h>
++#include <unistd.h>
++
++namespace spatial::supervisor {
++namespace {
++void require(bool value, const char* message) {
++    if (!value) throw std::runtime_error(message);
++}
++}
++ControlAdmin::ControlAdmin(int socket, pid_t child, int retained_pidfd)
++    : socket_(socket), creator_(getpid()), broker_(child) {
++    try {
++        require(socket_ >= 3 && child > 0 && child != creator_, "Invalid administrative endpoint or broker child");
++        sockaddr_un address{}; socklen_t length = sizeof(address);
++        int type = 0; socklen_t type_length = sizeof(type);
++        ucred peer{}; socklen_t peer_length = sizeof(peer);
++        require(getpeername(socket_, reinterpret_cast<sockaddr*>(&address), &length) == 0 &&
++            address.sun_family == AF_UNIX &&
++            getsockopt(socket_, SOL_SOCKET, SO_TYPE, &type, &type_length) == 0 && type == SOCK_SEQPACKET &&
++            getsockopt(socket_, SOL_SOCKET, SO_PEERCRED, &peer, &peer_length) == 0 &&
++            peer_length == sizeof(peer) && peer.pid == creator_ && peer.uid == geteuid(),
++            "Administrative socket was not created by this coordinator");
++        require(retained_pidfd >= 3, "Missing retained broker process handle");
++        pidfd_ = fcntl(retained_pidfd, F_DUPFD_CLOEXEC, 3);
++        require(pidfd_ >= 3, "Cannot duplicate retained broker process handle");
++        std::ifstream info("/proc/self/fdinfo/" + std::to_string(pidfd_));
++        std::string line; bool matched = false;
++        while (std::getline(info, line)) {
++            if (line.rfind("Pid:\t", 0) == 0) matched = line == "Pid:\t" + std::to_string(child);
++        }
++        require(matched && syscall(SYS_pidfd_send_signal, pidfd_, 0, nullptr, 0) == 0,
++            "Retained broker process handle does not match live child");
++        const int enabled = 1, flags = fcntl(socket_, F_GETFL);
++        require(pidfd_ >= 0 && flags >= 0 && fcntl(socket_, F_SETFL, flags | O_NONBLOCK) == 0 &&
++            fcntl(socket_, F_SETFD, FD_CLOEXEC) == 0 &&
++            setsockopt(socket_, SOL_SOCKET, SO_PASSCRED, &enabled, sizeof(enabled)) == 0,
++            "Cannot configure administrative transport");
++    } catch (...) { close_all(); throw; }
++}
++ControlAdmin::~ControlAdmin() { close_all(); }
++void ControlAdmin::close_all() {
++    if (socket_ >= 3) close(socket_);
++    if (pidfd_ >= 0) close(pidfd_);
++    socket_ = pidfd_ = -1;
++}
++void ControlAdmin::wait(short events, Clock::time_point deadline) {
++    for (;;) {
++        require(getpid() == creator_ && socket_ >= 3 && pidfd_ >= 0, "Administrative transport ownership lost");
++        const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - Clock::now()).count();
++        require(remaining > 0, "Administrative operation timed out; effects are uncertain");
++        pollfd descriptors[]{{socket_, events, 0}, {pidfd_, POLLIN, 0}};
++        const int result = poll(descriptors, 2, static_cast<int>(remaining));
++        if (result < 0 && errno == EINTR) continue;
++        require(result >= 0 && descriptors[1].revents == 0,
++            "Broker process exited; administrative effects are uncertain");
++        require(!(descriptors[0].revents & (POLLERR | POLLNVAL | POLLHUP)),
++            "Administrative channel failed; effects are uncertain");
++        if (descriptors[0].revents & events) return;
++    }
++}
++workspace::v1::ControlSupervisorReply ControlAdmin::exchange(
++    const workspace::v1::ControlSupervisorRequest& request, int endpoint) {
++    // Reject caller errors before sending anything.
++    validate_message(request);
++    require(request.protocol_version() == 1 && request.ByteSizeLong() <= 65536,
++        "Invalid administrative request version or size");
++    const workspace::v1::ControlOwner* owner = request.has_register_() ? &request.register_() :
++        request.has_inspect() ? &request.inspect() : request.has_fence() ? &request.fence() : nullptr;
++    require(owner != nullptr && (request.has_register_() ? endpoint >= 3 : endpoint == -1),
++        "Administrative operation has incorrect descriptor count");
++    validate_control_owner(*owner);
++    const auto bytes = request.SerializeAsString();
++    const auto deadline = Clock::now() + std::chrono::seconds(5);
++    try {
++        for (;;) {
++            wait(POLLOUT, deadline);
++            iovec data{const_cast<char*>(bytes.data()), bytes.size()};
++            alignas(cmsghdr) std::array<char, CMSG_SPACE(sizeof(int))> ancillary{};
++            msghdr message{}; message.msg_iov = &data; message.msg_iovlen = 1;
++            if (endpoint >= 3) {
++                message.msg_control = ancillary.data(); message.msg_controllen = ancillary.size();
++                auto* header = CMSG_FIRSTHDR(&message);
++                header->cmsg_level = SOL_SOCKET; header->cmsg_type = SCM_RIGHTS;
++                header->cmsg_len = CMSG_LEN(sizeof(int));
++                std::memcpy(CMSG_DATA(header), &endpoint, sizeof(endpoint));
++            }
++            const auto count = sendmsg(socket_, &message, MSG_NOSIGNAL | MSG_DONTWAIT);
++            if (count < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) continue;
++            require(count == static_cast<ssize_t>(bytes.size()), "Administrative send failed; effects are uncertain");
++            break;
++        }
++        for (;;) {
++            wait(POLLIN, deadline);
++            std::array<char, 65536> bytes_in{};
++            alignas(cmsghdr) std::array<char, CMSG_SPACE(sizeof(int) * 16) + CMSG_SPACE(sizeof(ucred))> ancillary{};
++            iovec data{bytes_in.data(), bytes_in.size()}; msghdr message{};
++            message.msg_iov = &data; message.msg_iovlen = 1;
++            message.msg_control = ancillary.data(); message.msg_controllen = ancillary.size();
++            const auto count = recvmsg(socket_, &message, MSG_DONTWAIT | MSG_CMSG_CLOEXEC);
++            if (count < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) continue;
++            unsigned credentials = 0; ucred sender{}; bool unexpected = false;
++            for (auto* header = CMSG_FIRSTHDR(&message); header; header = CMSG_NXTHDR(&message, header)) {
++                if (header->cmsg_len < CMSG_LEN(0)) { unexpected = true; continue; }
++                if (header->cmsg_level == SOL_SOCKET && header->cmsg_type == SCM_RIGHTS) {
++                    const auto size = header->cmsg_len - CMSG_LEN(0);
++                    for (std::size_t offset = 0; offset + sizeof(int) <= size; offset += sizeof(int)) {
++                        int fd; std::memcpy(&fd, CMSG_DATA(header) + offset, sizeof(fd)); close(fd);
++                    }
++                    unexpected = true;
++                } else if (header->cmsg_level == SOL_SOCKET && header->cmsg_type == SCM_CREDENTIALS &&
++                    header->cmsg_len == CMSG_LEN(sizeof(ucred))) {
++                    ++credentials; std::memcpy(&sender, CMSG_DATA(header), sizeof(sender));
++                } else unexpected = true;
++            }
++            require(count > 0 && !(message.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) && !unexpected &&
++                credentials == 1 && sender.pid == broker_ && sender.uid == geteuid(),
++                "Administrative reply authentication failed; effects are uncertain");
++            workspace::v1::ControlSupervisorReply reply;
++            require(reply.ParseFromArray(bytes_in.data(), static_cast<int>(count)), "Malformed administrative reply");
++            validate_control_reply(request, reply);
++            return reply; // Typed remote errors remain explicit errors.
++        }
++    } catch (...) { close_all(); throw; }
++}
++}
+--- /dev/null
++++ b/src/supervisor/control_admin.hpp
+@@ -0,0 +1,25 @@
++#pragma once
++#include "broker.pb.h"
++#include <chrono>
++#include <sys/types.h>
++
++namespace spatial::supervisor {
++// Single-threaded coordinator transport. Takes ownership of the socket.
++// The coordinator supplies a child PID from its retained supervisor handle.
++// This class does not establish the endpoint-to-launch mapping.
++class ControlAdmin final {
++public:
++    ControlAdmin(int socket, pid_t broker_child, int retained_broker_pidfd);
++    ~ControlAdmin();
++    ControlAdmin(const ControlAdmin&) = delete;
++    ControlAdmin& operator=(const ControlAdmin&) = delete;
++    workspace::v1::ControlSupervisorReply exchange(
++        const workspace::v1::ControlSupervisorRequest&, int registration_endpoint = -1);
++private:
++    using Clock = std::chrono::steady_clock;
++    int socket_ = -1, pidfd_ = -1;
++    pid_t creator_ = 0, broker_ = 0;
++    void close_all();
++    void wait(short events, Clock::time_point deadline);
++};
++}
+--- /dev/null
++++ b/src/testing/control_admin_probe.cpp
+@@ -0,0 +1,61 @@
++#include "supervisor/control_admin.hpp"
++#include "core/protocol.hpp"
++#include <fcntl.h>
++#include <filesystem>
++#include <iostream>
++#include <signal.h>
++#include <sys/socket.h>
++#include <sys/syscall.h>
++#include <sys/wait.h>
++#include <unistd.h>
++
++// Transport fixture only. The separate Python process provides adversarial replies.
++int main(int argc, char** argv) {
++    const auto descriptor_count = [] {
++        std::size_t count = 0;
++        for (const auto& entry : std::filesystem::directory_iterator("/proc/self/fd")) {
++            (void)entry; ++count;
++        }
++        return count;
++    };
++    const auto initial_descriptors = descriptor_count();
++    pid_t child = -1; int pin = -1;
++    int sockets[]{-1, -1}; int result = 2;
++    try {
++        if (argc != 3) throw std::runtime_error("Expected witness path and behavior");
++        std::string bytes; spatial::workspace::v1::ControlSupervisorRequest request;
++        if (!spatial::read_frame(std::cin, bytes) || !request.ParseFromString(bytes))
++            throw std::runtime_error("Expected administrative request");
++        if (socketpair(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0, sockets))
++            throw std::runtime_error("Cannot create fixture socket pair");
++        child = fork();
++        if (child < 0) throw std::runtime_error("Cannot start witness");
++        if (child == 0) {
++            close(sockets[0]);
++            if (dup2(sockets[1], 9) < 0 || fcntl(9, F_SETFD, 0) < 0) _exit(126);
++            if (sockets[1] != 9) close(sockets[1]);
++            execlp("python3", "python3", argv[1], "9", argv[2], nullptr);
++            _exit(127);
++        }
++        close(sockets[1]); sockets[1] = -1;
++        pin = static_cast<int>(syscall(SYS_pidfd_open, child, 0));
++        if (pin < 0) throw std::runtime_error("Cannot retain fixture child");
++        const int owned_socket = sockets[0];
++        sockets[0] = -1;
++        spatial::supervisor::ControlAdmin client(owned_socket, child, pin);
++        const auto reply = client.exchange(request);
++        spatial::write_frame(std::cout, reply);
++        result = 0;
++    } catch (const std::exception& error) {
++        std::cerr << "administrative transport rejected: " << error.what() << '\n';
++    }
++    if (pin >= 0) { syscall(SYS_pidfd_send_signal, pin, SIGKILL, nullptr, 0); close(pin); }
++    else if (child > 0) kill(child, SIGKILL); // An unreaped fixture child cannot have a reused PID.
++    if (child > 0) { int status; while (waitpid(child, &status, 0) < 0 && errno == EINTR) {} }
++    for (int fd : sockets) if (fd >= 0) close(fd);
++    if (descriptor_count() != initial_descriptors) {
++        std::cerr << "administrative transport descriptor leak\n";
++        return 3;
++    }
++    return result;
++}
+--- /dev/null
++++ b/tests/core/control_admin_witness.py
+@@ -0,0 +1,53 @@
++"""Independent packet sender. It implements no world or authorization service."""
++import array
++import os
++import socket
++import sys
++import time
++import broker_pb2 as pb
++import core_pb2 as core
++
++channel = socket.socket(fileno=int(sys.argv[1]))
++mode = sys.argv[2]
++packet = channel.recv(65536)
++request = pb.ControlSupervisorRequest.FromString(packet)
++reply = pb.ControlSupervisorReply(protocol_version=1, request_id=request.request_id)
++reply.state.owner.CopyFrom(request.inspect)
++reply.state.channel_fenced = False
++if mode == 'error':
++    reply.error.code = core.NOT_FOUND
++    reply.error.message = 'Independent owner absence'
++elif mode == 'correlation':
++    reply.request_id += 1
++elif mode == 'owner':
++    reply.state.owner.issuer_id = b'x' * 32
++elif mode == 'version':
++    reply.protocol_version = 2
++elif mode == 'timeout':
++    time.sleep(20)
++    sys.exit(0)
++elif mode == 'exit':
++    sys.exit(0)
++
++packet = reply.SerializeToString()
++if mode == 'oversize':
++    packet = b'x' * 65537
++elif mode == 'malformed':
++    packet = b'\xff'
++elif mode == 'wrong-sender':
++    sender = os.fork()
++    if sender:
++        os.waitpid(sender, 0)
++        time.sleep(20)
++        sys.exit(0)
++elif mode == 'rights':
++    fd = os.open('/dev/null', os.O_RDONLY)
++    channel.sendmsg([packet], [(socket.SOL_SOCKET, socket.SCM_RIGHTS, array.array('i', [fd]))])
++    os.close(fd)
++    time.sleep(20)
++    sys.exit(0)
++channel.send(packet)
++# Keep the credential owner alive until the receiver closes its transport.
++if mode == 'wrong-sender':
++    os._exit(0)
++channel.recv(1)
+--- /dev/null
++++ b/tests/core/test_control_admin.py
+@@ -0,0 +1,68 @@
++"""Exercise the production client against independent OS-process packet witnesses."""
++from pathlib import Path
++import struct
++import subprocess
++import sys
++import unittest
++import broker_pb2 as pb
++import core_pb2 as core
++import security_pb2 as security
++
++PROBE = Path(sys.argv.pop(1)).resolve()
++WITNESS = Path(__file__).with_name('control_admin_witness.py')
++
++
++class TransportTests(unittest.TestCase):
++    def setUp(self):
++        owner = pb.ControlOwner(issuer_id=b'i' * 32)
++        owner.launch.participant_id = b'p' * 32
++        owner.launch.registered_revision = 1
++        owner.launch.generation = 2
++        owner.launch.service_incarnation = b's' * 32
++        owner.launch.launch_id = b'l' * 32
++        owner.launch.supervision_revision = 3
++        owner.launch.authorization_id = b'a' * 32
++        owner.native.launch_id = b'l' * 32
++        owner.native.server_id = b'n' * 32
++        owner.native.credential_id = b'c' * 32
++        owner.native.role = security.COMPOSITOR
++        self.request = pb.ControlSupervisorRequest(protocol_version=1, request_id=83, inspect=owner)
++
++    def run_mode(self, mode, accepted=False):
++        packet = self.request.SerializeToString()
++        result = subprocess.run([str(PROBE), str(WITNESS), mode],
++                                input=struct.pack('!I', len(packet)) + packet,
++                                capture_output=True, timeout=12)
++        for marker in (b'AddressSanitizer', b'LeakSanitizer', b'runtime error:'):
++            self.assertNotIn(marker, result.stderr)
++        self.assertEqual(result.returncode, 0 if accepted else 2, result.stderr)
++        if not accepted:
++            self.assertEqual(result.stdout, b'')
++            self.assertIn(b'administrative transport rejected:', result.stderr)
++            return None
++        length, = struct.unpack('!I', result.stdout[:4])
++        self.assertEqual(length, len(result.stdout) - 4)
++        return pb.ControlSupervisorReply.FromString(result.stdout[4:])
++
++    def test_exact_child_reply(self):
++        reply = self.run_mode('valid', True)
++        self.assertEqual(reply.state.owner, self.request.inspect)
++
++    def test_remote_error_stays_error(self):
++        reply = self.run_mode('error', True)
++        self.assertEqual(reply.error.code, core.NOT_FOUND)
++        self.assertFalse(reply.HasField('state'))
++
++    def test_other_process_cannot_reply(self): self.run_mode('wrong-sender')
++    def test_reply_descriptors_rejected(self): self.run_mode('rights')
++    def test_oversize_rejected(self): self.run_mode('oversize')
++    def test_malformed_rejected(self): self.run_mode('malformed')
++    def test_wrong_request_rejected(self): self.run_mode('correlation')
++    def test_wrong_owner_rejected(self): self.run_mode('owner')
++    def test_wrong_version_rejected(self): self.run_mode('version')
++    def test_child_exit_is_uncertain(self): self.run_mode('exit')
++    def test_reply_timeout_is_uncertain(self): self.run_mode('timeout')
++
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)

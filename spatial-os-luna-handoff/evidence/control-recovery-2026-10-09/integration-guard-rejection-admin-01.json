@@ -1,0 +1,8 @@
+{
+  "guard": "local/integrate-control-admin-01.py",
+  "preparation_exit": 0,
+  "apply_exit": 1,
+  "reason": "Exact handoff01 production base is not integrated",
+  "production_changed": false,
+  "full_profiles_required_on_both_hosts": true
+}
