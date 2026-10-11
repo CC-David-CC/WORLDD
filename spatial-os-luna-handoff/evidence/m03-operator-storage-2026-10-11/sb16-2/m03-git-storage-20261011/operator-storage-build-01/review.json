@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "host": "sb16-2",
+  "commands": [
+    {
+      "label": "configure",
+      "exit_code": 0,
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize"
+      ]
+    },
+    {
+      "label": "build",
+      "exit_code": 0,
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize",
+        "--parallel",
+        "2"
+      ]
+    }
+  ],
+  "source_manifest": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-source-01.json"
+}

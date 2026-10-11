@@ -1,0 +1,53 @@
+M03 operator storage increment, 2026-10-11.
+
+Previous goal turn: progress.
+Cleanup restored disk capacity and preserved the current source, builds, and test evidence.
+
+Invariant:
+An operator broker cannot omit aggregate resource limits or persistent storage ownership.
+Provisioning creates a new dedicated image. It never formats an existing image.
+Persistent filesystem identity survives unmount and remount.
+Runtime I/O policy uses the current loop device and its actual backing queue.
+The retained supervisor still owns execution, native identity, and authority enrollment.
+Volume configuration does not grant actor authority.
+
+Selected checks and purpose, recorded before execution:
+New production-profile checks: reject missing, mutable, legacy, or fixture configuration before state mutation.
+New operator-volume integration: provision, launch real broker, persist Git/workspace data, unmount, remount, and reject identity tampering.
+Existing broker-resources and workspace-git: shared resource policy and administrative Git regressions.
+Existing session-storage-owner: retained native launch, actor input, owner loss, and checked cleanup under sanitizers.
+Focused Debug and ASan/UBSan checks run on both hosts.
+The complete M03 phase gate remains pending until the combined remaining requirements pass.
+
+Current operator profile is an explicit confinement profile.
+Legacy unprofiled launches remain diagnostic component fixtures.
+They do not qualify the mandatory production deployment.
+Identity issuance and world authorization retain their existing independent contracts.
+
+Both hosts passed 115 focused checks in Debug and ASan/UBSan. Total: 460 passes.
+The primary review verified 1,518 archived attachments and 374 matching source inputs per host.
+Existing native test method bodies and all 41 canonical locked files remain unchanged.
+The native renderer used llvmpipe. Physical GPU and input acceptance remain pending.
+
+Both hosts now have a dedicated 4 GiB David volume under /var/lib/spatial/volumes/david.
+Their distinct Btrfs identities and mounted runtime templates passed inspection.
+No operator broker or normal desktop session was started or restarted by this provisioning.
+The root owner activates quota accounting when the broker starts.
+Do not claim that provisioning alone activates accounting.
+Exact commands and unmount recovery are in each host's operator-david-provision.json.
+
+The isolated source slices omitted four locked documents during the focused runs.
+The canonical documents remain unchanged.
+All four were restored before phase-gate preparation. Both hosts now pass all 41 lock checks.
+The focused runs do not establish a complete acceptance gate.
+
+Read spatial-os-luna-handoff/evidence/m03-operator-storage-2026-10-11/primary-review.json.
+Next: competing-write availability and revocation, then complete M03 phase qualification.
+M03 remains incomplete. M04 through M16 remain incomplete.
+
+Preserved failures:
+Attempt 01 used a relative evidence path. The broker correctly rejected its relative configuration path.
+Attempt 02 lacked a private configuration parent. The existing loader correctly rejected its permissions.
+Attempt 03 reached the real production broker, then reproduced redundant Git namespace-parent arguments on both hosts.
+The correction removes redundant ancestor arguments. It preserves the existing argument and byte limits.
+Both hosts independently verified recursive directory creation with the installed trusted Bubblewrap binary.

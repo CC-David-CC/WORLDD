@@ -1,0 +1,489 @@
+syntax = "proto3";
+package spatial.identity.v1;
+import "core.proto";
+import "key.proto";
+import "grants.proto";
+
+// Templates request domain authority. They are not grants or bearer capabilities.
+// The subject must be absent. A domain derives it from an authenticated enrollment.
+message BootstrapGrantTemplate { string id = 1; spatial.authority.v1.GrantTerms terms = 2; }
+message BootstrapProfile { string id = 1; repeated BootstrapGrantTemplate grants = 2; }
+message BootstrapProfileState { BootstrapProfile profile = 1; uint64 revision = 2; bytes issuer_id = 3; }
+message BootstrapProfilePut { BootstrapProfile profile = 1; optional uint64 expected_revision = 2; }
+// Service reads require an exact positive revision. Signed owner reads may request the latest.
+message BootstrapProfileRead { string id = 1; optional uint64 revision = 2; }
+
+// Owner-managed service registry. Registration grants no actor authority.
+message AuthorityParticipant {
+  bytes id = 1;
+  bytes public_key = 2;
+  repeated spatial.authority.v1.Domain domains = 3;
+}
+message AuthorityParticipantRegister {
+  AuthorityParticipant participant = 1;
+  optional uint64 expected_registry_revision = 2;
+}
+message AuthorityRegistryRead { bytes after_id = 1; uint32 limit = 2; }
+message AuthorityParticipantRecord {
+  AuthorityParticipant participant = 1;
+  uint64 registered_revision = 2;
+  bytes issuer_id = 3;
+}
+message AuthorityRegistryPage {
+  bytes issuer_id = 1;
+  uint64 registry_revision = 2;
+  repeated AuthorityParticipantRecord participants = 3;
+  bytes next_after = 4;
+}
+message AuthoritySupervisorBind {
+  bytes participant_id = 1;
+  uint64 registered_revision = 2;
+  bytes public_key = 3;
+  optional uint64 expected_revision = 4;
+}
+message AuthoritySupervisorRead { bytes participant_id = 1; }
+message AuthoritySupervisorBinding {
+  AuthorityParticipantRecord registration = 1;
+  bytes public_key = 2;
+  uint64 revision = 3;
+}
+
+// Service identity proof on the server-derived TLS connection. This does not activate execution.
+message AuthorityAuthenticationBegin {
+  bytes participant_id = 1;
+  uint64 registered_revision = 2;
+  bytes service_incarnation = 3;
+}
+message AuthorityAuthenticationChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes issuer_incarnation = 3;
+  bytes nonce = 4;
+  AuthorityAuthenticationBegin request = 5;
+  bytes connection_binding = 6;
+  uint32 lifetime_ms = 7;
+  string audience = 8;
+}
+message AuthorityAuthenticationComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthorityAuthenticationResult {
+  bytes issuer_id = 1;
+  bytes issuer_incarnation = 2;
+  AuthorityParticipantRecord registration = 3;
+  bytes service_incarnation = 4;
+  bytes connection_binding = 5;
+  uint64 security_revision = 6;
+}
+
+// Durable participation. Trusted services must finish external cancellation before acknowledging.
+message AuthorityActivate { optional uint64 synchronized_revision = 1; }
+message AuthorityApplied {
+  uint64 generation = 1;
+  optional uint64 from_revision = 2;
+  optional uint64 through_revision = 3;
+}
+message AuthorityRelease { uint64 generation = 1; optional uint64 applied_revision = 2; }
+message AuthorityStateRead {}
+message AuthorityActivationState {
+  bytes issuer_id = 1;
+  AuthorityParticipantRecord registration = 2;
+  uint64 generation = 3;
+  bytes service_incarnation = 4;
+  bytes issuer_incarnation = 5;
+  bytes connection_binding = 6;
+  uint64 applied_revision = 7;
+  uint64 head_revision = 8;
+  bool active = 9;
+}
+message AuthorityBarrierRead { uint64 revision = 1; bytes after_participant_id = 2; uint32 limit = 3; }
+message AuthorityBarrierObligation {
+  AuthorityParticipantRecord registration = 1;
+  uint64 generation = 2;
+  bytes service_incarnation = 3;
+  uint64 applied_revision = 4;
+  bool complete = 5;
+  AuthorityRetirementState retirement = 6;
+}
+message AuthorityBarrierStatus {
+  bytes issuer_id = 1;
+  uint64 revision = 2;
+  IdentityReference target = 3;
+  uint64 participant_count = 4;
+  uint64 pending_count = 5;
+  bool complete = 6;
+  repeated AuthorityBarrierObligation obligations = 7;
+  bytes next_after = 8;
+}
+
+enum EnrollmentMode { ENROLLMENT_MODE_UNSPECIFIED = 0; MANUAL = 1; APPROVE_ALWAYS = 2; }
+message EnrollmentPolicy {
+  EnrollmentMode mode = 1;
+  string bootstrap_profile = 2; // Opaque profile reference. It is not a grant.
+}
+message PolicyState { EnrollmentPolicy policy = 1; uint64 revision = 2; }
+message PolicyRead {}
+message PolicySet { EnrollmentPolicy policy = 1; optional uint64 expected_revision = 2; }
+message IssuerOperation {
+  oneof action {
+    PolicyRead policy_read = 1;
+    PolicySet policy_set = 2;
+    EnrollmentRead enrollment_read = 3;
+    EnrollmentDecision enrollment_decision = 4;
+    IdentityReference identity_read = 5;
+    IdentityRevoke identity_revoke = 6;
+    BootstrapProfileRead profile_read = 7;
+    BootstrapProfilePut profile_put = 8;
+    AuthorityParticipantRegister participant_register = 9;
+    AuthorityRegistryRead registry_read = 10;
+    AuthorityBarrierRead barrier_read = 11;
+    AuthoritySupervisorBind supervisor_bind = 12;
+    AuthoritySupervisorRead supervisor_read = 13;
+  }
+}
+enum ActorKind { ACTOR_KIND_UNSPECIFIED = 0; HUMAN = 1; AGENT = 2; }
+message EnrollmentIntent { bytes public_key = 1; ActorKind kind = 2; string label = 3; }
+enum EnrollmentStatus { ENROLLMENT_STATUS_UNSPECIFIED = 0; PENDING = 1; APPROVED = 2; REJECTED = 3; }
+enum EnrollmentChoice { ENROLLMENT_CHOICE_UNSPECIFIED = 0; APPROVE_NEW = 1; APPROVE_EXISTING = 2; REJECT = 3; }
+message EnrollmentRead { bytes enrollment_id = 1; }
+message EnrollmentDecision {
+  bytes enrollment_id = 1;
+  EnrollmentChoice choice = 2;
+  bytes target_actor_id = 3;
+  optional uint64 expected_policy_revision = 4;
+}
+message ActorCredential {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes actor_id = 3;
+  bytes credential_id = 4;
+  bytes public_key = 5;
+  ActorKind kind = 6;
+  bytes enrollment_id = 7;
+  string bootstrap_profile = 8;
+  uint64 bootstrap_profile_revision = 9;
+  uint64 policy_revision = 10;
+  string audience = 11;
+}
+message SignedCredential { SignRequest content = 1; KeyProof proof = 2; }
+message EnrollmentRecord {
+  bytes enrollment_id = 1;
+  EnrollmentIntent intent = 2;
+  EnrollmentStatus status = 3;
+  SignedCredential credential = 4;
+}
+message EnrollmentChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes incarnation = 3;
+  bytes nonce = 4;
+  EnrollmentIntent intent = 5;
+  uint32 lifetime_ms = 6;
+  string audience = 7;
+}
+message EnrollmentComplete { bytes nonce = 1; KeyProof proof = 2; }
+enum IdentityTargetKind { IDENTITY_TARGET_UNSPECIFIED = 0; CREDENTIAL_TARGET = 1; ACTOR_TARGET = 2; }
+message IdentityReference { IdentityTargetKind kind = 1; bytes id = 2; }
+message IdentityRevoke {
+  IdentityReference target = 1;
+  optional uint64 expected_security_revision = 2;
+  string reason = 3;
+}
+// Local operator interface. Issuer operations still require owner-signed challenges.
+message RevocationCompletionRead { IdentityReference target = 1; uint64 revision = 2; }
+message RevocationCommand {
+  uint32 protocol_version = 1;
+  oneof operation { IdentityRevoke revoke = 2; RevocationCompletionRead resume = 3; }
+  optional uint32 wait_ms = 4; // 50..60000; default 5000. Completion phase only.
+}
+enum RevocationCommandState {
+  REVOCATION_COMMAND_UNSPECIFIED = 0;
+  REVOCATION_NOT_SUBMITTED = 1;
+  REVOCATION_COMMIT_UNCERTAIN = 2;
+  REVOCATION_COMMITTED = 3;
+  REVOCATION_COMPLETE = 4;
+  REVOCATION_REJECTED = 5;
+}
+message RevocationResult {
+  uint32 protocol_version = 1;
+  IdentityReference target = 2;
+  RevocationCommandState state = 3;
+  optional uint64 revision = 4; // Candidate revision if the commit is uncertain.
+  AuthorityBarrierStatus barrier = 5; // Latest checked observation; not a lease.
+  spatial.core.v1.Error error = 6;
+}
+message IdentityStatus {
+  bytes issuer_id = 1;
+  bytes actor_id = 2;
+  bytes credential_id = 3;
+  ActorKind kind = 4;
+  bool actor_revoked = 5;
+  bool credential_revoked = 6;
+  bool active = 7;
+  uint64 security_revision = 8;
+}
+// Read-only service query. Actor validity is independent of any one credential.
+// Keep request order. Require between one and 128 distinct 32-byte identities.
+message ActorStatusRead { repeated bytes actor_ids = 1; }
+message ActorState {
+  bytes actor_id = 1;
+  bool known = 2;
+  bool revoked = 3;
+  bool active = 4;
+}
+message ActorStatusBatch {
+  bytes issuer_id = 1;
+  uint64 security_revision = 2;
+  repeated ActorState actors = 3;
+}
+message AuthenticationBegin {
+  SignedCredential credential = 1;
+  string audience = 2;
+  bytes channel_binding = 3;
+}
+message AuthenticationChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes incarnation = 3;
+  bytes nonce = 4;
+  AuthenticationBegin request = 5;
+  uint32 lifetime_ms = 6;
+}
+message AuthenticationComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthenticationResult {
+  IdentityStatus identity = 1;
+  string audience = 2;
+  bytes channel_binding = 3;
+}
+message AdminResult {
+  oneof outcome { PolicyState policy = 1; EnrollmentRecord enrollment = 2; IdentityStatus identity_status = 3; BootstrapProfileState profile = 4; AuthorityParticipantRecord participant = 5; AuthorityRegistryPage registry = 6; AuthorityBarrierStatus barrier = 7; AuthoritySupervisorBinding supervision = 8; }
+}
+message IssuerInfoRequest {}
+// Trusted supervisor configuration. Paths are absolute and remain outside Git.
+// TLS service certificates do not grant actor or issuer-owner authority.
+message IssuerTlsServerConfig {
+  uint32 protocol_version = 1;
+  string certificate_path = 2;
+  string private_key_path = 3;
+  string client_ca_path = 4;
+  optional uint32 io_timeout_ms = 5; // 50..60000; default 5000.
+  optional uint32 idle_timeout_ms = 6; // 50..300000; default 60000.
+  optional uint32 connection_limit = 7; // 1..128; default 32.
+}
+message IssuerTlsClientConfig {
+  uint32 protocol_version = 1;
+  string address = 2; // Numeric IPv4 or IPv6 address. No implicit DNS lookup.
+  uint32 port = 3;
+  string server_name = 4; // Expected DNS subject alternative name and TLS SNI.
+  string server_ca_path = 5;
+  string certificate_path = 6;
+  string private_key_path = 7;
+  bytes issuer_id = 8;
+  bytes issuer_public_key = 9;
+  optional uint32 io_timeout_ms = 10; // 50..60000; default 5000.
+}
+message IssuerInfo { bytes issuer_id = 1; bytes public_key = 2; uint64 policy_revision = 3; }
+message IssuerChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes incarnation = 3;
+  bytes nonce = 4;
+  bytes owner_public_key = 5;
+  IssuerOperation operation = 6;
+  uint32 lifetime_ms = 7;
+  string audience = 8;
+}
+message ChallengeReply { bytes nonce = 1; SignRequest signing_request = 2; }
+message IssuerExecute { bytes nonce = 1; KeyProof proof = 2; }
+// No cursor requests a current baseline, without historical events.
+// A present cursor requests contiguous committed events after that revision.
+message RevocationRead { optional uint64 after_revision = 1; uint32 wait_ms = 2; }
+message RevocationEvent { uint64 revision = 1; IdentityReference target = 2; }
+message RevocationBatch {
+  bytes issuer_id = 1;
+  uint64 from_revision = 2;
+  uint64 through_revision = 3;
+  uint64 head_revision = 4;
+  bool initial = 5;
+  repeated RevocationEvent events = 6;
+}
+message RevocationUpdate {
+  uint32 protocol_version = 1;
+  oneof outcome { RevocationBatch batch = 2; spatial.core.v1.Error error = 3; }
+}
+// Supervisor proof authorizes one exact service connection and retained launch.
+message AuthorityLaunchBegin {
+  AuthorityAuthenticationResult service = 1;
+  uint64 supervision_revision = 2;
+  bytes launch_id = 3;
+  optional uint64 previous_generation = 4;
+}
+message AuthorityLaunchChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes issuer_incarnation = 3;
+  bytes nonce = 4;
+  bytes connection_binding = 5;
+  AuthorityLaunchBegin request = 6;
+  bytes supervisor_public_key = 7;
+  uint32 lifetime_ms = 8;
+  string audience = 9;
+}
+message AuthorityLaunchComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthorityLaunchAuthorization {
+  AuthorityLaunchBegin request = 1;
+  bytes authorization_id = 2;
+  uint64 generation = 3;
+  bytes supervisor_public_key = 4;
+}
+// Fencing stops issuer-side service mutations. It does not prove external cleanup.
+message AuthorityFenceBegin {
+  bytes participant_id = 1;
+  uint64 registered_revision = 2;
+  uint64 generation = 3;
+  bytes service_incarnation = 4;
+  bytes launch_id = 5;
+  uint64 supervision_revision = 6;
+  bytes authorization_id = 7;
+}
+message AuthorityFenceChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes issuer_incarnation = 3;
+  bytes nonce = 4;
+  bytes connection_binding = 5;
+  AuthorityFenceBegin request = 6;
+  bytes supervisor_public_key = 7;
+  uint32 lifetime_ms = 8;
+  string audience = 9;
+}
+message AuthorityFenceComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthorityFenceState {
+  bytes issuer_id = 1;
+  AuthorityParticipantRecord registration = 2;
+  uint64 generation = 3;
+  bytes service_incarnation = 4;
+  bytes authorization_id = 5;
+  bytes launch_id = 6;
+  uint64 supervision_revision = 7;
+  bytes fence_id = 8;
+  uint64 security_revision = 9;
+  bytes supervisor_public_key = 10;
+}
+message IssuerRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    spatial.core.v1.HelloRequest hello = 10;
+    IssuerInfoRequest info = 11;
+    IssuerOperation challenge = 12;
+    IssuerExecute execute = 13;
+    EnrollmentIntent enrollment_begin = 14;
+    EnrollmentComplete enrollment_complete = 15;
+    AuthenticationBegin authentication_begin = 16;
+    AuthenticationComplete authentication_complete = 17;
+    SignedCredential credential_check = 18;
+    RevocationRead revocations = 19;
+    ActorStatusRead actor_status = 20;
+    BootstrapProfileRead profile_read = 21;
+    AuthorityAuthenticationBegin authority_authentication_begin = 22;
+    AuthorityAuthenticationComplete authority_authentication_complete = 23;
+    AuthorityActivate authority_activate = 24;
+    AuthorityApplied authority_applied = 25;
+    AuthorityRelease authority_release = 26;
+    AuthorityStateRead authority_state = 27;
+    AuthorityLaunchBegin authority_launch_begin = 28;
+    AuthorityLaunchComplete authority_launch_complete = 29;
+    AuthorityFenceBegin authority_fence_begin = 30;
+    AuthorityFenceComplete authority_fence_complete = 31;
+    AuthorityRetireBegin authority_retire_begin = 32;
+    AuthorityRetireComplete authority_retire_complete = 33;
+  }
+}
+message IssuerReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    spatial.core.v1.HelloReply hello = 10;
+    IssuerInfo info = 11;
+    ChallengeReply challenge = 12;
+    PolicyState policy = 13;
+    spatial.core.v1.Error error = 14;
+    EnrollmentRecord enrollment = 15;
+    IdentityStatus identity_status = 16;
+    AuthenticationResult authentication = 17;
+    RevocationBatch revocations = 18;
+    ActorStatusBatch actor_status = 19;
+    BootstrapProfileState profile = 20;
+    AuthorityParticipantRecord participant = 21;
+    AuthorityRegistryPage registry = 22;
+    AuthorityAuthenticationResult authority_authentication = 23;
+    AuthorityActivationState authority_activation = 24;
+    AuthorityBarrierStatus authority_barrier = 25;
+    AuthoritySupervisorBinding supervision = 26;
+    AuthorityLaunchAuthorization authority_launch_authorization = 27;
+    AuthorityFenceState authority_fence = 28;
+    AuthorityRetirementState authority_retirement = 29;
+  }
+}
+
+// A registered supervisor attests to a checked durable external-cleanup record.
+message AuthorityRetireBegin {
+  AuthorityFenceBegin owner = 1;
+  bytes fence_id = 2;
+  bytes cleanup_sha256 = 3;
+}
+message AuthorityRetireChallenge {
+  uint32 protocol_version = 1;
+  bytes issuer_id = 2;
+  bytes issuer_incarnation = 3;
+  bytes nonce = 4;
+  bytes connection_binding = 5;
+  AuthorityRetireBegin request = 6;
+  bytes supervisor_public_key = 7;
+  uint32 lifetime_ms = 8;
+  string audience = 9;
+}
+message AuthorityRetireComplete { bytes nonce = 1; KeyProof proof = 2; }
+message AuthorityRetirementState {
+  bytes issuer_id = 1;
+  AuthorityRetireBegin request = 2;
+  AuthorityParticipantRecord registration = 3;
+  bytes supervisor_public_key = 4;
+  bytes retirement_id = 5;
+  uint64 security_revision = 6;
+  uint64 applied_revision = 7;
+}
+
+// Trusted authority component queues. These messages grant no actor access.
+message AuthorityParticipantRuntimeConfig {
+  uint32 protocol_version = 1;
+  string issuer_client_config = 2;
+  string private_key_path = 3;
+  bytes participant_id = 4;
+  uint64 registered_revision = 5;
+  // A supervisor assigns this per launch. Presence with an empty value is invalid.
+  // This identity does not grant launch or recovery authority.
+  optional bytes service_incarnation = 6;
+  // A connected private supervisor socket. This mode never loads service signing material.
+  optional uint32 supervisor_channel_fd = 7;
+  bytes supervisor_issuer_id = 8;
+}
+message ParticipantCommand {
+  uint64 request_id = 1;
+  oneof operation {
+    AuthorityActivate activate = 10;
+    AuthorityApplied applied = 11;
+    AuthorityRelease release = 12;
+  }
+}
+message ParticipantUpdate {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    AuthorityAuthenticationResult authenticated = 10;
+    RevocationBatch revocations = 11;
+    AuthorityActivationState activated = 12;
+    AuthorityActivationState applied = 13;
+    AuthorityActivationState released = 14;
+    spatial.core.v1.Error error = 15;
+  }
+}

@@ -51,6 +51,12 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
     require(google::protobuf::TextFormat::ParseFromString(spatial::identity::tls_detail::load_config(path), &value),
         "Malformed supervisor configuration");
     spatial::validate_message(value);
+    require(!value.require_broker_confinement() ||
+        (value.has_broker_storage_owner() && value.has_broker_resources() && value.broker_resources().protocol_version() == 2),
+        "Production broker supervisor requires aggregate resources and storage ownership");
+    for (const auto& arg : value.launch().arguments())
+        require(arg != "--production" && (!value.require_broker_confinement() || arg != "--fixture-faults"),
+                "Supervisor owns the production broker profile");
     require(value.protocol_version() == 1 && value.binding().supervised() &&
         value.has_participant() && value.has_authorization() && value.has_launch() &&
         absolute(value.journal_directory()) && absolute(value.delegated_cgroup()) &&
@@ -317,6 +323,7 @@ int main(int argc, char** argv) {
             config.mutable_launch()->add_arguments("--storage-fd");
             config.mutable_launch()->add_arguments(std::to_string(config.broker_storage_target_fd()));
         }
+        if (config.require_broker_confinement()) config.mutable_launch()->add_arguments("--production");
         const auto started = launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited);
         release_child_sources(config);
         storage_child.reset();

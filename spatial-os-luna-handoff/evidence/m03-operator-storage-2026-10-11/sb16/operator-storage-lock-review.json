@@ -1,0 +1,11 @@
+{
+  "checked_files": 41,
+  "errors": [],
+  "restored_locked_documents": [
+    "docs/CONTRACT.md",
+    "docs/PROTOBUF_MIGRATION.md",
+    "docs/WORLDD.md",
+    "docs/ACTORS.md"
+  ],
+  "restored_before_full_gate": true
+}

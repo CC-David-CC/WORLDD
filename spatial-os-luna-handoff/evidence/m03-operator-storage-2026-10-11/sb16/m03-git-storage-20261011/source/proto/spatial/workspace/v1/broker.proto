@@ -1,0 +1,249 @@
+syntax = "proto3";
+package spatial.workspace.v1;
+import "core.proto";
+import "grants.proto";
+import "issuer.proto";
+import "native_scope.proto";
+import "process_scope.proto";
+import "storage.proto";
+
+// Sealed, inherited supervisor input. Never store cookies in workspace state.
+message NativeLaunchConfig {
+  uint32 protocol_version = 1;
+  optional uint32 display_number = 2;
+  bytes broker_cookie = 3;
+  bytes server_id = 4;
+  optional uint32 server_pid = 5;
+  optional uint32 server_uid = 6;
+}
+
+message WorkspaceAuthorityBinding { string workspace = 1; string authority_directory = 2; }
+// Owner configuration. Resource ceilings do not grant workspace rights.
+message ApplicationResourceProfile {
+  string name = 1;
+  spatial.supervisor.v1.ProcessScopeBudget maximum = 2;
+}
+message ActorResourceLimit {
+  oneof subject {
+    spatial.authority.v1.ActorRef principal = 1;
+    string fixture_actor = 2;
+  }
+  spatial.supervisor.v1.ProcessScopeBudget maximum = 3;
+}
+message WorkspaceResourcePolicy {
+  string workspace = 1; // Empty only for the default policy.
+  spatial.supervisor.v1.ProcessScopeBudget total = 2;
+  spatial.supervisor.v1.ProcessScopeBudget actor_default = 3;
+  repeated ActorResourceLimit actors = 4;
+  repeated ApplicationResourceProfile profiles = 5;
+}
+message BrokerResourceConfig {
+  uint32 protocol_version = 1;
+  string delegated_cgroup = 2;
+  WorkspaceResourcePolicy default_policy = 3;
+  repeated WorkspaceResourcePolicy workspaces = 4;
+  // Version 2 requires this aggregate envelope for broker work and all descendants.
+  spatial.supervisor.v1.ProcessScopeBudget broker_budget = 5;
+  // Reserved control-plane capacity. Applied to the manager before store initialization.
+  spatial.supervisor.v1.ProcessScopeBudget manager_budget = 6;
+}
+// Parent launch configuration. The child resource template must leave its root empty.
+message BrokerProcessConfig {
+  uint32 protocol_version = 1;
+  string delegated_cgroup = 2;
+  BrokerResourceConfig resources = 3;
+  StorageOwnerLaunchConfig storage_owner = 4;
+  // Production confinement rejects fixture faults and requires aggregate resources plus storage.
+  bool require_confinement = 5;
+}
+// Declarative operator input. Fixed paths and live I/O devices are supplied by provisioning.
+message StorageVolumeDefinition {
+  uint32 protocol_version = 1;
+  string name = 2;
+  StorageOwnerConfig owner_policy = 3;
+  BrokerResourceConfig resources = 4;
+  spatial.supervisor.v1.ProcessScopeBudget owner_budget = 5;
+  uint64 read_bytes_per_second = 6;
+  uint64 write_bytes_per_second = 7;
+}
+// Root-owned persistent identity. This contains no active processes or credentials.
+message StorageVolumeRecord {
+  uint32 protocol_version = 1;
+  StorageVolumeDefinition definition = 2;
+  bytes filesystem_id = 3;
+  uint64 image_device = 4;
+  uint64 image_inode = 5;
+}
+// Recreated after each mount. Loop device identities must never be assumed after reboot.
+message StorageVolumeRuntime {
+  uint32 protocol_version = 1;
+  string volume_root = 2;
+  BrokerResourceConfig resources = 3;
+  StorageOwnerLaunchConfig storage_owner = 4;
+  bool require_confinement = 5;
+}
+message WorkspaceAuthorityConfig {
+  string participant_runtime_config = 4;
+  uint32 protocol_version = 1;
+  string issuer_client_config = 2;
+  repeated WorkspaceAuthorityBinding bindings = 3;
+}
+message WorkspaceAuthoritySeed {
+  uint32 protocol_version = 1;
+  string workspace = 2;
+  string authority_directory = 3;
+  repeated spatial.authority.v1.GrantTerms roots = 4;
+}
+
+// Private inherited authority channel. Never accept this envelope from actors.
+message AccessRequest {
+  string workspace = 1; string actor = 2;
+  spatial.authority.v1.ActorRef principal = 3;
+}
+message AccessReply { repeated spatial.core.v1.WorkspaceRight rights = 1; uint64 revision = 2; }
+// Application groups come from trusted native attribution, not client properties.
+message ApplicationRef { bytes workspace = 1; bytes application = 2; bytes server_id = 3; }
+message ApplicationAccessRequest {
+  spatial.authority.v1.ActorRef principal = 1;
+  repeated ApplicationRef applications = 2;
+}
+message ApplicationAccess {
+  ApplicationRef application = 1;
+  optional bool observe = 2;
+  optional bool control = 3;
+}
+// Results preserve request order and identity. Denied groups return explicit false values.
+message ApplicationAccessReply { repeated ApplicationAccess applications = 1; }
+// Live control reservations are scoped to this private broker connection.
+message ApplicationControlRequest {
+  spatial.authority.v1.ActorRef principal = 1;
+  ApplicationRef application = 2;
+}
+message ApplicationControlLease {
+  bytes id = 1;
+  spatial.authority.v1.ActorRef principal = 2;
+  ApplicationRef application = 3;
+}
+// The trusted world releases native input before releasing this reservation.
+message ApplicationControlRelease { bytes id = 1; spatial.authority.v1.ActorRef principal = 2; }
+message ApplicationControlReleased { bytes id = 1; }
+// Only a retained local supervisor assigns this binding to an inherited world channel.
+// The binding is an ownership key, not proof that fencing or cleanup occurred.
+message ControlOwner {
+  bytes issuer_id = 1;
+  spatial.identity.v1.AuthorityFenceBegin launch = 2;
+  spatial.supervisor.v1.NativeScopeIdentity native = 3;
+}
+// The retained coordinator supplies checked cleanup. Actors cannot supply this message.
+message ControlOwnerRecovery {
+  ControlOwner owner = 1;
+  spatial.supervisor.v1.ProcessScopeStopped process_stopped = 2;
+  spatial.supervisor.v1.NativeScopeStopped native_stopped = 3;
+}
+// Retained for the broker lifetime. This is not a durable issuer retirement receipt.
+message ControlRecoveryReceipt {
+  ControlOwnerRecovery cleanup = 1;
+  repeated ApplicationControlLease released = 2;
+}
+message ControlOwnerState {
+  ControlOwner owner = 1;
+  bool channel_fenced = 2;
+  repeated ApplicationControlLease reservations = 3;
+  ControlRecoveryReceipt recovery = 4;
+}
+// One protobuf per private SOCK_SEQPACKET packet. Register carries one SCM_RIGHTS fd.
+// This envelope is never accepted on world or actor channels.
+message ControlSupervisorRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    ControlOwner register = 10;
+    ControlOwner inspect = 11;
+    ControlOwner fence = 12;
+    ControlOwnerRecovery recover = 13;
+  }
+}
+message ControlSupervisorReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    ControlOwnerState state = 10;
+    spatial.core.v1.Error error = 11;
+  }
+}
+message LaunchRequest {
+  string workspace = 1; string actor = 2; spatial.core.v1.ProcessLaunchRequest command = 3;
+  spatial.authority.v1.ActorRef principal = 4;
+}
+// The trusted world derives the principal from its authenticated actor channel.
+message GrantListRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  bytes after_id = 3; uint32 limit = 4;
+}
+message GrantDelegateRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  bytes parent_id = 3; spatial.authority.v1.GrantTerms terms = 4;
+  optional uint64 expected_revision = 5;
+}
+message GrantRevokeRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  bytes id = 3; optional uint64 expected_revision = 4;
+}
+message BootstrapBindRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  spatial.authority.v1.BootstrapSelector selector = 3;
+  bytes parent_id = 4; optional uint64 expected_revision = 5;
+  spatial.identity.v1.SignedCredential credential = 6;
+}
+message BootstrapRevokeRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  bytes id = 3; optional uint64 expected_revision = 4;
+  spatial.identity.v1.SignedCredential credential = 5;
+}
+message BootstrapApplyRequest {
+  string workspace = 1; spatial.authority.v1.ActorRef principal = 2;
+  spatial.identity.v1.SignedCredential credential = 3;
+}
+// The broker and its namespace supervisor use this channel. Applications never receive it.
+message AppStart { uint32 protocol_version = 1; repeated string argv = 2; }
+message AppEvent {
+  uint32 protocol_version = 1;
+  oneof outcome { bool started = 2; sint32 exit_code = 3; string error = 4; }
+}
+message Request {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    spatial.core.v1.Request management = 100;
+    AccessRequest access = 101;
+    LaunchRequest launch = 102;
+    GrantListRequest grants = 103;
+    GrantDelegateRequest delegate = 104;
+    GrantRevokeRequest revoke = 105;
+    ApplicationAccessRequest application_access = 106;
+    ApplicationControlRequest control_acquire = 107;
+    ApplicationControlRelease control_release = 108;
+    BootstrapBindRequest bootstrap_bind = 110;
+    BootstrapRevokeRequest bootstrap_revoke = 111;
+    BootstrapApplyRequest bootstrap_apply = 112;
+  }
+}
+message Reply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    spatial.core.v1.Reply management = 100;
+    AccessReply access = 101;
+    spatial.core.v1.Error error = 102;
+    spatial.core.v1.ProcessLaunchReply launched = 103;
+    spatial.authority.v1.GrantPage grants = 104;
+    spatial.authority.v1.GrantRecord grant = 105;
+    ApplicationAccessReply application_access = 106;
+    ApplicationControlLease control_lease = 107;
+    ApplicationControlReleased control_released = 108;
+    // Unsolicited event. request_id is zero. The reservation remains until release.
+    ApplicationControlLease control_revoked = 109;
+    spatial.authority.v1.BootstrapBinding binding = 110;
+    spatial.authority.v1.BootstrapReport bootstrap = 111;
+  }
+}

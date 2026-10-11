@@ -1,0 +1,35 @@
+protocol_version: 1
+name: "david"
+owner_policy {
+  protocol_version: 1
+  broker_uid: 1000
+  volume_bytes: 4294967296
+  control_plane_bytes: 134217728
+  filesystem_reserve_bytes: 268435456
+  default_policy {
+    total_bytes: 2147483648
+    actor_state_default_bytes: 134217728
+    profiles { name: "development" state_bytes: 67108864 }
+    profiles { name: "read-only" state_bytes: 67108864 }
+  }
+}
+resources {
+  protocol_version: 2
+  broker_budget { memory_bytes: 1073741824 swap_bytes: 0 processes: 128 cpu_microseconds: 400000 }
+  manager_budget { memory_bytes: 268435456 swap_bytes: 0 processes: 32 cpu_microseconds: 200000 }
+  default_policy {
+    total { memory_bytes: 536870912 swap_bytes: 0 processes: 64 cpu_microseconds: 200000 }
+    actor_default { memory_bytes: 268435456 swap_bytes: 0 processes: 32 cpu_microseconds: 100000 }
+    profiles {
+      name: "development"
+      maximum { memory_bytes: 134217728 swap_bytes: 0 processes: 16 cpu_microseconds: 100000 }
+    }
+    profiles {
+      name: "read-only"
+      maximum { memory_bytes: 134217728 swap_bytes: 0 processes: 16 cpu_microseconds: 100000 }
+    }
+  }
+}
+owner_budget { memory_bytes: 268435456 swap_bytes: 0 processes: 16 cpu_microseconds: 100000 }
+read_bytes_per_second: 67108864
+write_bytes_per_second: 16777216

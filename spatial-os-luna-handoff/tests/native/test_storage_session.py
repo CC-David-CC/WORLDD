@@ -65,6 +65,7 @@ class NativeStorageSessionTests(existing.SessionApplicationTests):
         config.launch.arguments[states[0]+1] = str(self.execution)
         config.broker_storage_owner.CopyFrom(self.configuration.storage_owner)
         config.broker_storage_target_fd = 254
+        config.require_broker_confinement = True
         return config
 
     def world_config(self):

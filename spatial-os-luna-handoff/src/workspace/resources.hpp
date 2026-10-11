@@ -37,7 +37,7 @@ class WorkspaceResources final {
 public:
     explicit WorkspaceResources(const std::filesystem::path& configuration);
     // Consume this descriptor, including on rejection.
-    explicit WorkspaceResources(int sealed_configuration);
+    explicit WorkspaceResources(int sealed_configuration, bool require_aggregate = false);
     ~WorkspaceResources();
     std::unique_ptr<ApplicationResources> prepare(const workspace::v1::LaunchRequest& request,
         const std::array<std::filesystem::path, 3>& writable_paths);

@@ -80,6 +80,8 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
         if (config.protocol_version() != 1 || !config.has_resources() || !config.resources().delegated_cgroup().empty())
             throw std::invalid_argument("Broker process requires an unbound resource template");
         validate_resource_config(config.resources());
+        if (config.require_confinement() && (!config.has_storage_owner() || fixture_faults || config.resources().protocol_version() != 2))
+            throw std::invalid_argument("Production broker launch requires aggregate resources and storage ownership without fixture faults");
         if (config.has_storage_owner()) supervisor::validate_storage_launch(config.storage_owner(), state);
         identity::tls_detail::Fd storage_owner, storage_child;
         if (config.has_storage_owner()) {
@@ -102,6 +104,7 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
         supervisor::v1::AuthorityProcessLaunch request;
         request.set_executable(executable.string());
         request.add_arguments("--state-dir"); request.add_arguments(state.string());
+        if (config.require_confinement()) request.add_arguments("--production");
         if (fixture_faults) request.add_arguments("--fixture-faults");
         request.add_arguments("--resource-config-fd"); request.add_arguments("3"); request.add_inherited_fds(3);
         std::vector<int> inherited{policy.value};

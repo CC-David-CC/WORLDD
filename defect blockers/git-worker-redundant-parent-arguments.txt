@@ -1,0 +1,26 @@
+Confirmed defect: Git sandbox launch exhausts its argument budget.
+Reproduced on sb16 and sb16-2 on 2026-10-11.
+
+The operator volume is under /var/lib/spatial/volumes.
+The authorized source repository is under the project's /home test directory.
+Git import adds each ancestor of both paths as a separate Bubblewrap --dir argument pair.
+The generated command exceeds the 128-argument launch bound.
+The private broker returns "Git worker argument count exceeded" and the transport witness closes.
+The test had already completed the production broker handshake.
+
+Proposed correction:
+Emit only each mount's immediate parent.
+Bubblewrap creates its missing ancestors inside the namespace.
+Both hosts independently confirmed recursive --dir creation with the installed trusted binary.
+Keep the 128-argument and 65,536-byte bounds.
+Keep pinned mounts, resource ceilings, syscall restrictions, deadlines, and network isolation.
+
+Regression:
+tests/native/test_operator_storage.py imports across /home and /var/lib roots.
+It must preserve real Git and workspace data across checked unmount and remount.
+Run related Git containment and resource regressions on both hosts.
+
+Failure evidence:
+spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-checks-03
+Current status: correction passed the operator-volume regression and related checks on both hosts in Debug and ASan/UBSan.
+The complete M03 phase gate remains pending.

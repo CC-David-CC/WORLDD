@@ -105,7 +105,7 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
 int main(int argc, char** argv) {
     try {
         std::filesystem::path state, authority_config, seed, resource_config;
-        unsigned migration = 0; bool fixture_faults = false;
+        unsigned migration = 0; bool fixture_faults = false, production = false;
         int native_fd = -1, resource_fd = -1, storage_fd = -1;
         int control_fd = -1, control_peer = -1;
         for (int i = 1; i < argc; ++i) {
@@ -124,6 +124,7 @@ int main(int argc, char** argv) {
             }
             else if (argument == "--init-authority" && seed.empty() && i+1 < argc) seed = argv[++i];
             else if (argument == "--fixture-faults" && !fixture_faults) fixture_faults = true;
+            else if (argument == "--production" && !production) production = true;
             else if (argument == "--native-security-fd" && native_fd < 0 && i+1 < argc) {
                 const std::string value(argv[++i]); std::size_t used = 0;
                 native_fd = std::stoi(value, &used);
@@ -142,6 +143,8 @@ int main(int argc, char** argv) {
             else throw std::invalid_argument("Unknown or incomplete workspaced argument");
         }
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
+        if (production && (resource_fd < 0 || storage_fd < 0 || fixture_faults || migration || !seed.empty()))
+            throw std::invalid_argument("Production broker requires sealed resources and storage ownership without fixture faults");
         if ((control_fd < 0) != (control_peer < 0) || (control_fd >= 0 && control_fd == native_fd))
             throw std::invalid_argument("Control supervisor requires a separate descriptor and peer");
         if (resource_fd >= 0 && (resource_fd == native_fd || resource_fd == control_fd))
@@ -156,7 +159,7 @@ int main(int argc, char** argv) {
         std::unique_ptr<spatial::NativeLaunch> native;
         std::unique_ptr<spatial::WorkspaceResources> resources;
         if (!resource_config.empty()) resources = std::make_unique<spatial::WorkspaceResources>(resource_config);
-        if (resource_fd >= 0) resources = std::make_unique<spatial::WorkspaceResources>(resource_fd);
+        if (resource_fd >= 0) resources = std::make_unique<spatial::WorkspaceResources>(resource_fd, production);
         std::unique_ptr<spatial::StorageClient> storage;
         if (storage_fd >= 0) storage = std::make_unique<spatial::StorageClient>(storage_fd, state);
         spatial::ExecutionStore store(state, migration, fixture_faults, storage.get(), resources.get());

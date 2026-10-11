@@ -1,0 +1,8 @@
+{
+  "filesystem_id": "a46e8c7dbc874b0d84512e6d26cd2a2c",
+  "image_inode": 138328,
+  "project_inode": 259,
+  "project_sha256": "f0d07901c54b0808d1c9c41af2acacee53b573654eb033e83b837b7c600d1f08",
+  "status": "passed",
+  "volume": "/var/lib/spatial/volumes/m03-qual-0fac4e9af1724689a064/mount"
+}

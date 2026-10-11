@@ -1,0 +1,148 @@
+{
+  "status": "prepared",
+  "mounted": false,
+  "loop": "/dev/loop12",
+  "policy_directory": "/run/spatial-m03-native-storage-f688d2ef84f54bc488de6feb72eadb37",
+  "commands": [
+    {
+      "argv": [
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/native/test_native_storage_session_retains_owner_and_confined_application/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mkfs.btrfs",
+        "-q",
+        "-f",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid",
+        "/dev/loop12",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/native/test_native_storage_session_retains_owner_and_confined_application/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "blkid",
+        "-s",
+        "UUID",
+        "-o",
+        "value",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "4980abd0-6e5c-48e2-8689-bb585c1fd69b\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-8b8b07d3a6fde82edb185aaeaee7aaf4.service",
+        "-p",
+        "MainPID",
+        "-p",
+        "ActiveState",
+        "-p",
+        "ExecStart"
+      ],
+      "exit_code": 0,
+      "stdout": "MainPID=114132\nExecStart={ path=/usr/local/libexec/spatial-storage-owner ; argv[]=/usr/local/libexec/spatial-storage-owner --config /run/spatial-m03-native-storage-f688d2ef84f54bc488de6feb72eadb37/owner.pb --channel-stdin --broker-pidfd-stdout ; ignore_errors=no ; start_time=[Sun 2026-10-11 07:27:48 EDT] ; stop_time=[n/a] ; pid=114132 ; code=(null) ; status=0/0 }\nActiveState=active\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "--noheadings",
+        "--output",
+        "BACK-FILE",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/native/test_native_storage_session_retains_owner_and_confined_application/volume.img\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/native/test_native_storage_session_retains_owner_and_confined_application/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-j",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/native/test_native_storage_session_retains_owner_and_confined_application/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12: [66306]:6567024 (/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/native/test_native_storage_session_retains_owner_and_confined_application/volume.img)\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-d",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-j",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/native/test_native_storage_session_retains_owner_and_confined_application/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "configuration": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/native/test_native_storage_session_retains_owner_and_confined_application/broker.textproto",
+  "volume": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/native/test_native_storage_session_retains_owner_and_confined_application/volume",
+  "devices": [
+    [
+      259,
+      0
+    ],
+    [
+      7,
+      12
+    ]
+  ],
+  "owner_witness": {
+    "unit": "spatial-storage-owner-8b8b07d3a6fde82edb185aaeaee7aaf4.service",
+    "owner_pid": 114132,
+    "broker_pid": 114128,
+    "broker_pidfd": [
+      "pos:\t0\nflags:\t02\nmnt_id:\t5\nino:\t112675\nPid:\t114128\nNSpid:\t114128\n",
+      "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t112675\nPid:\t114128\nNSpid:\t114128\n",
+      "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t112675\nPid:\t114128\nNSpid:\t114128\n"
+    ]
+  },
+  "loop_attached": false,
+  "cleanup_confirmed": true
+}

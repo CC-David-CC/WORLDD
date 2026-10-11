@@ -73,6 +73,7 @@ message AuthoritySupervisorConfig {
   optional uint32 broker_resource_target_fd = 14; // Sealed binary policy consumed by the broker.
   spatial.workspace.v1.StorageOwnerLaunchConfig broker_storage_owner = 15;
   optional uint32 broker_storage_target_fd = 16; // Private owner channel; never inherited by applications.
+  bool require_broker_confinement = 17; // Mandatory resource and storage profile for an operator broker.
 }
 message AuthorityParticipantChannelPrepare { uint32 target_fd = 1; }
 message AuthorityLaunchQuery {}

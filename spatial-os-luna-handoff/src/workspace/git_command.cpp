@@ -123,7 +123,8 @@ GitResult git_command_impl(const ScopeProvider& prepare_scope, const std::filesy
     std::set<std::filesystem::path> parents;
     for (const auto& mount : mounts) {
         auto parent = mount.path.parent_path();
-        while (parent != "/" && parent != "/tmp") { parents.insert(parent); parent = parent.parent_path(); }
+        // Bubblewrap creates missing ancestors for --dir. Emit each mount parent once.
+        if (parent != "/" && parent != "/tmp") parents.insert(parent);
     }
     for (const auto& parent : parents) { command.push_back("--dir"); command.push_back(parent.string()); }
     std::vector<int> inherited;

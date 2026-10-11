@@ -1,0 +1,15 @@
+linear_gain: 1
+angular_gain: 1
+deadzone: 0.05
+input_timeout: 0.25
+actor_radius: 0.2
+interaction_reach: 3
+render {
+  vertical_fov: 1.5707963267948966
+  near_clip: 0.01
+  far_clip: 1000
+  background { red: 10 green: 12 blue: 16 }
+  barrier_color { red: 96 green: 104 blue: 120 }
+  object_size: 0.2
+  object_color { red: 224 green: 174 blue: 72 }
+}

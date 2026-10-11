@@ -344,7 +344,7 @@ WorkspaceResources::WorkspaceResources(const std::filesystem::path& configuratio
             "Invalid broker resource configuration");
     impl_->initialize(std::move(value));
 }
-WorkspaceResources::WorkspaceResources(int descriptor) : impl_(std::make_shared<Impl>()) {
+WorkspaceResources::WorkspaceResources(int descriptor, bool require_aggregate) : impl_(std::make_shared<Impl>()) {
     identity::tls_detail::Fd file(descriptor);
     constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
     struct stat info{};
@@ -358,6 +358,8 @@ WorkspaceResources::WorkspaceResources(int descriptor) : impl_(std::make_shared<
     require(count == static_cast<ssize_t>(bytes.size()), "Cannot read broker resource handoff");
     workspace::v1::BrokerResourceConfig value;
     require(value.ParseFromString(bytes), "Invalid broker resource protobuf");
+    require(!require_aggregate || value.protocol_version() == 2,
+            "Production broker requires an aggregate resource envelope");
     file.reset();
     impl_->initialize(std::move(value));
 }

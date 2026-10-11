@@ -1,5 +1,33 @@
 # Implementation status
 
+## 2026-10-11: Operator storage and production confinement passed focused qualification
+
+Both hosts passed 115 selected checks in Debug and ASan/UBSan. Total: 460 passes.
+Persistent operator-volume provisioning fixes image identity, capacity, and Btrfs UUID.
+Remount reconstructs current loop and backing-device I/O limits.
+The production broker profile requires sealed aggregate resources and checked storage ownership.
+The direct private controller and retained native supervisor use that profile.
+Real Git and workspace files retain bytes and inodes across checked unmount and remount.
+Native actor input, owner loss, and protobuf cleanup passed under the profile.
+
+The new volume regression reproduced a Git sandbox argument-count defect on both hosts.
+The correction emits only immediate mount parents. Bubblewrap creates their missing ancestors.
+Argument, byte, namespace, resource, network, and deadline bounds remain unchanged.
+Earlier fixture failures and exact source remain preserved.
+
+The primary review verified 1,518 archived attachments and 374 matching source inputs per host.
+The isolated source slices lacked four locked documents during these focused runs.
+Their canonical copies remain unchanged. All four were restored before full-gate preparation.
+Both hosts now pass all 41 lock checks. No acceptance assertions changed.
+
+Both hosts have a mounted, dedicated 4 GiB David volume with distinct persistent identities.
+Provisioning does not start an operator broker or activate its quotas by itself.
+Normal desktop sessions remain unchanged. Read docs/OPERATOR_STORAGE.md for use and recovery.
+Read evidence/m03-operator-storage-2026-10-11/primary-review.json and ../M03_OPERATOR_STORAGE_NOTES.txt.
+
+Competing-write availability, immediate revocation, and the complete M03 phase gate remain pending.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
 ## 2026-10-11: Obsolete test data removed from both hosts
 
 The user authorized cleanup of old test data.
