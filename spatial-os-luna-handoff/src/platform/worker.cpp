@@ -75,8 +75,9 @@ void nonblocking(int fd) {
     if (flags < 0 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) throw std::runtime_error("Cannot configure IPC descriptor");
 }
 }
-WorldWorker::WorldWorker(const std::filesystem::path& executable, const std::filesystem::path& state) {
-    broker_ = std::make_unique<BrokerProcess>(executable.parent_path() / "workspaced", state / "execution", true);
+WorldWorker::WorldWorker(const std::filesystem::path& executable, const std::filesystem::path& state,
+                         const std::filesystem::path& broker_resources) {
+    broker_ = std::make_unique<BrokerProcess>(executable.parent_path() / "workspaced", state / "execution", true, broker_resources);
     const auto broker_fd = std::to_string(broker_->channel());
     const auto broker_pid = std::to_string(broker_->pid());
     int input[2], output[2];

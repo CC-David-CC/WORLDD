@@ -1376,3 +1376,21 @@ Still required: remaining entry points, fixture provisioning, bounded storage, b
 Native tests use a dedicated software display. These results do not establish physical-session performance.
 The existing five-second client timeout remains. Both 700 ms and 2000 ms failed the earlier disk-pressure reproduction.
 No new issuer pressure measurement ran in this increment. SQLite durability is unchanged.
+
+
+2026-10-10: M03 adapter resource provisioning and fdatasync status
+The old adapter ignored explicit resource configuration. Both hosts reproduced that missing boundary.
+The current adapter binds an owned scope and sealed policy to the existing production broker.
+Final focused qualification passed 200 checks across sb16 and sb16-2 in Debug and runtime sanitizers.
+The primary audit verified 540 attachments and scanned 438 logs. No selected sanitizer finding appeared.
+All 41 locked files and 46 existing test bodies remain unchanged.
+All 18 transient services are unloaded. Normal host checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
+Read spatial-os-luna-handoff/evidence/m03-adapter-resources-2026-10-10/primary-review.json.
+
+This does not fix fdatasync latency. The existing five-second client passed one earlier pressure trial.
+Both 700 ms and two-second clients failed under pressure. Timeout tolerance is separate from durable flush performance.
+Keep the five-second production default, the short fault fixture, and SQLite durability unchanged.
+Finish bounded storage and broker/background write accounting. Then repeat contention and durable acknowledgement measurements.
+Remaining authenticated/direct-broker fixtures and operator deployment need explicit provisioning.
+No new contention, full phase gate, physical input, native GPU, live-model, or power-loss test ran.
+M01 and M02 remain qualified. M03 is active; M04-M16 and full Spatial-M1 remain incomplete.

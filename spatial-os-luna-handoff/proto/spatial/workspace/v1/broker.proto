@@ -42,6 +42,12 @@ message BrokerResourceConfig {
   WorkspaceResourcePolicy default_policy = 3;
   repeated WorkspaceResourcePolicy workspaces = 4;
 }
+// Parent launch configuration. The child resource template must leave its root empty.
+message BrokerProcessConfig {
+  uint32 protocol_version = 1;
+  string delegated_cgroup = 2;
+  BrokerResourceConfig resources = 3;
+}
 message WorkspaceAuthorityConfig {
   string participant_runtime_config = 4;
   uint32 protocol_version = 1;

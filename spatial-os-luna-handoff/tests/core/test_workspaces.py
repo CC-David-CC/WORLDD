@@ -1,5 +1,7 @@
 """Independent ownership, persistence, policy, and transport checks for workspaces."""
 import io
+import os
+import shutil
 from pathlib import Path
 import sqlite3
 import subprocess
@@ -20,6 +22,15 @@ class WorkspaceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name); self.state = self.root / 'runtime'
+        def preserve():
+            evidence = os.environ.get('SPATIAL_SCOPE_EVIDENCE')
+            if not evidence: return
+            target = Path(evidence) / self._testMethodName; target.mkdir(parents=True, exist_ok=True)
+            for path in self.root.rglob('*.log'):
+                destination = target / path.relative_to(self.root)
+                destination.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(path, destination)
+            for path in self.root.glob('resource-*.json'): shutil.copy2(path, target/path.name)
+        self.addCleanup(preserve)
         self.repo = GitRepo(self.root); self.sequences = {}; self.start()
         self.a = self.actor('a'); self.b = self.actor('b')
 

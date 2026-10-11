@@ -1,3 +1,21 @@
+Current M03 checkpoint, 2026-10-10
+
+Aggregate resource primitives, broker policy enforcement, and retained native-session handoff passed focused qualification.
+The non-native adapter now provisions the same broker with an explicit owned scope and sealed resource policy.
+Its selected broker, context, confinement, and adapter suites passed 200 checks across both hosts and build profiles.
+All 46 existing test bodies remain unchanged. Four new adapter checks passed in each host/profile combination.
+Read evidence/m03-adapter-resources-2026-10-10/primary-review.json.
+
+The work branch has resource enforcement. Normal operator checkouts retain their earlier qualified source.
+Authenticated/direct-broker fixtures and operator deployment still need explicit policy and controller provisioning.
+Bounded persistent storage and broker Git/file accounting remain pending.
+Repeat issuer contention and durable acknowledgement checks after containing competing writes.
+The existing five-second client default passed one pressure trial. It is not proof of repaired storage latency.
+Keep SQLite durability and existing fault deadlines unchanged.
+The complete M03 phase gate, independent exhaustion and escape qualification remain required.
+
+Earlier sections below are historical observations. Their implementation gaps describe the source inspected at those checkpoints.
+
 Focused process-scope resource qualification, 2026-10-10
 
 The production primitive applies explicit aggregate limits before startup.

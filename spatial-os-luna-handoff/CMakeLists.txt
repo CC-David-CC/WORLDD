@@ -234,7 +234,7 @@ add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources}
 target_link_libraries(spatial-native-input PUBLIC spatial-scene X11::X11)
 add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
 target_include_directories(spatial-core PUBLIC src)
-target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3 spatial-authority)
+target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources)
 add_executable(spatialwm src/x11/compositor_connection.cpp src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
 target_link_options(spatialwm PRIVATE "LINKER:--export-dynamic-symbol=xcb_connect_to_display_with_auth_info")
 target_link_libraries(spatialwm PRIVATE spatial-compositor-config PkgConfig::XCB ${CMAKE_DL_LIBS} spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
@@ -896,12 +896,23 @@ if(BUILD_TESTING)
     set_tests_properties(workspace-git PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME workspace-context COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspaces.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:workspaced> $<TARGET_FILE:worldd>)
     set_tests_properties(workspace-context PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME workspace-processes COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_processes.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:workspaced> $<TARGET_FILE:worldd>)
     set_tests_properties(workspace-processes PROPERTIES TIMEOUT 120
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME adapter-resources COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_adapter_resources.py"
+        $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:workspaced> $<TARGET_FILE:worldd>)
+    set_tests_properties(adapter-resources PROPERTIES TIMEOUT 120
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_executable(spatial-git-job-probe src/testing/git_job_probe.cpp src/workspace/git_command.cpp)
     target_link_libraries(spatial-git-job-probe PRIVATE spatial-scene)

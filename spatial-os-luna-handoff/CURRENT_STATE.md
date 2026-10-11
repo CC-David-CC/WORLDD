@@ -1,5 +1,36 @@
 # Implementation status
 
+## 2026-10-10: Non-native broker adapter resource provisioning passed focused qualification
+
+The adapter now binds explicit broker resource policy to an owned process scope before broker startup.
+It uses the existing production broker and sealed binary protobuf handoff.
+The world process stays outside the broker's application groups.
+Missing policy denies new applications. Invalid delegation fails before broker state creation.
+Read docs/M03_ADAPTER_RESOURCE_CONTRACT.txt for the additive configuration contract.
+
+Both hosts passed 50 selected checks in Debug and runtime sanitizers: 200 passes, zero failures or skips.
+The audit verified 540 attachments and scanned 438 logs without selected sanitizer findings.
+All 365 frozen inputs and 41 locked files matched their hashes.
+All 46 existing broker-resource, workspace-context, and process-confinement test bodies remain unchanged.
+Four new checks cover kernel limits, policy descriptor closure, missing policy, invalid delegation, and clean shutdown.
+The old adapter failed the new kernel check on both hosts. Its failure evidence remains preserved.
+Read evidence/m03-adapter-resources-2026-10-10/primary-review.json.
+
+Clean channel closure removes the retained broker tree and terminates its application descendants.
+Abrupt adapter death leaves empty groups for the owning delegated test service to reclaim.
+The provisioner rejects surviving processes. This cleanup does not replace retained native-session supervision.
+All 18 exact transient services are unloaded. Controller delegation returned to its prior values.
+Both normal host checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd. No operator runtime changed.
+
+M03 remains incomplete. Remaining authenticated/direct-broker fixtures and operator deployment still need explicit provisioning.
+Storage quotas, broker Git/file accounting, and issuer contention recovery remain pending.
+Existing confinement and syscall escape checks passed. Complete M03 escape and exhaustion qualification remains pending.
+The five-second issuer default passed one earlier pressure trial. It does not repair slow fdatasync or establish worst-case latency.
+This increment changes neither issuer timeouts nor database durability. No new contention trial ran.
+No full M03 gate, physical input, native GPU performance, live-model, or power-loss qualification ran.
+M01 and M02 remain qualified at their recorded earlier pins. M03-M16 and full Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Supervised session resource handoff passed focused qualification
 
 The retained supervisor now binds explicit broker resource policy to its prepared process scope.

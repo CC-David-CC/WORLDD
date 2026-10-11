@@ -7,14 +7,17 @@
 #include <vector>
 #include <map>
 #include <optional>
+#include <memory>
 #include <sys/types.h>
 
 namespace spatial {
+namespace supervisor { class ProcessScope; }
 namespace broker_wire = workspace::v1;
 // Lifecycle belongs to the session supervisor, not a world authority.
 class BrokerProcess {
 public:
-    BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state, bool fixture_faults = false);
+    BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state, bool fixture_faults = false,
+                  const std::filesystem::path& resource_configuration = {});
     ~BrokerProcess();
     BrokerProcess(const BrokerProcess&) = delete;
     BrokerProcess& operator=(const BrokerProcess&) = delete;
@@ -22,6 +25,7 @@ public:
     pid_t pid() const { return pid_; }
     void release_channel();
 private:
+    std::unique_ptr<supervisor::ProcessScope> scope_;
     int channel_ = -1, pidfd_ = -1;
     pid_t pid_ = -1;
 };

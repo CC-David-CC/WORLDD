@@ -1,0 +1,182 @@
+{
+  "status": "primary_review_complete",
+  "phase": "M03",
+  "phase_complete": false,
+  "base_commit": "eebfec365b865b23b27a32a30e6b63ed9ace38c7",
+  "source_archive_sha256": "82810a05fafa78f5b0eb2fbb1777628da94e678cc47df484d9fdaa11f4ce71b8",
+  "source_files": 365,
+  "locked_files": 41,
+  "selected_per_host_profile": 50,
+  "passed": 200,
+  "failed_final": 0,
+  "skipped": 0,
+  "verified_attachments": 540,
+  "unchanged_existing_test_bodies": 46,
+  "expected_cases": {
+    "broker-resources": [
+      "test_actor_capacity_preserves_other_actor",
+      "test_application_writes_obey_broker_io_budget",
+      "test_broker_crash_cleanup_preserves_independent_broker",
+      "test_conflicting_resource_arguments_cannot_override_handoff",
+      "test_hierarchy_intersection_and_private_controls",
+      "test_missing_configuration_denies_before_pending_record",
+      "test_missing_io_controller_fails_before_store_mutation",
+      "test_mutable_resource_handoff_fails_before_store_mutation",
+      "test_read_only_authority_survives_resource_integration",
+      "test_revocation_returns_capacity_and_preserves_independent_application",
+      "test_sealed_resource_handoff_launches_and_is_consumed",
+      "test_sealed_resource_handoff_rejects_wrong_owned_root",
+      "test_uncovered_storage_device_denies_before_pending_record",
+      "test_workspace_capacity_returns_after_checked_exit",
+      "test_wrong_root_fails_before_any_store_mutation"
+    ],
+    "workspace-context": [
+      "test_binding_protects_worktree_and_repository_from_other_actor_git_actions",
+      "test_current_world_schema_rejects_corrupt_entity_protobuf_without_repair",
+      "test_explicit_database_migrations_preserve_existing_world_and_git_rows",
+      "test_failed_world_cleanup_does_not_restore_revoked_broker_authority",
+      "test_membership_validates_actor_and_rights_before_modifying_authority",
+      "test_policy_and_membership_intersect_without_using_global_actor_grants",
+      "test_private_authorization_envelope_is_rejected_at_the_public_boundary",
+      "test_revocation_clears_offline_selection_and_does_not_affect_other_members",
+      "test_room_transition_keeps_workspace_and_runtime_processes",
+      "test_selection_is_explicit_durable_and_independent_for_each_actor",
+      "test_selection_write_failure_keeps_the_previous_context",
+      "test_workspace_authority_has_no_world_or_room_owner_and_creates_no_geometry",
+      "test_world_unavailability_rolls_back_when_selection_cleanup_fails"
+    ],
+    "workspace-processes": [
+      "test_actor_disconnect_does_not_terminate_workspace_application",
+      "test_completed_record_survives_restart_and_v3_migration_preserves_workspaces",
+      "test_damaged_application_supervisor_does_not_poison_future_launches",
+      "test_host_paths_symlinks_processes_and_abstract_sockets_are_inaccessible",
+      "test_invalid_requests_create_no_process_record_and_missing_exec_is_not_success",
+      "test_malformed_stat_is_not_process_exit",
+      "test_manager_loss_kills_children_and_never_replays_uncertain_operations",
+      "test_missing_process_does_not_hide_a_live_process",
+      "test_missing_stat_path_is_gone",
+      "test_native_namespaces_capabilities_resource_limits_and_descriptor_closure",
+      "test_nonzero_signal_exits_and_wait_timeout_preserve_the_actual_child_result",
+      "test_only_dead_process_states_are_gone",
+      "test_operation_identity_is_actor_scoped_and_binds_arguments_and_profile",
+      "test_process_exit_during_stat_read_is_gone",
+      "test_read_only_project_and_git_aliases_stay_read_only_but_private_state_is_writable",
+      "test_revocation_terminates_detached_descendants_and_preserves_other_actor_execution",
+      "test_syscall_policy_blocks_new_namespaces_mounts_and_process_memory_access",
+      "test_unrelated_read_errors_are_not_process_exit"
+    ],
+    "adapter-resources": [
+      "test_clean_channel_close_removes_the_retained_broker_tree",
+      "test_explicit_configuration_reaches_kernel_and_closes_private_descriptor",
+      "test_invalid_delegation_cannot_create_broker_state",
+      "test_missing_configuration_denies_application_before_pending_record"
+    ]
+  },
+  "hosts": {
+    "sb16": {
+      "profiles": {
+        "debug": {
+          "passed": 50,
+          "failed": 0,
+          "skipped": 0,
+          "binaries": {
+            "spatial-test-host": "bf56250e7bac97dc62984a8df3414397fe035fe605dc843980377ba66ce25966",
+            "workspaced": "6437641d77916181d905e2e647d19d6d7325b3afd45524647c6a28a15c989f94",
+            "worldd": "a14526395c165844924671e9d2707454888a83b215b2585f74b7fcb252787b39",
+            "spatial-process-scope-probe": "418673495426942cfb492ec2475c748e1ae6586fcba43cbe88a7a2483d695306",
+            "spatial-app-init": "2b55e845dd315137b83f1c0779f0eb25317e91c634bc1ce4be6896eebc541578"
+          },
+          "kernel_evidence": "candidate-01\\sb16\\debug\\witnesses\\test_explicit_configuration_reaches_kernel_and_closes_private_descriptor\\resource-kernel.json",
+          "provisioned_suites": 3
+        },
+        "runtime-sanitize": {
+          "passed": 50,
+          "failed": 0,
+          "skipped": 0,
+          "binaries": {
+            "spatial-test-host": "3cb5b5d0079f26d0ce7822a8278a97c6616c2a123cd309a2cb2fc8d14b313ab8",
+            "workspaced": "2d9cd46aa4075fb0a3332a42753c45ec54e119be0dc1adec21e8ac54abb64485",
+            "worldd": "1fd41220bf7b10fcc01d15412bee9e93512b481f0e0778a76ec25eb6367609f0",
+            "spatial-process-scope-probe": "42cb77abf93c95fed4b0957c82e4dd5e2d8e78a1c616437d2da35b13c8ef1b56",
+            "spatial-app-init": "e3abd0a495e77bfbe624238bbc1b4a3d1d87dd976dc8c08b8be2bc5678fe1e31"
+          },
+          "kernel_evidence": "candidate-01\\sb16\\runtime-sanitize\\witnesses\\test_explicit_configuration_reaches_kernel_and_closes_private_descriptor\\resource-kernel.json",
+          "provisioned_suites": 3
+        }
+      },
+      "baseline": {
+        "status": "expected_ignored_resource_configuration",
+        "binaries": {
+          "spatial-test-host": "8560cd81b2a06639042c1c74fa6c89542ec8bda96da9f5d66192117dc3776eca",
+          "workspaced": "cd54668df2c94f1dae92d8e9b8fe3d1c0f67c0c397678b89aa9bc1aab301a9ee",
+          "worldd": "9148cff104e1a3f9006bb61532b4b1d5dabf1b469963a0154870293299eea52a"
+        }
+      },
+      "unloaded_units": 9,
+      "cleanup_sha256": "f2eeb2b7d96860372e57dee2b57291e1b3c452a8b315a98bff38d874360a7a7d"
+    },
+    "sb16-2": {
+      "profiles": {
+        "debug": {
+          "passed": 50,
+          "failed": 0,
+          "skipped": 0,
+          "binaries": {
+            "spatial-test-host": "bf56250e7bac97dc62984a8df3414397fe035fe605dc843980377ba66ce25966",
+            "workspaced": "6437641d77916181d905e2e647d19d6d7325b3afd45524647c6a28a15c989f94",
+            "worldd": "a14526395c165844924671e9d2707454888a83b215b2585f74b7fcb252787b39",
+            "spatial-process-scope-probe": "418673495426942cfb492ec2475c748e1ae6586fcba43cbe88a7a2483d695306",
+            "spatial-app-init": "2b55e845dd315137b83f1c0779f0eb25317e91c634bc1ce4be6896eebc541578"
+          },
+          "kernel_evidence": "candidate-01\\sb16-2\\debug\\witnesses\\test_explicit_configuration_reaches_kernel_and_closes_private_descriptor\\resource-kernel.json",
+          "provisioned_suites": 3
+        },
+        "runtime-sanitize": {
+          "passed": 50,
+          "failed": 0,
+          "skipped": 0,
+          "binaries": {
+            "spatial-test-host": "3cb5b5d0079f26d0ce7822a8278a97c6616c2a123cd309a2cb2fc8d14b313ab8",
+            "workspaced": "2d9cd46aa4075fb0a3332a42753c45ec54e119be0dc1adec21e8ac54abb64485",
+            "worldd": "1fd41220bf7b10fcc01d15412bee9e93512b481f0e0778a76ec25eb6367609f0",
+            "spatial-process-scope-probe": "42cb77abf93c95fed4b0957c82e4dd5e2d8e78a1c616437d2da35b13c8ef1b56",
+            "spatial-app-init": "e3abd0a495e77bfbe624238bbc1b4a3d1d87dd976dc8c08b8be2bc5678fe1e31"
+          },
+          "kernel_evidence": "candidate-01\\sb16-2\\runtime-sanitize\\witnesses\\test_explicit_configuration_reaches_kernel_and_closes_private_descriptor\\resource-kernel.json",
+          "provisioned_suites": 3
+        }
+      },
+      "baseline": {
+        "status": "expected_ignored_resource_configuration",
+        "binaries": {
+          "spatial-test-host": "8560cd81b2a06639042c1c74fa6c89542ec8bda96da9f5d66192117dc3776eca",
+          "workspaced": "cd54668df2c94f1dae92d8e9b8fe3d1c0f67c0c397678b89aa9bc1aab301a9ee",
+          "worldd": "9148cff104e1a3f9006bb61532b4b1d5dabf1b469963a0154870293299eea52a"
+        }
+      },
+      "unloaded_units": 9,
+      "cleanup_sha256": "48d08410fbaf2ef7ca82821d038829fa5fb60fe64cb4a0a20df35c464aa2f10a"
+    }
+  },
+  "review": "Primary agent reviewed source, protobuf, CMake, fixtures, cleanup ownership, and raw evidence. No local-model or subagent review.",
+  "context_case_evidence": "Workspace-context logs report 13 successful cases without names. Frozen unchanged test bodies and the standard unittest loader identify those cases.",
+  "sanitizer_logs_scanned": 438,
+  "sanitizer_matches": 0,
+  "preserved_failures": [
+    "Both old adapters ignored explicit resource configuration. The independent kernel check observed manager instead of broker-manager."
+  ],
+  "limitations": [
+    "M03 and Spatial-M1 remain incomplete. This is focused qualification, not the phase gate.",
+    "Non-native adapter integration uses explicit test-service provisioning. Operator deployment and other direct-broker/authenticated fixtures remain pending.",
+    "Abrupt adapter death cannot run its destructor. The owning delegated service reclaims only its empty residual groups; surviving processes fail qualification.",
+    "Storage quotas and broker Git/file effect accounting remain pending.",
+    "This run does not establish issuer fdatasync latency under competing writes. Five-second deadlines and database durability remain unchanged.",
+    "Normal host checkouts are unchanged. No operator runtime was restarted or migrated.",
+    "No new full gate, native GPU, physical input, live model, or power-loss qualification ran."
+  ],
+  "next": [
+    "Provision remaining authenticated/direct-broker fixtures and operator entry points.",
+    "Implement bounded persistent storage and broker effect accounting.",
+    "Repeat issuer pressure and durable-acknowledgement measurements, then run the full M03 gate."
+  ]
+}

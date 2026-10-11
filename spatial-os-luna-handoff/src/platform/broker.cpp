@@ -2,6 +2,9 @@
 #include "platform/process_handle.hpp"
 #include "world/store.hpp"
 #include "authority/store.hpp"
+#include "workspace/resources.hpp"
+#include "identity/tls_support.hpp"
+#include <google/protobuf/text_format.h>
 #include <set>
 #include <array>
 #include <algorithm>
@@ -14,6 +17,7 @@
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <utility>
 
 namespace spatial {
 namespace {
@@ -64,7 +68,33 @@ bool valid_control_lease(const broker_wire::ApplicationControlLease& lease) {
         !lease.application().workspace().empty() && !lease.application().application().empty();
 }
 }
-BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state, bool fixture_faults) {
+BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std::filesystem::path& state, bool fixture_faults,
+                             const std::filesystem::path& resource_configuration) {
+    if (!resource_configuration.empty()) {
+        broker_wire::BrokerProcessConfig config;
+        if (!google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(resource_configuration), &config))
+            throw std::invalid_argument("Invalid broker process configuration");
+        validate_message(config);
+        if (config.protocol_version() != 1 || !config.has_resources() || !config.resources().delegated_cgroup().empty())
+            throw std::invalid_argument("Broker process requires an unbound resource template");
+        validate_resource_config(config.resources());
+        int pair[2];
+        if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0)
+            throw std::runtime_error("Cannot create broker channel");
+        identity::tls_detail::Fd parent(pair[0]), child(pair[1]);
+        scope_ = supervisor::ProcessScope::prepare(config.delegated_cgroup());
+        identity::tls_detail::Fd policy(seal_resource_config(config.resources(),
+            std::filesystem::path(config.delegated_cgroup()) / scope_->state().identity().scope_name()));
+        supervisor::v1::AuthorityProcessLaunch request;
+        request.set_executable(executable.string());
+        request.add_arguments("--state-dir"); request.add_arguments(state.string());
+        if (fixture_faults) request.add_arguments("--fixture-faults");
+        request.add_arguments("--resource-config-fd"); request.add_arguments("3"); request.add_inherited_fds(3);
+        scope_->start(request, {child.value, child.value, STDERR_FILENO}, {policy.value});
+        pid_ = scope_->direct_child_pid(); pidfd_ = scope_->duplicate_child_pidfd();
+        channel_ = std::exchange(parent.value, -1);
+        return;
+    }
     int pair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0) throw std::runtime_error("Cannot create broker channel");
     const auto parent = getpid(); pid_ = fork();
@@ -90,6 +120,10 @@ BrokerProcess::~BrokerProcess() {
     release_channel();
     pollfd fd{pidfd_, POLLIN, 0}; int ready;
     do { ready = poll(&fd, 1, 1000); } while (ready < 0 && errno == EINTR);
+    if (scope_) {
+        // The scope owns reaping and checked descendant cleanup.
+        scope_.reset(); close(pidfd_); return;
+    }
     if (ready <= 0) kill(pid_, SIGKILL);
     while (waitpid(pid_, nullptr, 0) < 0 && errno == EINTR) {}
     close(pidfd_);

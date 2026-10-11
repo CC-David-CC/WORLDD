@@ -18,7 +18,7 @@
   "known_limitations": [
     "Per-process setrlimit remains. Explicit broker resource configuration now adds qualified aggregate application, actor, and workspace limits.",
     "The root ext4 filesystem does not currently advertise project quotas. Do not claim storage quotas exist.",
-    "The kernel advertises io on both hosts, but the delegated user service receives only cpu, memory, and pids. Project-scoped I/O delegation requires implementation and qualification.",
+    "Project-scoped transient services have qualified I/O delegation on both hosts. Persistent operator deployment remains pending; ordinary user delegation remains cpu, memory, and pids.",
     "A five-second client passed one bounded write-pressure trial. This does not establish worst-case latency.",
     "Moving database work to a worker does not make durable commits complete faster or authorize stale authority decisions."
   ],
@@ -28,14 +28,14 @@
     "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json"
   ],
   "remaining": [
-    "Provision controllers and explicit policy in remaining production entry points and older application fixtures.",
+    "Provision controllers and explicit policy in remaining authenticated/direct-broker fixtures and operator entry points.",
     "Extend authenticated application coverage through the qualified retained session resource handoff.",
     "Include broker Git/file effects and all writable workspace paths in resource and storage accounting.",
     "Qualify bounded persistent storage, independent escape attempts, and failure recovery.",
     "Measure issuer availability under bounded competing writes, then run the full M03 gate on both hosts."
   ],
   "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json",
-  "current_step": "session_policy_handoff_qualified_deployment_pending",
+  "current_step": "adapter_resources_qualified_remaining_entry_points_and_storage_pending",
   "qualified_primitive": {
     "evidence": "evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json",
     "passed": 108,
@@ -59,6 +59,15 @@
     "skipped": 0,
     "phase_complete": false,
     "retained_session_handoff_qualified": true,
+    "operator_deployment_qualified": false
+  },
+  "adapter_resource_provisioning": {
+    "evidence": "evidence/m03-adapter-resources-2026-10-10/primary-review.json",
+    "passed": 200,
+    "failed_final": 0,
+    "skipped": 0,
+    "phase_complete": false,
+    "existing_test_bodies_unchanged": 46,
     "operator_deployment_qualified": false
   }
 }

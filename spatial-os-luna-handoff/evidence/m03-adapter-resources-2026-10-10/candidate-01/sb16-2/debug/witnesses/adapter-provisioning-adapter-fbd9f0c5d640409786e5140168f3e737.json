@@ -1,0 +1,24 @@
+{
+  "scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-8786a616b9a84e3bb4a1b10f6c0a3312.service/adapter-fbd9f0c5d640409786e5140168f3e737",
+  "device": 31,
+  "inode": 569188,
+  "removed": [
+    "authority-36796fd30b6d32c727f431bebf493ca2d9bade329b6a22c673acb8792777c0f2/broker-manager",
+    "authority-a02e10d214283de0bd7e0fea961fdcb346010be90a8bb4059087a1b2838c1464/broker-manager",
+    "authority-201856f53cadfebfc4fbf1ce16c9091819dc83272b333461363dbaaadee8843b/broker-manager",
+    "authority-36796fd30b6d32c727f431bebf493ca2d9bade329b6a22c673acb8792777c0f2",
+    "authority-a02e10d214283de0bd7e0fea961fdcb346010be90a8bb4059087a1b2838c1464",
+    "authority-201856f53cadfebfc4fbf1ce16c9091819dc83272b333461363dbaaadee8843b"
+  ],
+  "unexpected_population": false,
+  "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-8786a616b9a84e3bb4a1b10f6c0a3312.service/adapter-fbd9f0c5d640409786e5140168f3e737\"\nresources {\n  protocol_version: 1\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n}\n",
+  "command": [
+    "/usr/bin/python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/source/tests/core/test_adapter_resources.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/spatial-test-host",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/workspaced",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/worldd"
+  ],
+  "exit_code": 0,
+  "scope_removed": true
+}
