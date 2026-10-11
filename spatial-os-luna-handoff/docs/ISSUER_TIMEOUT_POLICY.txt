@@ -43,3 +43,10 @@ The recorded explicit short deadline ranged from 700 to 705 ms.
 All 124 existing CTest entries retain their commands and properties after generated-path normalization.
 Current-source binaries were not rebuilt. The new checks used the previously qualified production binaries.
 Read evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json.
+
+David confirmed the five-second allowance on 2026-10-10.
+Prioritize durable correctness, accurate outcomes, and safe retry behavior over lower latency.
+Defer latency optimization until David requests it.
+Retain five-second production defaults. Do not weaken durability or existing fault tests.
+Human presentation may animate while an operation is pending. Pending does not mean committed.
+Continue bounded competing-I/O and recovery checks to verify correctness within this allowance.

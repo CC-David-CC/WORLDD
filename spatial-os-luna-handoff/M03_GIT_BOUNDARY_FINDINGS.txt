@@ -1,0 +1,86 @@
+M03 Git worker security finding
+Date: 2026-10-11
+Host: sb16
+Status: worker boundary implemented; boundary regression passes; full M03 qualification remains pending
+
+2026-10-11 implementation and verification
+
+The original reproduction below remains valid for the former ambient Git helper.
+The production helper now runs Git through spatial-bwrap in a separate ProcessScope cgroup.
+It pins explicit directory descriptors for the bare repository, active worktree, or retirement staging area.
+It unshares network and other namespaces, drops capabilities, hides unrelated worktrees, and uses a clean environment.
+It disables hooks and ambient Git configuration.
+Each worker has 256 MiB memory, zero swap, 16 processes, two CPUs, and bounded output.
+Imports have a five-minute deadline. Other jobs have a 60-second deadline.
+The parent closes duplicate pipe writers and stops descendants when Git exits.
+
+The same git_command() helper passed a required clean-filter test on both hosts.
+The filter could not read a synthetic secret outside its mounts and could not write an outside marker.
+The actual broker API also rejects a repository configured with the tested filter.
+The full workspace-git suite passed all 46 tests on sb16 and sb16-2.
+The adjacent workspace-context and worldd-lifecycle suites passed on both hosts.
+Detailed timings and the 256 MiB profile are in M03_GIT_256M_TEST.txt.
+
+The removal test exposed an EXDEV failure between separate bubblewrap bind mounts.
+Git now moves the worktree between private child directories under one bind-mounted worktree root.
+The broker then retains the project and unregisters only the validated per-worktree Git metadata.
+The test verifies retained file identity, late writes through an open descriptor, and Git worktree-list cleanup.
+
+Residual scope
+
+The worker regression proves containment for the tested Git clean filter and filesystem paths.
+It does not qualify every Git command or every malicious repository construction.
+The clean filter remains denied through broker API configuration checks.
+Large-repository imports and the complete M03 qualification profile remain pending.
+No M03 or Spatial-M1 completion claim follows from these checks.
+
+Confirmed behavior
+
+Before the worker boundary, the administrative Git helper launched /usr/bin/git as the broker's ordinary OS user.
+It had no filesystem namespace or reduced host credential.
+Its working directory could contain repository-controlled Git metadata and attributes.
+
+A native probe called the actual git_command() helper with `git hash-object --path=tracked.txt tracked.txt`.
+The fixture's .gitattributes selected a `clean` filter from .git/config.
+The filter read a fixture secret outside the project directory and wrote its contents to another outside path.
+The helper returned success. The result is in evidence/m03-git-boundary-2026-10-11/reproduction.json.
+
+This historical reproduction proved that the former ambient helper could execute a filter
+with the helper's OS authority and read or write outside the project directory.
+
+Reachability limit
+
+This probe does not prove that a client can trigger the behavior through the current broker API.
+The broker's status command did not execute the clean filter in this fixture.
+The broker validates registered bare-repository config against an allowlist that excludes `filter.*`.
+The current API call paths and configuration check therefore block the tested path.
+No broker authorization bypass was demonstrated.
+
+The worker boundary addresses this component-level escape path.
+The tests do not prove safety for every possible command or repository state.
+
+Required correction
+
+Run administrative Git in a dedicated, least-privilege worker boundary.
+Give it access only to the registered bare repository, the target worktree, required runtime paths,
+and narrowly required read-only system files. Deny unrelated host paths and network access.
+Apply CPU, memory, process, file-size, and time limits. Keep the existing Git configuration allowlist.
+Do not solve this by allowing filters or hooks in the broker's ambient process.
+
+Keep the hostile-filter, timeout, descendant-cleanup, repository/worktree, and broker fail-closed tests in the M03 gate.
+Resolve any future regression before integration.
+
+Test correction and evidence
+
+The first probe used `git status`; it detected a worktree change but did not invoke the fixture filter.
+The corrected probe used `git hash-object --path` and marked the filter as required.
+The clean run then reproduced both the outside read and write on sb16.
+All secrets in the fixture are synthetic and were created inside the disposable test directory.
+The run did not modify a system file or project repository.
+Paused checkpoint update, 2026-10-11
+Administrative Git still accepts a policy that names the wrong block device.
+Both hosts reproduced this missing I/O-device validation through the actual broker import API.
+Read ../defect blockers/git-worker-uncovered-io-device.txt before resuming.
+Namespace/filter containment and the 256 MiB large-import correction have separate passing evidence.
+These results do not qualify the complete M03 boundary.
+

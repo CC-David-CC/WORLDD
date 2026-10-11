@@ -1,0 +1,32 @@
+Hardened application initializer: explicit sanitizer coverage split
+
+Checkpoint on 2026-10-11
+The ptrace-denial reproducer confirmed why GCC LeakSanitizer could not inspect the hardened initializer.
+The sandbox keeps its ptrace denial and non-dumpable process setting.
+The hardened wrapper retains ASan/UBSan and links an initializer-only LSan-off hook.
+The shared initializer body runs separately under full ASan/UBSan/LSan.
+Both hosts passed 42 shared-body cases and detected the deliberate 73-byte leak counterexample.
+Both hosts passed real confined application integration with complete setup.log, stdout, and stderr inspection.
+No unexpected sanitizer finding appeared in the final integration-07 runs.
+Read spatial-os-luna-handoff/evidence/m03-git-storage-2026-10-11.
+Do not claim full in-sandbox LSan coverage or complete M03 qualification.
+
+Historical failure, preserved
+
+The 2026-10-10 sb16 application-storage regression audit found three LeakSanitizer fatal-error logs.
+The diagnostics say LeakSanitizer cannot complete its inspection. They do not report a confirmed heap allocation leak.
+No strace or gdb traced this application run.
+Production app_init.cpp sets PR_SET_DUMPABLE to zero. Its inherited seccomp policy denies ptrace.
+The exact runtime failure mechanism remains unverified. Do not remove either protection merely to obtain PASS.
+
+The earlier fixed runner checked broker logs but omitted application setup.log files.
+Its functional result remains evidence. Its passed status does not qualify the application initializer's sanitizers.
+The later scan preserved and reported the failure. ASan/UBSan/LSan qualification of this boundary remains incomplete.
+
+Real application execution, quotas, Btrfs-control rejection, reflinks, descriptor closure, read-only authority,
+and sibling survival produced the expected independent witnesses.
+Read spatial-os-luna-handoff/evidence/m03-storage-applications-2026-10-10/primary-review.json.
+All test mounts and loops are detached. The dedicated transient services stopped.
+
+Continue the combined M03 work. Resolve or separately substantiate the initializer's sanitizer coverage before the M03 gate.
+David accepts the five-second latency allowance. Preserve durable correctness and explicit uncertain outcomes.

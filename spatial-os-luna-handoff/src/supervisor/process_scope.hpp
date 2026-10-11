@@ -23,11 +23,14 @@ public:
     ProcessScope& operator=(const ProcessScope&) = delete;
     v1::ProcessScopeState state() const;
     bool exited_successfully() const;
+    int exit_status() const;
     // Duplicates the retained live child handle. The caller must close the result.
     // This does not authorize an external transfer or prove process cleanup.
     int duplicate_child_pidfd() const;
     // The PID remains owned and unreaped. Never use it as a durable identity.
     pid_t direct_child_pid() const;
+    // Apply reclaim pressure before a bounded worker reaches its hard memory limit.
+    void throttle_memory(std::uint64_t bytes);
     void enable_children();
     v1::ProcessScopeStopped stop();
 private:

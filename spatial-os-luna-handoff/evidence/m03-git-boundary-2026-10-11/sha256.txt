@@ -1,0 +1,6 @@
+05f658796e4a29369d5d9cc53162ae6144f60966d066aabef1ecc6e58e84d0c2  /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/git_command.cpp
+419b99180b4d021736f87df40b7a9a967b9e0112a6e5612c63ca6c258710e40a  /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/testing/git_boundary_probe.cpp
+ba041fa7b9dcdacc5ab6783150b6ac520022eeb432463ead7ba8fa1ffc018604  /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/sanitize/spatial-git-boundary-probe
+2f2d3a269f7466173a47705a067368b3b74ba418517da7f2628f8cf9b2cb2147  /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/project/filter.py
+3b32c63b9dd54238dbfafd363b8e0977cc99bd2822e2c5cf0fa52e42de9c91bb  /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/host-secret
+3b32c63b9dd54238dbfafd363b8e0977cc99bd2822e2c5cf0fa52e42de9c91bb  /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/unauthorized-write

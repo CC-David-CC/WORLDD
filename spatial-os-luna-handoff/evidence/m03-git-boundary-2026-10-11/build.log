@@ -1,0 +1,8 @@
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/sanitize
+[ 71%] Built target spatial-protobuf
+[ 92%] Built target spatial-scene
+[100%] Building CXX object CMakeFiles/spatial-git-boundary-probe.dir/src/testing/git_boundary_probe.cpp.o
+[100%] Linking CXX executable spatial-git-boundary-probe
+[100%] Built target spatial-git-boundary-probe

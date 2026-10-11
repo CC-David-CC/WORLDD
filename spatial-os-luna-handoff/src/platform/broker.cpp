@@ -243,7 +243,15 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request) {
         const auto size = static_cast<std::uint32_t>(payload.size());
         const std::array<char, 4> header{static_cast<char>(size >> 24), static_cast<char>(size >> 16), static_cast<char>(size >> 8), static_cast<char>(size)};
         std::string bytes(header.data(), header.size()); bytes += payload;
-        deadline_ = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+        auto timeout = std::chrono::seconds(10);
+        if (request.has_management()) {
+            const auto& management = request.management();
+            if (management.has_git_repo_import()) timeout = std::chrono::minutes(5);
+            else if (management.has_git_worktree_create() || management.has_git_status() ||
+                     management.has_git_worktree_remove() || management.has_git_operation())
+                timeout = std::chrono::seconds(60);
+        }
+        deadline_ = std::chrono::steady_clock::now() + timeout;
         std::size_t sent = 0;
         while (sent < bytes.size()) {
             wait(POLLOUT);

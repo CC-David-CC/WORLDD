@@ -1,0 +1,18 @@
+﻿Confirmed sanitizer finding: disabling an additional pointer while an animated cursor is active leaves 1,216 bytes allocated in six InitializeSprite/miPointerDeviceInitialize allocations.
+
+The separate minimal cursor-timer cancellation fix prevents the null-sprite callback. The disable test client then exits successfully, but LeakSanitizer still reports these allocations.
+
+Status: observed in the sanitized upstream witness after the cursor teardown fix. Exact ownership and cleanup point are not yet established. No fix or PR prepared. Investigate separately from the animated-cursor timer and callback defects.
+
+Proposed investigation and patch:
+1. Capture a full LeakSanitizer allocation stack for all six allocations.
+2. Trace allocation and ownership through DisableDevice(), InitializeSprite(), and miPointerDeviceInitialize(). Compare normal device removal and repeated disable/enable cycles.
+3. Add cleanup at the owning teardown path for only allocations whose ownership is confirmed. Preserve allocations that device re-enable reuses.
+4. Avoid adding cleanup to FreeSprite() unless the allocation stacks prove those objects belong to the sprite.
+
+Regression checks:
+- Disable and re-enable an additional master pointer repeatedly; check allocation counts after each cycle.
+- Disable a pointer during animated and static cursor display.
+- Run ASan/LSan/UBSan and verify no leaks, invalid frees, or regressions in device removal.
+
+Status: 1,216 bytes in six allocations were observed after the cursor callback fix. Ownership is not yet established, so a concrete cleanup diff would be premature. No patch or PR exists.

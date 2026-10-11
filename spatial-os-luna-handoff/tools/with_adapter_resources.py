@@ -37,14 +37,19 @@ try:
                 cpu_microseconds=cpu, io=[dict(major=major, minor=minor,
                     read_bytes_per_second=64*mib, write_bytes_per_second=16*mib)])
         config = broker.BrokerProcessConfig(protocol_version=1, delegated_cgroup=str(scope),
-            resources=broker.BrokerResourceConfig(protocol_version=1,
+            resources=broker.BrokerResourceConfig(protocol_version=2,
+                broker_budget=budget(1024, 128, 400000),
+                manager_budget=budget(256, 32, 200000),
                 default_policy=broker.WorkspaceResourcePolicy(total=budget(512, 64, 200000),
                     actor_default=budget(256, 32, 100000), profiles=[
                         broker.ApplicationResourceProfile(name=name, maximum=budget(128, 16, 100000))
                         for name in ('development', 'read-only')])))
         path = directory/'broker.textproto'; path.write_text(text_format.MessageToString(config)); path.chmod(0o600)
+        resource_path = directory/'resources.textproto'
+        resource_path.write_text(text_format.MessageToString(config.resources)); resource_path.chmod(0o600)
         result['configuration'] = text_format.MessageToString(config)
-        env = dict(os.environ, SPATIAL_TEST_BROKER_CONFIG=str(path))
+        env = dict(os.environ, SPATIAL_TEST_BROKER_CONFIG=str(path), SPATIAL_TEST_CGROUP_ROOT=str(scope),
+            SPATIAL_TEST_RESOURCE_CONFIG=str(resource_path), SPATIAL_TEST_IO_DEVICE=f'{major}:{minor}')
         result['command'] = sys.argv[2:]
         child = subprocess.run(sys.argv[2:], env=env)
         code = result['exit_code'] = child.returncode

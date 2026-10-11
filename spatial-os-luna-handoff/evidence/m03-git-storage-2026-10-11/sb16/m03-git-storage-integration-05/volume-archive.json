@@ -1,0 +1,12 @@
+{
+  "original_sha256": "9d1a893df545613377ab934d12d2d378aabdb6381e74bfd59c19c4d864783e56",
+  "compressed_sha256": "963d64507d4375f56d81abed6fe25ded2165a79cabdd1dbffed07b7e9b9cde40",
+  "original_bytes": 2147483648,
+  "compressed_bytes": 612804072,
+  "verified": true,
+  "recovery": [
+    "gzip",
+    "-dk",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-integration-05/volume.img.gz"
+  ]
+}

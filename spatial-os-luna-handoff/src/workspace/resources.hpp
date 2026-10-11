@@ -11,6 +11,16 @@ void validate_resource_config(const workspace::v1::BrokerResourceConfig& configu
 int seal_resource_config(const workspace::v1::BrokerResourceConfig& configuration,
                          const std::filesystem::path& owned_scope);
 class WorkspaceResources;
+class GitJobResources final {
+public:
+    ~GitJobResources();
+    supervisor::ProcessScope& scope();
+private:
+    friend class WorkspaceResources;
+    struct Impl;
+    explicit GitJobResources(std::unique_ptr<Impl> impl);
+    std::unique_ptr<Impl> impl_;
+};
 class ApplicationResources final {
 public:
     ~ApplicationResources();
@@ -30,8 +40,10 @@ public:
     ~WorkspaceResources();
     std::unique_ptr<ApplicationResources> prepare(const workspace::v1::LaunchRequest& request,
         const std::array<std::filesystem::path, 3>& writable_paths);
+    std::unique_ptr<GitJobResources> prepare_git_job();
 private:
     friend class ApplicationResources;
+    friend class GitJobResources;
     struct Impl;
     std::shared_ptr<Impl> impl_;
 };

@@ -1,0 +1,12 @@
+{
+  "src/workspace/storage_channel.cpp": "90c3bdcb9edff5b215aa7f88c87500b4aca4e9ddeb39d62a1987ea4afd1c5491",
+  "src/workspace/storage_client.cpp": "75d8529af62f93d181b8be55e51cc9fe8b398153f149b24df22876a9ff91fe64",
+  "src/workspace/storage_main.cpp": "fa1d8d99b4d29a79db95f77d23e99a6b2618215e45f91d0ddaf02c28e5d67efe",
+  "src/workspace/storage_owner.cpp": "e95a3234f34f913be38de1a99f4248d7cd0fa80d6b0ab4c022c0cc72849af5b2",
+  "src/workspace/storage_channel.hpp": "b4cf340247398ee964c8a2f8451f55fc6525a8cf74dc9ca31f188a257db0f927",
+  "src/workspace/storage_client.hpp": "e1d3257a7a6840915c8a5058e07cb600906748993647f86b9f478f5f1209624c",
+  "src/workspace/storage_owner.hpp": "7dc17509026786d0222ecae63ea306385aede6866765a920a973f7fe55bbe58a",
+  "src/workspace/store.cpp": "b10e0f445b3400e40d7834f0bf6a6b8b647ed90674db88ba6a4f97905f837d11",
+  "src/workspace/main.cpp": "7f9580ee2a9276e01f657a83959588d6a966a2349bdd641143d845f9144acc7c",
+  "CMakeLists.txt": "44fca7ed9485d0a8f9f03de43e4a052f36af7c0c5aa3f95ff1921954977df2b5"
+}

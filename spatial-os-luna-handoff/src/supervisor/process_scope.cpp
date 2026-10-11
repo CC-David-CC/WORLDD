@@ -306,6 +306,27 @@ bool ProcessScope::exited_successfully() const {
     check(result == 0, "Cannot inspect retained child exit status");
     return info.si_pid == child_ && info.si_code == CLD_EXITED && info.si_status == 0;
 }
+int ProcessScope::exit_status() const {
+    valid(started_ && child_ > 0 && !reaped_, "No retained child exit status");
+    siginfo_t info{};
+    int result;
+    do { result = waitid(P_PID, static_cast<id_t>(child_), &info, WEXITED | WNOHANG | WNOWAIT); }
+    while (result < 0 && errno == EINTR);
+    check(result == 0, "Cannot inspect retained child exit status");
+    valid(info.si_pid == child_, "Authority child has not exited");
+    if (info.si_code == CLD_EXITED) return info.si_status;
+    if (info.si_code == CLD_KILLED || info.si_code == CLD_DUMPED) return 128 + info.si_status;
+    throw std::runtime_error("Unknown child exit state");
+}
+void ProcessScope::throttle_memory(std::uint64_t bytes) {
+    valid(!started_ && !removed_ && scope_ >= 0 && bytes > 0 && !populated(),
+          "Memory throttle requires an empty prepared scope");
+    const auto maximum = contents(scope_, "memory.max");
+    valid(maximum != "max\n" && bytes <= std::stoull(maximum), "Memory throttle must fit the hard budget");
+    const auto value = std::to_string(bytes) + "\n";
+    control(scope_, "memory.high", value);
+    valid(contents(scope_, "memory.high") == value, "Memory throttle was not applied");
+}
 v1::ProcessScopeStopped ProcessScope::stop() {
     if (!removed_) {
         if (scope_ >= 0) control(scope_, "cgroup.kill", "1\n");

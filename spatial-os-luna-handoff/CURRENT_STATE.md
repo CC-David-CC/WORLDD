@@ -1,5 +1,138 @@
 # Implementation status
 
+## 2026-10-11: M03 paused for checkpoint and host reboot
+
+David requested a pause and reboot of sb16 and sb16-2.
+The goal is paused. Read ../M03_RESUME_PLAN.txt before resuming.
+The current branch contains unfinished M03 source and preserved failure evidence.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
+Both hosts passed the combined 288 MiB Git import, retained removal, application quotas, read-only access, sibling survival, and restart checks.
+The Git hard cap remains 256 MiB. A bounded cache parent and memory.high at 192 MiB corrected the reproduced OOM/admission failures.
+All 49 workspace-git tests passed on both hosts. Four adjacent process/workspace suites also passed.
+Each initializer probe passed 42 cases and detected the deliberate 73-byte leak.
+Actual confined initializer logs passed ASan/UBSan inspection. Full in-sandbox LSan coverage is not claimed.
+
+An additional negative test confirmed an open Git I/O-device validation defect on both hosts.
+Git imports succeed when the configured I/O budget names a different disk. Application launches reject the same mismatch.
+Read ../defect blockers/git-worker-uncovered-io-device.txt. The production fix is not applied.
+The last full broker-resources run passed 16 of 17 cases. Its remaining fixture issue now passes a focused corrected test.
+The current 18-case suite includes the new failing Git-device regression. It requires correction and a complete rerun.
+
+Read evidence/m03-git-storage-2026-10-11 for the preserved results.
+Production-required storage provisioning, contention/revocation evidence, and the full M03 phase gate remain pending.
+The user authorized this checkpoint on box-git and the configured CC-David-CC/WORLDD GitHub remote.
+This publication does not qualify the draft or advance the milestone count.
+
+## 2026-10-11: Git worker boundary and regression gate passed on both hosts
+
+Administrative Git now runs in a dedicated spatial-bwrap and ProcessScope worker.
+Each worker has a separate cgroup, explicit directory mounts, no network access, a 256 MiB memory cap, zero swap, 16 processes, and two CPUs.
+Git hooks and ambient configuration remain disabled. Imports use a five-minute deadline; other Git jobs use 60 seconds.
+The worktree retirement path keeps Git's rename within one bind mount, then retains project data and removes only validated worktree metadata.
+
+The full workspace-git suite passed 46 tests on sb16 and sb16-2.
+The malicious-filter containment test passed on both hosts.
+The workspace-context and worldd-lifecycle regressions also passed on both hosts.
+Read M03_GIT_256M_TEST.txt and M03_GIT_BOUNDARY_FINDINGS.txt for details.
+
+M03 is still in progress. Large-repository import capacity, storage-owner integration, and full M03 qualification remain pending.
+
+## 2026-10-10: Real application storage checks passed; initializer sanitizer qualification failed
+
+The draft resource code now maps Btrfs volumes to their real block devices.
+It checks both loop and backing SSD budgets. Backing-file inspection uses metadata-only handles.
+The broker records private internal exception diagnostics while preserving filtered actor errors.
+
+Actual confined Python applications on sb16 produced quota, escape-rejection, reflink, and descriptor witnesses.
+The kernel witness confirmed 128 MiB memory, sixteen processes, one CPU, and both I/O-device ceilings.
+Application writes reached EDQUOT. A second application reached the persistent actor aggregate limit.
+A read-only actor could read the project and received EROFS when writing it.
+An independent sibling workspace wrote four MiB after actor exhaustion.
+Read evidence/m03-storage-applications-2026-10-10/primary-review.json.
+
+The complete application diagnostic scan found three LeakSanitizer fatal errors in hardened initializer setup logs.
+The earlier functional-only runner omitted these setup logs. Its passed result does not qualify sanitizers.
+The exact LeakSanitizer mechanism remains unverified. No confirmed heap-leak report was produced.
+The initializer is non-dumpable and its seccomp policy denies ptrace. No tracer ran during these tests.
+Read the workspace-root M03_SANITIZER_LIMITATION.txt. Do not claim a clean application sanitizer run.
+
+All test mounts and loop devices are detached. Recorded transient services stopped; later queries show unloaded units.
+Three additional 512 MiB images remain under ignored local/m03-storage-applications-01 through -03.
+No normal host session or checkout changed. The combined draft remains uncommitted.
+
+David accepts the five-second allowance. Latency optimization is deferred.
+Durability, authority, resource accounting, uncertainty, and recovery remain required.
+Initializer sanitizer coverage, worker confinement, deployment, and full M03 qualification remain pending.
+M01 and M02 remain qualified. M03-M16 and Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Private storage transport and broker Git integration passed focused checks
+
+The combined M03 draft now has an owner service and a production client over a private inherited Unix stream.
+Kernel credentials identify each received fragment. Pidfds pin the owner and broker processes.
+The client verifies the dedicated volume UUID and validates reply identity.
+Broker calls provision repository, project, application-state, workspace, and retirement storage.
+Storage waits run the broker's existing authority and process enforcement callback.
+Repository and project use verifies recorded kernel limits and parent membership.
+Workspace creation does not hold its database transaction across storage provisioning.
+
+sb16 passed nine initial Debug scenarios and thirteen final runtime-sanitizer scenarios.
+The final candidate passed wrong-sender, framing, ancillary-descriptor, and substituted-owner response checks.
+Real Git clone, linked worktrees, retained removal, and workspace binding passed inside the quota volume.
+No selected ASan, UBSan, or LeakSanitizer finding was recorded.
+Read evidence/m03-storage-transport-2026-10-10/primary-review.json.
+
+The Debug runner initially left its mount busy. Its report remains unchanged.
+The runner now explicitly closes its SQLite connection. Exact recovery detached the original volume.
+The sanitizer runner unmounted and detached its volume successfully.
+Two additional 512 MiB sb16 images remain under ignored local/m03-storage-transport-01 and local/m03-storage-transport-sanitizers-01.
+Normal operator sessions and checkouts remain unchanged.
+
+Storage descriptor adoption is still optional draft plumbing. Existing ext4 fixtures are not storage qualification.
+Confined applications, full launch fixtures, worker confinement, fault recovery, and competing-I/O checks remain pending.
+Revocation during slow storage calls remains unrun. No fdatasync latency conclusion follows from these checks.
+The sb16-2 matrix and full M03 gate remain pending. M03-M16 and Spatial-M1 remain incomplete.
+
+
+## 2026-10-10: Storage owner library passed sb16 development checks
+
+The combined M03 draft now includes a privileged storage owner library and a test-only protobuf probe.
+It pins a fixed Btrfs volume, provisions hierarchical quotas, and preserves an operator-private SQLite catalog.
+It verifies catalog limits and kernel parent membership before storage reuse.
+Repository and project replies report their effective parent ceiling.
+The catalog uses SQLite Unix I/O through a private VFS that preserves its pinned directory path.
+
+Debug compilation and the fourth native-volume check passed on sb16.
+Application, actor, and workspace writes reached EDQUOT. An independent workspace remained writable.
+Deletion restored capacity. Catalog restart retained identities and limits.
+Altered limits and removed membership returned UNCERTAIN.
+Earlier compilation, SQLite path, and positive ioctl-return failures remain preserved.
+Read evidence/m03-storage-owner-2026-10-10/primary-review.json.
+
+Production authenticated transport, broker/Git integration, fault recovery, and combined qualification remain pending.
+These checks did not run on sb16-2 or under sanitizers. No production runtime changed.
+All four new sb16 test volumes are unmounted and their loop devices detached.
+Four additional 512 MiB images remain under ignored local/m03-storage-owner-runtime-01 through -04.
+M03 and full Spatial-M1 remain incomplete. The fdatasync pressure issue remains unresolved.
+
+
+## 2026-10-10: Combined M03 storage and broker-I/O implementation started
+
+Native backend checks on both hosts confirmed application, actor, and workspace quota exhaustion with independent-workspace survival.
+Deletion restored capacity. Quota configuration remained after remount.
+The checks also reproduced ordinary-user subvolume creation outside the configured quota graph.
+All test volumes are unmounted and loop devices detached. Normal roots remain ext4.
+Read evidence/m03-storage-backend-2026-10-10/primary-review.json.
+
+The combined draft adds private storage protobuf types, application filesystem-control restrictions, and broker configuration version 2.
+Its aggregate broker envelope covers metadata work and descendants. Manager reservations protect admission capacity.
+The storage owner and broker filesystem/Git integration remain pending. Draft source is uncompiled and unqualified.
+Read docs/M03_COMBINED_IMPLEMENTATION.txt for the version change, exact limits, system changes, and next integration work.
+No operator checkout or runtime changed. No issuer pressure or fdatasync latency measurement ran.
+M01 and M02 remain qualified. M03-M16 and full Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Authenticated resource fixture passed focused qualification
 
 The fixture now provisions authenticated launches through the production process-scope owner and sealed policy interface.

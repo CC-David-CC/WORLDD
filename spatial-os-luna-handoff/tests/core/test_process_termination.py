@@ -37,7 +37,11 @@ class ProcessTerminationTests(unittest.TestCase):
         major,minor=map(int,(device/'dev').read_text().strip().split(':'))
         budget=scope.ProcessScopeBudget(memory_bytes=128*1024*1024,swap_bytes=0,processes=16,cpu_microseconds=100000,
             io=[dict(major=major,minor=minor,read_bytes_per_second=64*1024*1024,write_bytes_per_second=16*1024*1024)])
-        config=broker.BrokerResourceConfig(protocol_version=1,delegated_cgroup=str(self.cgroup),
+        config=broker.BrokerResourceConfig(protocol_version=2,delegated_cgroup=str(self.cgroup),
+            broker_budget=scope.ProcessScopeBudget(memory_bytes=1024*1024*1024,swap_bytes=0,processes=128,
+                cpu_microseconds=400000,io=budget.io),
+            manager_budget=scope.ProcessScopeBudget(memory_bytes=256*1024*1024,swap_bytes=0,processes=32,
+                cpu_microseconds=200000,io=budget.io),
             default_policy=broker.WorkspaceResourcePolicy(total=budget,actor_default=budget,
                 profiles=[broker.ApplicationResourceProfile(name='development',maximum=budget)]))
         self.config=self.root/'resource.textproto';self.config.write_text(text_format.MessageToString(config));self.config.chmod(0o600)

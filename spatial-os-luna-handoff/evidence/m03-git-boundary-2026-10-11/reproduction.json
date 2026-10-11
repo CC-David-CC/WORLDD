@@ -1,0 +1,89 @@
+{
+  "status": "reproduced_unconfined_worker",
+  "qualification": false,
+  "commands": [
+    {
+      "command": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/project",
+        "init",
+        "-b",
+        "main"
+      ],
+      "code": 0,
+      "stdout": "Initialized empty Git repository in /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/project/.git/\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/project",
+        "add",
+        ".gitattributes",
+        "tracked.txt"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/project",
+        "-c",
+        "user.name=Boundary witness",
+        "-c",
+        "user.email=witness@localhost",
+        "commit",
+        "-m",
+        "Fixture"
+      ],
+      "code": 0,
+      "stdout": "[main (root-commit) 1ec0df3] Fixture\n 2 files changed, 2 insertions(+)\n create mode 100644 .gitattributes\n create mode 100644 tracked.txt\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/project",
+        "config",
+        "filter.fixture.clean",
+        "/usr/bin/python3 /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/project/filter.py"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/project",
+        "config",
+        "filter.fixture.required",
+        "true"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/sanitize/spatial-git-boundary-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-boundary-03/project"
+      ],
+      "code": 0,
+      "stdout": "53e27be921d5ae9812a5c7d962487213e36d50d5\n",
+      "stderr": ""
+    }
+  ],
+  "runner_sha256": "ad63880ed3398bf46ce41813d84934050fa2b51aef84c18c23df10ec88d57c56",
+  "scope": "Component-level helper witness; not a broker API exploit.",
+  "outside_project_write": true,
+  "outside_project_read": true,
+  "limitation": "The helper launched a repository-configured clean filter. The filter read a fixture secret and wrote a marker outside the project directory. Broker reachability remains unproven: broker status did not invoke the filter, and the repository configuration allowlist rejects filter.* entries."
+}

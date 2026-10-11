@@ -1,0 +1,388 @@
+{
+  "status": "passed",
+  "qualification": false,
+  "cases": [
+    {
+      "name": "actual-output",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 7\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-0",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-1",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-2",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-3",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-4",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-5",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-6",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-7",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-8",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-9",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-10",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-11",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-12",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-13",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-14",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-15",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-16",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-17",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-18",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-19",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-20",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-21",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-22",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-23",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-24",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-25",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-26",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-27",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-28",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-29",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-30",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lifecycle-31",
+      "exit": 0,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "version",
+      "exit": 2,
+      "events": [
+        "protocol_version: 1\nerror: \"Invalid application start request\"\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "missing-argv",
+      "exit": 2,
+      "events": [
+        "protocol_version: 1\nerror: \"Invalid application start request\"\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "too-many-argv",
+      "exit": 2,
+      "events": [
+        "protocol_version: 1\nerror: \"Invalid application start request\"\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "nul-argv",
+      "exit": 2,
+      "events": [
+        "protocol_version: 1\nerror: \"NUL in argument\"\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "exec-failure",
+      "exit": 2,
+      "events": [
+        "protocol_version: 1\nerror: \"Application exec failed\"\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "malformed",
+      "exit": 2,
+      "events": [
+        "protocol_version: 1\nerror: \"Invalid application start frame\"\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "unknown-field",
+      "exit": 2,
+      "events": [
+        "protocol_version: 1\nerror: \"Unknown protobuf fields\"\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "truncated-prefix",
+      "exit": 2,
+      "events": [
+        "protocol_version: 1\nerror: \"Truncated frame header\"\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "excessive-frame",
+      "exit": 2,
+      "events": [
+        "protocol_version: 1\nerror: \"Frame exceeds size limit\"\n"
+      ],
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "positive-leak",
+      "exit": -6,
+      "events": [
+        "protocol_version: 1\nstarted: true\n",
+        "protocol_version: 1\nexit_code: 0\n"
+      ],
+      "stderr_sha256": "6309e4f8b32998c7c186de08d68c153df74f29239ffca6ecb51771d557f360ff"
+    }
+  ],
+  "host": "sb16",
+  "runner_sha256": "1ef82933c5feaec4ca43c938b883af59bb6500115b4e3f8207350e7cfc7ff58d",
+  "started": 1791698454.0986178,
+  "coverage": "Production shared initializer body with full ASan/UBSan/LSan. Hardened syscall wrapper requires separate real-runtime evidence."
+}

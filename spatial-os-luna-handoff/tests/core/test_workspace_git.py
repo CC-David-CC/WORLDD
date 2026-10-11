@@ -10,15 +10,18 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 import unittest
 from unittest.mock import patch
+from google.protobuf import text_format
 
 from harness.git_fixture import GitRepo
 from harness.rpc import Client, RpcError, TransportError
 from harness.wire import make_request, frame, read_message, pb
 
-HOST, BROKER, JOB_PROBE = sys.argv[1:4]
-sys.argv[1:4] = []
+HOST, BROKER, JOB_PROBE, BOUNDARY_PROBE = sys.argv[1:5]
+sys.argv[1:5] = []
+TEST_CGROUP = os.environ.get('SPATIAL_TEST_CGROUP_ROOT')
 
 
 class WorkspaceGitTests(unittest.TestCase):
@@ -32,12 +35,13 @@ class WorkspaceGitTests(unittest.TestCase):
         self.start()
 
     def start(self):
-        self.client = Client([HOST], self.state, self.root / 'logs', timeout=5)
+        self.client = Client([HOST], self.state, self.root / 'logs', timeout=65)
         self.addCleanup(self.client.stop)
         self.client.call('system.hello')
 
     def call(self, method, **args):
-        return self.client.call(method, args)
+        timeout = 300 if method == 'git.repo.import' else 65
+        return self.client.call(method, args, timeout=timeout)
 
     def error(self, code, method, **args):
         with self.assertRaises(RpcError) as caught:
@@ -152,6 +156,16 @@ class WorkspaceGitTests(unittest.TestCase):
         status = self.call('git.status', worktree='work')
         self.assertEqual(status['modified'], sorted(tracked + ['README.txt', 'staged new']))
         self.assertEqual(status['untracked'], sorted(untracked + ['outside-link']))
+        self.assertFalse(status['clean'])
+
+    def test_status_preserves_output_larger_than_a_pipe_buffer(self):
+        self.imported(); work = self.create(); path = Path(work['path'])
+        names = ['untracked-' + str(index).zfill(4) + '-' + 'x' * 96 for index in range(768)]
+        for name in names:
+            (path / name).touch()
+        status = self.call('git.status', worktree='work')
+        self.assertEqual(status['untracked'], names)
+        self.assertEqual(status['modified'], [])
         self.assertFalse(status['clean'])
 
     def test_status_consumes_rename_source_as_a_path_not_a_record(self):
@@ -279,6 +293,20 @@ class WorkspaceGitTests(unittest.TestCase):
         self.error('OPERATION_CONFLICT', 'git.worktree.remove', id='work', operation_id='create')
         self.error('OPERATION_CONFLICT', 'git.worktree.create', repo='repo', id='new', branch='new', start='main', operation_id='remove')
         self.assertEqual(list(path.iterdir()), [path / 'new-project'])
+
+    def test_removal_operation_identity_is_never_a_filesystem_path(self):
+        self.imported(); work = self.create()
+        operation = '../outside/\nretirement'
+        self.assertEqual(self.remove(operation_id=operation), {'removed': True})
+        self.assertFalse(Path(work['path']).exists())
+        with self.registry() as db:
+            retired, state = db.execute('SELECT retired,state FROM removals WHERE id=?', (operation,)).fetchone()
+        self.assertEqual(state, 'ready')
+        self.assertEqual(Path(retired).parent, self.state / 'execution/retired')
+        self.assertEqual((Path(retired) / 'data/project/README.txt').read_text(), 'base\n')
+        self.assertFalse((self.state / 'execution/outside').exists())
+        self.client.stop(crash=True); self.start()
+        self.assertEqual(self.remove(operation_id=operation), {'removed': True})
 
     def test_dirty_and_ignored_files_prevent_removal_without_a_journal_intent(self):
         backing = self.imported(); work = self.create(); path = Path(work['path'])
@@ -543,8 +571,35 @@ class WorkspaceGitTests(unittest.TestCase):
         for enabled in (False, True):
             with self.subTest(enabled=enabled):
                 state = self.root/('direct-'+str(enabled))
-                argv = [BROKER, '--state-dir', str(state)] + (['--fixture-faults'] if enabled else [])
-                process = subprocess.run(argv, input=b''.join(frames), capture_output=True, timeout=10)
+                resource_config = os.environ.get('SPATIAL_TEST_RESOURCE_CONFIG')
+                self.assertTrue(resource_config)
+                broker_root = Path(TEST_CGROUP) / ('direct-broker-' + uuid.uuid4().hex)
+                broker_root.mkdir()
+                limits = broker_pb.BrokerResourceConfig()
+                text_format.Parse(Path(resource_config).read_text(), limits)
+                limits.delegated_cgroup = str(broker_root)
+                broker_config = state.parent / ('resources-' + str(enabled) + '.textproto')
+                broker_config.write_text(text_format.MessageToString(limits)); broker_config.chmod(0o600)
+                argv = [BROKER, '--state-dir', str(state), '--resource-config', str(broker_config)]
+                if enabled: argv.append('--fixture-faults')
+                try:
+                    process = subprocess.run(['/bin/sh', '-c', 'echo $$ > "$1/cgroup.procs"; shift; exec "$@"',
+                                              'spatial-test', str(broker_root), *argv], input=b''.join(frames),
+                                             capture_output=True, timeout=10)
+                finally:
+                    # A deliberate _exit leaves the empty persistent Git cache parent.
+                    # Verify that the complete owned subtree has no surviving process.
+                    self.assertIn('populated 0', (broker_root / 'cgroup.events').read_text())
+                    for nested in sorted((p for p in broker_root.rglob('*') if p.is_dir()),
+                                         key=lambda p: len(p.parts), reverse=True):
+                        self.assertEqual(nested.stat().st_uid, os.getuid())
+                        self.assertFalse((nested / 'cgroup.procs').read_text().strip())
+                        nested.rmdir()
+                    subtree = (broker_root / 'cgroup.subtree_control').read_text().split()
+                    if subtree:
+                        (broker_root / 'cgroup.subtree_control').write_text('-cpu -memory -pids -io\n')
+                    self.assertFalse((broker_root / 'cgroup.procs').read_text().strip())
+                    broker_root.rmdir()
                 self.assertEqual(process.returncode, 88 if enabled else 0, process.stderr)
                 stream = io.BytesIO(process.stdout)
                 replies = [read_message(stream, broker_pb.Reply).management for _ in range(6 if enabled else 7)]
@@ -602,6 +657,29 @@ class WorkspaceGitTests(unittest.TestCase):
         with self.registry() as db:
             self.assertEqual(db.execute('SELECT count(*) FROM operations').fetchone()[0], 0)
 
+    def test_git_filter_is_confined_to_explicit_worker_mounts(self):
+        tracked = self.repo.path / 'tracked.txt'
+        tracked.write_text('filter input\n')
+        (self.repo.path / '.gitattributes').write_text('tracked.txt filter=attack\n')
+        secret = self.root / 'host-secret'
+        marker = self.root / 'host-marker'
+        secret.write_text('synthetic host secret\n')
+        command = (f'if test -r {secret}; then printf readable > worker-read-result; '
+                   f'else printf denied > worker-read-result; fi; '
+                   f'printf denied-from-host > {marker}; cat >/dev/null')
+        self.repo.run('config', 'filter.attack.clean', command)
+        self.repo.run('config', 'filter.attack.required', 'true')
+        result = subprocess.run([BOUNDARY_PROBE, str(self.repo.path)], capture_output=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr.decode(errors='replace'))
+        self.assertEqual((self.repo.path / 'worker-read-result').read_text(), 'denied')
+        self.assertFalse(marker.exists(), 'Git worker wrote outside its explicit mounts')
+        self.assertEqual(secret.read_text(), 'synthetic host secret\n')
+
+    def test_git_worker_rejects_a_whole_host_root_mount(self):
+        result = subprocess.run([BOUNDARY_PROBE, str(self.repo.path), '/'], capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn(b'Git worker mount root is too broad', result.stderr)
+
     def test_unwitnessed_checkout_is_not_mistaken_for_a_completed_effect(self):
         self.imported(); self.deny_ready()
         self.error('STORAGE_ERROR', 'git.worktree.create', repo='repo', id='work', branch='feature', start='main', operation_id='create')
@@ -646,6 +724,7 @@ class WorkspaceGitTests(unittest.TestCase):
         self.assertEqual(self.imported(), backing)
 
     def test_administrative_git_descendants_stop_when_the_owner_dies(self):
+        self.assertTrue(TEST_CGROUP, 'resource-limited test cgroup is required')
         process = subprocess.Popen([JOB_PROBE, str(self.repo.path)], stdout=subprocess.DEVNULL,
                                    stderr=subprocess.DEVNULL, start_new_session=True)
         fds = []

@@ -3,6 +3,7 @@
 #include "workspace/status.hpp"
 #include "workspace/process.hpp"
 #include "workspace/resources.hpp"
+#include "workspace/storage_client.hpp"
 #include "workspace/native_launch.hpp"
 #include "workspace/authority.hpp"
 #include "world/store.hpp"
@@ -20,10 +21,20 @@
 #include <fstream>
 #include <map>
 #include <cmath>
+#include <utility>
 
 namespace spatial {
 namespace {
 void require(bool value, const char* message) { if (!value) throw std::invalid_argument(message); }
+workspace::v1::StorageObject storage_object(workspace::v1::StorageObject::Kind kind, const std::filesystem::path& path) {
+    workspace::v1::StorageObject object; object.set_kind(kind);
+    auto id = path.filename().string();
+    if (kind == workspace::v1::StorageObject::REPOSITORY) {
+        require(id.ends_with(".git"), "Expected backing repository path"); id.resize(id.size()-4);
+    }
+    require(id.size() == 32 && id.find_first_not_of("0123456789abcdef") == std::string::npos, "Expected managed storage path identity");
+    object.set_id(id); return object;
+}
 void valid_text(const std::string& value, std::size_t limit = 256) {
     require(!value.empty() && value.size() <= limit && value.find('\0') == std::string::npos, "Invalid Git identifier or argument");
 }
@@ -79,11 +90,6 @@ struct Transaction {
     void commit() { sql(db, "COMMIT"); done = true; }
 };
 std::string line(std::string value) { if (!value.empty() && value.back() == '\n') value.pop_back(); return value; }
-std::string checked(const std::filesystem::path& directory, const std::vector<std::string>& argv) {
-    const auto result = git_command(directory, argv);
-    if (result.status != 0) throw WorldError(wire::STORAGE_ERROR, "Git operation failed; no success acknowledged");
-    return result.output;
-}
 std::vector<std::string> tokens(const std::string& value) {
     std::vector<std::string> out;
     std::size_t start = 0;
@@ -144,7 +150,23 @@ struct ExecutionStore::Impl {
     WorkspaceAuthority* authority = nullptr;
     NativeLaunch* native = nullptr;
     WorkspaceResources* resources = nullptr;
-    explicit Impl(const std::filesystem::path& directory, unsigned migrate_from, bool enable_faults) : fixture_faults(enable_faults) {
+    StorageClient* storage = nullptr;
+    GitResult run_git(const std::filesystem::path& directory, const std::vector<std::string>& arguments,
+                      std::vector<GitMount> mounts = {}, std::chrono::seconds timeout = std::chrono::seconds(60)) {
+        if (!resources) throw WorldError(wire::UNAVAILABLE, "Administrative Git requires a configured worker resource boundary");
+        if (mounts.empty()) mounts.push_back({directory, true});
+        auto job = resources->prepare_git_job();
+        return git_command(job->scope(), directory, arguments, mounts, timeout);
+    }
+    std::string checked(const std::filesystem::path& directory, const std::vector<std::string>& arguments,
+                        std::vector<GitMount> mounts = {}, std::chrono::seconds timeout = std::chrono::seconds(60)) {
+        const auto result = run_git(directory, arguments, std::move(mounts), timeout);
+        if (result.status != 0) throw WorldError(wire::STORAGE_ERROR, "Git operation failed; no success acknowledged");
+        return result.output;
+    }
+    explicit Impl(const std::filesystem::path& directory, unsigned migrate_from, bool enable_faults, StorageClient* owner,
+                  WorkspaceResources* resource_owner)
+        : fixture_faults(enable_faults), resources(resource_owner), storage(owner) {
         require(!migrate_from || !fixture_faults, "Migration cannot enable fixture faults");
         require(directory.is_absolute() && !std::filesystem::is_symlink(directory), "Execution state requires an absolute nonsymlink directory");
         if (migrate_from) require(std::filesystem::is_regular_file(directory / "execution.db"), "Migration requires an existing execution database");
@@ -235,16 +257,21 @@ struct ExecutionStore::Impl {
         if (q.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Repository not registered");
         if (q.text(2) != "ready") throw WorldError(wire::STORAGE_ERROR, "Repository import is uncertain; explicit repair required");
         const auto path = managed(q.text(0), "repositories");
+        if (storage) {
+            workspace::v1::StorageOwnerRequest inspection;
+            *inspection.mutable_inspect()->mutable_object() = storage_object(workspace::v1::StorageObject::REPOSITORY, path);
+            storage->call(std::move(inspection));
+        }
         // Writable repository configuration is data, not broker execution authority.
         const std::set<std::string> allowed{"core.repositoryformatversion", "core.filemode", "core.bare",
             "core.logallrefupdates", "core.ignorecase", "core.precomposeunicode", "remote.origin.url",
             "remote.origin.fetch", "extensions.objectformat", "user.name", "user.email"};
-        for (const auto& entry : tokens(checked(path, {"config", "--local", "--no-includes", "--null", "--list"}))) {
+        for (const auto& entry : tokens(checked(path, {"config", "--local", "--no-includes", "--null", "--list"}, {{path, false}}))) {
             const auto end = entry.find('\n');
             if (!allowed.contains(entry.substr(0, end)))
                 throw WorldError(wire::FORBIDDEN, "Repository configuration requires authority unavailable to administrative Git");
         }
-        if (line(checked(path, {"rev-parse", "--is-bare-repository"})) != "true")
+        if (line(checked(path, {"rev-parse", "--is-bare-repository"}, {{path, false}})) != "true")
             throw WorldError(wire::STORAGE_ERROR, "Registered backing store is not bare");
         wire::RepositoryReply out; out.set_id(id); out.set_path(path.string()); out.set_source(q.text(1)); return out;
     }
@@ -271,6 +298,11 @@ struct ExecutionStore::Impl {
         if (q.text(4) != "ready") throw WorldError(wire::STORAGE_ERROR, "Worktree effect is pending or uncertain");
         wire::WorktreeReply out; out.set_id(id); out.set_repo(q.text(0)); out.set_branch(q.text(1)); out.set_path(q.text(2)); out.set_head(q.text(3));
         const auto directory = managed(out.path(), "worktrees");
+        if (storage) {
+            workspace::v1::StorageOwnerRequest inspection;
+            *inspection.mutable_inspect()->mutable_object() = storage_object(workspace::v1::StorageObject::PROJECT, directory);
+            storage->call(std::move(inspection));
+        }
         const auto repo = repository(out.repo());
         const auto link = link_text(directory / ".git");
         if (!link.starts_with("gitdir: ")) throw WorldError(wire::STORAGE_ERROR, "Invalid worktree administrative link");
@@ -285,7 +317,8 @@ struct ExecutionStore::Impl {
         // Git writes ../.. here. Lexical normalization retains a trailing separator.
         if (common.filename().empty()) common = common.parent_path();
         if (common != repo.path()) throw WorldError(wire::STORAGE_ERROR, "Worktree common directory changed authority");
-        const auto actual = line(checked(directory, {"rev-parse", "--path-format=absolute", "--git-common-dir"}));
+        const auto actual = line(checked(directory, {"rev-parse", "--path-format=absolute", "--git-common-dir"},
+            {{directory, false}, {repo.path(), false}}));
         if (actual != repo.path()) throw WorldError(wire::STORAGE_ERROR, "Git resolved another execution authority");
         return out;
     }
@@ -293,10 +326,11 @@ struct ExecutionStore::Impl {
         const auto repo = repository(record.repo());
         if (!std::filesystem::is_directory(record.path())) return false;
         bool path = false, branch = false, head = false;
-        for (const auto& token : tokens(checked(repo.path(), {"worktree", "list", "--porcelain", "-z"}))) {
+        for (const auto& token : tokens(checked(repo.path(), {"worktree", "list", "--porcelain", "-z"}, {{repo.path(), false}}))) {
             if (token.empty()) {
                 if (path && branch && head) {
-                    const auto actual = git_command(record.path(), {"rev-parse", "--path-format=absolute", "--git-common-dir"});
+                    const auto actual = run_git(record.path(), {"rev-parse", "--path-format=absolute", "--git-common-dir"},
+                        {{record.path(), false}, {repo.path(), false}});
                     return actual.status == 0 && line(actual.output) == repo.path();
                 }
                 path = branch = head = false;
@@ -356,15 +390,19 @@ struct ExecutionStore::Impl {
             transaction.commit();
         }
     }
-    wire::GitStatusReply current_status(const std::filesystem::path& path) {
-        return parse_git_status(checked(path, {"status", "--porcelain=v2", "--branch", "-z", "--untracked-files=all", "--ignored=matching"}));
+    wire::GitStatusReply current_status(const std::filesystem::path& path, std::vector<GitMount> additional = {}) {
+        std::vector<GitMount> mounts{{path, true}};
+        mounts.insert(mounts.end(), additional.begin(), additional.end());
+        return parse_git_status(checked(path, {"status", "--porcelain=v2", "--branch", "-z", "--untracked-files=all", "--ignored=matching"}, std::move(mounts)));
     }
-    wire::GitStatusReply removable(const std::filesystem::path& path) {
-        const auto status = current_status(path);
+    wire::GitStatusReply removable(const std::filesystem::path& path, std::vector<GitMount> additional = {}) {
+        const auto status = current_status(path, additional);
         if (!status.clean()) throw WorldError(wire::DIRTY_WORKTREE, "Worktree contains tracked, untracked, or ignored changes");
-        for (const auto& entry : tokens(checked(path, {"ls-files", "-v", "-z"})))
+        std::vector<GitMount> mounts{{path, true}};
+        mounts.insert(mounts.end(), additional.begin(), additional.end());
+        for (const auto& entry : tokens(checked(path, {"ls-files", "-v", "-z"}, mounts)))
             if (!entry.starts_with("H ")) throw WorldError(wire::DIRTY_WORKTREE, "Index flags can hide worktree changes; clear them before removal");
-        for (const auto& entry : tokens(checked(path, {"ls-files", "--stage", "-z"})))
+        for (const auto& entry : tokens(checked(path, {"ls-files", "--stage", "-z"}, std::move(mounts))))
             if (entry.starts_with("160000 ")) throw WorldError(wire::IN_USE, "Submodule worktrees require explicit retirement");
         return status;
     }
@@ -386,8 +424,8 @@ struct ExecutionStore::Impl {
         bool complete = false;
         try {
             const auto repo = repository(record.repo());
-            const auto entries = tokens(checked(repo.path(), {"worktree", "list", "--porcelain", "-z"}));
-            const auto pin = record.head().empty() ? "" : line(checked(repo.path(), {"rev-parse", "--verify", retirement_ref(retired)}));
+            const auto entries = tokens(checked(repo.path(), {"worktree", "list", "--porcelain", "-z"}, {{repo.path(), false}}));
+            const auto pin = record.head().empty() ? "" : line(checked(repo.path(), {"rev-parse", "--verify", retirement_ref(retired)}, {{repo.path(), false}}));
             complete = std::filesystem::is_directory(retired / "data/project") && std::filesystem::is_directory(retired / "git") &&
                 std::filesystem::canonical(retired / "data/project") == retired / "data/project" &&
                 std::filesystem::canonical(retired / "git") == retired / "git" &&
@@ -398,8 +436,9 @@ struct ExecutionStore::Impl {
     }
 };
 
-ExecutionStore::ExecutionStore(const std::filesystem::path& state, unsigned migrate_from, bool fixture_faults)
-    : impl_(std::make_unique<Impl>(state, migrate_from, fixture_faults)) {}
+ExecutionStore::ExecutionStore(const std::filesystem::path& state, unsigned migrate_from, bool fixture_faults,
+                               StorageClient* storage, WorkspaceResources* resources)
+    : impl_(std::make_unique<Impl>(state, migrate_from, fixture_faults, storage, resources)) {}
 ExecutionStore::~ExecutionStore() = default;
 bool ExecutionStore::fixture_faults() const { return impl_->fixture_faults; }
 wire::FaultArmReply ExecutionStore::arm_fault(const wire::FaultArmRequest& request) {
@@ -422,7 +461,7 @@ wire::RepositoryReply ExecutionStore::import_repository(const wire::RepositoryIm
           if (q.text(0) != source.string()) throw WorldError(wire::ALREADY_EXISTS, "Repository identity already has another source");
           return impl_->repository(request.id());
       } }
-    const auto source_git = git_command(source, {"rev-parse", "--absolute-git-dir"});
+    const auto source_git = impl_->run_git(source, {"rev-parse", "--absolute-git-dir"}, {{source, false}});
     require(source_git.status == 0, "Import source is not a Git repository");
     const auto alternates = std::filesystem::path(line(source_git.output)) / "objects/info/alternates";
     require(!std::filesystem::exists(alternates), "Import requires an independent source object store");
@@ -432,8 +471,15 @@ wire::RepositoryReply ExecutionStore::import_repository(const wire::RepositoryIm
         Query q(impl_->db.get(), "INSERT INTO repositories VALUES(?,?,?,'pending')");
         q.text(1, request.id()); q.text(2, source.string()); q.text(3, target.string()); q.step(); transaction.commit();
     }
-    checked(impl_->state, {"clone", "--bare", "--local", "--no-hardlinks", "--template=", "--", source.string(), target.string()});
-    if (line(checked(target, {"rev-parse", "--is-bare-repository"})) != "true")
+    if (impl_->storage) {
+        workspace::v1::StorageOwnerRequest allocation;
+        *allocation.mutable_repository_prepare()->mutable_object() = storage_object(workspace::v1::StorageObject::REPOSITORY, target);
+        impl_->storage->call(std::move(allocation));
+    }
+    std::filesystem::create_directories(target);
+    impl_->checked(target, {"clone", "--bare", "--local", "--no-hardlinks", "--template=", "--", source.string(), target.string()},
+        {{source, false}, {target, true}}, std::chrono::minutes(5));
+    if (line(impl_->checked(target, {"rev-parse", "--is-bare-repository"}, {{target, false}})) != "true")
         throw WorldError(wire::STORAGE_ERROR, "Import did not create a bare repository");
     sync_tree(target); sync_path(target.parent_path(), true);
     {
@@ -459,16 +505,16 @@ wire::WorktreeReply ExecutionStore::create(const wire::WorktreeCreateRequest& re
     const auto repo = impl_->repository(request.repo());
     { Query q(impl_->db.get(), "SELECT id FROM workspaces WHERE repo=?"); q.text(1, request.repo());
       if (q.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Repository execution authority belongs to a workspace"); }
-    require(request.branch().front() != '-' && git_command(repo.path(), {"check-ref-format", "refs/heads/" + request.branch()}).status == 0,
+    require(request.branch().front() != '-' && impl_->run_git(repo.path(), {"check-ref-format", "refs/heads/" + request.branch()}, {{repo.path(), false}}).status == 0,
             "Invalid branch name");
-    const auto list = tokens(checked(repo.path(), {"worktree", "list", "--porcelain", "-z"}));
+    const auto list = tokens(impl_->checked(repo.path(), {"worktree", "list", "--porcelain", "-z"}, {{repo.path(), false}}));
     if (std::find(list.begin(), list.end(), "branch refs/heads/" + request.branch()) != list.end())
         throw WorldError(wire::BRANCH_IN_USE, "Branch already has a linked worktree");
-    if (git_command(repo.path(), {"show-ref", "--verify", "--quiet", "refs/heads/" + request.branch()}).status == 0)
+    if (impl_->run_git(repo.path(), {"show-ref", "--verify", "--quiet", "refs/heads/" + request.branch()}, {{repo.path(), false}}).status == 0)
         throw WorldError(wire::ALREADY_EXISTS, "Requested new branch already exists");
     { Query q(impl_->db.get(), "SELECT id FROM worktrees WHERE id=?"); q.text(1, request.id());
       if (q.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Worktree identity already exists"); }
-    const auto start = git_command(repo.path(), {"rev-parse", "--verify", "--end-of-options", request.start() + "^{commit}"});
+    const auto start = impl_->run_git(repo.path(), {"rev-parse", "--verify", "--end-of-options", request.start() + "^{commit}"}, {{repo.path(), false}});
     require(start.status == 0, "Start does not resolve to a commit");
     const auto head = line(start.output);
     require((head.size() == 40 || head.size() == 64) && head.find_first_not_of("0123456789abcdef") == std::string::npos, "Invalid resolved commit");
@@ -481,7 +527,16 @@ wire::WorktreeReply ExecutionStore::create(const wire::WorktreeCreateRequest& re
         Query op(impl_->db.get(), "INSERT INTO operations VALUES(?,?,?,?,'pending')");
         op.text(1, request.operation_id()); op.blob(2, payload); op.blob(3, out.SerializeAsString()); op.text(4, out.id()); op.step(); transaction.commit();
     }
-    checked(repo.path(), {"worktree", "add", "-b", request.branch(), "--", out.path(), out.head()});
+    if (impl_->storage) {
+        workspace::v1::StorageOwnerRequest allocation;
+        auto* prepare = allocation.mutable_project_prepare();
+        *prepare->mutable_object() = storage_object(workspace::v1::StorageObject::PROJECT, out.path());
+        *prepare->mutable_repository() = storage_object(workspace::v1::StorageObject::REPOSITORY, repo.path());
+        impl_->storage->call(std::move(allocation));
+    }
+    std::filesystem::create_directories(out.path());
+    impl_->checked(repo.path(), {"worktree", "add", "-b", request.branch(), "--", out.path(), out.head()},
+        {{repo.path(), true}, {out.path(), true}});
     if (!impl_->matches(out)) throw WorldError(wire::STORAGE_ERROR, "Git worktree effect does not match its intent");
     impl_->complete_effect(out);
     // The external effect and its receipt are durable. The registry is still pending.
@@ -495,7 +550,8 @@ wire::GitOperationReply ExecutionStore::operation(const std::string& id) {
 }
 wire::GitStatusReply ExecutionStore::status(const std::string& id) {
     const auto worktree = impl_->worktree(id);
-    return impl_->current_status(worktree.path());
+    const auto repo = impl_->repository(worktree.repo());
+    return impl_->current_status(worktree.path(), {{repo.path(), false}});
 }
 wire::WorktreeRemoveReply ExecutionStore::remove(const wire::WorktreeRemoveRequest& request) {
     valid_text(request.id()); valid_text(request.operation_id());
@@ -513,10 +569,14 @@ wire::WorktreeRemoveReply ExecutionStore::remove(const wire::WorktreeRemoveReque
       if (q.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Worktree belongs to a workspace"); }
     auto record = impl_->worktree(request.id());
     const auto repo = impl_->repository(record.repo());
-    const auto admin = std::filesystem::path(line(checked(record.path(), {"rev-parse", "--absolute-git-dir"})));
+    const auto admin = std::filesystem::path(line(impl_->checked(record.path(), {"rev-parse", "--absolute-git-dir"},
+        {{record.path(), false}, {repo.path(), false}})));
+    const auto admin_root = std::filesystem::canonical(std::filesystem::path(repo.path()) / "worktrees");
+    if (std::filesystem::canonical(admin).parent_path() != admin_root)
+        throw WorldError(wire::STORAGE_ERROR, "Git worktree metadata is outside its managed repository");
     if (std::filesystem::exists(admin / "locked")) throw WorldError(wire::IN_USE, "Worktree is locked");
     IndexLock index_lock(admin);
-    const auto status = impl_->removable(record.path()); record.set_head(status.head()); record.set_branch(status.branch());
+    const auto status = impl_->removable(record.path(), {{repo.path(), false}}); record.set_head(status.head()); record.set_branch(status.branch());
     const auto retired = impl_->allocate("retired");
     {
         Transaction transaction(impl_->db.get());
@@ -524,23 +584,62 @@ wire::WorktreeRemoveReply ExecutionStore::remove(const wire::WorktreeRemoveReque
         op.text(1, request.operation_id()); op.blob(2, payload); op.blob(3, record.SerializeAsString()); op.text(4, record.id()); op.text(5, retired.string()); op.step();
         Query wt(impl_->db.get(), "UPDATE worktrees SET state='removing' WHERE id=?"); wt.text(1, record.id()); wt.step(); transaction.commit();
     }
+    if (impl_->storage) {
+        workspace::v1::StorageOwnerRequest allocation;
+        auto* prepare = allocation.mutable_retirement_prepare();
+        *prepare->mutable_object() = storage_object(workspace::v1::StorageObject::RETIRED, retired);
+        *prepare->mutable_repository() = storage_object(workspace::v1::StorageObject::REPOSITORY, repo.path());
+        *prepare->mutable_project() = storage_object(workspace::v1::StorageObject::PROJECT, record.path());
+        impl_->storage->call(std::move(allocation));
+    }
     // Retain all project data. Git unregisters only an inaccessible private path.
     std::filesystem::create_directories(retired / "staging");
     std::filesystem::create_symlink(retired / "never-created", retired / "data");
     sync_path(retired / "staging", true); sync_path(retired, true); sync_path(impl_->state / "retired", true);
+    const auto worktrees_root = std::filesystem::canonical(impl_->state / "worktrees");
+    const auto move_stage = worktrees_root / (".retirement-" + retired.filename().string());
+    if (std::filesystem::exists(move_stage))
+        throw WorldError(wire::STORAGE_ERROR, "Retirement staging path already exists; inspect retained data");
+    std::filesystem::create_directory(move_stage);
+    std::vector<std::filesystem::path> hidden_worktrees;
+    for (const auto& entry : std::filesystem::directory_iterator(worktrees_root)) {
+        if (entry.path() == record.path() || entry.path() == move_stage) continue;
+        struct stat entry_info{};
+        if (lstat(entry.path().c_str(), &entry_info) != 0 || !S_ISDIR(entry_info.st_mode))
+            throw WorldError(wire::STORAGE_ERROR, "Unexpected entry in managed worktree root; inspect state");
+        hidden_worktrees.push_back(entry.path());
+    }
+    const auto move_target = move_stage / "project";
     const auto registered = retired / "staging/project";
-    checked(repo.path(), {"worktree", "move", "--", record.path(), registered.string()});
+    impl_->checked(repo.path(), {"worktree", "move", "--", record.path(), move_target.string()},
+        {{repo.path(), true}, GitMount{worktrees_root, true, hidden_worktrees}});
+    std::error_code move_error;
+    std::filesystem::rename(move_target, registered, move_error);
+    if (move_error) {
+        const auto message = "Cannot move retired worktree into retained staging: " + move_error.message();
+        throw WorldError(wire::STORAGE_ERROR, message.c_str());
+    }
+    if (rmdir(move_stage.c_str()) != 0)
+        throw WorldError(wire::STORAGE_ERROR, "Cannot remove empty retirement staging directory");
     sync_path(impl_->state / "worktrees", true); sync_path(retired / "staging", true); sync_path(retired, true);
-    const auto observed = impl_->removable(registered);
+    const auto observed = impl_->removable(registered, {{repo.path(), false}});
     if (observed.head() != record.head() || observed.branch() != record.branch())
         throw WorldError(wire::STORAGE_ERROR, "Git changed during retirement; retained worktree requires inspection");
-    if (!record.head().empty()) checked(repo.path(), {"update-ref", impl_->retirement_ref(retired), record.head(), std::string(record.head().size(), '0')});
+    if (!record.head().empty()) impl_->checked(repo.path(), {"update-ref", impl_->retirement_ref(retired), record.head(), std::string(record.head().size(), '0')});
     std::filesystem::copy(admin, retired / "git", std::filesystem::copy_options::recursive | std::filesystem::copy_options::copy_symlinks);
     sync_tree(retired / "git"); sync_tree(registered);
     if (syscall(SYS_renameat2, AT_FDCWD, (retired / "staging").c_str(), AT_FDCWD, (retired / "data").c_str(), RENAME_EXCHANGE) != 0)
         throw WorldError(wire::STORAGE_ERROR, "Cannot reserve retired worktree path");
     sync_path(retired, true);
-    checked(repo.path(), {"worktree", "remove", "--", registered.string()});
+    const auto retained_marker = retired / "data/project/.git";
+    struct stat marker_info{};
+    if (lstat(retained_marker.c_str(), &marker_info) != 0 || !S_ISREG(marker_info.st_mode) ||
+        unlink(retained_marker.c_str()) != 0)
+        throw WorldError(wire::STORAGE_ERROR, "Cannot detach retained project from Git metadata");
+    std::error_code remove_error;
+    const auto removed_metadata = std::filesystem::remove_all(admin, remove_error);
+    if (remove_error || !removed_metadata)
+        throw WorldError(wire::STORAGE_ERROR, "Cannot unregister retired worktree metadata");
     sync_tree(retired); sync_tree(repo.path()); sync_path(impl_->state / "retired", true);
     File receipt; receipt.fd = open((retired / "complete").c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0600);
     if (receipt.fd < 0) throw WorldError(wire::STORAGE_ERROR, "Cannot create removal receipt");
@@ -568,12 +667,20 @@ wire::WorkspaceReply ExecutionStore::workspace_get(const std::string& id) {
 }
 wire::WorkspaceReply ExecutionStore::workspace_create(const wire::WorkspaceCreateRequest& request) {
     valid_text(request.id()); valid_text(request.worktree()); const auto policy = rights_mask(request.policy());
-    Transaction transaction(impl_->db.get());
     { Query q(impl_->db.get(), "SELECT id FROM workspaces WHERE id=?"); q.text(1, request.id());
       if (q.step() == SQLITE_ROW) throw WorldError(wire::ALREADY_EXISTS, "Workspace identity already exists"); }
     const auto worktree = impl_->worktree(request.worktree());
     { Query q(impl_->db.get(), "SELECT id FROM workspaces WHERE worktree=? OR repo=?"); q.text(1, worktree.id()); q.text(2, worktree.repo());
       if (q.step() == SQLITE_ROW) throw WorldError(wire::IN_USE, "Workspace execution state or Git administration already has an owner"); }
+    if (impl_->storage) {
+        const auto repository = impl_->repository(worktree.repo());
+        workspace::v1::StorageOwnerRequest allocation;
+        auto* bind = allocation.mutable_workspace_bind(); bind->set_workspace(request.id());
+        *bind->mutable_repository() = storage_object(workspace::v1::StorageObject::REPOSITORY, repository.path());
+        *bind->mutable_project() = storage_object(workspace::v1::StorageObject::PROJECT, worktree.path());
+        impl_->storage->call(std::move(allocation));
+    }
+    Transaction transaction(impl_->db.get());
     Query q(impl_->db.get(), "INSERT INTO workspaces VALUES(?,?,?,?,1)"); q.text(1, request.id()); q.text(2, worktree.id()); q.text(3, worktree.repo());
     check(sqlite3_bind_int(q.value, 4, static_cast<int>(policy))); q.step(); transaction.commit();
     return workspace_get(request.id());
@@ -739,15 +846,26 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
       q.text(1, id); q.text(2, request.actor()); q.text(3, command.operation_id()); q.blob(4, payload); q.text(5, request.workspace());
       check(sqlite3_bind_int(q.value, 6, static_cast<int>(effective))); q.step(); transaction.commit(); }
     try {
-        if (!std::filesystem::create_directory(state)) throw std::runtime_error("Application state path already exists");
-        for (const auto* name : {"home", "tmp", "cache", "config", "data"}) std::filesystem::create_directory(state / name);
-        sync_path(state, true); sync_path(state.parent_path(), true);
         std::function<void()> current = [] {};
         if (request.has_principal()) current = [this, query, effective] {
             impl_->authority->tick();
             const auto rights = rights_mask(access(query, false).rights());
             if ((effective & rights) != effective) throw WorldError(wire::FORBIDDEN, "Process execution authority was revoked");
         };
+        if (impl_->storage) {
+            workspace::v1::StorageOwnerRequest allocation;
+            auto* prepare = allocation.mutable_application_prepare(); prepare->set_workspace(request.workspace());
+            *prepare->mutable_object() = storage_object(workspace::v1::StorageObject::APPLICATION_STATE, state);
+            prepare->set_profile(command.profile());
+            if (request.has_principal()) *prepare->mutable_principal() = request.principal();
+            else prepare->set_fixture_actor(request.actor());
+            impl_->storage->call(std::move(allocation), current); current();
+            // Obtain a fresh issuer snapshot after storage work and before releasing execution.
+            const auto updated = rights_mask(access(query).rights());
+            if ((effective & updated) != effective) throw WorldError(wire::FORBIDDEN, "Process authority changed during storage preparation");
+        } else if (!std::filesystem::create_directory(state)) throw std::runtime_error("Application state path already exists");
+        for (const auto* name : {"home", "tmp", "cache", "config", "data"}) std::filesystem::create_directory(state / name);
+        sync_path(state, true); sync_path(state.parent_path(), true);
         auto native = impl_->native ? impl_->native->issue(request.workspace(), id, current) : nullptr;
         auto process = std::make_unique<ApplicationProcess>(worktree.path(), repository.path(), state,
             (effective & (1u << wire::FILES_WRITE)) != 0, command, std::move(current), std::move(native), std::move(resources));

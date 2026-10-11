@@ -1,0 +1,295 @@
+{
+  "host": "sb16",
+  "status": "passed",
+  "qualification": false,
+  "commands": [
+    {
+      "argv": [
+        "fallocate",
+        "-l",
+        "536870912",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mkfs.btrfs",
+        "-f",
+        "-d",
+        "single",
+        "-m",
+        "single",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "btrfs-progs v6.6.3\nSee https://btrfs.readthedocs.io for more information.\n\nNOTE: several default settings have changed in version 5.15, please make sure\n      this does not affect your deployments:\n      - DUP for metadata (-m dup)\n      - enabled no-holes (-O no-holes)\n      - enabled free-space-tree (-R free-space-tree)\n\nLabel:              (null)\nUUID:               37caf2f4-0845-4a31-815f-95d97cc6f42d\nNode size:          16384\nSector size:        4096\nFilesystem size:    512.00MiB\nBlock group profiles:\n  Data:             single            8.00MiB\n  Metadata:         single            8.00MiB\n  System:           single            4.00MiB\nSSD detected:       no\nZoned device:       no\nIncompat features:  extref, skinny-metadata, no-holes, free-space-tree\nRuntime features:   free-space-tree\nChecksum:           crc32c\nNumber of devices:  1\nDevices:\n   ID        SIZE  PATH                                                                                             \n    1   512.00MiB  /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/vol\n\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid,compress=no",
+        "/dev/loop12",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "blkid",
+        "-s",
+        "UUID",
+        "-o",
+        "value",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "37caf2f4-0845-4a31-815f-95d97cc6f42d\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "install",
+        "-m",
+        "600",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/configuration.pb",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/operator.pb"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "29360128",
+        "0/258",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "limit",
+        "25165824",
+        "0/258",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "remove",
+        "0/258",
+        "1/101",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "qgroup",
+        "assign",
+        "0/258",
+        "1/101",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "quota",
+        "rescan",
+        "-w",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "quota rescan started\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "btrfs",
+        "filesystem",
+        "sync",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "losetup",
+        "-d",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "results": {
+    "1": {
+      "operation": "hello",
+      "reply": "protocol_version: 1\nrequest_id: 1\nidentity {\n  filesystem_id: \"7\\312\\362\\364\\010EJ1\\201_\\225\\331|\\306\\364-\"\n  process_id: 3061584\n  volume_bytes: 536870912\n  accounting_consistent: true\n}\n"
+    },
+    "2": {
+      "operation": "repository_prepare",
+      "reply": "protocol_version: 1\nrequest_id: 2\nstate {\n  object {\n    kind: REPOSITORY\n    id: \"58c9c4d2b2bd43ccb647aa9c7a8f1b5b\"\n  }\n  subvolume_id: 256\n  quota_group: 562949953421412\n  referenced_bytes: 16384\n  exclusive_bytes: 16384\n  maximum_bytes: 67108864\n  accounting_consistent: true\n}\n"
+    },
+    "3": {
+      "operation": "project_prepare",
+      "reply": "protocol_version: 1\nrequest_id: 3\nstate {\n  object {\n    kind: PROJECT\n    id: \"5fefc03af40c447ca3f333017cbdb565\"\n  }\n  subvolume_id: 257\n  quota_group: 562949953421412\n  referenced_bytes: 16384\n  exclusive_bytes: 16384\n  maximum_bytes: 67108864\n  accounting_consistent: true\n}\n"
+    },
+    "4": {
+      "operation": "workspace_bind",
+      "reply": "protocol_version: 1\nrequest_id: 4\nstate {\n  object {\n    kind: PROJECT\n    id: \"5fefc03af40c447ca3f333017cbdb565\"\n  }\n  subvolume_id: 257\n  quota_group: 562949953421412\n  referenced_bytes: 16384\n  exclusive_bytes: 16384\n  maximum_bytes: 67108864\n  accounting_consistent: true\n}\n"
+    },
+    "5": {
+      "operation": "application_prepare",
+      "reply": "protocol_version: 1\nrequest_id: 5\nstate {\n  object {\n    kind: APPLICATION_STATE\n    id: \"7752b32c4e504a3e9a7b9ec058fd4521\"\n  }\n  subvolume_id: 258\n  quota_group: 281474976710757\n  referenced_bytes: 16384\n  exclusive_bytes: 16384\n  maximum_bytes: 25165824\n  accounting_consistent: true\n}\n"
+    },
+    "6": {
+      "operation": "application_prepare",
+      "reply": "protocol_version: 1\nrequest_id: 6\nstate {\n  object {\n    kind: APPLICATION_STATE\n    id: \"79fe4e3d93364b75a821cffece084b43\"\n  }\n  subvolume_id: 259\n  quota_group: 281474976710757\n  referenced_bytes: 16384\n  exclusive_bytes: 16384\n  maximum_bytes: 25165824\n  accounting_consistent: true\n}\n"
+    },
+    "7": {
+      "operation": "retirement_prepare",
+      "reply": "protocol_version: 1\nrequest_id: 7\nstate {\n  object {\n    kind: RETIRED\n    id: \"029acc6cee3a41eeaf99a57f06570d8c\"\n  }\n  subvolume_id: 260\n  quota_group: 562949953421412\n  referenced_bytes: 16384\n  exclusive_bytes: 16384\n  maximum_bytes: 67108864\n  accounting_consistent: true\n}\n"
+    },
+    "8": {
+      "operation": "repository_prepare",
+      "reply": "protocol_version: 1\nrequest_id: 8\nstate {\n  object {\n    kind: REPOSITORY\n    id: \"d7b2c495388f450f9bdfd89447278f79\"\n  }\n  subvolume_id: 261\n  quota_group: 562949953421414\n  referenced_bytes: 16384\n  exclusive_bytes: 16384\n  maximum_bytes: 67108864\n  accounting_consistent: true\n}\n"
+    },
+    "9": {
+      "operation": "inspect",
+      "reply": "protocol_version: 1\nrequest_id: 9\nstate {\n  object {\n    kind: APPLICATION_STATE\n    id: \"7752b32c4e504a3e9a7b9ec058fd4521\"\n  }\n  subvolume_id: 258\n  quota_group: 281474976710757\n  referenced_bytes: 16384\n  exclusive_bytes: 16384\n  maximum_bytes: 25165824\n  accounting_consistent: true\n}\n"
+    },
+    "10": {
+      "operation": "inspect",
+      "reply": "protocol_version: 1\nrequest_id: 10\nerror {\n  code: UNCERTAIN\n  message: \"Storage quota limit requires checked recovery\"\n}\n"
+    },
+    "11": {
+      "operation": "inspect",
+      "reply": "protocol_version: 1\nrequest_id: 11\nerror {\n  code: UNCERTAIN\n  message: \"Storage quota membership requires checked recovery\"\n}\n"
+    },
+    "12": {
+      "operation": "inspect",
+      "reply": "protocol_version: 1\nrequest_id: 12\nstate {\n  object {\n    kind: APPLICATION_STATE\n    id: \"7752b32c4e504a3e9a7b9ec058fd4521\"\n  }\n  subvolume_id: 258\n  quota_group: 281474976710757\n  referenced_bytes: 16384\n  exclusive_bytes: 16384\n  maximum_bytes: 25165824\n  accounting_consistent: true\n}\n"
+    },
+    "application": {
+      "bytes_written": 25133056,
+      "write_errno": 122,
+      "fsync_errno": null
+    },
+    "actor": {
+      "bytes_written": 8372224,
+      "write_errno": 122,
+      "fsync_errno": null
+    },
+    "workspace": {
+      "bytes_written": 33505280,
+      "write_errno": 122,
+      "fsync_errno": null
+    },
+    "sibling": {
+      "bytes_written": 4194304,
+      "write_errno": null,
+      "fsync_errno": null
+    },
+    "recovered": {
+      "bytes_written": 1048576,
+      "write_errno": null,
+      "fsync_errno": null
+    }
+  },
+  "runner_sha256": "f09d33ffcb9fb9a0593de6e7e737723110ca3396806a0ca599f6875a4dade9c0",
+  "recovery": [
+    [
+      "sudo",
+      "-n",
+      "umount",
+      "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-04/volume"
+    ],
+    [
+      "sudo",
+      "-n",
+      "losetup",
+      "-d",
+      "/dev/loop12"
+    ]
+  ],
+  "cleanup": {
+    "mounted": false,
+    "loop_attached": false
+  }
+}

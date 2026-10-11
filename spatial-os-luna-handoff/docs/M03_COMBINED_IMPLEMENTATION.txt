@@ -1,0 +1,126 @@
+M03 combined implementation checkpoint
+
+The combined increment is active. Do not integrate individual draft functions as completed milestones.
+Complete storage ownership, broker effects, launch provisioning, and contention recovery before broad regression qualification.
+
+Native capability checks on both hosts support hierarchical Btrfs quotas in a dedicated fixed-capacity image.
+Application, actor, and workspace writes encountered EDQUOT. An independent workspace retained write capacity.
+Removing data restored capacity. Quota configuration remained after remount.
+Ordinary users could create a new subvolume outside the configured quota graph and write through it.
+This is a backend security requirement, not proof of a current confined-application attack.
+Read evidence/m03-storage-backend-2026-10-10/primary-review.json.
+
+Draft production source now denies Btrfs-specific application controls except ordinary reflink copies.
+It also denies quotactl and quotactl_fd.
+The new storage.proto defines a private operator storage-owner interface. A storage owner library and test-only probe are drafted. Production transport remains pending.
+BrokerResourceConfig version 2 requires aggregate broker and manager budgets.
+Version 1 resource configurations are rejected by the draft validator before execution-store initialization.
+The broker root covers manager work and descendants. Its manager has reserved memory and process capacity.
+Application admission reserves aggregate capacity and conservatively counts current root usage, including reparented cache.
+The four existing explicit policy builders supply the new fields. Existing test bodies remain unchanged.
+These changes are uncommitted and unqualified. No production feature completion is claimed.
+
+Next, implement the privileged storage owner with fixed volume identity and private inherited protobuf transport.
+Validate object paths within the configured root. Keep its descriptors and controls outside applications.
+Create quota membership before exposing writable paths. Reject inconsistent accounting.
+Preserve durable mappings and existing real Git worktree, removal, retirement, and recovery semantics.
+Connect broker filesystem and Git workers to workspace budgets.
+Finish remaining launch fixtures and declarative operator provisioning.
+Then run independent escape, exhaustion, survival, recovery, and issuer-pressure witnesses across the combined change.
+Run the full M03 phase gate on both hosts before M04.
+
+System changes
+Both hosts now have btrfs-progs and libreiserfscore0t64 from Ubuntu package installation.
+Package triggers regenerated the existing initramfs. Neither host rebooted.
+Normal root filesystems remain ext4. All test volumes are unmounted and loop devices detached.
+Two 512 MiB test images remain per host under ignored local/m03-storage-backend-01 and local/m03-storage-backend-02.
+Review their exact recovery commands in the host receipts before any cleanup.
+To remove the added tools later, use sudo apt-get remove btrfs-progs libreiserfscore0t64.
+Do not remove packages or test images automatically while implementation continues.
+
+Selected development checks for the storage owner
+Compile the actual storage-owner library and broker resource code on sb16 with warnings treated as errors.
+Use a dedicated disposable Btrfs volume to check allocation, effective limits, and catalog restart.
+Alter a quota limit and relation independently. Require rejection before another allocation.
+Exercise leaf and aggregate exhaustion through ordinary POSIX writes. Preserve kernel errors and sibling survival.
+These checks do not qualify production transport, application confinement, or the full M03 gate.
+
+2026-10-10 private transport and broker integration draft
+The owner service consumes a private Unix stream and an operator-owned binary protobuf configuration.
+Every received fragment requires SCM_CREDENTIALS. Exact peer PIDs remain pinned with pidfds.
+The client requires UID 0, checks the native volume UUID, and validates reply identity.
+Ancillary descriptors, excessive frames, partial frames, and changed senders fail closed.
+Inherited channels use FD_CLOEXEC. Application startup closes unrelated descriptors.
+Started frames and client exchanges have five-second deadlines. Idle owners wait for broker traffic or death.
+Broker imports, worktree creation, workspace binding, app state, and retirement now have owner call sites.
+Broker launch refreshes execution authority after storage preparation.
+The optional --storage-fd flag is transitional draft plumbing. Existing ext4 fixtures are not storage qualification.
+Production-required storage adoption, fixture provisioning, worker confinement, and recovery remain pending.
+Do not commit or claim M03 from this draft.
+Selected next checks: Linux compilation, authenticated socketpair allocation, sender substitution, descriptor rejection,
+partial/excessive frames, peer loss, and real broker Git effects inside the quota volume.
+
+Storage waits now invoke the broker's existing authority and lifecycle enforcement callback.
+No workspace-creation database transaction spans the external storage wait.
+Existing repository and project use requests verify their quota graph before administrative effects.
+Real revocation-during-storage and launcher fixture regressions remain pending.
+
+2026-10-10 latency steering
+David accepts the five-second allowance and prioritizes correctness over speed.
+Do not make lower fdatasync latency a milestone blocker.
+Verify durable acknowledgements, explicit uncertainty, authorization, and recovery under bounded contention.
+Selected application-storage checks now include real broker launches, quota exhaustion, subvolume escape rejection,
+read-only project authority, descriptor closure, sibling survival, and real kernel device accounting.
+
+Initializer sanitizer coverage change, 2026-10-10
+An independent native reproducer passed LSan with normal and non-dumpable execution.
+The same binary failed LSan when ptrace alone was denied, with EPERM while attaching threads.
+GCC 13.3.0 source confirms its stop-the-world implementation uses ptrace and temporarily changes dumpability.
+The hard sandbox retains its existing ptrace denial and non-dumpable initializer.
+The draft moves the same protocol/child-lifecycle body into spatial-app-initializer.
+The hardened wrapper keeps ASan/UBSan but links an explicit initializer-only LSan-off hook.
+A separate host probe links the identical body without that hook and must pass full LSan.
+Require a deliberate leaked-allocation counterexample to prove that probe detects leaks.
+Require actual confined-app ASan/UBSan regressions with complete setup-log collection.
+Do not relabel the historical failures. Do not claim in-sandbox LSan coverage.
+This is an explicit coverage split. Locked acceptance oracles and authorization rules remain unchanged.
+Selected checks include valid child output, exec failure, malformed frames, schema validation, repeated lifecycles,
+and positive leak detection in the shared-body probe. Full M03 qualification remains pending.
+
+2026-10-11 combined Git and quota-volume regression selection
+Review found that worktree retirement used the caller's opaque operation ID in a staging path.
+The new removal-identity regression must reproduce this failure before correction.
+Use a broker-generated path identity. Preserve exact operation IDs only in the journal.
+Run worktree removal and recovery regressions after correction.
+Then exercise the current Git worker with the real quota owner and confined applications.
+Check initializer ASan/UBSan logs and the shared-body LSan positive counterexample.
+Record host evidence and source hashes. Keep production-wide provisioning and the M03 gate pending.
+
+Large-import findings and draft correction, 2026-10-11
+The 288 MiB packed repository reproduced a memory-cgroup OOM on sb16.
+Kernel logs show approximately 254 MiB of file writeback and less than one MiB of Git anonymous memory.
+On sb16-2, the import completed. The next worker failed admission because completed-job cache accumulated in the broker root.
+The correction retains a bounded Git parent for completed-job cache. Each command still receives a separate child scope.
+The parent reserves 256 MiB and sixteen processes within the existing one GiB broker envelope.
+The parent and worker use memory.high at 192 MiB. Their memory.max remains 256 MiB, with zero swap.
+This changes resource accounting explicitly. Idle Git cache stays within its reserved parent until broker shutdown.
+Application admission still counts reserved capacity and current usage. No workspace authority or filesystem quota changes.
+Selected checks cover large import, checkout, status, retirement, exact retained bytes, quota exhaustion, and owner restart.
+The same checks inspect kernel memory counters and all application setup logs.
+Run broker-resources and process-scope resource regressions because the shared resource owner changed.
+The full M03 gate remains pending.
+
+2026-10-11 resource regression fixture corrections
+The original regressions exposed setup assumptions that conflict with the new Git boundary.
+An unconfigured broker now rejects administrative Git before importing a repository.
+Seed the launch-denial fixture through a configured broker, then reopen the same state without configuration.
+Keep the original UNAVAILABLE and no-process-record assertions. Add a separate unconfigured Git denial check.
+The uncovered-device fixture must use consistent, incorrect devices throughout its resource policy.
+Seed its workspace with valid configuration first. Preserve INVALID_ARGUMENT and no-process-effect assertions.
+Add a separate startup rejection check for inconsistent I/O policy devices.
+After the intentional broker crash, inspect every owned descendant before removing empty cgroups.
+Require the complete subtree to be unpopulated. Preserve all fault opt-in and journal assertions.
+The workspace-git suite now has 49 tests. Its aggregate runner deadline changes from 90 to 180 seconds.
+The sb16-2 run reached the old aggregate deadline. Per-request and fault deadlines remain unchanged.
+These changes affect development fixtures. acceptance.lock.json and locked acceptance tests remain unchanged.
+Rerun workspace-git and broker-resources on both hosts. Keep the four passing adjacent suites as evidence.

@@ -1430,3 +1430,48 @@ Fresh passes do not establish repaired fdatasync latency. Storage pressure and r
 David requested larger coherent changes. The next increment combines remaining M03 launch provisioning, bounded storage, broker I/O, and contention work.
 Regress the combined change, resolve reproduced failures, and run the full M03 phase gate before proceeding to M04.
 Read spatial-os-luna-handoff/docs/M03_REMAINING_INCREMENT.txt.
+
+
+2026-10-10: Combined M03 backend capability checkpoint
+Both hosts verified native application, actor, and workspace EDQUOT limits, independent-workspace survival, deletion capacity recovery, and remount persistence.
+Both hosts also demonstrated unprivileged subvolume creation and 4 MiB writes outside the configured quota graph. Production storage control must prevent that bypass.
+These are filesystem capability checks, not confined-application acceptance or power-loss proof.
+Candidate01 failed because unprivileged subvolume-show required administrative B-tree access. Its failure receipt remains preserved.
+btrfs-progs and libreiserfscore0t64 were installed; package triggers regenerated initramfs. No reboot occurred.
+All test mounts and loop devices are gone. Two 512 MiB images remain per host in ignored local storage.
+Draft source adds Btrfs ioctl restrictions, storage protobuf types, and version 2 broker/manager envelopes. No compile or source qualification ran yet.
+The combined storage owner, effect accounting, provisioning, contention work, and full regression gate remain pending.
+No claim of repaired fdatasync latency follows from these checks.
+Read spatial-os-luna-handoff/docs/M03_COMBINED_IMPLEMENTATION.txt and its referenced receipts.
+
+2026-10-10: Storage-owner development check
+sb16 Debug library/probe compilation passed after two source corrections.
+The initial SQLite procfd/NOFOLLOW open failed. A private Unix VFS preserves the pinned path.
+A native ioctl trace then showed GET_SUBVOL_INFO returned positive success, which the draft misclassified.
+Candidate04 passed real quota exhaustion, sibling survival, capacity recovery, restart, and altered-quota rejection.
+Evidence: spatial-os-luna-handoff/evidence/m03-storage-owner-2026-10-10/primary-review.json.
+No authenticated storage transport or broker integration is qualified yet.
+No fdatasync pressure check ran. No production session changed.
+Four additional 512 MiB sb16 images remain under local/m03-storage-owner-runtime-01 through -04.
+All four volumes are unmounted and loop devices detached. Exact recovery commands are in each review.json.
+
+2026-10-10: Storage transport and real broker Git effects
+sb16 passed nine initial Debug scenarios and thirteen final runtime-sanitizer scenarios.
+Checks cover actual per-fragment sender credentials, wrong owner replies, real bare clone, worktrees and retirement.
+The first Debug cleanup reported a busy mount. SQLite context handling did not explicitly close connections.
+After the runner exited, fuser found no mount users. Exact umount and loop12 detach succeeded.
+The corrected sanitizer runner unmounted and detached successfully. Both images have no loop assignment.
+Two additional 512 MiB images remain at local/m03-storage-transport-01 and local/m03-storage-transport-sanitizers-01.
+Read spatial-os-luna-handoff/evidence/m03-storage-transport-2026-10-10/primary-review.json.
+Broker revocation callbacks, confined-app quota attacks, worker confinement and full M03 qualification remain pending.
+No fdatasync pressure result, production-session adoption, commit or push occurred.
+
+2026-10-10 application-storage integration
+Real sb16 applications passed functional quota, confinement, reflink, descriptor, read-only and sibling witnesses.
+Btrfs device discovery required actual block-device mapping and metadata-only inspection of the root-owned image.
+The complete setup-log scan found three LeakSanitizer fatal errors. Application sanitizer qualification FAILED.
+The earlier fixed functional runner omitted setup logs. Do not use that pass as sanitizer evidence.
+The initializer is non-dumpable and denies ptrace. No tracer was used. Exact failure mechanism remains unverified.
+Read M03_SANITIZER_LIMITATION.txt and spatial-os-luna-handoff/evidence/m03-storage-applications-2026-10-10/primary-review.json.
+All named services stopped. All experiment mounts and loops detached. Three new 512 MiB images are retained.
+David accepts five seconds and defers speed optimization. Correct durability, authority and recovery remain required.

@@ -1,0 +1,190 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 23
+    Start 23: broker-resources
+
+23: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-scope-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/workspaced"
+23: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+23: Environment variables: 
+23:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+23:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+23:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+23: Test timeout computed to be: 150
+23: {"unit": "spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/regressions/scopes", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-scope-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/workspaced"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service"]}
+23: Running as unit: spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service; invocation ID: 9e27ae126bb144d69ccecb2a6dbb0556
+23: test_actor_capacity_preserves_other_actor (__main__.BrokerResourceTests.test_actor_capacity_preserves_other_actor) ... ok
+23: test_application_writes_obey_broker_io_budget (__main__.BrokerResourceTests.test_application_writes_obey_broker_io_budget) ... ok
+23: test_broker_crash_cleanup_preserves_independent_broker (__main__.BrokerResourceTests.test_broker_crash_cleanup_preserves_independent_broker) ... ok
+23: test_conflicting_resource_arguments_cannot_override_handoff (__main__.BrokerResourceTests.test_conflicting_resource_arguments_cannot_override_handoff) ... ok
+23: test_hierarchy_intersection_and_private_controls (__main__.BrokerResourceTests.test_hierarchy_intersection_and_private_controls) ... ok
+23: test_missing_configuration_denies_before_pending_record (__main__.BrokerResourceTests.test_missing_configuration_denies_before_pending_record) ... FAIL
+23: test_missing_io_controller_fails_before_store_mutation (__main__.BrokerResourceTests.test_missing_io_controller_fails_before_store_mutation) ... ok
+23: test_mutable_resource_handoff_fails_before_store_mutation (__main__.BrokerResourceTests.test_mutable_resource_handoff_fails_before_store_mutation) ... ok
+23: test_read_only_authority_survives_resource_integration (__main__.BrokerResourceTests.test_read_only_authority_survives_resource_integration) ... ok
+23: test_revocation_returns_capacity_and_preserves_independent_application (__main__.BrokerResourceTests.test_revocation_returns_capacity_and_preserves_independent_application) ... ok
+23: test_sealed_resource_handoff_launches_and_is_consumed (__main__.BrokerResourceTests.test_sealed_resource_handoff_launches_and_is_consumed) ... ok
+23: test_sealed_resource_handoff_rejects_wrong_owned_root (__main__.BrokerResourceTests.test_sealed_resource_handoff_rejects_wrong_owned_root) ... ok
+23: test_uncovered_storage_device_denies_before_pending_record (__main__.BrokerResourceTests.test_uncovered_storage_device_denies_before_pending_record) ... ERROR
+23: test_workspace_capacity_returns_after_checked_exit (__main__.BrokerResourceTests.test_workspace_capacity_returns_after_checked_exit) ... ok
+23: test_wrong_root_fails_before_any_store_mutation (__main__.BrokerResourceTests.test_wrong_root_fails_before_any_store_mutation) ... ok
+23: 
+23: ======================================================================
+23: ERROR: test_uncovered_storage_device_denies_before_pending_record (__main__.BrokerResourceTests.test_uncovered_storage_device_denies_before_pending_record)
+23: ----------------------------------------------------------------------
+23: Traceback (most recent call last):
+23:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 364, in test_uncovered_storage_device_denies_before_pending_record
+23:     instance = Broker(self, policy).setup()
+23:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+23:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 99, in setup
+23:     self.management('git.repo.import', id='repo', path=str(self.test.repo.path))
+23:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 93, in management
+23:     reply = self.request(management=make_request(method, args))
+23:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+23:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 88, in request
+23:     reply = read_message(self.reader, broker.Reply)
+23:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+23:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/wire.py", line 49, in read_message
+23:     length, = struct.unpack('!I', read_exact(stream, 4))
+23:                                   ^^^^^^^^^^^^^^^^^^^^^
+23:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/wire.py", line 41, in read_exact
+23:     chunk = stream.read(length - len(data))
+23:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+23:   File "/usr/lib/python3.12/socket.py", line 707, in readinto
+23:     return self._sock.recv_into(b)
+23:            ^^^^^^^^^^^^^^^^^^^^^^^
+23: TimeoutError: timed out
+23: 
+23: ======================================================================
+23: FAIL: test_missing_configuration_denies_before_pending_record (__main__.BrokerResourceTests.test_missing_configuration_denies_before_pending_record)
+23: ----------------------------------------------------------------------
+23: Traceback (most recent call last):
+23:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 314, in test_missing_configuration_denies_before_pending_record
+23:     instance = Broker(self, configured=False).setup()
+23:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+23:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 99, in setup
+23:     self.management('git.repo.import', id='repo', path=str(self.test.repo.path))
+23:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 95, in management
+23:     self.test.assertFalse(reply.management.HasField('error'), reply)
+23: AssertionError: True is not false : protocol_version: 1
+23: request_id: 1
+23: management {
+23:   protocol_version: 1
+23:   request_id: 1
+23:   error {
+23:     code: UNAVAILABLE
+23:     message: "Administrative Git requires a configured worker resource boundary"
+23:   }
+23: }
+23: 
+23: 
+23: ----------------------------------------------------------------------
+23: Ran 15 tests in 28.130s
+23: 
+23: FAILED (failures=1, errors=1)
+23: Finished with result: exit-code
+23: Main processes terminated with: code=exited/status=1
+23: Service runtime: 28.267s
+23: CPU time consumed: 7.100s
+23: Memory peak: 2.5M
+23: Memory swap peak: 0B
+23: {"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service: Unit spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service not loaded.\n"}
+23: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+1/1 Test #23: broker-resources .................***Failed   28.42 sec
+{"unit": "spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/regressions/scopes", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-scope-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/workspaced"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service"]}
+Running as unit: spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service; invocation ID: 9e27ae126bb144d69ccecb2a6dbb0556
+test_actor_capacity_preserves_other_actor (__main__.BrokerResourceTests.test_actor_capacity_preserves_other_actor) ... ok
+test_application_writes_obey_broker_io_budget (__main__.BrokerResourceTests.test_application_writes_obey_broker_io_budget) ... ok
+test_broker_crash_cleanup_preserves_independent_broker (__main__.BrokerResourceTests.test_broker_crash_cleanup_preserves_independent_broker) ... ok
+test_conflicting_resource_arguments_cannot_override_handoff (__main__.BrokerResourceTests.test_conflicting_resource_arguments_cannot_override_handoff) ... ok
+test_hierarchy_intersection_and_private_controls (__main__.BrokerResourceTests.test_hierarchy_intersection_and_private_controls) ... ok
+test_missing_configuration_denies_before_pending_record (__main__.BrokerResourceTests.test_missing_configuration_denies_before_pending_record) ... FAIL
+test_missing_io_controller_fails_before_store_mutation (__main__.BrokerResourceTests.test_missing_io_controller_fails_before_store_mutation) ... ok
+test_mutable_resource_handoff_fails_before_store_mutation (__main__.BrokerResourceTests.test_mutable_resource_handoff_fails_before_store_mutation) ... ok
+test_read_only_authority_survives_resource_integration (__main__.BrokerResourceTests.test_read_only_authority_survives_resource_integration) ... ok
+test_revocation_returns_capacity_and_preserves_independent_application (__main__.BrokerResourceTests.test_revocation_returns_capacity_and_preserves_independent_application) ... ok
+test_sealed_resource_handoff_launches_and_is_consumed (__main__.BrokerResourceTests.test_sealed_resource_handoff_launches_and_is_consumed) ... ok
+test_sealed_resource_handoff_rejects_wrong_owned_root (__main__.BrokerResourceTests.test_sealed_resource_handoff_rejects_wrong_owned_root) ... ok
+test_uncovered_storage_device_denies_before_pending_record (__main__.BrokerResourceTests.test_uncovered_storage_device_denies_before_pending_record) ... ERROR
+test_workspace_capacity_returns_after_checked_exit (__main__.BrokerResourceTests.test_workspace_capacity_returns_after_checked_exit) ... ok
+test_wrong_root_fails_before_any_store_mutation (__main__.BrokerResourceTests.test_wrong_root_fails_before_any_store_mutation) ... ok
+
+======================================================================
+ERROR: test_uncovered_storage_device_denies_before_pending_record (__main__.BrokerResourceTests.test_uncovered_storage_device_denies_before_pending_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 364, in test_uncovered_storage_device_denies_before_pending_record
+    instance = Broker(self, policy).setup()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 99, in setup
+    self.management('git.repo.import', id='repo', path=str(self.test.repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 93, in management
+    reply = self.request(management=make_request(method, args))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 88, in request
+    reply = read_message(self.reader, broker.Reply)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/wire.py", line 49, in read_message
+    length, = struct.unpack('!I', read_exact(stream, 4))
+                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/harness/wire.py", line 41, in read_exact
+    chunk = stream.read(length - len(data))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out
+
+======================================================================
+FAIL: test_missing_configuration_denies_before_pending_record (__main__.BrokerResourceTests.test_missing_configuration_denies_before_pending_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 314, in test_missing_configuration_denies_before_pending_record
+    instance = Broker(self, configured=False).setup()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 99, in setup
+    self.management('git.repo.import', id='repo', path=str(self.test.repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 95, in management
+    self.test.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+----------------------------------------------------------------------
+Ran 15 tests in 28.130s
+
+FAILED (failures=1, errors=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 28.267s
+CPU time consumed: 7.100s
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service: Unit spatial-m03-resources-8320b0590fc540798ff6b073156e4059.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  28.42 sec
+
+The following tests FAILED:
+	 23 - broker-resources (Failed)
+Errors while running CTest

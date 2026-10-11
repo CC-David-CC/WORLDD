@@ -1,0 +1,10 @@
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/build
+[ 73%] Built target spatial-protobuf
+[ 86%] Built target spatial-scene
+[ 93%] Building CXX object CMakeFiles/spatial-storage-owner.dir/src/workspace/storage_owner.cpp.o
+[ 93%] Linking CXX static library libspatial-storage-owner.a
+[ 93%] Built target spatial-storage-owner
+[ 93%] Linking CXX executable spatial-storage-owner-probe
+[100%] Built target spatial-storage-owner-probe

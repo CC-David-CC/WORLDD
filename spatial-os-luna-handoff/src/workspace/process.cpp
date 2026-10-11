@@ -13,6 +13,7 @@
 #include <iostream>
 #include <linux/audit.h>
 #include <linux/filter.h>
+#include <linux/fs.h>
 #include <linux/memfd.h>
 #include <linux/seccomp.h>
 #include <poll.h>
@@ -60,10 +61,21 @@ int filter() {
              SYS_bpf, SYS_keyctl, SYS_add_key, SYS_request_key, SYS_perf_event_open, SYS_userfaultfd,
              SYS_ptrace, SYS_process_vm_readv, SYS_process_vm_writev, SYS_mknod, SYS_mknodat,
              SYS_init_module, SYS_finit_module, SYS_delete_module, SYS_kexec_load, SYS_kexec_file_load,
-             SYS_reboot, SYS_swapon, SYS_swapoff, SYS_syslog, SYS_io_uring_setup}) {
+             SYS_reboot, SYS_swapon, SYS_swapoff, SYS_syslog, SYS_io_uring_setup,
+             SYS_quotactl, SYS_quotactl_fd}) {
         code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, static_cast<unsigned>(call), 0, 1));
         code.push_back(BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | EPERM));
     }
+    // A new Btrfs subvolume can evade its parent's quota graph without host capabilities.
+    // Keep ordinary reflink copies. Deny other Btrfs-specific controls, including new commands.
+    code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, SYS_ioctl, 0, 6));
+    code.push_back(BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(seccomp_data, args[1])));
+    code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, FICLONE, 4, 0));
+    code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, FICLONERANGE, 3, 0));
+    code.push_back(BPF_STMT(BPF_ALU | BPF_AND | BPF_K, 0xff00));
+    code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, 0x9400, 0, 1));
+    code.push_back(BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | EPERM));
+    code.push_back(BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(seccomp_data, nr)));
     // glibc can fall back to clone. Its ordinary fork/thread flags remain available.
     code.push_back(BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, SYS_clone3, 0, 1));
     code.push_back(BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | ENOSYS));

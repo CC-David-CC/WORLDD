@@ -1,0 +1,161 @@
+{
+  "commands": [
+    {
+      "command": [
+        "sudo",
+        "-n",
+        "-u",
+        "dflanag3",
+        "python3",
+        "-c",
+        "import os,sys; os.open(sys.argv[1], os.O_RDONLY)",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume.img"
+      ],
+      "code": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nPermissionError: [Errno 13] Permission denied: '/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume.img'\n"
+    },
+    {
+      "command": [
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume.img"
+      ],
+      "code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "ro,nodev,nosuid",
+        "/dev/loop12",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-apps-152ba3303135435f9f84a0fcbd3b8776.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-apps-df187406d6dc474c9a3f80adb05b49ef.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-apps-942e052f8dc44cd49b29585b2aa1416b.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-applications-03/volume"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "losetup",
+        "-d",
+        "/dev/loop12"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "applications": {
+    "applications/46a2d0249d9a6e2a91bfd48f2b17608e/setup.log": "==2==LeakSanitizer has encountered a fatal error.\n==2==HINT: For debugging, try setting environment variable LSAN_OPTIONS=verbosity=1:log_threads=1\n==2==HINT: LeakSanitizer does not work under ptrace (strace, gdb, etc)\n",
+    "applications/46a2d0249d9a6e2a91bfd48f2b17608e/stdout": "",
+    "applications/46a2d0249d9a6e2a91bfd48f2b17608e/stderr": "",
+    "applications/771183de10899d910c61b20f27d869cf/setup.log": "",
+    "applications/771183de10899d910c61b20f27d869cf/stdout": "",
+    "applications/771183de10899d910c61b20f27d869cf/stderr": "",
+    "applications/77bb355651f1693b91a46e8e20a5f894/setup.log": "",
+    "applications/77bb355651f1693b91a46e8e20a5f894/stdout": "",
+    "applications/77bb355651f1693b91a46e8e20a5f894/stderr": "",
+    "applications/9d4c5833f7431736fbdf890a2db96b12/setup.log": "==2==LeakSanitizer has encountered a fatal error.\n==2==HINT: For debugging, try setting environment variable LSAN_OPTIONS=verbosity=1:log_threads=1\n==2==HINT: LeakSanitizer does not work under ptrace (strace, gdb, etc)\n",
+    "applications/9d4c5833f7431736fbdf890a2db96b12/stdout": "",
+    "applications/9d4c5833f7431736fbdf890a2db96b12/stderr": "",
+    "applications/9d4c5833f7431736fbdf890a2db96b12/readonly-witness.json": "{\"read\": \"storage integration\\n\", \"write_errno\": 30}",
+    "applications/c0f3f9c25fb57b0edc957618c031b4e2/setup.log": "==2==LeakSanitizer has encountered a fatal error.\n==2==HINT: For debugging, try setting environment variable LSAN_OPTIONS=verbosity=1:log_threads=1\n==2==HINT: LeakSanitizer does not work under ptrace (strace, gdb, etc)\n",
+    "applications/c0f3f9c25fb57b0edc957618c031b4e2/stdout": "",
+    "applications/c0f3f9c25fb57b0edc957618c031b4e2/stderr": ""
+  },
+  "setup": [],
+  "units": [
+    {
+      "unit": "spatial-m03-storage-apps-152ba3303135435f9f84a0fcbd3b8776.service",
+      "state": "LoadState=not-found\nActiveState=inactive\n"
+    },
+    {
+      "unit": "spatial-m03-storage-apps-df187406d6dc474c9a3f80adb05b49ef.service",
+      "state": "LoadState=not-found\nActiveState=inactive\n"
+    },
+    {
+      "unit": "spatial-m03-storage-apps-4e69c1cd80614329ba45f1a58553c3c3.service",
+      "state": "LoadState=not-found\nActiveState=inactive\n"
+    },
+    {
+      "unit": "spatial-m03-storage-apps-942e052f8dc44cd49b29585b2aa1416b.service",
+      "state": "LoadState=not-found\nActiveState=inactive\n"
+    }
+  ],
+  "image": {
+    "bytes": 536870912,
+    "uid": 0,
+    "mode": "0o600"
+  }
+}

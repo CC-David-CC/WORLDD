@@ -41,6 +41,10 @@ message BrokerResourceConfig {
   string delegated_cgroup = 2;
   WorkspaceResourcePolicy default_policy = 3;
   repeated WorkspaceResourcePolicy workspaces = 4;
+  // Version 2 requires this aggregate envelope for broker work and all descendants.
+  spatial.supervisor.v1.ProcessScopeBudget broker_budget = 5;
+  // Reserved control-plane capacity. Applied to the manager before store initialization.
+  spatial.supervisor.v1.ProcessScopeBudget manager_budget = 6;
 }
 // Parent launch configuration. The child resource template must leave its root empty.
 message BrokerProcessConfig {

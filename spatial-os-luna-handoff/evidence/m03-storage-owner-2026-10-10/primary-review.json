@@ -1,0 +1,45 @@
+{
+  "status": "development_checks_passed",
+  "qualification": false,
+  "host": "sb16",
+  "profile": "Debug",
+  "base_commit": "96b2b054199986f783041fd90fd21d9860dbd0ac",
+  "source_hashes": {
+    "src/workspace/storage_owner.cpp": "4d16cc3acf68c003f699787fb0ddee0fed03c819a5dd12b17dc143ae0f7d0696",
+    "src/workspace/storage_owner.hpp": "7dc17509026786d0222ecae63ea306385aede6866765a920a973f7fe55bbe58a",
+    "src/testing/storage_owner_probe.cpp": "be8cbac21800bf67e46b8b047f83095991112503de211050f406f3bbf948490f",
+    "src/workspace/resources.cpp": "5e58ea5e7ce25150ac6c04d59393fc128f175a92af6285773afefe64d783572f",
+    "proto/spatial/workspace/v1/storage.proto": "7a020770b63fa6e6a929bfabb3d778e99739bc3ae456f6a2f7db406020cdb764",
+    "proto/spatial/workspace/v1/broker.proto": "39cc42dd06034aba33ede49429f0efdbe2a694a265cd4ea81c2ae62af0facf2e",
+    "CMakeLists.txt": "bb5c9f6c631e4942dbd586c9e9f2452d0df6c45f166e9ba8cb6f71567309997c"
+  },
+  "passed": [
+    "storage library and broker resources compile",
+    "effective parent and application quota reporting",
+    "repository, project, workspace, actor, application and retirement provisioning",
+    "catalog restart",
+    "altered leaf limit rejected with UNCERTAIN",
+    "removed membership rejected with UNCERTAIN",
+    "application, actor and workspace EDQUOT",
+    "sibling capacity survives exhaustion",
+    "deletion restores capacity"
+  ],
+  "failures_preserved": [
+    "Initial compile: num_qgroups field and misleading indentation",
+    "New test target required explicit CMake reconfiguration",
+    "Candidate01: SQLite NOFOLLOW rejects procfd directory canonicalization",
+    "Candidate02/03: valid positive subvolume ioctl return treated as failure"
+  ],
+  "unrun": [
+    "sb16-2 library runtime checks",
+    "runtime sanitizers",
+    "production authenticated transport",
+    "broker/Git filesystem integration",
+    "confined application bypass attack",
+    "fault recovery and metadata exhaustion",
+    "issuer contention and fdatasync recovery",
+    "M03 full qualification"
+  ],
+  "cleanup": "All four sb16 runtime volumes unmounted and loop devices detached. Images retained.",
+  "limitations": "Test-only stdin harness. Ordinary POSIX writes are not confined application acceptance. No production service adoption or commits."
+}

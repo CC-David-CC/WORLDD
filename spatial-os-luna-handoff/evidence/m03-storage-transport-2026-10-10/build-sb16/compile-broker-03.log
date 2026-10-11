@@ -1,0 +1,41 @@
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/build
+[  0%] Built target scope-python-protobuf
+[ 34%] Built target spatial-protobuf
+[ 34%] Built target python-protobuf
+[ 40%] Built target security-python-protobuf
+[ 40%] Built target native-scope-python-protobuf
+[ 40%] Built target broker-python-protobuf
+[ 40%] Built target key-python-protobuf
+[ 46%] Built target issuer-python-protobuf
+[ 46%] Built target grants-python-protobuf
+[ 53%] Built target spatial-scene
+[ 59%] Built target spatial-identity
+[ 59%] Built target spatial-app-init
+[ 65%] Built target spatial-storage-channel
+[ 65%] Built target spatial-process-scope
+[ 71%] Built target spatial-authority
+[ 71%] Built target spatial-identity-tls
+[ 75%] Building CXX object CMakeFiles/spatial-storage-client.dir/src/workspace/storage_client.cpp.o
+[ 75%] Built target spatial-workspace-resources
+[ 78%] Built target spatial-bootstrap
+[ 81%] Building CXX object CMakeFiles/spatial-issuer-client-lib.dir/src/identity/issuer_client.cpp.o
+[ 84%] Linking CXX static library libspatial-storage-client.a
+[ 84%] Built target spatial-storage-client
+[ 84%] Linking CXX static library libspatial-issuer-client-lib.a
+[ 84%] Built target spatial-issuer-client-lib
+[ 87%] Building CXX object CMakeFiles/spatial-participant-runtime-lib.dir/src/identity/participant_runtime.cpp.o
+[ 87%] Linking CXX static library libspatial-participant-runtime-lib.a
+[ 87%] Built target spatial-participant-runtime-lib
+[ 87%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[ 87%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[ 90%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/git_command.cpp.o
+[ 90%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/status.cpp.o
+[ 93%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/process.cpp.o
+[ 93%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/authority.cpp.o
+[ 96%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/native_launch.cpp.o
+[ 96%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/control.cpp.o
+[100%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/control_channels.cpp.o
+[100%] Linking CXX executable workspaced
+[100%] Built target workspaced

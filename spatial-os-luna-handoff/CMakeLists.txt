@@ -24,6 +24,7 @@ protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/inpu
 protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
 protobuf_generate_cpp(native_scope_proto_sources native_scope_proto_headers proto/spatial/supervisor/v1/native_scope.proto)
 protobuf_generate_cpp(broker_proto_sources broker_proto_headers proto/spatial/workspace/v1/broker.proto)
+protobuf_generate_cpp(storage_proto_sources storage_proto_headers proto/spatial/workspace/v1/storage.proto)
 protobuf_generate_cpp(key_proto_sources key_proto_headers proto/spatial/identity/v1/key.proto)
 protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/identity/v1/issuer.proto)
 protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
@@ -95,6 +96,18 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py"
     DEPENDS proto/spatial/supervisor/v1/process_scope.proto proto/spatial/supervisor/v1/native_scope.proto proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
         proto/spatial/identity/v1/issuer.proto proto/spatial/identity/v1/key.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(broker-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/storage.proto
+    DEPENDS proto/spatial/workspace/v1/storage.proto proto/spatial/authority/v1/grants.proto
+        protobuf::protoc VERBATIM)
+add_custom_target(storage-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py")
+add_dependencies(storage-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/key_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
@@ -173,6 +186,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPA
 add_library(spatial-protobuf STATIC ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
 target_sources(spatial-protobuf PRIVATE ${scope_proto_sources} ${scope_proto_headers})
+target_sources(spatial-protobuf PRIVATE ${storage_proto_sources} ${storage_proto_headers})
 target_include_directories(spatial-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_library(spatial-scene STATIC src/core/framing.cpp src/core/geometry.cpp src/core/collision.cpp src/core/navigation.cpp src/core/scene.cpp)
 target_include_directories(spatial-scene PUBLIC src)
@@ -187,6 +201,15 @@ target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
 add_library(spatial-identity STATIC src/identity/keys.cpp)
 add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp)
 target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
+add_library(spatial-storage-channel STATIC src/workspace/storage_channel.cpp)
+target_link_libraries(spatial-storage-channel PUBLIC spatial-scene)
+add_library(spatial-storage-client STATIC src/workspace/storage_client.cpp)
+target_link_libraries(spatial-storage-client PUBLIC spatial-storage-channel)
+add_library(spatial-storage-owner STATIC src/workspace/storage_owner.cpp)
+target_link_libraries(spatial-storage-owner PUBLIC spatial-scene SQLite::SQLite3)
+add_executable(spatial-storage-owner-service src/workspace/storage_main.cpp)
+set_target_properties(spatial-storage-owner-service PROPERTIES OUTPUT_NAME spatial-storage-owner)
+target_link_libraries(spatial-storage-owner-service PRIVATE spatial-storage-owner spatial-storage-channel)
 add_library(spatial-workspace-resources STATIC src/workspace/resources.cpp)
 target_link_libraries(spatial-workspace-resources PUBLIC spatial-process-scope spatial-identity-tls)
 add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/supervisor/child_handle.cpp src/supervisor/child_handle_client.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
@@ -241,11 +264,13 @@ target_link_libraries(spatialwm PRIVATE spatial-compositor-config PkgConfig::XCB
 add_executable(worldd src/world/actor_tls.cpp src/world/main.cpp src/world/server.cpp src/world/identity_sessions.cpp src/world/authority.cpp)
 target_link_libraries(worldd PRIVATE spatial-compositor-config spatial-core spatial-issuer-watch-lib spatial-authority spatial-participant-runtime-lib)
 add_dependencies(worldd spatialwm)
-add_executable(spatial-app-init src/workspace/app_init.cpp)
-target_link_libraries(spatial-app-init PRIVATE spatial-scene)
+add_library(spatial-app-initializer STATIC src/workspace/app_initializer.cpp)
+target_link_libraries(spatial-app-initializer PUBLIC spatial-scene)
+add_executable(spatial-app-init src/workspace/app_init.cpp src/workspace/hardened_sanitizer.cpp)
+target_link_libraries(spatial-app-init PRIVATE spatial-app-initializer)
 add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp src/workspace/control_channels.cpp)
 target_include_directories(workspaced PRIVATE src)
-target_link_libraries(workspaced PRIVATE spatial-workspace-resources spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
+target_link_libraries(workspaced PRIVATE spatial-storage-client spatial-workspace-resources spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
 add_dependencies(workspaced spatial-app-init)
 add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)
 target_link_libraries(spatial-test-host PRIVATE spatial-core)
@@ -253,9 +278,26 @@ add_dependencies(spatial-test-host worldd workspaced)
 
 include(CTest)
 if(BUILD_TESTING)
+    find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_executable(spatial-app-initializer-probe src/testing/app_initializer_probe.cpp)
+    target_link_libraries(spatial-app-initializer-probe PRIVATE spatial-app-initializer)
+    add_dependencies(spatial-app-initializer-probe broker-python-protobuf native-scope-python-protobuf scope-python-protobuf
+        python-protobuf security-python-protobuf issuer-python-protobuf grants-python-protobuf key-python-protobuf)
+    set(initializer_check_arguments)
+    if(SPATIAL_SANITIZERS)
+        list(APPEND initializer_check_arguments --sanitizers)
+    endif()
+    add_test(NAME app-initializer-lifecycle COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_app_initializer.py"
+        $<TARGET_FILE:spatial-app-initializer-probe> ${initializer_check_arguments})
+    set_tests_properties(app-initializer-lifecycle PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python;ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_executable(spatial-storage-client-probe src/testing/storage_client_probe.cpp)
+    target_link_libraries(spatial-storage-client-probe PRIVATE spatial-storage-client)
+    add_executable(spatial-storage-owner-probe src/testing/storage_owner_probe.cpp)
+    target_link_libraries(spatial-storage-owner-probe PRIVATE spatial-storage-owner)
     add_dependencies(workspaced broker-python-protobuf native-scope-python-protobuf scope-python-protobuf
         python-protobuf security-python-protobuf issuer-python-protobuf grants-python-protobuf key-python-protobuf)
-    find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
     add_executable(spatial-native-scope-probe src/testing/native_scope_probe.cpp src/workspace/native_launch.cpp)
     target_link_libraries(spatial-native-scope-probe PRIVATE spatial-scene)
     add_dependencies(spatial-native-scope-probe native-scope-python-protobuf security-python-protobuf python-protobuf)
@@ -901,8 +943,10 @@ if(BUILD_TESTING)
     set_tests_properties(recovery-boundaries PROPERTIES TIMEOUT 60
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME workspace-git COMMAND "${Python3_EXECUTABLE}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_git.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:workspaced> $<TARGET_FILE:spatial-git-job-probe>)
-    set_tests_properties(workspace-git PROPERTIES TIMEOUT 90
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_git.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:workspaced> $<TARGET_FILE:spatial-git-job-probe> $<TARGET_FILE:spatial-git-boundary-probe>)
+    set_tests_properties(workspace-git PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME workspace-context COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
@@ -923,8 +967,12 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:workspaced> $<TARGET_FILE:worldd>)
     set_tests_properties(adapter-resources PROPERTIES TIMEOUT 120
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_executable(spatial-git-boundary-probe src/testing/git_boundary_probe.cpp src/workspace/git_command.cpp)
+    target_include_directories(spatial-git-boundary-probe PRIVATE src)
+    target_link_libraries(spatial-git-boundary-probe PRIVATE spatial-scene spatial-process-scope)
     add_executable(spatial-git-job-probe src/testing/git_job_probe.cpp src/workspace/git_command.cpp)
-    target_link_libraries(spatial-git-job-probe PRIVATE spatial-scene)
+    target_include_directories(spatial-git-job-probe PRIVATE src)
+    target_link_libraries(spatial-git-job-probe PRIVATE spatial-scene spatial-process-scope)
     add_executable(spatial-storage-vfs-probe src/testing/storage_vfs_probe.cpp src/world/storage_vfs.cpp)
     target_include_directories(spatial-storage-vfs-probe PRIVATE src)
     target_link_libraries(spatial-storage-vfs-probe PRIVATE SQLite::SQLite3)

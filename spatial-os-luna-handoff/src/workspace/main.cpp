@@ -2,6 +2,7 @@
 #include "workspace/authority.hpp"
 #include "workspace/native_launch.hpp"
 #include "workspace/resources.hpp"
+#include "workspace/storage_client.hpp"
 #include "workspace/control.hpp"
 #include "workspace/control_channels.hpp"
 #include "world/store.hpp"
@@ -94,7 +95,8 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
     } catch (const std::invalid_argument& error) {
         reply.mutable_error()->set_code(wire::INVALID_ARGUMENT); reply.mutable_error()->set_message(error.what());
-    } catch (const std::exception&) {
+    } catch (const std::exception& error) {
+        std::cerr << "broker private operation failed: " << error.what() << '\n';
         reply.mutable_error()->set_code(wire::STORAGE_ERROR); reply.mutable_error()->set_message("Broker authority lookup failed");
     }
     return reply;
@@ -104,7 +106,7 @@ int main(int argc, char** argv) {
     try {
         std::filesystem::path state, authority_config, seed, resource_config;
         unsigned migration = 0; bool fixture_faults = false;
-        int native_fd = -1, resource_fd = -1;
+        int native_fd = -1, resource_fd = -1, storage_fd = -1;
         int control_fd = -1, control_peer = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string_view argument(argv[i]);
@@ -115,6 +117,10 @@ int main(int argc, char** argv) {
                 const std::string value(argv[++i]); std::size_t used = 0;
                 resource_fd = std::stoi(value, &used);
                 if (used != value.size() || resource_fd < 3) throw std::invalid_argument("Invalid resource policy descriptor");
+            }
+            else if (argument == "--storage-fd" && storage_fd < 0 && i+1 < argc) {
+                const std::string value(argv[++i]); std::size_t used = 0; storage_fd = std::stoi(value, &used);
+                if (used != value.size() || storage_fd < 3) throw std::invalid_argument("Invalid storage owner descriptor");
             }
             else if (argument == "--init-authority" && seed.empty() && i+1 < argc) seed = argv[++i];
             else if (argument == "--fixture-faults" && !fixture_faults) fixture_faults = true;
@@ -140,7 +146,9 @@ int main(int argc, char** argv) {
             throw std::invalid_argument("Control supervisor requires a separate descriptor and peer");
         if (resource_fd >= 0 && (resource_fd == native_fd || resource_fd == control_fd))
             throw std::invalid_argument("Resource policy requires a separate descriptor");
-        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || !resource_config.empty() || resource_fd >= 0 || native_fd >= 0 || control_fd >= 0)) || (migration && !seed.empty()))
+        if (storage_fd >= 0 && (storage_fd == native_fd || storage_fd == control_fd || storage_fd == resource_fd))
+            throw std::invalid_argument("Storage owner requires a separate descriptor");
+        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || !resource_config.empty() || resource_fd >= 0 || native_fd >= 0 || control_fd >= 0 || storage_fd >= 0)) || (migration && !seed.empty()))
             throw std::invalid_argument("Provisioning and migration require an exclusive stopped broker");
         umask(0077); signal(SIGPIPE, SIG_IGN);
         // Destroy jobs before their authority callback target.
@@ -149,7 +157,9 @@ int main(int argc, char** argv) {
         std::unique_ptr<spatial::WorkspaceResources> resources;
         if (!resource_config.empty()) resources = std::make_unique<spatial::WorkspaceResources>(resource_config);
         if (resource_fd >= 0) resources = std::make_unique<spatial::WorkspaceResources>(resource_fd);
-        spatial::ExecutionStore store(state, migration, fixture_faults);
+        std::unique_ptr<spatial::StorageClient> storage;
+        if (storage_fd >= 0) storage = std::make_unique<spatial::StorageClient>(storage_fd, state);
+        spatial::ExecutionStore store(state, migration, fixture_faults, storage.get(), resources.get());
         store.set_resources(resources.get());
         if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }
         if (!seed.empty()) { spatial::initialize_workspace_authority(seed, store); return 0; }
@@ -223,6 +233,7 @@ int main(int argc, char** argv) {
             // Check that result before this iteration can acknowledge issuer revocation.
             if (native) native->check();
         };
+        if (storage) storage->set_observer(enforce);
         for (;;) {
             enforce();
             if (authority) { authority->keepalive(); enforce(); }

@@ -5,10 +5,14 @@
 #include <google/protobuf/text_format.h>
 #include <algorithm>
 #include <cerrno>
+#include <cstring>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
 #include <linux/magic.h>
+#include <linux/btrfs.h>
+#include <sys/ioctl.h>
+#include <functional>
 #include <map>
 #include <set>
 #include <sstream>
@@ -50,6 +54,17 @@ void write_at(int directory, const char* name, const std::string& value) {
     ssize_t size;
     do { size = write(fd, value.data(), value.size()); } while (size < 0 && errno == EINTR);
     close(fd); check(size == static_cast<ssize_t>(value.size()), "Cannot configure resource hierarchy");
+}
+void write_budget(int directory, const supervisor::v1::ProcessScopeBudget& budget) {
+    write_at(directory, "memory.max", std::to_string(budget.memory_bytes()) + "\n");
+    write_at(directory, "memory.swap.max", std::to_string(budget.swap_bytes()) + "\n");
+    write_at(directory, "memory.oom.group", "1\n");
+    write_at(directory, "pids.max", std::to_string(budget.processes()) + "\n");
+    write_at(directory, "cpu.max", std::to_string(budget.cpu_microseconds()) + " 100000\n");
+    for (const auto& io : budget.io())
+        write_at(directory, "io.max", std::to_string(io.major()) + ":" + std::to_string(io.minor()) +
+            " rbps=" + std::to_string(io.read_bytes_per_second()) + " wbps=" +
+            std::to_string(io.write_bytes_per_second()) + "\n");
 }
 std::set<std::string> words(const std::string& value) {
     std::istringstream input(value); std::set<std::string> result; std::string item;
@@ -102,19 +117,66 @@ void validate_policy(const workspace::v1::WorkspaceResourcePolicy& policy, bool 
     }
 }
 void validate_devices(const Budget& budget, const std::array<std::filesystem::path, 3>& paths) {
-    std::set<Device> covered;
+    std::set<Device> covered, observed;
     for (const auto& io : budget.io()) covered.emplace(io.major(), io.minor());
-    for (const auto& path : paths) {
-        struct stat info{}; check(stat(path.c_str(), &info) == 0 && S_ISDIR(info.st_mode), "Cannot identify workspace storage device");
+    std::function<void(const std::filesystem::path&, unsigned)> filesystem_device;
+    const auto block_device = [&](dev_t number, unsigned depth) {
         const auto link = std::filesystem::path("/sys/dev/block") /
-            (std::to_string(device_major(info.st_dev)) + ":" + std::to_string(device_minor(info.st_dev)));
+            (std::to_string(device_major(number)) + ":" + std::to_string(device_minor(number)));
         auto device = std::filesystem::canonical(link);
         if (std::filesystem::exists(device / "partition")) device = device.parent_path();
-        std::ifstream stream(device / "dev"); unsigned device_major = 0, device_minor = 0; char colon = 0;
-        require(static_cast<bool>(stream >> device_major >> colon >> device_minor) && colon == ':' &&
-                covered.contains({device_major, device_minor}), "Workspace storage device has no I/O budget");
+        std::ifstream stream(device / "dev"); unsigned major_value = 0, minor_value = 0; char colon = 0;
+        require(static_cast<bool>(stream >> major_value >> colon >> minor_value) && colon == ':' &&
+                covered.contains({major_value, minor_value}), "Workspace storage device has no I/O budget");
+        if (!observed.emplace(major_value, minor_value).second) return;
+        // A loop volume submits work to its own queue and writes a real backing file.
+        // Both queues need explicit budgets. Never infer a device from Btrfs st_dev.
+        if (std::filesystem::exists(device / "loop/backing_file")) {
+            std::ifstream backing(device / "loop/backing_file"); std::string path; std::getline(backing, path);
+            require(backing.good() || backing.eof(), "Cannot read loop backing storage identity");
+            require(std::filesystem::path(path).is_absolute(), "Loop backing storage identity is unavailable");
+            filesystem_device(path, depth+1);
+        }
+        if (std::filesystem::exists(device / "slaves")) {
+            for (const auto& child : std::filesystem::directory_iterator(device / "slaves")) {
+                std::ifstream identity(child.path() / "dev"); unsigned child_major = 0, child_minor = 0; char separator = 0;
+                require(static_cast<bool>(identity >> child_major >> separator >> child_minor) && separator == ':' &&
+                        covered.contains({child_major, child_minor}), "Stacked storage device has no I/O budget");
+            }
+        }
+    };
+    filesystem_device = [&](const std::filesystem::path& path, unsigned depth) {
+        require(depth < 8, "Storage device nesting exceeds supported bounds");
+        identity::tls_detail::Fd file(open(path.c_str(), O_PATH | O_NOFOLLOW | O_CLOEXEC));
+        struct stat info{}; struct statfs filesystem{};
+        check(file.value >= 0 && fstat(file.value, &info) == 0 && fstatfs(file.value, &filesystem) == 0,
+              "Cannot identify workspace storage device");
+        if (filesystem.f_type == BTRFS_SUPER_MAGIC) {
+            identity::tls_detail::Fd query(open(path.c_str(), O_RDONLY | O_NOFOLLOW | O_CLOEXEC));
+            struct stat pinned{};
+            check(query.value >= 0 && fstat(query.value, &pinned) == 0 && pinned.st_dev == info.st_dev && pinned.st_ino == info.st_ino,
+                  "Cannot pin quota filesystem query authority");
+            btrfs_ioctl_fs_info_args volume{};
+            check(ioctl(query.value, BTRFS_IOC_FS_INFO, &volume) >= 0, "Cannot inspect quota volume devices");
+            require(volume.num_devices == 1, "M03 quota storage requires one device");
+            btrfs_ioctl_dev_info_args selected{}; selected.devid = volume.max_id;
+            check(ioctl(query.value, BTRFS_IOC_DEV_INFO, &selected) >= 0, "Cannot inspect quota volume block device");
+            const auto length = strnlen(reinterpret_cast<const char*>(selected.path), sizeof(selected.path));
+            require(length > 0 && length < sizeof(selected.path), "Invalid quota volume block device path");
+            const std::filesystem::path device(std::string(reinterpret_cast<const char*>(selected.path), length));
+            struct stat block{};
+            check(device.is_absolute() && stat(device.c_str(), &block) == 0 && S_ISBLK(block.st_mode),
+                  "Quota volume block device is unavailable");
+            block_device(block.st_rdev, depth);
+        } else block_device(info.st_dev, depth);
+    };
+    for (const auto& path : paths) {
+        struct stat info{};
+        check(stat(path.c_str(), &info) == 0 && S_ISDIR(info.st_mode), "Workspace writable boundary requires a directory");
+        filesystem_device(path, 0);
     }
 }
+
 struct Group {
     std::unique_ptr<supervisor::ProcessScope> scope;
     std::filesystem::path path;
@@ -142,12 +204,23 @@ struct Group {
 }
 void validate_resource_config(const workspace::v1::BrokerResourceConfig& config) {
     validate_message(config);
-    require(config.protocol_version() == 1 && config.has_default_policy() && config.workspaces_size() <= 64,
-            "Explicit default resource policy is required");
+    require(config.protocol_version() == 2 && config.has_broker_budget() && config.has_manager_budget() &&
+            config.has_default_policy() && config.workspaces_size() <= 64,
+            "Resource configuration version 2 requires an explicit broker envelope and default policy");
+    supervisor::validate_budget(config.broker_budget());
+    supervisor::validate_budget(config.manager_budget());
+    require(config.manager_budget().memory_bytes() < config.broker_budget().memory_bytes() &&
+            config.manager_budget().swap_bytes() <= config.broker_budget().swap_bytes() &&
+            config.manager_budget().processes() < config.broker_budget().processes() &&
+            config.manager_budget().cpu_microseconds() <= config.broker_budget().cpu_microseconds(),
+            "Broker envelope must leave capacity beyond its manager reservation");
+    (void)intersect(config.broker_budget(), config.manager_budget());
     validate_policy(config.default_policy(), true);
+    (void)intersect(config.broker_budget(), config.default_policy().total());
     std::set<std::string> workspaces;
     for (const auto& policy : config.workspaces()) {
         validate_policy(policy, false);
+        (void)intersect(config.broker_budget(), policy.total());
         require(workspaces.insert(policy.workspace()).second, "Duplicate workspace resource policy");
     }
 }
@@ -179,6 +252,37 @@ struct WorkspaceResources::Impl {
     int directory = -1;
     bool manager_created = false, moved = false, enabled = false;
     std::map<std::string, std::shared_ptr<Group>> groups;
+    std::shared_ptr<Group> git_group;
+    std::uint64_t memory = 0, swap = 0, processes = 0;
+    bool fits(const Budget& value) const {
+        const auto& total = config.broker_budget();
+        const auto& manager = config.manager_budget();
+        auto available = [](std::uint64_t maximum, std::uint64_t reserve, std::uint64_t held,
+                            std::uint64_t current, std::uint64_t request) {
+            if (reserve > maximum) return false;
+            auto remaining = maximum - reserve;
+            if (held > remaining) return false;
+            remaining -= held;
+            if (current > remaining) return false;
+            return request <= remaining - current;
+        };
+        // Count current root usage conservatively as additional headroom. This includes
+        // cache reparented after old scopes disappear; stopping a process does not erase it.
+        return available(total.memory_bytes(), manager.memory_bytes(), memory,
+                   std::stoull(read_at(directory, "memory.current")), value.memory_bytes()) &&
+               available(total.swap_bytes(), manager.swap_bytes(), swap,
+                   std::stoull(read_at(directory, "memory.swap.current")), value.swap_bytes()) &&
+               available(total.processes(), manager.processes(), processes,
+                   std::stoull(read_at(directory, "pids.current")), value.processes());
+    }
+    void reserve(const Budget& value) {
+        memory += value.memory_bytes(); swap += value.swap_bytes(); processes += value.processes();
+    }
+    void release(const Budget& value) {
+        require(memory >= value.memory_bytes() && swap >= value.swap_bytes() && processes >= value.processes(),
+                "Broker envelope reservation accounting is inconsistent");
+        memory -= value.memory_bytes(); swap -= value.swap_bytes(); processes -= value.processes();
+    }
     void initialize(workspace::v1::BrokerResourceConfig value) {
         validate_resource_config(value); config = std::move(value);
         root = config.delegated_cgroup();
@@ -199,16 +303,26 @@ struct WorkspaceResources::Impl {
         require(empty, "Broker resource root must have no existing descendants");
         const auto available = words(read_at(directory, "cgroup.controllers"));
         for (const auto* name : {"cpu", "memory", "pids", "io"}) require(available.contains(name), "Required controller is unavailable");
+        // Bind the exclusive root once, before opening any execution database or running Git.
+        // The envelope covers the manager and every nested workspace process.
+        require(read_at(directory, "memory.max") == "max\n" && read_at(directory, "memory.swap.max") == "max\n" &&
+                read_at(directory, "pids.max") == "max\n" && read_at(directory, "cpu.max") == "max 100000\n" &&
+                read_at(directory, "io.max").empty(), "Broker envelope must not replace existing root limits");
+        write_budget(directory, config.broker_budget());
         check(mkdirat(directory, "broker-manager", 0700) == 0, "Cannot create broker manager group"); manager_created = true;
         const int manager = openat(directory, "broker-manager", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
         check(manager >= 0, "Cannot pin broker manager group");
-        try { write_at(manager, "cgroup.procs", "0\n"); moved = true; } catch (...) { close(manager); throw; }
-        close(manager); enabled = true;
-        write_at(directory, "cgroup.subtree_control", "+cpu +memory +pids +io\n");
+        try {
+            write_at(manager, "cgroup.procs", "0\n"); moved = true; enabled = true;
+            write_at(directory, "cgroup.subtree_control", "+cpu +memory +pids +io\n");
+            write_budget(manager, config.manager_budget());
+        } catch (...) { close(manager); throw; }
+        close(manager);
     }
     ~Impl() {
         try {
             groups.clear();
+            git_group.reset();
             if (enabled) write_at(directory, "cgroup.subtree_control", "-cpu -memory -pids -io\n");
             if (moved) write_at(directory, "cgroup.procs", "0\n");
             if (manager_created) check(unlinkat(directory, "broker-manager", AT_REMOVEDIR) == 0, "Cannot remove broker manager group");
@@ -227,6 +341,7 @@ struct ApplicationResources::Impl {
         try {
             scope.reset(); // Checked kernel cleanup precedes capacity release.
             if (reserved) {
+                owner->release(budget);
                 actor->release(budget); workspace->release(budget);
                 if (!actor->applications) workspace->actors.erase(actor_key);
                 if (!workspace->applications) owner->groups.erase(workspace_key);
@@ -234,6 +349,23 @@ struct ApplicationResources::Impl {
             actor.reset(); workspace.reset(); owner.reset();
         } catch (const std::exception& error) {
             std::cerr << "resource reservation cleanup unconfirmed: " << error.what() << '\n'; _exit(2);
+        }
+    }
+};
+struct GitJobResources::Impl {
+    std::shared_ptr<WorkspaceResources::Impl> owner;
+    std::shared_ptr<Group> group;
+    std::unique_ptr<supervisor::ProcessScope> scope;
+    Budget budget;
+    bool reserved = false;
+    ~Impl() {
+        try {
+            scope.reset();
+            if (reserved) group->release(budget);
+            group.reset();
+            owner.reset();
+        } catch (const std::exception& error) {
+            std::cerr << "Git worker resource cleanup unconfirmed: " << error.what() << '\n'; _exit(2);
         }
     }
 };
@@ -261,9 +393,42 @@ WorkspaceResources::WorkspaceResources(int descriptor) : impl_(std::make_shared<
     impl_->initialize(std::move(value));
 }
 WorkspaceResources::~WorkspaceResources() = default;
+GitJobResources::GitJobResources(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
+GitJobResources::~GitJobResources() = default;
+supervisor::ProcessScope& GitJobResources::scope() { return *impl_->scope; }
 ApplicationResources::ApplicationResources(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 ApplicationResources::~ApplicationResources() = default;
 supervisor::ProcessScope& ApplicationResources::scope() { return *impl_->scope; }
+std::unique_ptr<GitJobResources> WorkspaceResources::prepare_git_job() {
+    Budget budget;
+    budget.set_memory_bytes(256ULL * 1024 * 1024);
+    budget.set_swap_bytes(0);
+    budget.set_processes(16);
+    budget.set_cpu_microseconds(200000);
+    for (const auto& source : impl_->config.broker_budget().io()) {
+        auto* target = budget.add_io();
+        target->set_major(source.major()); target->set_minor(source.minor());
+        target->set_read_bytes_per_second(source.read_bytes_per_second());
+        target->set_write_bytes_per_second(source.write_bytes_per_second());
+    }
+    supervisor::validate_budget(budget);
+    if (!impl_->git_group) {
+        if (!impl_->fits(budget)) throw WorldError(wire::RESOURCE_EXHAUSTED, "Broker envelope cannot reserve Git worker capacity");
+        auto group = std::make_shared<Group>(impl_->root, budget);
+        group->scope->throttle_memory(192ULL * 1024 * 1024);
+        impl_->reserve(budget);
+        impl_->git_group = std::move(group);
+    }
+    // Keep completed-job cache in this bounded parent. Each new job still gets its own scope.
+    if (!impl_->git_group->fits(budget))
+        throw WorldError(wire::RESOURCE_EXHAUSTED, "Git worker capacity is occupied");
+    auto prepared = std::make_unique<GitJobResources::Impl>();
+    prepared->owner = impl_; prepared->group = impl_->git_group; prepared->budget = budget;
+    prepared->group->reserve(budget); prepared->reserved = true;
+    prepared->scope = supervisor::ProcessScope::prepare(prepared->group->path, &budget);
+    prepared->scope->throttle_memory(192ULL * 1024 * 1024);
+    return std::unique_ptr<GitJobResources>(new GitJobResources(std::move(prepared)));
+}
 std::unique_ptr<ApplicationResources> WorkspaceResources::prepare(const workspace::v1::LaunchRequest& request,
     const std::array<std::filesystem::path, 3>& paths) {
     const auto* policy = &impl_->config.default_policy();
@@ -278,6 +443,7 @@ std::unique_ptr<ApplicationResources> WorkspaceResources::prepare(const workspac
     for (const auto& selected : policy->profiles()) if (selected.name() == request.command().profile()) profile = &selected.maximum();
     if (!profile) throw WorldError(wire::FORBIDDEN, "Application resource profile is unavailable");
     const auto effective = intersect(actor_budget, *profile); validate_devices(effective, paths);
+    if (!impl_->fits(effective)) throw WorldError(wire::RESOURCE_EXHAUSTED, "Broker envelope capacity is reserved or occupied");
     auto& workspace = impl_->groups[request.workspace()];
     if (!workspace) workspace = std::make_shared<Group>(impl_->root, policy->total());
     if (!workspace->fits(effective)) throw WorldError(wire::RESOURCE_EXHAUSTED, "Workspace resource capacity is reserved");
@@ -288,7 +454,7 @@ std::unique_ptr<ApplicationResources> WorkspaceResources::prepare(const workspac
     auto prepared = std::make_unique<ApplicationResources::Impl>();
     prepared->owner = impl_; prepared->workspace = workspace; prepared->actor = actor_group;
     prepared->workspace_key = request.workspace(); prepared->actor_key = key; prepared->budget = effective;
-    workspace->reserve(effective); actor_group->reserve(effective); prepared->reserved = true;
+    impl_->reserve(effective); workspace->reserve(effective); actor_group->reserve(effective); prepared->reserved = true;
     prepared->scope = supervisor::ProcessScope::prepare(actor_group->path, &effective);
     return std::unique_ptr<ApplicationResources>(new ApplicationResources(std::move(prepared)));
 }

@@ -1,0 +1,39 @@
+{
+  "host": "sb16-2",
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py",
+    "--native",
+    "--",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py",
+    "--",
+    "python3",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_workspace_git.py",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-test-host",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/workspaced",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-git-job-probe",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-git-boundary-probe",
+    "WorkspaceGitTests.test_removal_operation_identity_is_never_a_filesystem_path",
+    "WorkspaceGitTests.test_status_preserves_output_larger_than_a_pipe_buffer",
+    "WorkspaceGitTests.test_git_worker_rejects_a_whole_host_root_mount",
+    "WorkspaceGitTests.test_clean_removal_unregisters_git_but_retains_files_and_late_writes",
+    "WorkspaceGitTests.test_removal_retries_preserve_new_files_at_the_original_path",
+    "-v"
+  ],
+  "cases": [
+    "WorkspaceGitTests.test_removal_operation_identity_is_never_a_filesystem_path",
+    "WorkspaceGitTests.test_status_preserves_output_larger_than_a_pipe_buffer",
+    "WorkspaceGitTests.test_git_worker_rejects_a_whole_host_root_mount",
+    "WorkspaceGitTests.test_clean_removal_unregisters_git_but_retains_files_and_late_writes",
+    "WorkspaceGitTests.test_removal_retries_preserve_new_files_at_the_original_path"
+  ],
+  "started": 1791698496.7352695,
+  "inputs": {
+    "src/workspace/store.cpp": "98bc250ec2a78eddb0a7c1dd40f019b6ef249ebaabe43f6a08d5121c3e9f8aca",
+    "src/workspace/git_command.cpp": "ffe94a8a5ab9d619a3ca2b5ccd742f828fbba37bccb5350a20e1d019b5615a5b",
+    "tests/core/test_workspace_git.py": "ee694f6f8c7757bc78e6b990af422a9c2c71c048967e5e2a433bac8fbc565beb"
+  },
+  "exit_code": 0,
+  "elapsed": 9.755003452301025
+}

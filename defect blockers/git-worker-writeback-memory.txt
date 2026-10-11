@@ -1,0 +1,37 @@
+Administrative Git: writeback OOM and retained-cache admission failure
+Confirmed on 2026-10-11. M03 combined qualification is incomplete.
+
+A real 288 MiB packed repository reached the administrative worker through the broker API.
+On sb16, the kernel killed the Git group at its 256 MiB memory limit.
+The kernel reported about 254 MiB of file writeback and only 288 KiB of Git anonymous resident memory.
+The failure did not mean that Git needed 256 MiB of ordinary heap memory.
+The broker returned STORAGE_ERROR and retained the uncertain import journal.
+
+On sb16-2, import completed. The next worktree request could not reserve another Git worker.
+Completed-job file cache remained charged under the broker root.
+The admission calculation counted that cache in addition to the next worker reservation.
+
+Draft correction
+Keep completed-job cache under a persistent, bounded Git parent cgroup.
+Reserve that parent's capacity within the broker envelope.
+Keep a separate child cgroup and namespace for each Git command.
+Set memory.high to 192 MiB before startup. Keep memory.max at 256 MiB and swap at zero.
+Retain bounded output, process limits, I/O limits, deadlines, and filesystem isolation.
+
+The final integration-07 runs passed on both hosts without an observed Git OOM.
+Both completed import, checkout, retained removal, application quotas, read-only access, sibling survival, and restart.
+All 49 workspace-git tests passed on both hosts. Four adjacent resource/process/workspace suites also passed.
+Earlier failed runs remain preserved. No full M03 qualification is claimed.
+The requested pause leaves the wider resource suite and separate uncovered-I/O-device defect open.
+Read M03_RESUME_PLAN.txt and defect blockers/git-worker-uncovered-io-device.txt.
+
+Failure evidence on the hosts
+spatial-os-luna-handoff/local/m03-git-storage-integration-03
+spatial-os-luna-handoff/local/m03-git-storage-integration-04 on sb16
+The sb16 volume images are preserved as checksum-verified gzip files.
+Each volume-archive.json contains the original hash and exact restoration command.
+All affected services stopped. The original failure reports remain unchanged except for appended cleanup receipts.
+
+Kernel interface reference
+https://docs.kernel.org/admin-guide/cgroup-v2.html
+memory.high introduces reclaim pressure before memory.max. It does not replace the hard limit.

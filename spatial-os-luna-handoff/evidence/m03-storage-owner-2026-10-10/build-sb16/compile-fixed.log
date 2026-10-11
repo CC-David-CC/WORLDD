@@ -1,0 +1,22 @@
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/build
+[ 73%] Built target spatial-protobuf
+[ 93%] Built target spatial-scene
+[ 93%] Building CXX object CMakeFiles/spatial-storage-owner.dir/src/workspace/storage_owner.cpp.o
+[100%] Linking CXX static library libspatial-storage-owner.a
+[100%] Built target spatial-storage-owner
+[ 61%] Built target spatial-protobuf
+[ 77%] Built target spatial-scene
+[ 88%] Building CXX object CMakeFiles/spatial-process-scope.dir/src/supervisor/process_scope.cpp.o
+[ 88%] Building CXX object CMakeFiles/spatial-identity.dir/src/identity/keys.cpp.o
+[ 88%] Linking CXX static library libspatial-identity.a
+[ 88%] Built target spatial-identity
+[ 94%] Building CXX object CMakeFiles/spatial-identity-tls.dir/src/identity/tls_support.cpp.o
+[ 94%] Linking CXX static library libspatial-process-scope.a
+[ 94%] Built target spatial-process-scope
+[ 94%] Linking CXX static library libspatial-identity-tls.a
+[ 94%] Built target spatial-identity-tls
+[ 94%] Building CXX object CMakeFiles/spatial-workspace-resources.dir/src/workspace/resources.cpp.o
+[100%] Linking CXX static library libspatial-workspace-resources.a
+[100%] Built target spatial-workspace-resources

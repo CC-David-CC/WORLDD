@@ -1,0 +1,48 @@
+Oct 11 02:00:48 sb16 kernel: Memory cgroup stats for /system.slice/spatial-m03-storage-integration-21593ab8388d4efbbf3f28c2c11a9247.service/broker-678d2776a29e4bb2b8677a2dc955b4ff/authority-cfc09e52c4786983d773f332da7b4aa76270895465cc76ab88229d928b8250c8:
+Oct 11 02:00:48 sb16 kernel: anon 942080
+Oct 11 02:00:48 sb16 kernel: file 266170368
+Oct 11 02:00:48 sb16 kernel: kernel 1323008
+Oct 11 02:00:48 sb16 kernel: kernel_stack 65536
+Oct 11 02:00:48 sb16 kernel: file_mapped 0
+Oct 11 02:00:48 sb16 kernel: file_dirty 0
+Oct 11 02:00:48 sb16 kernel: file_writeback 266170368
+Oct 11 02:00:48 sb16 kernel: anon_thp 0
+Oct 11 02:00:48 sb16 kernel: file_thp 0
+Oct 11 02:00:48 sb16 kernel: oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=/,mems_allowed=0,oom_memcg=/system.slice/spatial-m03-storage-integration-21593ab8388d4efbbf3f28c2c11a9247.service/broker-678d2776a29e4bb2b8677a2dc955b4ff/authority-cfc09e52c4786983d773f332da7b4aa76270895465cc76ab88229d928b8250c8,task_memcg=/system.slice/spatial-m03-storage-integration-21593ab8388d4efbbf3f28c2c11a9247.service/broker-678d2776a29e4bb2b8677a2dc955b4ff/authority-cfc09e52c4786983d773f332da7b4aa76270895465cc76ab88229d928b8250c8,task=git,pid=3121069,uid=1000
+Oct 11 02:00:48 sb16 kernel: Memory cgroup out of memory: Killed process 3121069 (git) total-vm:7524kB, anon-rss:288kB, file-rss:4184kB, shmem-rss:0kB, UID:1000 pgtables:52kB oom_score_adj:0
+Oct 11 02:00:48 sb16 kernel: Tasks in /system.slice/spatial-m03-storage-integration-21593ab8388d4efbbf3f28c2c11a9247.service/broker-678d2776a29e4bb2b8677a2dc955b4ff/authority-cfc09e52c4786983d773f332da7b4aa76270895465cc76ab88229d928b8250c8 are going to be killed due to memory.oom.group set
+Oct 11 02:00:48 sb16 kernel: Memory cgroup out of memory: Killed process 3121067 (spatial-bwrap) total-vm:3592kB, anon-rss:144kB, file-rss:1912kB, shmem-rss:0kB, UID:1000 pgtables:44kB oom_score_adj:0
+Oct 11 02:00:48 sb16 kernel: Memory cgroup out of memory: Killed process 3121068 (spatial-bwrap) total-vm:3592kB, anon-rss:216kB, file-rss:1332kB, shmem-rss:0kB, UID:1000 pgtables:44kB oom_score_adj:0
+Oct 11 02:00:48 sb16 kernel: Memory cgroup out of memory: Killed process 3121069 (git) total-vm:7524kB, anon-rss:288kB, file-rss:4184kB, shmem-rss:0kB, UID:1000 pgtables:52kB oom_score_adj:0
+Oct 11 02:00:48 sb16 kernel: Memory cgroup out of memory: Killed process 3121070 (sh) total-vm:2812kB, anon-rss:104kB, file-rss:1808kB, shmem-rss:0kB, UID:1000 pgtables:44kB oom_score_adj:0
+Oct 11 02:00:48 sb16 kernel: Memory cgroup out of memory: Killed process 3121071 (git-upload-pack) total-vm:302656kB, anon-rss:264kB, file-rss:4092kB, shmem-rss:0kB, UID:1000 pgtables:56kB oom_score_adj:0
+Oct 11 02:04:20 sb16 kernel: Memory cgroup stats for /system.slice/spatial-m03-storage-integration-a8b989082a4c46ebaff494036d0f2a7f.service/broker-56a07648776247999970f7ffdd50242b/authority-75701f7073a884259221b7131b2b569d2583972eda6cb75cec5e3da9fe8755f1:
+Oct 11 02:04:20 sb16 kernel: anon 933888
+Oct 11 02:04:20 sb16 kernel: file 266153984
+Oct 11 02:04:20 sb16 kernel: kernel 1347584
+Oct 11 02:04:20 sb16 kernel: kernel_stack 65536
+Oct 11 02:04:20 sb16 kernel: file_mapped 0
+Oct 11 02:04:20 sb16 kernel: file_dirty 0
+Oct 11 02:04:20 sb16 kernel: file_writeback 266153984
+Oct 11 02:04:20 sb16 kernel: anon_thp 0
+Oct 11 02:04:20 sb16 kernel: file_thp 0
+Oct 11 02:04:20 sb16 kernel: oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=/,mems_allowed=0,oom_memcg=/system.slice/spatial-m03-storage-integration-a8b989082a4c46ebaff494036d0f2a7f.service/broker-56a07648776247999970f7ffdd50242b/authority-75701f7073a884259221b7131b2b569d2583972eda6cb75cec5e3da9fe8755f1,task_memcg=/system.slice/spatial-m03-storage-integration-a8b989082a4c46ebaff494036d0f2a7f.service/broker-56a07648776247999970f7ffdd50242b/authority-75701f7073a884259221b7131b2b569d2583972eda6cb75cec5e3da9fe8755f1,task=git,pid=3122291,uid=1000
+Oct 11 02:04:20 sb16 kernel: Memory cgroup out of memory: Killed process 3122291 (git) total-vm:7524kB, anon-rss:288kB, file-rss:4192kB, shmem-rss:0kB, UID:1000 pgtables:56kB oom_score_adj:0
+Oct 11 02:04:20 sb16 kernel: Tasks in /system.slice/spatial-m03-storage-integration-a8b989082a4c46ebaff494036d0f2a7f.service/broker-56a07648776247999970f7ffdd50242b/authority-75701f7073a884259221b7131b2b569d2583972eda6cb75cec5e3da9fe8755f1 are going to be killed due to memory.oom.group set
+Oct 11 02:04:20 sb16 kernel: Memory cgroup out of memory: Killed process 3122289 (spatial-bwrap) total-vm:3592kB, anon-rss:140kB, file-rss:1912kB, shmem-rss:0kB, UID:1000 pgtables:48kB oom_score_adj:0
+Oct 11 02:04:20 sb16 kernel: Memory cgroup out of memory: Killed process 3122290 (spatial-bwrap) total-vm:3592kB, anon-rss:216kB, file-rss:1332kB, shmem-rss:0kB, UID:1000 pgtables:48kB oom_score_adj:0
+Oct 11 02:04:20 sb16 kernel: Memory cgroup out of memory: Killed process 3122291 (git) total-vm:7524kB, anon-rss:288kB, file-rss:4192kB, shmem-rss:0kB, UID:1000 pgtables:56kB oom_score_adj:0
+Oct 11 02:04:20 sb16 kernel: Memory cgroup out of memory: Killed process 3122292 (sh) total-vm:2812kB, anon-rss:100kB, file-rss:1808kB, shmem-rss:0kB, UID:1000 pgtables:48kB oom_score_adj:0
+Oct 11 02:04:20 sb16 kernel: Memory cgroup out of memory: Killed process 3122293 (git-upload-pack) total-vm:302656kB, anon-rss:260kB, file-rss:3968kB, shmem-rss:0kB, UID:1000 pgtables:64kB oom_score_adj:0
+Oct 11 02:20:53 sb16 kernel: anon 33259520
+Oct 11 02:20:53 sb16 kernel: file 0
+Oct 11 02:20:53 sb16 kernel: kernel 294912
+Oct 11 02:20:53 sb16 kernel: kernel_stack 16384
+Oct 11 02:20:53 sb16 kernel: file_mapped 0
+Oct 11 02:20:53 sb16 kernel: file_dirty 0
+Oct 11 02:20:53 sb16 kernel: file_writeback 0
+Oct 11 02:20:53 sb16 kernel: anon_thp 0
+Oct 11 02:20:53 sb16 kernel: file_thp 0
+Oct 11 02:20:53 sb16 kernel: Memory cgroup out of memory: Killed process 3131717 (python3) total-vm:129272kB, anon-rss:32300kB, file-rss:7052kB, shmem-rss:0kB, UID:1000 pgtables:136kB oom_score_adj:0
+Oct 11 02:20:53 sb16 kernel: Memory cgroup out of memory: Killed process 3131717 (python3) total-vm:129272kB, anon-rss:32300kB, file-rss:7052kB, shmem-rss:0kB, UID:1000 pgtables:136kB oom_score_adj:0
+Oct 11 02:20:53 sb16 kernel: Memory cgroup out of memory: Killed process 3131718 (python3) total-vm:30964kB, anon-rss:4728kB, file-rss:2540kB, shmem-rss:0kB, UID:1000 pgtables:68kB oom_score_adj:0

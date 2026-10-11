@@ -50,7 +50,9 @@ class SessionResourceTests(existing.SessionApplicationTests):
                 processes=processes, cpu_microseconds=cpu,
                 io=[dict(major=self.major, minor=self.minor,
                     read_bytes_per_second=64*MIB, write_bytes_per_second=writes*MIB)])
-        config.broker_resources.CopyFrom(broker.BrokerResourceConfig(protocol_version=1,
+        config.broker_resources.CopyFrom(broker.BrokerResourceConfig(protocol_version=2,
+            broker_budget=budget(1024, 128, 400000, 32),
+            manager_budget=budget(256, 32, 200000, 16),
             default_policy=broker.WorkspaceResourcePolicy(total=budget(512, 64, 200000, 32),
                 actor_default=budget(256, 32, 100000, 16),
                 profiles=[broker.ApplicationResourceProfile(name='development', maximum=budget(128, 16, 100000, 8))])))

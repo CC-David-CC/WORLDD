@@ -1,0 +1,49 @@
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/sanitize
+[ 64%] Built target spatial-protobuf
+[ 82%] Built target spatial-scene
+[ 88%] Built target spatial-storage-channel
+[ 88%] Building CXX object CMakeFiles/spatial-storage-owner.dir/src/workspace/storage_owner.cpp.o
+[ 94%] Linking CXX static library libspatial-storage-owner.a
+[ 94%] Built target spatial-storage-owner
+[100%] Linking CXX executable spatial-storage-owner
+[100%] Built target spatial-storage-owner-service
+[ 64%] Built target spatial-protobuf
+[ 82%] Built target spatial-scene
+[ 88%] Built target spatial-storage-channel
+[ 94%] Building CXX object CMakeFiles/spatial-storage-client.dir/src/workspace/storage_client.cpp.o
+[ 94%] Linking CXX static library libspatial-storage-client.a
+[ 94%] Built target spatial-storage-client
+[ 94%] Building CXX object CMakeFiles/spatial-storage-client-probe.dir/src/testing/storage_client_probe.cpp.o
+[100%] Linking CXX executable spatial-storage-client-probe
+[100%] Built target spatial-storage-client-probe
+[ 50%] Built target grants-python-protobuf
+[ 50%] Built target python-protobuf
+[ 75%] Built target security-python-protobuf
+[100%] Built target storage-python-protobuf
+[  0%] Built target scope-python-protobuf
+[ 34%] Built target spatial-protobuf
+[ 37%] Built target python-protobuf
+[ 40%] Built target security-python-protobuf
+[ 40%] Built target native-scope-python-protobuf
+[ 40%] Built target broker-python-protobuf
+[ 40%] Built target key-python-protobuf
+[ 43%] Built target issuer-python-protobuf
+[ 46%] Built target grants-python-protobuf
+[ 56%] Built target spatial-scene
+[ 62%] Built target spatial-app-init
+[ 62%] Built target spatial-identity
+[ 65%] Built target spatial-storage-channel
+[ 68%] Built target spatial-process-scope
+[ 75%] Built target spatial-authority
+[ 75%] Built target spatial-identity-tls
+[ 81%] Built target spatial-workspace-resources
+[ 81%] Built target spatial-storage-client
+[ 81%] Built target spatial-bootstrap
+[ 84%] Built target spatial-issuer-client-lib
+[ 87%] Built target spatial-participant-runtime-lib
+[ 90%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/store.cpp.o
+[ 90%] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[ 90%] Linking CXX executable workspaced
+[100%] Built target workspaced

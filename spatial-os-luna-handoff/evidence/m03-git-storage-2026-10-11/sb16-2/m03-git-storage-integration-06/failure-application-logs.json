@@ -1,0 +1,5 @@
+{
+  "applications/17dd8a58e819c03e2118b9d6374129fb/setup.log": "",
+  "applications/17dd8a58e819c03e2118b9d6374129fb/stdout": "",
+  "applications/17dd8a58e819c03e2118b9d6374129fb/stderr": "Traceback (most recent call last):\n  File \"<string>\", line 3, in <module>\nIsADirectoryError: [Errno 21] Is a directory: '/state/data'\n"
+}

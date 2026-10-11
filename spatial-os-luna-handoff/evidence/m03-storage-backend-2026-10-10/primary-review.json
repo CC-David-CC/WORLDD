@@ -1,0 +1,140 @@
+{
+  "status": "capability_review_complete",
+  "phase": "M03",
+  "phase_complete": false,
+  "production_storage_enforced": false,
+  "hosts": {
+    "sb16": {
+      "results": {
+        "unprivileged_subvolume_creation": {
+          "exit_code": 0,
+          "group": "0/261"
+        },
+        "application_limit": {
+          "bytes_written": 25133056,
+          "write_errno": 122,
+          "fsync_errno": null
+        },
+        "actor_aggregate_limit": {
+          "bytes_written": 8372224,
+          "write_errno": 122,
+          "fsync_errno": null
+        },
+        "workspace_aggregate_limit": {
+          "bytes_written": 33521664,
+          "write_errno": 122,
+          "fsync_errno": null
+        },
+        "independent_workspace": {
+          "bytes_written": 4194304,
+          "write_errno": null,
+          "fsync_errno": null
+        },
+        "unconfined_quota_bypass": {
+          "bytes_written": 4194304,
+          "write_errno": null,
+          "fsync_errno": null
+        },
+        "capacity_recovered": {
+          "bytes_written": 1048576,
+          "write_errno": null,
+          "fsync_errno": null
+        }
+      },
+      "unmounted": true,
+      "loop_detached": true,
+      "package_versions": "btrfs-progs 6.6.3-1.1build2\nlibreiserfscore0t64 1:3.6.27-7.1build1\n",
+      "root_mount": "/dev/nvme0n1p2 ext4   rw,relatime\n",
+      "retained_images_bytes": 1073741824,
+      "recovery": [
+        [
+          "sudo",
+          "-n",
+          "umount",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+        ],
+        [
+          "sudo",
+          "-n",
+          "losetup",
+          "-d",
+          "/dev/loop12"
+        ]
+      ]
+    },
+    "sb16-2": {
+      "results": {
+        "unprivileged_subvolume_creation": {
+          "exit_code": 0,
+          "group": "0/261"
+        },
+        "application_limit": {
+          "bytes_written": 25133056,
+          "write_errno": 122,
+          "fsync_errno": null
+        },
+        "actor_aggregate_limit": {
+          "bytes_written": 8372224,
+          "write_errno": 122,
+          "fsync_errno": null
+        },
+        "workspace_aggregate_limit": {
+          "bytes_written": 33521664,
+          "write_errno": 122,
+          "fsync_errno": null
+        },
+        "independent_workspace": {
+          "bytes_written": 4194304,
+          "write_errno": null,
+          "fsync_errno": null
+        },
+        "unconfined_quota_bypass": {
+          "bytes_written": 4194304,
+          "write_errno": null,
+          "fsync_errno": null
+        },
+        "capacity_recovered": {
+          "bytes_written": 1048576,
+          "write_errno": null,
+          "fsync_errno": null
+        }
+      },
+      "unmounted": true,
+      "loop_detached": true,
+      "package_versions": "btrfs-progs 6.6.3-1.1build2\nlibreiserfscore0t64 1:3.6.27-7.1build1\n",
+      "root_mount": "/dev/nvme0n1p2 ext4   rw,relatime\n",
+      "retained_images_bytes": 1073741824,
+      "recovery": [
+        [
+          "sudo",
+          "-n",
+          "umount",
+          "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-backend-02/volume"
+        ],
+        [
+          "sudo",
+          "-n",
+          "losetup",
+          "-d",
+          "/dev/loop13"
+        ]
+      ]
+    }
+  },
+  "sources": [
+    "https://btrfs.readthedocs.io/en/latest/btrfs-qgroup.html",
+    "https://btrfs.readthedocs.io/en/latest/btrfs-quota.html",
+    "https://raw.githubusercontent.com/torvalds/linux/master/fs/btrfs/ioctl.c"
+  ],
+  "preserved_failure": "Candidate01 used an unprivileged subvolume-show query. The tool required administrative B-tree access. Candidate02 uses the privileged query; writer and subvolume-creation witnesses remain unprivileged.",
+  "confirmed_requirement": "Ordinary subvolume creation can allocate a new quota domain outside the configured graph. Confined applications must not create or administer subvolumes.",
+  "limitations": [
+    "These are independent filesystem capability checks, not production broker or confined-application acceptance.",
+    "Native quota limits and configuration were observed before and after remount. This does not prove power-loss recovery.",
+    "The production storage owner, broker mapping, effect accounting, and full M03 regression gate remain unimplemented or unrun.",
+    "The seccomp guard, configuration version 2 envelope, and storage protobuf are uncommitted draft source. They have not been compiled or qualified.",
+    "No issuer contention or fdatasync latency test ran. No storage latency fix is claimed.",
+    "btrfs-progs and its dependency libreiserfscore0t64 were installed on both hosts. Package triggers regenerated initramfs; no reboot occurred.",
+    "Test images remain in ignored host-local directories. They consume 1 GiB per host and are excluded from Git."
+  ]
+}

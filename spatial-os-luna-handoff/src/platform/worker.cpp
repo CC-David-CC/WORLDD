@@ -17,6 +17,17 @@
 namespace spatial {
 namespace {
 using Clock = std::chrono::steady_clock;
+std::chrono::seconds request_timeout(const std::string& frame) {
+    if (frame.size() < 4) throw std::runtime_error("Truncated protobuf request");
+    wire::Request request;
+    if (!request.ParseFromArray(frame.data() + 4, static_cast<int>(frame.size() - 4)))
+        throw std::runtime_error("Invalid protobuf request");
+    if (request.has_git_repo_import()) return std::chrono::minutes(5);
+    if (request.has_git_worktree_create() || request.has_git_status() ||
+        request.has_git_worktree_remove() || request.has_git_operation())
+        return std::chrono::seconds(60);
+    return std::chrono::seconds(10);
+}
 void wait_ready(int fd, short events, int worker, Clock::time_point deadline) {
     while (true) {
         pollfd fds[2]{{fd, events, 0}, {worker, POLLIN, 0}};
@@ -47,9 +58,10 @@ bool read_all(int fd, char* data, std::size_t size, int worker, Clock::time_poin
     }
     return true;
 }
-std::string frame_from(int fd, int worker, bool idle, bool& ended) {
+std::string frame_from(int fd, int worker, bool idle, bool& ended,
+                       std::chrono::seconds timeout = std::chrono::seconds(10)) {
     if (idle) wait_ready(fd, POLLIN, worker, Clock::time_point::max());
-    const auto deadline = Clock::now() + std::chrono::seconds(10);
+    const auto deadline = Clock::now() + timeout;
     std::string bytes(4, '\0');
     ended = !read_all(fd, bytes.data(), 4, worker, deadline, idle);
     if (ended) return {};
@@ -59,8 +71,9 @@ std::string frame_from(int fd, int worker, bool idle, bool& ended) {
     if (length > max_frame_bytes) throw std::runtime_error("IPC frame exceeds size limit");
     bytes.resize(4 + length); read_all(fd, bytes.data() + 4, length, worker, deadline); return bytes;
 }
-void send_all(int fd, const std::string& frame, int worker) {
-    const auto deadline = Clock::now() + std::chrono::seconds(10);
+void send_all(int fd, const std::string& frame, int worker,
+              std::chrono::seconds timeout = std::chrono::seconds(10)) {
+    const auto deadline = Clock::now() + timeout;
     std::size_t sent = 0;
     while (sent < frame.size()) {
         wait_ready(fd, POLLOUT, worker, deadline);
@@ -128,9 +141,10 @@ void WorldWorker::proxy() {
         bool ended = false;
         const auto request = frame_from(STDIN_FILENO, pidfd_, true, ended);
         if (ended) return;
+        const auto timeout = request_timeout(request);
         send_all(input_, request, pidfd_);
-        const auto reply = frame_from(output_, pidfd_, false, ended);
-        send_all(STDOUT_FILENO, reply, pidfd_);
+        const auto reply = frame_from(output_, pidfd_, false, ended, timeout);
+        send_all(STDOUT_FILENO, reply, pidfd_, timeout);
     }
 }
 } // namespace spatial

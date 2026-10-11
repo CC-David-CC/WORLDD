@@ -44,10 +44,14 @@ std::string path(std::string_view row, unsigned spaces) {
 }
 }
 wire::GitStatusReply parse_git_status(const std::string& porcelain) {
+    if (porcelain.size() > max_frame_bytes)
+        throw WorldError(wire::RESOURCE_EXHAUSTED, "Git status exceeds the bounded reply size");
     std::vector<std::string_view> rows;
     std::size_t start = 0;
     while (start < porcelain.size()) {
-        const auto end = porcelain.find('\0', start); require(end != std::string::npos);
+        const auto end = porcelain.find('\0', start);
+        if (end == std::string::npos)
+            throw WorldError(wire::RESOURCE_EXHAUSTED, "Git status output exceeds its bounded reply size");
         rows.emplace_back(porcelain.data() + start, end - start); start = end + 1;
     }
     wire::GitStatusReply out;

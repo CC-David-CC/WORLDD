@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 import unittest
+from contextlib import closing
 from google.protobuf import text_format
 import broker_pb2 as broker
 import core_pb2 as core
@@ -27,12 +28,13 @@ MIB = 1024 * 1024
 
 
 class Broker:
-    def __init__(self, test, policy=None, configured=True, invalid_root=False, handoff=None):
+    def __init__(self, test, policy=None, configured=True, invalid_root=False, handoff=None,
+                 state=None, envelope_device=None):
         self.test = test
         self.sequence = 0
         self.closed = False
         self.index = len(test.brokers)
-        self.state = test.files/f'broker-state-{self.index}'
+        self.state = Path(state) if state is not None else test.files/f'broker-state-{self.index}'
         self.stream, child = socket.socketpair()
         test.addCleanup(child.close)
         self.stream.settimeout(10)
@@ -53,9 +55,14 @@ class Broker:
         prepared = test.call(self.owner, prepare=pb.ProcessScopeQuery())
         test.assertEqual(prepared.WhichOneof('outcome'), 'state', prepared)
         self.root = test.root/prepared.state.identity.scope_name
-        config = broker.BrokerResourceConfig(protocol_version=1,
+        config = broker.BrokerResourceConfig(protocol_version=2,
+            broker_budget=test.budget(memory_bytes=1024*MIB, processes=128, cpu_microseconds=400000),
+            manager_budget=test.budget(memory_bytes=256*MIB, processes=32, cpu_microseconds=200000),
             delegated_cgroup=str(test.root if invalid_root else self.root),
             default_policy=policy or test.policy())
+        if envelope_device is not None:
+            for budget in (config.broker_budget, config.manager_budget):
+                budget.io[0].major, budget.io[0].minor = envelope_device
         self.config_path = test.files/f'broker-{self.index}.textproto'
         self.config_path.write_text(text_format.MessageToString(config))
         self.config_path.chmod(0o600)
@@ -309,9 +316,22 @@ sys.exit(8)
         instance.close()
 
     def test_missing_configuration_denies_before_pending_record(self):
-        instance = Broker(self, configured=False).setup()
+        prepared = Broker(self).setup()
+        prepared.close()
+        instance = Broker(self, configured=False, state=prepared.state)
         reply = instance.launch(); self.assertEqual(reply.error.code, core.UNAVAILABLE, reply)
         self.assertEqual(self.records(instance), [])
+        instance.close()
+
+    def test_missing_configuration_denies_git_before_repository_mutation(self):
+        instance = Broker(self, configured=False)
+        reply = instance.request(management=make_request('git.repo.import',
+            dict(id='repo', path=str(self.repo.path))))
+        self.assertEqual(reply.management.error.code, core.UNAVAILABLE, reply)
+        with closing(sqlite3.connect(instance.state/'execution.db')) as database:
+            self.assertEqual(database.execute('SELECT count(*) FROM repositories').fetchone(), (0,))
+            self.assertEqual(database.execute('SELECT count(*) FROM operations').fetchone(), (0,))
+        self.assertEqual(list((instance.state/'repositories').iterdir()), [])
         instance.close()
 
     def test_sealed_resource_handoff_launches_and_is_consumed(self):
@@ -356,14 +376,48 @@ sys.exit(8)
         instance.close(normal=False)
 
     def test_uncovered_storage_device_denies_before_pending_record(self):
-        policy = self.policy()
-        for budget in [policy.total, policy.actor_default, *(p.maximum for p in policy.profiles)]:
-            budget.io[0].minor = resources.MINOR+1
-        instance = Broker(self, policy).setup()
+        prepared = Broker(self).setup()
+        prepared.close()
+        policy, device = self.uncovered_policy()
+        instance = Broker(self, policy, state=prepared.state, envelope_device=device)
         reply = instance.launch(); self.assertEqual(reply.error.code, core.INVALID_ARGUMENT, reply)
         self.assertEqual(self.records(instance), [])
         self.assertEqual(instance.leaves(), [])
         instance.close()
+
+    def uncovered_policy(self):
+        policy = self.policy()
+        # Use an existing whole device so io.max accepts the negative fixture.
+        # The selected device must not back this workspace.
+        other = next(path for path in sorted(Path('/sys/dev/block').iterdir())
+            if not (path/'partition').exists() and path.name != f'{resources.MAJOR}:{resources.MINOR}'
+            and int((path/'size').read_text()) > 0)
+        device = tuple(map(int, other.name.split(':')))
+        for budget in [policy.total, policy.actor_default, *(p.maximum for p in policy.profiles)]:
+            budget.io[0].major, budget.io[0].minor = device
+        return policy, device
+
+    def test_uncovered_git_device_denies_before_repository_mutation(self):
+        policy, device = self.uncovered_policy()
+        instance = Broker(self, policy, envelope_device=device)
+        reply = instance.request(management=make_request('git.repo.import',
+            dict(id='repo', path=str(self.repo.path))))
+        self.assertEqual(reply.management.error.code, core.INVALID_ARGUMENT, reply)
+        with closing(sqlite3.connect(instance.state/'execution.db')) as database:
+            self.assertEqual(database.execute('SELECT count(*) FROM repositories').fetchone(), (0,))
+            self.assertEqual(database.execute('SELECT count(*) FROM operations').fetchone(), (0,))
+        self.assertEqual(list((instance.state/'repositories').iterdir()), [])
+        instance.close()
+
+    def test_mismatched_io_policy_fails_before_store_mutation(self):
+        policy = self.policy()
+        for budget in [policy.total, policy.actor_default, *(p.maximum for p in policy.profiles)]:
+            budget.io[0].minor = resources.MINOR+1
+        instance = Broker(self, policy)
+        instance.wait_exit()
+        self.assertFalse(instance.state.exists())
+        self.assertIn('Resource policies must cover the same I/O devices', instance.log_path.read_text())
+        instance.close(normal=False)
 
     def test_revocation_returns_capacity_and_preserves_independent_application(self):
         instance = Broker(self, self.policy(total=128)).setup()

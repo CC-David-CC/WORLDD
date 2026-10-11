@@ -1,0 +1,62 @@
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/build
+[ 68%] Built target spatial-protobuf
+[ 81%] Built target spatial-scene
+[ 93%] Built target spatial-storage-channel
+[ 93%] Built target spatial-storage-owner
+[ 93%] Building CXX object CMakeFiles/spatial-storage-owner-service.dir/src/workspace/storage_main.cpp.o
+[100%] Linking CXX executable spatial-storage-owner
+[100%] Built target spatial-storage-owner-service
+[  0%] Generating python/process_scope_pb2.py
+[ 34%] Built target spatial-protobuf
+[ 34%] Built target scope-python-protobuf
+[ 34%] Built target python-protobuf
+[ 37%] Built target security-python-protobuf
+[ 40%] Generating python/native_scope_pb2.py
+[ 40%] Generating python/broker_pb2.py
+[ 40%] Built target native-scope-python-protobuf
+[ 40%] Built target broker-python-protobuf
+[ 40%] Generating python/key_pb2.py
+[ 43%] Built target key-python-protobuf
+[ 43%] Generating python/issuer_pb2.py
+[ 46%] Built target grants-python-protobuf
+[ 46%] Built target issuer-python-protobuf
+[ 53%] Built target spatial-scene
+[ 53%] Building CXX object CMakeFiles/spatial-app-init.dir/src/workspace/app_init.cpp.o
+[ 56%] Built target spatial-identity
+[ 59%] Built target spatial-process-scope
+[ 62%] Built target spatial-storage-channel
+[ 65%] Built target spatial-identity-tls
+[ 65%] Building CXX object CMakeFiles/spatial-authority.dir/src/authority/store.cpp.o
+[ 68%] Linking CXX executable spatial-app-init
+[ 71%] Linking CXX static library libspatial-authority.a
+[ 71%] Built target spatial-authority
+[ 71%] Building CXX object CMakeFiles/spatial-storage-client.dir/src/workspace/storage_client.cpp.o
+[ 71%] Built target spatial-app-init
+[ 75%] Built target spatial-workspace-resources
+[ 75%] Building CXX object CMakeFiles/spatial-bootstrap.dir/src/identity/bootstrap.cpp.o
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_client.cpp: In member function ‘spatial::workspace::v1::StorageObjectState spatial::StorageClient::call(spatial::workspace::v1::StorageOwnerRequest, const std::function<void()>&)’:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_client.cpp:80:49: error: no matching function for call to ‘spatial::WorldError::WorldError(spatial::core::v1::ErrorCode, const std::string&)’
+   80 |                          reply.error().message());
+      |                                                 ^
+In file included from /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/workspace/storage_client.cpp:5:
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/world/store.hpp:12:5: note: candidate: ‘spatial::WorldError::WorldError(spatial::core::v1::ErrorCode, const char*)’
+   12 |     WorldError(wire::ErrorCode code, const char* message) : std::runtime_error(message), code(code) {}
+      |     ^~~~~~~~~~
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/world/store.hpp:12:50: note:   no known conversion for argument 2 from ‘const std::string’ {aka ‘const std::__cxx11::basic_string<char>’} to ‘const char*’
+   12 |     WorldError(wire::ErrorCode code, const char* message) : std::runtime_error(message), code(code) {}
+      |                                      ~~~~~~~~~~~~^~~~~~~
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/world/store.hpp:10:7: note: candidate: ‘spatial::WorldError::WorldError(const spatial::WorldError&)’
+   10 | class WorldError : public std::runtime_error {
+      |       ^~~~~~~~~~
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/world/store.hpp:10:7: note:   candidate expects 1 argument, 2 provided
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/world/store.hpp:10:7: note: candidate: ‘spatial::WorldError::WorldError(spatial::WorldError&&)’
+/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-build-01/source/src/world/store.hpp:10:7: note:   candidate expects 1 argument, 2 provided
+gmake[3]: *** [CMakeFiles/spatial-storage-client.dir/build.make:76: CMakeFiles/spatial-storage-client.dir/src/workspace/storage_client.cpp.o] Error 1
+gmake[2]: *** [CMakeFiles/Makefile2:859: CMakeFiles/spatial-storage-client.dir/all] Error 2
+gmake[2]: *** Waiting for unfinished jobs....
+[ 78%] Linking CXX static library libspatial-bootstrap.a
+[ 78%] Built target spatial-bootstrap
+gmake[1]: *** [CMakeFiles/Makefile2:1727: CMakeFiles/workspaced.dir/rule] Error 2
+gmake: *** [Makefile:772: workspaced] Error 2
