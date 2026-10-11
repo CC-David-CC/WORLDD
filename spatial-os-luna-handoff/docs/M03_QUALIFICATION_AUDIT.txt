@@ -1,3 +1,13 @@
+Final M03 qualification, 2026-10-11
+
+All nine requirements pass the final primary audit.
+Both hosts pass complete local Debug and runtime sanitizer qualification after affected evidence reassessment.
+Eight production-profile cross-host cases pass. All twenty-four nodes exit successfully.
+Qualified source a99b7e46c5151ba47d0a53797b470cae6aaa5d13 is adopted in dedicated worktrees on both hosts.
+Sixty-four focused adopted-source runtime checks pass. Ordinary checkouts and normal login remain preserved.
+Read evidence/m03-contention-2026-10-11/M03-final-primary-review.json.
+Earlier sections below record historical gaps and failures. They do not describe the final qualified state.
+
 Authenticated resource fixture final checkpoint, 2026-10-10
 
 Candidate04 passed 144 selected checks across both hosts and build profiles.

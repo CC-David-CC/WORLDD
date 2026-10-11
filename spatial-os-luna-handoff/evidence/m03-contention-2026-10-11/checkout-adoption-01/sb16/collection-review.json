@@ -1,0 +1,22 @@
+{
+  "status": "reviewed_adopted_source_runtime_passed",
+  "phase_complete": false,
+  "host": "sb16",
+  "counts": {
+    "Debug": 16,
+    "ASan-UBSan": 16
+  },
+  "attachments": {
+    "review.json": "5176b19cbe50f2b91134bff28ae66a9185456981827c8edbf59065b4fbbf0bdd",
+    "source-adoption.json": "7ba28940227454c44136ec7bb2ea7e604e6a9668f5ea24f2a2e5611d59a68442",
+    "Debug/operator-storage.log": "bc28cd95997b3f736a7e2d4e324c1ec7872f966db176a375ccdd1d91b5636ff0",
+    "Debug/session-storage-owner.log": "b3ef7089187b9624853c55164d77853a11608b04fcb362e32eaa76f8a9484596",
+    "Debug/session-resources.log": "ee63dc590ee69a4619534211a924b1b31e0f0a95440e76afcbb5399b6f307318",
+    "ASan-UBSan/operator-storage.log": "4d896bee72b84f833899b396a9f42543975d029e748b6c4c869c76dbb622a755",
+    "ASan-UBSan/session-storage-owner.log": "c1e93573cb6a819c5512795b349e408939b7e129fba9301fe3dbf940be14b4b2",
+    "ASan-UBSan/session-resources.log": "098c74fb96e9167c1af120eed4e844e821c094e09ee8da49369a5762c8f0b42a"
+  },
+  "source_commit": "a99b7e46c5151ba47d0a53797b470cae6aaa5d13",
+  "ordinary_checkout_preserved": true,
+  "normal_login_changed": false
+}

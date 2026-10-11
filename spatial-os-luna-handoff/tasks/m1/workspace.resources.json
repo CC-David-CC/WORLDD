@@ -1,7 +1,7 @@
 {
   "id": "workspace.resources",
   "phase": "M03",
-  "status": "in_progress",
+  "status": "qualified",
   "contract": "docs/M03_QUALIFICATION_AUDIT.txt",
   "invariant": "Every workspace process and descendant remains inside its effective aggregate resource budget. Exhaustion cannot widen authority or produce a false durable acknowledgement.",
   "required": [
@@ -28,14 +28,9 @@
     "evidence/m02-gate-2026-10-10/durability-diagnosis-01/primary-review.json",
     "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json"
   ],
-  "remaining": [
-    "Run complete M03 Debug, runtime sanitizer, harness, acceptance, bounded-storage integration, and applicable cross-host qualification.",
-    "Review aggregate exhaustion, descendant inheritance, escape attempts, sibling survival, storage accounting, and recovery evidence against every required invariant.",
-    "Keep unexplained startup failures visible. Capture complete service and kernel evidence if they recur.",
-    "Commit the reviewed coherent increment and push origin. Advance M03 only after its complete qualification audit passes."
-  ],
+  "remaining": [],
   "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json",
-  "current_step": "corrected_qualification_and_full_M03_gate",
+  "current_step": "M03_qualified_source_adopted",
   "qualified_primitive": {
     "evidence": "evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json",
     "passed": 108,
@@ -137,5 +132,20 @@
     "full_gate_sb16_2": "running",
     "crosshost": "eight scenarios prepared, unrun",
     "phase_complete": false
+  },
+  "qualification": {
+    "status": "passed",
+    "evidence": "evidence/m03-contention-2026-10-11/M03-final-primary-review.json",
+    "source_commit": "a99b7e46c5151ba47d0a53797b470cae6aaa5d13",
+    "hosts": [
+      "sb16",
+      "sb16-2"
+    ],
+    "source_checkout": "/home/dflanag3/src/spacial_desktop-m03-qualified-20261011",
+    "ordinary_checkout_preserved": true,
+    "local_core_suites_per_host_profile": 135,
+    "local_python_checks_per_host_profile": 1740,
+    "crosshost_cases": 8,
+    "adoption_checks_total": 64
   }
 }

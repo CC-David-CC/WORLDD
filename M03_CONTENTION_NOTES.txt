@@ -255,3 +255,7 @@ Independent cleanup verifies sixteen released volumes and twenty-four unloaded U
 The cross-host fixture keeps all original method bodies and root helper safety guards.
 The ordinary sb16 checkout has local modifications. Preserve them during final M03 source adoption.
 M03 remains incomplete until its nine-requirement audit and adoption pass.
+
+Final M03 audit passes all nine requirements. Dedicated source adoption matches all 398 inputs on both hosts.
+Sixty-four adopted-source operator/storage/resource checks pass across both hosts and profiles.
+M01-M03 are qualified. M04-M16 remain incomplete. The complete goal stays active.

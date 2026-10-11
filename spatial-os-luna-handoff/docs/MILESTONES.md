@@ -22,10 +22,13 @@ Current-source binaries were not rebuilt after that test-only addition.
 
 M01 is qualified at the same adopted source after its identity audit and M02 cancellation dependency review.
 Read evidence/m01-audit-2026-10-10/primary-review.json. The review reuses complete gates; it does not count new runs.
-M03-M16 and H01-H08 remain incomplete. Existing components have the evidence recorded in CURRENT_STATE.md.
+M04-M16 and H01-H08 remain incomplete. Existing components have the evidence recorded in CURRENT_STATE.md.
 The mandatory profile remains tasks/spatial-m1.json.
 
-Current development moves to M03 aggregate execution budgets, bounded storage, and competing I/O containment.
+M03 is qualified and adopted at a99b7e46c5151ba47d0a53797b470cae6aaa5d13 in dedicated worktrees on both hosts.
+Read evidence/m03-contention-2026-10-11/M03-final-primary-review.json.
+All nine requirements, eight cross-host cases, and focused source-adoption checks pass.
+Current development advances to M04. Ordinary checkout changes and normal login remain preserved.
 The existing five-second client default remains. Bounded disk pressure defeated 700 ms and two-second clients.
 One successful five-second pressure trial does not establish a worst-case latency bound.
 Storage-pressure availability remains mandatory M03 and M1 performance work.

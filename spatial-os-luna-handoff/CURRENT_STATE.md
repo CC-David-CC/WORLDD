@@ -1,5 +1,26 @@
 # Implementation status
 
+## 2026-10-11: M03 is qualified and adopted on both hosts
+
+The final audit passes all nine M03 requirements.
+Both hosts have reviewed Debug and ASan/UBSan qualification.
+Each profile covers 135 core suites and 1740 Python checks, plus the standalone initializer-lifecycle suite.
+Each includes passed full harness, 151 acceptance cases, and five bounded-storage scenarios.
+All eight cross-host cases pass. Independent cleanup confirms sixteen released volumes and twenty-four unloaded services.
+
+Qualified source a99b7e46c5151ba47d0a53797b470cae6aaa5d13 is adopted in dedicated worktrees on both hosts.
+The path is /home/dflanag3/src/spacial_desktop-m03-qualified-20261011.
+All 398 source inputs match qualification. Adopted-source operator, storage, and resource checks pass in both profiles.
+These focused adoption checks total 64. Ordinary checkout changes and normal login remain preserved.
+
+The original killed initializer remains untraced. Its failure evidence remains available.
+The bounded setup correction passes. This does not claim repaired worst-case storage latency.
+The tested Git worker hierarchy has an effective 256 MiB memory cap.
+
+M01, M02, and M03 are qualified. Development advances to M04.
+M04-M16, physical-input/performance gates, real-model acceptance, and full LOCAL_READY remain incomplete.
+Read evidence/m03-contention-2026-10-11/M03-final-primary-review.json.
+
 ## 2026-10-11: All eight production cross-host cases pass primary review
 
 Debug and ASan/UBSan pass delayed-delivery and crash scenarios in both directions.
