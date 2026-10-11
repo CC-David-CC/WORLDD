@@ -2,7 +2,10 @@ diff --git a/Xext/xace.c b/Xext/xace.c
 index d6be28281..77593c79e 100644
 --- a/Xext/xace.c
 +++ b/Xext/xace.c
-@@ -78,0 +79,21 @@ int XaceHookReceiveAccess(ClientPtr client, WindowPtr win,
+@@ -76,6 +76,27 @@ int XaceHookReceiveAccess(ClientPtr client, WindowPtr win,
+     return rec.status;
+ }
+ 
 +int
 +XaceHookWindowImageAccess(ClientPtr client, WindowPtr pWin,
 +                          RegionPtr pVisibleRegion)
@@ -24,34 +27,69 @@ index d6be28281..77593c79e 100644
 +    return rec.status;
 +}
 +
+ /* XaceHookIsSet
+  *
+  * Utility function to determine whether there are any callbacks listening on a
 diff --git a/Xext/xace.h b/Xext/xace.h
 index fb026a634..c25e903b1 100644
 --- a/Xext/xace.h
 +++ b/Xext/xace.h
-@@ -24 +24 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+@@ -21,13 +21,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ #define _XACE_H
+ 
+ #define XACE_MAJOR_VERSION		2
 -#define XACE_MINOR_VERSION		0
 +#define XACE_MINOR_VERSION		1
-@@ -30,0 +31 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ 
+ #include "dix/selection_priv.h"
+ #include "include/callback.h"
+ #include "include/regionstr.h"
+ 
+ #include "extnsionst.h"
 +#include "gcstruct.h"
-@@ -46 +47,3 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ #include "pixmap.h"
+ #include "window.h"
+ #include "property.h"
+@@ -43,7 +44,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ #define XACE_SEND_ACCESS		5
+ #define XACE_RECEIVE_ACCESS		6
+ #define XACE_SELECTION_ACCESS		10
 -#define XACE_NUM_HOOKS			13
 +#define XACE_WINDOW_IMAGE_ACCESS	13
 +#define XACE_DRAWABLE_ACCESS		14
 +#define XACE_NUM_HOOKS			15
-@@ -71,0 +75,6 @@ int XaceHookReceiveAccess(ClientPtr client, WindowPtr win, xEventPtr ev, int cou
+ 
+ extern CallbackListPtr XaceHooks[XACE_NUM_HOOKS];
+ 
+@@ -69,6 +72,12 @@ _X_EXPORT int XaceHookResourceAccess(ClientPtr client, XID id, RESTYPE rtype, vo
+ int XaceHookSendAccess(ClientPtr client, DeviceIntPtr dev, WindowPtr win,
+                        xEventPtr ev, int count);
+ int XaceHookReceiveAccess(ClientPtr client, WindowPtr win, xEventPtr ev, int count);
 +int XaceHookWindowImageAccess(ClientPtr client, WindowPtr pWin,
 +                              RegionPtr pVisibleRegion);
 +
 +/* XACE_WINDOW_IMAGE_ACCESS callbacks may reduce pVisibleRegion. They must not
 + * destroy it or add pixels that are outside the window's original borderClip.
 + */
+ 
+ /* Register / unregister a callback for a given hook. */
+ 
 diff --git a/Xext/xacestr.h b/Xext/xacestr.h
 index 1e6d3cd6f..304ed9746 100644
 --- a/Xext/xacestr.h
 +++ b/Xext/xacestr.h
-@@ -27,0 +28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+@@ -25,6 +25,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ #include "dix.h"
+ #include "resource.h"
+ #include "extnsionst.h"
 +#include "gcstruct.h"
-@@ -80,0 +82,20 @@ typedef struct {
+ #include "window.h"
+ #include "input.h"
+ #include "property.h"
+@@ -78,4 +79,24 @@ typedef struct {
+     int status;
+ } XaceSelectionAccessRec;
+ 
 +/* XACE_WINDOW_IMAGE_ACCESS */
 +typedef struct {
 +    ClientPtr client;
@@ -72,11 +110,15 @@ index 1e6d3cd6f..304ed9746 100644
 +int XaceHookDrawableAccess(ClientPtr client, DrawablePtr pDraw, GCPtr pGC,
 +                           Mask access_mode);
 +
+ #endif                          /* _XACESTR_H */
 diff --git a/dix/dispatch.c b/dix/dispatch.c
-index f7dc01902..7d2143bfb 100644
+index af02fb215..b9bfe9f17 100644
 --- a/dix/dispatch.c
 +++ b/dix/dispatch.c
-@@ -1818,0 +1819,7 @@ ProcCopyArea(ClientPtr client)
+@@ -1827,6 +1827,13 @@ ProcCopyArea(ClientPtr client)
+                                DixReadAccess);
+         if (rc != Success)
+             return rc;
 +        if (pSrc->type == DRAWABLE_WINDOW &&
 +            pGC->subWindowMode == IncludeInferiors &&
 +            XaceHookIsSet(XACE_DRAWABLE_ACCESS)) {
@@ -84,7 +126,13 @@ index f7dc01902..7d2143bfb 100644
 +            if (rc != Success)
 +                return rc;
 +        }
-@@ -1857,0 +1865,8 @@ ProcCopyPlane(ClientPtr client)
+         if ((pDst->pScreen != pSrc->pScreen) || (pDst->depth != pSrc->depth)) {
+             client->errorValue = stuff->dstDrawable;
+             return BadMatch;
+@@ -1866,6 +1873,14 @@ ProcCopyPlane(ClientPtr client)
+         if (rc != Success)
+             return rc;
+ 
 +        if (psrcDraw->type == DRAWABLE_WINDOW &&
 +            pGC->subWindowMode == IncludeInferiors &&
 +            XaceHookIsSet(XACE_DRAWABLE_ACCESS)) {
@@ -93,15 +141,28 @@ index f7dc01902..7d2143bfb 100644
 +                return rc;
 +        }
 +
-@@ -2236,0 +2252,2 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+         if (pdstDraw->pScreen != psrcDraw->pScreen) {
+             client->errorValue = stuff->dstDrawable;
+             return BadMatch;
+@@ -2245,6 +2260,8 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+     long widthBytesLine, length;
+     Mask plane = 0;
+     RegionPtr pVisibleRegion = NULL;
 +    RegionRec visibleRegion;
 +    bool visibleRegionOwned = false;
-@@ -2342 +2359,3 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+ 
+     if ((format != XYPixmap) && (format != ZPixmap)) {
+         client->errorValue = format;
+@@ -2350,9 +2367,30 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+     }
+ 
+     if (pDraw->type == DRAWABLE_WINDOW) {
 -        pVisibleRegion = &((WindowPtr) pDraw)->borderClip;
 +        WindowPtr pWin = (WindowPtr) pDraw;
 +
 +        pVisibleRegion = &pWin->borderClip;
-@@ -2344,0 +2364,19 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+         pDraw->pScreen->SourceValidate(pDraw, x, y, width, height,
+                                        IncludeInferiors);
 +        if (XaceHookIsSet(XACE_WINDOW_IMAGE_ACCESS)) {
 +            RegionNull(&visibleRegion);
 +            if (!RegionCopy(&visibleRegion, pVisibleRegion)) {
@@ -121,28 +182,56 @@ index f7dc01902..7d2143bfb 100644
 +                return BadAlloc;
 +            }
 +        }
-@@ -2359,0 +2398,2 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+     }
+ 
+     x_rpcbuf_t rpcbuf = { .swapped = client->swapped, .err_clear = TRUE };
+@@ -2368,6 +2406,8 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+             char *pBuf = x_rpcbuf_reserve(&rpcbuf, (nlines * widthBytesLine));
+             if (!pBuf) {
+                 x_rpcbuf_clear(&rpcbuf);
 +                if (visibleRegionOwned)
 +                    RegionUninit(&visibleRegion);
-@@ -2391,0 +2432,2 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+                 return BadAlloc;
+             }
+ 
+@@ -2400,6 +2440,8 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+                     char *pBuf = x_rpcbuf_reserve(&rpcbuf, (nlines * widthBytesLine));
+                     if (!pBuf) {
+                         x_rpcbuf_clear(&rpcbuf);
 +                        if (visibleRegionOwned)
 +                            RegionUninit(&visibleRegion);
-@@ -2416,0 +2459,3 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+                         return BadAlloc;
+                     }
+ 
+@@ -2425,6 +2467,9 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
+         }
+     }
+ 
 +    if (visibleRegionOwned)
 +        RegionUninit(&visibleRegion);
 +
+     if (client->swapped) {
+         swapl(&reply.visual);
+     }
 diff --git a/dix/dix_priv.h b/dix/dix_priv.h
 index c3fbf4580..1a2d1383f 100644
 --- a/dix/dix_priv.h
 +++ b/dix/dix_priv.h
-@@ -125,0 +126,6 @@ void DeleteWindowFromAnySaveSet(WindowPtr pWin);
+@@ -123,8 +123,17 @@ void DeleteWindowFromAnySaveSet(WindowPtr pWin);
+             return BadMatch;                                            \
+         if (pGC->serialNumber != pDraw->serialNumber)                   \
+             ValidateGC(pDraw, pGC);                                     \
 +        if (pDraw->type == DRAWABLE_WINDOW &&                            \
 +            pGC->subWindowMode == IncludeInferiors) {                    \
 +            tmprc = XaceHookDrawableAccess(client, pDraw, pGC, mode);    \
 +            if (tmprc != Success)                                        \
 +                return tmprc;                                            \
 +        }                                                                 \
-@@ -127,0 +134,3 @@ void DeleteWindowFromAnySaveSet(WindowPtr pWin);
+     } while (0)
+ 
 +int XaceHookDrawableAccess(ClientPtr client, DrawablePtr pDraw, GCPtr pGC,
 +                           Mask access_mode);
 +
+ int dixLookupGC(GCPtr *result,
+                 XID id,
+                 ClientPtr client,
