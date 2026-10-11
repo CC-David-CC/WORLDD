@@ -3,6 +3,8 @@
 ## 2026-10-11: M03 paused for checkpoint and host reboot
 
 David requested a pause and reboot of sb16 and sb16-2.
+Both hosts rebooted. New boot identities, passwordless SSH, and passwordless sudo were verified.
+Source checkpoint 334816d was pushed to box-git and CC-David-CC/WORLDD on m03/resource-boundary.
 The goal is paused. Read ../M03_RESUME_PLAN.txt before resuming.
 The current branch contains unfinished M03 source and preserved failure evidence.
 M01 and M02 remain qualified. M03-M16 remain incomplete.

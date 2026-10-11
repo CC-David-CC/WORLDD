@@ -1,0 +1,16 @@
+{
+  "host": "sb16-2",
+  "boot_id": "6ca208e2-cd9a-4e7a-922f-3ab91e17043f",
+  "uptime_seconds": 67.18,
+  "sudo_uid": 0,
+  "source_preserved": true,
+  "ssh_listeners": "State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\nLISTEN 0      4096         0.0.0.0:22        0.0.0.0:*          \nLISTEN 0      4096            [::]:22           [::]:*          \n",
+  "verified_at": "2026-10-11T06:43:12.491392+00:00",
+  "previous_boot_id": "82b6b2cf-0183-4174-b69a-b86592a6bfba",
+  "reboot_confirmed": true,
+  "ssh_passwordless": true,
+  "sudo_passwordless": true,
+  "verified_ssh_destination": "dflanag3@10.0.6.245 with HostKeyAlias=sb16-2",
+  "default_alias_ssh_exit": 0,
+  "default_alias_diagnostic": ""
+}

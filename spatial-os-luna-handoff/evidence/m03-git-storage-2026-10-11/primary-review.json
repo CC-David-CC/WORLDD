@@ -506,7 +506,8 @@
       "latest_broker_resources_full_run": "16 of 17 passed; uncovered-device fixture corrected and passed separately; new Git-device regression fails",
       "git_device_before_exit": 1,
       "mount_and_loop_detached": true,
-      "service_after": "LoadState=not-found\nActiveState=inactive\n"
+      "service_after": "LoadState=not-found\nActiveState=inactive\n",
+      "reboot_receipt": "sb16/after-reboot.json"
     },
     "sb16-2": {
       "source_inputs_matched": 361,
@@ -1012,12 +1013,20 @@
       "latest_broker_resources_full_run": "16 of 17 passed; uncovered-device fixture corrected and passed separately; new Git-device regression fails",
       "git_device_before_exit": 1,
       "mount_and_loop_detached": true,
-      "service_after": "LoadState=not-found\nActiveState=inactive\n"
+      "service_after": "LoadState=not-found\nActiveState=inactive\n",
+      "reboot_receipt": "sb16-2/after-reboot.json"
     }
   },
   "evidence_hashes_verified": 594,
   "open_defects": [
     "Administrative Git does not reject an uncovered I/O device"
   ],
-  "source_review": "Primary agent; unfinished checkpoint, not qualified integration"
+  "source_review": "Primary agent; unfinished checkpoint, not qualified integration",
+  "source_checkpoint": "334816db1a9b3f8e7d5607e0ce657ebcf585465c",
+  "published_remotes": [
+    "dflanag3@box-git:/srv/data/git/spacial_desktop.git",
+    "git@github.com:CC-David-CC/WORLDD.git"
+  ],
+  "branch": "m03/resource-boundary",
+  "goal_status": "paused"
 }

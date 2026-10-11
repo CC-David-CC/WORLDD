@@ -7,6 +7,10 @@ Do not merge it into main or call it a qualified M03 release.
 GitHub destination: git@github.com:CC-David-CC/WORLDD.git.
 box-git destination: dflanag3@box-git:/srv/data/git/spacial_desktop.git.
 This request authorizes publishing this pause checkpoint to those configured remotes.
+Source checkpoint: 334816db1a9b3f8e7d5607e0ce657ebcf585465c. It was pushed to both remotes.
+Both hosts rebooted successfully. Their boot identities changed, and passwordless SSH and sudo work again.
+sb16-2 initially required its LAN route. Its normal SSH alias then recovered without configuration changes.
+The before-reboot.json and after-reboot.json files record the observations for each host.
 
 Milestone position
 M01 and M02 are qualified. M03 is active but paused. M04 through M16 remain incomplete.
