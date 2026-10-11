@@ -109,6 +109,33 @@ bad_alloc:
     return BadAlloc;
 }
 
+static void window_image_access(CallbackListPtr *list, void *unused, void *data)
+{
+    XaceWindowImageAccessRec *rec = data;
+    RegionPtr filtered = NULL;
+    (void)list; (void)unused;
+
+    rec->status = SpatialSecurityFilterWindowImage(rec->client,
+                                                   &rec->pWin->drawable,
+                                                   &filtered);
+    if (rec->status != Success || !filtered)
+        return;
+
+    if (!RegionCopy(rec->pVisibleRegion, filtered))
+        rec->status = BadAlloc;
+    RegionDestroy(filtered);
+}
+
+static void drawable_access(CallbackListPtr *list, void *unused, void *data)
+{
+    XaceDrawableAccessRec *rec = data;
+    (void)list; (void)unused;
+
+    if (rec->pGC->subWindowMode == IncludeInferiors &&
+        SpatialSecurityHasForeignInferiors(rec->client, rec->pDraw))
+        rec->status = BadAccess;
+}
+
 Bool SpatialSecurityFilterEvent(ClientPtr client, const xEvent *event, xEvent *filtered)
 {
     if (SpatialSecurityPrivileged(client)) return FALSE;
@@ -442,6 +469,8 @@ void SpatialSecurityPolicyInit(void)
     if (!dixRegisterPrivateKey(&selection_namespace_key, PRIVATE_SELECTION,
                                sizeof(SpatialSelectionNamespace)) ||
         !XaceRegisterCallback(XACE_RESOURCE_ACCESS, resource_access, NULL) ||
+        !XaceRegisterCallback(XACE_WINDOW_IMAGE_ACCESS, window_image_access, NULL) ||
+        !XaceRegisterCallback(XACE_DRAWABLE_ACCESS, drawable_access, NULL) ||
         !XaceRegisterCallback(XACE_PROPERTY_ACCESS, property_access, NULL) ||
         !XaceRegisterCallback(XACE_SELECTION_ACCESS, selection_access, NULL) ||
         !XaceRegisterCallback(XACE_SEND_ACCESS, send_access, NULL) ||
@@ -458,6 +487,8 @@ void SpatialSecurityPolicyInit(void)
 void SpatialSecurityPolicyReset(void)
 {
     XaceDeleteCallback(XACE_RESOURCE_ACCESS, resource_access, NULL);
+    XaceDeleteCallback(XACE_WINDOW_IMAGE_ACCESS, window_image_access, NULL);
+    XaceDeleteCallback(XACE_DRAWABLE_ACCESS, drawable_access, NULL);
     XaceDeleteCallback(XACE_PROPERTY_ACCESS, property_access, NULL);
     XaceDeleteCallback(XACE_SELECTION_ACCESS, selection_access, NULL);
     XaceDeleteCallback(XACE_SEND_ACCESS, send_access, NULL);
