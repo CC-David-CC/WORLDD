@@ -1,0 +1,12 @@
+{
+  "original_sha256": "a40d12e3288429e0a4c7445e7fa3ecce2943b1d8338bc82061fc919a5ccc4807",
+  "compressed_sha256": "729eaa81c9fe61088d1ccdea1d20ffb96ce391da3fd6d5e1cf7f97158d122034",
+  "original_bytes": 536870912,
+  "compressed_bytes": 2349473,
+  "verified": true,
+  "recovery": [
+    "gzip",
+    "-dk",
+    "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-owner-runtime-01/volume.img.gz"
+  ]
+}

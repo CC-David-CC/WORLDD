@@ -21,6 +21,8 @@ import time
 import uuid
 
 assert os.getuid() == 0 and socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
+production_owner = '--production-owner' in sys.argv
+if production_owner: sys.argv.remove('--production-owner')
 build, root = (Path(value).resolve() for value in sys.argv[1:3])
 assert len(sys.argv) in (3,4) and build.is_dir() and not root.exists()
 fixture_source = Path(sys.argv[3]).resolve() if len(sys.argv)==4 else None
@@ -43,6 +45,11 @@ volume, image = root/'volume', root/'volume.img'
 volume.mkdir()
 record = dict(status='running', phase_complete=False, host=socket.gethostname(), results={}, commands=[],
               runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), started=time.time())
+record['production_owner_launch'] = production_owner
+policy_root = Path('/run')/('spatial-storage-policy-'+uuid.uuid4().hex) if production_owner else None
+if policy_root:
+    policy_root.mkdir(mode=0o755)
+    policy_root.chmod(0o755)
 live, logs = [], []
 loop, unit, scope = None, None, None
 mounted = False
@@ -151,19 +158,73 @@ def spawn(label):
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=actor_log,
                              pass_fds=[pair[1].fileno()], preexec_fn=drop, env=env)
     live.append(child); (scope/'cgroup.procs').write_text(str(child.pid)+'\n')
-    config.broker_pid = child.pid
-    path = root/(label+'-operator.pb'); path.write_bytes(config.SerializeToString())
-    owner = subprocess.Popen([str(build/'spatial-storage-owner'), '--channel-fd', str(pair[0].fileno()),
-                              '--config', str(path)], stdout=subprocess.DEVNULL, stderr=owner_log,
-                             pass_fds=[pair[0].fileno()], env=env)
-    live.append(owner)
+    if production_owner:
+        config.ClearField('broker_pid')
+        path = policy_root/(label+'-operator.pb'); path.write_bytes(config.SerializeToString())
+        launch_policy = storage.StorageOwnerLaunchConfig(protocol_version=1, owner_configuration=str(path),
+            volume_root=str(volume), budget=budget(256,16,100000))
+        public = root/(label+'-launch.pb'); public.write_bytes(launch_policy.SerializeToString()); os.chown(public,uid,gid)
+        pidfd = os.pidfd_open(child.pid)
+        try:
+            owner = subprocess.Popen([str(build/'spatial-storage-launch-probe'), str(public),
+                str(pair[0].fileno()), str(pidfd)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=owner_log, pass_fds=[pair[0].fileno(),pidfd], env=env, preexec_fn=drop)
+        finally: os.close(pidfd)
+        live.append(owner)
+        command = storage.StorageLaunchControl(protocol_version=1,request_id=1)
+        payload = command.SerializeToString(); owner.stdin.write(struct.pack('!I',len(payload))+payload); owner.stdin.flush()
+        assert select.select([owner.stdout],[],[],8)[0], 'Production owner launch reply deadline'
+        deadline = time.monotonic()+8
+        size = struct.unpack('!I',exact(owner.stdout,4,deadline))[0]
+        assert 0<size<=mib
+        reply = storage.StorageLaunchResult.FromString(exact(owner.stdout,size,deadline))
+        assert reply.protocol_version==1 and reply.request_id==1 and reply.running, reply
+        owner.spatial_unit = reply.unit
+        record.setdefault('storage_owner_units',[]).append(reply.unit); save()
+    else:
+        config.broker_pid = child.pid
+        path = root/(label+'-operator.pb'); path.write_bytes(config.SerializeToString())
+        owner = subprocess.Popen([str(build/'spatial-storage-owner'), '--channel-fd', str(pair[0].fileno()),
+                                  '--config', str(path)], stdout=subprocess.DEVNULL, stderr=owner_log,
+                                 pass_fds=[pair[0].fileno()], env=env)
+        live.append(owner)
     pair[0].close(); pair[1].close()
     child.stdin.write(b'!'); child.stdin.flush()
+    if production_owner:
+        owner_pid = int(run(['systemctl','show',owner.spatial_unit,'-p','MainPID','--value']))
+        pin = os.pidfd_open(owner_pid)
+        try:
+            assert not select.select([pin],[],[],0)[0]
+            owner_group = run(['systemctl','show',owner.spatial_unit,'-p','ControlGroup','--value'])
+            location = Path('/sys/fs/cgroup')/owner_group.lstrip('/')
+            controls = {name:(location/name).read_text().strip() for name in
+                ('memory.max','memory.high','memory.swap.max','pids.max','cpu.max','io.max')}
+            assert controls['memory.max']==str(256*mib) and controls['memory.high']==str(192*mib)
+            assert controls['memory.swap.max']=='0' and controls['pids.max']=='16' and controls['cpu.max']=='100000 100000'
+            for a,b in devices: assert f'{a}:{b} rbps={64*mib} wbps={16*mib}' in controls['io.max']
+            private_network = os.readlink(f'/proc/{owner_pid}/ns/net') != os.readlink('/proc/self/ns/net')
+            assert private_network
+            handles = {p.name:p.read_text() for p in Path(f'/proc/{owner_pid}/fdinfo').iterdir() if 'Pid:' in p.read_text()}
+            assert any(f'Pid:\t{child.pid}\n' in data for data in handles.values())
+            assert not select.select([pin],[],[],0)[0]
+            record.setdefault('owner_kernel_witnesses',[]).append(dict(pid=owner_pid,unit=owner.spatial_unit,
+                controls=controls,retained_broker_handles=handles,private_network=private_network))
+            save()
+        finally: os.close(pin)
     return child, owner
 
 
 def stop(child, owner):
     child.stdin.close(); assert child.wait(timeout=20) == 0
+    if production_owner:
+        command = storage.StorageLaunchControl(protocol_version=1,request_id=2,stop=True)
+        payload = command.SerializeToString(); owner.stdin.write(struct.pack('!I',len(payload))+payload); owner.stdin.flush()
+        assert select.select([owner.stdout],[],[],12)[0], 'Production owner cleanup deadline'
+        deadline = time.monotonic()+12
+        size = struct.unpack('!I',exact(owner.stdout,4,deadline))[0]; assert 0<size<=mib
+        reply = storage.StorageLaunchResult.FromString(exact(owner.stdout,size,deadline))
+        assert reply.protocol_version==1 and reply.request_id==2 and reply.stopped, reply
+        owner.stdin.close(); owner.stdout.close()
     assert owner.wait(timeout=20) == 0
     child.stdout.close(); live.remove(child); live.remove(owner)
 
@@ -332,6 +393,17 @@ finally:
         if child.stdin: child.stdin.close()
         if child.stdout: child.stdout.close()
     for log in logs: log.close()
+    if production_owner:
+        record['owner_unit_cleanup'] = {}
+        for owner_unit in record.get('storage_owner_units',[]):
+            subprocess.run(['systemctl','stop',owner_unit],capture_output=True,text=True)
+            state = subprocess.run(['systemctl','show',owner_unit,'-p','ActiveState','-p','LoadState'],capture_output=True,text=True).stdout
+            record['owner_unit_cleanup'][owner_unit] = state
+        if policy_root:
+            for path in policy_root.iterdir():
+                assert path.is_file() and path.name.endswith('-operator.pb')
+                path.unlink()
+            policy_root.rmdir()
     # Preserve initializer and application diagnostics even when an earlier assertion fails.
     record['application_diagnostics'] = {str(path.relative_to(volume)):path.read_text(errors='replace')
         for path in (volume/'applications').glob('*/*')

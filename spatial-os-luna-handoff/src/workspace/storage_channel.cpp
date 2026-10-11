@@ -1,6 +1,7 @@
 #include "workspace/storage_channel.hpp"
 #include "core/protocol.hpp"
 #include "identity/tls_support.hpp"
+#include "platform/process_handle.hpp"
 #include <algorithm>
 #include <array>
 #include <cerrno>
@@ -23,7 +24,7 @@ struct StorageChannel::Impl {
     Fd socket, peer;
     const uid_t uid;
     std::optional<pid_t> pid;
-    Impl(int descriptor, uid_t peer_uid, std::optional<pid_t> peer_pid)
+    Impl(int descriptor, uid_t peer_uid, std::optional<pid_t> peer_pid, int borrowed_peer_pidfd)
         : socket(descriptor), uid(peer_uid), pid(peer_pid) {
         require(descriptor >= 3, "Storage channel requires a private inherited descriptor");
         int type = 0, domain = 0; socklen_t size = sizeof(int);
@@ -39,7 +40,11 @@ struct StorageChannel::Impl {
         require(flags >= 0 && inherited >= 0 && fcntl(descriptor, F_SETFL, flags | O_NONBLOCK) == 0 &&
                 fcntl(descriptor, F_SETFD, inherited | FD_CLOEXEC) == 0,
                 "Cannot protect private storage descriptor");
-        if (pid) pin(*pid);
+        if (borrowed_peer_pidfd >= 0) {
+            require(pid.has_value(), "Retained storage peer requires its process identity");
+            auto handle = ProcessHandle::duplicate(borrowed_peer_pidfd, *pid);
+            peer.reset(handle.release()); alive();
+        } else if (pid) pin(*pid);
     }
     void pin(pid_t value) {
         require(value > 1, "Invalid storage peer identity");
@@ -93,8 +98,8 @@ struct StorageChannel::Impl {
         alive(); return count;
     }
 };
-StorageChannel::StorageChannel(int descriptor, uid_t uid, std::optional<pid_t> pid)
-    : impl_(std::make_unique<Impl>(descriptor, uid, pid)) {}
+StorageChannel::StorageChannel(int descriptor, uid_t uid, std::optional<pid_t> pid, int borrowed_peer_pidfd)
+    : impl_(std::make_unique<Impl>(descriptor, uid, pid, borrowed_peer_pidfd)) {}
 StorageChannel::~StorageChannel() = default;
 pid_t StorageChannel::peer_pid() const { return impl_->pid.value_or(-1); }
 void StorageChannel::send(const std::string& payload, Clock::time_point deadline, const std::function<void()>& tick) {

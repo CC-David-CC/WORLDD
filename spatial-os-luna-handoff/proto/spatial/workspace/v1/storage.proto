@@ -1,6 +1,24 @@
 syntax = "proto3";
 package spatial.workspace.v1;
 import "grants.proto";
+import "process_scope.proto";
+
+// Private operator launch template. The owner policy remains root-owned.
+// The supervisor supplies the retained broker pidfd outside this message.
+message StorageOwnerLaunchConfig {
+  uint32 protocol_version = 1;
+  string owner_configuration = 2;
+  string volume_root = 3;
+  spatial.supervisor.v1.ProcessScopeBudget budget = 4;
+}
+// Private lifecycle witness transport. Never exposed as an actor interface.
+message StorageLaunchControl { uint32 protocol_version = 1; uint64 request_id = 2; optional bool stop = 3; }
+message StorageLaunchResult {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  string unit = 3;
+  oneof outcome { bool running = 4; bool stopped = 5; string error = 6; }
+}
 
 // Operator ceilings. These do not grant filesystem or execution authority.
 // Charge allocated extents and metadata. Referenced extents count for private-state limits.

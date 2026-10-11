@@ -1,0 +1,53 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 22
+    Start 22: process-scope-resources
+
+22: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_process_scope_resources.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-scope-probe"
+22: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+22: Environment variables: 
+22:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+22:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+22:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+22: Test timeout computed to be: 150
+22: {"unit": "spatial-m03-resources-e557971676aa41069c3b0376eb2c78ed.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-e557971676aa41069c3b0376eb2c78ed.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-launch-resource-regressions/scopes", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_process_scope_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-scope-probe"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-e557971676aa41069c3b0376eb2c78ed.service"]}
+22: Running as unit: spatial-m03-resources-e557971676aa41069c3b0376eb2c78ed.service; invocation ID: 7e408528874b44d6819cd66e875d7aa6
+22: test_budget_cannot_be_replaced_after_prepare_or_start (__main__.ResourceScopeTests.test_budget_cannot_be_replaced_after_prepare_or_start) ... ok
+22: test_controls_exist_before_child_execution (__main__.ResourceScopeTests.test_controls_exist_before_child_execution) ... ok
+22: test_fork_and_detachment_share_one_process_budget (__main__.ResourceScopeTests.test_fork_and_detachment_share_one_process_budget) ... ok
+22: test_incomplete_and_invalid_budgets_leave_no_scope (__main__.ResourceScopeTests.test_incomplete_and_invalid_budgets_leave_no_scope) ... ok
+22: test_memory_exhaustion_kills_group_and_preserves_sibling (__main__.ResourceScopeTests.test_memory_exhaustion_kills_group_and_preserves_sibling) ... ok
+22: test_missing_device_component_does_not_select_device_zero (__main__.ResourceScopeTests.test_missing_device_component_does_not_select_device_zero) ... ok
+22: test_missing_io_controller_fails_before_execution (__main__.ResourceScopeTests.test_missing_io_controller_fails_before_execution) ... ok
+22: test_real_writes_obey_io_budget (__main__.ResourceScopeTests.test_real_writes_obey_io_budget) ... ok
+22: test_two_busy_children_share_cpu_quota (__main__.ResourceScopeTests.test_two_busy_children_share_cpu_quota) ... ok
+22: 
+22: ----------------------------------------------------------------------
+22: Ran 9 tests in 7.868s
+22: 
+22: OK
+22: Finished with result: success
+22: Main processes terminated with: code=exited/status=0
+22: Service runtime: 7.984s
+22: CPU time consumed: 1.195s
+22: Memory peak: 2.4M
+22: Memory swap peak: 0B
+22: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+1/1 Test #22: process-scope-resources ..........   Passed    8.15 sec
+
+The following tests passed:
+	process-scope-resources
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   8.16 sec

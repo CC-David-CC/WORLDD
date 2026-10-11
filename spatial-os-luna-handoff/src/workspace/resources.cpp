@@ -197,12 +197,19 @@ void validate_devices(const Budget& budget, const std::array<std::filesystem::pa
 struct Group {
     std::unique_ptr<supervisor::ProcessScope> scope;
     std::filesystem::path path;
+    identity::tls_detail::Fd directory;
     Budget budget;
     std::uint64_t memory = 0, swap = 0, processes = 0, applications = 0;
     std::map<std::string, std::shared_ptr<Group>> actors;
     Group(const std::filesystem::path& parent, const Budget& value) : budget(value) {
         scope = supervisor::ProcessScope::prepare(parent, &budget);
         path = parent / scope->state().identity().scope_name();
+        directory.reset(open(path.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+        struct stat info{};
+        const auto identity = scope->state().identity();
+        check(directory.value >= 0 && fstat(directory.value, &info) == 0 &&
+              static_cast<std::uint64_t>(info.st_dev) == identity.device() && info.st_ino == identity.inode(),
+              "Cannot retain resource accounting group");
         scope->enable_children();
     }
     bool fits(const Budget& value) const {
@@ -267,10 +274,29 @@ struct WorkspaceResources::Impl {
     workspace::v1::BrokerResourceConfig config;
     std::filesystem::path root;
     int directory = -1;
+    identity::tls_detail::Fd manager_directory;
     bool manager_created = false, moved = false, enabled = false;
     std::map<std::string, std::shared_ptr<Group>> groups;
     std::shared_ptr<Group> git_group;
     std::uint64_t memory = 0, swap = 0, processes = 0;
+    std::uint64_t unfunded(const char* counter, std::uint64_t manager_reserve, unsigned dimension) const {
+        auto funded = std::min(std::stoull(read_at(manager_directory.value, counter)),
+                               static_cast<unsigned long long>(manager_reserve));
+        for (const auto& [name, group] : groups) {
+            (void)name;
+            const auto reserve = dimension == 0 ? group->memory : dimension == 1 ? group->swap : group->processes;
+            funded += std::min(std::stoull(read_at(group->directory.value, counter)),
+                               static_cast<unsigned long long>(reserve));
+        }
+        if (git_group) {
+            const auto& budget = git_group->budget;
+            const auto reserve = dimension == 0 ? budget.memory_bytes() : dimension == 1 ? budget.swap_bytes() : budget.processes();
+            funded += std::min(std::stoull(read_at(git_group->directory.value, counter)),
+                               static_cast<unsigned long long>(reserve));
+        }
+        const auto current = std::stoull(read_at(directory, counter));
+        return current > funded ? current-funded : 0;
+    }
     bool fits(const Budget& value) const {
         const auto& total = config.broker_budget();
         const auto& manager = config.manager_budget();
@@ -283,14 +309,14 @@ struct WorkspaceResources::Impl {
             if (current > remaining) return false;
             return request <= remaining - current;
         };
-        // Count current root usage conservatively as additional headroom. This includes
-        // cache reparented after old scopes disappear; stopping a process does not erase it.
+        // Existing reservations already fund their bounded usage. Count remaining charges
+        // separately, including cache reparented after earlier scopes disappear.
         return available(total.memory_bytes(), manager.memory_bytes(), memory,
-                   std::stoull(read_at(directory, "memory.current")), value.memory_bytes()) &&
+                   unfunded("memory.current", manager.memory_bytes(), 0), value.memory_bytes()) &&
                available(total.swap_bytes(), manager.swap_bytes(), swap,
-                   std::stoull(read_at(directory, "memory.swap.current")), value.swap_bytes()) &&
+                   unfunded("memory.swap.current", manager.swap_bytes(), 1), value.swap_bytes()) &&
                available(total.processes(), manager.processes(), processes,
-                   std::stoull(read_at(directory, "pids.current")), value.processes());
+                   unfunded("pids.current", manager.processes(), 2), value.processes());
     }
     void reserve(const Budget& value) {
         memory += value.memory_bytes(); swap += value.swap_bytes(); processes += value.processes();
@@ -335,6 +361,8 @@ struct WorkspaceResources::Impl {
             write_budget(manager, config.manager_budget());
         } catch (...) { close(manager); throw; }
         close(manager);
+        manager_directory.reset(openat(directory, "broker-manager", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+        check(manager_directory.value >= 0, "Cannot retain manager resource accounting");
     }
     ~Impl() {
         try {

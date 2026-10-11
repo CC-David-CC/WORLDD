@@ -1,0 +1,20 @@
+[0/2] Re-checking globbed directories...
+-- GLOB mismatch!
+-- GLOB mismatch!
+[1/2] Re-running CMake...
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+[0/2] Re-checking globbed directories...
+[1/12] Generating python/storage_pb2.py
+[2/12] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/storage.proto
+[3/12] Building CXX object CMakeFiles/spatial-storage-channel.dir/src/workspace/storage_channel.cpp.o
+[4/12] Building CXX object CMakeFiles/spatial-protobuf.dir/storage.pb.cc.o
+[5/12] Linking CXX static library libspatial-protobuf.a
+[6/12] Linking CXX static library libspatial-storage-channel.a
+[7/12] Building CXX object CMakeFiles/spatial-storage-owner.dir/src/workspace/storage_owner.cpp.o
+[8/12] Linking CXX static library libspatial-storage-owner.a
+[9/12] Building CXX object CMakeFiles/spatial-storage-owner-service.dir/src/workspace/storage_main.cpp.o
+[10/12] Linking CXX executable spatial-storage-owner
+[11/12] Building CXX object CMakeFiles/spatial-storage-launch.dir/src/supervisor/storage_launch.cpp.o
+[12/12] Linking CXX static library libspatial-storage-launch.a

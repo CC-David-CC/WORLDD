@@ -12,7 +12,7 @@ namespace spatial {
 class StorageChannel final {
 public:
     using Clock = std::chrono::steady_clock;
-    StorageChannel(int descriptor, uid_t peer_uid, std::optional<pid_t> peer_pid);
+    StorageChannel(int descriptor, uid_t peer_uid, std::optional<pid_t> peer_pid, int borrowed_peer_pidfd = -1);
     ~StorageChannel();
     void send(const std::string& payload, Clock::time_point deadline,
               const std::function<void()>& tick = {});

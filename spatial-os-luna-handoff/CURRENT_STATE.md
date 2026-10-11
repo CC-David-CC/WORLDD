@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-11: Bounded storage-owner launcher passed focused checks on both hosts
+
+Both hosts passed 106 selected regression cases under ASan/UBSan.
+Both passed the production-owner integration with a real 288 MiB Git import.
+All five scenarios passed: import/retirement, application/actor quotas, read-only access, sibling survival, and restart.
+Independent kernel witnesses checked both owner incarnations on each host.
+They confirmed memory, swap, CPU, process, I/O, private-network, and retained broker-pidfd boundaries.
+Owner and delegation units are unloaded. Test volumes are unmounted and detached.
+The reviewed evidence contains 300 verified attachments and 364 matching source inputs per host.
+All 41 locked files remain unchanged. Read evidence/m03-storage-launch-2026-10-11/primary-review.json.
+
+The reproduced memory-admission double count is corrected within this tested scope.
+The one-GiB broker envelope and 256-MiB manager/Git limits remain unchanged.
+Both hosts now have the root-owned owner executable at /usr/local/libexec/spatial-storage-owner.
+Installation receipts record its hash and exact removal command. Normal login remains available.
+
+The launcher component is implemented. Normal supervisor and BrokerProcess adoption remain pending.
+Operator data-volume provisioning, the launch-failure matrix, contention/revocation checks, and the full M03 gate remain pending.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
 ## 2026-10-11: M03 resumed at Git I/O-device validation
 
 David resumed the full project goal. The earlier pause record remains historical.
