@@ -18,6 +18,7 @@ message StorageLaunchResult {
   uint64 request_id = 2;
   string unit = 3;
   oneof outcome { bool running = 4; bool stopped = 5; string error = 6; }
+  optional bool startup_cleanup_confirmed = 7;
 }
 
 // Operator ceilings. These do not grant filesystem or execution authority.

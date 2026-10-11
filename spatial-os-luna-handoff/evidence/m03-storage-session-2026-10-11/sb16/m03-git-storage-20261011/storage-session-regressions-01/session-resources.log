@@ -1,0 +1,862 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 93
+    Start 93: session-resources
+
+93: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py" "--native" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"
+93: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+93: Environment variables: 
+93:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+93:  SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb
+93:  SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-regressions-01/native
+93:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+93:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+93: Test timeout computed to be: 240
+93: {"unit": "spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-regressions-01/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-regressions-01/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service"]}
+93: Running as unit: spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service; invocation ID: 709faac194a347d49f2f4e5fcda715ab
+93: test_supervisor_binds_sealed_resource_policy (__main__.SessionResourceTests.test_supervisor_binds_sealed_resource_policy) ... FAIL
+93: test_resource_descriptor_cannot_collide_with_participant (__main__.SessionResourceTests.test_resource_descriptor_cannot_collide_with_participant) ... FAIL
+93: test_resource_template_cannot_select_a_cgroup (__main__.SessionResourceTests.test_resource_template_cannot_select_a_cgroup) ... FAIL
+93: test_resource_arguments_cannot_override_owned_handoff (__main__.SessionResourceTests.test_resource_arguments_cannot_override_owned_handoff) ... FAIL
+93: test_storage_descriptor_cannot_collide_with_participant (__main__.SessionResourceTests.test_storage_descriptor_cannot_collide_with_participant) ... FAIL
+93: test_storage_descriptor_cannot_collide_with_resource_policy (__main__.SessionResourceTests.test_storage_descriptor_cannot_collide_with_resource_policy) ... FAIL
+93: test_storage_arguments_cannot_override_owned_handoff (__main__.SessionResourceTests.test_storage_arguments_cannot_override_owned_handoff) ... FAIL
+93: test_storage_volume_must_match_broker_state (__main__.SessionResourceTests.test_storage_volume_must_match_broker_state) ... FAIL
+93: test_storage_template_requires_reserved_descriptor (__main__.SessionResourceTests.test_storage_template_requires_reserved_descriptor) ... FAIL
+93: test_native_application_has_kernel_budgets_inside_broker_scope (__main__.SessionResourceTests.test_native_application_has_kernel_budgets_inside_broker_scope) ... FAIL
+93: test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionResourceTests.test_actor_stop_releases_native_input_and_its_reservation) ... FAIL
+93: test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionResourceTests.test_world_crash_preserves_application_and_pending_owned_reservation) ... FAIL
+93: test_recovery_requires_checked_cleanup_and_preserves_live_application (__main__.SessionResourceTests.test_recovery_requires_checked_cleanup_and_preserves_live_application) ... FAIL
+93: 
+93: ======================================================================
+93: FAIL: test_supervisor_binds_sealed_resource_policy (__main__.SessionResourceTests.test_supervisor_binds_sealed_resource_policy)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 73, in test_supervisor_binds_sealed_resource_policy
+93:     proc, channel = self.supervisor_process(self.broker_config(), supervisor_binary=BASELINE)
+93:                                             ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_resource_descriptor_cannot_collide_with_participant (__main__.SessionResourceTests.test_resource_descriptor_cannot_collide_with_participant)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 105, in test_resource_descriptor_cannot_collide_with_participant
+93:     self.rejected_before_ownership(lambda c: setattr(c, 'broker_resource_target_fd', c.participant_target_fd),
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+93:     config = self.broker_config(); change(config)
+93:              ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_resource_template_cannot_select_a_cgroup (__main__.SessionResourceTests.test_resource_template_cannot_select_a_cgroup)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 109, in test_resource_template_cannot_select_a_cgroup
+93:     self.rejected_before_ownership(lambda c: setattr(c.broker_resources, 'delegated_cgroup', str(self.cgroup)),
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+93:     config = self.broker_config(); change(config)
+93:              ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_resource_arguments_cannot_override_owned_handoff (__main__.SessionResourceTests.test_resource_arguments_cannot_override_owned_handoff)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 113, in test_resource_arguments_cannot_override_owned_handoff
+93:     self.rejected_before_ownership(lambda c: c.launch.arguments.extend(['--resource-config', '/tmp/unowned-policy']),
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+93:     config = self.broker_config(); change(config)
+93:              ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_storage_descriptor_cannot_collide_with_participant (__main__.SessionResourceTests.test_storage_descriptor_cannot_collide_with_participant)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 125, in test_storage_descriptor_cannot_collide_with_participant
+93:     self.rejected_before_ownership(change, 'Invalid broker storage descriptor target')
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+93:     config = self.broker_config(); change(config)
+93:              ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_storage_descriptor_cannot_collide_with_resource_policy (__main__.SessionResourceTests.test_storage_descriptor_cannot_collide_with_resource_policy)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 130, in test_storage_descriptor_cannot_collide_with_resource_policy
+93:     self.rejected_before_ownership(change, 'Invalid broker storage descriptor target')
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+93:     config = self.broker_config(); change(config)
+93:              ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_storage_arguments_cannot_override_owned_handoff (__main__.SessionResourceTests.test_storage_arguments_cannot_override_owned_handoff)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 135, in test_storage_arguments_cannot_override_owned_handoff
+93:     self.rejected_before_ownership(change, 'Supervisor owns broker storage arguments')
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+93:     config = self.broker_config(); change(config)
+93:              ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_storage_volume_must_match_broker_state (__main__.SessionResourceTests.test_storage_volume_must_match_broker_state)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 140, in test_storage_volume_must_match_broker_state
+93:     self.rejected_before_ownership(change, 'Broker state must match its storage-owner volume')
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+93:     config = self.broker_config(); change(config)
+93:              ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_storage_template_requires_reserved_descriptor (__main__.SessionResourceTests.test_storage_template_requires_reserved_descriptor)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 145, in test_storage_template_requires_reserved_descriptor
+93:     self.rejected_before_ownership(change, 'Invalid supervisor configuration')
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+93:     config = self.broker_config(); change(config)
+93:              ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_native_application_has_kernel_budgets_inside_broker_scope (__main__.SessionResourceTests.test_native_application_has_kernel_budgets_inside_broker_scope)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 148, in test_native_application_has_kernel_budgets_inside_broker_scope
+93:     self.held_application()
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 174, in held_application
+93:     self.coordinator, self.owner, self.world_record = self.ready()
+93:                                                       ^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+93:     proc = self.start_coordinator()
+93:            ^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 54, in start_coordinator
+93:     broker_config = self.broker_config()
+93:                     ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionResourceTests.test_actor_stop_releases_native_input_and_its_reservation)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 247, in test_actor_stop_releases_native_input_and_its_reservation
+93:     self.held_application()
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 174, in held_application
+93:     self.coordinator, self.owner, self.world_record = self.ready()
+93:                                                       ^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+93:     proc = self.start_coordinator()
+93:            ^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 54, in start_coordinator
+93:     broker_config = self.broker_config()
+93:                     ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionResourceTests.test_world_crash_preserves_application_and_pending_owned_reservation)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 257, in test_world_crash_preserves_application_and_pending_owned_reservation
+93:     self.held_application()
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 174, in held_application
+93:     self.coordinator, self.owner, self.world_record = self.ready()
+93:                                                       ^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+93:     proc = self.start_coordinator()
+93:            ^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 54, in start_coordinator
+93:     broker_config = self.broker_config()
+93:                     ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ======================================================================
+93: FAIL: test_recovery_requires_checked_cleanup_and_preserves_live_application (__main__.SessionResourceTests.test_recovery_requires_checked_cleanup_and_preserves_live_application)
+93: ----------------------------------------------------------------------
+93: Traceback (most recent call last):
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 284, in test_recovery_requires_checked_cleanup_and_preserves_live_application
+93:     self.held_application()
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 174, in held_application
+93:     self.coordinator, self.owner, self.world_record = self.ready()
+93:                                                       ^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+93:     proc = self.start_coordinator()
+93:            ^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 54, in start_coordinator
+93:     broker_config = self.broker_config()
+93:                     ^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+93:     config = super().broker_config(target)
+93:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+93:     channel.call('git.repo.import', id='repo', path=str(repo.path))
+93:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+93:     self.fixture.assertFalse(reply.management.HasField('error'), reply)
+93: AssertionError: True is not false : protocol_version: 1
+93: request_id: 1
+93: management {
+93:   protocol_version: 1
+93:   request_id: 1
+93:   error {
+93:     code: UNAVAILABLE
+93:     message: "Administrative Git requires a configured worker resource boundary"
+93:   }
+93: }
+93: 
+93: 
+93: ----------------------------------------------------------------------
+93: Ran 13 tests in 7.733s
+93: 
+93: FAILED (failures=13)
+93: Finished with result: exit-code
+93: Main processes terminated with: code=exited/status=1
+93: Service runtime: 7.893s
+93: CPU time consumed: 3.964s
+93: Memory peak: 2.6M
+93: Memory swap peak: 0B
+93: {"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service: Unit spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service not loaded.\n"}
+93: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+1/1 Test #93: session-resources ................***Failed    8.03 sec
+{"unit": "spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-regressions-01/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-regressions-01/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service"]}
+Running as unit: spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service; invocation ID: 709faac194a347d49f2f4e5fcda715ab
+test_supervisor_binds_sealed_resource_policy (__main__.SessionResourceTests.test_supervisor_binds_sealed_resource_policy) ... FAIL
+test_resource_descriptor_cannot_collide_with_participant (__main__.SessionResourceTests.test_resource_descriptor_cannot_collide_with_participant) ... FAIL
+test_resource_template_cannot_select_a_cgroup (__main__.SessionResourceTests.test_resource_template_cannot_select_a_cgroup) ... FAIL
+test_resource_arguments_cannot_override_owned_handoff (__main__.SessionResourceTests.test_resource_arguments_cannot_override_owned_handoff) ... FAIL
+test_storage_descriptor_cannot_collide_with_participant (__main__.SessionResourceTests.test_storage_descriptor_cannot_collide_with_participant) ... FAIL
+test_storage_descriptor_cannot_collide_with_resource_policy (__main__.SessionResourceTests.test_storage_descriptor_cannot_collide_with_resource_policy) ... FAIL
+test_storage_arguments_cannot_override_owned_handoff (__main__.SessionResourceTests.test_storage_arguments_cannot_override_owned_handoff) ... FAIL
+test_storage_volume_must_match_broker_state (__main__.SessionResourceTests.test_storage_volume_must_match_broker_state) ... FAIL
+test_storage_template_requires_reserved_descriptor (__main__.SessionResourceTests.test_storage_template_requires_reserved_descriptor) ... FAIL
+test_native_application_has_kernel_budgets_inside_broker_scope (__main__.SessionResourceTests.test_native_application_has_kernel_budgets_inside_broker_scope) ... FAIL
+test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionResourceTests.test_actor_stop_releases_native_input_and_its_reservation) ... FAIL
+test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionResourceTests.test_world_crash_preserves_application_and_pending_owned_reservation) ... FAIL
+test_recovery_requires_checked_cleanup_and_preserves_live_application (__main__.SessionResourceTests.test_recovery_requires_checked_cleanup_and_preserves_live_application) ... FAIL
+
+======================================================================
+FAIL: test_supervisor_binds_sealed_resource_policy (__main__.SessionResourceTests.test_supervisor_binds_sealed_resource_policy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 73, in test_supervisor_binds_sealed_resource_policy
+    proc, channel = self.supervisor_process(self.broker_config(), supervisor_binary=BASELINE)
+                                            ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_resource_descriptor_cannot_collide_with_participant (__main__.SessionResourceTests.test_resource_descriptor_cannot_collide_with_participant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 105, in test_resource_descriptor_cannot_collide_with_participant
+    self.rejected_before_ownership(lambda c: setattr(c, 'broker_resource_target_fd', c.participant_target_fd),
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+    config = self.broker_config(); change(config)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_resource_template_cannot_select_a_cgroup (__main__.SessionResourceTests.test_resource_template_cannot_select_a_cgroup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 109, in test_resource_template_cannot_select_a_cgroup
+    self.rejected_before_ownership(lambda c: setattr(c.broker_resources, 'delegated_cgroup', str(self.cgroup)),
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+    config = self.broker_config(); change(config)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_resource_arguments_cannot_override_owned_handoff (__main__.SessionResourceTests.test_resource_arguments_cannot_override_owned_handoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 113, in test_resource_arguments_cannot_override_owned_handoff
+    self.rejected_before_ownership(lambda c: c.launch.arguments.extend(['--resource-config', '/tmp/unowned-policy']),
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+    config = self.broker_config(); change(config)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_storage_descriptor_cannot_collide_with_participant (__main__.SessionResourceTests.test_storage_descriptor_cannot_collide_with_participant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 125, in test_storage_descriptor_cannot_collide_with_participant
+    self.rejected_before_ownership(change, 'Invalid broker storage descriptor target')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+    config = self.broker_config(); change(config)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_storage_descriptor_cannot_collide_with_resource_policy (__main__.SessionResourceTests.test_storage_descriptor_cannot_collide_with_resource_policy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 130, in test_storage_descriptor_cannot_collide_with_resource_policy
+    self.rejected_before_ownership(change, 'Invalid broker storage descriptor target')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+    config = self.broker_config(); change(config)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_storage_arguments_cannot_override_owned_handoff (__main__.SessionResourceTests.test_storage_arguments_cannot_override_owned_handoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 135, in test_storage_arguments_cannot_override_owned_handoff
+    self.rejected_before_ownership(change, 'Supervisor owns broker storage arguments')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+    config = self.broker_config(); change(config)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_storage_volume_must_match_broker_state (__main__.SessionResourceTests.test_storage_volume_must_match_broker_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 140, in test_storage_volume_must_match_broker_state
+    self.rejected_before_ownership(change, 'Broker state must match its storage-owner volume')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+    config = self.broker_config(); change(config)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_storage_template_requires_reserved_descriptor (__main__.SessionResourceTests.test_storage_template_requires_reserved_descriptor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 145, in test_storage_template_requires_reserved_descriptor
+    self.rejected_before_ownership(change, 'Invalid supervisor configuration')
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 95, in rejected_before_ownership
+    config = self.broker_config(); change(config)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_native_application_has_kernel_budgets_inside_broker_scope (__main__.SessionResourceTests.test_native_application_has_kernel_budgets_inside_broker_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 148, in test_native_application_has_kernel_budgets_inside_broker_scope
+    self.held_application()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 174, in held_application
+    self.coordinator, self.owner, self.world_record = self.ready()
+                                                      ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+    proc = self.start_coordinator()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 54, in start_coordinator
+    broker_config = self.broker_config()
+                    ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_actor_stop_releases_native_input_and_its_reservation (__main__.SessionResourceTests.test_actor_stop_releases_native_input_and_its_reservation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 247, in test_actor_stop_releases_native_input_and_its_reservation
+    self.held_application()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 174, in held_application
+    self.coordinator, self.owner, self.world_record = self.ready()
+                                                      ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+    proc = self.start_coordinator()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 54, in start_coordinator
+    broker_config = self.broker_config()
+                    ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_world_crash_preserves_application_and_pending_owned_reservation (__main__.SessionResourceTests.test_world_crash_preserves_application_and_pending_owned_reservation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 257, in test_world_crash_preserves_application_and_pending_owned_reservation
+    self.held_application()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 174, in held_application
+    self.coordinator, self.owner, self.world_record = self.ready()
+                                                      ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+    proc = self.start_coordinator()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 54, in start_coordinator
+    broker_config = self.broker_config()
+                    ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+======================================================================
+FAIL: test_recovery_requires_checked_cleanup_and_preserves_live_application (__main__.SessionResourceTests.test_recovery_requires_checked_cleanup_and_preserves_live_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 284, in test_recovery_requires_checked_cleanup_and_preserves_live_application
+    self.held_application()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 174, in held_application
+    self.coordinator, self.owner, self.world_record = self.ready()
+                                                      ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+    proc = self.start_coordinator()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 54, in start_coordinator
+    broker_config = self.broker_config()
+                    ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_resources.py", line 43, in broker_config
+    config = super().broker_config(target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 93, in broker_config
+    channel.call('git.repo.import', id='repo', path=str(repo.path))
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_supervisor_broker_handoff_regressions.py", line 44, in call
+    self.fixture.assertFalse(reply.management.HasField('error'), reply)
+AssertionError: True is not false : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  error {
+    code: UNAVAILABLE
+    message: "Administrative Git requires a configured worker resource boundary"
+  }
+}
+
+
+----------------------------------------------------------------------
+Ran 13 tests in 7.733s
+
+FAILED (failures=13)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 7.893s
+CPU time consumed: 3.964s
+Memory peak: 2.6M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service: Unit spatial-m03-resources-efae48602cf04c7296b071437d489ed4.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   8.03 sec
+
+The following tests FAILED:
+	 93 - session-resources (Failed)
+Errors while running CTest

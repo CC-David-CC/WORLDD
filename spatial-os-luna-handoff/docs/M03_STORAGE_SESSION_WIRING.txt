@@ -1,0 +1,69 @@
+M03 storage-owner session wiring, 2026-10-11
+
+Invariant
+Every configured storage-backed broker receives one private inherited channel.
+The retained launcher supplies the actual broker pidfd to the bounded owner service.
+Sender credentials are enabled before the broker starts.
+Storage-owner death stops the broker, including while idle.
+Cleanup reports success only after the broker and owner service stop.
+
+Additive contract
+BrokerProcessConfig adds storage_owner at field four.
+AuthoritySupervisorConfig adds broker_storage_owner and broker_storage_target_fd at fields 15 and 16.
+The storage channel requires native broker identity and an explicit resource template in retained sessions.
+Its target must differ from every other inherited target.
+The broker state directory must equal the configured volume.
+The launcher owns --storage-fd. A caller cannot override that argument.
+SessionBroker allocates its administrative descriptor around every reserved target.
+StorageClient checks its pinned owner identity during the broker's existing enforcement loop.
+StorageLaunchFailure distinguishes confirmed startup cleanup from unresolved cleanup.
+The retained supervisor withholds its cleanup receipt when owner startup cleanup is unresolved.
+The launcher checks retained parent context immediately before publishing readiness.
+StorageLaunchResult adds the private startup_cleanup_confirmed witness at field seven.
+
+Native fixture migration
+Bootstrap uses the production BrokerProcess with a sealed resource policy.
+The thin witness forwards management messages and checks the actual broker's successful exit.
+Ten related native registrations now use explicit I/O delegation and the shared resource template.
+The session-resources registration uses the same template for bootstrap.
+All existing test assertions and registered timeouts remain unchanged.
+Earlier bootstrap failures remain preserved. Production rejected their missing Git boundary correctly.
+
+Selected checks before execution
+Build changed launchers, broker, and protobuf bindings under ASan/UBSan with warnings treated as errors.
+Run broker-resource, workspace-Git, workspace-context, process-termination, and worldd-lifecycle regressions.
+Run retained supervisor, session broker, cleanup, and native resource integration checks.
+Add rejected storage descriptor, mismatched volume, and override-argument cases.
+Test a real direct storage-backed broker and idle owner death on a dedicated quota volume.
+Cancel a real active owner at the readiness boundary and verify its checked cleanup result.
+Keep the operator provisioning, native storage-session witness, and full M03 gate pending until executed.
+
+Storage device coverage increment
+The production root owner reads its actual unified cgroup io.max.
+It validates the pinned volume before catalog or quota changes.
+Both read and write ceilings must be finite on every required device.
+Loop volumes require their own queue and their backing filesystem queue.
+Applications, Git workers, and the owner share the same descriptor-based resolver.
+Direct diagnostic owner construction remains available without production qualification.
+Selected checks include wrong-device and missing-backing-device rejection before catalog creation.
+Rerun broker resource, Git, process resource, and direct owner integration under ASan/UBSan.
+
+Focused checkpoint results
+Both hosts passed 106 core and 19 native regression cases on the current source.
+Both hosts passed seven direct-launch scenarios with actual bounded owner services.
+Both incomplete-device budgets are rejected before private catalog creation.
+The independent witness checked the actual owner io.max and broker pidfd.
+Read evidence/m03-storage-session-2026-10-11/primary-review.json for source pins and preserved failures.
+Historical native crash and replacement results retain their earlier source hashes.
+This checkpoint does not qualify a native session with configured storage ownership.
+It does not complete M03.
+
+Next combined increment
+Provision a dedicated operator volume and protected owner policy.
+Bootstrap project data through the bounded owner before starting the native session.
+Use the same volume and policy for its retained native broker.
+Verify native application launch, owner loss, and checked session cleanup.
+Require the production resource and storage profile in operator entry points.
+Qualify issuer availability and immediate revocation under bounded competing writes.
+Freeze the candidate and run the complete M03 gate on both hosts.
+Advance to M04 only after M03 qualifies.

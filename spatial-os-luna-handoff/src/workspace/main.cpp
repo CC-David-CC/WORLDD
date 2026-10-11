@@ -222,6 +222,7 @@ int main(int argc, char** argv) {
         });
         const auto enforce = [&] {
             if (transport_failed) throw std::runtime_error("Workspace reply transport failed");
+            if (storage) storage->check_alive();
             if (native) native->check();
             if (authority) {
                 authority->tick();

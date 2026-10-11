@@ -1,5 +1,6 @@
 #include "supervisor/launch.hpp"
 #include "supervisor/child_handle.hpp"
+#include "supervisor/storage_launch.hpp"
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
 #include "workspace/resources.hpp"
@@ -15,6 +16,7 @@
 #include <poll.h>
 #include <set>
 #include <sys/mman.h>
+#include <sys/socket.h>
 
 namespace {
 namespace pb = spatial::supervisor::v1;
@@ -57,8 +59,10 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         !(value.has_broker_native_target_fd() && value.has_compositor_native_target_fd()) &&
         value.has_broker_resources() == value.has_broker_resource_target_fd() &&
         (!value.has_broker_resources() || value.has_broker_native_target_fd()) &&
+        value.has_broker_storage_owner() == value.has_broker_storage_target_fd() &&
+        (!value.has_broker_storage_owner() || value.has_broker_resources()) &&
         value.inherited_source_fds_size() + ((value.has_broker_native_target_fd() || value.has_compositor_native_target_fd()) ? 2 : 1) +
-            (value.has_broker_resources() ? 1 : 0) <= 16 &&
+            (value.has_broker_resources() ? 1 : 0) + (value.has_broker_storage_owner() ? 1 : 0) <= 16 &&
         value.inherited_source_fds_size() == value.launch().inherited_fds_size(),
         "Invalid supervisor configuration");
     std::set<std::uint32_t> targets{value.participant_target_fd()}, sources;
@@ -80,6 +84,22 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         for (const auto& arg : value.launch().arguments())
             require(arg != "--resource-config" && arg != "--resource-config-fd", "Supervisor owns broker resource arguments");
     }
+    if (value.has_broker_storage_owner()) {
+        const auto target = value.broker_storage_target_fd();
+        require(target >= 3 && target <= 255 && targets.insert(target).second, "Invalid broker storage descriptor target");
+        unsigned states = 0;
+        for (int i = 0; i < value.launch().arguments_size(); ++i) {
+            const auto& arg = value.launch().arguments(i);
+            require(arg != "--storage-fd", "Supervisor owns broker storage arguments");
+            if (arg == "--state-dir") {
+                require(i+1 < value.launch().arguments_size() &&
+                    value.launch().arguments(i+1) == value.broker_storage_owner().volume_root(),
+                    "Broker state must match its storage-owner volume");
+                ++states;
+            }
+        }
+        require(states == 1, "Broker storage requires exactly one state directory");
+    }
     struct stat native_info{}, management_info{}, handle_info{};
     require(fstat(native, &native_info) == 0 && fstat(management, &management_info) == 0,
         "Cannot identify privileged descriptors");
@@ -98,6 +118,8 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
             (handle < 0 || !(source_info.st_dev == handle_info.st_dev && source_info.st_ino == handle_info.st_ino)),
             "Child descriptor aliases privileged supervisor input");
     }
+    if (value.has_broker_storage_owner())
+        spatial::supervisor::validate_storage_launch(value.broker_storage_owner(), value.broker_storage_owner().volume_root());
     return value;
 }
 pb::NativeScopeConfig handoff_source(int fd, bool compositor) {
@@ -213,9 +235,11 @@ void release_child_sources(const pb::AuthoritySupervisorConfig& config) {
 
 int main(int argc, char** argv) {
     std::unique_ptr<spatial::supervisor::AuthorityLaunch> launch;
+    std::unique_ptr<spatial::supervisor::StorageOwnerLaunch> storage;
     std::unique_ptr<spatial::identity::ParticipantStream> management;
     std::unique_ptr<spatial::supervisor::ChildHandleServer> handles;
     bool explicit_shutdown = false;
+    bool storage_start_cleanup_confirmed = true;
     std::signal(SIGPIPE, SIG_IGN);
     std::signal(SIGTERM, terminate); std::signal(SIGINT, terminate);
     try {
@@ -230,6 +254,16 @@ int main(int argc, char** argv) {
         File native_config(native);
         File broker_config;
         File broker_resources;
+        File storage_owner, storage_child;
+        if (config.has_broker_storage_owner()) {
+            int pair[2]; require(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) == 0,
+                "Cannot create private broker storage channel");
+            storage_owner.reset(pair[0]); storage_child.reset(pair[1]);
+            const int enabled = 1;
+            for (const int fd : pair)
+                require(setsockopt(fd, SOL_SOCKET, SO_PASSCRED, &enabled, sizeof(enabled)) == 0,
+                    "Cannot require broker storage credentials");
+        }
         File compositor_config;
         std::optional<pb::NativeScopeConfig> source;
         if (config.has_broker_native_target_fd() || config.has_compositor_native_target_fd())
@@ -277,8 +311,28 @@ int main(int argc, char** argv) {
             config.mutable_launch()->add_inherited_fds(config.compositor_native_target_fd());
             inherited.push_back(compositor_config.value);
         }
+        if (config.has_broker_storage_owner()) {
+            config.mutable_launch()->add_inherited_fds(config.broker_storage_target_fd());
+            inherited.push_back(storage_child.value);
+            config.mutable_launch()->add_arguments("--storage-fd");
+            config.mutable_launch()->add_arguments(std::to_string(config.broker_storage_target_fd()));
+        }
         const auto started = launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO}, inherited);
         release_child_sources(config);
+        storage_child.reset();
+        if (config.has_broker_storage_owner()) {
+            File broker_handle(launch->duplicate_broker_pidfd(started));
+            storage_start_cleanup_confirmed = false;
+            try {
+                storage = std::make_unique<spatial::supervisor::StorageOwnerLaunch>(config.broker_storage_owner(),
+                    config.broker_storage_owner().volume_root(), storage_owner.value, broker_handle.value, STDERR_FILENO,
+                    [&] { require(!interrupted, "Storage startup interrupted"); parent_alive(control); launch->pump_channel(); });
+                storage_start_cleanup_confirmed = true;
+            } catch (const spatial::supervisor::StorageLaunchFailure& failure) {
+                storage_start_cleanup_confirmed = failure.cleanup_confirmed(); throw;
+            }
+            storage_owner.reset();
+        }
         view(*management, started);
         broker_config.reset();
         broker_resources.reset();
@@ -308,6 +362,7 @@ int main(int argc, char** argv) {
                         catch (const std::exception& error) { reply.mutable_error()->set_message(error.what()); }
                     }
                     else *reply.mutable_view()->mutable_record() = stop ? launch->stop() : launch->inspect();
+                    if (stop && storage) storage->stop();
                 }
                 management->send(reply.SerializeAsString());
                 if (stop) { drain(*management); return 0; }
@@ -315,8 +370,11 @@ int main(int argc, char** argv) {
             if (handles) handles->pump(*launch);
             launch->pump_channel();
             if (launch->child_completed()) {
-                view(*management, launch->stop()); drain(*management); return 0;
+                const auto stopped = launch->stop();
+                if (storage) storage->stop();
+                view(*management, stopped); drain(*management); return 0;
             }
+            if (storage) storage->check_alive();
             management->flush(); tick();
         }
     } catch (const std::exception& error) {
@@ -331,6 +389,17 @@ int main(int argc, char** argv) {
             }
             try { cleanup_record = launch->stop(); }
             catch (const std::exception& cleanup) { std::cerr << "authority supervisor cleanup unresolved: " << cleanup.what() << '\n'; }
+        }
+        if (storage) {
+            try { storage->stop(); }
+            catch (const std::exception& cleanup) {
+                cleanup_record.reset();
+                std::cerr << "authority storage cleanup unresolved: " << storage->unit() << ": " << cleanup.what() << '\n';
+            }
+        }
+        if (!storage_start_cleanup_confirmed) {
+            cleanup_record.reset();
+            std::cerr << "authority storage startup cleanup remains unconfirmed\n";
         }
         if (management) {
             try {

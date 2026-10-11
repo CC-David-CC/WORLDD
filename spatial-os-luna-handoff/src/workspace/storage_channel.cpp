@@ -102,6 +102,7 @@ StorageChannel::StorageChannel(int descriptor, uid_t uid, std::optional<pid_t> p
     : impl_(std::make_unique<Impl>(descriptor, uid, pid, borrowed_peer_pidfd)) {}
 StorageChannel::~StorageChannel() = default;
 pid_t StorageChannel::peer_pid() const { return impl_->pid.value_or(-1); }
+void StorageChannel::check_alive() const { impl_->alive(); }
 void StorageChannel::send(const std::string& payload, Clock::time_point deadline, const std::function<void()>& tick) {
     require(!payload.empty() && payload.size() <= max_frame_bytes, "Storage frame exceeds bounds");
     const auto size = static_cast<std::uint32_t>(payload.size());

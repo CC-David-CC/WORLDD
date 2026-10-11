@@ -1,4 +1,5 @@
 #include "workspace/storage_owner.hpp"
+#include "workspace/storage_devices.hpp"
 #include "core/protocol.hpp"
 #include "identity/tls_support.hpp"
 #include <algorithm>
@@ -213,7 +214,7 @@ struct StorageOwner::Impl {
     std::unique_ptr<CatalogVfs> catalog_vfs;
     Database db;
     std::uint64_t capacity = 0;
-    explicit Impl(pb::StorageOwnerConfig value) : config(std::move(value)) {
+    explicit Impl(pb::StorageOwnerConfig value, bool require_kernel_io) : config(std::move(value)) {
         require(getuid() == 0 && geteuid() == 0, "Storage owner requires operator privilege"); validate_storage_policy(config);
         root.reset(open(config.volume_root().c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)); check(root.value >= 0, "Cannot pin storage volume");
         struct statfs filesystem{}; check(fstatfs(root.value, &filesystem) == 0, "Cannot inspect storage filesystem");
@@ -223,6 +224,7 @@ struct StorageOwner::Impl {
         btrfs_ioctl_dev_info_args device{}; device.devid = info.max_id;
         check(ioctl(root.value, BTRFS_IOC_DEV_INFO, &device) == 0, "Cannot inspect storage device capacity");
         require(device.total_bytes == config.volume_bytes(), "Storage device capacity differs from its reservation");
+        if (require_kernel_io) validate_current_storage_io(root.value);
         const bool fresh = mkdirat(root.value, ".storage-owner", 0700) == 0;
         if (!fresh) check(errno == EEXIST, "Cannot create private storage catalog");
         metadata.reset(openat(root.value, ".storage-owner", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
@@ -392,7 +394,8 @@ struct StorageOwner::Impl {
         return allocate(request.object(), actor_group, maximum, request.SerializeAsString());
     }
 };
-StorageOwner::StorageOwner(workspace::v1::StorageOwnerConfig configuration) : impl_(std::make_unique<Impl>(std::move(configuration))) {}
+StorageOwner::StorageOwner(workspace::v1::StorageOwnerConfig configuration, bool require_kernel_io)
+    : impl_(std::make_unique<Impl>(std::move(configuration), require_kernel_io)) {}
 StorageOwner::~StorageOwner() = default;
 const workspace::v1::StorageOwnerConfig& StorageOwner::configuration() const { return impl_->config; }
 workspace::v1::StorageOwnerReply StorageOwner::handle(const workspace::v1::StorageOwnerRequest& request) {

@@ -1,0 +1,31 @@
+Storage-owner I/O-device validation defect
+Confirmed and corrected in the tested component scope, 2026-10-11.
+
+Reproduction
+Both hosts accepted an owner budget that omitted the actual loop volume device.
+The genuine broker returned a successful production hello.
+Read evidence/m03-storage-session-2026-10-11 for both original failures.
+
+Required invariant
+The production owner verifies bounded I/O coverage for its pinned volume.
+Loop storage requires coverage for its queue and backing filesystem queue.
+Reject mismatches before catalog or quota changes.
+
+Applied correction
+The production owner reads its own kernel cgroup io.max.
+Both read and write ceilings must be finite on each required device.
+It reuses the descriptor-based device resolver used by applications and Git.
+Validation runs inside the root owner before creating its private catalog.
+The held volume descriptor remains the storage authority.
+
+Focused evidence
+Both hosts passed wrong-device and missing-backing-device rejection before catalog creation.
+Both passed five adjacent direct-launch, owner-death, and checked-cleanup scenarios.
+An independent witness read the actual owner cgroup and both device ceilings.
+The root-owned executable replacement has a hash-pinned backup and exact recovery commands.
+
+Remaining qualification
+Diagnostic direct-owner construction does not establish production qualification.
+Native sessions with configured storage ownership remain pending.
+Operator provisioning, contention, revocation, and the full M03 gate remain pending.
+This correction does not complete M03.

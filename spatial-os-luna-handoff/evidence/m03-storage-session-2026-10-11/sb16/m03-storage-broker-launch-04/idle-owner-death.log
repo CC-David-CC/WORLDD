@@ -1,0 +1,3 @@
+Storage owner unit: spatial-storage-owner-5d4351a213469793d4c95e40b262666b.service
+workspaced: Storage owner unavailable; inspect pending effects before retrying
+storage broker launch witness: Broker did not exit successfully after management EOF

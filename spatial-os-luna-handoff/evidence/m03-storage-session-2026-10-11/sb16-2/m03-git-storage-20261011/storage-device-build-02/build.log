@@ -1,0 +1,15 @@
+[0/2] Re-checking globbed directories...
+[1/14] Building CXX object CMakeFiles/spatial-storage-devices.dir/src/workspace/storage_devices.cpp.o
+[2/14] Linking CXX static library libspatial-storage-devices.a
+[3/14] Building CXX object CMakeFiles/spatial-storage-owner.dir/src/workspace/storage_owner.cpp.o
+[4/14] Linking CXX static library libspatial-storage-owner.a
+[5/14] Building CXX object CMakeFiles/spatial-storage-owner-service.dir/src/workspace/storage_main.cpp.o
+[6/14] Linking CXX executable spatial-storage-owner
+[7/14] Building CXX object CMakeFiles/spatial-workspace-resources.dir/src/workspace/resources.cpp.o
+[8/14] Linking CXX static library libspatial-workspace-resources.a
+[9/14] Linking CXX executable spatial-authority-supervisor
+[10/14] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[11/14] Linking CXX static library libspatial-core.a
+[12/14] Linking CXX executable spatial-storage-broker-launch-probe
+[13/14] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[14/14] Linking CXX executable workspaced

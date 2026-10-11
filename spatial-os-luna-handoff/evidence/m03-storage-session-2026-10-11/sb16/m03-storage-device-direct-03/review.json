@@ -1,0 +1,327 @@
+{
+  "status": "passed",
+  "phase_complete": false,
+  "host": "sb16",
+  "results": {
+    "owner-wrong-device_rejected_before_catalog": {
+      "passed": true
+    },
+    "owner-missing-backing_rejected_before_catalog": {
+      "passed": true
+    },
+    "normal_retained_direct_launch_and_cleanup": {
+      "passed": true,
+      "broker_pid": 68422,
+      "owner_pid": 68426
+    },
+    "cancelled_startup_confirms_owner_cleanup": {
+      "passed": true,
+      "unit": "spatial-storage-owner-9affcaec56c87a8a7325eee5822ad413.service",
+      "state": "LoadState=not-found\nActiveState=inactive"
+    },
+    "idle_owner_death_stops_actual_broker": {
+      "passed": true
+    },
+    "wrong-uid_rejected_with_checked_cleanup": {
+      "passed": true
+    },
+    "wrong-volume_rejected_with_checked_cleanup": {
+      "passed": true
+    }
+  },
+  "commands": [
+    {
+      "argv": [
+        "losetup",
+        "--find",
+        "--show",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-device-direct-03/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "/dev/loop12\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mkfs.btrfs",
+        "-q",
+        "-f",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "rw,nodev,nosuid",
+        "/dev/loop12",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-device-direct-03/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "blkid",
+        "-s",
+        "UUID",
+        "-o",
+        "value",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "5a5622fd-7d73-4076-a966-65688a1d632b\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemd-run",
+        "--unit=spatial-m03-storage-launch-witness-ac132c64a95e41a0bf8c7ecf723b4ccf.service",
+        "--collect",
+        "--service-type=exec",
+        "--uid=dflanag3",
+        "-p",
+        "Delegate=cpu memory pids io",
+        "-p",
+        "DelegateSubgroup=manager",
+        "-p",
+        "MemoryMax=1536M",
+        "-p",
+        "MemorySwapMax=0",
+        "-p",
+        "TasksMax=256",
+        "-p",
+        "CPUQuota=400%",
+        "-p",
+        "RuntimeMaxSec=180",
+        "--",
+        "/usr/bin/sleep",
+        "180"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "Running as unit: spatial-m03-storage-launch-witness-ac132c64a95e41a0bf8c7ecf723b4ccf.service; invocation ID: 6576f382ee9e4653b3353acb6d838de8\n"
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-launch-witness-ac132c64a95e41a0bf8c7ecf723b4ccf.service",
+        "-p",
+        "ControlGroup",
+        "--value"
+      ],
+      "exit_code": 0,
+      "stdout": "/system.slice/spatial-m03-storage-launch-witness-ac132c64a95e41a0bf8c7ecf723b4ccf.service\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-5d177be4c91fd16d4288bdba88e79075.service",
+        "-p",
+        "MainPID",
+        "--value"
+      ],
+      "exit_code": 0,
+      "stdout": "68426\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-9affcaec56c87a8a7325eee5822ad413.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "stop",
+        "spatial-storage-owner-b73d29ad5d507c950d0274e12a58f225.service"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-b73d29ad5d507c950d0274e12a58f225.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-2063e11ad89deeab8ed06847c82a9d48.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-9affcaec56c87a8a7325eee5822ad413.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-6273c12b09f27ecbe644e1ceb6e8c722.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-5d177be4c91fd16d4288bdba88e79075.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-storage-owner-e67285ab8bbc3986b86e0901ea8e9005.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "stop",
+        "spatial-m03-storage-launch-witness-ac132c64a95e41a0bf8c7ecf723b4ccf.service"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-storage-launch-witness-ac132c64a95e41a0bf8c7ecf723b4ccf.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-device-direct-03/volume"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-d",
+        "/dev/loop12"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "losetup",
+        "-j",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-storage-device-direct-03/volume.img"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "runner_sha256": "0a9fb95dcf724b335dbbb231381f206e9c3382e0eb5a8c00eee088666f1d3c55",
+  "owner_kernel_witness": {
+    "cgroup": "0::/system.slice/spatial-storage-owner-5d177be4c91fd16d4288bdba88e79075.service\n",
+    "controls": {
+      "io.max": "7:12 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+      "memory.max": "268435456\n",
+      "memory.swap.max": "0\n",
+      "pids.max": "16\n",
+      "cpu.max": "100000 100000\n"
+    },
+    "broker_pidfd": [
+      "pos:\t0\nflags:\t02\nmnt_id:\t5\nino:\t90268\nPid:\t68422\nNSpid:\t68422\n",
+      "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t90268\nPid:\t68422\nNSpid:\t68422\n",
+      "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t90268\nPid:\t68422\nNSpid:\t68422\n"
+    ],
+    "executable_sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f"
+  },
+  "owner_cleanup": {
+    "spatial-storage-owner-b73d29ad5d507c950d0274e12a58f225.service": "LoadState=not-found\nActiveState=inactive",
+    "spatial-storage-owner-2063e11ad89deeab8ed06847c82a9d48.service": "LoadState=not-found\nActiveState=inactive",
+    "spatial-storage-owner-9affcaec56c87a8a7325eee5822ad413.service": "LoadState=not-found\nActiveState=inactive",
+    "spatial-storage-owner-6273c12b09f27ecbe644e1ceb6e8c722.service": "LoadState=not-found\nActiveState=inactive",
+    "spatial-storage-owner-5d177be4c91fd16d4288bdba88e79075.service": "LoadState=not-found\nActiveState=inactive",
+    "spatial-storage-owner-e67285ab8bbc3986b86e0901ea8e9005.service": "LoadState=not-found\nActiveState=inactive"
+  },
+  "delegate_after": "LoadState=not-found\nActiveState=inactive",
+  "mounted": false,
+  "loop_attached": false
+}

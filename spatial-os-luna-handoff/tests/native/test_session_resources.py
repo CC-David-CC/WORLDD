@@ -13,8 +13,8 @@ import process_scope_pb2 as process
 
 base = existing.existing.base
 scopes = base.baseline.supervisor.owned.existing
-assert scopes.CGROUP.name == 'manager', 'Use the dedicated resource delegate'
-scopes.CGROUP = scopes.CGROUP.parent
+if scopes.CGROUP.name == 'manager': scopes.CGROUP = scopes.CGROUP.parent
+assert scopes.CGROUP.name.startswith('spatial-m03-resources-'), 'Use the dedicated resource delegate'
 assert {'cpu', 'memory', 'pids', 'io'} <= set((scopes.CGROUP / 'cgroup.controllers').read_text().split())
 (scopes.CGROUP / 'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
 BASELINE = None
@@ -61,7 +61,7 @@ class SessionResourceTests(existing.SessionApplicationTests):
         return config
 
     def broker_process_group(self):
-        return super().broker_process_group() / 'broker-manager'
+        return super().broker_process_group()
 
     def preserve(self, name, data):
         target = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
@@ -112,6 +112,37 @@ class SessionResourceTests(existing.SessionApplicationTests):
     def test_resource_arguments_cannot_override_owned_handoff(self):
         self.rejected_before_ownership(lambda c: c.launch.arguments.extend(['--resource-config', '/tmp/unowned-policy']),
             'Supervisor owns broker resource arguments')
+
+    def storage_template(self, config):
+        config.broker_storage_owner.protocol_version = 1
+        config.broker_storage_owner.volume_root = str(self.execution)
+        config.broker_storage_owner.owner_configuration = '/nonexistent-storage-policy'
+        config.broker_storage_target_fd = 254
+
+    def test_storage_descriptor_cannot_collide_with_participant(self):
+        def change(config):
+            self.storage_template(config); config.broker_storage_target_fd = config.participant_target_fd
+        self.rejected_before_ownership(change, 'Invalid broker storage descriptor target')
+
+    def test_storage_descriptor_cannot_collide_with_resource_policy(self):
+        def change(config):
+            self.storage_template(config); config.broker_storage_target_fd = config.broker_resource_target_fd
+        self.rejected_before_ownership(change, 'Invalid broker storage descriptor target')
+
+    def test_storage_arguments_cannot_override_owned_handoff(self):
+        def change(config):
+            self.storage_template(config); config.launch.arguments.extend(['--storage-fd', '100'])
+        self.rejected_before_ownership(change, 'Supervisor owns broker storage arguments')
+
+    def test_storage_volume_must_match_broker_state(self):
+        def change(config):
+            self.storage_template(config); config.broker_storage_owner.volume_root = '/different-volume'
+        self.rejected_before_ownership(change, 'Broker state must match its storage-owner volume')
+
+    def test_storage_template_requires_reserved_descriptor(self):
+        def change(config):
+            self.storage_template(config); config.ClearField('broker_storage_target_fd')
+        self.rejected_before_ownership(change, 'Invalid supervisor configuration')
 
     def test_native_application_has_kernel_budgets_inside_broker_scope(self):
         self.held_application()

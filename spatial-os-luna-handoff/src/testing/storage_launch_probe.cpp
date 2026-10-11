@@ -8,12 +8,14 @@
 
 int main(int argc, char** argv) {
     try {
-        if (argc != 4) throw std::invalid_argument("Expected private policy, storage channel, and broker handle");
+        const bool interrupt = argc == 5 && std::string(argv[4]) == "--interrupt-ready";
+        if (argc != 4 && !interrupt) throw std::invalid_argument("Expected private policy, storage channel, and broker handle");
         std::ifstream file(argv[1], std::ios::binary);
         const std::string bytes((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         spatial::workspace::v1::StorageOwnerLaunchConfig config;
         if (!file || bytes.size() > 65536 || !config.ParseFromString(bytes)) throw std::invalid_argument("Invalid launch probe policy");
-        spatial::supervisor::StorageOwnerLaunch launch(config, config.volume_root(), std::stoi(argv[2]), std::stoi(argv[3]), STDERR_FILENO);
+        spatial::supervisor::StorageOwnerLaunch launch(config, config.volume_root(), std::stoi(argv[2]), std::stoi(argv[3]), STDERR_FILENO,
+            [&] { if (interrupt) throw std::runtime_error("Injected cancellation before storage readiness"); });
         // The launch class borrowed these inputs. The witness must not retain peer copies.
         close(std::stoi(argv[2])); close(std::stoi(argv[3]));
         std::string frame;
@@ -31,5 +33,10 @@ int main(int argc, char** argv) {
             if (reply.has_stopped()) return 0;
         }
         launch.stop(); return 0;
+    } catch (const spatial::supervisor::StorageLaunchFailure& failure) {
+        spatial::workspace::v1::StorageLaunchResult reply;
+        reply.set_protocol_version(1); reply.set_unit(failure.unit()); reply.set_error(failure.what());
+        reply.set_startup_cleanup_confirmed(failure.cleanup_confirmed()); spatial::write_frame(std::cout, reply);
+        std::cerr << "storage launch probe: " << failure.what() << '\n'; return 2;
     } catch (const std::exception& error) { std::cerr << "storage launch probe: " << error.what() << '\n'; return 2; }
 }

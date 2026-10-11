@@ -5,6 +5,7 @@ import "grants.proto";
 import "issuer.proto";
 import "native_scope.proto";
 import "process_scope.proto";
+import "storage.proto";
 
 // Sealed, inherited supervisor input. Never store cookies in workspace state.
 message NativeLaunchConfig {
@@ -51,6 +52,7 @@ message BrokerProcessConfig {
   uint32 protocol_version = 1;
   string delegated_cgroup = 2;
   BrokerResourceConfig resources = 3;
+  StorageOwnerLaunchConfig storage_owner = 4;
 }
 message WorkspaceAuthorityConfig {
   string participant_runtime_config = 4;

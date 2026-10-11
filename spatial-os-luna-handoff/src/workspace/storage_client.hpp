@@ -11,6 +11,7 @@ public:
     StorageClient(int descriptor, const std::filesystem::path& volume);
     ~StorageClient();
     void set_observer(std::function<void()> observer);
+    void check_alive() const;
     workspace::v1::StorageObjectState call(workspace::v1::StorageOwnerRequest request,
                                          const std::function<void()>& tick = {});
 private:

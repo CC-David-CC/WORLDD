@@ -11,7 +11,7 @@
 #include <sys/types.h>
 
 namespace spatial {
-namespace supervisor { class ProcessScope; }
+namespace supervisor { class ProcessScope; class StorageOwnerLaunch; }
 namespace broker_wire = workspace::v1;
 // Lifecycle belongs to the session supervisor, not a world authority.
 class BrokerProcess {
@@ -24,10 +24,14 @@ public:
     int channel() const { return channel_; }
     pid_t pid() const { return pid_; }
     void release_channel();
+    // Half-close management, verify the actual child's successful exit, then stop owned scopes.
+    void finish();
 private:
     std::unique_ptr<supervisor::ProcessScope> scope_;
+    std::unique_ptr<supervisor::StorageOwnerLaunch> storage_;
     int channel_ = -1, pidfd_ = -1;
     pid_t pid_ = -1;
+    bool stopped_ = false;
 };
 class BrokerClient {
 public:

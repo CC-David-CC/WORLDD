@@ -1,0 +1,4 @@
+Storage owner unit: spatial-storage-owner-a1e36ed859ff545119c4700d158a4c03.service
+spatial-storage-owner: Retained storage broker UID rejected
+workspaced: Storage owner unavailable; inspect pending effects before retrying
+storage broker launch witness: Workspace authority channel closed

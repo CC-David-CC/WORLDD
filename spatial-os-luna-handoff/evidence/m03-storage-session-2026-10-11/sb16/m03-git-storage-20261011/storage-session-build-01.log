@@ -1,0 +1,22 @@
+[0/2] Re-checking globbed directories...
+-- GLOB mismatch!
+[1/2] Re-running CMake...
+-- Configuring done (0.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+[0/2] Re-checking globbed directories...
+[1/63] Generating python/world_session_pb2.py
+[2/63] Generating python/broker_pb2.py
+[3/63] Generating python/session_probe_pb2.py
+FAILED: python/session_probe_pb2.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python/session_probe_pb2.py 
+cd /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize && /usr/bin/protoc --python_out=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python --proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/testing --proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/proto/spatial/supervisor/v1 --proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/proto/spatial/workspace/v1 --proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/proto/spatial/security/v1 --proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/proto/spatial/identity/v1 --proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/proto/spatial/authority/v1 --proto_path=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/proto/spatial/core/v1 /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/src/testing/session_probe.proto
+launch.proto:73:3: "spatial.workspace.v1.StorageOwnerLaunchConfig" seems to be defined in "storage.proto", which is not imported by "launch.proto".  To use it here, please add the necessary import.
+session_probe.proto:5:1: Import "launch.proto" was not found or had errors.
+session_probe.proto:15:3: "spatial.supervisor.v1.AuthorityLaunchRecord" is not defined.
+session_probe.proto:29:5: "spatial.supervisor.v1.AuthorityLaunchQuery" is not defined.
+session_probe.proto:32:5: "spatial.supervisor.v1.AuthorityLaunchQuery" is not defined.
+session_probe.proto:33:5: "spatial.supervisor.v1.AuthorityLaunchQuery" is not defined.
+session_probe.proto:45:5: "spatial.supervisor.v1.AuthorityLaunchRecord" is not defined.
+session_probe.proto:48:5: "spatial.supervisor.v1.AuthorityDependentCleanup" is not defined.
+[4/63] Running cpp protocol buffer compiler on proto/spatial/workspace/v1/broker.proto
+ninja: build stopped: subcommand failed.

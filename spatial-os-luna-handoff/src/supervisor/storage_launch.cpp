@@ -148,8 +148,10 @@ struct StorageOwnerLaunch::Impl {
     }
 };
 StorageOwnerLaunch::StorageOwnerLaunch(const workspace::v1::StorageOwnerLaunchConfig& config,
-    const std::filesystem::path& volume, int channel, int broker_pidfd, int diagnostics)
+    const std::filesystem::path& volume, int channel, int broker_pidfd, int diagnostics,
+    const std::function<void()>& before_ready)
     : impl_(std::make_unique<Impl>(diagnostics)) {
+    try {
     validate_storage_launch(config, volume);
     require(channel >= 3 && broker_pidfd >= 3 && diagnostics >= 2 && diagnostics != channel && diagnostics != broker_pidfd,
             "Storage launch requires private live handles");
@@ -201,10 +203,20 @@ StorageOwnerLaunch::StorageOwnerLaunch(const workspace::v1::StorageOwnerLaunchCo
             const auto group = control({"/usr/bin/systemctl", "show", impl_->name, "-p", "ControlGroup", "--value"}, diagnostics);
             require(group == "/system.slice/"+impl_->name+"\n", "Storage owner cgroup identity rejected");
             impl_->cgroup = std::filesystem::path("/sys/fs/cgroup/system.slice") / impl_->name;
+            if (before_ready) before_ready();
             break;
         }
         require(Clock::now() < deadline, "Storage owner service startup deadline exceeded");
         poll(nullptr, 0, 10);
+    }
+    } catch (const std::exception& error) {
+        std::string reason = error.what();
+        bool confirmed = impl_->child <= 0;
+        if (!confirmed) {
+            try { impl_->stop(); confirmed = true; }
+            catch (const std::exception& cleanup) { reason += "; storage cleanup unconfirmed: " + std::string(cleanup.what()); }
+        }
+        throw StorageLaunchFailure(reason, impl_->name, confirmed);
     }
 }
 StorageOwnerLaunch::~StorageOwnerLaunch() = default;

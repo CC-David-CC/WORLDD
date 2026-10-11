@@ -47,7 +47,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py"
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/launch.proto
-    DEPENDS proto/spatial/workspace/v1/broker.proto proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
+    DEPENDS proto/spatial/workspace/v1/broker.proto proto/spatial/workspace/v1/storage.proto proto/spatial/supervisor/v1/launch.proto proto/spatial/supervisor/v1/process_scope.proto
         proto/spatial/supervisor/v1/native_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(launch-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/launch_pb2.py")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/process_scope_pb2.py"
@@ -93,7 +93,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py"
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/broker.proto
-    DEPENDS proto/spatial/supervisor/v1/process_scope.proto proto/spatial/supervisor/v1/native_scope.proto proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
+    DEPENDS proto/spatial/supervisor/v1/process_scope.proto proto/spatial/supervisor/v1/native_scope.proto proto/spatial/workspace/v1/storage.proto proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
         proto/spatial/identity/v1/issuer.proto proto/spatial/identity/v1/key.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(broker-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py"
@@ -109,6 +109,8 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py"
         protobuf::protoc VERBATIM)
 add_custom_target(storage-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py")
 add_dependencies(storage-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf scope-python-protobuf)
+add_dependencies(broker-python-protobuf storage-python-protobuf)
+add_dependencies(launch-python-protobuf broker-python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/key_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
@@ -206,13 +208,15 @@ add_library(spatial-storage-channel STATIC src/workspace/storage_channel.cpp)
 target_link_libraries(spatial-storage-channel PUBLIC spatial-scene)
 add_library(spatial-storage-client STATIC src/workspace/storage_client.cpp)
 target_link_libraries(spatial-storage-client PUBLIC spatial-storage-channel)
+add_library(spatial-storage-devices STATIC src/workspace/storage_devices.cpp)
+target_link_libraries(spatial-storage-devices PUBLIC spatial-scene)
 add_library(spatial-storage-owner STATIC src/workspace/storage_owner.cpp)
-target_link_libraries(spatial-storage-owner PUBLIC spatial-scene SQLite::SQLite3)
+target_link_libraries(spatial-storage-owner PUBLIC spatial-scene spatial-storage-devices SQLite::SQLite3)
 add_executable(spatial-storage-owner-service src/workspace/storage_main.cpp)
 set_target_properties(spatial-storage-owner-service PROPERTIES OUTPUT_NAME spatial-storage-owner)
 target_link_libraries(spatial-storage-owner-service PRIVATE spatial-storage-owner spatial-storage-channel)
 add_library(spatial-workspace-resources STATIC src/workspace/resources.cpp)
-target_link_libraries(spatial-workspace-resources PUBLIC spatial-process-scope spatial-identity-tls)
+target_link_libraries(spatial-workspace-resources PUBLIC spatial-process-scope spatial-identity-tls spatial-storage-devices)
 add_library(spatial-storage-launch STATIC src/supervisor/storage_launch.cpp)
 target_link_libraries(spatial-storage-launch PUBLIC spatial-process-scope spatial-identity-tls)
 add_executable(spatial-storage-launch-probe src/testing/storage_launch_probe.cpp)
@@ -222,7 +226,7 @@ add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/superv
 target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope spatial-control-reply SQLite::SQLite3)
 add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
 add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
-target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch spatial-workspace-resources)
+target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch spatial-workspace-resources spatial-storage-launch)
 target_link_libraries(spatial-authority-launch-probe PRIVATE spatial-authority-launch)
 add_dependencies(spatial-authority-launch-probe broker-python-protobuf launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
 add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
@@ -263,7 +267,10 @@ add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources}
 target_link_libraries(spatial-native-input PUBLIC spatial-scene X11::X11)
 add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/actors.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
 target_include_directories(spatial-core PUBLIC src)
-target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources)
+target_link_libraries(spatial-core PUBLIC spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch)
+add_executable(spatial-storage-broker-launch-probe src/testing/storage_broker_launch_probe.cpp)
+target_link_libraries(spatial-storage-broker-launch-probe PRIVATE spatial-core)
+add_dependencies(spatial-storage-broker-launch-probe broker-python-protobuf)
 add_executable(spatialwm src/x11/compositor_connection.cpp src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
 target_link_options(spatialwm PRIVATE "LINKER:--export-dynamic-symbol=xcb_connect_to_display_with_auth_info")
 target_link_libraries(spatialwm PRIVATE spatial-compositor-config PkgConfig::XCB ${CMAKE_DL_LIBS} spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
@@ -1074,121 +1081,92 @@ if(BUILD_TESTING)
     add_dependencies(spatial-session-application-probe session-probe-python world-session-python-protobuf)
     add_test(NAME session-resources COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_resources.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(session-resources PROPERTIES TIMEOUT 240
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
-    add_test(NAME session-operator-revocation COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-operator-revocation-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    add_test(NAME session-operator-revocation COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_operator_revocation.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-operator-revocation PROPERTIES TIMEOUT 180)
-    add_test(NAME session-application COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-session-application-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    set_tests_properties(session-operator-revocation PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-application COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_application.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-application PROPERTIES TIMEOUT 180)
-    add_test(NAME session-dependent-cleanup COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-dependent-cleanup-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    set_tests_properties(session-application PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-dependent-cleanup COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_dependent_cleanup.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-dependent-cleanup PROPERTIES TIMEOUT 180)
-    add_test(NAME session-coordinator-retirement COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-coordinator-retirement-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    set_tests_properties(session-dependent-cleanup PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-coordinator-retirement COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_coordinator_retirement.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-coordinator-retirement PROPERTIES TIMEOUT 240)
-    add_test(NAME session-broker-cleanup COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-broker-cleanup-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    set_tests_properties(session-coordinator-retirement PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-broker-cleanup COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_broker_cleanup.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-broker-cleanup PROPERTIES TIMEOUT 180)
-    add_test(NAME session-broker-retirement COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-broker-retirement-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    set_tests_properties(session-broker-cleanup PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-broker-retirement COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_broker_retirement.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-broker-retirement PROPERTIES TIMEOUT 240)
-    add_test(NAME session-stopped-broker-dependency COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-stopped-broker-dependency-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    set_tests_properties(session-broker-retirement PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-stopped-broker-dependency COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_stopped_broker_dependency.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-stopped-broker-dependency PROPERTIES TIMEOUT 240)
-    add_test(NAME session-deferred-fence COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-deferred-fence-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    set_tests_properties(session-stopped-broker-dependency PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-deferred-fence COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_deferred_fence.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-deferred-fence PROPERTIES TIMEOUT 240)
-    add_test(NAME session-replacement COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-session-replacement-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    set_tests_properties(session-deferred-fence PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-replacement COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_replacement.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-replacement PROPERTIES TIMEOUT 240)
-    add_test(NAME session-broker-replacement COMMAND systemd-run --user --wait --pipe --collect
-        --unit=spatial-broker-replacement-${build_hash} --property=Delegate=yes
-        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
-        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
-        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
-        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
-        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+    set_tests_properties(session-replacement PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-broker-replacement COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" --
         "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_broker_replacement.py" "${CMAKE_CURRENT_SOURCE_DIR}"
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
-    set_tests_properties(session-broker-replacement PROPERTIES TIMEOUT 240)
+    set_tests_properties(session-broker-replacement PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_executable(spatial-child-handle-client-probe src/testing/child_handle_client_probe.cpp)
     target_link_libraries(spatial-child-handle-client-probe PRIVATE spatial-authority-launch)
     add_test(NAME supervisor-child-handle-client COMMAND "${Python3_EXECUTABLE}"

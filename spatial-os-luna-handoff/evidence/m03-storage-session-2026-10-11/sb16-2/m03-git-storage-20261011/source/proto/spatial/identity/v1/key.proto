@@ -1,0 +1,41 @@
+syntax = "proto3";
+package spatial.identity.v1;
+import "core.proto";
+
+// These messages verify cryptographic material. They do not grant authority.
+enum SignaturePurpose {
+  SIGNATURE_PURPOSE_UNSPECIFIED = 0;
+  ENROLLMENT_PROOF = 1;
+  ACTOR_AUTHENTICATION = 2;
+  ISSUER_ADMINISTRATION = 3;
+  ISSUER_CREDENTIAL = 4;
+  AUTHORITY_PARTICIPATION = 5;
+  AUTHORITY_LAUNCH_AUTHORIZATION = 6;
+  AUTHORITY_FENCING = 7;
+  AUTHORITY_RETIREMENT = 8;
+}
+message SignRequest {
+  SignaturePurpose purpose = 1;
+  optional bytes payload = 2;
+}
+message KeyProof {
+  SignaturePurpose purpose = 1;
+  bytes public_key = 2; // Raw Ed25519 public key, exactly 32 bytes.
+  bytes signature = 3; // Pure Ed25519 signature, exactly 64 bytes.
+}
+message VerifyRequest {
+  SignRequest content = 1;
+  KeyProof proof = 2;
+  bytes expected_public_key = 3; // Supplied by the authority, never inferred from proof.
+}
+message PublicKey { bytes ed25519 = 1; }
+message Verification { optional bool valid = 1; }
+message KeyReply {
+  uint32 protocol_version = 1;
+  oneof outcome {
+    PublicKey public_key = 2;
+    KeyProof proof = 3;
+    Verification verification = 4;
+    spatial.core.v1.Error error = 5;
+  }
+}

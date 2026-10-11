@@ -1,4 +1,5 @@
 #include "workspace/resources.hpp"
+#include "workspace/storage_devices.hpp"
 #include "core/protocol.hpp"
 #include "identity/tls_support.hpp"
 #include "world/store.hpp"
@@ -10,16 +11,12 @@
 #include <fstream>
 #include <iostream>
 #include <linux/magic.h>
-#include <linux/btrfs.h>
-#include <sys/ioctl.h>
-#include <functional>
 #include <map>
 #include <set>
 #include <sstream>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
-#include <sys/sysmacros.h>
 #include <unistd.h>
 #include <utility>
 
@@ -27,11 +24,6 @@ namespace spatial {
 namespace {
 using Budget = supervisor::v1::ProcessScopeBudget;
 using Device = std::pair<unsigned, unsigned>;
-// sysmacros names conflict with generated protobuf accessors.
-unsigned device_major(dev_t value) { return major(value); }
-unsigned device_minor(dev_t value) { return minor(value); }
-#undef major
-#undef minor
 void require(bool value, const char* message) { if (!value) throw std::invalid_argument(message); }
 void check(bool value, const char* message) { if (!value) throw std::runtime_error(message); }
 bool identifier(const std::string& value) { return !value.empty() && value.size() <= 128 && value.find('\0') == std::string::npos; }
@@ -116,74 +108,6 @@ void validate_policy(const workspace::v1::WorkspaceResourcePolicy& policy, bool 
         (void)intersect(policy.total(), profile.maximum());
     }
 }
-void validate_device_handles(const Budget& budget, std::span<const int> directories) {
-    std::set<Device> covered, observed;
-    for (const auto& io : budget.io()) covered.emplace(io.major(), io.minor());
-    std::function<void(const std::filesystem::path&, unsigned)> filesystem_device;
-    std::function<void(int, unsigned)> descriptor_device;
-    const auto block_device = [&](dev_t number, unsigned depth) {
-        const auto link = std::filesystem::path("/sys/dev/block") /
-            (std::to_string(device_major(number)) + ":" + std::to_string(device_minor(number)));
-        auto device = std::filesystem::canonical(link);
-        if (std::filesystem::exists(device / "partition")) device = device.parent_path();
-        std::ifstream stream(device / "dev"); unsigned major_value = 0, minor_value = 0; char colon = 0;
-        require(static_cast<bool>(stream >> major_value >> colon >> minor_value) && colon == ':' &&
-                covered.contains({major_value, minor_value}), "Workspace storage device has no I/O budget");
-        if (!observed.emplace(major_value, minor_value).second) return;
-        // A loop volume submits work to its own queue and writes a real backing file.
-        // Both queues need explicit budgets. Never infer a device from Btrfs st_dev.
-        if (std::filesystem::exists(device / "loop/backing_file")) {
-            std::ifstream backing(device / "loop/backing_file"); std::string path; std::getline(backing, path);
-            require(backing.good() || backing.eof(), "Cannot read loop backing storage identity");
-            require(std::filesystem::path(path).is_absolute(), "Loop backing storage identity is unavailable");
-            filesystem_device(path, depth+1);
-        }
-        if (std::filesystem::exists(device / "slaves")) {
-            for (const auto& child : std::filesystem::directory_iterator(device / "slaves")) {
-                std::ifstream identity(child.path() / "dev"); unsigned child_major = 0, child_minor = 0; char separator = 0;
-                require(static_cast<bool>(identity >> child_major >> separator >> child_minor) && separator == ':' &&
-                        covered.contains({child_major, child_minor}), "Stacked storage device has no I/O budget");
-            }
-        }
-    };
-    filesystem_device = [&](const std::filesystem::path& path, unsigned depth) {
-        identity::tls_detail::Fd file(open(path.c_str(), O_PATH | O_NOFOLLOW | O_CLOEXEC));
-        check(file.value >= 0, "Cannot pin workspace storage device");
-        descriptor_device(file.value, depth);
-    };
-    descriptor_device = [&](int descriptor, unsigned depth) {
-        require(depth < 8, "Storage device nesting exceeds supported bounds");
-        struct stat info{}; struct statfs filesystem{};
-        check(descriptor >= 0 && fstat(descriptor, &info) == 0 && fstatfs(descriptor, &filesystem) == 0,
-              "Cannot identify workspace storage device");
-        if (filesystem.f_type == BTRFS_SUPER_MAGIC) {
-            // Reopen the held object, rather than resolving its caller-owned path again.
-            const auto held = "/proc/self/fd/" + std::to_string(descriptor);
-            identity::tls_detail::Fd query(open(held.c_str(), O_RDONLY | O_CLOEXEC));
-            struct stat pinned{};
-            check(query.value >= 0 && fstat(query.value, &pinned) == 0 && pinned.st_dev == info.st_dev && pinned.st_ino == info.st_ino,
-                  "Cannot pin quota filesystem query authority");
-            btrfs_ioctl_fs_info_args volume{};
-            check(ioctl(query.value, BTRFS_IOC_FS_INFO, &volume) >= 0, "Cannot inspect quota volume devices");
-            require(volume.num_devices == 1, "M03 quota storage requires one device");
-            btrfs_ioctl_dev_info_args selected{}; selected.devid = volume.max_id;
-            check(ioctl(query.value, BTRFS_IOC_DEV_INFO, &selected) >= 0, "Cannot inspect quota volume block device");
-            const auto length = strnlen(reinterpret_cast<const char*>(selected.path), sizeof(selected.path));
-            require(length > 0 && length < sizeof(selected.path), "Invalid quota volume block device path");
-            const std::filesystem::path device(std::string(reinterpret_cast<const char*>(selected.path), length));
-            struct stat block{};
-            check(device.is_absolute() && stat(device.c_str(), &block) == 0 && S_ISBLK(block.st_mode),
-                  "Quota volume block device is unavailable");
-            block_device(block.st_rdev, depth);
-        } else block_device(info.st_dev, depth);
-    };
-    for (const auto descriptor : directories) {
-        struct stat info{};
-        check(descriptor >= 0 && fstat(descriptor, &info) == 0 && S_ISDIR(info.st_mode),
-              "Workspace storage boundary requires a directory");
-        descriptor_device(descriptor, 0);
-    }
-}
 void validate_devices(const Budget& budget, const std::array<std::filesystem::path, 3>& paths) {
     std::array<identity::tls_detail::Fd, 3> files;
     std::array<int, 3> handles;
@@ -191,7 +115,7 @@ void validate_devices(const Budget& budget, const std::array<std::filesystem::pa
         files[index].reset(open(paths[index].c_str(), O_PATH | O_NOFOLLOW | O_CLOEXEC));
         handles[index] = files[index].value;
     }
-    validate_device_handles(budget, handles);
+    validate_storage_device_handles(budget, handles);
 }
 
 struct Group {
@@ -446,7 +370,7 @@ ApplicationResources::~ApplicationResources() = default;
 supervisor::ProcessScope& ApplicationResources::scope() { return *impl_->scope; }
 std::unique_ptr<GitJobResources> WorkspaceResources::prepare_git_job(std::span<const int> directory_handles) {
     require(!directory_handles.empty() && directory_handles.size() <= 12, "Git worker requires bounded directory handles");
-    validate_device_handles(impl_->config.broker_budget(), directory_handles);
+    validate_storage_device_handles(impl_->config.broker_budget(), directory_handles);
     Budget budget;
     budget.set_memory_bytes(256ULL * 1024 * 1024);
     budget.set_swap_bytes(0);

@@ -20,6 +20,7 @@ public:
     std::optional<std::string> receive(Clock::time_point deadline, bool idle_server = false,
                                       const std::function<void()>& tick = {});
     pid_t peer_pid() const;
+    void check_alive() const;
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

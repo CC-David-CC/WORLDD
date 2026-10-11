@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
         spatial::validate_storage_policy(config);
         spatial::StorageChannel transport(channel, config.broker_uid(), static_cast<pid_t>(config.broker_pid()), peer.descriptor());
         if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) < 0) throw std::runtime_error("Cannot protect storage owner privilege");
-        spatial::StorageOwner owner(std::move(config));
+        spatial::StorageOwner owner(std::move(config), channel_stdin);
         while (const auto frame = transport.receive(spatial::StorageChannel::Clock::time_point::max(), true)) {
             spatial::workspace::v1::StorageOwnerRequest request;
             spatial::workspace::v1::StorageOwnerReply reply;

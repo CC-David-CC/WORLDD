@@ -1,5 +1,35 @@
 # Implementation status
 
+## 2026-10-11: Storage-owner wiring and device coverage passed focused checks
+
+Direct BrokerProcess and retained supervisor paths now support an explicit bounded storage owner.
+They retain the actual broker pidfd and private credential-checked storage channel.
+Idle owner death stops the broker. Startup cleanup failures cannot produce a confirmed cleanup receipt.
+The direct path can verify actual broker exit and finish its owned scopes.
+
+Both hosts reproduced startup with an uncovered owner volume device before correction.
+The production owner now validates kernel io.max against its pinned volume before catalog or quota changes.
+Applications, administrative Git, and storage ownership share the same device resolver.
+Both loop and backing filesystem queues require finite read and write ceilings.
+
+Both hosts passed 125 selected current regression cases under ASan/UBSan.
+Both passed seven actual direct-launch scenarios, including both uncovered-device rejections.
+Independent witnesses read the owner's actual limits and retained broker pidfd.
+The primary review verified 3,122 attachments. All 41 locked files remain unchanged.
+Original native application and resource test bodies remain unchanged.
+Earlier failures and native crash/replacement results retain their original source pins.
+Related native resource, application, and operator-revocation suites were rerun after resolver extraction.
+Read evidence/m03-storage-session-2026-10-11/primary-review.json.
+
+The root-owned owner executable replacement has a hash-pinned backup and exact recovery commands.
+Test owner services are unloaded. Test volumes are unmounted and detached.
+Normal login and SSH remain available. No normal session restarted.
+
+Native retained sessions with configured storage ownership remain unqualified.
+Operator volume provisioning, mandatory production adoption, and contention/revocation qualification remain pending.
+The full M03 Debug, sanitizer, harness, acceptance, cross-host, and native gate remains pending.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
 ## 2026-10-11: Bounded storage-owner launcher passed focused checks on both hosts
 
 Both hosts passed 106 selected regression cases under ASan/UBSan.

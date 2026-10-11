@@ -3,6 +3,7 @@
 #include "world/store.hpp"
 #include "authority/store.hpp"
 #include "workspace/resources.hpp"
+#include "supervisor/storage_launch.hpp"
 #include "identity/tls_support.hpp"
 #include <google/protobuf/text_format.h>
 #include <set>
@@ -11,6 +12,7 @@
 #include <cerrno>
 #include <csignal>
 #include <fcntl.h>
+#include <iostream>
 #include <poll.h>
 #include <sys/prctl.h>
 #include <sys/socket.h>
@@ -78,6 +80,18 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
         if (config.protocol_version() != 1 || !config.has_resources() || !config.resources().delegated_cgroup().empty())
             throw std::invalid_argument("Broker process requires an unbound resource template");
         validate_resource_config(config.resources());
+        if (config.has_storage_owner()) supervisor::validate_storage_launch(config.storage_owner(), state);
+        identity::tls_detail::Fd storage_owner, storage_child;
+        if (config.has_storage_owner()) {
+            int storage[2];
+            if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, storage) != 0)
+                throw std::runtime_error("Cannot create private storage channel");
+            storage_owner.reset(storage[0]); storage_child.reset(storage[1]);
+            const int enabled = 1;
+            for (const int fd : storage)
+                if (setsockopt(fd, SOL_SOCKET, SO_PASSCRED, &enabled, sizeof(enabled)) != 0)
+                    throw std::runtime_error("Cannot require storage sender credentials");
+        }
         int pair[2];
         if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0)
             throw std::runtime_error("Cannot create broker channel");
@@ -90,8 +104,19 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
         request.add_arguments("--state-dir"); request.add_arguments(state.string());
         if (fixture_faults) request.add_arguments("--fixture-faults");
         request.add_arguments("--resource-config-fd"); request.add_arguments("3"); request.add_inherited_fds(3);
-        scope_->start(request, {child.value, child.value, STDERR_FILENO}, {policy.value});
-        pid_ = scope_->direct_child_pid(); pidfd_ = scope_->duplicate_child_pidfd();
+        std::vector<int> inherited{policy.value};
+        if (config.has_storage_owner()) {
+            request.add_arguments("--storage-fd"); request.add_arguments("4"); request.add_inherited_fds(4);
+            inherited.push_back(storage_child.value);
+        }
+        scope_->start(request, {child.value, child.value, STDERR_FILENO}, inherited);
+        pid_ = scope_->direct_child_pid();
+        identity::tls_detail::Fd retained(scope_->duplicate_child_pidfd());
+        storage_child.reset();
+        if (config.has_storage_owner())
+            storage_ = std::make_unique<supervisor::StorageOwnerLaunch>(config.storage_owner(), state,
+                storage_owner.value, retained.value, STDERR_FILENO);
+        pidfd_ = std::exchange(retained.value, -1);
         channel_ = std::exchange(parent.value, -1);
         return;
     }
@@ -116,13 +141,29 @@ BrokerProcess::BrokerProcess(const std::filesystem::path& executable, const std:
     }
 }
 void BrokerProcess::release_channel() { if (channel_ >= 0) { close(channel_); channel_ = -1; } }
+void BrokerProcess::finish() {
+    if (!scope_ || channel_ < 0 || stopped_) throw std::logic_error("Broker finish requires retained scope and channel ownership");
+    if (shutdown(channel_, SHUT_WR) != 0) throw std::runtime_error("Cannot finish broker management input");
+    pollfd child{pidfd_, POLLIN, 0}; int ready;
+    do { ready = poll(&child, 1, 5000); } while (ready < 0 && errno == EINTR);
+    if (ready <= 0 || !scope_->exited_successfully()) throw std::runtime_error("Broker did not exit successfully after management EOF");
+    scope_->stop(); stopped_ = true; scope_.reset();
+    release_channel(); close(pidfd_); pidfd_ = -1;
+    if (storage_) storage_->stop();
+}
 BrokerProcess::~BrokerProcess() {
+    if (stopped_) return;
     release_channel();
     pollfd fd{pidfd_, POLLIN, 0}; int ready;
     do { ready = poll(&fd, 1, 1000); } while (ready < 0 && errno == EINTR);
     if (scope_) {
         // The scope owns reaping and checked descendant cleanup.
-        scope_.reset(); close(pidfd_); return;
+        scope_.reset(); close(pidfd_);
+        if (storage_) {
+            try { storage_->stop(); }
+            catch (const std::exception& error) { std::cerr << "Broker storage cleanup uncertain: " << error.what() << '\n'; }
+        }
+        return;
     }
     if (ready <= 0) kill(pid_, SIGKILL);
     while (waitpid(pid_, nullptr, 0) < 0 && errno == EINTR) {}

@@ -1,0 +1,138 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 94
+    Start 94: session-operator-revocation
+
+94: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py" "--native" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"
+94: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+94: Environment variables: 
+94:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+94:  SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb
+94:  SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-operator-regression-05/native
+94:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+94:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+94: Test timeout computed to be: 180
+94: {"unit": "spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-operator-regression-05/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-operator-regression-05/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service"]}
+94: Running as unit: spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service; invocation ID: fb7de35214c741fdab26b7069b98ace1
+94: test_completion_waits_for_real_key_button_and_lease_release (__main__.OperatorRevocationTests.test_completion_waits_for_real_key_button_and_lease_release) ... FAIL
+94: test_pending_timeout_resumes_without_another_revocation (__main__.OperatorRevocationTests.test_pending_timeout_resumes_without_another_revocation) ... FAIL
+94: test_crash_requires_checked_recovery_and_retirement_before_completion (__main__.OperatorRevocationTests.test_crash_requires_checked_recovery_and_retirement_before_completion) ... FAIL
+94: 
+94: ======================================================================
+94: FAIL: test_completion_waits_for_real_key_button_and_lease_release (__main__.OperatorRevocationTests.test_completion_waits_for_real_key_button_and_lease_release)
+94: ----------------------------------------------------------------------
+94: Traceback (most recent call last):
+94:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 146, in test_completion_waits_for_real_key_button_and_lease_release
+94:     command = self.start_command(); self.committed(command)
+94:               ^^^^^^^^^^^^^^^^^^^^
+94:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 68, in start_command
+94:     self.assertTrue(binary.is_file(), 'Production spatial-revoke executable is missing')
+94: AssertionError: False is not true : Production spatial-revoke executable is missing
+94: 
+94: ======================================================================
+94: FAIL: test_pending_timeout_resumes_without_another_revocation (__main__.OperatorRevocationTests.test_pending_timeout_resumes_without_another_revocation)
+94: ----------------------------------------------------------------------
+94: Traceback (most recent call last):
+94:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 154, in test_pending_timeout_resumes_without_another_revocation
+94:     command = self.start_command(wait=300); self.committed(command)
+94:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+94:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 68, in start_command
+94:     self.assertTrue(binary.is_file(), 'Production spatial-revoke executable is missing')
+94: AssertionError: False is not true : Production spatial-revoke executable is missing
+94: 
+94: ======================================================================
+94: FAIL: test_crash_requires_checked_recovery_and_retirement_before_completion (__main__.OperatorRevocationTests.test_crash_requires_checked_recovery_and_retirement_before_completion)
+94: ----------------------------------------------------------------------
+94: Traceback (most recent call last):
+94:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 168, in test_crash_requires_checked_recovery_and_retirement_before_completion
+94:     command = self.start_command(wait=10000); self.committed(command)
+94:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+94:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 68, in start_command
+94:     self.assertTrue(binary.is_file(), 'Production spatial-revoke executable is missing')
+94: AssertionError: False is not true : Production spatial-revoke executable is missing
+94: 
+94: ----------------------------------------------------------------------
+94: Ran 3 tests in 15.458s
+94: 
+94: FAILED (failures=3)
+94: {"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service/adapter-a175c515b9244431a3f7623e57026b87", "device": 31, "inode": 752551, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service/adapter-a175c515b9244431a3f7623e57026b87\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "exit_code": 1, "scope_removed": true}
+94: Finished with result: exit-code
+94: Main processes terminated with: code=exited/status=1
+94: Service runtime: 15.677s
+94: CPU time consumed: 7.403s
+94: Memory peak: 2.5M
+94: Memory swap peak: 0B
+94: {"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service: Unit spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service not loaded.\n"}
+94: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+1/1 Test #94: session-operator-revocation ......***Failed   15.81 sec
+{"unit": "spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-operator-regression-05/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-session-operator-regression-05/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service"]}
+Running as unit: spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service; invocation ID: fb7de35214c741fdab26b7069b98ace1
+test_completion_waits_for_real_key_button_and_lease_release (__main__.OperatorRevocationTests.test_completion_waits_for_real_key_button_and_lease_release) ... FAIL
+test_pending_timeout_resumes_without_another_revocation (__main__.OperatorRevocationTests.test_pending_timeout_resumes_without_another_revocation) ... FAIL
+test_crash_requires_checked_recovery_and_retirement_before_completion (__main__.OperatorRevocationTests.test_crash_requires_checked_recovery_and_retirement_before_completion) ... FAIL
+
+======================================================================
+FAIL: test_completion_waits_for_real_key_button_and_lease_release (__main__.OperatorRevocationTests.test_completion_waits_for_real_key_button_and_lease_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 146, in test_completion_waits_for_real_key_button_and_lease_release
+    command = self.start_command(); self.committed(command)
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 68, in start_command
+    self.assertTrue(binary.is_file(), 'Production spatial-revoke executable is missing')
+AssertionError: False is not true : Production spatial-revoke executable is missing
+
+======================================================================
+FAIL: test_pending_timeout_resumes_without_another_revocation (__main__.OperatorRevocationTests.test_pending_timeout_resumes_without_another_revocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 154, in test_pending_timeout_resumes_without_another_revocation
+    command = self.start_command(wait=300); self.committed(command)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 68, in start_command
+    self.assertTrue(binary.is_file(), 'Production spatial-revoke executable is missing')
+AssertionError: False is not true : Production spatial-revoke executable is missing
+
+======================================================================
+FAIL: test_crash_requires_checked_recovery_and_retirement_before_completion (__main__.OperatorRevocationTests.test_crash_requires_checked_recovery_and_retirement_before_completion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 168, in test_crash_requires_checked_recovery_and_retirement_before_completion
+    command = self.start_command(wait=10000); self.committed(command)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", line 68, in start_command
+    self.assertTrue(binary.is_file(), 'Production spatial-revoke executable is missing')
+AssertionError: False is not true : Production spatial-revoke executable is missing
+
+----------------------------------------------------------------------
+Ran 3 tests in 15.458s
+
+FAILED (failures=3)
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service/adapter-a175c515b9244431a3f7623e57026b87", "device": 31, "inode": 752551, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service/adapter-a175c515b9244431a3f7623e57026b87\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_operator_revocation.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 15.677s
+CPU time consumed: 7.403s
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service: Unit spatial-m03-resources-a5f21257733c4c998cf00cac36b200a6.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  15.81 sec
+
+The following tests FAILED:
+	 94 - session-operator-revocation (Failed)
+Errors while running CTest

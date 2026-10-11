@@ -1,0 +1,54 @@
+syntax = "proto3";
+package spatial.supervisor.v1;
+import "security.proto";
+
+// Fully sealed private supervisor input. Never expose the supervisor cookie to an authority.
+message NativeScopeConfig {
+  uint32 protocol_version = 1;
+  optional uint32 display_number = 2;
+  bytes supervisor_cookie = 3;
+  bytes server_id = 4;
+  optional uint32 server_pid = 5;
+  optional uint32 server_uid = 6;
+  bytes launch_id = 7;
+  spatial.security.v1.Role role = 8;
+}
+message NativeScopeIdentity {
+  bytes launch_id = 1;
+  bytes server_id = 2;
+  bytes credential_id = 3;
+  spatial.security.v1.Role role = 4;
+}
+message NativeScopeReady {
+  NativeScopeIdentity identity = 1;
+  spatial.security.v1.Credential credential = 2;
+}
+message NativeScopeStopped { NativeScopeIdentity identity = 1; }
+message NativeScopeQuery {}
+message NativeScopeRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    NativeScopeQuery inspect = 10;
+    NativeScopeQuery stop = 11;
+  }
+}
+message NativeScopeError {
+  enum Code {
+    UNSPECIFIED = 0;
+    INVALID_ARGUMENT = 1;
+    CLEANUP_UNCONFIRMED = 2;
+    UNIMPLEMENTED = 3;
+  }
+  Code code = 1;
+  string message = 2;
+}
+message NativeScopeReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    NativeScopeReady ready = 10;
+    NativeScopeStopped stopped = 11;
+    NativeScopeError error = 12;
+  }
+}

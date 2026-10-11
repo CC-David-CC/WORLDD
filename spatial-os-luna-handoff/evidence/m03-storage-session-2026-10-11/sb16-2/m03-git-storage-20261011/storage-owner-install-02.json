@@ -1,0 +1,15 @@
+{
+  "host": "sb16-2",
+  "target": "/usr/local/libexec/spatial-storage-owner",
+  "sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f",
+  "previous_sha256": "23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+  "applied": true,
+  "backup": "/usr/local/libexec/spatial-storage-owner.previous-23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+  "recovery": [
+    "sudo",
+    "cp",
+    "--",
+    "/usr/local/libexec/spatial-storage-owner.previous-23f98968224141213259fbdbcf76fff0942b672cdc410a20261217da3241be81",
+    "/usr/local/libexec/spatial-storage-owner"
+  ]
+}

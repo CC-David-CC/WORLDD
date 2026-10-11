@@ -1,0 +1,87 @@
+{
+  "monotonic": 10068.797627448,
+  "broker_pid": 58972,
+  "broker_supervisor_pid": 58970,
+  "processes": [
+    {
+      "pid": 58970,
+      "pidfd": 31,
+      "exited": true,
+      "status": "Name:\tspatial-authori\nState:\tZ (zombie)\nTgid:\t58970\nNgid:\t0\nPid:\t58970\nPPid:\t58969\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t0\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t58970\nNSpid:\t58970\nNSpgid:\t58162\nNSsid:\t58162\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t00000001000044c2\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t716\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/manager\n"
+    },
+    {
+      "pid": 59014,
+      "pidfd": 32,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 59015,
+      "pidfd": 33,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 59016,
+      "pidfd": 34,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 59017,
+      "pidfd": 35,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 59018,
+      "pidfd": 36,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 58972,
+      "pidfd": 38,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 58976,
+      "pidfd": 40,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 58977,
+      "pidfd": 41,
+      "exited": true,
+      "status": "FileNotFoundError",
+      "wchan": "FileNotFoundError",
+      "cgroup": "FileNotFoundError"
+    },
+    {
+      "pid": 58974,
+      "pidfd": 52,
+      "exited": true,
+      "status": "Name:\tspatial-authori\nState:\tZ (zombie)\nTgid:\t58974\nNgid:\t0\nPid:\t58974\nPPid:\t58969\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t0\nGroups:\t4 24 27 30 46 100 114 123 1000 \nNStgid:\t58974\nNSpid:\t58974\nNSpgid:\t58162\nNSsid:\t58162\nKthread:\t0\nThreads:\t1\nSigQ:\t0/56219\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000000001000\nSigCgt:\t00000001000044c2\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t000001ffffffffff\nCapAmb:\t0000000000000000\nNoNewPrivs:\t0\nSeccomp:\t0\nSeccomp_filters:\t0\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t558\nnonvoluntary_ctxt_switches:\t4\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n",
+      "wchan": "0",
+      "cgroup": "0::/system.slice/spatial-m03-resources-b228f6915bf84f7ba4ce47645c39db5a.service/manager\n"
+    }
+  ]
+}

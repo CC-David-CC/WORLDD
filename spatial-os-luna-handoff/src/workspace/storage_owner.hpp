@@ -7,7 +7,7 @@ namespace spatial {
 // The caller must authenticate the transport before invoking handle().
 class StorageOwner final {
 public:
-    explicit StorageOwner(workspace::v1::StorageOwnerConfig configuration);
+    explicit StorageOwner(workspace::v1::StorageOwnerConfig configuration, bool require_kernel_io = false);
     ~StorageOwner();
     workspace::v1::StorageOwnerReply handle(const workspace::v1::StorageOwnerRequest& request);
     const workspace::v1::StorageOwnerConfig& configuration() const;

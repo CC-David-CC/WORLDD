@@ -1,0 +1,69 @@
+Historical halt snapshot. David subsequently resumed the active project goal.
+The untested and failed-draft statements below describe that earlier halt only.
+Read spatial-os-luna-handoff/docs/M03_STORAGE_SESSION_WIRING.txt for the current increment.
+
+User-requested halt, 2026-10-11
+
+The project goal is paused. David needs to restart his computer.
+Do not resume implementation or tests until David resumes the goal.
+
+Plan position
+M01 and M02 are qualified.
+M03 execution confinement and bounded storage remain incomplete.
+M04-M16 remain incomplete. M04 adds native XLibre workspace security.
+Read spatial-os-luna-handoff/docs/MILESTONES.md for the full ordered plan.
+
+Reviewed Git checkpoint
+Branch: m03/resource-boundary.
+Commit: c243b7083631980d8637f13bbfc8b493dd32ec6a.
+The local repository and box-git contain this reviewed commit.
+GitHub remains at the authorized paused checkpoint a174953.
+Read spatial-os-luna-handoff/evidence/m03-storage-launch-2026-10-11/primary-review.json.
+Its launcher component passed 106 regressions and five storage/Git scenarios on each host.
+
+Uncommitted work after c243b70
+Direct BrokerProcess and retained supervisor storage-owner wiring are drafted.
+The private storage descriptors require credentials before broker startup.
+The broker checks the pinned owner during its normal idle enforcement loop.
+SessionBroker reserves its administrative descriptor around the storage descriptor.
+Additive protobuf configuration fields and five negative descriptor/configuration tests are drafted.
+A thin direct-launch witness and real quota-volume checks are drafted.
+
+Latest execution evidence
+Both hosts passed four direct-launch scenarios in local/m03-storage-broker-launch-03.
+These cover startup/cleanup, idle owner death, wrong UID, and wrong volume.
+Both passed 106 core regressions, 14 authority-supervisor cases, and four session-broker cases.
+The native session-resources suite failed on both hosts during bootstrap Git import.
+Its bootstrap broker lacks the now-required Git resource configuration.
+Production correctly returned UNAVAILABLE. Do not weaken that check.
+Session-broker-cleanup was not reached in this regression batch.
+Host reports remain at local/m03-git-storage-20261011/storage-session-regressions-01.
+Their status field says running, but both tool processes exited with status one.
+The terminal command results show session-resources exit code eight.
+
+Last local edits are untested
+BrokerProcess.finish now drafts a half-close and checks the actual child's successful exit.
+The direct witness drafts broker-envelope transport for native fixture bootstrap.
+Its idle-owner-death test now requires a failing witness exit.
+These last edits exist locally. They were not copied, built, or tested on either host.
+Host sources contain the preceding tested draft. Compare source hashes before resuming.
+
+Remaining work
+Finish native fixture bootstrap through the bounded production broker path.
+Preserve all existing assertions and actual child-exit evidence.
+Migrate applicable native registrations to explicit I/O delegation and resource policy.
+Review failed owner construction and propagate verified owner-cleanup status into retained cleanup decisions.
+Test a positive native session with its configured storage owner.
+Provision the operator data volume and require the production storage/resource profile.
+Run competing-storage availability and revocation checks.
+Review and preserve the combined evidence before committing the next increment.
+Freeze the candidate and run the complete M03 gate on both hosts.
+Advance to M04 only after M03 qualifies.
+
+Halt verification
+No matching project test or regression jobs are running on either host.
+The direct-trial owner services and delegated services are unloaded.
+The trial volumes are unmounted and their loop devices are detached.
+The root-owned storage-owner executable remains installed from c243b70's reviewed checkpoint.
+Its receipts include exact removal commands. Normal login and SSH remain available.
+Neither Linux host was rebooted during this halt.

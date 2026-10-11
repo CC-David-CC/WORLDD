@@ -1,0 +1,4 @@
+Storage owner unit: spatial-storage-owner-e67285ab8bbc3986b86e0901ea8e9005.service
+spatial-storage-owner: Workspace storage device has no I/O budget
+workspaced: Storage owner unavailable; inspect pending effects before retrying
+storage broker launch witness: Workspace authority channel closed

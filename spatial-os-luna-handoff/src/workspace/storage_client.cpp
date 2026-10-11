@@ -61,6 +61,10 @@ StorageClient::StorageClient(int descriptor, const std::filesystem::path& volume
 }
 StorageClient::~StorageClient() = default;
 void StorageClient::set_observer(std::function<void()> observer) { impl_->observer = std::move(observer); }
+void StorageClient::check_alive() const {
+    try { if (!impl_->channel) unavailable(); impl_->channel->check_alive(); }
+    catch (...) { unavailable(); }
+}
 workspace::v1::StorageObjectState StorageClient::call(pb::StorageOwnerRequest request, const std::function<void()>& tick) {
     pb::StorageObject expected;
     if (request.has_repository_prepare()) expected = request.repository_prepare().object();
