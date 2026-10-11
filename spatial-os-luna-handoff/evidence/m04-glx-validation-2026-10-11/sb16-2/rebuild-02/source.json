@@ -1,0 +1,15 @@
+{
+  "archive_sha256": "097842f3e49d996868b38688db87b006f7d4541e93ce86d2f341d8b3e7be7c93",
+  "recorded_source": {
+    "url": "https://archive.mesa3d.org/mesa-25.2.8.tar.xz",
+    "sha256": "097842f3e49d996868b38688db87b006f7d4541e93ce86d2f341d8b3e7be7c93",
+    "bytes": 43813260,
+    "members": [
+      "mesa-25.2.8/VERSION",
+      "mesa-25.2.8/src/gallium/targets/dril/dri.sym.in",
+      "mesa-25.2.8/src/gallium/targets/dril/dril_target.c",
+      "mesa-25.2.8/src/gallium/targets/dril/meson.build"
+    ]
+  },
+  "bundle_sha256": "c14beccdbb9d0c3a0fa3c47905398876b35a6c84c895f7e65bb889f38bf32b63"
+}

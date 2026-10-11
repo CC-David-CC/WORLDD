@@ -1,0 +1,8 @@
+{
+  "host": "sb16-2",
+  "first_attempt": "failed before configuration",
+  "observed_error": "tarfile.AbsoluteLinkError: build-tools/bin/python3 is a link to an absolute path",
+  "correction": "Skip only the recorded /usr/bin/python3 interpreter link during safe extraction. Create that exact link afterward.",
+  "system_changes": false,
+  "raw_stderr_source": "Tool output; no command log was created before the extraction failure."
+}

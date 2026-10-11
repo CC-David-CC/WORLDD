@@ -1,5 +1,5 @@
 Defect: Mesa 25.2.8 GLVND vendor does not register its default EGL cleanup.
-Status: A project-local candidate passes a controlled startup/shutdown comparison on sb16.
+Status: A private candidate passes rendering and selected sanitizer checks on both hosts.
 Qualification remains incomplete. System graphics libraries remain unchanged.
 
 The native XLibre sanitizer run leaks 3176 bytes in five allocations on both hosts.
@@ -25,6 +25,14 @@ The corrected broader run passes eight suites and fails one shutdown timeout ass
 The unchanged 23-case selection suite passes its isolated recheck.
 Do not discard the original timeout or claim a completed graphics gate.
 
-Next: Reproduce and diagnose the timeout. Validate actual GLX context rendering and lifecycle.
-Build and qualify the candidate on sb16-2. Record provider binaries and launch configuration.
-Keep the patch separate from XLibre source changes.
+Next: Qualify the intended graphics configuration and native GPU path.
+Keep the unexplained timeout evidence. Keep the patch separate from XLibre source changes.
+
+2026-10-11 validation update:
+Each host passes 186 GLX-enabled native security checks and 100 targeted shutdown repetitions.
+Each host renders 32 checked frames through direct GLX with FP64 support.
+Loader logs prove the candidate vendor initializes and unloads.
+sb16-2 builds its own candidate from the recorded inputs.
+The original timeout remains unexplained. Its deadline remains four seconds.
+Native GPU, installed-vendor configuration, and full M04 qualification remain pending.
+Evidence: spatial-os-luna-handoff/evidence/m04-glx-validation-2026-10-11/primary-review.json.

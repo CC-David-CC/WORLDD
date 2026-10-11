@@ -1,0 +1,12 @@
+{
+  "phase": "M04",
+  "phase_complete": false,
+  "status": "selected_before_execution",
+  "tests": [
+    {"name": "GLX context rendering", "purpose": "Create real OpenGL 3.3 contexts as a trusted compositor. Check varied framebuffer pixels and destroy contexts, windows and colormaps across 32 cycles."},
+    {"name": "Repeated shutdown", "purpose": "Repeat the unchanged revocation/selection test with the candidate vendor. Preserve any four-second shutdown failure and capture its live process state."}
+  ],
+  "hosts": ["sb16", "sb16-2"],
+  "first_host": "sb16",
+  "constraints": "Keep strict native authentication, original cleanup deadlines and sanitizer assertions. A startup-only success does not prove rendering. Do not install the prototype into system graphics paths."
+}

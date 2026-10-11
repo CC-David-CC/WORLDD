@@ -1,0 +1,682 @@
+    770307:	
+    770307:	file=libasan.so.8 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libasan.so.8 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a7d96e60  base: 0x00007e38a7c00000   size: 0x00000000006d0a28
+    770307:	    entry: 0x00007e38a7c00000  phdr: 0x00007e38a7c00040  phnum:                 12
+    770307:	
+    770307:	
+    770307:	file=libpixman-1.so.0 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libpixman-1.so.0 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a8417cf0  base: 0x00007e38a836a000   size: 0x00000000000ae158
+    770307:	    entry: 0x00007e38a836a000  phdr: 0x00007e38a836a040  phnum:                 12
+    770307:	
+    770307:	
+    770307:	file=libXfont2.so.2 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libXfont2.so.2 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a8367d90  base: 0x00007e38a833c000   size: 0x000000000002d558
+    770307:	    entry: 0x00007e38a833c000  phdr: 0x00007e38a833c040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libXdmcp.so.6 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libXdmcp.so.6 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a833ade8  base: 0x00007e38a8334000   size: 0x0000000000007068
+    770307:	    entry: 0x00007e38a8334000  phdr: 0x00007e38a8334040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libm.so.6 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libm.so.6 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a7bfec10  base: 0x00007e38a7b17000   size: 0x00000000000e8018
+    770307:	    entry: 0x00007e38a7b17000  phdr: 0x00007e38a7b17040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libprotobuf-c.so.1 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libprotobuf-c.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a8330d70  base: 0x00007e38a8327000   size: 0x000000000000a030
+    770307:	    entry: 0x00007e38a8327000  phdr: 0x00007e38a8327040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libcrypto.so.3 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libcrypto.so.3 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a7b0d870  base: 0x00007e38a7600000   size: 0x0000000000513bd0
+    770307:	    entry: 0x00007e38a7600000  phdr: 0x00007e38a7600040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libXau.so.6 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libXau.so.6 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a8325df8  base: 0x00007e38a8321000   size: 0x00000000000050f0
+    770307:	    entry: 0x00007e38a8321000  phdr: 0x00007e38a8321040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libGL.so.1 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libGL.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a75fdd78  base: 0x00007e38a7579000   size: 0x00000000000868f0
+    770307:	    entry: 0x00007e38a7579000  phdr: 0x00007e38a7579040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libubsan.so.1 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libubsan.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a6e70ce0  base: 0x00007e38a6e00000   size: 0x0000000000615148
+    770307:	    entry: 0x00007e38a6e00000  phdr: 0x00007e38a6e00040  phnum:                 12
+    770307:	
+    770307:	
+    770307:	file=libc.so.6 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb [0]
+    770307:	file=libc.so.6 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a6c03940  base: 0x00007e38a6a00000   size: 0x0000000000212d90
+    770307:	    entry: 0x00007e38a6a2a390  phdr: 0x00007e38a6a00040  phnum:                 14
+    770307:	
+    770307:	
+    770307:	file=libgcc_s.so.1 [0];  needed by /lib/x86_64-linux-gnu/libasan.so.8 [0]
+    770307:	file=libgcc_s.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a831ddb0  base: 0x00007e38a82f1000   size: 0x000000000002d3a8
+    770307:	    entry: 0x00007e38a82f1000  phdr: 0x00007e38a82f1040  phnum:                 12
+    770307:	
+    770307:	
+    770307:	file=libz.so.1 [0];  needed by /lib/x86_64-linux-gnu/libXfont2.so.2 [0]
+    770307:	file=libz.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a82efdd0  base: 0x00007e38a82d5000   size: 0x000000000001b098
+    770307:	    entry: 0x00007e38a82d5000  phdr: 0x00007e38a82d5040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libbz2.so.1.0 [0];  needed by /lib/x86_64-linux-gnu/libXfont2.so.2 [0]
+    770307:	file=libbz2.so.1.0 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a7577d20  base: 0x00007e38a7565000   size: 0x0000000000013c28
+    770307:	    entry: 0x00007e38a7565000  phdr: 0x00007e38a7565040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libfontenc.so.1 [0];  needed by /lib/x86_64-linux-gnu/libXfont2.so.2 [0]
+    770307:	file=libfontenc.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a7562dc8  base: 0x00007e38a755a000   size: 0x000000000000a4b0
+    770307:	    entry: 0x00007e38a755a000  phdr: 0x00007e38a755a040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libfreetype.so.6 [0];  needed by /lib/x86_64-linux-gnu/libXfont2.so.2 [0]
+    770307:	file=libfreetype.so.6 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a7558b90  base: 0x00007e38a748e000   size: 0x00000000000cb010
+    770307:	    entry: 0x00007e38a748e000  phdr: 0x00007e38a748e040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libbsd.so.0 [0];  needed by /lib/x86_64-linux-gnu/libXdmcp.so.6 [0]
+    770307:	file=libbsd.so.0 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a748ba10  base: 0x00007e38a7478000   size: 0x00000000000150c0
+    770307:	    entry: 0x00007e38a7478000  phdr: 0x00007e38a7478040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libGLdispatch.so.0 [0];  needed by /lib/x86_64-linux-gnu/libGL.so.1 [0]
+    770307:	file=libGLdispatch.so.0 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a6df6db8  base: 0x00007e38a6d48000   size: 0x00000000000b7360
+    770307:	    entry: 0x00007e38a6d48000  phdr: 0x00007e38a6d48040  phnum:                 12
+    770307:	
+    770307:	
+    770307:	file=libGLX.so.0 [0];  needed by /lib/x86_64-linux-gnu/libGL.so.1 [0]
+    770307:	file=libGLX.so.0 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a7466d80  base: 0x00007e38a7445000   size: 0x0000000000032568
+    770307:	    entry: 0x00007e38a7445000  phdr: 0x00007e38a7445040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libstdc++.so.6 [0];  needed by /lib/x86_64-linux-gnu/libubsan.so.1 [0]
+    770307:	file=libstdc++.so.6 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a6875d80  base: 0x00007e38a6600000   size: 0x000000000027d140
+    770307:	    entry: 0x00007e38a6600000  phdr: 0x00007e38a6600040  phnum:                 12
+    770307:	
+    770307:	
+    770307:	file=libpng16.so.16 [0];  needed by /lib/x86_64-linux-gnu/libfreetype.so.6 [0]
+    770307:	file=libpng16.so.16 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a6d46c58  base: 0x00007e38a6d10000   size: 0x0000000000037010
+    770307:	    entry: 0x00007e38a6d10000  phdr: 0x00007e38a6d10040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libbrotlidec.so.1 [0];  needed by /lib/x86_64-linux-gnu/libfreetype.so.6 [0]
+    770307:	file=libbrotlidec.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a7443db8  base: 0x00007e38a7437000   size: 0x000000000000d068
+    770307:	    entry: 0x00007e38a7437000  phdr: 0x00007e38a7437040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libmd.so.0 [0];  needed by /lib/x86_64-linux-gnu/libbsd.so.0 [0]
+    770307:	file=libmd.so.0 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a7435d68  base: 0x00007e38a7428000   size: 0x000000000000e068
+    770307:	    entry: 0x00007e38a7428000  phdr: 0x00007e38a7428040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libX11.so.6 [0];  needed by /lib/x86_64-linux-gnu/libGLX.so.0 [0]
+    770307:	file=libX11.so.6 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a69fbc30  base: 0x00007e38a68c3000   size: 0x000000000013cd28
+    770307:	    entry: 0x00007e38a68c3000  phdr: 0x00007e38a68c3040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libbrotlicommon.so.1 [0];  needed by /lib/x86_64-linux-gnu/libbrotlidec.so.1 [0]
+    770307:	file=libbrotlicommon.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a6d0edf0  base: 0x00007e38a6ced000   size: 0x0000000000022028
+    770307:	    entry: 0x00007e38a6ced000  phdr: 0x00007e38a6ced040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libxcb.so.1 [0];  needed by /lib/x86_64-linux-gnu/libX11.so.6 [0]
+    770307:	file=libxcb.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a6cebdb8  base: 0x00007e38a6cc4000   size: 0x0000000000028288
+    770307:	    entry: 0x00007e38a6cc4000  phdr: 0x00007e38a6cc4040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	calling preinit: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb
+    770307:	
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_printf (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_sprintf (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_snprintf (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_fprintf (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_vprintf (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_vsprintf (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_vsnprintf (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __isoc99_vfprintf (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __b64_ntop (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: __b64_pton (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: pthread_mutexattr_getrobust_np (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdrmem_create (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdrstdio_create (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_short (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_short (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_int (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_long (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_long (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_hyper (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_hyper (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_longlong_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_longlong_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int8_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_uint8_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int16_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_uint16_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int32_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_uint32_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_int64_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_uint64_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_quad_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_quad_t (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_bool (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_enum (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_char (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_u_char (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_float (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_double (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_bytes (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_string (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdrrec_create (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: xdr_destroy (fatal)
+    770307:	/lib/x86_64-linux-gnu/libasan.so.8: error: symbol lookup error: undefined symbol: swift_demangle (fatal)
+    770307:	
+    770307:	calling init: /lib64/ld-linux-x86-64.so.2
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libc.so.6
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libXau.so.6
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libmd.so.0
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libbsd.so.0
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libXdmcp.so.6
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libxcb.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libbrotlicommon.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libX11.so.6
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libbrotlidec.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libz.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libm.so.6
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libpng16.so.16
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libgcc_s.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libstdc++.so.6
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libGLdispatch.so.0
+    770307:	
+    770307:	opening file= [0]; direct_opencount=2
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libGLX.so.0
+    770307:	
+    770307:	opening file= [0]; direct_opencount=3
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libbz2.so.1.0
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libfreetype.so.6
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libfontenc.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libubsan.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libGL.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libcrypto.so.3
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libprotobuf-c.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libXfont2.so.2
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libpixman-1.so.0
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libasan.so.8
+    770307:	
+    770307:	
+    770307:	initialize program: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb
+    770307:	
+    770307:	
+    770307:	transferring control: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb
+    770307:	
+Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )
+    770307:	activating NODELETE for /lib/x86_64-linux-gnu/libcrypto.so.3 [0]
+    770307:	opening file=/lib/x86_64-linux-gnu/libgcc_s.so.1 [0]; direct_opencount=1
+    770307:	
+_XSERVTransSocketUNIXCreateListener: ...SocketCreateListener() failed
+_XSERVTransMakeAllCOTSServerListeners: server already running
+Sync Extension 3.1
+    770307:	
+    770307:	file=/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so [0];  dynamically loaded by /lib/x86_64-linux-gnu/libasan.so.8 [0]
+    770307:	file=/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so [0];  generating link map
+    770307:	  dynamic: 0x00007e38a5d42dc0  base: 0x00007e38a5d26000   size: 0x000000000001d0c8
+    770307:	    entry: 0x00007e38a5d26000  phdr: 0x00007e38a5d26040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libgbm.so.1 [0];  needed by /usr/lib/x86_64-linux-gnu/dri/swrast_dri.so [0]
+    770307:	file=libgbm.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a5d24da8  base: 0x00007e38a5d1f000   size: 0x0000000000006110
+    770307:	    entry: 0x00007e38a5d1f000  phdr: 0x00007e38a5d1f040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libexpat.so.1 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm/libgbm.so.1 [0]
+    770307:	file=libexpat.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a5bfedd0  base: 0x00007e38a5bd5000   size: 0x000000000002a090
+    770307:	    entry: 0x00007e38a5bd5000  phdr: 0x00007e38a5bd5040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	file=libdrm.so.2 [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm/libgbm.so.1 [0]
+    770307:	file=libdrm.so.2 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a5bd3df0  base: 0x00007e38a5bbe000   size: 0x0000000000016bd8
+    770307:	    entry: 0x00007e38a5bbe000  phdr: 0x00007e38a5bbe040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libdrm.so.2
+    770307:	
+    770307:	
+    770307:	calling init: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0/libexpat.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm/libgbm.so.1
+    770307:	
+    770307:	
+    770307:	calling init: /usr/lib/x86_64-linux-gnu/dri/swrast_dri.so
+    770307:	
+    770307:	opening file=/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so [0]; direct_opencount=1
+    770307:	
+    770307:	
+    770307:	file=libEGL.so.1 [0];  dynamically loaded by /lib/x86_64-linux-gnu/libasan.so.8 [0]
+    770307:	file=libEGL.so.1 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a5bbcd98  base: 0x00007e38a5bac000   size: 0x0000000000011688
+    770307:	    entry: 0x00007e38a5bac000  phdr: 0x00007e38a5bac040  phnum:                 11
+    770307:	
+    770307:	
+    770307:	calling init: /lib/x86_64-linux-gnu/libEGL.so.1
+    770307:	
+    770307:	opening file= [0]; direct_opencount=4
+    770307:	
+    770307:	opening file=/lib/x86_64-linux-gnu/libEGL.so.1 [0]; direct_opencount=1
+    770307:	
+    770307:	
+    770307:	file=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0 [0];  dynamically loaded by /lib/x86_64-linux-gnu/libasan.so.8 [0]
+    770307:	file=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0 [0];  generating link map
+    770307:	  dynamic: 0x00007e38a5baad10  base: 0x00007e38a5b65000   size: 0x0000000000046848
+    770307:	    entry: 0x00007e38a5b65000  phdr: 0x00007e38a5b65040  phnum:                 12
+    770307:	
+    770307:	
+    770307:	file=libgallium-25.2.8.so [0];  needed by /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0 [0]
+    770307:	file=libgallium-25.2.8.so [0];  generating link map
+    770307:	  dynamic: 0x00007e38a3179560  base: 0x00007e38a2200000   size: 0x0000000000faff00
+    770307:	    entry: 0x00007e38a2200000  phdr: 0x00007e38a2200040  phnum:                 12
+    770307:	
+    770307:	
+    770307:	calling init: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gallium/targets/dri/libgallium-25.2.8.so
+    770307:	
+    770307:	
+    770307:	calling init: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0
+    770307:	
+    770307:	opening file=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0 [0]; direct_opencount=1
+    770307:	
+libEGL warning: failed to open /dev/dri/card2: Permission denied
+
+libEGL warning: failed to open /dev/dri/card1: Permission denied
+
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libEGL.so.1 [0]
+    770307:	
+    770307:	
+    770307:	closing file=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0; direct_opencount=0
+    770307:	
+    770307:	closing file=; direct_opencount=3
+    770307:	
+    770307:	file=/lib/x86_64-linux-gnu/libEGL.so.1 [0];  destroying link map
+    770307:	
+    770307:	calling fini: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gallium/targets/dri/libgallium-25.2.8.so [0]
+    770307:	
+    770307:	
+    770307:	file=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/egl/libEGL_mesa.so.0.0.0 [0];  destroying link map
+    770307:	
+    770307:	file=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gallium/targets/dri/libgallium-25.2.8.so [0];  destroying link map
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xkb-compiled/server-1.xkm"', fp = 0x515000005d00
+Pclose: fp = 0x515000005d00
+    770308:	
+    770308:	file=libc.so.6 [0];  needed by sh [0]
+    770308:	file=libc.so.6 [0];  generating link map
+    770308:	  dynamic: 0x00007715f4603940  base: 0x00007715f4400000   size: 0x0000000000212d90
+    770308:	    entry: 0x00007715f442a390  phdr: 0x00007715f4400040  phnum:                 14
+    770308:	
+    770308:	
+    770308:	calling init: /lib64/ld-linux-x86-64.so.2
+    770308:	
+    770308:	
+    770308:	calling init: /lib/x86_64-linux-gnu/libc.so.6
+    770308:	
+    770308:	
+    770308:	initialize program: sh
+    770308:	
+    770308:	
+    770308:	transferring control: sh
+    770308:	
+    770309:	
+    770309:	file=libX11.so.6 [0];  needed by /usr/bin/xkbcomp [0]
+    770309:	file=libX11.so.6 [0];  generating link map
+    770309:	  dynamic: 0x000075ab6668ec30  base: 0x000075ab66556000   size: 0x000000000013cd28
+    770309:	    entry: 0x000075ab66556000  phdr: 0x000075ab66556040  phnum:                 11
+    770309:	
+    770309:	
+    770309:	file=libxkbfile.so.1 [0];  needed by /usr/bin/xkbcomp [0]
+    770309:	file=libxkbfile.so.1 [0];  generating link map
+    770309:	  dynamic: 0x000075ab66554da8  base: 0x000075ab6652f000   size: 0x0000000000026c50
+    770309:	    entry: 0x000075ab6652f000  phdr: 0x000075ab6652f040  phnum:                 11
+    770309:	
+    770309:	
+    770309:	file=libc.so.6 [0];  needed by /usr/bin/xkbcomp [0]
+    770309:	file=libc.so.6 [0];  generating link map
+    770309:	  dynamic: 0x000075ab66403940  base: 0x000075ab66200000   size: 0x0000000000212d90
+    770309:	    entry: 0x000075ab6622a390  phdr: 0x000075ab66200040  phnum:                 14
+    770309:	
+    770309:	
+    770309:	file=libxcb.so.1 [0];  needed by /lib/x86_64-linux-gnu/libX11.so.6 [0]
+    770309:	file=libxcb.so.1 [0];  generating link map
+    770309:	  dynamic: 0x000075ab6652ddb8  base: 0x000075ab66506000   size: 0x0000000000028288
+    770309:	    entry: 0x000075ab66506000  phdr: 0x000075ab66506040  phnum:                 11
+    770309:	
+    770309:	
+    770309:	file=libXau.so.6 [0];  needed by /lib/x86_64-linux-gnu/libxcb.so.1 [0]
+    770309:	file=libXau.so.6 [0];  generating link map
+    770309:	  dynamic: 0x000075ab66502df8  base: 0x000075ab664fe000   size: 0x00000000000050f0
+    770309:	    entry: 0x000075ab664fe000  phdr: 0x000075ab664fe040  phnum:                 11
+    770309:	
+    770309:	
+    770309:	file=libXdmcp.so.6 [0];  needed by /lib/x86_64-linux-gnu/libxcb.so.1 [0]
+    770309:	file=libXdmcp.so.6 [0];  generating link map
+    770309:	  dynamic: 0x000075ab664fcde8  base: 0x000075ab664f6000   size: 0x0000000000007068
+    770309:	    entry: 0x000075ab664f6000  phdr: 0x000075ab664f6040  phnum:                 11
+    770309:	
+    770309:	
+    770309:	file=libbsd.so.0 [0];  needed by /lib/x86_64-linux-gnu/libXdmcp.so.6 [0]
+    770309:	file=libbsd.so.0 [0];  generating link map
+    770309:	  dynamic: 0x000075ab664f3a10  base: 0x000075ab664e0000   size: 0x00000000000150c0
+    770309:	    entry: 0x000075ab664e0000  phdr: 0x000075ab664e0040  phnum:                 11
+    770309:	
+    770309:	
+    770309:	file=libmd.so.0 [0];  needed by /lib/x86_64-linux-gnu/libbsd.so.0 [0]
+    770309:	file=libmd.so.0 [0];  generating link map
+    770309:	  dynamic: 0x000075ab664ded68  base: 0x000075ab664d1000   size: 0x000000000000e068
+    770309:	    entry: 0x000075ab664d1000  phdr: 0x000075ab664d1040  phnum:                 11
+    770309:	
+    770309:	
+    770309:	calling init: /lib64/ld-linux-x86-64.so.2
+    770309:	
+    770309:	
+    770309:	calling init: /lib/x86_64-linux-gnu/libc.so.6
+    770309:	
+    770309:	
+    770309:	calling init: /lib/x86_64-linux-gnu/libmd.so.0
+    770309:	
+    770309:	
+    770309:	calling init: /lib/x86_64-linux-gnu/libbsd.so.0
+    770309:	
+    770309:	
+    770309:	calling init: /lib/x86_64-linux-gnu/libXdmcp.so.6
+    770309:	
+    770309:	
+    770309:	calling init: /lib/x86_64-linux-gnu/libXau.so.6
+    770309:	
+    770309:	
+    770309:	calling init: /lib/x86_64-linux-gnu/libxcb.so.1
+    770309:	
+    770309:	
+    770309:	calling init: /lib/x86_64-linux-gnu/libX11.so.6
+    770309:	
+    770309:	
+    770309:	calling init: /lib/x86_64-linux-gnu/libxkbfile.so.1
+    770309:	
+    770309:	
+    770309:	initialize program: /usr/bin/xkbcomp
+    770309:	
+    770309:	
+    770309:	transferring control: /usr/bin/xkbcomp
+    770309:	
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+    770309:	
+    770309:	calling fini:  [0]
+    770309:	
+    770309:	
+    770309:	calling fini: /lib/x86_64-linux-gnu/libxkbfile.so.1 [0]
+    770309:	
+    770309:	
+    770309:	calling fini: /lib/x86_64-linux-gnu/libX11.so.6 [0]
+    770309:	
+    770309:	
+    770309:	calling fini: /lib/x86_64-linux-gnu/libxcb.so.1 [0]
+    770309:	
+    770309:	
+    770309:	calling fini: /lib/x86_64-linux-gnu/libXau.so.6 [0]
+    770309:	
+    770309:	
+    770309:	calling fini: /lib/x86_64-linux-gnu/libXdmcp.so.6 [0]
+    770309:	
+    770309:	
+    770309:	calling fini: /lib/x86_64-linux-gnu/libbsd.so.0 [0]
+    770309:	
+    770309:	
+    770309:	calling fini: /lib/x86_64-linux-gnu/libmd.so.0 [0]
+    770309:	
+    770309:	
+    770309:	calling fini: /lib/x86_64-linux-gnu/libc.so.6 [0]
+    770309:	
+    770309:	
+    770309:	calling fini: /lib64/ld-linux-x86-64.so.2 [0]
+    770309:	
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xkb-compiled/server-1.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(770307).
+client(0): Reserved cmdname(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 5 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 3).
+client(200000): Reserved pid(770306).
+client(200000): Reserved cmdname(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/test_glx_lifecycle.py /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glx_lifecycle_probe).
+AllocNewConnection: client index = 1, socket fd = 5, local = 1
+client(400000): Reserved pid(770310).
+client(400000): Reserved cmdname(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glx_lifecycle_probe) and cmdargs(32).
+AllocNewConnection: client index = 2, socket fd = 8, local = 1
+client(400000): Released pid(770310).
+client(400000): Released cmdline(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glx_lifecycle_probe) and cmdargs(32).
+client(200000): Released pid(770306).
+client(200000): Released cmdline(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/test_glx_lifecycle.py /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glx_lifecycle_probe).
+(dix) removing device 2
+(dix) removing device 3
+(dix) removing device 5
+(dix) removing device 4
+(dix) removing device 7
+(dix) removing device 6
+    770307:	
+    770307:	calling fini: /usr/lib/x86_64-linux-gnu/dri/swrast_dri.so [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm/libgbm.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0/libexpat.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libdrm.so.2 [0]
+    770307:	
+    770307:	
+    770307:	file=/usr/lib/x86_64-linux-gnu/dri/swrast_dri.so [0];  destroying link map
+    770307:	
+    770307:	file=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/src/gbm/libgbm.so.1 [0];  destroying link map
+    770307:	
+    770307:	file=/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-candidate/subprojects/expat-2.5.0/libexpat.so.1 [0];  destroying link map
+    770307:	
+    770307:	file=/lib/x86_64-linux-gnu/libdrm.so.2 [0];  destroying link map
+client(0): Released pid(770307).
+client(0): Released cmdline(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 5 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 3).
+    770307:	
+    770307:	calling fini:  [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libasan.so.8 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libpixman-1.so.0 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libXfont2.so.2 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libprotobuf-c.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libcrypto.so.3 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libGL.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libubsan.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libfontenc.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libfreetype.so.6 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libbz2.so.1.0 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libGLX.so.0 [0]
+    770307:	
+    770307:	
+    770307:	closing file=; direct_opencount=2
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libGLdispatch.so.0 [0]
+    770307:	
+    770307:	
+    770307:	closing file=; direct_opencount=1
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libstdc++.so.6 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libgcc_s.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libpng16.so.16 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libm.so.6 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libz.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libbrotlidec.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libX11.so.6 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libbrotlicommon.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libxcb.so.1 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libXdmcp.so.6 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libbsd.so.0 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libmd.so.0 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libXau.so.6 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib/x86_64-linux-gnu/libc.so.6 [0]
+    770307:	
+    770307:	
+    770307:	calling fini: /lib64/ld-linux-x86-64.so.2 [0]
+    770307:	

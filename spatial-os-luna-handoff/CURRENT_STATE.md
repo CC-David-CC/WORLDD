@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-11: Private Mesa candidate renders and passes selected checks on both hosts
+
+Each host passes 186 GLX-enabled native security checks with the cleanup candidate.
+Each host also passes 100 unchanged selection/revocation shutdown repetitions.
+The independent compositor witness renders and checks 32 varied frames per host.
+It requires direct OpenGL 3.3 contexts and FP64 support.
+Both hosts report installed Mesa llvmpipe with OpenGL 4.5 and FP64.
+Loader logs confirm each candidate vendor initializes and unloads.
+
+sb16-2 builds its own candidate from the pinned source and recorded local tools.
+The source archive hash matches the reviewed Mesa 25.2.8 release.
+All 1254 copied evidence files match their remote hashes.
+All forty-one locked files remain unchanged.
+System graphics libraries and normal login remain unchanged.
+
+The original four-second shutdown timeout remains preserved and unexplained.
+It did not recur in these checks. The cleanup deadline remains four seconds.
+The private EGL build supports GBM/surfaceless and softpipe.
+These results do not qualify native GPU sessions or the installed vendor configuration.
+M04 remains incomplete. Broader metadata attacks, bypass mutations, and the complete phase gate remain pending.
+Read evidence/m04-glx-validation-2026-10-11/primary-review.json.
+
 ## 2026-10-11: GLX leak diagnosis reaches a Mesa cleanup candidate
 
 Fresh startup/shutdown checks reproduce the 3176-byte leak on both hosts.

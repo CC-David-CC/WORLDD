@@ -1,0 +1,7 @@
+{
+  "checks": 100,
+  "failures": 0,
+  "errors": 0,
+  "original_deadline_seconds": 4,
+  "observer": "read-only proc status and wchan; no ptrace or deadline changes"
+}

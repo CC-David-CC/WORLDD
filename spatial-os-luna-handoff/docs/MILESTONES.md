@@ -39,6 +39,10 @@ Selection namespaces and ConfigureNotify metadata also pass focused review on bo
 The combined candidate has 744 passed checks in Debug and core-X native-server sanitizers.
 All forty-one locked files remain unchanged. Original failures and rejected interface drafts remain preserved.
 Other asynchronous metadata, independent bypass mutations, and graphics qualification remain pending before the M04 gate.
+The private Mesa cleanup candidate now passes actual GLX rendering and selected sanitizers on both hosts.
+Each host passes 186 selected native checks, 100 shutdown repetitions, and 32 pixel-checked context cycles.
+The original shutdown timeout remains unexplained. Native GPU and full M04 gates remain pending.
+Read evidence/m04-glx-validation-2026-10-11/primary-review.json.
 The existing five-second client default remains. Bounded disk pressure defeated 700 ms and two-second clients.
 One successful five-second pressure trial does not establish a worst-case latency bound.
 Storage-pressure availability remains mandatory M03 and M1 performance work.
