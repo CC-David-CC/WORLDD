@@ -67,3 +67,26 @@ Require the production resource and storage profile in operator entry points.
 Qualify issuer availability and immediate revocation under bounded competing writes.
 Freeze the candidate and run the complete M03 gate on both hosts.
 Advance to M04 only after M03 qualifies.
+
+Native storage-session checks selected before execution
+Run session-storage-owner under runtime ASan/UBSan on both hosts.
+Bootstrap real Git data through the bounded owner on a dedicated Btrfs volume.
+Reuse its protected policy for the retained native broker.
+Observe the actual root-owner pidfd through a read-only privileged witness.
+Check both enforced device ceilings independently.
+Exercise real actor input and native confined application output.
+Check graceful session cleanup and retained project data.
+Stop the exact owner service and verify broker/application death through retained pidfds.
+Require the production cleanup journal before claiming cleanup success.
+Preserve images and exact mount/loop cleanup receipts.
+These checks do not qualify physical scanout or operator volume deployment.
+
+Native component checkpoint results
+Both hosts passed session-storage-owner on candidate six under ASan/UBSan.
+Each host passed graceful native teardown and owner-loss containment with checked recovery.
+The actual world and broker cleanup receipts remain preserved as protobuf messages.
+The primary review verified 1,056 attachments and 370 matching source inputs per host.
+Read evidence/m03-native-storage-session-2026-10-11/primary-review.json.
+The test-only increment leaves production C++ and locked acceptance files unchanged.
+The prior native-session qualification gap is closed within these two component scenarios.
+Persistent operator deployment, contention/revocation, and the full M03 gate remain pending.

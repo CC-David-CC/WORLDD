@@ -1,5 +1,29 @@
 # Implementation status
 
+## 2026-10-11: Retained native storage-session checks passed on both hosts
+
+Both hosts passed two native storage-owner cases under ASan/UBSan.
+The real retained broker uses its private bounded root owner on a dedicated Btrfs volume.
+Real actor input reaches the confined native application through the existing production paths.
+The root observer verified the actual broker pidfd. Independent reads verified both device I/O ceilings.
+
+Graceful teardown preserves project data and confirms native world and broker cleanup.
+Owner loss stops the retained broker and application processes.
+The coordinator remains available for explicit checked world and broker recovery.
+Both protobuf cleanup receipts are preserved with their exact process and native identities.
+All test volumes are unmounted and detached. Test owner services are inactive.
+
+The primary review verified 1,056 attachments and 370 matching source inputs per host.
+All 41 locked files remain unchanged. No production C++ implementation changed in this increment.
+Earlier fixture and incorrect new-assertion failures retain exact source snapshots.
+Read evidence/m03-native-storage-session-2026-10-11/primary-review.json.
+Read ../M03_NATIVE_STORAGE_SESSION_NOTES.txt for limitations and failure dispositions.
+
+The renderer used llvmpipe. Physical GPU output, device acceptance, and performance remain unqualified.
+Persistent operator volume provisioning and mandatory production-profile adoption remain pending.
+Bounded-write contention/revocation and the complete M03 gate remain pending.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
 ## 2026-10-11: Storage-owner wiring and device coverage passed focused checks
 
 Direct BrokerProcess and retained supervisor paths now support an explicit bounded storage owner.

@@ -1,0 +1,72 @@
+syntax = "proto3";
+package spatial.supervisor.v1;
+
+// Private supervisor configuration. This is not an actor execution API.
+message AuthorityProcessLaunch {
+  string executable = 1;
+  repeated string arguments = 2; // Arguments after argv[0].
+  repeated uint32 inherited_fds = 3; // Child targets for the private out-of-band descriptor table.
+}
+message ProcessScopeIdentity {
+  bytes launch_id = 1;
+  string scope_name = 2;
+  string boot_id = 3;
+  uint64 device = 4;
+  uint64 inode = 5;
+}
+message ProcessScopeState {
+  ProcessScopeIdentity identity = 1;
+  bool populated = 2;
+  bool direct_child_exited = 3;
+  bool started = 4;
+}
+message ProcessScopeStopped { ProcessScopeIdentity identity = 1; }
+message ProcessScopeQuery {}
+// Trusted owner input. Top-level scalars are explicit; only swap may be zero.
+// CPU uses a fixed 100000 microsecond period. These limits do not grant authority.
+message ProcessScopeBudget {
+  optional uint64 memory_bytes = 1;
+  optional uint64 swap_bytes = 2;
+  optional uint32 processes = 3;
+  optional uint64 cpu_microseconds = 4;
+  message IoLimit {
+    optional uint32 major = 1;
+    optional uint32 minor = 2;
+    uint64 read_bytes_per_second = 3;
+    uint64 write_bytes_per_second = 4;
+  }
+  repeated IoLimit io = 5;
+}
+message ProcessScopeRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    AuthorityProcessLaunch launch = 10;
+    ProcessScopeQuery state = 11;
+    ProcessScopeQuery stop = 12;
+    ProcessScopeQuery prepare = 13;
+    AuthorityProcessLaunch start = 14;
+    ProcessScopeBudget prepare_budget = 15;
+  }
+}
+message ProcessScopeError {
+  enum Code {
+    UNSPECIFIED = 0;
+    INVALID_ARGUMENT = 1;
+    UNSUPPORTED_VERSION = 2;
+    INVALID_STATE = 3;
+    CLEANUP_UNCONFIRMED = 4;
+    LAUNCH_FAILED = 5;
+  }
+  Code code = 1;
+  string message = 2;
+}
+message ProcessScopeReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    ProcessScopeState state = 10;
+    ProcessScopeStopped stopped = 11;
+    ProcessScopeError error = 12;
+  }
+}

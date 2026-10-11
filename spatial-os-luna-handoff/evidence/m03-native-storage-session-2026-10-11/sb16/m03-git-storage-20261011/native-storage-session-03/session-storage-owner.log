@@ -1,0 +1,246 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 96
+    Start 96: session-storage-owner
+
+96: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py" "--native" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_session.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"
+96: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+96: Environment variables: 
+96:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+96:  SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb
+96:  SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-03/native
+96:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+96:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+96: Test timeout computed to be: 180
+96: {"unit": "spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-03/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-03/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_session.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service"]}
+96: Running as unit: spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service; invocation ID: 404f1057af1047b3b0df07f040b5c7c2
+96: test_native_storage_session_retains_owner_and_confined_application (__main__.NativeStorageSessionTests.test_native_storage_session_retains_owner_and_confined_application) ... ERROR
+96: test_native_storage_owner_loss_stops_execution_and_records_cleanup (__main__.NativeStorageSessionTests.test_native_storage_owner_loss_stops_execution_and_records_cleanup) ... ERROR
+96: 
+96: ======================================================================
+96: ERROR: test_native_storage_session_retains_owner_and_confined_application (__main__.NativeStorageSessionTests.test_native_storage_session_retains_owner_and_confined_application)
+96: ----------------------------------------------------------------------
+96: Traceback (most recent call last):
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_session.py", line 94, in test_native_storage_session_retains_owner_and_confined_application
+96:     self.held_application()
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 217, in held_application
+96:     self.coordinator, self.owner, self.world_record = self.ready()
+96:                                                       ^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+96:     proc = self.start_coordinator()
+96:            ^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 55, in start_coordinator
+96:     world_config = self.world_config()
+96:                    ^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 158, in world_config
+96:     config = super().world_config()
+96:              ^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 258, in world_config
+96:     config = super().world_config()
+96:              ^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 31, in world_config
+96:     registration = self.issuer.register(identity=b'w' * 32, public=public, domain=getattr(self, 'world_domain', 'world-one'), revision=1)
+96:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_participant_session.py", line 44, in register
+96:     reply = self.execute(self.peer, self.challenge(self.peer, operation))
+96:                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_issuer.py", line 116, in challenge
+96:     reply = client.call(challenge=operation or self.operation())
+96:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 49, in call
+96:     return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+96:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 43, in request
+96:     reply = self.receive()
+96:             ^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 36, in receive
+96:     length = struct.unpack('!I', exact(4))[0]
+96:                                  ^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 33, in exact
+96:     if not part: raise EOFError('Issuer TLS stream closed')
+96:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96: EOFError: Issuer TLS stream closed
+96: 
+96: ======================================================================
+96: ERROR: test_native_storage_owner_loss_stops_execution_and_records_cleanup (__main__.NativeStorageSessionTests.test_native_storage_owner_loss_stops_execution_and_records_cleanup)
+96: ----------------------------------------------------------------------
+96: Traceback (most recent call last):
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_session.py", line 105, in test_native_storage_owner_loss_stops_execution_and_records_cleanup
+96:     self.held_application()
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 217, in held_application
+96:     self.coordinator, self.owner, self.world_record = self.ready()
+96:                                                       ^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+96:     proc = self.start_coordinator()
+96:            ^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 55, in start_coordinator
+96:     world_config = self.world_config()
+96:                    ^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 158, in world_config
+96:     config = super().world_config()
+96:              ^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 258, in world_config
+96:     config = super().world_config()
+96:              ^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 31, in world_config
+96:     registration = self.issuer.register(identity=b'w' * 32, public=public, domain=getattr(self, 'world_domain', 'world-one'), revision=1)
+96:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_participant_session.py", line 44, in register
+96:     reply = self.execute(self.peer, self.challenge(self.peer, operation))
+96:                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_issuer.py", line 116, in challenge
+96:     reply = client.call(challenge=operation or self.operation())
+96:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 49, in call
+96:     return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+96:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 43, in request
+96:     reply = self.receive()
+96:             ^^^^^^^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 36, in receive
+96:     length = struct.unpack('!I', exact(4))[0]
+96:                                  ^^^^^^^^
+96:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 33, in exact
+96:     if not part: raise EOFError('Issuer TLS stream closed')
+96:                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+96: EOFError: Issuer TLS stream closed
+96: 
+96: ----------------------------------------------------------------------
+96: Ran 2 tests in 10.147s
+96: 
+96: FAILED (errors=2)
+96: {"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service/adapter-a3ebd6dcdc8043e2a89ec9b7ed8ef897", "device": 31, "inode": 955331, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service/adapter-a3ebd6dcdc8043e2a89ec9b7ed8ef897\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_session.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "exit_code": 1, "scope_removed": true}
+96: Finished with result: exit-code
+96: Main processes terminated with: code=exited/status=1
+96: Service runtime: 10.358s
+96: CPU time consumed: 2.591s
+96: Memory peak: 3.0M
+96: Memory swap peak: 0B
+96: {"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service: Unit spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service not loaded.\n"}
+96: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+1/1 Test #96: session-storage-owner ............***Failed   10.50 sec
+{"unit": "spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-03/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-03/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_session.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service"]}
+Running as unit: spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service; invocation ID: 404f1057af1047b3b0df07f040b5c7c2
+test_native_storage_session_retains_owner_and_confined_application (__main__.NativeStorageSessionTests.test_native_storage_session_retains_owner_and_confined_application) ... ERROR
+test_native_storage_owner_loss_stops_execution_and_records_cleanup (__main__.NativeStorageSessionTests.test_native_storage_owner_loss_stops_execution_and_records_cleanup) ... ERROR
+
+======================================================================
+ERROR: test_native_storage_session_retains_owner_and_confined_application (__main__.NativeStorageSessionTests.test_native_storage_session_retains_owner_and_confined_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_session.py", line 94, in test_native_storage_session_retains_owner_and_confined_application
+    self.held_application()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 217, in held_application
+    self.coordinator, self.owner, self.world_record = self.ready()
+                                                      ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+    proc = self.start_coordinator()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 55, in start_coordinator
+    world_config = self.world_config()
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 158, in world_config
+    config = super().world_config()
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 258, in world_config
+    config = super().world_config()
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 31, in world_config
+    registration = self.issuer.register(identity=b'w' * 32, public=public, domain=getattr(self, 'world_domain', 'world-one'), revision=1)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_participant_session.py", line 44, in register
+    reply = self.execute(self.peer, self.challenge(self.peer, operation))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_issuer.py", line 116, in challenge
+    reply = client.call(challenge=operation or self.operation())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 49, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 43, in request
+    reply = self.receive()
+            ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 36, in receive
+    length = struct.unpack('!I', exact(4))[0]
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 33, in exact
+    if not part: raise EOFError('Issuer TLS stream closed')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Issuer TLS stream closed
+
+======================================================================
+ERROR: test_native_storage_owner_loss_stops_execution_and_records_cleanup (__main__.NativeStorageSessionTests.test_native_storage_owner_loss_stops_execution_and_records_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_session.py", line 105, in test_native_storage_owner_loss_stops_execution_and_records_cleanup
+    self.held_application()
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 217, in held_application
+    self.coordinator, self.owner, self.world_record = self.ready()
+                                                      ^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 100, in ready
+    proc = self.start_coordinator()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 55, in start_coordinator
+    world_config = self.world_config()
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 158, in world_config
+    config = super().world_config()
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 258, in world_config
+    config = super().world_config()
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_world.py", line 31, in world_config
+    registration = self.issuer.register(identity=b'w' * 32, public=public, domain=getattr(self, 'world_domain', 'world-one'), revision=1)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_participant_session.py", line 44, in register
+    reply = self.execute(self.peer, self.challenge(self.peer, operation))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_issuer.py", line 116, in challenge
+    reply = client.call(challenge=operation or self.operation())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 49, in call
+    return self.request(pb.IssuerRequest(protocol_version=1, **operation))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 43, in request
+    reply = self.receive()
+            ^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 36, in receive
+    length = struct.unpack('!I', exact(4))[0]
+                                 ^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_identity_tls.py", line 33, in exact
+    if not part: raise EOFError('Issuer TLS stream closed')
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Issuer TLS stream closed
+
+----------------------------------------------------------------------
+Ran 2 tests in 10.147s
+
+FAILED (errors=2)
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service/adapter-a3ebd6dcdc8043e2a89ec9b7ed8ef897", "device": 31, "inode": 955331, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service/adapter-a3ebd6dcdc8043e2a89ec9b7ed8ef897\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_session.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 10.358s
+CPU time consumed: 2.591s
+Memory peak: 3.0M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service: Unit spatial-m03-resources-44ebbd87844b48f18e0d63ead4235893.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  10.50 sec
+
+The following tests FAILED:
+	 96 - session-storage-owner (Failed)
+Errors while running CTest

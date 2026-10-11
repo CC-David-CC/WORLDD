@@ -1,0 +1,67 @@
+{
+  "cases": {
+    "test_native_storage_owner_loss_stops_execution_and_records_cleanup": {
+      "records": {
+        "broker-cleanup": {
+          "stage": 5,
+          "launch_id": "2397efe0436735eb7ac2f84734ceb7902203b03bba1d1971859d463d11af7b11",
+          "scope": "authority-2397efe0436735eb7ac2f84734ceb7902203b03bba1d1971859d463d11af7b11"
+        },
+        "world-cleanup": {
+          "stage": 5,
+          "launch_id": "5d3cdb19b3549ca793fedc358edc25a268f223cde7fb01b6581fbbd50f521eff",
+          "scope": "authority-5d3cdb19b3549ca793fedc358edc25a268f223cde7fb01b6581fbbd50f521eff"
+        }
+      },
+      "owner_after": "MainPID=0\nActiveState=inactive\n",
+      "volume_cleanup_confirmed": true,
+      "read_only_recovery": [
+        "sudo",
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "loop,ro,nodev,nosuid",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume.img",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume"
+      ],
+      "recovery_unmount": [
+        "sudo",
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume"
+      ]
+    },
+    "test_native_storage_session_retains_owner_and_confined_application": {
+      "records": {
+        "broker-cleanup": {
+          "stage": 5,
+          "launch_id": "90831ae40d47607db4873bb971da34999d1367215d315fcb7c70f6ea561597f8",
+          "scope": "authority-90831ae40d47607db4873bb971da34999d1367215d315fcb7c70f6ea561597f8"
+        },
+        "world-cleanup": {
+          "stage": 5,
+          "launch_id": "cf6409e4217c6e210adeaeeaf8a1fd8129f1b0e30770878b183c502fddab241e",
+          "scope": "authority-cf6409e4217c6e210adeaeeaf8a1fd8129f1b0e30770878b183c502fddab241e"
+        }
+      },
+      "owner_after": "MainPID=0\nActiveState=inactive\n",
+      "volume_cleanup_confirmed": true,
+      "read_only_recovery": [
+        "sudo",
+        "mount",
+        "-t",
+        "btrfs",
+        "-o",
+        "loop,ro,nodev,nosuid",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_session_retains_owner_and_confined_application/volume.img",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_session_retains_owner_and_confined_application/volume"
+      ],
+      "recovery_unmount": [
+        "sudo",
+        "umount",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/native-storage-session-06/native/test_native_storage_session_retains_owner_and_confined_application/volume"
+      ]
+    }
+  },
+  "phase_complete": false
+}

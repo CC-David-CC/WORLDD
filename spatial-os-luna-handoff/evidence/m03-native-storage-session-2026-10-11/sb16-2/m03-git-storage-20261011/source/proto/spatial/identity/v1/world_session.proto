@@ -1,0 +1,108 @@
+syntax = "proto3";
+package spatial.identity.v1;
+import "core.proto";
+import "issuer.proto";
+import "grants.proto";
+
+// Trusted world configuration. Admission and action grants are independent.
+enum WorldAdmissionMode { WORLD_ADMISSION_UNSPECIFIED = 0; REGISTERED_ACTORS = 1; EXPLICIT_ACTORS = 2; }
+message WorldActorGrants { bytes actor_id = 1; repeated string grants = 2; }
+message WorldIdentityConfig {
+  uint32 protocol_version = 1;
+  string issuer_client_config = 2;
+  WorldAdmissionMode admission = 3;
+  repeated bytes admitted_actor_ids = 4;
+  repeated WorldActorGrants actor_grants = 5;
+  // Explicit persistent policy. Cannot be combined with static actor lists.
+  string authority_directory = 6;
+  // Required for actor-serving worlds. Private service key configuration.
+  string participant_runtime_config = 7;
+}
+// TLS connection permission is separate from signed actor identity and world admission.
+message WorldActorTlsConfig {
+  uint32 protocol_version = 1;
+  string certificate_path = 2;
+  string private_key_path = 3;
+  string client_ca_path = 4;
+  optional uint32 io_timeout_ms = 5;
+  optional uint32 idle_timeout_ms = 6; // Unauthenticated channels only.
+  optional uint32 connection_limit = 7; // Includes inherited local channels.
+}
+message WorldAuthoritySeed {
+  uint32 protocol_version = 1;
+  string authority_directory = 2;
+  repeated spatial.authority.v1.GrantTerms roots = 3;
+}
+// A present workspace selects that execution authority. An absent field selects this world.
+message WorldGrantList { bytes after_id = 1; uint32 limit = 2; optional string workspace = 3; } // limit 1..16; zero defaults to 16.
+message WorldGrantDelegate {
+  optional uint64 seq = 1;
+  bytes parent_id = 2;
+  spatial.authority.v1.GrantTerms terms = 3;
+  optional uint64 expected_revision = 4;
+  optional string workspace = 5;
+}
+message WorldGrantRevoke {
+  optional uint64 seq = 1; bytes id = 2; optional uint64 expected_revision = 3;
+  optional string workspace = 4;
+}
+message WorldBootstrapBind {
+  optional uint64 seq = 1;
+  spatial.authority.v1.BootstrapSelector selector = 2;
+  bytes parent_id = 3;
+  optional uint64 expected_revision = 4;
+  optional string workspace = 5;
+}
+message WorldBootstrapRevoke {
+  optional uint64 seq = 1;
+  bytes id = 2;
+  optional uint64 expected_revision = 3;
+  optional string workspace = 4;
+}
+// Applies only this authenticated actor's registered credential profile.
+message WorldBootstrapApply { optional uint64 seq = 1; optional string workspace = 2; }
+message WorldAuthenticationBegin {
+  SignedCredential credential = 1;
+  optional string room = 2;
+  spatial.core.v1.Pose pose = 3;
+}
+message WorldSessionInspect {}
+message WorldSessionClose {}
+message WorldSessionOpened { string actor_id = 1; string world_id = 2; IdentityStatus identity = 3; }
+// One inherited private channel has at most one authenticated actor session.
+// Caller-selected actor IDs, session tokens, and grants are not accepted.
+message WorldSessionRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    WorldAuthenticationBegin begin = 10;
+    AuthenticationComplete complete = 11;
+    WorldSessionInspect inspect = 12;
+    spatial.core.v1.ActorActionRequest action = 13;
+    WorldSessionClose close = 14;
+    WorldGrantList grants = 15;
+    WorldGrantDelegate delegate = 16;
+    WorldGrantRevoke revoke = 17;
+    WorldBootstrapBind bootstrap_bind = 18;
+    WorldBootstrapRevoke bootstrap_revoke = 19;
+    WorldBootstrapApply bootstrap_apply = 20;
+  }
+}
+message WorldSessionReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  // Only after proof completion. Admission failure can accompany an application report.
+  spatial.authority.v1.BootstrapReport bootstrap_attempt = 3;
+  oneof outcome {
+    spatial.core.v1.Error error = 10;
+    ChallengeReply challenge = 11;
+    WorldSessionOpened opened = 12;
+    spatial.core.v1.ActorStateReply state = 13;
+    spatial.core.v1.ActorActionReply action = 14;
+    spatial.core.v1.ActorCloseReply closed = 15;
+    spatial.authority.v1.GrantPage grants = 16;
+    spatial.authority.v1.GrantRecord grant = 17;
+    spatial.authority.v1.BootstrapBinding binding = 18;
+    spatial.authority.v1.BootstrapReport bootstrap = 19;
+  }
+}

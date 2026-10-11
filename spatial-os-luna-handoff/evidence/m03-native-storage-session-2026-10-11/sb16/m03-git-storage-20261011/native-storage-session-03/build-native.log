@@ -1,0 +1,6 @@
+[0/2] Re-checking globbed directories...
+[1/5] Building CXX object CMakeFiles/workspaced.dir/src/workspace/main.cpp.o
+[2/5] Building CXX object CMakeFiles/spatial-core.dir/src/core/protocol.cpp.o
+[3/5] Linking CXX static library libspatial-core.a
+[4/5] Linking CXX executable workspaced
+[5/5] Linking CXX executable spatial-session-application-probe
