@@ -1,0 +1,24 @@
+test_configure_notify_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_configure_notify_does_not_disclose_foreign_sibling) ... FAIL
+test_configure_notify_preserves_authorized_same_application_sibling (__main__.EventMetadataTests.test_configure_notify_preserves_authorized_same_application_sibling) ... ok
+test_swapped_configure_notify_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_swapped_configure_notify_does_not_disclose_foreign_sibling) ... FAIL
+
+======================================================================
+FAIL: test_configure_notify_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_configure_notify_does_not_disclose_foreign_sibling)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 25, in test_configure_notify_does_not_disclose_foreign_sibling
+    self.assertEqual(self.configure_event(self.owner, window), 0,
+AssertionError: 6291457 != 0 : ConfigureNotify must not enumerate a foreign sibling
+
+======================================================================
+FAIL: test_swapped_configure_notify_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_swapped_configure_notify_does_not_disclose_foreign_sibling)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_event_metadata.py", line 32, in test_swapped_configure_notify_does_not_disclose_foreign_sibling
+    self.assertEqual(self.configure_event(self.other, window), 0)
+AssertionError: 4194308 != 0
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.183s
+
+FAILED (failures=2)

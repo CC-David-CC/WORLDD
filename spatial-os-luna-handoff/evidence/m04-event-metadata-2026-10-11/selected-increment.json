@@ -1,0 +1,12 @@
+{
+  "phase": "M04",
+  "phase_complete": false,
+  "status": "selected_before_execution",
+  "source_change": "Filter recipient-specific ConfigureNotify sibling metadata on a private event copy before byte swapping. Preserve the canonical packet for privileged recipients.",
+  "test_refinement": "The initial witness required None for a hidden immediate sibling. Preserve that witness. The final invariant requires the nearest authorized sibling, consistent with filtered QueryTree. This strengthens relative-order correctness while still rejecting the exact reproduced foreign IDs.",
+  "suite": "tests/native/test_event_metadata.py",
+  "purposes": ["Hide foreign sibling IDs in both byte orders", "Preserve nearest authorized sibling order", "Preserve the privileged recipient's original event", "Regress selection namespaces, identity, resources, extensions and genuine actor input after the common event-delivery change"],
+  "hosts": ["sb16", "sb16-2"],
+  "profiles": ["Debug native server", "Core-X native-server ASan/UBSan with GLX disabled"],
+  "known_unqualified": "Other asynchronous metadata paths, full graphics-provider cleanup and the complete M04 gate remain pending."
+}

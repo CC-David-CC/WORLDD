@@ -1,0 +1,40 @@
+ninja: Entering directory `/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/213b158c221e725bd9c58429874c79d62683fa351cc903da9e3eccf4eae87c21/source/build'
+[1/669] Compiling C object config/libxserver_config.a.p/config.c.o
+[2/669] Compiling C object config/libxserver_config.a.p/dbus-core.c.o
+[3/669] Generating 'dix/libxserver_dix.a.p/BuiltInAtoms.c'
+[4/669] Compiling C object config/libxserver_config.a.p/udev.c.o
+[5/669] Linking static target config/libxserver_config.a
+[6/669] Compiling C object dix/libxserver_dix.a.p/meson-generated_BuiltInAtoms.c.o
+[7/669] Compiling C object dix/libxserver_dix.a.p/client.c.o
+[8/669] Compiling C object dix/libxserver_dix.a.p/atom.c.o
+[9/669] Compiling C object dix/libxserver_dix.a.p/color.c.o
+[10/669] Compiling C object dix/libxserver_dix.a.p/colormap.c.o
+[11/669] Compiling C object dix/libxserver_dix.a.p/cursor.c.o
+[12/669] Compiling C object dix/libxserver_dix.a.p/devices.c.o
+[13/669] Compiling C object dix/libxserver_dix.a.p/display.c.o
+[14/669] Compiling C object dix/libxserver_dix.a.p/dispatch.c.o
+[15/669] Compiling C object dix/libxserver_dix.a.p/main.c.o
+[16/669] Compiling C object dix/libxserver_dix.a.p/dixfonts.c.o
+[17/669] Compiling C object dix/libxserver_dix.a.p/dixutils.c.o
+[18/669] Compiling C object dix/libxserver_dix.a.p/enterleave.c.o
+[19/669] Compiling C object dix/libxserver_dix.a.p/eventconvert.c.o
+[20/669] Compiling C object dix/libxserver_dix.a.p/extension.c.o
+[21/669] Compiling C object dix/libxserver_dix.a.p/events.c.o
+FAILED: dix/libxserver_dix.a.p/events.c.o 
+ccache cc -Idix/libxserver_dix.a.p -Idix -I../dix -I. -I.. -IXext -I../Xext -IXi -I../Xi -Icomposite -I../composite -Iexa -I../exa -Ifb -I../fb -Iglamor -I../glamor -Imi -I../mi -Imiext/damage -I../miext/damage -Imiext/shadow -I../miext/shadow -Imiext/sync -I../miext/sync -Idbe -I../dbe -Idri3 -I../dri3 -Iinclude -I../include -Ipresent -I../present -Irandr -I../randr -Irender -I../render -Ixfixes -I../xfixes -I/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-deps/include -I/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-deps/include/X11/dri -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng16 -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=gnu99 -O0 -g -DHAVE_DIX_CONFIG_H -fno-strict-aliasing -fvisibility=hidden -Wvla -fno-common -Wshift-negative-value -Wchar-subscripts -Wall -Wchar-subscripts -Wpointer-arith -Wmissing-declarations -Wformat=2 -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Wbad-function-cast -Wold-style-definition -Wunused -Wuninitialized -Wshadow -Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls -Werror=implicit -Werror=nonnull -Werror=init-self -Werror=main -Werror=missing-braces -Werror=sequence-point -Werror=return-type -Werror=trigraphs -Werror=array-bounds -Werror=write-strings -Werror=address -Werror=int-to-pointer-cast -Werror=pointer-to-int-cast -Woverride-init -Wvla -Wincompatible-pointer-types -fPIC -MD -MQ dix/libxserver_dix.a.p/events.c.o -MF dix/libxserver_dix.a.p/events.c.o.d -o dix/libxserver_dix.a.p/events.c.o -c ../dix/events.c
+../dix/events.c: In function ‘WriteEventsToClient’:
+../dix/events.c:6147:17: error: implicit declaration of function ‘SpatialSecurityFilterEvent’ [-Werror=implicit-function-declaration]
+ 6147 |                 SpatialSecurityFilterEvent(pClient, eventFrom, &spatialCopy))
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
+../dix/events.c:6147:17: warning: nested extern declaration of ‘SpatialSecurityFilterEvent’ [-Wnested-externs]
+../dix/events.c:6158:47: error: implicit declaration of function ‘SpatialSecurityEnabled’ [-Werror=implicit-function-declaration]
+ 6158 |     else if (eventlength == sizeof(xEvent) && SpatialSecurityEnabled() &&
+      |                                               ^~~~~~~~~~~~~~~~~~~~~~
+../dix/events.c:6158:47: warning: nested extern declaration of ‘SpatialSecurityEnabled’ [-Wnested-externs]
+../dix/events.c:6159:15: error: implicit declaration of function ‘SpatialSecurityPrivileged’ [-Werror=implicit-function-declaration]
+ 6159 |              !SpatialSecurityPrivileged(pClient)) {
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~
+../dix/events.c:6159:15: warning: nested extern declaration of ‘SpatialSecurityPrivileged’ [-Wnested-externs]
+cc1: some warnings being treated as errors
+[22/669] Compiling C object dix/libxserver_dix.a.p/gc.c.o
+ninja: build stopped: subcommand failed.

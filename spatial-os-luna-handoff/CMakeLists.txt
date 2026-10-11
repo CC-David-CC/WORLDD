@@ -22,6 +22,7 @@ protobuf_generate_cpp(compositor_proto_sources compositor_proto_headers proto/sp
 protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto)
 protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
 protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
+protobuf_generate_cpp(selection_scope_proto_sources selection_scope_proto_headers proto/spatial/security/v1/selection_scope.proto)
 protobuf_generate_cpp(native_scope_proto_sources native_scope_proto_headers proto/spatial/supervisor/v1/native_scope.proto)
 protobuf_generate_cpp(broker_proto_sources broker_proto_headers proto/spatial/workspace/v1/broker.proto)
 protobuf_generate_cpp(storage_proto_sources storage_proto_headers proto/spatial/workspace/v1/storage.proto)
@@ -76,6 +77,12 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/security_pb2.py"
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1/security.proto
     DEPENDS proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
 add_custom_target(security-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/security_pb2.py")
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/selection_scope_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1/selection_scope.proto
+    DEPENDS proto/spatial/security/v1/selection_scope.proto proto/spatial/security/v1/security.proto protobuf::protoc VERBATIM)
+add_custom_target(selection-scope-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/selection_scope_pb2.py")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/native_scope_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
@@ -186,7 +193,7 @@ endforeach()
 string(SHA256 build_hash "${build_material}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
 
-add_library(spatial-protobuf STATIC ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers})
+add_library(spatial-protobuf STATIC ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers} ${selection_scope_proto_sources} ${selection_scope_proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
 target_sources(spatial-protobuf PRIVATE ${scope_proto_sources} ${scope_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${storage_proto_sources} ${storage_proto_headers})
@@ -922,6 +929,14 @@ if(BUILD_TESTING)
         add_test(NAME native-selection-isolation COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_selection_isolation.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-selection-isolation PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME native-selection-namespace COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_selection_namespace.py" $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(native-selection-namespace PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME native-event-metadata COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_event_metadata.py" $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(native-event-metadata PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME native-atom-privacy COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_atom_privacy.py" $<TARGET_FILE:spatial-security-auth>)

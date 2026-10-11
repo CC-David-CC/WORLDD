@@ -1,0 +1,37 @@
+--- a/dix/events.c
++++ b/dix/events.c
+@@ -104,4 +104,5 @@
+ #include <dix-config.h>
+ #include "spatialinput.h"
++#include "spatialsecurity.h"
+ 
+ #include <X11/X.h>
+@@ -6140,8 +6140,12 @@
+         }
+ 
+         for (int i = 0; i < count; i++) {
++            xEvent spatialCopy;
+             eventFrom = &events[i];
+             eventTo = swapEvent;
++            if (eventlength == sizeof(xEvent) &&
++                SpatialSecurityFilterEvent(pClient, eventFrom, &spatialCopy))
++                eventFrom = &spatialCopy;
+ 
+             /* Remember to strip off the leading bit of type in case
+                this event was sent with "SendEvent." */
+@@ -6151,6 +6156,15 @@
+             WriteToClient(pClient, eventlength, eventTo);
+         }
+     }
++    else if (eventlength == sizeof(xEvent) && SpatialSecurityEnabled() &&
++             !SpatialSecurityPrivileged(pClient)) {
++        for (int i = 0; i < count; i++) {
++            xEvent spatialCopy;
++            xEvent *from = SpatialSecurityFilterEvent(pClient, &events[i], &spatialCopy)
++                ? &spatialCopy : &events[i];
++            WriteToClient(pClient, eventlength, from);
++        }
++    }
+     else {
+         /* only one GenericEvent, remember? that means either count is 1 and
+          * eventlength is arbitrary or eventlength is 32 and count doesn't

@@ -65,21 +65,28 @@ Server-generated events still require the input routing policy.
 
 ## Owned selection access
 
-An owned selection follows its owner's immutable application identity.
-GetSelectionOwner, SetSelectionOwner, and ConvertSelection require the same workspace and application identity.
-Supervisor and compositor connections retain privileged selection access.
-Broker credentials grant no selection access to another application.
-Workspace membership alone does not authorize selection access.
-Valid ownerless selections remain queryable and claimable under core X11 rules.
+Each selection record carries an immutable workspace/application namespace label.
+Applications address only the namespace from their native connection identity.
+Matching application names in different workspaces remain separate.
+Several namespaces can own PRIMARY or SECONDARY at the same time.
+A foreign owner does not change another application's query or claim behavior.
+Ownerless private selections return None and remain claimable.
+Same-application connections share real selection state and ordinary X11 events.
 
-The policy checks XACE_SELECTION_ACCESS in the pinned server.
-It registers and removes the callback with the other resource-policy callbacks.
-The native witness checks PRIMARY and SECONDARY with real X11 requests.
-Credential setup and completion fences use Protocol Buffers.
+Supervisor and compositor connections explicitly select an application namespace through SelectionScope protobuf.
+Their default selection scope remains separate from applications.
+Applications and brokers cannot change their scope.
+Scope selection does not change the connection's immutable security identity.
+Trusted service access does not authorize export to an actor.
 
-These checks qualify owned selection access only.
-Atom-name privacy, independent application selection namespaces, and asynchronous metadata remain unqualified.
-This component does not complete M04 or authorize untrusted native sessions.
+The policy refines XACE_SELECTION_ACCESS lookups with server-private namespace labels.
+Normal DIX window destruction, client closure, and server reset retain ownership cleanup.
+Events retain public atom values and use the actual application windows.
+See docs/SELECTION_NAMESPACE_MIGRATION.txt for the deliberate version-2 behavior change.
+The old policy and fourteen-test witness remain in the migration evidence.
+
+Atom privacy has focused qualification. Full M04 remains incomplete.
+Asynchronous metadata beyond the selection events and graphics-provider cleanup still require qualification.
 
 ## Verification and remaining work
 

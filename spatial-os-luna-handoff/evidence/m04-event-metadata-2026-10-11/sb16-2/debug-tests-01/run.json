@@ -1,0 +1,154 @@
+{
+  "host": "sb16-2",
+  "status": "passed",
+  "phase_complete": false,
+  "native_server_sanitizers": false,
+  "core_only": false,
+  "source_sha256": {
+    "tools/qualify_atom_increment.py": "bd5c8e9f0991acd1f69af830a8b4f8773be8e4aa9d610b18076aa3b61a95eff4",
+    "tests/native/test_resource_isolation.py": "ef50b936d30ab18a2d70fa2d22b6cffcd91b95e5419b2192b144ec08177c0da8",
+    "tests/native/test_security_identity.py": "5b2ca730013fad4a9c09f78c62b910d9cd266b48a242df00a6e5ad9332b5dd5b",
+    "tests/native/display_ready.py": "742d307c9cf1404616ea6ff0bcd61536db5751ba05a29d232128e7dc0fc735cb",
+    "tests/native/test_atom_privacy.py": "8d70dfb81b39eb17fb456729c18f8a267aaea7d7e7f769185b023e59e3d997d2",
+    "tests/native/test_selection_isolation.py": "ee2df84db03d58d9881fdd808d34f117609b5460679e0bd067a3f0892a3cec5d",
+    "tests/native/test_selection_namespace.py": "2f206d768b97c0c8c9b57167549f80c066d816519078b4cb6daa902c3d5605cf",
+    "tests/native/test_event_metadata.py": "880b6fd685ec6280401f642122d574a6561837ce06da224a6c25b4a844b80b72",
+    "tests/native/test_extension_isolation.py": "7588f868251ce1ea70e95693316fd00d5859396a64ff54eb5b6f8a0b36811492",
+    "tests/native/test_application_input.py": "237b8c62ce112c785bffb76a030e0b870def50b5a7879dfdc165d80c2cb5c791",
+    "tests/native/test_actor_binding.py": "f5ee80df455f8c551b1f23fded906698cee3fc3bc459efa0da6ead47a15e930a",
+    "server/patches/0001-spatial-input.patch": "5742a88f90bdbb5c166024f65244599e1d290ab24b9bbb63456b76d3431cf9d1",
+    "server/patches/0002-spatial-security.patch": "c5c94cd1cb375e829db7b0e0478dacb916dc9890e71b3c94243e701c3c99cb0b",
+    "server/patches/0003-server-shutdown.patch": "195e4b5475fb124535a5be1abbf1ea12723d6c8ba39ec5f463f5d3c24f6dd6b7",
+    "server/patches/0004-spatial-resource-policy.patch": "ad72bc7de29196c2fbec843df7d7eecf2de70e7a246b2bcf9b4f63cc30af1544",
+    "server/patches/0005-animated-cursor-cleanup.patch": "a51fa2ba79da0a92396b3675dcadccdd598cb78155c451b738d368ac5af12356",
+    "server/patches/0006-global-server-access.patch": "e98932d02c432f298b257b6f5f4dafb59fecfecacf1056ee1023753b0e940b07",
+    "server/patches/0007-xkb-doodad-copy-cleanup.patch": "21e9efe8bcb7a23f0f7dbdb219a0ff8c986d30339a96988e017fa6ae46a95d29",
+    "server/patches/0008-application-atom-privacy.patch": "ec66f9c1536954df7c3c724f4f63b4a47145a1b98eb4ad3457f835ae245d579f",
+    "server/patches/0009-private-configure-event-metadata.patch": "3ad2a6c8d120cd9c5f55a5a904b993610851b0e948c6ea0d42a4567c018c466f",
+    "server/xlibre/spatialinput.c": "00e4bd9a42a8414916f9167d2e6fe2b51b683930da265ee70a84b5ce60ed391b",
+    "server/xlibre/spatialinput.h": "4d80f8ef30fcec45205f00249fecf96054d76d5c93771b6595e7c87bdb9206c1",
+    "server/xlibre/meson.build": "cec579e24b9a7ae8a196721e1613fbf8533498bd503435924e004d54eaec52ba",
+    "proto/spatial/input/v1/input.proto": "83958a6050992e5629e151af93a9af8620876dc9f8899016933cd8e8782990ce",
+    "server/xlibre/spatialsecurity.c": "eeb8a51eefeed386f0fa49505907d8d0718c077eef7ad3dc67dd6d86e58bbfc0",
+    "server/xlibre/spatialpolicy.c": "332f599aa01508e7cf55e554a85f6de8d8e827da08ac4e5dcc618b2d1cd458c6",
+    "server/xlibre/spatialsecurity.h": "49b1751c45b365faad3ed7cf05248c2aefaa2d0a714ac72d442a104ea73a02c3",
+    "proto/spatial/security/v1/security.proto": "974df1172137104831f1a40151486f6cf8ebc9fe6e0dddf07a85d0954ae0ebcb"
+  },
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/e555d0ea7857d98f51b5be671559b06323364d672b28fbb3ed2ddb781a8083e1/source/build/hw/vfb/Xvfb",
+    "sha256": "cc2819dc325a6f272b212a3f8f6bcb39bfad4f0959bb458d8a7622ad6a8262e9"
+  },
+  "helper": {
+    "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth",
+    "sha256": "e3a7784ed0268712963487284622a6930070dbb276ac57acce74e272d7a66c96"
+  },
+  "environment": {
+    "PYTHONPATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/python:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+    "SPATIAL_TEST_XSERVER": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/e555d0ea7857d98f51b5be671559b06323364d672b28fbb3ed2ddb781a8083e1/source/build/hw/vfb/Xvfb",
+    "SPATIAL_SECURITY_EVIDENCE": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-event-metadata-2026-10-11/debug-tests-01/native-server",
+    "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+    "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+  },
+  "suites": [
+    {
+      "name": "atom_privacy",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_atom_privacy.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+      ],
+      "exit_code": 0,
+      "count": 15,
+      "log_sha256": "2d0ea61fc7658b1cb4e24026048e2baee47d31e1d8f4d57cb5be525cca5e2b5a"
+    },
+    {
+      "name": "security_identity",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+      ],
+      "exit_code": 0,
+      "count": 22,
+      "log_sha256": "eec4e084964e86aa816ff38b47a651dd4c01102ce34102d2032604a35ff80463"
+    },
+    {
+      "name": "resource_isolation",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_resource_isolation.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+      ],
+      "exit_code": 0,
+      "count": 36,
+      "log_sha256": "8e0a28902e37e11532e805d715f402f0d803483555b576f2f33f67dbdaabd57d"
+    },
+    {
+      "name": "selection_isolation",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_isolation.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+      ],
+      "exit_code": 0,
+      "count": 14,
+      "log_sha256": "a44e8f20026f6c1f605d02cf2beeb93076dfca9f77322019a180f9e6e529c11f"
+    },
+    {
+      "name": "selection_namespace",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+      ],
+      "exit_code": 0,
+      "count": 20,
+      "log_sha256": "60c9a8e425221f5cdb1db99a943e5bf3de8e13e1bafa58bb8a55acc9069d669f"
+    },
+    {
+      "name": "event_metadata",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_event_metadata.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+      ],
+      "exit_code": 0,
+      "count": 4,
+      "log_sha256": "6ba0c6a40ce137c70163c86dc2ceaacc73b384aec96ff9047e6fd9898fefb754"
+    },
+    {
+      "name": "extension_isolation",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_extension_isolation.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+      ],
+      "exit_code": 0,
+      "count": 32,
+      "log_sha256": "356053fc7abb2bf0e00d3180456d57d1f736edae493291e56b94f51484a59b40"
+    },
+    {
+      "name": "application_input",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_application_input.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+      ],
+      "exit_code": 0,
+      "count": 15,
+      "log_sha256": "2e40e700eeab1920c5f78cd1e6f2e0d0a90318d3c58c8411a1f6035b550410bd"
+    },
+    {
+      "name": "actor_binding",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_actor_binding.py",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug/spatial-security-auth"
+      ],
+      "exit_code": 0,
+      "count": 25,
+      "log_sha256": "6832ca2fa053b3d9fd028c589c4850efdb539c27034ce44453f17741ea45ab28"
+    }
+  ],
+  "source_unchanged": true
+}

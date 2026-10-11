@@ -17,6 +17,28 @@
 #include "windowstr.h"
 #include "spatialsecurity.h"
 
+static DevPrivateKeyRec selection_namespace_key;
+
+Bool SpatialSecurityFilterEvent(ClientPtr client, const xEvent *event, xEvent *filtered)
+{
+    if (SpatialSecurityPrivileged(client) ||
+        (event->u.u.type & 0x7f) != ConfigureNotify ||
+        event->u.configureNotify.aboveSibling == None ||
+        SpatialSecurityVisibleResource(client, event->u.configureNotify.aboveSibling)) return FALSE;
+    *filtered = *event;
+    filtered->u.configureNotify.aboveSibling = None;
+    WindowPtr window;
+    if (dixLookupWindow(&window, event->u.configureNotify.window, serverClient, DixReadAccess) == Success) {
+        for (WindowPtr sibling = window->nextSib; sibling; sibling = sibling->nextSib) {
+            if (SpatialSecurityVisibleResource(client, sibling->drawable.id)) {
+                filtered->u.configureNotify.aboveSibling = sibling->drawable.id;
+                break;
+            }
+        }
+    }
+    return TRUE;
+}
+
 static Bool subset(Mask requested, Mask allowed)
 {
     return requested && !(requested & ~allowed);
@@ -98,11 +120,43 @@ static void selection_access(CallbackListPtr *list, void *unused, void *data)
 {
     XaceSelectionAccessRec *rec = data;
     (void)list; (void)unused;
-    if (SpatialSecurityPrivileged(rec->client)) return;
     Selection *selection = *rec->ppSel;
-    if (selection && selection->client &&
-        !SpatialSecuritySameApplication(rec->client, selection->client))
+    SpatialSelectionNamespace wanted;
+    if (!selection || !SpatialSecuritySelectionNamespace(rec->client, &wanted)) {
         rec->status = BadAccess;
+        return;
+    }
+    if (!SpatialSecurityPrivileged(rec->client) &&
+        !SpatialSecurityAtomVisible(rec->client, selection->selection)) {
+        rec->status = BadAtom;
+        return;
+    }
+    /* DIX finds a selection by public atom first. Refine that lookup using
+     * immutable application labels before it can observe or change ownership.
+     */
+    for (Selection *candidate = CurrentSelections; candidate; candidate = candidate->next) {
+        if (candidate->selection != selection->selection) continue;
+        SpatialSelectionNamespace *label = dixLookupPrivate(&candidate->devPrivates,
+                                                            &selection_namespace_key);
+        if (label->workspace_size == wanted.workspace_size &&
+            label->application_size == wanted.application_size &&
+            !memcmp(label->workspace, wanted.workspace, wanted.workspace_size) &&
+            !memcmp(label->application, wanted.application, wanted.application_size)) {
+            *rec->ppSel = candidate;
+            return;
+        }
+    }
+    Selection *created = dixAllocateObjectWithPrivates(Selection, PRIVATE_SELECTION);
+    if (!created) {
+        rec->status = BadAlloc;
+        return;
+    }
+    created->selection = selection->selection;
+    *(SpatialSelectionNamespace *)dixLookupPrivate(&created->devPrivates,
+                                                   &selection_namespace_key) = wanted;
+    created->next = CurrentSelections;
+    CurrentSelections = created;
+    *rec->ppSel = created;
 }
 
 static void send_access(CallbackListPtr *list, void *unused, void *data)
@@ -247,7 +301,9 @@ static void extension_dispatch(CallbackListPtr *list, void *unused, void *data)
 
 void SpatialSecurityPolicyInit(void)
 {
-    if (!XaceRegisterCallback(XACE_RESOURCE_ACCESS, resource_access, NULL) ||
+    if (!dixRegisterPrivateKey(&selection_namespace_key, PRIVATE_SELECTION,
+                               sizeof(SpatialSelectionNamespace)) ||
+        !XaceRegisterCallback(XACE_RESOURCE_ACCESS, resource_access, NULL) ||
         !XaceRegisterCallback(XACE_PROPERTY_ACCESS, property_access, NULL) ||
         !XaceRegisterCallback(XACE_SELECTION_ACCESS, selection_access, NULL) ||
         !XaceRegisterCallback(XACE_SEND_ACCESS, send_access, NULL) ||

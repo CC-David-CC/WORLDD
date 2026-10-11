@@ -1,0 +1,19 @@
+Defect: ConfigureNotify disclosed a foreign application's sibling window ID.
+Status: Corrected in focused Debug and core-X sanitizer checks on both hosts.
+
+An application selected StructureNotify on its own window.
+A real geometry change returned the foreign sibling ID in aboveSibling.
+Both native byte orders reproduced the leak.
+Each host failed two privacy checks and passed the same-application control.
+
+The correction filters a private event copy before byte swapping.
+It reports the nearest authorized sibling from the real window tree.
+It preserves the original packet for a privileged recipient.
+The initial build missed the security header. The corrected build includes it.
+That failed build and its exact diagnostics remain preserved.
+
+Patch: spatial-os-luna-handoff/server/patches/0009-private-configure-event-metadata.patch.
+Evidence: spatial-os-luna-handoff/evidence/m04-event-metadata-2026-10-11/.
+The original three-case witness remains preserved.
+The final witness also checks the privileged recipient's unchanged packet.
+Other asynchronous metadata paths and full M04 qualification remain pending.

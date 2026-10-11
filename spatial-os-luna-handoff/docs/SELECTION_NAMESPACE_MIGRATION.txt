@@ -1,0 +1,46 @@
+Selection policy version 2
+
+Status: Focused Debug and core-X sanitizer checks pass on both hosts.
+Full M04 qualification remains pending.
+
+The earlier policy denied access when another application owned a global selection.
+That denial disclosed ownership activity and prevented independent use of PRIMARY.
+The baseline has seven namespace failures and one positive control on each host.
+Keep the original policy, schema, task, and fourteen-test witness in contract-before evidence.
+
+Version 2 gives each immutable workspace/application identity its own selection namespace.
+The server stores namespace labels on real DIX selection records.
+Several namespaces can use the same public atom without sharing ownership or timestamps.
+Applications cannot select another namespace.
+Same-application connections still share their real selection state.
+Ownerless application selections return None and remain claimable.
+SelectionClear, SelectionRequest, and SelectionNotify retain ordinary public atom values.
+Normal DIX disconnect and window destruction clear the matching owners.
+
+Supervisor and compositor connections can explicitly choose a selection namespace.
+Use the checked SelectionScope protobuf operation.
+Supply a complete workspace/application key or explicitly request the default scope.
+This selection view does not change the connection's immutable security identity.
+Applications and brokers cannot change this view.
+The extension dispatch gate rejects their operation-1 requests with native BadAccess.
+The scope handler also checks the trusted role before changing its view.
+An invalid scope request preserves the previous view.
+Default trusted scope is separate from application scopes.
+Trusted service access does not grant actor authority to export selection data.
+Use dedicated scoped connections for pending asynchronous selection transactions.
+The view selects lookups. It does not limit a trusted service's observation authority.
+
+Update the old witness's foreign-query assertions to require an empty private namespace.
+Require independent claims and clearing without changing the original owner's selection.
+Replace foreign-conversion denial with a real empty-namespace SelectionNotify.
+Retain full identity separation, same-application conversion, and trusted-role controls.
+Add actual event-field, lifecycle, byte-order, and scope-mutation counterexamples.
+Do not change locked P00-P10 tests or their normative contract.
+
+Extension operation 1 uses the separate selection_scope.proto schema.
+Extension operation 0 retains the locked security.proto contract exactly.
+The first draft added field 103 to that locked schema. The lock audit rejected that draft.
+Its build and test evidence remains preserved. The corrected interface restores every locked byte.
+Unknown fields and replay validation remain mandatory.
+Core-X requests and events keep their existing wire format.
+This migration is a deliberate strengthening of isolation, not a claim of full M04 completion.

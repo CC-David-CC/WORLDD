@@ -11,7 +11,8 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 SUITES = ('atom_privacy', 'security_identity', 'resource_isolation',
-          'selection_isolation', 'extension_isolation', 'application_input', 'actor_binding')
+          'selection_isolation', 'selection_namespace', 'event_metadata', 'extension_isolation',
+          'application_input', 'actor_binding')
 
 
 def digest(path):
@@ -44,6 +45,7 @@ def main():
     evidence = args.evidence.resolve()
     evidence.mkdir(parents=True, exist_ok=False)
     inputs = [ROOT / 'tools/qualify_atom_increment.py',
+              ROOT / 'tests/native/selection_scope_client.py',
               ROOT / 'tests/native/test_resource_isolation.py',
               ROOT / 'tests/native/test_security_identity.py',
               ROOT / 'tests/native/display_ready.py',

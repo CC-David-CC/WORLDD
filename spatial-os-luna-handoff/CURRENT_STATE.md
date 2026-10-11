@@ -1,5 +1,29 @@
 # Implementation status
 
+## 2026-10-11: M04 selection namespaces and event metadata pass focused review
+
+Application selections now have independent namespace labels in real DIX records.
+Seven baseline namespace failures per host remain preserved.
+Trusted services choose a view through operation 1 and selection_scope.proto.
+Operation 0 retains the locked security.proto contract exactly.
+The first schema draft changed a locked file. The lock audit caught and rejected that draft before integration.
+All forty-one locked files are restored and unchanged.
+
+ConfigureNotify now reports the nearest authorized sibling on a private event copy.
+Both byte orders pass. A privileged recipient retains the original packet.
+The two baseline disclosure failures per host and the missing-header build failures remain preserved.
+
+Each host has 186 passed focused checks in Debug and core-X native-server ASan/UBSan.
+The combined candidate has 744 passed checks across both hosts and profiles.
+Debug reassessment uses 149 unchanged cases and 37 corrected scope/selection rechecks.
+Native server unit checks pass. C++ and Python bindings compile in both profiles.
+The source now registers 138 core suites. The full M04 matrix remains unrun.
+
+M01-M03 remain qualified. M04 remains incomplete.
+Other asynchronous metadata, independent bypass mutations, and full graphics qualification remain pending.
+The GLX/provider shutdown leak remains open. Core-X results do not qualify that path.
+Read evidence/m04-event-metadata-2026-10-11/primary-review.json.
+
 ## 2026-10-11: M04 atom metadata correction passes focused qualification
 
 Independent native clients reproduce five atom disclosure paths on both hosts.

@@ -1,0 +1,85 @@
+{
+  "commands": [
+    {
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug",
+        "-G",
+        "Ninja",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug",
+        "--target",
+        "spatial-protobuf",
+        "spatial-security-auth",
+        "security-python-protobuf",
+        "selection-scope-python-protobuf",
+        "input-python-protobuf",
+        "-j2"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize",
+        "-G",
+        "Ninja",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=ON"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize",
+        "--target",
+        "spatial-protobuf",
+        "spatial-security-auth",
+        "security-python-protobuf",
+        "selection-scope-python-protobuf",
+        "input-python-protobuf",
+        "-j2"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "profiles": {
+    "debug": {
+      "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug",
+      "bindings_sha256": {
+        "selection_scope_pb2.py": "afbdc20300de43a7a52899865ce679b61040c3dba849596282576c2f5b442eed",
+        "input_pb2.py": "336bab3490073604cc7fe8d67429b498e0949158e96d5ccd9fb3cef6b8e690de",
+        "security_pb2.py": "aed157a06ff0a6722fcbb46bd853cfbc4177918fcf85f707ae75a973aa75d192"
+      },
+      "helper_sha256": "e3a7784ed0268712963487284622a6930070dbb276ac57acce74e272d7a66c96"
+    },
+    "sanitize": {
+      "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize",
+      "bindings_sha256": {
+        "selection_scope_pb2.py": "afbdc20300de43a7a52899865ce679b61040c3dba849596282576c2f5b442eed",
+        "input_pb2.py": "336bab3490073604cc7fe8d67429b498e0949158e96d5ccd9fb3cef6b8e690de",
+        "security_pb2.py": "aed157a06ff0a6722fcbb46bd853cfbc4177918fcf85f707ae75a973aa75d192"
+      },
+      "helper_sha256": "d544679556b30e5d62e77d1be8e809c2ae2ae234c1390a96ed4d2121cc6be368"
+    }
+  },
+  "status": "passed"
+}

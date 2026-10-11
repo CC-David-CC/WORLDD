@@ -1,0 +1,10 @@
+{
+  "id": "application.event_metadata",
+  "phase": "M04",
+  "profile": "tasks/spatial-m1.json",
+  "invariant": "Core ConfigureNotify reports only authorized sibling IDs and preserves each recipient's correct byte order. Filtering does not change a privileged recipient's packet.",
+  "production_roots": ["server/xlibre/spatialpolicy.c", "server/patches/0009-private-configure-event-metadata.patch"],
+  "counterexample_suite": "tests/native/test_event_metadata.py",
+  "required_evidence": ["Two privacy failures and one positive control on both unchanged baseline hosts.", "Corrected nearest-authorized sibling metadata in both byte orders.", "Privileged recipients retain their original event.", "Debug and core-X native-server ASan/UBSan on both hosts.", "Related input, identity, resource, selection and extension checks."],
+  "limitations": ["This component covers ConfigureNotify sibling metadata.", "Other asynchronous event paths remain pending.", "Graphics-provider cleanup and the full M04 phase gate remain pending."]
+}

@@ -1,0 +1,5 @@
+[0/2] Re-checking globbed directories...
+[1/4] Generating python/input_pb2.py
+[2/4] Generating python/security_pb2.py
+[3/4] Building C object CMakeFiles/spatial-security-auth.dir/native/security_auth.c.o
+[4/4] Linking C executable spatial-security-auth

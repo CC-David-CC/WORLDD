@@ -1,0 +1,37 @@
+{
+  "profiles": {
+    "debug": {
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug",
+        "-G",
+        "Ninja",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "exit_code": 0,
+      "registered_suites": 138
+    },
+    "sanitize": {
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize",
+        "-G",
+        "Ninja",
+        "-DSPATIAL_INPUT_TESTS=ON",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSPATIAL_SANITIZERS=ON"
+      ],
+      "exit_code": 0,
+      "registered_suites": 138
+    }
+  },
+  "status": "passed"
+}

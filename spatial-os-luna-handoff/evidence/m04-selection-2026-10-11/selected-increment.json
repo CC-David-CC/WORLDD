@@ -1,0 +1,28 @@
+{
+  "phase": "M04",
+  "status": "selected_before_execution",
+  "phase_complete": false,
+  "invariant": "DIX selection records have immutable application namespace labels. Only applications with that full identity, or an explicitly scoped trusted service, can address the selection.",
+  "source_change": "Add server-private selection labels and a checked trusted SelectionScope protobuf operation. Preserve real DIX owner and event lifetimes.",
+  "suite_purposes": {
+    "selection_namespace": "Independent ownership, emptiness, genuine conversion and clearing events, both byte orders, full identity separation, trusted scope validation, foreign-window denial, revocation and destruction cleanup.",
+    "selection_isolation": "Version-2 migration of the previous fourteen selection checks. Preserve same-application and trusted-role positive controls with stronger namespace assertions.",
+    "atom_privacy": "Selection requests must not expose undeclared dynamic atom names.",
+    "security_identity": "New protobuf operation preserves immutable labels, replay checks, credential roles and lifecycle.",
+    "resource_isolation": "Selection namespaces cannot grant access to foreign requestor or owner windows.",
+    "extension_isolation": "Denied selection-related extensions cannot bypass the core namespace.",
+    "application_input": "Shared client-private layout and disconnect cleanup.",
+    "actor_binding": "Actor input cancellation and peer lifecycle remain correct."
+  },
+  "profiles": [
+    "Debug native server",
+    "Core-X native-server ASan/UBSan with leak detection and GLX disabled"
+  ],
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "known_unqualified": "Full graphics-provider sanitizer qualification remains open. This increment does not repair GLX.",
+  "contract_review": "The deliberate policy change is recorded in docs/SELECTION_NAMESPACE_MIGRATION.txt before old assertions are changed. Original sources and baseline failures remain preserved. Locked acceptance files are unchanged.",
+  "schema_correction": "The draft modified locked security.proto. The lock audit caught that change before integration. Restore the locked schema and use extension operation 1 with independent selection_scope.proto. Rebuild and rerun all selected suites."
+}

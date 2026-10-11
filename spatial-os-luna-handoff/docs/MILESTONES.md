@@ -34,6 +34,11 @@ M04 atom metadata filtering passes focused Debug and core-X sanitizer checks on 
 The increment has 636 passed checks. Full GLX-enabled sanitizer runs remain failed and preserved.
 M04 still needs selection privacy, asynchronous metadata, and its complete phase gate.
 Read evidence/m04-atom-2026-10-11/primary-review.json for the component limits.
+
+Selection namespaces and ConfigureNotify metadata also pass focused review on both hosts.
+The combined candidate has 744 passed checks in Debug and core-X native-server sanitizers.
+All forty-one locked files remain unchanged. Original failures and rejected interface drafts remain preserved.
+Other asynchronous metadata, independent bypass mutations, and graphics qualification remain pending before the M04 gate.
 The existing five-second client default remains. Bounded disk pressure defeated 700 ms and two-second clients.
 One successful five-second pressure trial does not establish a worst-case latency bound.
 Storage-pressure availability remains mandatory M03 and M1 performance work.

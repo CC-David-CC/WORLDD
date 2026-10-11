@@ -1,0 +1,11 @@
+{
+  "phase": "M04",
+  "status": "selected_before_execution",
+  "phase_complete": false,
+  "invariant": "Each immutable application identity has independent core-X selections. Another application's ownership must not change query, claim, clear, or conversion behavior.",
+  "suite": "tests/native/test_selection_namespace.py",
+  "hosts": ["sb16", "sb16-2"],
+  "baseline": "The qualified atom-privacy Debug native server from m04-atom-2026-10-11/debug-build-01.",
+  "purpose": "Reproduce interference through PRIMARY and SECONDARY, full identity separation, and swapped clients. Preserve same-application sharing as a positive control.",
+  "contract_change": "Independent selection namespaces strengthen the earlier owned-selection denial policy. Record the deliberate response change before modifying the old suite. Locked acceptance files stay unchanged."
+}
