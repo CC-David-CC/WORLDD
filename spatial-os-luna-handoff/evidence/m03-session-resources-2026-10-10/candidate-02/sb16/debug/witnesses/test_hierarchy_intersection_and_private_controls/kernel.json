@@ -1,0 +1,35 @@
+{
+  "observed": {
+    "cwd": "/project",
+    "fds": [],
+    "cgroup": false,
+    "status": "Name:\tpython3\nUmask:\t0077\nState:\tR (running)\nTgid:\t3\nNgid:\t0\nPid:\t3\nPPid:\t2\nTracerPid:\t0\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\nFDSize:\t64\nGroups:\t65534 65534 65534 65534 65534 65534 65534 65534 1000 \nNStgid:\t3\nNSpid:\t3\nNSpgid:\t1\nNSsid:\t1\nKthread:\t0\nVmPeak:\t   31164 kB\nVmSize:\t   31076 kB\nVmLck:\t       0 kB\nVmPin:\t       0 kB\nVmHWM:\t   11604 kB\nVmRSS:\t   11604 kB\nRssAnon:\t    4840 kB\nRssFile:\t    6764 kB\nRssShmem:\t       0 kB\nVmData:\t    6412 kB\nVmStk:\t     132 kB\nVmExe:\t    2956 kB\nVmLib:\t    2484 kB\nVmPTE:\t      72 kB\nVmSwap:\t       0 kB\nHugetlbPages:\t       0 kB\nCoreDumping:\t0\nTHP_enabled:\t1\nuntag_mask:\t0xffffffffffffffff\nThreads:\t1\nSigQ:\t0/56237\nSigPnd:\t0000000000000000\nShdPnd:\t0000000000000000\nSigBlk:\t0000000000000000\nSigIgn:\t0000000001001000\nSigCgt:\t0000000000000002\nCapInh:\t0000000000000000\nCapPrm:\t0000000000000000\nCapEff:\t0000000000000000\nCapBnd:\t0000000000000000\nCapAmb:\t0000000000000000\nNoNewPrivs:\t1\nSeccomp:\t2\nSeccomp_filters:\t1\nSpeculation_Store_Bypass:\tthread vulnerable\nSpeculationIndirectBranch:\tconditional enabled\nCpus_allowed:\tff\nCpus_allowed_list:\t0-7\nMems_allowed:\t00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000000,00000001\nMems_allowed_list:\t0\nvoluntary_ctxt_switches:\t0\nnonvoluntary_ctxt_switches:\t0\nx86_Thread_features:\t\nx86_Thread_features_locked:\t\n"
+  },
+  "process": "adab1912ad7f8c54715c935ad1752fbe",
+  "hierarchy": {
+    "authority-bcf8a4b2cbd6f8d9afe9466f28705ad1a70c09fd672d31baa4d52f957bdc95cb": {
+      "memory.max": "268435456\n",
+      "memory.swap.max": "0\n",
+      "pids.max": "32\n",
+      "cpu.max": "200000 100000\n",
+      "io.max": "259:0 rbps=67108864 wbps=67108864 riops=max wiops=max\n",
+      "cgroup.procs": ""
+    },
+    "authority-bcf8a4b2cbd6f8d9afe9466f28705ad1a70c09fd672d31baa4d52f957bdc95cb/authority-7d3670dfe5625035f9f2866208af0e22b83eb53a8a99f4f083cf6f6b8c1bc9d2": {
+      "memory.max": "100663296\n",
+      "memory.swap.max": "0\n",
+      "pids.max": "12\n",
+      "cpu.max": "25000 100000\n",
+      "io.max": "259:0 rbps=16777216 wbps=4194304 riops=max wiops=max\n",
+      "cgroup.procs": ""
+    },
+    "authority-bcf8a4b2cbd6f8d9afe9466f28705ad1a70c09fd672d31baa4d52f957bdc95cb/authority-7d3670dfe5625035f9f2866208af0e22b83eb53a8a99f4f083cf6f6b8c1bc9d2/authority-6af6d1faf8436d3cb7030b8ce842814a996efdcb2072717b658f08b2de18a496": {
+      "memory.max": "67108864\n",
+      "memory.swap.max": "0\n",
+      "pids.max": "8\n",
+      "cpu.max": "25000 100000\n",
+      "io.max": "259:0 rbps=16777216 wbps=4194304 riops=max wiops=max\n",
+      "cgroup.procs": "3019065\n3019066\n3019067\n3019068\n"
+    }
+  }
+}

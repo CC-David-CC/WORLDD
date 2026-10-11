@@ -28,14 +28,14 @@
     "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json"
   ],
   "remaining": [
-    "Provision controller delegation and explicit resource policy through production session launchers.",
-    "Connect existing application and authenticated-authority fixtures to that production provisioning path.",
+    "Provision controllers and explicit policy in remaining production entry points and older application fixtures.",
+    "Extend authenticated application coverage through the qualified retained session resource handoff.",
     "Include broker Git/file effects and all writable workspace paths in resource and storage accounting.",
     "Qualify bounded persistent storage, independent escape attempts, and failure recovery.",
     "Measure issuer availability under bounded competing writes, then run the full M03 gate on both hosts."
   ],
   "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json",
-  "current_step": "broker_budgets_qualified_session_provisioning_pending",
+  "current_step": "session_policy_handoff_qualified_deployment_pending",
   "qualified_primitive": {
     "evidence": "evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json",
     "passed": 108,
@@ -51,5 +51,14 @@
     "skipped": 0,
     "phase_complete": false,
     "session_launchers_provisioned": false
+  },
+  "session_resource_handoff": {
+    "evidence": "evidence/m03-session-resources-2026-10-10/primary-review.json",
+    "passed": 172,
+    "failed_final": 0,
+    "skipped": 0,
+    "phase_complete": false,
+    "retained_session_handoff_qualified": true,
+    "operator_deployment_qualified": false
   }
 }

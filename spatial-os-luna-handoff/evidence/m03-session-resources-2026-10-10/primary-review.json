@@ -1,0 +1,254 @@
+{
+  "status": "primary_review_complete",
+  "phase": "M03",
+  "phase_complete": false,
+  "base_commit": "cf950b609339e25a2faef4dcca4173ebae81179d",
+  "source_archives": {
+    "01": "1e9ad75165165367a75a29b9e5b410531c2e9188a5aed15eea601c154611d170",
+    "02": "e4fada20e0ee08d409790b9964eda826a4f72fbc233c4aae44112a555e0d235a",
+    "03": "8438be38c557ad3e0cd40cd468766d15f15d900a3ad2aa066189dc9a089e2960"
+  },
+  "source_files": 361,
+  "locked_files": 41,
+  "passed": 172,
+  "selected_per_host_profile": 43,
+  "failed_final": 0,
+  "skipped": 0,
+  "verified_attachments": 714,
+  "hosts": {
+    "sb16": {
+      "profiles": {
+        "debug": {
+          "passed": 43,
+          "failed": 0,
+          "skipped": 0,
+          "logs": [
+            "candidate-02\\sb16\\debug-broker-resources.log",
+            "candidate-02\\sb16\\debug-process-termination.log",
+            "candidate-02\\sb16\\debug-authority-supervisor.log",
+            "candidate-02\\sb16\\debug-session-resources.log",
+            "candidate-03\\sb16\\debug-session-resources.log"
+          ],
+          "binaries": {
+            "workspaced": "aa3c7fef963db49618e0dab30416b9a659a404cd1e27f02d65f56868a0279922",
+            "spatial-process-scope-probe": "9386b28a2fb11ab1995923516d200503cc8c7b166fa874191cba9e14cd083cef",
+            "spatial-process-termination-probe": "24025b44800dfb358fed8b0c938a5d0c1b7659e0184a9d007bac578a57af4336",
+            "spatial-app-init": "b2ceddac8a6f0720fc06a4e602dc6c8d11e1d4a1c055e2ee06a38426a4d2fa10",
+            "spatial-authority-supervisor": "78956da9b03d5aef59731f907daf5def3de36150f531a33ecd54e71d5045875f",
+            "spatial-session-application-probe": "0293347781736696207ed91c4d571cbd05d4f4f9bd239fb380ff4a5a78cbebbb",
+            "worldd": "308b60ef0a57b4929a47b19114b890766bd6a544a690de77a53ab5bd586f4969",
+            "spatialwm": "534db09b153f82910da1f6325cb9f0b609d9649de331afc0169110c0bf53ebb2"
+          },
+          "native_kernel": {
+            "authority-70933f6464ce6215c9df2a23c5e63788b00b39bbacacdbb77d8df83cee51c56f": {
+              "memory.max": "536870912\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "64\n",
+              "cpu.max": "200000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=33554432 riops=max wiops=max\n",
+              "cgroup.procs": ""
+            },
+            "authority-70933f6464ce6215c9df2a23c5e63788b00b39bbacacdbb77d8df83cee51c56f/authority-5fa9cd52a99d72671d7370958eb0d62fbacba04285bda91b69a9cc97e2a7dd02": {
+              "memory.max": "268435456\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "32\n",
+              "cpu.max": "100000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+              "cgroup.procs": ""
+            },
+            "authority-70933f6464ce6215c9df2a23c5e63788b00b39bbacacdbb77d8df83cee51c56f/authority-5fa9cd52a99d72671d7370958eb0d62fbacba04285bda91b69a9cc97e2a7dd02/authority-87ff332d2f73353956c31009a65ce4c4c8df8efe7dab5386f5e40c0de216ca97": {
+              "memory.max": "134217728\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "16\n",
+              "cpu.max": "100000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=8388608 riops=max wiops=max\n",
+              "cgroup.procs": "3020859\n3020860\n3020861\n3020862\n3020863\n"
+            }
+          }
+        },
+        "runtime-sanitize": {
+          "passed": 43,
+          "failed": 0,
+          "skipped": 0,
+          "logs": [
+            "candidate-03\\sb16\\runtime-sanitize-broker-resources.log",
+            "candidate-03\\sb16\\runtime-sanitize-process-termination.log",
+            "candidate-03\\sb16\\runtime-sanitize-authority-supervisor.log",
+            "candidate-03\\sb16\\runtime-sanitize-session-resources.log"
+          ],
+          "binaries": {
+            "workspaced": "672ede55e21459ee7e81cd4d0c86d12ad69f4489645a50acce5bebff1f21e793",
+            "spatial-process-scope-probe": "6ffcae9d90ef0b4916221f623af8c8178c4dd79fe1e2d86e320e4e56a69ba363",
+            "spatial-process-termination-probe": "fe848e0403177e2886bb643901ba6daf2de569c09f57592cbf7664d22ae9340d",
+            "spatial-app-init": "9c62c3511faf884bf81c17ea256b6adcc14f36d6982b922c90687297aa3ae802",
+            "spatial-authority-supervisor": "2a6ba052cd4456f9cdf6aabea29ea50ef8694159d9904506199cc81e955a917f",
+            "spatial-session-application-probe": "9cd02f016207895cf24ccb77342133a9afbbe9b99bb83828d70d8f5095fd7c58",
+            "worldd": "87cb7d9ee542aabe5d27042ec1851956f3b2d52fcdef0dd14c32799d0de82af7",
+            "spatialwm": "c7723578e7e316307f947a1e32bc7d93f1f9ca7ab2a2036dcf94038baa6e1f78"
+          },
+          "native_kernel": {
+            "authority-5f534ba0d2e2cb08a21f22e747290c2ffbd748d6dbd48b429c5ee912d4eec8a3": {
+              "memory.max": "536870912\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "64\n",
+              "cpu.max": "200000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=33554432 riops=max wiops=max\n",
+              "cgroup.procs": ""
+            },
+            "authority-5f534ba0d2e2cb08a21f22e747290c2ffbd748d6dbd48b429c5ee912d4eec8a3/authority-9248b075e7b7a5fe83985e70d6a0a623750275956177b00404162f594364b067": {
+              "memory.max": "268435456\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "32\n",
+              "cpu.max": "100000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+              "cgroup.procs": ""
+            },
+            "authority-5f534ba0d2e2cb08a21f22e747290c2ffbd748d6dbd48b429c5ee912d4eec8a3/authority-9248b075e7b7a5fe83985e70d6a0a623750275956177b00404162f594364b067/authority-fa4dbada50c09276e1d4954d2dd5944751b9ed6a61d2853ba5008e21545faa6e": {
+              "memory.max": "134217728\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "16\n",
+              "cpu.max": "100000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=8388608 riops=max wiops=max\n",
+              "cgroup.procs": "3023920\n3023921\n3023922\n3023923\n3023924\n"
+            }
+          }
+        }
+      },
+      "server": {
+        "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+      },
+      "unloaded_units": 11,
+      "recovery_sha256": "276f99caf75f0966c00361d2ec5ecb4cdce2ba71e07d9cf0ef79f56f2554f137"
+    },
+    "sb16-2": {
+      "profiles": {
+        "debug": {
+          "passed": 43,
+          "failed": 0,
+          "skipped": 0,
+          "logs": [
+            "candidate-02\\sb16-2\\debug-broker-resources.log",
+            "candidate-02\\sb16-2\\debug-process-termination.log",
+            "candidate-02\\sb16-2\\debug-authority-supervisor.log",
+            "candidate-02\\sb16-2\\debug-session-resources.log",
+            "candidate-03\\sb16-2\\debug-session-resources.log"
+          ],
+          "binaries": {
+            "workspaced": "aa3c7fef963db49618e0dab30416b9a659a404cd1e27f02d65f56868a0279922",
+            "spatial-process-scope-probe": "9386b28a2fb11ab1995923516d200503cc8c7b166fa874191cba9e14cd083cef",
+            "spatial-process-termination-probe": "24025b44800dfb358fed8b0c938a5d0c1b7659e0184a9d007bac578a57af4336",
+            "spatial-app-init": "b2ceddac8a6f0720fc06a4e602dc6c8d11e1d4a1c055e2ee06a38426a4d2fa10",
+            "spatial-authority-supervisor": "78956da9b03d5aef59731f907daf5def3de36150f531a33ecd54e71d5045875f",
+            "spatial-session-application-probe": "0293347781736696207ed91c4d571cbd05d4f4f9bd239fb380ff4a5a78cbebbb",
+            "worldd": "308b60ef0a57b4929a47b19114b890766bd6a544a690de77a53ab5bd586f4969",
+            "spatialwm": "534db09b153f82910da1f6325cb9f0b609d9649de331afc0169110c0bf53ebb2"
+          },
+          "native_kernel": {
+            "authority-b5f557029d916c5334f9c845c808d33414dc34a68916ee8b45d2a3a1e029bdcc": {
+              "memory.max": "536870912\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "64\n",
+              "cpu.max": "200000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=33554432 riops=max wiops=max\n",
+              "cgroup.procs": ""
+            },
+            "authority-b5f557029d916c5334f9c845c808d33414dc34a68916ee8b45d2a3a1e029bdcc/authority-e5c89394d57ee11d42e39c5ab3031ef8f0c8f5f3c2249723a068c2d53e015708": {
+              "memory.max": "268435456\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "32\n",
+              "cpu.max": "100000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+              "cgroup.procs": ""
+            },
+            "authority-b5f557029d916c5334f9c845c808d33414dc34a68916ee8b45d2a3a1e029bdcc/authority-e5c89394d57ee11d42e39c5ab3031ef8f0c8f5f3c2249723a068c2d53e015708/authority-edd4359d1a5fa0728697d15e4b9fc301088c653fa4f1dd8cc9548b2e861d3e50": {
+              "memory.max": "134217728\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "16\n",
+              "cpu.max": "100000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=8388608 riops=max wiops=max\n",
+              "cgroup.procs": "2553327\n2553328\n2553330\n2553331\n2553332\n"
+            }
+          }
+        },
+        "runtime-sanitize": {
+          "passed": 43,
+          "failed": 0,
+          "skipped": 0,
+          "logs": [
+            "candidate-03\\sb16-2\\runtime-sanitize-broker-resources.log",
+            "candidate-03\\sb16-2\\runtime-sanitize-process-termination.log",
+            "candidate-03\\sb16-2\\runtime-sanitize-authority-supervisor.log",
+            "candidate-03\\sb16-2\\runtime-sanitize-session-resources.log"
+          ],
+          "binaries": {
+            "workspaced": "672ede55e21459ee7e81cd4d0c86d12ad69f4489645a50acce5bebff1f21e793",
+            "spatial-process-scope-probe": "6ffcae9d90ef0b4916221f623af8c8178c4dd79fe1e2d86e320e4e56a69ba363",
+            "spatial-process-termination-probe": "fe848e0403177e2886bb643901ba6daf2de569c09f57592cbf7664d22ae9340d",
+            "spatial-app-init": "9c62c3511faf884bf81c17ea256b6adcc14f36d6982b922c90687297aa3ae802",
+            "spatial-authority-supervisor": "2a6ba052cd4456f9cdf6aabea29ea50ef8694159d9904506199cc81e955a917f",
+            "spatial-session-application-probe": "9cd02f016207895cf24ccb77342133a9afbbe9b99bb83828d70d8f5095fd7c58",
+            "worldd": "87cb7d9ee542aabe5d27042ec1851956f3b2d52fcdef0dd14c32799d0de82af7",
+            "spatialwm": "c7723578e7e316307f947a1e32bc7d93f1f9ca7ab2a2036dcf94038baa6e1f78"
+          },
+          "native_kernel": {
+            "authority-808c861fe9cca00ec4f3a31bb15b220d48fa79f213ee90743d80088ae055836f": {
+              "memory.max": "536870912\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "64\n",
+              "cpu.max": "200000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=33554432 riops=max wiops=max\n",
+              "cgroup.procs": ""
+            },
+            "authority-808c861fe9cca00ec4f3a31bb15b220d48fa79f213ee90743d80088ae055836f/authority-ac6840d9cda776b34066804a2243e37c3b1e99ea78526e550447db0f5f1eda3b": {
+              "memory.max": "268435456\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "32\n",
+              "cpu.max": "100000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+              "cgroup.procs": ""
+            },
+            "authority-808c861fe9cca00ec4f3a31bb15b220d48fa79f213ee90743d80088ae055836f/authority-ac6840d9cda776b34066804a2243e37c3b1e99ea78526e550447db0f5f1eda3b/authority-bd721d2d0c8420b7827288674f535d185d89110890514d46978634f39eca2e20": {
+              "memory.max": "134217728\n",
+              "memory.swap.max": "0\n",
+              "pids.max": "16\n",
+              "cpu.max": "100000 100000\n",
+              "io.max": "259:0 rbps=67108864 wbps=8388608 riops=max wiops=max\n",
+              "cgroup.procs": "2556398\n2556399\n2556400\n2556401\n2556402\n"
+            }
+          }
+        }
+      },
+      "server": {
+        "path": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb",
+        "sha256": "5fd994bd4890340c7e07a20f3b9905f68c875ef4b1c7812fdb713765c75ad107"
+      },
+      "unloaded_units": 11,
+      "recovery_sha256": "5d169bfee81c299587a90a01e62bb9c56a556bfd7a513be829adf3e8df6e36af"
+    }
+  },
+  "qualification": "Debug: candidate02 unaffected cases plus candidate03 corrected native teardown. Sanitizers: candidate03 all selected cases.",
+  "review": "Primary agent reviewed production code, schema, fixtures, CMake, runners, and raw evidence. No local-model or subagent review.",
+  "sanitizer_logs_scanned": 588,
+  "sanitizer_matches": 0,
+  "preserved_failures": [
+    "Candidate01: both Debug builds completed. Old supervisor rejected broker_resources. An incorrect evidence filename pattern stopped the runner.",
+    "Candidate02: 42 selected Debug cases passed per host. New kernel witness omitted world shutdown before broker shutdown. Runtime rejected the invalid order.",
+    "Candidate03: the new witness now checks world shutdown first. The corrected Debug case and all 43 sanitizer cases passed per host."
+  ],
+  "limitations": [
+    "M03 and Spatial-M1 remain incomplete. Normal host checkouts are unchanged.",
+    "Native evidence uses the modified XLibre software display. Physical devices and GPU performance remain unqualified.",
+    "Whole-session deployment and other application fixtures still need explicit controller and resource provisioning.",
+    "Storage quotas, broker Git/file accounting, and independent escape qualification remain pending.",
+    "These checks do not establish issuer fdatasync latency under competing writes.",
+    "Five-second production timeout, short fault fixtures, and SQLite durability remain unchanged.",
+    "Debug binaries come from candidate01. Production source is identical in all three candidates.",
+    "No full M03 phase gate, power-loss test, or live-model acceptance ran."
+  ],
+  "next": [
+    "Provision remaining production entry points and application fixtures.",
+    "Implement bounded persistent storage and broker effect accounting.",
+    "Repeat issuer contention measurements, then qualify the full M03 gate."
+  ]
+}

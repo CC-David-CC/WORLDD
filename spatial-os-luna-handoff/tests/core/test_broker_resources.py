@@ -1,5 +1,6 @@
 """Real broker launches, kernel budgets, and retained supervisor cleanup."""
 import json
+import fcntl
 import os
 from pathlib import Path
 import select
@@ -26,21 +27,27 @@ MIB = 1024 * 1024
 
 
 class Broker:
-    def __init__(self, test, policy=None, configured=True, invalid_root=False):
+    def __init__(self, test, policy=None, configured=True, invalid_root=False, handoff=None):
         self.test = test
         self.sequence = 0
         self.closed = False
         self.index = len(test.brokers)
         self.state = test.files/f'broker-state-{self.index}'
         self.stream, child = socket.socketpair()
+        test.addCleanup(child.close)
         self.stream.settimeout(10)
         self.reader = self.stream.makefile('rb', buffering=0)
         self.log_path = test.files/f'broker-{self.index}.log'
         self.log = self.log_path.open('wb')
         self.scope_log = (test.files/f'owner-{self.index}.log').open('wb')
+        resource_fd = os.memfd_create('fixture-resource-policy', os.MFD_CLOEXEC | os.MFD_ALLOW_SEALING) if handoff else None
+        resource_file = os.fdopen(resource_fd, 'wb', buffering=0) if resource_fd is not None else None
+        if resource_file is not None: test.addCleanup(resource_file.close)
+        passed = [child.fileno(), self.log.fileno()]
+        if resource_fd is not None: passed.append(resource_fd)
         self.owner = subprocess.Popen(
-            [str(scopes.PROBE), str(test.root), 'normal', str(child.fileno()), str(self.log.fileno())],
-            pass_fds=(child.fileno(), self.log.fileno()), stdin=subprocess.PIPE,
+            [str(scopes.PROBE), str(test.root), 'normal', *(str(fd) for fd in passed)],
+            pass_fds=passed, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=self.scope_log)
         test.brokers.append(self)
         prepared = test.call(self.owner, prepare=pb.ProcessScopeQuery())
@@ -53,15 +60,23 @@ class Broker:
         self.config_path.write_text(text_format.MessageToString(config))
         self.config_path.chmod(0o600)
         command = [str(BROKER), '--state-dir', str(self.state)]
-        if configured: command += ['--resource-config', str(self.config_path)]
+        if handoff:
+            os.write(resource_fd, config.SerializeToString())
+            if handoff != 'mutable':
+                fcntl.fcntl(resource_fd, fcntl.F_ADD_SEALS,
+                    fcntl.F_SEAL_SEAL | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_GROW | fcntl.F_SEAL_WRITE)
+            command += ['--resource-config-fd', '5']
+            if handoff == 'conflict': command += ['--resource-config', str(self.config_path)]
+        elif configured: command += ['--resource-config', str(self.config_path)]
         # The production owner assigns the child to its held scope before exec.
         # This fixture only connects explicit private descriptors to standard I/O.
         environment = {key: os.environ[key] for key in ('ASAN_OPTIONS', 'UBSAN_OPTIONS') if key in os.environ}
         code = ('import os;os.dup2(3,0);os.dup2(3,1);os.dup2(4,2);os.close(3);os.close(4);'
                 f'os.environ.update({environment!r});os.execv({str(BROKER)!r},{command!r})')
         started = test.call(self.owner, start=pb.AuthorityProcessLaunch(
-            executable='/usr/bin/python3', arguments=['-c', code], inherited_fds=[3, 4]))
+            executable='/usr/bin/python3', arguments=['-c', code], inherited_fds=[3, 4, 5] if handoff else [3, 4]))
         child.close()
+        if resource_file is not None: resource_file.close()
         test.assertEqual(started.WhichOneof('outcome'), 'state', started)
 
     def request(self, **operation):
@@ -298,6 +313,32 @@ sys.exit(8)
         reply = instance.launch(); self.assertEqual(reply.error.code, core.UNAVAILABLE, reply)
         self.assertEqual(self.records(instance), [])
         instance.close()
+
+    def test_sealed_resource_handoff_launches_and_is_consumed(self):
+        instance = Broker(self, handoff='sealed').setup()
+        process = self.launched(instance.launch('pass'))
+        self.assertEqual(self.wait(instance, process)['exit_code'], 0)
+        pid = int((instance.root/'broker-manager/cgroup.procs').read_text())
+        links = [os.readlink(path) for path in Path(f'/proc/{pid}/fd').iterdir()]
+        self.assertFalse(any('fixture-resource-policy' in path for path in links), links)
+        instance.close()
+
+    def test_mutable_resource_handoff_fails_before_store_mutation(self):
+        instance = Broker(self, handoff='mutable'); instance.wait_exit()
+        self.assertFalse(instance.state.exists())
+        self.assertIn('owned sealed protobuf', instance.log_path.read_text())
+        instance.close(normal=False)
+
+    def test_sealed_resource_handoff_rejects_wrong_owned_root(self):
+        instance = Broker(self, handoff='sealed', invalid_root=True); instance.wait_exit()
+        self.assertFalse(instance.state.exists())
+        self.assertIn('exact owned cgroup', instance.log_path.read_text())
+        instance.close(normal=False)
+
+    def test_conflicting_resource_arguments_cannot_override_handoff(self):
+        instance = Broker(self, handoff='conflict'); instance.wait_exit()
+        self.assertFalse(instance.state.exists())
+        instance.close(normal=False)
 
     def test_wrong_root_fails_before_any_store_mutation(self):
         instance = Broker(self, invalid_root=True)

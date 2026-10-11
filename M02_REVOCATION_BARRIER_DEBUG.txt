@@ -1357,3 +1357,22 @@ Still required: session provisioning, fixture adaptation, storage quotas, broker
 Unconfigured launches on this unfinished branch are unavailable. This is recorded behavior, not a passing full gate.
 This increment does not prove fdatasync latency is fixed. Production timeout remains five seconds. Durability is unchanged.
 The first status-writing command stopped at a line-ending assertion before writing any status files. The correction preserved existing content.
+
+2026-10-10: Retained session resource policy handoff qualified on the M03 branch.
+Both hosts passed 43 selected checks in Debug and runtime sanitizers: 172 final passes.
+The supervisor seals policy for its actual retained broker scope. The broker consumes the policy descriptor.
+A confined native X application runs under real workspace, actor, and application kernel budgets.
+Existing application recovery scenarios and all selected supervisor and process cleanup checks pass.
+Candidate01 stopped at an evidence filename error. Its completed Debug builds remain preserved and reused.
+Candidate02's new witness omitted world shutdown. Production correctly rejected broker shutdown first.
+Candidate03 corrects that witness and verifies complete shutdown. Historical failures remain failed.
+The audit verified 714 attachments and scanned 588 logs without selected sanitizer findings.
+All 22 exact transient services are unloaded. SSH, sudo, normal checkouts, and prior controller delegation are intact.
+Read spatial-os-luna-handoff/evidence/m03-session-resources-2026-10-10/primary-review.json.
+The first cleanup audit found nine resource services per host from logs. The final audit includes command arguments too.
+The final audit also confirms both authority-supervisor service units per host are unloaded.
+Still unrun: full M03 gate, physical devices, GPU performance, live-model, and power-loss qualification.
+Still required: remaining entry points, fixture provisioning, bounded storage, broker accounting, and issuer contention recovery.
+Native tests use a dedicated software display. These results do not establish physical-session performance.
+The existing five-second client timeout remains. Both 700 ms and 2000 ms failed the earlier disk-pressure reproduction.
+No new issuer pressure measurement ran in this increment. SQLite durability is unchanged.

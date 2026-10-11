@@ -9,16 +9,20 @@ import sys
 import uuid
 
 assert socket.gethostname().split('.')[0] in ('sb16', 'sb16-2')
+native = sys.argv[1:2] == ['--native']
+if native: sys.argv.pop(1)
 assert sys.argv[1:2] == ['--'] and len(sys.argv) > 2
 assert os.getuid() != 0, 'Invoke as the project owner; only systemd setup uses sudo'
 unit = 'spatial-m03-resources-' + uuid.uuid4().hex + '.service'
 command = ['sudo', '-n', 'systemd-run', '--unit='+unit, '--wait', '--pipe', '--collect',
            '--service-type=exec', '--uid='+pwd.getpwuid(os.getuid()).pw_name,
            '--working-directory='+str(Path.cwd()), '-p', 'Delegate=cpu memory pids io',
-           '-p', 'DelegateSubgroup=manager', '-p', 'MemoryMax=512M', '-p', 'MemorySwapMax=0',
-           '-p', 'TasksMax=128', '-p', 'CPUQuota=200%', '-p', 'RuntimeMaxSec=120',
+           '-p', 'DelegateSubgroup=manager', '-p', 'MemoryMax='+('1536M' if native else '512M'), '-p', 'MemorySwapMax=0',
+           '-p', 'TasksMax='+('256' if native else '128'), '-p', 'CPUQuota='+('400%' if native else '200%'),
+           '-p', 'RuntimeMaxSec='+('240' if native else '120'),
            '-p', 'TimeoutStopSec=5s']
-for name in ('PYTHONPATH', 'ASAN_OPTIONS', 'LSAN_OPTIONS', 'UBSAN_OPTIONS', 'SPATIAL_SCOPE_EVIDENCE'):
+for name in ('PYTHONPATH', 'ASAN_OPTIONS', 'LSAN_OPTIONS', 'UBSAN_OPTIONS', 'SPATIAL_SCOPE_EVIDENCE',
+             'SPATIAL_TEST_XSERVER', 'SPATIAL_SECURITY_EVIDENCE'):
     if name in os.environ:
         command.append('--setenv='+name+'='+os.environ[name])
 command += ['--', *sys.argv[2:]]

@@ -12,10 +12,12 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
 #include <sys/sysmacros.h>
 #include <unistd.h>
+#include <utility>
 
 namespace spatial {
 namespace {
@@ -138,24 +140,47 @@ struct Group {
     }
 };
 }
+void validate_resource_config(const workspace::v1::BrokerResourceConfig& config) {
+    validate_message(config);
+    require(config.protocol_version() == 1 && config.has_default_policy() && config.workspaces_size() <= 64,
+            "Explicit default resource policy is required");
+    validate_policy(config.default_policy(), true);
+    std::set<std::string> workspaces;
+    for (const auto& policy : config.workspaces()) {
+        validate_policy(policy, false);
+        require(workspaces.insert(policy.workspace()).second, "Duplicate workspace resource policy");
+    }
+}
+int seal_resource_config(const workspace::v1::BrokerResourceConfig& configuration,
+                         const std::filesystem::path& owned_scope) {
+    validate_resource_config(configuration);
+    require(configuration.delegated_cgroup().empty(), "Broker resource template must not select a cgroup");
+    require(owned_scope.is_absolute() && owned_scope.string().find('\0') == std::string::npos,
+            "Broker resources require an absolute owned scope");
+    auto bound = configuration; bound.set_delegated_cgroup(owned_scope.string());
+    const auto bytes = bound.SerializeAsString();
+    require(!bytes.empty() && bytes.size() <= 65536, "Broker resource configuration exceeds limit");
+    identity::tls_detail::Fd file(memfd_create("broker-resource-policy", MFD_CLOEXEC | MFD_ALLOW_SEALING));
+    check(file.value >= 3, "Cannot create broker resource handoff");
+    std::size_t written = 0;
+    while (written < bytes.size()) {
+        const auto count = write(file.value, bytes.data()+written, bytes.size()-written);
+        if (count < 0 && errno == EINTR) continue;
+        check(count > 0, "Cannot write broker resource handoff");
+        written += static_cast<std::size_t>(count);
+    }
+    check(fcntl(file.value, F_ADD_SEALS, F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL) == 0,
+          "Cannot seal broker resource handoff");
+    return std::exchange(file.value, -1);
+}
 struct WorkspaceResources::Impl {
     workspace::v1::BrokerResourceConfig config;
     std::filesystem::path root;
     int directory = -1;
     bool manager_created = false, moved = false, enabled = false;
     std::map<std::string, std::shared_ptr<Group>> groups;
-    void initialize(const std::filesystem::path& path) {
-        require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(path), &config),
-                "Invalid broker resource configuration");
-        validate_message(config);
-        require(config.protocol_version() == 1 && config.has_default_policy() && config.workspaces_size() <= 64,
-                "Explicit default resource policy is required");
-        validate_policy(config.default_policy(), true);
-        std::set<std::string> workspaces;
-        for (const auto& policy : config.workspaces()) {
-            validate_policy(policy, false);
-            require(workspaces.insert(policy.workspace()).second, "Duplicate workspace resource policy");
-        }
+    void initialize(workspace::v1::BrokerResourceConfig value) {
+        validate_resource_config(value); config = std::move(value);
         root = config.delegated_cgroup();
         std::ifstream current("/proc/self/cgroup"); std::string line; std::getline(current, line);
         require(line.starts_with("0::/") && root.is_absolute() &&
@@ -213,7 +238,27 @@ struct ApplicationResources::Impl {
     }
 };
 WorkspaceResources::WorkspaceResources(const std::filesystem::path& configuration) : impl_(std::make_shared<Impl>()) {
-    impl_->initialize(configuration);
+    workspace::v1::BrokerResourceConfig value;
+    require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(configuration), &value),
+            "Invalid broker resource configuration");
+    impl_->initialize(std::move(value));
+}
+WorkspaceResources::WorkspaceResources(int descriptor) : impl_(std::make_shared<Impl>()) {
+    identity::tls_detail::Fd file(descriptor);
+    constexpr int seals = F_SEAL_WRITE | F_SEAL_GROW | F_SEAL_SHRINK | F_SEAL_SEAL;
+    struct stat info{};
+    const int actual = descriptor >= 3 ? fcntl(descriptor, F_GET_SEALS) : -1;
+    require(actual >= 0 && (actual & seals) == seals && fstat(descriptor, &info) == 0 &&
+            S_ISREG(info.st_mode) && info.st_uid == geteuid() && info.st_size > 0 && info.st_size <= 65536,
+            "Broker resource handoff must be an owned sealed protobuf");
+    std::string bytes(static_cast<std::size_t>(info.st_size), '\0');
+    ssize_t count;
+    do { count = pread(descriptor, bytes.data(), bytes.size(), 0); } while (count < 0 && errno == EINTR);
+    require(count == static_cast<ssize_t>(bytes.size()), "Cannot read broker resource handoff");
+    workspace::v1::BrokerResourceConfig value;
+    require(value.ParseFromString(bytes), "Invalid broker resource protobuf");
+    file.reset();
+    impl_->initialize(std::move(value));
 }
 WorkspaceResources::~WorkspaceResources() = default;
 ApplicationResources::ApplicationResources(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}

@@ -1,0 +1,218 @@
+{
+  "host": "sb16",
+  "terminal_qualifiers": {
+    "01": "failed",
+    "02": "failed",
+    "03": "passed_review_pending"
+  },
+  "units": [
+    "spatial-m03-resources-1b1e5ed7c5fe4ffd811cb96ace503c58.service",
+    "spatial-m03-resources-5da3adc17cbc4e43bcf56b7c4a21ec99.service",
+    "spatial-m03-resources-856c3220f6b44e62a11519f39c10a4c4.service",
+    "spatial-m03-resources-aef578c84e3743eea6e354d401f02c3e.service",
+    "spatial-m03-resources-b8f8ea60d9af487893f5b0fe6fcc466e.service",
+    "spatial-m03-resources-bfb881f7578a4b958e6ba696b0ce3f7c.service",
+    "spatial-m03-resources-c5af066c5c1a4474ae98ef48a1ca4272.service",
+    "spatial-m03-resources-f3ca7325e20b4bc5a1f86102ffa3270d.service",
+    "spatial-m03-resources-f5b68b7e17b242c383aa4fce0c739949.service",
+    "spatial-supervisor-2552b2bc4af6e8e4cc166b476f7c46ae04045cf196e0c7a4663a27d81541e8f6",
+    "spatial-supervisor-cc29074f7b6cf092bcc765510f4a591b01f61bfb75fce2559f60b7e9fe0809b9"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-1b1e5ed7c5fe4ffd811cb96ace503c58.service",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-5da3adc17cbc4e43bcf56b7c4a21ec99.service",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-856c3220f6b44e62a11519f39c10a4c4.service",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-aef578c84e3743eea6e354d401f02c3e.service",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-b8f8ea60d9af487893f5b0fe6fcc466e.service",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-bfb881f7578a4b958e6ba696b0ce3f7c.service",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-c5af066c5c1a4474ae98ef48a1ca4272.service",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-f3ca7325e20b4bc5a1f86102ffa3270d.service",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-f5b68b7e17b242c383aa4fce0c739949.service",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "show",
+        "spatial-supervisor-2552b2bc4af6e8e4cc166b476f7c46ae04045cf196e0c7a4663a27d81541e8f6",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "--user",
+        "show",
+        "spatial-supervisor-cc29074f7b6cf092bcc765510f4a591b01f61bfb75fce2559f60b7e9fe0809b9",
+        "-p",
+        "ActiveState",
+        "-p",
+        "LoadState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "stdout": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "-C",
+        "/home/dflanag3/src/spacial_desktop",
+        "status",
+        "--porcelain"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "sudo",
+        "-n",
+        "true"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "root_subtree_control": "cpu memory pids",
+  "user_controllers": "cpu memory pids",
+  "normal_checkout_head": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+  "normal_checkout_status": "",
+  "ssh_recovery": true
+}

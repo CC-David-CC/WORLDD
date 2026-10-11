@@ -39,7 +39,8 @@ struct SessionBroker::Impl {
         for (const auto& arg : config.launch().arguments())
             require(arg != "--control-supervisor-fd" && arg != "--control-supervisor-pid", "Session owns broker administrative arguments");
         int target = 255;
-        while (target == static_cast<int>(config.participant_target_fd()) || target == static_cast<int>(config.broker_native_target_fd())) --target;
+        while (target == static_cast<int>(config.participant_target_fd()) || target == static_cast<int>(config.broker_native_target_fd()) ||
+               (config.has_broker_resource_target_fd() && target == static_cast<int>(config.broker_resource_target_fd()))) --target;
         int pair[2]; require(socketpair(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0, pair) == 0, "Cannot create session administrative channel");
         File admin_parent(pair[0]), admin_child(pair[1]); Pair channel;
         config.add_inherited_source_fds(admin_child.value); config.mutable_launch()->add_inherited_fds(target);

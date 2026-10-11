@@ -1,5 +1,38 @@
 # Implementation status
 
+## 2026-10-10: Supervised session resource handoff passed focused qualification
+
+The retained supervisor now binds explicit broker resource policy to its prepared process scope.
+It sends that policy through a sealed binary protobuf descriptor before application execution.
+The broker consumes the descriptor and creates its nested resource groups inside the retained scope.
+SessionBroker reserves a separate administration descriptor. Resource policy grants no actor authority.
+Read docs/M03_SESSION_RESOURCE_CONTRACT.txt for the additive configuration contract.
+
+Both hosts passed 43 selected checks in Debug and runtime sanitizers: 172 final passes, zero failures or skips.
+The audit verified 714 attachments and scanned 588 logs without selected sanitizer findings.
+All 361 frozen inputs and 41 locked files matched their hashes.
+The native suite runs the production coordinator, supervisor, broker, world, compositor, and confined X client.
+Real kernel observations confirm application limits. Existing application recovery test bodies remain unchanged.
+Four additional broker checks cover sealed policy consumption, mutable policy, wrong roots, and conflicting arguments.
+Fourteen existing supervisor checks and six existing process-termination checks passed in both profiles.
+Read evidence/m03-session-resources-2026-10-10/primary-review.json.
+
+Candidate01's evidence filename error remains preserved. Both Debug builds completed before that runner failure.
+Candidate02 passed 42 cases per host. The new kernel witness omitted world shutdown before broker shutdown.
+The runtime rejected that order. Candidate03 adds and checks world shutdown before broker shutdown.
+Debug qualification reuses unchanged candidate01 production binaries and candidate02 unaffected results.
+Candidate03 reruns the corrected Debug case and builds all selected sanitizer binaries from current production source.
+All 22 exact transient services are unloaded. Root and user delegation returned to their prior values.
+Both normal host checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd. No operator runtime changed.
+
+M03 remains incomplete. Remaining entry points and older application fixtures still need controller and policy provisioning.
+Storage quotas, broker Git/file accounting, independent escape qualification, and issuer contention recovery remain pending.
+No full M03 gate, physical input, GPU performance, live-model, or power-loss qualification ran.
+Native evidence uses the modified XLibre software display. It does not prove physical-session performance.
+This increment does not prove fdatasync latency is fixed. Timeout and durability settings remain unchanged.
+M01 and M02 remain qualified at their earlier pins. M03-M16 and full Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Broker resource enforcement passed focused qualification
 
 The work branch assigns workspace, actor, and application cgroups before releasing application startup.

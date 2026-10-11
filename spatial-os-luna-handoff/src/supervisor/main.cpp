@@ -2,6 +2,7 @@
 #include "supervisor/child_handle.hpp"
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
+#include "workspace/resources.hpp"
 #include "broker.pb.h"
 #include "compositor_native.pb.h"
 #include <google/protobuf/text_format.h>
@@ -54,7 +55,10 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         absolute(value.child_participant_config()) && absolute(value.launch().executable()) &&
         value.participant_target_fd() >= 3 && value.participant_target_fd() <= 255 &&
         !(value.has_broker_native_target_fd() && value.has_compositor_native_target_fd()) &&
-        value.inherited_source_fds_size() + ((value.has_broker_native_target_fd() || value.has_compositor_native_target_fd()) ? 2 : 1) <= 16 &&
+        value.has_broker_resources() == value.has_broker_resource_target_fd() &&
+        (!value.has_broker_resources() || value.has_broker_native_target_fd()) &&
+        value.inherited_source_fds_size() + ((value.has_broker_native_target_fd() || value.has_compositor_native_target_fd()) ? 2 : 1) +
+            (value.has_broker_resources() ? 1 : 0) <= 16 &&
         value.inherited_source_fds_size() == value.launch().inherited_fds_size(),
         "Invalid supervisor configuration");
     std::set<std::uint32_t> targets{value.participant_target_fd()}, sources;
@@ -67,6 +71,14 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         const auto target = value.compositor_native_target_fd();
         require(target >= 3 && target <= 255 && targets.insert(target).second,
             "Invalid compositor native descriptor target");
+    }
+    if (value.has_broker_resources()) {
+        spatial::validate_resource_config(value.broker_resources());
+        require(value.broker_resources().delegated_cgroup().empty(), "Broker resource template must not select a cgroup");
+        const auto target = value.broker_resource_target_fd();
+        require(target >= 3 && target <= 255 && targets.insert(target).second, "Invalid broker resource descriptor target");
+        for (const auto& arg : value.launch().arguments())
+            require(arg != "--resource-config" && arg != "--resource-config-fd", "Supervisor owns broker resource arguments");
     }
     struct stat native_info{}, management_info{}, handle_info{};
     require(fstat(native, &native_info) == 0 && fstat(management, &management_info) == 0,
@@ -217,6 +229,7 @@ int main(int argc, char** argv) {
         if (handle >= 0) handles = std::make_unique<spatial::supervisor::ChildHandleServer>(handle, getppid());
         File native_config(native);
         File broker_config;
+        File broker_resources;
         File compositor_config;
         std::optional<pb::NativeScopeConfig> source;
         if (config.has_broker_native_target_fd() || config.has_compositor_native_target_fd())
@@ -224,6 +237,9 @@ int main(int argc, char** argv) {
         parent_alive(control);
         launch = std::make_unique<spatial::supervisor::AuthorityLaunch>(config.journal_directory());
         const auto prepared = launch->prepare(config.delegated_cgroup(), config.binding(), native);
+        if (config.has_broker_resources())
+            broker_resources.reset(spatial::seal_resource_config(config.broker_resources(),
+                std::filesystem::path(config.delegated_cgroup()) / prepared.record().process().scope_name()));
         if (config.has_broker_native_target_fd()) seal_broker_config(broker_config, *source, prepared.ready());
         if (config.has_compositor_native_target_fd()) seal_compositor_config(compositor_config, *source, prepared.ready());
         native_config.reset();
@@ -251,6 +267,12 @@ int main(int argc, char** argv) {
             config.mutable_launch()->add_inherited_fds(config.broker_native_target_fd());
             inherited.push_back(broker_config.value);
         }
+        if (config.has_broker_resources()) {
+            config.mutable_launch()->add_inherited_fds(config.broker_resource_target_fd());
+            inherited.push_back(broker_resources.value);
+            config.mutable_launch()->add_arguments("--resource-config-fd");
+            config.mutable_launch()->add_arguments(std::to_string(config.broker_resource_target_fd()));
+        }
         if (config.has_compositor_native_target_fd()) {
             config.mutable_launch()->add_inherited_fds(config.compositor_native_target_fd());
             inherited.push_back(compositor_config.value);
@@ -259,6 +281,7 @@ int main(int argc, char** argv) {
         release_child_sources(config);
         view(*management, started);
         broker_config.reset();
+        broker_resources.reset();
         compositor_config.reset();
         for (;;) {
             require(!interrupted, "Supervisor termination requested");

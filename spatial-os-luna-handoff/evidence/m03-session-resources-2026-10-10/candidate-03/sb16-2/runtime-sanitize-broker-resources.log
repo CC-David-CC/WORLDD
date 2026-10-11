@@ -1,0 +1,29 @@
+{"unit": "spatial-m03-resources-00075bed40434e1d80870766d6512cca.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-00075bed40434e1d80870766d6512cca.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/source", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/runtime-sanitize/witnesses", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/runtime-sanitize/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/source/tests/core/test_broker_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/runtime-sanitize/build/spatial-process-scope-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-session-resources-03/runtime-sanitize/build/workspaced"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-00075bed40434e1d80870766d6512cca.service"]}
+Running as unit: spatial-m03-resources-00075bed40434e1d80870766d6512cca.service; invocation ID: 2d8023bcbddc45e3ad2cd848e38cbe75
+test_actor_capacity_preserves_other_actor (__main__.BrokerResourceTests.test_actor_capacity_preserves_other_actor) ... ok
+test_application_writes_obey_broker_io_budget (__main__.BrokerResourceTests.test_application_writes_obey_broker_io_budget) ... ok
+test_broker_crash_cleanup_preserves_independent_broker (__main__.BrokerResourceTests.test_broker_crash_cleanup_preserves_independent_broker) ... ok
+test_conflicting_resource_arguments_cannot_override_handoff (__main__.BrokerResourceTests.test_conflicting_resource_arguments_cannot_override_handoff) ... ok
+test_hierarchy_intersection_and_private_controls (__main__.BrokerResourceTests.test_hierarchy_intersection_and_private_controls) ... ok
+test_missing_configuration_denies_before_pending_record (__main__.BrokerResourceTests.test_missing_configuration_denies_before_pending_record) ... ok
+test_missing_io_controller_fails_before_store_mutation (__main__.BrokerResourceTests.test_missing_io_controller_fails_before_store_mutation) ... ok
+test_mutable_resource_handoff_fails_before_store_mutation (__main__.BrokerResourceTests.test_mutable_resource_handoff_fails_before_store_mutation) ... ok
+test_read_only_authority_survives_resource_integration (__main__.BrokerResourceTests.test_read_only_authority_survives_resource_integration) ... ok
+test_revocation_returns_capacity_and_preserves_independent_application (__main__.BrokerResourceTests.test_revocation_returns_capacity_and_preserves_independent_application) ... ok
+test_sealed_resource_handoff_launches_and_is_consumed (__main__.BrokerResourceTests.test_sealed_resource_handoff_launches_and_is_consumed) ... ok
+test_sealed_resource_handoff_rejects_wrong_owned_root (__main__.BrokerResourceTests.test_sealed_resource_handoff_rejects_wrong_owned_root) ... ok
+test_uncovered_storage_device_denies_before_pending_record (__main__.BrokerResourceTests.test_uncovered_storage_device_denies_before_pending_record) ... ok
+test_workspace_capacity_returns_after_checked_exit (__main__.BrokerResourceTests.test_workspace_capacity_returns_after_checked_exit) ... ok
+test_wrong_root_fails_before_any_store_mutation (__main__.BrokerResourceTests.test_wrong_root_fails_before_any_store_mutation) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 25.485s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 25.635s
+CPU time consumed: 16.344s
+Memory peak: 2.7M
+Memory swap peak: 0B
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

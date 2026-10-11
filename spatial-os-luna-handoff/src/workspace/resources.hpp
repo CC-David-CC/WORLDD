@@ -6,6 +6,10 @@
 #include <memory>
 
 namespace spatial {
+void validate_resource_config(const workspace::v1::BrokerResourceConfig& configuration);
+// Return an owned sealed descriptor. Bind only an empty-root operator template.
+int seal_resource_config(const workspace::v1::BrokerResourceConfig& configuration,
+                         const std::filesystem::path& owned_scope);
 class WorkspaceResources;
 class ApplicationResources final {
 public:
@@ -21,6 +25,8 @@ private:
 class WorkspaceResources final {
 public:
     explicit WorkspaceResources(const std::filesystem::path& configuration);
+    // Consume this descriptor, including on rejection.
+    explicit WorkspaceResources(int sealed_configuration);
     ~WorkspaceResources();
     std::unique_ptr<ApplicationResources> prepare(const workspace::v1::LaunchRequest& request,
         const std::array<std::filesystem::path, 3>& writable_paths);

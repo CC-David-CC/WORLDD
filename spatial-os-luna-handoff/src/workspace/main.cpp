@@ -104,13 +104,18 @@ int main(int argc, char** argv) {
     try {
         std::filesystem::path state, authority_config, seed, resource_config;
         unsigned migration = 0; bool fixture_faults = false;
-        int native_fd = -1;
+        int native_fd = -1, resource_fd = -1;
         int control_fd = -1, control_peer = -1;
         for (int i = 1; i < argc; ++i) {
             const std::string_view argument(argv[i]);
             if (argument == "--state-dir" && state.empty() && i+1 < argc) state = argv[++i];
             else if (argument == "--authority-config" && authority_config.empty() && i+1 < argc) authority_config = argv[++i];
-            else if (argument == "--resource-config" && resource_config.empty() && i+1 < argc) resource_config = argv[++i];
+            else if (argument == "--resource-config" && resource_config.empty() && resource_fd < 0 && i+1 < argc) resource_config = argv[++i];
+            else if (argument == "--resource-config-fd" && resource_config.empty() && resource_fd < 0 && i+1 < argc) {
+                const std::string value(argv[++i]); std::size_t used = 0;
+                resource_fd = std::stoi(value, &used);
+                if (used != value.size() || resource_fd < 3) throw std::invalid_argument("Invalid resource policy descriptor");
+            }
             else if (argument == "--init-authority" && seed.empty() && i+1 < argc) seed = argv[++i];
             else if (argument == "--fixture-faults" && !fixture_faults) fixture_faults = true;
             else if (argument == "--native-security-fd" && native_fd < 0 && i+1 < argc) {
@@ -133,7 +138,9 @@ int main(int argc, char** argv) {
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
         if ((control_fd < 0) != (control_peer < 0) || (control_fd >= 0 && control_fd == native_fd))
             throw std::invalid_argument("Control supervisor requires a separate descriptor and peer");
-        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || !resource_config.empty() || native_fd >= 0 || control_fd >= 0)) || (migration && !seed.empty()))
+        if (resource_fd >= 0 && (resource_fd == native_fd || resource_fd == control_fd))
+            throw std::invalid_argument("Resource policy requires a separate descriptor");
+        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || !resource_config.empty() || resource_fd >= 0 || native_fd >= 0 || control_fd >= 0)) || (migration && !seed.empty()))
             throw std::invalid_argument("Provisioning and migration require an exclusive stopped broker");
         umask(0077); signal(SIGPIPE, SIG_IGN);
         // Destroy jobs before their authority callback target.
@@ -141,6 +148,7 @@ int main(int argc, char** argv) {
         std::unique_ptr<spatial::NativeLaunch> native;
         std::unique_ptr<spatial::WorkspaceResources> resources;
         if (!resource_config.empty()) resources = std::make_unique<spatial::WorkspaceResources>(resource_config);
+        if (resource_fd >= 0) resources = std::make_unique<spatial::WorkspaceResources>(resource_fd);
         spatial::ExecutionStore store(state, migration, fixture_faults);
         store.set_resources(resources.get());
         if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }

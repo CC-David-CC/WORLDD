@@ -1,0 +1,29 @@
+M03 session resource configuration change
+
+AuthoritySupervisorConfig adds optional broker_resources and broker_resource_target_fd fields.
+Supply both fields together for a supervised broker with explicit application budgets.
+The policy template must leave delegated_cgroup empty.
+The supervisor binds that field to its newly prepared, retained process scope.
+The supervisor sends the bound binary protobuf through an owned, sealed memfd.
+The broker consumes the descriptor before it opens application execution.
+The descriptor must differ from native, participant, and administration descriptors.
+SessionBroker reserves its administration descriptor around the resource descriptor.
+
+The supervisor owns the --resource-config-fd argument when it supplies resource policy.
+An operator cannot add either resource configuration argument to override this handoff.
+The direct broker --resource-config path remains available for explicitly provisioned scopes.
+The two broker configuration inputs are mutually exclusive.
+No configuration grants file, process, native display, or administration authority.
+Missing resource configuration continues to deny new application execution.
+
+The broker remains inside its supervisor's retained scope.
+Its manager process moves into a dedicated child group.
+Workspace, actor, and application resource groups remain separate descendants of that scope.
+Existing process handles identify the actual broker process after this movement.
+Supervisor cleanup covers the complete retained subtree.
+World scopes must stop before session broker shutdown.
+
+This is an additive version-1 configuration schema change.
+Older supervisors reject these new fields. Upgrade the supervisor with the broker.
+No locked acceptance contract, issuer timeout, or durability setting changes.
+Full deployment provisioning, storage limits, and the M03 phase gate remain pending.

@@ -193,7 +193,7 @@ add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/superv
 target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope spatial-control-reply SQLite::SQLite3)
 add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
 add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
-target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch)
+target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch spatial-workspace-resources)
 target_link_libraries(spatial-authority-launch-probe PRIVATE spatial-authority-launch)
 add_dependencies(spatial-authority-launch-probe broker-python-protobuf launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
 add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
@@ -997,6 +997,14 @@ if(BUILD_TESTING)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/testing/session_probe.proto
         DEPENDS src/testing/session_probe.proto protobuf::protoc VERBATIM)
     add_custom_target(session-probe-python ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/session_probe_pb2.py")
+    add_dependencies(spatial-session-application-probe session-probe-python world-session-python-protobuf)
+    add_test(NAME session-resources COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_resources.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(session-resources PROPERTIES TIMEOUT 240
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_test(NAME session-operator-revocation COMMAND systemd-run --user --wait --pipe --collect
         --unit=spatial-operator-revocation-${build_hash} --property=Delegate=yes
         "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"

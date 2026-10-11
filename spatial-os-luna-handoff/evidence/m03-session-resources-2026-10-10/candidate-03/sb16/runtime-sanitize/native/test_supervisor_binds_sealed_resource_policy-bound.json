@@ -1,0 +1,7 @@
+{
+  "scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-f3ca7325e20b4bc5a1f86102ffa3270d.service/launch-tmpy61x4e2m/authority-cbdabbfc99e9a5b0195bfaddd2e38b0d690534092a0ab13bb59b72f661e8f54d",
+  "broker_pid": 3023474,
+  "descendants": [
+    "broker-manager"
+  ]
+}
