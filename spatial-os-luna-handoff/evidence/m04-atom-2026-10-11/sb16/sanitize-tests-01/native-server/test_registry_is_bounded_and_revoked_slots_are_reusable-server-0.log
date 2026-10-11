@@ -1,0 +1,160 @@
+Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )
+_XSERVTransSocketUNIXCreateListener: ...SocketCreateListener() failed
+_XSERVTransMakeAllCOTSServerListeners: server already running
+Sync Extension 3.1
+libEGL warning: failed to open /dev/dri/card2: Permission denied
+
+libEGL warning: failed to open /dev/dri/card1: Permission denied
+
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xkb-compiled/server-1.xkm"', fp = 0x515000028080
+Pclose: fp = 0x515000028080
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xkb-compiled/server-1.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(769087).
+client(0): Reserved cmdname(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 5 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 3).
+client(200000): Reserved pid(768763).
+client(200000): Reserved cmdname(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 1, socket fd = 5, local = 1
+client(400000): Reserved pid(768763).
+client(400000): Reserved cmdname(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 2, socket fd = 8, local = 1
+client(400000): Released pid(768763).
+client(400000): Released cmdline(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+client(400000): Reserved pid(768763).
+client(400000): Reserved cmdname(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 2, socket fd = 8, local = 1
+client(400000): Released pid(768763).
+client(400000): Released cmdline(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+client(200000): Released pid(768763).
+client(200000): Released cmdline(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 2
+(dix) removing device 3
+(dix) removing device 5
+(dix) removing device 4
+(dix) removing device 7
+(dix) removing device 6
+client(0): Released pid(769087).
+client(0): Released cmdline(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 5 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 3).
+
+=================================================================
+==769087==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 2680 byte(s) in 1 object(s) allocated from:
+    #0 0x7ec3e94fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x7ec3e715021e  (<unknown module>)
+    #2 0x7ec3e715081f  (<unknown module>)
+    #3 0x7ec3e750d144  (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build-sanitize/hw/vfb/Xvfb+0x3873144)
+    #4 0x7ec3e771c4a7  (<unknown module>)
+    #5 0x5673046f149e in __glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439
+    #6 0x5673046eb0cb in xorgGlxServerInit ../glx/glxext.c:527
+    #7 0x567303e96bad in _CallCallbacks ../dix/dixutils.c:707
+    #8 0x5673047d36f7 in CallCallbacks ../include/callback.h:79
+    #9 0x5673047d4e85 in GlxExtensionInit ../glx/vndext.c:247
+    #10 0x567303c54780 in InitExtensions ../mi/miinitext.c:271
+    #11 0x567303e8ec3a in dix_main ../dix/main.c:199
+    #12 0x567303c54dac in main ../dix/stubmain.c:34
+    #13 0x7ec3e802a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #14 0x7ec3e802a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #15 0x567303c43424 in _start (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build-sanitize/hw/vfb/Xvfb+0xfe0424) (BuildId: 37903253434ce331b3cf3d40a5fd7688d390d866)
+
+Direct leak of 104 byte(s) in 1 object(s) allocated from:
+    #0 0x7ec3e94fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x7ec3e714fccd  (<unknown module>)
+    #2 0x7ec3e714587f  (<unknown module>)
+    #3 0x7ec3e771c4c0  (<unknown module>)
+    #4 0x5673046f149e in __glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439
+    #5 0x5673046eb0cb in xorgGlxServerInit ../glx/glxext.c:527
+    #6 0x567303e96bad in _CallCallbacks ../dix/dixutils.c:707
+    #7 0x5673047d36f7 in CallCallbacks ../include/callback.h:79
+    #8 0x5673047d4e85 in GlxExtensionInit ../glx/vndext.c:247
+    #9 0x567303c54780 in InitExtensions ../mi/miinitext.c:271
+    #10 0x567303e8ec3a in dix_main ../dix/main.c:199
+    #11 0x567303c54dac in main ../dix/stubmain.c:34
+    #12 0x7ec3e802a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7ec3e802a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x567303c43424 in _start (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build-sanitize/hw/vfb/Xvfb+0xfe0424) (BuildId: 37903253434ce331b3cf3d40a5fd7688d390d866)
+
+Indirect leak of 288 byte(s) in 2 object(s) allocated from:
+    #0 0x7ec3e94fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x7ec3e754cf36  (<unknown module>)
+    #2 0x7ec3e754d2b3  (<unknown module>)
+    #3 0x7ec3e7551cd8  (<unknown module>)
+    #4 0x7ec3e714fc5c  (<unknown module>)
+    #5 0x7ec3e714587f  (<unknown module>)
+    #6 0x7ec3e771c4c0  (<unknown module>)
+    #7 0x5673046f149e in __glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439
+    #8 0x5673046eb0cb in xorgGlxServerInit ../glx/glxext.c:527
+    #9 0x567303e96bad in _CallCallbacks ../dix/dixutils.c:707
+    #10 0x5673047d36f7 in CallCallbacks ../include/callback.h:79
+    #11 0x5673047d4e85 in GlxExtensionInit ../glx/vndext.c:247
+    #12 0x567303c54780 in InitExtensions ../mi/miinitext.c:271
+    #13 0x567303e8ec3a in dix_main ../dix/main.c:199
+    #14 0x567303c54dac in main ../dix/stubmain.c:34
+    #15 0x7ec3e802a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #16 0x7ec3e802a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #17 0x567303c43424 in _start (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build-sanitize/hw/vfb/Xvfb+0xfe0424) (BuildId: 37903253434ce331b3cf3d40a5fd7688d390d866)
+
+Indirect leak of 104 byte(s) in 1 object(s) allocated from:
+    #0 0x7ec3e94fd340 in calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:77
+    #1 0x7ec3e714fccd  (<unknown module>)
+    #2 0x7ec3e714587f  (<unknown module>)
+    #3 0x7ec3e771c4c0  (<unknown module>)
+    #4 0x5673046f149e in __glXDRIscreenProbe ../glx/glx_dri/glxdriswrast.c:439
+    #5 0x5673046eb0cb in xorgGlxServerInit ../glx/glxext.c:527
+    #6 0x567303e96bad in _CallCallbacks ../dix/dixutils.c:707
+    #7 0x5673047d36f7 in CallCallbacks ../include/callback.h:79
+    #8 0x5673047d4e85 in GlxExtensionInit ../glx/vndext.c:247
+    #9 0x567303c54780 in InitExtensions ../mi/miinitext.c:271
+    #10 0x567303e8ec3a in dix_main ../dix/main.c:199
+    #11 0x567303c54dac in main ../dix/stubmain.c:34
+    #12 0x7ec3e802a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #13 0x7ec3e802a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #14 0x567303c43424 in _start (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build-sanitize/hw/vfb/Xvfb+0xfe0424) (BuildId: 37903253434ce331b3cf3d40a5fd7688d390d866)
+
+SUMMARY: AddressSanitizer: 3176 byte(s) leaked in 5 allocation(s).
+
+Backtrace:
+0: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ec3e9400000+0x831e0) [0x7ec3e94831e0]
+1: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build-sanitize/hw/vfb/Xvfb (0x567302c63000+0x19fd215) [0x567304660215]
+2: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build-sanitize/hw/vfb/Xvfb (0x567302c63000+0x1a154e6) [0x5673046784e6]
+3: /lib/x86_64-linux-gnu/libc.so.6 (0x7ec3e8000000+0x45330) [0x7ec3e8045330]
+4: /lib/x86_64-linux-gnu/libc.so.6 (pthread_kill+0x11c) [0x7ec3e809ec0c]
+5: /lib/x86_64-linux-gnu/libc.so.6 (gsignal+0x1e) [0x7ec3e804527e]
+6: /lib/x86_64-linux-gnu/libc.so.6 (abort+0xdf) [0x7ec3e80288ff]
+7: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ec3e9400000+0x11fc30) [0x7ec3e951fc30]
+8: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ec3e9400000+0x1307cd) [0x7ec3e95307cd]
+9: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ec3e9400000+0x13c9cf) [0x7ec3e953c9cf]
+10: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ec3e9400000+0x13a105) [0x7ec3e953a105]
+11: /lib/x86_64-linux-gnu/libc.so.6 (__cxa_finalize+0xc2) [0x7ec3e8047382]
+12: /lib/x86_64-linux-gnu/libasan.so.8 (0x7ec3e9400000+0x3b7b7) [0x7ec3e943b7b7]
+
+
+Fatal server error:
+Caught signal 6 (Aborted). Server aborting
+

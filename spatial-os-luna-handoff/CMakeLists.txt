@@ -923,6 +923,10 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_selection_isolation.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-selection-isolation PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME native-atom-privacy COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_atom_privacy.py" $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(native-atom-privacy PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME native-extension-isolation COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_extension_isolation.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-extension-isolation PROPERTIES TIMEOUT 180

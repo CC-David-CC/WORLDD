@@ -1,0 +1,11 @@
+{
+  "phase": "M04",
+  "status": "selected_before_execution",
+  "invariant": "An application cannot enumerate another application's atom names or probe its private atom existence. Predefined atoms and explicitly supplied names remain usable.",
+  "suite": "tests/native/test_atom_privacy.py",
+  "purpose": "Reproduce metadata disclosure with independent core-X wire messages. Check same-application and public-atom positive controls.",
+  "hosts": ["sb16", "sb16-2"],
+  "server": "qualified M03 Xvfb, unchanged",
+  "source_change": "Add eight regression cases. No production or locked-test change.",
+  "phase_complete": false
+}

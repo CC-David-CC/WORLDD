@@ -1,0 +1,19 @@
+{
+  "phase": "M04",
+  "status": "selected_before_execution",
+  "production_change": "Application-scoped atom declaration sets, checked core-X atom requests, reference-counted cleanup.",
+  "tests": [
+    {"suite": "native-atom-privacy", "purpose": "Five reproduced disclosure paths, public and privileged controls, repeated declaration, peer-disconnect lifetime, broker denial, sorted insertion, final disconnect, and the 65536-entry allocation boundary."},
+    {"suite": "native-security-identity", "purpose": "Shared immutable label storage, revocation, credential reuse, disconnect and server-generation behavior."},
+    {"suite": "native-resource-isolation", "purpose": "Core dispatch callers and resource/property atom compatibility."},
+    {"suite": "native-selection-isolation", "purpose": "Preserve existing owned-selection authorization contract."},
+    {"suite": "native-extension-isolation", "purpose": "Extension paths and allowed RENDER/SHAPE controls."},
+    {"suite": "native-application-input", "purpose": "Shared client-private state and input-device disconnect lifetime."},
+    {"suite": "native-actor-binding", "purpose": "Actor binding, cancellation, grabs, and genuine input release through the same application identity."}
+  ],
+  "hosts": ["sb16", "sb16-2"],
+  "profiles": ["Debug native server", "ASan/UBSan native server", "Focused core-X ASan/UBSan native server with GLX disabled"],
+  "sanitizer_followup": "The full GLX-enabled native-server run reports 3176 bytes in five allocations through the software GLX provider on each atom test. Preserve that failure. Run a separate core-X profile to isolate atom ownership without claiming GLX qualification.",
+  "limitations": "This increment does not qualify independent selection namespaces, all asynchronous metadata, or the full M04 gate.",
+  "phase_complete": false
+}

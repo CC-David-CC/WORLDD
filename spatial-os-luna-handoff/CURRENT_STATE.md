@@ -1,5 +1,27 @@
 # Implementation status
 
+## 2026-10-11: M04 atom metadata correction passes focused qualification
+
+Independent native clients reproduce five atom disclosure paths on both hosts.
+The unchanged M03 server passes three positive controls and fails five privacy checks per host.
+The correction filters dynamic atom names through immutable workspace and application identities.
+Same-application connections share declarations. Predefined and explicitly declared names remain usable.
+Reference-counted declaration memory survives peer closure and ends at final connection closure.
+Each application declaration set has a tested 65536-entry limit.
+
+Debug and core-X native-server ASan/UBSan profiles pass 159 checks each on both hosts.
+The combined increment has 636 passed checks. Both native-server builds pass their unit checks.
+CMake registers the new native-atom-privacy suite. The suite inventory grows from 135 to 136.
+All forty-one locked files remain unchanged.
+
+Full GLX-enabled sanitizer runs fail on both hosts through software-provider shutdown allocations.
+The reports show 3176 bytes in five allocations. The exact ownership cause remains undiagnosed.
+Those failures remain preserved. Core-X profiles disable GLX and do not qualify graphics cleanup.
+
+M01-M03 remain qualified. M04 remains incomplete.
+Independent selection namespaces, asynchronous metadata, and complete graphics qualification remain ahead.
+Read evidence/m04-atom-2026-10-11/primary-review.json.
+
 ## 2026-10-11: M03 is qualified and adopted on both hosts
 
 The final audit passes all nine M03 requirements.

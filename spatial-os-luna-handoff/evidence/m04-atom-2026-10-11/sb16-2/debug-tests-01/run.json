@@ -1,0 +1,84 @@
+{
+  "host": "sb16-2",
+  "profile": "Debug native server",
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build/hw/vfb/Xvfb",
+    "sha256": "7ca7190e59fdb3b4189c8b24cb546170330835ac76572e270ba7fb705d1ea24b"
+  },
+  "environment": {
+    "PYTHONPATH": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+    "SPATIAL_TEST_XSERVER": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/5e9df11790ed35f270133e624fa079cfa9f87d7c720b7dbd8e6f312f75728c97/source/build/hw/vfb/Xvfb",
+    "SPATIAL_SECURITY_EVIDENCE": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-atom-2026-10-11/debug-tests-01/native-server",
+    "ASAN_OPTIONS": "detect_leaks=1:abort_on_error=1",
+    "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+  },
+  "suites": [
+    {
+      "name": "atom_privacy",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_atom_privacy.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-security-auth"
+      ],
+      "test_sha256": "7626625ac655755af24bd24e8798a959ba5fd2a88442fbb46e8d0fc495ddb939",
+      "exit_code": 0,
+      "count": 14,
+      "log_sha256": "a338ead41876d0bc21d239805c98a6527a3bcdab90afa068bd3824e694215302"
+    },
+    {
+      "name": "security_identity",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-security-auth"
+      ],
+      "test_sha256": "5b2ca730013fad4a9c09f78c62b910d9cd266b48a242df00a6e5ad9332b5dd5b",
+      "exit_code": 0,
+      "count": 22,
+      "log_sha256": "ae1411d8248c0e8d021c314501e0cb0ccfa85c0196f9f7a7e48fd0aaf5271a93"
+    },
+    {
+      "name": "resource_isolation",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_resource_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-security-auth"
+      ],
+      "test_sha256": "ef50b936d30ab18a2d70fa2d22b6cffcd91b95e5419b2192b144ec08177c0da8",
+      "exit_code": 0,
+      "count": 36,
+      "log_sha256": "79713569cb7c60c67b5cb4128d67d63d3b893119dc017308ee5020aa5d675a10"
+    },
+    {
+      "name": "selection_isolation",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-security-auth"
+      ],
+      "test_sha256": "e997204536f269cc00d26dc8f6e0d10aa2bbcd7e90cfcfca57c503ab48204257",
+      "exit_code": 0,
+      "count": 14,
+      "log_sha256": "5e7eaa6482d309f902dbdc4d8fc17201535f8fdc3bd44719f7bf81aa398bfe60"
+    },
+    {
+      "name": "extension_isolation",
+      "command": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_extension_isolation.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/spatial-security-auth"
+      ],
+      "test_sha256": "7588f868251ce1ea70e95693316fd00d5859396a64ff54eb5b6f8a0b36811492",
+      "exit_code": 0,
+      "count": 32,
+      "log_sha256": "77db0080ada07f67f2a0c2069ba07dd34fe829b6a333d2a9ae1675a578c9034d"
+    }
+  ],
+  "source_sha256": {
+    "server/xlibre/spatialsecurity.c": "f3fe055f8a5265dd50c59eea61cd67dd9acb3d80e78d1505a99dd2c57e4b2217",
+    "server/xlibre/spatialsecurity.h": "5d33b7ab2c521f0ec29d7bdd507939795bf8e43e1f1c40e66064a9d9ea041dfc",
+    "server/base.lock.json": "3fa09c1693e1ee4ed5875e7ae9286783c3b182bca48a9b3b675d51b0d0951a81",
+    "server/patches/0008-application-atom-privacy.patch": "ec66f9c1536954df7c3c724f4f63b4a47145a1b98eb4ad3457f835ae245d579f"
+  },
+  "status": "passed"
+}

@@ -1,0 +1,867 @@
+{
+  "phase": "M04",
+  "status": "contract_inventory_complete_source_audit_in_progress",
+  "phase_complete": false,
+  "tasks": [
+    {
+      "path": "tasks/m1/application.actor_binding.json",
+      "task": {
+        "id": "application.actor_binding",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "One application group uses one controlling actor device pair; cancellation releases old input before the devices can serve another group.",
+        "production_roots": [
+          "server/xlibre/spatialinput.c"
+        ],
+        "counterexample_suite": "tests/native/test_actor_binding.py",
+        "test_ids": [
+          "ActorBindingTests.test_application_uses_genuine_actor_device",
+          "ActorBindingTests.test_group_connections_share_actor_focus_and_keys",
+          "ActorBindingTests.test_swapped_application_observes_actor_state",
+          "ActorBindingTests.test_second_actor_cannot_take_same_application",
+          "ActorBindingTests.test_different_applications_have_simultaneous_controllers",
+          "ActorBindingTests.test_cancel_releases_real_key_before_returning_to_idle",
+          "ActorBindingTests.test_cancel_preserves_other_actor",
+          "ActorBindingTests.test_transfer_to_new_application_releases_old_keys",
+          "ActorBindingTests.test_transfer_to_second_actor_after_cancel",
+          "ActorBindingTests.test_late_connection_inherits_current_actor",
+          "ActorBindingTests.test_application_dialog_uses_same_lease",
+          "ActorBindingTests.test_application_focus_change_stays_within_group",
+          "ActorBindingTests.test_unmap_releases_binding",
+          "ActorBindingTests.test_controller_disconnect_releases_binding",
+          "ActorBindingTests.test_revoked_target_connection_cancels_without_closing_peer",
+          "ActorBindingTests.test_service_window_cannot_receive_application_binding",
+          "ActorBindingTests.test_cancel_clears_locked_and_held_modifiers",
+          "ActorBindingTests.test_busy_acquisition_preserves_existing_application",
+          "ActorBindingTests.test_cancel_delivers_button_release",
+          "ActorBindingTests.test_new_application_does_not_inherit_motion_history",
+          "ActorBindingTests.test_binding_releases_idle_active_grabs",
+          "ActorBindingTests.test_cancel_releases_active_grabs",
+          "ActorBindingTests.test_cancel_drains_frozen_key_events_before_transfer",
+          "ActorBindingTests.test_passive_key_grab_survives_actor_close",
+          "ActorBindingTests.test_actor_close_returns_application_to_idle"
+        ],
+        "preceding_gate": "P10",
+        "required_evidence": [
+          "Baseline failures and positive controls on both hosts.",
+          "Debug, runtime sanitizer, and native-server sanitizer checks on both hosts.",
+          "Real native input release, device rebinding, grabs, and lifecycle observations."
+        ],
+        "limitations": [
+          "Trusted compositor still needs production application-authority integration.",
+          "This component does not complete M04, M09, or Spatial-M1."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.broker_access.json",
+      "task": {
+        "id": "application.broker_access",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "The broker authorizes observation and control only for a live native application within explicit workspace grants and the actor effective execution authority.",
+        "production_roots": [
+          "proto/spatial/workspace/v1/broker.proto",
+          "src/workspace/authority.cpp",
+          "src/workspace/authority.hpp",
+          "src/workspace/store.cpp",
+          "src/workspace/store.hpp",
+          "src/workspace/main.cpp",
+          "src/workspace/native_launch.cpp",
+          "src/workspace/native_launch.hpp"
+        ],
+        "test_ids": [
+          "ApplicationAccessTests.test_explicit_grants_authorize_live_application",
+          "ApplicationAccessTests.test_launch_authority_does_not_imply_observation_or_control",
+          "ApplicationAccessTests.test_observation_does_not_require_filesystem_or_execution_grants",
+          "ApplicationAccessTests.test_control_grant_does_not_imply_observation",
+          "ApplicationAccessTests.test_application_grants_do_not_imply_workspace_access",
+          "ApplicationAccessTests.test_readonly_actor_cannot_control_writable_application",
+          "ApplicationAccessTests.test_readonly_actor_can_control_readonly_application",
+          "ApplicationAccessTests.test_workspace_policy_limits_recorded_application_authority",
+          "ApplicationAccessTests.test_control_requires_application_execution_authority",
+          "ApplicationAccessTests.test_partial_write_grants_do_not_control_writable_application",
+          "ApplicationAccessTests.test_application_scope_does_not_authorize_another_application",
+          "ApplicationAccessTests.test_scope_components_are_exact_not_string_prefixes",
+          "ApplicationAccessTests.test_deeper_scope_cannot_authorize_parent_application",
+          "ApplicationAccessTests.test_wrong_native_server_unknown_application_and_workspace_are_denied",
+          "ApplicationAccessTests.test_nonnative_process_does_not_gain_native_application_authority",
+          "ApplicationAccessTests.test_exited_application_loses_access",
+          "ApplicationAccessTests.test_broker_restart_does_not_restore_old_process_authority",
+          "ApplicationAccessTests.test_control_revocation_preserves_independent_process_execution",
+          "ApplicationAccessTests.test_observation_revocation_also_removes_control",
+          "ApplicationAccessTests.test_independent_application_grant_survives_other_revocation",
+          "ApplicationAccessTests.test_parent_revocation_invalidates_dependent_application_grant",
+          "ApplicationAccessTests.test_application_scoped_execution_grant_does_not_authorize_project_execution",
+          "ApplicationAccessTests.test_corrupt_recorded_execution_rights_cannot_reduce_control_requirement",
+          "ApplicationAccessTests.test_foreign_issuer_principal_cannot_use_local_grants",
+          "ApplicationAccessTests.test_revoked_actor_cannot_query_application_authority",
+          "ApplicationAccessTests.test_request_requires_authenticated_principal",
+          "ApplicationAccessTests.test_batch_rejects_duplicate_empty_and_excessive_targets",
+          "ApplicationAccessTests.test_malformed_target_does_not_leave_partial_decisions"
+        ],
+        "preceding_gate": "P10",
+        "contract": "docs/APPLICATION_ACCESS.md",
+        "limitations": [
+          "Worldd application observation, control, and revocation integration remain required.",
+          "This private broker suite does not prove actor-channel enforcement.",
+          "M04, M09, and Spatial-M1 remain incomplete."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.control_client.json",
+      "task": {
+        "id": "application.control_client",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "The client preserves broker revocation across idle periods and active requests without accepting mismatched lease authority.",
+        "production_roots": [
+          "src/platform/broker.cpp",
+          "src/platform/broker.hpp"
+        ],
+        "test_ids": [
+          "BrokerControlClientTests.test_acquire_returns_exact_lease",
+          "BrokerControlClientTests.test_idle_revocation_is_delivered_without_request",
+          "BrokerControlClientTests.test_revocation_before_acquire_reply_stays_revoked",
+          "BrokerControlClientTests.test_revocation_during_unrelated_request_preserves_reply",
+          "BrokerControlClientTests.test_partial_event_does_not_block_idle_loop",
+          "BrokerControlClientTests.test_partial_event_survives_starting_request",
+          "BrokerControlClientTests.test_duplicate_event_fails_closed",
+          "BrokerControlClientTests.test_unknown_event_fails_closed",
+          "BrokerControlClientTests.test_wrong_actor_event_fails_closed",
+          "BrokerControlClientTests.test_wrong_application_event_fails_closed",
+          "BrokerControlClientTests.test_event_requires_zero_request_id",
+          "BrokerControlClientTests.test_event_requires_current_protocol",
+          "BrokerControlClientTests.test_acquire_cannot_substitute_principal",
+          "BrokerControlClientTests.test_acquire_cannot_substitute_application",
+          "BrokerControlClientTests.test_acquire_requires_full_lease_identity",
+          "BrokerControlClientTests.test_release_requires_matching_identity",
+          "BrokerControlClientTests.test_released_lease_cannot_revoke_replacement",
+          "BrokerControlClientTests.test_reply_requires_matching_request_id",
+          "BrokerControlClientTests.test_unsolicited_ordinary_reply_fails_closed",
+          "BrokerControlClientTests.test_excessive_idle_frame_fails_closed",
+          "BrokerControlClientTests.test_truncated_idle_frame_fails_closed",
+          "BrokerControlClientTests.test_broker_denial_keeps_transport_usable",
+          "BrokerControlClientTests.test_early_revocation_cannot_target_different_acquisition",
+          "BrokerControlClientTests.test_repeated_acquire_cannot_replace_live_identity",
+          "BrokerControlClientTests.test_repeated_acquire_preserves_identity",
+          "BrokerControlClientTests.test_revocation_during_repeated_acquire_stays_revoked",
+          "BrokerControlClientTests.test_partial_idle_frame_has_a_deadline",
+          "BrokerControlClientTests.test_empty_principal_cannot_be_confirmed",
+          "BrokerControlClientTests.test_missing_server_identity_cannot_be_confirmed",
+          "BrokerControlClientLiveTests.test_explicit_control_acquires_live_application",
+          "BrokerControlClientLiveTests.test_repeated_acquire_preserves_the_same_live_reservation",
+          "BrokerControlClientLiveTests.test_one_application_has_only_one_controller_until_release",
+          "BrokerControlClientLiveTests.test_independent_applications_have_independent_controllers",
+          "BrokerControlClientLiveTests.test_observation_does_not_grant_control",
+          "BrokerControlClientLiveTests.test_readonly_actor_cannot_control_writable_application",
+          "BrokerControlClientLiveTests.test_readonly_actor_can_control_readonly_application",
+          "BrokerControlClientLiveTests.test_control_revocation_emits_event_and_keeps_execution",
+          "BrokerControlClientLiveTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation",
+          "BrokerControlClientLiveTests.test_other_actor_cannot_release_reservation",
+          "BrokerControlClientLiveTests.test_independent_control_grant_survives_other_grant_revocation",
+          "BrokerControlClientLiveTests.test_observation_revocation_invalidates_control_reservation",
+          "BrokerControlClientLiveTests.test_actor_revocation_notifies_idle_controller",
+          "BrokerControlClientLiveTests.test_application_exit_notifies_without_an_actor_wait_request",
+          "BrokerControlClientLiveTests.test_revoked_reservation_does_not_resurrect_when_permission_returns",
+          "BrokerControlClientLiveTests.test_unknown_and_malformed_release_cannot_change_reservation",
+          "BrokerControlClientLiveTests.test_actor_revocation_notifies_during_an_unrelated_process_wait",
+          "BrokerControlClientLiveTests.test_revoked_actor_can_acknowledge_input_cancellation",
+          "BrokerControlClientLiveTests.test_revocation_event_is_emitted_once",
+          "BrokerControlClientLiveTests.test_workspace_access_revocation_releases_control_without_stopping_execution",
+          "BrokerControlClientLiveTests.test_released_id_cannot_release_a_new_reservation",
+          "BrokerControlClientLiveTests.test_unowned_and_wrongly_attributed_applications_cannot_acquire_control",
+          "BrokerControlClientLiveTests.test_missing_principal_cannot_acquire_control",
+          "BrokerControlClientLiveTests.test_nonnative_application_cannot_acquire_control",
+          "BrokerControlClientLiveTests.test_partial_private_request_does_not_block_revocation_notification"
+        ],
+        "preceding_gate": "P10",
+        "contract": "docs/BROKER_CONTROL_CLIENT.md",
+        "limitations": [
+          "Worldd native cancellation integration remains pending.",
+          "Local validity requires regular notification polling."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.control_lease.json",
+      "task": {
+        "id": "application.control_lease",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "A broker application has one control reservation, and revoked reservations require cancellation acknowledgement before handoff.",
+        "production_roots": [
+          "proto/spatial/workspace/v1/broker.proto",
+          "src/workspace/control.cpp",
+          "src/workspace/control.hpp",
+          "src/workspace/main.cpp",
+          "src/workspace/authority.cpp",
+          "src/workspace/authority.hpp",
+          "src/workspace/store.cpp",
+          "src/workspace/store.hpp"
+        ],
+        "test_ids": [
+          "ApplicationControlLeaseTests.test_explicit_control_acquires_live_application",
+          "ApplicationControlLeaseTests.test_repeated_acquire_preserves_the_same_live_reservation",
+          "ApplicationControlLeaseTests.test_one_application_has_only_one_controller_until_release",
+          "ApplicationControlLeaseTests.test_independent_applications_have_independent_controllers",
+          "ApplicationControlLeaseTests.test_observation_does_not_grant_control",
+          "ApplicationControlLeaseTests.test_readonly_actor_cannot_control_writable_application",
+          "ApplicationControlLeaseTests.test_readonly_actor_can_control_readonly_application",
+          "ApplicationControlLeaseTests.test_control_revocation_emits_event_and_keeps_execution",
+          "ApplicationControlLeaseTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation",
+          "ApplicationControlLeaseTests.test_other_actor_cannot_release_reservation",
+          "ApplicationControlLeaseTests.test_independent_control_grant_survives_other_grant_revocation",
+          "ApplicationControlLeaseTests.test_observation_revocation_invalidates_control_reservation",
+          "ApplicationControlLeaseTests.test_actor_revocation_notifies_idle_controller",
+          "ApplicationControlLeaseTests.test_application_exit_notifies_without_an_actor_wait_request",
+          "ApplicationControlLeaseTests.test_revoked_reservation_does_not_resurrect_when_permission_returns",
+          "ApplicationControlLeaseTests.test_unknown_and_malformed_release_cannot_change_reservation",
+          "ApplicationControlLeaseTests.test_actor_revocation_notifies_during_an_unrelated_process_wait",
+          "ApplicationControlLeaseTests.test_revoked_actor_can_acknowledge_input_cancellation",
+          "ApplicationControlLeaseTests.test_revocation_event_is_emitted_once",
+          "ApplicationControlLeaseTests.test_workspace_access_revocation_releases_control_without_stopping_execution",
+          "ApplicationControlLeaseTests.test_released_id_cannot_release_a_new_reservation",
+          "ApplicationControlLeaseTests.test_unowned_and_wrongly_attributed_applications_cannot_acquire_control",
+          "ApplicationControlLeaseTests.test_missing_principal_cannot_acquire_control",
+          "ApplicationControlLeaseTests.test_nonnative_application_cannot_acquire_control",
+          "ApplicationControlLeaseTests.test_partial_private_request_does_not_block_revocation_notification"
+        ],
+        "preceding_gate": "P10",
+        "contract": "docs/APPLICATION_CONTROL_LEASES.md",
+        "limitations": [
+          "Worldd subscription handling and native input cancellation remain pending.",
+          "Broker release trusts the world cancellation acknowledgement.",
+          "M04, M09, and Spatial-M1 remain incomplete."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.device_administration.json",
+      "task": {
+        "id": "application.device_administration",
+        "phase": "M04",
+        "scope": "Shared keyboard and pointer configuration authority",
+        "profile": "tasks/spatial-m1.json",
+        "contract": "docs/NATIVE_DEVICE_ADMINISTRATION.md",
+        "status_source": "CURRENT_STATE.md",
+        "invariant": "Unprivileged applications and broker connections cannot configure shared input devices; public static mapping reads remain available.",
+        "production_roots": [
+          "server/xlibre/spatialpolicy.c"
+        ],
+        "counterexample_suite": "tests/native/test_device_administration.py",
+        "test_ids": [
+          "DeviceAdministrationTests.test_application_cannot_replace_keyboard_mapping",
+          "DeviceAdministrationTests.test_application_cannot_change_keyboard_controls",
+          "DeviceAdministrationTests.test_application_cannot_ring_shared_keyboard_bell",
+          "DeviceAdministrationTests.test_application_cannot_change_pointer_controls",
+          "DeviceAdministrationTests.test_application_cannot_replace_pointer_mapping",
+          "DeviceAdministrationTests.test_application_cannot_clear_modifier_mapping",
+          "DeviceAdministrationTests.test_workspace_membership_does_not_grant_device_administration",
+          "DeviceAdministrationTests.test_broker_has_no_device_administration_authority",
+          "DeviceAdministrationTests.test_swapped_requests_cannot_bypass_device_administration",
+          "DeviceAdministrationTests.test_application_can_read_public_keyboard_mapping",
+          "DeviceAdministrationTests.test_application_can_read_public_pointer_mapping",
+          "DeviceAdministrationTests.test_application_can_read_public_modifier_mapping",
+          "DeviceAdministrationTests.test_trusted_services_can_configure_shared_devices"
+        ],
+        "focused_command": "ctest --test-dir build -V -R '^native-(device-administration|global-isolation|selection-isolation|extension-isolation|resource-isolation|security-identity)$'",
+        "preceding_gate": "P10",
+        "required_evidence": [
+          "New counterexamples fail on both pre-patch servers while positive controls pass.",
+          "The patched native suites pass in Debug and native-server ASan/UBSan on both hosts.",
+          "Public mapping tables and privileged configuration controls remain real and functional.",
+          "All six configuration requests reject unprivileged callers before effects.",
+          "Both native byte orders and broker/workspace-membership denials pass.",
+          "An isolated bypass for each of the six protected requests is detected.",
+          "Locked P00-P10 tests remain unchanged and pass against the patched server.",
+          "Source and tested binary hashes match both hosts."
+        ],
+        "limitations": [
+          "This component does not complete device authority, input privacy, M04, or Spatial-M1.",
+          "Actor-seat reads, application input binding, focus/pointer queries, grabs, and asynchronous metadata remain unqualified.",
+          "Native-server GLX-disabled checks do not qualify full runtime profiles or physical hardware."
+        ],
+        "next_components": [
+          "application.device_authority",
+          "authority.application"
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.extension_isolation.json",
+      "task": {
+        "id": "application.extension_isolation",
+        "phase": "M04",
+        "scope": "Native extension admission and resource-safe RENDER and SHAPE requests",
+        "profile": "tasks/spatial-m1.json",
+        "contract": "docs/NATIVE_EXTENSION_POLICY.md",
+        "invariant": "Immutable connection roles authorize extension discovery and dispatch; admitted requests cannot bypass resource or pixel authority.",
+        "production_roots": [
+          "server/xlibre/spatialpolicy.c",
+          "server/patches/0005-animated-cursor-cleanup.patch"
+        ],
+        "counterexample_suite": "tests/native/test_extension_isolation.py",
+        "focused_command": "ctest --test-dir build -V -R '^native-(extension-isolation|resource-isolation|security-identity)$'",
+        "preceding_gate": "P10",
+        "required_evidence": [
+          "Missing-feature failures against the preceding native server",
+          "Direct forbidden opcodes rejected despite hidden discovery",
+          "Actual owned RENDER pixels, SHAPE operations, and cursor creation",
+          "Foreign pictures, glyph aliases, and cursor resources rejected",
+          "Window-picture source and alpha-map denial prevents shared-framebuffer exposure",
+          "Animated cursor timer cleanup after retained use and final cursor destruction",
+          "Unchanged locked P00-P10 assertions",
+          "Focused native server sanitizers with the GLX limitation recorded",
+          "Independent mutation detection"
+        ],
+        "next_components": [
+          "application.global_isolation",
+          "application.device_authority",
+          "authority.application"
+        ],
+        "limitations": [
+          "This component does not complete M04 or enable untrusted native sessions.",
+          "Application window pictures are drawing destinations only; trusted services retain window-picture access.",
+          "Unqualified extension families remain denied until their resource and device boundaries pass independent checks.",
+          "Full qualification still requires both authorized hosts and both automated build modes."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.global_administration.json",
+      "task": {
+        "id": "application.global_administration",
+        "phase": "M04",
+        "scope": "Shared native server administration and screen-saver authority",
+        "profile": "tasks/spatial-m1.json",
+        "contract": "docs/NATIVE_GLOBAL_POLICY.md",
+        "invariant": "Ordinary application and broker connections cannot administer shared X server state; public font definitions remain accessible to applications.",
+        "production_roots": [
+          "server/xlibre/spatialpolicy.c",
+          "server/patches/0006-global-server-access.patch"
+        ],
+        "counterexample_suite": "tests/native/test_global_isolation.py",
+        "test_ids": [
+          "GlobalIsolationTests.test_application_cannot_grab_server",
+          "GlobalIsolationTests.test_application_cannot_ungrab_server",
+          "GlobalIsolationTests.test_application_cannot_list_hosts",
+          "GlobalIsolationTests.test_application_cannot_change_host_acl",
+          "GlobalIsolationTests.test_application_cannot_change_access_control",
+          "GlobalIsolationTests.test_application_cannot_change_font_path",
+          "GlobalIsolationTests.test_application_cannot_read_font_path",
+          "GlobalIsolationTests.test_application_can_list_public_fonts",
+          "GlobalIsolationTests.test_application_can_list_public_font_information",
+          "GlobalIsolationTests.test_application_cannot_reap_retained_service_resources",
+          "GlobalIsolationTests.test_application_cannot_read_screen_saver_settings",
+          "GlobalIsolationTests.test_application_cannot_change_screen_saver_settings",
+          "GlobalIsolationTests.test_application_cannot_force_screen_saver",
+          "GlobalIsolationTests.test_workspace_membership_does_not_grant_server_management",
+          "GlobalIsolationTests.test_supervisor_global_controls_remain_available",
+          "GlobalIsolationTests.test_supervisor_can_reap_retained_service_resources",
+          "GlobalIsolationTests.test_compositor_can_query_global_settings",
+          "GlobalIsolationTests.test_broker_has_no_server_administration_authority",
+          "GlobalIsolationTests.test_swapped_requests_cannot_bypass_global_checks"
+        ],
+        "focused_command": "ctest --test-dir build -V -R '^native-(global-isolation|selection-isolation|extension-isolation|resource-isolation|security-identity)$'",
+        "preceding_gate": "P10",
+        "required_evidence": [
+          "New counterexamples fail against the pre-patch server while positive controls pass.",
+          "Patched global, selection, extension, resource, and identity suites pass in Debug on both hosts.",
+          "The same native suites pass under ASan/UBSan on both hosts, with the GLX limit recorded.",
+          "Actual font names and font information remain available.",
+          "Explicit UngrabServer and KillClient AllTemporary enforce authority before effects.",
+          "The -ac flag cannot bypass host access administration authority.",
+          "Isolated bypass mutations for the server callback, screen-saver callback, explicit ungrab guard, temporary-resource reap guard, and -ac authority ordering are detected.",
+          "Locked P00-P10 assertions remain unchanged and pass against the patched server.",
+          "Source inputs and tested binary hashes match both hosts."
+        ],
+        "limitations": [
+          "This component does not complete M04 or authorize untrusted native sessions.",
+          "Device authority, focus/pointer queries, atom privacy, selection namespaces, and asynchronous metadata remain unqualified.",
+          "Broker provisioning and compositor authority integration remain required.",
+          "Focused native-server sanitizers do not replace full runtime or hardware qualification."
+        ],
+        "next_components": [
+          "application.device_authority",
+          "application.atom_privacy",
+          "authority.application"
+        ],
+        "status_source": "CURRENT_STATE.md"
+      }
+    },
+    {
+      "path": "tasks/m1/application.native_launch.json",
+      "task": {
+        "id": "application.native_launch",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "Each authorized confined application receives only its own native credential and the pinned native socket; process completion and authority loss revoke native access.",
+        "production_roots": [
+          "src/workspace/native_launch.cpp",
+          "src/workspace/native_launch.hpp",
+          "src/workspace/process.cpp",
+          "src/workspace/process.hpp",
+          "src/workspace/store.cpp",
+          "src/workspace/store.hpp",
+          "src/workspace/main.cpp",
+          "proto/spatial/workspace/v1/broker.proto"
+        ],
+        "counterexample_suite": "tests/native/test_native_launch.py",
+        "test_ids": [
+          "NativeLaunchTests.test_confined_application_has_real_native_identity",
+          "NativeLaunchTests.test_two_applications_receive_distinct_credentials_and_identities",
+          "NativeLaunchTests.test_read_only_profile_retains_project_confinement",
+          "NativeLaunchTests.test_broker_loss_revokes_native_access",
+          "NativeLaunchTests.test_execution_revocation_revokes_native_access",
+          "NativeLaunchTests.test_exit_revokes_credentials_without_a_wait_request",
+          "NativeLaunchTests.test_native_broker_revocation_stops_configured_execution",
+          "NativeLaunchTests.test_failed_exec_releases_the_only_free_credential_slot",
+          "NativeLaunchTests.test_unknown_configuration_fields_are_rejected",
+          "NativeLaunchTests.test_wrong_peer_uid_is_rejected",
+          "NativeLaunchTests.test_application_cannot_issue_native_credentials",
+          "NativeLaunchTests.test_launch_retry_keeps_identity_and_does_not_reissue_after_exit",
+          "NativeLaunchTests.test_denied_launch_never_creates_application_state",
+          "NativeLaunchTests.test_pre_issue_authority_denial_preserves_other_credentials",
+          "NativeLaunchTests.test_post_issue_authority_denial_preserves_other_credentials",
+          "NativeLaunchTests.test_unsealed_configuration_is_rejected",
+          "NativeLaunchTests.test_wrong_server_generation_is_rejected",
+          "NativeLaunchTests.test_wrong_peer_process_is_rejected",
+          "NativeLaunchTests.test_supervisor_credential_is_not_accepted_as_broker"
+        ],
+        "preceding_gate": "P10",
+        "contract": "docs/NATIVE_APPLICATION_LAUNCH.md",
+        "required_evidence": [
+          "Independent native identity and real Xlib output from confined applications.",
+          "Namespace, descriptor, read-only profile, and denied-launch checks.",
+          "Failed-exec, completion, execution revocation, and broker-loss cleanup.",
+          "Debug, runtime sanitizer, and native-server sanitizer profiles on both hosts.",
+          "Cumulative core, harness, and P10 regression checks."
+        ],
+        "limitations": [
+          "Native-session service provisioning and compositor/worldd application-control authority remain required.",
+          "This component does not complete M04, M09, or Spatial-M1."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.private_input.json",
+      "task": {
+        "id": "application.private_input",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "Connections with the same immutable workspace/application identity share genuine private idle devices; other applications cannot observe or change that state.",
+        "production_roots": [
+          "server/xlibre/spatialinput.c",
+          "server/xlibre/spatialinput.h",
+          "server/xlibre/spatialsecurity.c"
+        ],
+        "counterexample_suite": "tests/native/test_application_input.py",
+        "test_ids": [
+          "ApplicationInputTests.test_foreign_application_cannot_read_focus",
+          "ApplicationInputTests.test_foreign_application_cannot_change_focus",
+          "ApplicationInputTests.test_workspace_membership_does_not_share_keyboard",
+          "ApplicationInputTests.test_same_application_name_in_other_workspace_is_isolated",
+          "ApplicationInputTests.test_swapped_application_has_private_keyboard",
+          "ApplicationInputTests.test_same_application_connections_share_real_focus",
+          "ApplicationInputTests.test_shared_pointer_motion_is_not_observable",
+          "ApplicationInputTests.test_application_warp_cannot_move_another_pointer",
+          "ApplicationInputTests.test_application_keyboard_grabs_do_not_compete",
+          "ApplicationInputTests.test_application_pointer_grabs_do_not_compete",
+          "ApplicationInputTests.test_same_application_grabs_still_compete",
+          "ApplicationInputTests.test_shared_held_key_is_not_observable",
+          "ApplicationInputTests.test_late_connection_joins_existing_application_input",
+          "ApplicationInputTests.test_last_disconnect_reclaims_device_pairs",
+          "ApplicationInputTests.test_device_exhaustion_denies_connection_and_recovers"
+        ],
+        "preceding_gate": "P10",
+        "required_evidence": [
+          "Missing-feature failures and positive controls on both previous servers.",
+          "Debug and native-server ASan/UBSan on both hosts.",
+          "Last-connection cleanup and allocation failure recovery.",
+          "Registered core, harness and P10 regression checks."
+        ],
+        "limitations": [
+          "Actor-device binding and lease transfer remain required.",
+          "This component does not complete M04 or Spatial-M1."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.resource_access.json",
+      "task": {
+        "id": "application.resource_access",
+        "phase": "M04",
+        "scope": "Native resource ownership, lookup authorization, and root enumeration",
+        "profile": "tasks/spatial-m1.json",
+        "contract": "docs/NATIVE_RESOURCE_POLICY.md",
+        "invariant": "Native resource lookups enforce application identity and explicit public-resource exceptions.",
+        "production_roots": [
+          "server/xlibre/spatialpolicy.c",
+          "server/xlibre/spatialsecurity.c",
+          "server/patches/0004-spatial-resource-policy.patch"
+        ],
+        "counterexample_suite": "tests/native/test_resource_isolation.py",
+        "focused_command": "ctest --test-dir build -V -R '^native-(resource-isolation|security-identity)$'",
+        "preceding_gate": "P10",
+        "required_evidence": [
+          "Missing-feature failures against the preceding native server",
+          "Positive same-application access and negative cross-application access",
+          "Root enumeration filtering and root pixel/property denial",
+          "Independent native attacks against windows, pixmaps, graphics contexts, properties, and events",
+          "Connection teardown, revocation, and retained-resource denial",
+          "Native byte-order coverage",
+          "Unchanged locked P00-P10 assertions",
+          "Focused instrumented native server checks with the GLX limitation recorded",
+          "Independent mutation detection"
+        ],
+        "next_components": [
+          "application.extension_isolation",
+          "application.global_isolation",
+          "application.device_authority",
+          "authority.application"
+        ],
+        "limitations": [
+          "This component does not complete native resource isolation or M04.",
+          "Extension dispatch, atoms, selections, device access, aliases, and asynchronous metadata still require qualification.",
+          "Strict mode remains explicit. Trusted diagnostic mode is not an application security boundary.",
+          "Do not connect untrusted applications before the complete native boundary and broker provisioning pass."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.security_identity.json",
+      "task": {
+        "id": "application.security_identity",
+        "phase": "M04",
+        "scope": "Native XLibre authentication and immutable connection identity",
+        "profile": "tasks/spatial-m1.json",
+        "contract": "docs/NATIVE_SECURITY_IDENTITY.md",
+        "invariant": "In strict mode, every native connection receives its immutable security identity before ordinary X requests run.",
+        "production_roots": [
+          "server/xlibre/spatialsecurity.c",
+          "server/xlibre/spatialsecurity.h",
+          "server/patches/0002-spatial-security.patch",
+          "proto/spatial/security/v1/security.proto"
+        ],
+        "counterexample_suite": "tests/native/test_security_identity.py",
+        "focused_command": "ctest --test-dir build -V -R '^native-security-identity$'",
+        "preceding_gate": "P10",
+        "required_evidence": [
+          "Both authorized hosts in Debug and ASan/UBSan",
+          "The native server is instrumented for focused core-X checks, with all identity assertions enabled and GLX disabled",
+          "Full P00-P10 baseline and unchanged locked assertions",
+          "Sealed protobuf bootstrap and strict authentication before host-access fallback",
+          "Immutable application labels and distinct native connection identities",
+          "Supervisor, broker, compositor, and application role separation",
+          "Revocation, issuer disconnect, descendant cancellation, and independent credential survival",
+          "Bounded credential storage, safe slot reuse, and new server generations",
+          "Ordinary Xlib authentication and both native byte orders",
+          "Malformed protobuf, unknown fields, invalid labels, replay, and unsupported version rejection",
+          "Independent mutations detect authentication bypass and missing disconnect revocation"
+        ],
+        "limitations": [
+          "This component does not enforce workspace resource isolation.",
+          "Strict mode is explicit; existing trusted diagnostic mode remains available.",
+          "Broker credential delivery and compositor security integration remain pending.",
+          "Retained resources require the forthcoming resource policy.",
+          "Instrumented GLX lifecycle checks expose installed graphics-driver leaks and remain failed pending a separate fix.",
+          "Native GPU and physical-device qualification remain pending."
+        ],
+        "next_components": [
+          "application.resource_isolation",
+          "authority.application"
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.selection_owner_access.json",
+      "task": {
+        "id": "application.selection_owner_access",
+        "phase": "M04",
+        "scope": "Owned native selection access under immutable application identities",
+        "profile": "tasks/spatial-m1.json",
+        "contract": "docs/NATIVE_RESOURCE_POLICY.md",
+        "invariant": "Owned selections deny access across full workspace and application identities, except for supervisor and compositor connections.",
+        "production_roots": [
+          "server/xlibre/spatialpolicy.c"
+        ],
+        "counterexample_suite": "tests/native/test_selection_isolation.py",
+        "test_ids": [
+          "SelectionIsolationTests.test_foreign_owner_query_is_denied",
+          "SelectionIsolationTests.test_foreign_owner_replacement_is_denied",
+          "SelectionIsolationTests.test_foreign_owner_clear_is_denied",
+          "SelectionIsolationTests.test_foreign_conversion_is_denied",
+          "SelectionIsolationTests.test_workspace_membership_does_not_grant_selection_access",
+          "SelectionIsolationTests.test_application_name_in_another_workspace_is_not_same_identity",
+          "SelectionIsolationTests.test_same_application_connections_can_query_owner",
+          "SelectionIsolationTests.test_same_application_conversion_reaches_real_owner",
+          "SelectionIsolationTests.test_supervisor_can_query_owner",
+          "SelectionIsolationTests.test_compositor_can_query_owner",
+          "SelectionIsolationTests.test_broker_cannot_query_application_selection",
+          "SelectionIsolationTests.test_swapped_client_cannot_bypass_selection_policy",
+          "SelectionIsolationTests.test_ownerless_selection_can_be_queried_and_claimed",
+          "SelectionIsolationTests.test_claiming_secondary_does_not_grant_primary_access"
+        ],
+        "focused_command": "ctest --test-dir build -V -R '^native-(selection-isolation|extension-isolation|resource-isolation|security-identity)$'",
+        "preceding_gate": "P10",
+        "required_evidence": [
+          "The new counterexample suite fails on the rebuilt pre-patch baseline and passes with the patched policy; policy source hashes match both builds.",
+          "Foreign queries, replacement, clearing, and conversion rejected",
+          "Same-application conversion emits a real SelectionRequest",
+          "Workspace membership and matching application names across workspaces grant no access",
+          "Supervisor and compositor positive controls; broker denial",
+          "Both native byte orders and independently owned PRIMARY and SECONDARY selections",
+          "Debug and ASan/UBSan native server checks on both authorized hosts",
+          "Independent selection-policy bypass mutation detected",
+          "Locked P00-P10 tests remain unchanged and pass against the patched server."
+        ],
+        "next_components": [
+          "application.global_isolation",
+          "application.device_authority",
+          "authority.application"
+        ],
+        "limitations": [
+          "This component checks owned selections; it does not complete selection privacy or M04.",
+          "Atom-name privacy, independent application selection namespaces, and asynchronous metadata remain unqualified.",
+          "Focused core-X sanitizer runs disable GLX and do not qualify graphics-provider cleanup."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.world_control.json",
+      "task": {
+        "id": "application.world_control",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "Only an authorized actor controls a native application, and confirmed native cancellation precedes reservation release.",
+        "production_roots": [
+          "src/world/actors.cpp",
+          "src/world/actors.hpp",
+          "src/world/identity_sessions.cpp",
+          "src/world/server.cpp",
+          "src/platform/render_worker.cpp",
+          "src/platform/render_worker.hpp",
+          "src/platform/broker.hpp"
+        ],
+        "test_ids": [
+          "WorldApplicationControlTests.test_authorized_native_input_without_workspace_selection",
+          "WorldApplicationControlTests.test_observation_does_not_grant_control",
+          "WorldApplicationControlTests.test_readonly_actor_cannot_control_writable_application",
+          "WorldApplicationControlTests.test_readonly_actor_can_control_readonly_application",
+          "WorldApplicationControlTests.test_one_application_has_one_actor_controller",
+          "WorldApplicationControlTests.test_unfocus_releases_native_input_before_handoff",
+          "WorldApplicationControlTests.test_idle_control_revocation_releases_input_and_preserves_execution",
+          "WorldApplicationControlTests.test_observation_revocation_cancels_control",
+          "WorldApplicationControlTests.test_independent_control_grant_survives_other_revocation",
+          "WorldApplicationControlTests.test_stop_releases_application_reservation",
+          "WorldApplicationControlTests.test_scroll_uses_real_native_events",
+          "WorldApplicationControlTests.test_independent_applications_allow_simultaneous_actors",
+          "WorldApplicationControlTests.test_session_close_releases_before_handoff",
+          "WorldApplicationControlTests.test_controller_disconnect_releases_before_handoff",
+          "WorldApplicationControlTests.test_restored_grant_does_not_restore_held_input",
+          "WorldApplicationControlTests.test_popup_uses_same_application_reservation",
+          "WorldApplicationControlTests.test_resized_aim_rejects_stale_pixels",
+          "WorldApplicationControlTests.test_unmapped_capture_releases_reservation",
+          "WorldApplicationControlTests.test_actor_revocation_releases_native_input",
+          "WorldApplicationControlTests.test_credential_revocation_releases_native_input",
+          "WorldApplicationControlTests.test_actor_revocation_cancels_during_broker_wait",
+          "WorldApplicationControlTests.test_credential_revocation_cancels_during_broker_wait",
+          "WorldApplicationControlTests.test_disconnect_cancels_during_broker_wait",
+          "WorldApplicationControlTests.test_revocation_during_renderer_wait_does_not_replay_input",
+          "WorldApplicationControlTests.test_revocation_during_native_cancel_closes_actor_devices"
+        ],
+        "preceding_gate": "P10",
+        "contract": "docs/WORLD_APPLICATION_CONTROL.md",
+        "status": "component_qualified",
+        "limitations": [
+          "Instrumented native-server GLX cleanup remains unqualified.",
+          "Physical input and full Spatial-M1 qualification remain pending."
+        ],
+        "evidence": "evidence/world-application-control-2026-10-08",
+        "qualification": {
+          "hosts": [
+            "sb16",
+            "sb16-2"
+          ],
+          "builds": [
+            "Debug",
+            "runtime ASan/UBSan"
+          ],
+          "core_suites": 45,
+          "core_checks_per_profile": 891,
+          "harness_checks_per_profile": 51,
+          "P10_cases_per_profile": 151,
+          "focused_checks_per_host": 61,
+          "failed": 0,
+          "skipped": 0,
+          "native_server_GLX_sanitizer": "unrun"
+        }
+      }
+    },
+    {
+      "path": "tasks/m1/application.world_observation.json",
+      "task": {
+        "id": "application.world_observation",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "Authenticated actors receive labeled application scene metadata only through current broker observation authority, including after rendering and before queued writes.",
+        "production_roots": [
+          "src/platform/broker.cpp",
+          "src/platform/broker.hpp",
+          "src/world/actors.cpp",
+          "src/world/actors.hpp",
+          "src/world/surfaces.cpp",
+          "src/world/surfaces.hpp",
+          "src/world/identity_sessions.cpp"
+        ],
+        "test_ids": [
+          "ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection",
+          "ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation",
+          "ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application",
+          "ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application",
+          "ApplicationObservationTests.test_application_scope_filters_other_live_application",
+          "ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process",
+          "ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene",
+          "ApplicationObservationTests.test_observe_does_not_enable_input_control",
+          "ApplicationObservationTests.test_revocation_after_render_prevents_queued_metadata_export",
+          "ApplicationObservationTests.test_revocation_before_post_render_check_returns_no_metadata",
+          "ApplicationObservationTests.test_broker_reply_cannot_substitute_application_identity",
+          "ApplicationObservationTests.test_broker_reply_requires_explicit_observation_decision",
+          "ApplicationObservationTests.test_broker_reply_requires_matching_group_count",
+          "ApplicationObservationTests.test_broker_reply_cannot_grant_control_without_observation",
+          "ApplicationObservationTests.test_legacy_world_grants_do_not_reveal_labeled_application",
+          "ApplicationObservationTests.test_legacy_interaction_grant_cannot_control_labeled_application"
+        ],
+        "preceding_gate": "P10",
+        "contract": "docs/APPLICATION_OBSERVATION.md",
+        "limitations": [
+          "Authenticated application input and pixel delivery remain pending.",
+          "Native-server sanitizer GLX coverage remains unrun.",
+          "M04, M09, M10, and Spatial-M1 remain incomplete."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/surface.application_groups.json",
+      "task": {
+        "id": "surface.application_groups",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "Worldd accepts parent relationships only within one native application identity and keys its control lease by that identity.",
+        "production_roots": [
+          "src/world/surfaces.cpp",
+          "src/world/surfaces.hpp",
+          "src/world/actors.cpp"
+        ],
+        "test_ids": [
+          "WorldSurfaceGroupTests.test_cross_workspace_hint_cannot_inherit_placement",
+          "WorldSurfaceGroupTests.test_cross_application_hint_cannot_inherit_placement",
+          "WorldSurfaceGroupTests.test_same_application_connections_can_form_relationship",
+          "WorldSurfaceGroupTests.test_invalid_hint_does_not_break_other_scene_surfaces",
+          "WorldSurfaceGroupTests.test_repaired_hint_restores_independent_placement",
+          "WorldSurfaceGroupTests.test_same_group_reparent_preserves_held_key_and_focus",
+          "WorldSurfaceGroupTests.test_cross_application_reparent_releases_input",
+          "WorldSurfaceGroupTests.test_same_application_detach_preserves_held_input",
+          "WorldSurfaceGroupTests.test_cross_application_grandparent_hides_descendants",
+          "WorldSurfaceGroupTests.test_cyclic_same_application_hints_remain_unplaced",
+          "WorldSurfaceGroupTests.test_destroyed_parent_releases_descendant_input",
+          "WorldSurfaceGroupTests.test_same_application_top_levels_exclude_second_actor",
+          "WorldSurfaceGroupTests.test_distinct_applications_allow_simultaneous_control",
+          "WorldSurfaceGroupTests.test_equal_application_names_in_distinct_workspaces_have_separate_leases"
+        ],
+        "preceding_gate": "P10",
+        "contract": "docs/WORLD_SURFACE_GROUPS.md",
+        "limitations": [
+          "Actors use explicit management fixtures in these tests.",
+          "Workspace application grants and filtered actor metadata remain required.",
+          "M04, M09, and Spatial-M1 remain incomplete."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/surface.native_identity.json",
+      "task": {
+        "id": "surface.native_identity",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "invariant": "The compositor obtains application attribution from the native window owner in the same checked reply as target generation and geometry.",
+        "production_roots": [
+          "server/xlibre/spatialinput.c",
+          "server/xlibre/spatialsecurity.c",
+          "server/xlibre/spatialsecurity.h",
+          "server/xlibre/meson.build",
+          "src/x11/surfaces.cpp",
+          "proto/spatial/input/v1/input.proto",
+          "proto/spatial/security/v1/security.proto",
+          "proto/spatial/core/v1/core.proto"
+        ],
+        "test_ids": [
+          "SurfaceIdentityTests.test_owner_labels_share_the_geometry_and_generation_reply",
+          "SurfaceIdentityTests.test_same_application_name_in_another_workspace_is_distinct",
+          "SurfaceIdentityTests.test_same_workspace_different_application_is_distinct",
+          "SurfaceIdentityTests.test_same_group_connections_keep_separate_connection_ids",
+          "SurfaceIdentityTests.test_window_properties_cannot_spoof_authority",
+          "SurfaceIdentityTests.test_remap_changes_generation_without_changing_owner",
+          "SurfaceIdentityTests.test_resize_returns_new_geometry_with_same_owner",
+          "SurfaceIdentityTests.test_reused_xid_does_not_reuse_window_generation",
+          "SurfaceIdentityTests.test_non_application_window_has_no_application_identity",
+          "SurfaceIdentityTests.test_application_cannot_query_foreign_attribution",
+          "SurfaceIdentityTests.test_non_controller_compositor_cannot_query_attribution",
+          "SurfaceIdentityTests.test_owner_disconnect_removes_attribution",
+          "SurfaceIdentityTests.test_revocation_removes_only_the_revoked_application",
+          "SurfaceIdentityTests.test_child_window_uses_its_creator_connection",
+          "SurfaceIdentityTests.test_swapped_application_keeps_exact_binary_labels",
+          "CompositorIdentityTests.test_snapshot_contains_authenticated_application_identity",
+          "CompositorIdentityTests.test_properties_do_not_choose_snapshot_identity",
+          "CompositorIdentityTests.test_separate_workspaces_remain_distinct_in_one_snapshot",
+          "CompositorIdentityTests.test_unmap_clears_attribution_and_remap_restores_it",
+          "CompositorIdentityTests.test_non_application_window_is_not_a_workspace_surface",
+          "CompositorIdentityTests.test_revoked_application_disappears_from_snapshot",
+          "CompositorIdentityTests.test_same_group_new_connection_has_distinct_attribution"
+        ],
+        "preceding_gate": "P10",
+        "contract": "docs/NATIVE_SURFACE_IDENTITY.md",
+        "limitations": [
+          "Worldd application grants and actor metadata filtering remain required.",
+          "Session provisioning and physical native qualification remain required.",
+          "This component does not complete M04, M09, or Spatial-M1."
+        ]
+      }
+    },
+    {
+      "path": "tasks/m1/application.atom_privacy.json",
+      "task": {
+        "id": "application.atom_privacy",
+        "phase": "M04",
+        "profile": "tasks/spatial-m1.json",
+        "contract": "docs/NATIVE_ATOM_PRIVACY.txt",
+        "invariant": "Dynamic atom names and existence probes require declaration by the immutable application identity. Predefined atoms remain usable.",
+        "production_roots": [
+          "server/xlibre/spatialsecurity.c",
+          "server/xlibre/spatialsecurity.h",
+          "server/patches/0008-application-atom-privacy.patch"
+        ],
+        "counterexample_suite": "tests/native/test_atom_privacy.py",
+        "status": "focused_core_X_checks_passed_full_M04_pending",
+        "required_evidence": [
+          "Foreign-name enumeration and existence probes fail on the unchanged native baseline on both hosts.",
+          "Corrected Debug and core-X native-server ASan/UBSan checks pass on both hosts.",
+          "Both native byte orders and full workspace/application identity separation are checked.",
+          "Same-application peers, explicit declarations, predefined atoms, and privileged compositor inspection remain usable.",
+          "Creator and final connection closure release declaration ownership correctly.",
+          "The 65536-entry declaration limit returns BadAlloc without preventing another application's declaration.",
+          "Related resource, selection, extension, identity, private-input, and actor-binding regressions pass.",
+          "Full native graphics sanitizer qualification remains mandatory at the M04 gate."
+        ],
+        "limitations": [
+          "GLX-enabled native-server sanitizer suites fail through software-provider shutdown allocations.",
+          "Independent selection namespaces and asynchronous metadata remain pending.",
+          "Global atom allocation and timing side channels are not qualified by this component.",
+          "Focused checks do not complete M04 or Spatial-M1."
+        ]
+      }
+    }
+  ]
+}

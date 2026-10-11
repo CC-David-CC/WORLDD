@@ -12,6 +12,7 @@
 #include <sys/random.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <X11/Xatom.h>
 #include "dix/dix_priv.h"
 #include "dix/request_priv.h"
 #include "extnsionst.h"
@@ -33,6 +34,7 @@ typedef Spatial__Security__V1__Role Role;
 #define LABEL_BYTES 256
 #define MAX_CREDENTIALS 256
 #define MAX_PAYLOAD 4096
+#define MAX_APPLICATION_ATOMS 65536
 
 typedef struct {
     Role role;
@@ -48,9 +50,16 @@ typedef struct {
 } Grant;
 
 typedef struct {
+    unsigned references;
+    size_t count, capacity;
+    Atom *values;
+} ApplicationAtoms;
+
+typedef struct {
     Label label;
     uint64_t connection, sequence;
     Bool closed;
+    ApplicationAtoms *atoms;
 } SpatialConnection;
 
 static DevPrivateKeyRec client_key;
@@ -157,6 +166,101 @@ Bool SpatialSecuritySameApplication(ClientPtr client, ClientPtr owner)
         !memcmp(subject->label.application, object->label.application, subject->label.application_size);
 }
 
+static ApplicationAtoms *application_atoms(ClientPtr client, Bool create)
+{
+    SpatialConnection *state = connection(client);
+    if (state->atoms) return state->atoms;
+    for (int i = 1; i < currentMaxClients; ++i) {
+        ClientPtr peer = clients[i];
+        if (!peer || !SpatialSecuritySameApplication(client, peer)) continue;
+        ApplicationAtoms *atoms = connection(peer)->atoms;
+        if (atoms) {
+            ++atoms->references;
+            return state->atoms = atoms;
+        }
+    }
+    if (!create) return NULL;
+    ApplicationAtoms *atoms = calloc(1, sizeof(*atoms));
+    if (atoms) {
+        atoms->references = 1;
+        state->atoms = atoms;
+    }
+    return atoms;
+}
+
+static void release_atoms(ClientPtr client, Bool preserve_peers)
+{
+    SpatialConnection *state = connection(client);
+    ApplicationAtoms *atoms = state->atoms;
+    if (!atoms) return;
+    /* A peer need not have made an atom request yet. Preserve the shared
+     * declaration set until the application's final live connection closes.
+     */
+    if (preserve_peers && atoms->references == 1) {
+        for (int i = 1; i < currentMaxClients; ++i) {
+            ClientPtr peer = clients[i];
+            if (!peer || peer == client || !SpatialSecuritySameApplication(client, peer)) continue;
+            connection(peer)->atoms = atoms;
+            ++atoms->references;
+            break;
+        }
+    }
+    state->atoms = NULL;
+    if (--atoms->references == 0) {
+        free(atoms->values);
+        free(atoms);
+    }
+}
+
+static size_t atom_position(const ApplicationAtoms *atoms, Atom atom)
+{
+    size_t first = 0, last = atoms->count;
+    while (first < last) {
+        size_t middle = first + (last - first) / 2;
+        if (atoms->values[middle] < atom) first = middle + 1;
+        else last = middle;
+    }
+    return first;
+}
+
+Bool SpatialSecurityAtomVisible(ClientPtr client, Atom atom)
+{
+    if (SpatialSecurityPrivileged(client)) return TRUE;
+    if (!SpatialSecuritySameApplication(client, client)) return FALSE;
+    if (atom > None && atom <= XA_LAST_PREDEFINED) return TRUE;
+    ApplicationAtoms *atoms = application_atoms(client, FALSE);
+    if (!atoms) return FALSE;
+    size_t position = atom_position(atoms, atom);
+    return position < atoms->count && atoms->values[position] == atom;
+}
+
+Atom SpatialSecurityInternAtom(ClientPtr client, const char *name,
+                              unsigned length, Bool create)
+{
+    if (SpatialSecurityPrivileged(client)) return MakeAtom(name, length, create);
+    Atom atom = MakeAtom(name, length, FALSE);
+    if (atom && SpatialSecurityAtomVisible(client, atom)) return atom;
+    if (!create) return None;
+    if (!SpatialSecuritySameApplication(client, client)) return BAD_RESOURCE;
+    ApplicationAtoms *atoms = application_atoms(client, TRUE);
+    if (!atoms || atoms->count == MAX_APPLICATION_ATOMS) return BAD_RESOURCE;
+    if (atoms->count == atoms->capacity) {
+        size_t capacity = atoms->capacity ? atoms->capacity * 2 : 32;
+        Atom *values = realloc(atoms->values, capacity * sizeof(*values));
+        if (!values) return BAD_RESOURCE;
+        atoms->values = values;
+        atoms->capacity = capacity;
+    }
+    if (!atom) atom = MakeAtom(name, length, TRUE);
+    if (atom == BAD_RESOURCE || atom == None) return atom;
+    size_t position = atom_position(atoms, atom);
+    memmove(atoms->values + position + 1, atoms->values + position,
+            (atoms->count - position) * sizeof(*atoms->values));
+    atoms->values[position] = atom;
+    ++atoms->count;
+    return atom;
+}
+
 Bool SpatialSecurityVisibleResource(ClientPtr client, XID id)
 {
     return SpatialSecurityPrivileged(client) || SpatialSecuritySameApplication(client, dixLookupXIDOwner(id));
@@ -251,6 +355,7 @@ static void client_state(CallbackListPtr *list, void *unused, void *data)
                     info->client->clientState != ClientStateRetained)) return;
     SpatialConnection *state = connection(info->client);
     if (!state->connection || state->closed) return;
+    release_atoms(info->client, TRUE);
     state->closed = TRUE;
     for (unsigned i = 1; i < MAX_CREDENTIALS; ++i)
         if (grants[i].active && grants[i].issuer == state->connection) grants[i].active = FALSE;
@@ -381,6 +486,8 @@ static int dispatch(ClientPtr client)
 static void reset(ExtensionEntry *extension)
 {
     (void)extension;
+    for (int i = 1; i < currentMaxClients; ++i)
+        if (clients[i]) release_atoms(clients[i], FALSE);
     active = FALSE;
     SpatialSecurityPolicyReset();
     DeleteCallback(&ClientStateCallback, client_state, NULL);

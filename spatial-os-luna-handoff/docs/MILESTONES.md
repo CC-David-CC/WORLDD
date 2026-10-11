@@ -29,6 +29,11 @@ M03 is qualified and adopted at a99b7e46c5151ba47d0a53797b470cae6aaa5d13 in dedi
 Read evidence/m03-contention-2026-10-11/M03-final-primary-review.json.
 All nine requirements, eight cross-host cases, and focused source-adoption checks pass.
 Current development advances to M04. Ordinary checkout changes and normal login remain preserved.
+
+M04 atom metadata filtering passes focused Debug and core-X sanitizer checks on both hosts.
+The increment has 636 passed checks. Full GLX-enabled sanitizer runs remain failed and preserved.
+M04 still needs selection privacy, asynchronous metadata, and its complete phase gate.
+Read evidence/m04-atom-2026-10-11/primary-review.json for the component limits.
 The existing five-second client default remains. Bounded disk pressure defeated 700 ms and two-second clients.
 One successful five-second pressure trial does not establish a worst-case latency bound.
 Storage-pressure availability remains mandatory M03 and M1 performance work.

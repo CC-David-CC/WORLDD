@@ -1,0 +1,32 @@
+Native atom metadata policy
+
+Status: Focused Debug and core-X native-server sanitizer checks pass on both hosts.
+Full M04 qualification remains pending.
+
+Core-X atoms retain their normal numeric representation.
+Predefined atoms remain public application protocol definitions.
+An application must explicitly intern a dynamic name before it can inspect that name.
+Live connections with the same workspace and application identity share declarations.
+Connections with different credentials can share the same application identity.
+Matching application names in different workspaces do not share declarations.
+
+GetAtomName returns BadAtom for an undeclared dynamic atom.
+InternAtom with onlyIfExists returns None for an undeclared dynamic name.
+InternAtom with creation enabled declares the supplied name for that application.
+Supplying a known name does not disclose an unknown name.
+Supervisor and compositor connections retain trusted inspection.
+Broker connections cannot inspect dynamic application names.
+
+Each application declaration set holds at most 65536 dynamic atoms.
+Repeated declarations do not consume additional entries.
+Allocation failure returns BadAlloc before a new global atom is created.
+Declaration memory survives individual connection closure while a peer remains live.
+The final connection closure frees the declaration set.
+A later new connection must declare dynamic names again.
+Server reset releases any remaining declaration references.
+
+This policy adds metadata filtering to core-X atom requests.
+It does not change existing owned-selection authorization.
+Independent selection namespaces remain pending.
+Asynchronous event metadata qualification remains pending.
+Global numeric atom allocation and timing side channels remain outside this increment.
