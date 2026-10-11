@@ -1,0 +1,10 @@
+{
+  "status": "reviewed_correction_before_execution",
+  "file_sha256": "809cc55e22f7540fb938c0c7c4d26f8828e756578421af56b41ca0456159aea2",
+  "prior_fixture_sha256": "155161bad1fdf56af6a1882b5361f93c3828cf3690cba7b38af63966014d7059",
+  "existing_function_bodies_unchanged": 29,
+  "change": "Assign the storage fixture test label before inherited setup. Keep production-owner inheritance.",
+  "invariant": "Root storage preparation keeps its prefix, containment, and no-symlink guards. All original proof, barrier, cancellation, and recovery assertions remain unchanged.",
+  "selected_checks": "Eight production-profile cross-host scenarios. Start with Debug delay forward.",
+  "phase_complete": false
+}

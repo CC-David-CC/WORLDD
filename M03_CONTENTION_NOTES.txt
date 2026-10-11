@@ -249,3 +249,9 @@ Both corrected hosts and profiles now pass all 33 suites and 282 checks each: 11
 All original supervisor bodies and locked files remain unchanged. Production binaries and fault deadlines remain unchanged.
 Local full-gate reassessment is reviewed on both hosts. Cross-host preflights match source and fixture digests.
 Eight cross-host cases and final M03 adoption remain pending. No new GitHub publication is authorized or performed.
+
+All eight production-profile cross-host cases passed primary review: twenty-four nodes and 230 attachments.
+Independent cleanup verifies sixteen released volumes and twenty-four unloaded UUID services.
+The cross-host fixture keeps all original method bodies and root helper safety guards.
+The ordinary sb16 checkout has local modifications. Preserve them during final M03 source adoption.
+M03 remains incomplete until its nine-requirement audit and adoption pass.

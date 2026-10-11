@@ -1,5 +1,24 @@
 # Implementation status
 
+## 2026-10-11: All eight production cross-host cases pass primary review
+
+Debug and ASan/UBSan pass delayed-delivery and crash scenarios in both directions.
+All twenty-four controller and worker nodes exit successfully.
+Primary review verified 230 evidence attachments and found no sanitizer error patterns.
+Delayed cases finish through acknowledgement. Crash cases require checked recovery and fenced retirement.
+Both applications remain responsive after cancellation. Native key and button release is required on both hosts.
+Independent cleanup verifies sixteen released volumes and twenty-four unloaded UUID services.
+
+The cross-host fixture uses NativeStorageSessionTests and the production storage owner.
+An added setup hook supplies the required test-volume label. Root helper safety guards remain unchanged.
+All original top-level and class function bodies remain unchanged.
+The initial failed setup attempt and exact fixture source remain preserved.
+
+Both complete local gates are reviewed. The nine-requirement M03 audit and source adoption remain pending.
+The ordinary sb16 checkout has local modifications. Preserve them during source adoption.
+M03 remains incomplete. M04-M16 remain ahead.
+Read evidence/m03-contention-2026-10-11/crosshost-04-primary-review.json.
+
 ## 2026-10-11: Scoped healthy issuer setup passes qualification on both hosts
 
 Both hosts pass all 33 related suites and 282 checks in Debug and ASan/UBSan.

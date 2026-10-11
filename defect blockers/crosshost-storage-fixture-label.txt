@@ -1,0 +1,22 @@
+Defect: Cross-host storage fixture used an unsupported test label.
+Status: Reproduced setup failure. Corrected Debug delay-forward case passes.
+
+Native storage setup passes its test label to the privileged volume helper.
+The helper requires test_native_storage_ and a path within the project local directory.
+SharedSession supplied runTest. Preparation stopped before creating a volume or launching applications.
+The controller then received a setup error. The other worker closed after the controller stopped.
+
+Proposed correction: Assign test_native_storage_crosshost_ plus the host label before inherited setup.
+Preserve the helper's prefix, project containment, and no-symlink guards.
+Preserve all original proof, barrier, cancellation, and recovery assertions.
+The corrected fixture uses the production storage-owner boundary on both hosts.
+All original top-level and class function bodies remain unchanged. One setup hook is added.
+
+Failure evidence: spatial-os-luna-handoff/evidence/m03-contention-2026-10-11/crosshost-label-failure-03/.
+The private fixture bundle is excluded from collected and committed evidence.
+The remaining seven host/profile/scenario cases are running.
+The fixture stays uncommitted until all eight cases pass primary review.
+
+2026-10-11: All eight cases passed primary review. All 24 nodes exited successfully.
+All sixteen test volumes are independently released. All twenty-four UUID services are unloaded.
+Status: Fixture label defect resolved. Original failure evidence remains preserved.

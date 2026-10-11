@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "issuer_host": "sb16",
+  "delayed_host": "sb16",
+  "scenario": "crash",
+  "bundle": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-crosshost-01/runs/Debug-crash-reverse04/controller/private-bundle",
+  "control_port": 47237,
+  "issuer_port": 53409,
+  "issuer_id": "072697901577047c33a340ace248c1b53529d0fe6b6c370e44717e7fb1e9cdca",
+  "active_participants": 4,
+  "exact_active_generations": 4,
+  "committed_revision": 1,
+  "pending_obligation_observed": true,
+  "native_cancellation_hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "applications_survived": 2,
+  "complete_by_acknowledgement": false,
+  "retired_worlds": 1
+}

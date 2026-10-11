@@ -38,6 +38,7 @@ sys.argv = [sys.argv[0], str(options.source), str(options.build / 'spatial-autho
     str(options.build / 'spatial-security-auth'), str(options.build / 'identityd'),
     str(options.build / 'spatial-issuer-client')]
 import test_session_application as application
+import test_storage_session as storage
 import test_supervisor_registry as registry
 from test_identity_tls import TlsFixture, Peer
 from test_issuer_client import ClientFixture
@@ -185,9 +186,13 @@ class SharedIssuer(registry.SupervisorRegistryTests):
             registration=self.registration.registered_revision if registration is None else registration,
             participant=participant)
 
-class SharedSession(application.SessionApplicationTests):
+class SharedSession(storage.NativeStorageSessionTests):
     def __init__(self, bootstrap, bundle):
         super().__init__('runTest'); self.bootstrap = bootstrap; self.bundle = bundle
+
+    def setUp(self):
+        self._testMethodName = 'test_native_storage_crosshost_' + host
+        super().setUp()
 
     def issuer_fixture(self):
         return SharedIssuer(self.bootstrap, self.bundle)

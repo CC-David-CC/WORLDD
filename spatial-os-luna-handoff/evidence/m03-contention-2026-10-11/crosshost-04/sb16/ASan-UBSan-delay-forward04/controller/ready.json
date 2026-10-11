@@ -1,0 +1,10 @@
+{
+  "status": "waiting_for_workers",
+  "issuer_host": "sb16",
+  "delayed_host": "sb16-2",
+  "scenario": "delay",
+  "bundle": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-crosshost-01/runs/ASan-UBSan-delay-forward04/controller/private-bundle",
+  "control_port": 53667,
+  "issuer_port": 36839,
+  "issuer_id": "29aa8f195115038f82ef8431633c7dba70ff1d2515f25e2be2b3511f288bd3ee"
+}

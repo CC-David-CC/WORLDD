@@ -1,0 +1,18 @@
+{
+  "status": "collected_terminal_crosshost_setup_failure",
+  "phase_complete": false,
+  "cause": "Storage volume helper rejects fixture label runTest before volume preparation.",
+  "files": {
+    "controller.log": "559f8bf8b7b4b4bbcc96d49fe205b3649efea6a4fc6d5db6ce96ed2eb6ae5908",
+    "controller-review.json": "ea62cd72b6556fc70997f0b89a0d5fd5a8477e85f1825dd350a83cd6a5a782f0",
+    "controller/result.json": "08bab1f7b549df49dec68c31d746bab700a66296fb6720ff4dc263b62b30ea6c",
+    "controller/ready.json": "c2a3deb195eef3eee3ba8bb03061cff2e2a3ad70c31ae3ec5803728279524058",
+    "controller/native/runTest-issuer-736011.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "worker.log": "db7698d23771f9b710177b2d9b9b0f73f9bede479125a0abef52573da3d8b121",
+    "worker-review.json": "f094f695892186940a030465f6a476d4181109a19862bc197eb4387bc66927ab",
+    "worker/result.json": "77f5e7f6cc0f8033ea6120ffea5ee0626016db33b44b710e3a56942b2757054a",
+    "worker/native/runTest/prepare.log": "7ea123ffc9cd3b36224f482e20285a751fb27e6c1bcbef5aff8eb38b2ff871c7",
+    "fixture.py": "155161bad1fdf56af6a1882b5361f93c3828cf3690cba7b38af63966014d7059"
+  },
+  "private_bundle_excluded": true
+}
