@@ -1,0 +1,58 @@
+protocol_version: 1
+delegated_cgroup: "/sys/fs/cgroup/system.slice/spatial-m03-resources-0936e1772eda47db9971c69c3c78e687.service/test-tmpkdreoc60/authority-eac5ebb6b7387e84a217369e7b1ace35a39da22ef37062e753a4bf183cd762b2"
+default_policy {
+  total {
+    memory_bytes: 268435456
+    swap_bytes: 0
+    processes: 32
+    cpu_microseconds: 200000
+    io {
+      major: 259
+      minor: 0
+      read_bytes_per_second: 67108864
+      write_bytes_per_second: 67108864
+    }
+  }
+  actor_default {
+    memory_bytes: 134217728
+    swap_bytes: 0
+    processes: 16
+    cpu_microseconds: 100000
+    io {
+      major: 259
+      minor: 0
+      read_bytes_per_second: 67108864
+      write_bytes_per_second: 67108864
+    }
+  }
+  profiles {
+    name: "development"
+    maximum {
+      memory_bytes: 67108864
+      swap_bytes: 0
+      processes: 8
+      cpu_microseconds: 50000
+      io {
+        major: 259
+        minor: 0
+        read_bytes_per_second: 33554432
+        write_bytes_per_second: 8388608
+      }
+    }
+  }
+  profiles {
+    name: "read-only"
+    maximum {
+      memory_bytes: 67108864
+      swap_bytes: 0
+      processes: 8
+      cpu_microseconds: 50000
+      io {
+        major: 259
+        minor: 0
+        read_bytes_per_second: 33554432
+        write_bytes_per_second: 8388608
+      }
+    }
+  }
+}

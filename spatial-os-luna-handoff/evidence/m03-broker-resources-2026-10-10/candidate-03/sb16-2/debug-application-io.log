@@ -1,0 +1,28 @@
+{"unit": "spatial-m03-resources-a4373cd6b6b8470c8821a79548f4a110.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-a4373cd6b6b8470c8821a79548f4a110.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/debug/witnesses", "--", "python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source/tests/core/test_broker_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/workspaced", "BrokerResourceTests.test_application_writes_obey_broker_io_budget"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-a4373cd6b6b8470c8821a79548f4a110.service"]}
+Running as unit: spatial-m03-resources-a4373cd6b6b8470c8821a79548f4a110.service; invocation ID: 5aa00d840ab04fcf9b787518db0135e3
+test_application_writes_obey_broker_io_budget (__main__.BrokerResourceTests.test_application_writes_obey_broker_io_budget) ... ERROR
+
+======================================================================
+ERROR: test_application_writes_obey_broker_io_budget (__main__.BrokerResourceTests.test_application_writes_obey_broker_io_budget)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source/tests/core/test_broker_resources.py", line 266, in test_application_writes_obey_broker_io_budget
+    before = written(); (instance.tree/'io-go').touch()
+             ^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source/tests/core/test_broker_resources.py", line 264, in written
+    return int(dict(value.split('=', 1) for value in values)['wbytes'])
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+KeyError: 'wbytes'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.931s
+
+FAILED (errors=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 1.085s
+CPU time consumed: 522ms
+Memory peak: 2.4M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-a4373cd6b6b8470c8821a79548f4a110.service: Unit spatial-m03-resources-a4373cd6b6b8470c8821a79548f4a110.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

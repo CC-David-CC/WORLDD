@@ -2,6 +2,7 @@
 #include "workspace/git_command.hpp"
 #include "workspace/status.hpp"
 #include "workspace/process.hpp"
+#include "workspace/resources.hpp"
 #include "workspace/native_launch.hpp"
 #include "workspace/authority.hpp"
 #include "world/store.hpp"
@@ -142,6 +143,7 @@ struct ExecutionStore::Impl {
     std::map<std::string, std::unique_ptr<ApplicationProcess>> jobs;
     WorkspaceAuthority* authority = nullptr;
     NativeLaunch* native = nullptr;
+    WorkspaceResources* resources = nullptr;
     explicit Impl(const std::filesystem::path& directory, unsigned migrate_from, bool enable_faults) : fixture_faults(enable_faults) {
         require(!migrate_from || !fixture_faults, "Migration cannot enable fixture faults");
         require(directory.is_absolute() && !std::filesystem::is_symlink(directory), "Execution state requires an absolute nonsymlink directory");
@@ -729,6 +731,8 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
     const auto workspace = workspace_get(request.workspace());
     const auto worktree = impl_->worktree(workspace.worktree());
     const auto repository = impl_->repository(worktree.repo());
+    if (!impl_->resources) throw WorldError(wire::UNAVAILABLE, "Configure workspace resource limits before execution");
+    auto resources = impl_->resources->prepare(request, {worktree.path(), repository.path(), impl_->state / "applications"});
     const auto state = impl_->allocate("applications"); const auto id = state.filename().string();
     { Transaction transaction(impl_->db.get());
       Query q(impl_->db.get(), "INSERT INTO processes VALUES(?,?,?,?,?,?,'pending',NULL)");
@@ -746,7 +750,7 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
         };
         auto native = impl_->native ? impl_->native->issue(request.workspace(), id, current) : nullptr;
         auto process = std::make_unique<ApplicationProcess>(worktree.path(), repository.path(), state,
-            (effective & (1u << wire::FILES_WRITE)) != 0, command, std::move(current), std::move(native));
+            (effective & (1u << wire::FILES_WRITE)) != 0, command, std::move(current), std::move(native), std::move(resources));
         impl_->jobs.emplace(id, std::move(process));
         Query q(impl_->db.get(), "UPDATE processes SET state='running' WHERE id=?"); q.text(1, id); q.step();
     } catch (const WorldError& error) {
@@ -793,6 +797,7 @@ wire::ProcessWaitReply ExecutionStore::wait(const wire::ProcessWaitRequest& requ
     wire::ProcessWaitReply out; out.set_exit_code(*result); return out;
 }
 void ExecutionStore::set_native_launch(NativeLaunch* native) { impl_->native = native; }
+void ExecutionStore::set_resources(WorkspaceResources* resources) { impl_->resources = resources; }
 void ExecutionStore::stop_all() {
     // Checked destruction cannot return after unconfirmed process termination.
     impl_->jobs.clear();

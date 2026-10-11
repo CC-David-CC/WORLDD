@@ -1336,3 +1336,24 @@ Twelve exact transient test services are unloaded. Root/user delegation returned
 Limits: budget policy, broker integration, workspace aggregation, storage quotas, and M03 full gates are not yet complete.
 No new physical-device, GPU, or issuer storage-pressure latency qualification was performed by this increment.
 The five-second production timeout remains; cgroup I/O throttling alone is not a latency guarantee.
+
+2026-10-10: Broker resource integration qualified on the M03 work branch.
+Both hosts passed 44 selected checks in Debug and runtime sanitizers: 176 final passes, zero failures or skips.
+Production workspaced enforces explicit nested workspace/actor/application budgets before releasing startup.
+Missing resource configuration fails closed before creating a pending process record.
+Actual application writes obeyed 4 MiB/s: 16 MiB took 3.96 to 4.03 seconds with matching kernel bytes.
+The retained supervisor removed nested groups after broker death and preserved an independent broker.
+Six original cleanup test bodies remain unchanged. Real kernel-denied cleanup still reports failure.
+All 439 attachments verified. All 304 scanned logs lack selected sanitizer findings.
+Read spatial-os-luna-handoff/evidence/m03-broker-resources-2026-10-10/primary-review.json.
+Preserved failures: candidate01 omitted Python bindings; candidate03's initial I/O parser assumed wbytes existed.
+The candidate03 failing initial raw counter line was not captured. Its exact contents cannot be recovered.
+Candidate04 records both raw counter reads and still requires all final byte accounting.
+Thirty-one exact transient services are unloaded. Root and user delegation returned to cpu, memory, and pids.
+Both normal checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd. No runtime was adopted or restarted.
+Current-source workspaced was not rebuilt after test-only additions; candidate02 runtime source and binaries were reused.
+Still unrun: full M03 gate, native GUI resource integration, physical input, GPU performance, and live-model qualification.
+Still required: session provisioning, fixture adaptation, storage quotas, broker accounting, and issuer contention recovery.
+Unconfigured launches on this unfinished branch are unavailable. This is recorded behavior, not a passing full gate.
+This increment does not prove fdatasync latency is fixed. Production timeout remains five seconds. Durability is unchanged.
+The first status-writing command stopped at a line-ending assertion before writing any status files. The correction preserved existing content.

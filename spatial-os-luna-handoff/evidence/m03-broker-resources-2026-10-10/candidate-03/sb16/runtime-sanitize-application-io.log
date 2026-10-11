@@ -1,0 +1,15 @@
+{"unit": "spatial-m03-resources-c5df00708caa4f86b260d064120df429.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-c5df00708caa4f86b260d064120df429.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/runtime-sanitize/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/runtime-sanitize/witnesses", "--", "python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source/tests/core/test_broker_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/runtime-sanitize/build/spatial-process-scope-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/runtime-sanitize/build/workspaced", "BrokerResourceTests.test_application_writes_obey_broker_io_budget"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-c5df00708caa4f86b260d064120df429.service"]}
+Running as unit: spatial-m03-resources-c5df00708caa4f86b260d064120df429.service; invocation ID: 89132a29f1904268ab4f99a5aaa38ce0
+test_application_writes_obey_broker_io_budget (__main__.BrokerResourceTests.test_application_writes_obey_broker_io_budget) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 5.104s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 5.232s
+CPU time consumed: 627ms
+Memory peak: 2.8M
+Memory swap peak: 0B
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

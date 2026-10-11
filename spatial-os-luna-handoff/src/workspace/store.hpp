@@ -7,6 +7,7 @@
 namespace spatial {
 class WorkspaceAuthority;
 class NativeLaunch;
+class WorkspaceResources;
 // A host execution registry. It has no room, world, or actor-session identity.
 class ExecutionStore {
 public:
@@ -28,6 +29,7 @@ public:
     workspace::v1::ApplicationAccessReply application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh = true);
     void set_authority(WorkspaceAuthority* authority);
     void set_native_launch(NativeLaunch* native);
+    void set_resources(WorkspaceResources* resources);
     void reconcile_authority();
     void reap();
     void stop_all();

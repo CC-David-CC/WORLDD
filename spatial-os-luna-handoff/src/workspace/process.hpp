@@ -11,12 +11,14 @@
 
 namespace spatial {
 class NativeCredential;
+class ApplicationResources;
 class ApplicationProcess {
 public:
     ApplicationProcess(const std::filesystem::path& project, const std::filesystem::path& repository,
                        const std::filesystem::path& state, bool writable,
                        const wire::ProcessLaunchRequest& request, std::function<void()> authority = [] {},
-                       std::unique_ptr<NativeCredential> native = {});
+                       std::unique_ptr<NativeCredential> native = {},
+                       std::unique_ptr<ApplicationResources> resources = {});
     ~ApplicationProcess();
     ApplicationProcess(const ApplicationProcess&) = delete;
     ApplicationProcess& operator=(const ApplicationProcess&) = delete;
@@ -32,5 +34,6 @@ private:
     std::optional<int> result_;
     std::function<void()> authority_;
     std::unique_ptr<NativeCredential> native_;
+    std::unique_ptr<ApplicationResources> resources_;
 };
 }

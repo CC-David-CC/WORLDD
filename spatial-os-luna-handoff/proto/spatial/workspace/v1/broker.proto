@@ -17,6 +17,31 @@ message NativeLaunchConfig {
 }
 
 message WorkspaceAuthorityBinding { string workspace = 1; string authority_directory = 2; }
+// Owner configuration. Resource ceilings do not grant workspace rights.
+message ApplicationResourceProfile {
+  string name = 1;
+  spatial.supervisor.v1.ProcessScopeBudget maximum = 2;
+}
+message ActorResourceLimit {
+  oneof subject {
+    spatial.authority.v1.ActorRef principal = 1;
+    string fixture_actor = 2;
+  }
+  spatial.supervisor.v1.ProcessScopeBudget maximum = 3;
+}
+message WorkspaceResourcePolicy {
+  string workspace = 1; // Empty only for the default policy.
+  spatial.supervisor.v1.ProcessScopeBudget total = 2;
+  spatial.supervisor.v1.ProcessScopeBudget actor_default = 3;
+  repeated ActorResourceLimit actors = 4;
+  repeated ApplicationResourceProfile profiles = 5;
+}
+message BrokerResourceConfig {
+  uint32 protocol_version = 1;
+  string delegated_cgroup = 2;
+  WorkspaceResourcePolicy default_policy = 3;
+  repeated WorkspaceResourcePolicy workspaces = 4;
+}
 message WorkspaceAuthorityConfig {
   string participant_runtime_config = 4;
   uint32 protocol_version = 1;

@@ -1,0 +1,127 @@
+{
+  "host": "sb16-2",
+  "status": "failed",
+  "started": 1791678219.5603807,
+  "pid": 2546493,
+  "manifest_sha256": "d321e7539964b3edd9703621ac09b5839ffa2d52d9a3097a5c65198ce0f1c105",
+  "runner_sha256": "992584e1d2ff5d0abe724a7abe756c4d3715fb85963e03141b6f8aa175096ad8",
+  "commands": [
+    {
+      "label": "debug-configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/debug/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=ON",
+        "-DSPATIAL_INPUT_TESTS=OFF",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "started": 1791678219.5702016,
+      "exit_code": 0,
+      "ended": 1791678220.738462,
+      "sha256": "b030a5cd436c4d4f7d216329a4630c82b633fd5418edd13e08087006e523cea0"
+    },
+    {
+      "label": "debug-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/debug/build",
+        "--target",
+        "spatial-process-termination-probe",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791678220.7494946,
+      "exit_code": 0,
+      "ended": 1791678262.4236062,
+      "sha256": "67516e355af122112e3a2c2ea1d9c1a9e5858fd21656c2a53abd06a20637cdb7"
+    },
+    {
+      "label": "debug-sync",
+      "argv": [
+        "sync",
+        "-f",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03"
+      ],
+      "started": 1791678262.439045,
+      "exit_code": 0,
+      "ended": 1791678262.8683472,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "debug-checks",
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/debug/build",
+        "-V",
+        "--output-on-failure",
+        "-R",
+        "^process-termination$"
+      ],
+      "started": 1791678262.9061723,
+      "exit_code": 0,
+      "ended": 1791678263.8233807,
+      "sha256": "b283b2a2f0832bcae76f92b68ecec4729f079f990406bd4f3904f38cf59feb09"
+    },
+    {
+      "label": "debug-application-io",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source/tools/with_resource_delegate.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-03/source/tests/core/test_broker_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/workspaced",
+        "BrokerResourceTests.test_application_writes_obey_broker_io_budget"
+      ],
+      "started": 1791678263.9330196,
+      "exit_code": 1,
+      "ended": 1791678265.253694,
+      "sha256": "e1d1464330a05a2697edaa9b0400f7e47f1af94294abb5ae2aea4f32a0b78ace"
+    }
+  ],
+  "profiles": {},
+  "phase_complete": false,
+  "scope": "Broker resource integration. Launcher provisioning and storage remain pending.",
+  "error": "RuntimeError: debug-application-io failed; preserve this attempt",
+  "ended": 1791678265.2558033,
+  "attachments": {
+    "runner.py": "992584e1d2ff5d0abe724a7abe756c4d3715fb85963e03141b6f8aa175096ad8",
+    "debug-checks.log": "b283b2a2f0832bcae76f92b68ecec4729f079f990406bd4f3904f38cf59feb09",
+    "debug-build.log": "67516e355af122112e3a2c2ea1d9c1a9e5858fd21656c2a53abd06a20637cdb7",
+    "debug-configure.log": "b030a5cd436c4d4f7d216329a4630c82b633fd5418edd13e08087006e523cea0",
+    "debug-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug-application-io.log": "e1d1464330a05a2697edaa9b0400f7e47f1af94294abb5ae2aea4f32a0b78ace",
+    "manifest.json": "d321e7539964b3edd9703621ac09b5839ffa2d52d9a3097a5c65198ce0f1c105",
+    "debug/witnesses/test_confirmed_stop_has_already_terminated_detached_descendants/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_confirmed_stop_has_already_terminated_detached_descendants/resource.textproto": "a098968005dbf08a8bac13afa6635e6f74982e926750c1c4ae848e239806c2e2",
+    "debug/witnesses/test_confirmed_stop_has_already_terminated_detached_descendants/probe.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_destructor_wait_error_cannot_return_broker_success/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_destructor_wait_error_cannot_return_broker_success/resource.textproto": "e2e22e14bffd744d9e482d1838a357b77452f95d079e2e7fbc382b06a0d06b40",
+    "debug/witnesses/test_destructor_wait_error_cannot_return_broker_success/probe.log": "bdb1f4838a5e63045808a690683b3801a505afcc027777854bbd0672665324c0",
+    "debug/witnesses/test_wait_error_cannot_be_reported_as_confirmed_stop/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_wait_error_cannot_be_reported_as_confirmed_stop/resource.textproto": "038a70c9124c212309ab0148d82c04c0f6b6d5d59d31f9495ac093db7204298b",
+    "debug/witnesses/test_wait_error_cannot_be_reported_as_confirmed_stop/probe.log": "cd393bf96c417a23d215696b55d2e3aa7b0f77a1469ff791acd7a85c3e28596a",
+    "debug/witnesses/test_destructor_signal_error_cannot_return_broker_success/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_destructor_signal_error_cannot_return_broker_success/resource.textproto": "359acdddc1b084c026a0378c6fe8f43bb31be31a3419d992f91479b55afdfec6",
+    "debug/witnesses/test_destructor_signal_error_cannot_return_broker_success/probe.log": "b7a4c89c627ce1c7be74258805f22834e3f67a7f151b50ea8f298e797d9ed515",
+    "debug/witnesses/test_signal_error_returns_failure_without_waiting_for_live_child/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_signal_error_returns_failure_without_waiting_for_live_child/resource.textproto": "aec178ebced3cfaafc46857691a0fdbacbea6f5b4676910960a03d9cf8d7aef0",
+    "debug/witnesses/test_signal_error_returns_failure_without_waiting_for_live_child/probe.log": "7e54297331337b74ec52f246eb6db7acae108c52027ab7e016176653340b08e1",
+    "debug/witnesses/test_already_exited_process_can_be_stopped_twice/setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_already_exited_process_can_be_stopped_twice/resource.textproto": "ddb7ebc3942c1abb51a2c78af51c0db857cf6542ec1d34fc456a96b402450236",
+    "debug/witnesses/test_already_exited_process_can_be_stopped_twice/probe.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/broker-0-265ca38c95c481bfa06db41640adf0d4-setup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/broker-0.textproto": "f508a657a275500584384f639e46646afafccebdee36cb0e077a1285719c5227",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/owner-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "debug/witnesses/test_application_writes_obey_broker_io_budget/broker-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

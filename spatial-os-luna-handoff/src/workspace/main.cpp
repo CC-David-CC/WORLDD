@@ -1,6 +1,7 @@
 #include "workspace/store.hpp"
 #include "workspace/authority.hpp"
 #include "workspace/native_launch.hpp"
+#include "workspace/resources.hpp"
 #include "workspace/control.hpp"
 #include "workspace/control_channels.hpp"
 #include "world/store.hpp"
@@ -101,7 +102,7 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
 }
 int main(int argc, char** argv) {
     try {
-        std::filesystem::path state, authority_config, seed;
+        std::filesystem::path state, authority_config, seed, resource_config;
         unsigned migration = 0; bool fixture_faults = false;
         int native_fd = -1;
         int control_fd = -1, control_peer = -1;
@@ -109,6 +110,7 @@ int main(int argc, char** argv) {
             const std::string_view argument(argv[i]);
             if (argument == "--state-dir" && state.empty() && i+1 < argc) state = argv[++i];
             else if (argument == "--authority-config" && authority_config.empty() && i+1 < argc) authority_config = argv[++i];
+            else if (argument == "--resource-config" && resource_config.empty() && i+1 < argc) resource_config = argv[++i];
             else if (argument == "--init-authority" && seed.empty() && i+1 < argc) seed = argv[++i];
             else if (argument == "--fixture-faults" && !fixture_faults) fixture_faults = true;
             else if (argument == "--native-security-fd" && native_fd < 0 && i+1 < argc) {
@@ -131,13 +133,16 @@ int main(int argc, char** argv) {
         if (!state.is_absolute()) throw std::invalid_argument("Execution state directory must be absolute");
         if ((control_fd < 0) != (control_peer < 0) || (control_fd >= 0 && control_fd == native_fd))
             throw std::invalid_argument("Control supervisor requires a separate descriptor and peer");
-        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || native_fd >= 0 || control_fd >= 0)) || (migration && !seed.empty()))
+        if (((migration || !seed.empty()) && (fixture_faults || !authority_config.empty() || !resource_config.empty() || native_fd >= 0 || control_fd >= 0)) || (migration && !seed.empty()))
             throw std::invalid_argument("Provisioning and migration require an exclusive stopped broker");
         umask(0077); signal(SIGPIPE, SIG_IGN);
         // Destroy jobs before their authority callback target.
         std::unique_ptr<spatial::WorkspaceAuthority> authority;
         std::unique_ptr<spatial::NativeLaunch> native;
+        std::unique_ptr<spatial::WorkspaceResources> resources;
+        if (!resource_config.empty()) resources = std::make_unique<spatial::WorkspaceResources>(resource_config);
         spatial::ExecutionStore store(state, migration, fixture_faults);
+        store.set_resources(resources.get());
         if (migration) { std::cerr << "Execution schema migration complete\n"; return 0; }
         if (!seed.empty()) { spatial::initialize_workspace_authority(seed, store); return 0; }
         if (!authority_config.empty()) {

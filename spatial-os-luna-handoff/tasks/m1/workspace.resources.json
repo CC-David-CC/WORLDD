@@ -16,7 +16,7 @@
     "Run the complete M03 phase gate after focused implementation checks pass."
   ],
   "known_limitations": [
-    "Existing setrlimit controls are per process and do not establish aggregate workspace or application budgets.",
+    "Per-process setrlimit remains. Explicit broker resource configuration now adds qualified aggregate application, actor, and workspace limits.",
     "The root ext4 filesystem does not currently advertise project quotas. Do not claim storage quotas exist.",
     "The kernel advertises io on both hosts, but the delegated user service receives only cpu, memory, and pids. Project-scoped I/O delegation requires implementation and qualification.",
     "A five-second client passed one bounded write-pressure trial. This does not establish worst-case latency.",
@@ -28,14 +28,14 @@
     "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json"
   ],
   "remaining": [
-    "Derive immutable effective budgets from workspace policy, actor authority, and requested application profile.",
-    "Create aggregate workspace parents and attach every application before its held startup releases.",
+    "Provision controller delegation and explicit resource policy through production session launchers.",
+    "Connect existing application and authenticated-authority fixtures to that production provisioning path.",
     "Include broker Git/file effects and all writable workspace paths in resource and storage accounting.",
     "Qualify bounded persistent storage, independent escape attempts, and failure recovery.",
     "Measure issuer availability under bounded competing writes, then run the full M03 gate on both hosts."
   ],
   "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json",
-  "current_step": "aggregate_process_scope_qualified_broker_integration_pending",
+  "current_step": "broker_budgets_qualified_session_provisioning_pending",
   "qualified_primitive": {
     "evidence": "evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json",
     "passed": 108,
@@ -43,5 +43,13 @@
     "skipped": 0,
     "phase_complete": false,
     "broker_integrated": false
+  },
+  "broker_resource_integration": {
+    "evidence": "evidence/m03-broker-resources-2026-10-10/primary-review.json",
+    "passed": 176,
+    "failed_final": 0,
+    "skipped": 0,
+    "phase_complete": false,
+    "session_launchers_provisioned": false
   }
 }

@@ -1,0 +1,147 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 19
+    Start 19: authority-prepared-launch
+
+19: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-prepared-f284460ffc7002b9bfb29c84a7fce9d6ba8b266d849f2c84fd65b241bc1436f0" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source/tests/core/test_authority_prepared_launch.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe"
+19: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build
+19: Test timeout computed to be: 120
+19: Running as unit: spatial-prepared-f284460ffc7002b9bfb29c84a7fce9d6ba8b266d849f2c84fd65b241bc1436f0.service; invocation ID: 3f9d72fbde1547aea14cc940b9d6d956
+19: test_prepared_identity_and_membership_precede_child_execution (__main__.PreparedLaunchTests.test_prepared_identity_and_membership_precede_child_execution) ... ok
+19: test_stopped_prepared_scope_cannot_execute (__main__.PreparedLaunchTests.test_stopped_prepared_scope_cannot_execute) ... ok
+19: test_second_start_cannot_execute_or_replace_live_identity (__main__.PreparedLaunchTests.test_second_start_cannot_execute_or_replace_live_identity) ... ok
+19: test_only_explicit_descriptors_survive_exec_without_source_collision (__main__.PreparedLaunchTests.test_only_explicit_descriptors_survive_exec_without_source_collision) ... ok
+19: test_invalid_targets_are_rejected_before_start (__main__.PreparedLaunchTests.test_invalid_targets_are_rejected_before_start) ... ok
+19: test_mismatched_descriptor_table_is_rejected_before_start (__main__.PreparedLaunchTests.test_mismatched_descriptor_table_is_rejected_before_start) ... ok
+19: test_excessive_descriptor_table_is_rejected_before_start (__main__.PreparedLaunchTests.test_excessive_descriptor_table_is_rejected_before_start) ... ok
+19: test_failed_exec_requires_cleanup_and_cannot_retry_execution (__main__.PreparedLaunchTests.test_failed_exec_requires_cleanup_and_cannot_retry_execution) ... ok
+19: 
+19: ----------------------------------------------------------------------
+19: Ran 8 tests in 0.151s
+19: 
+19: OK
+19: Finished with result: success
+19: Main processes terminated with: code=exited/status=0
+19: Service runtime: 221ms
+19: CPU time consumed: 155ms
+19: Memory peak: 1.7M
+19: Memory swap peak: 0B
+1/4 Test #19: authority-prepared-launch ........   Passed    0.25 sec
+test 20
+    Start 20: authority-process-scope
+
+20: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-scope-f284460ffc7002b9bfb29c84a7fce9d6ba8b266d849f2c84fd65b241bc1436f0" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source/tests/core/test_authority_process_scope.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe"
+20: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build
+20: Test timeout computed to be: 120
+20: Running as unit: spatial-scope-f284460ffc7002b9bfb29c84a7fce9d6ba8b266d849f2c84fd65b241bc1436f0.service; invocation ID: 364a22689f984b0c92844641535c37ea
+20: test_detached_descendants_exit_before_receipt (__main__.ProcessScopeTests.test_detached_descendants_exit_before_receipt) ... ok
+20: test_exec_failure_removes_scope (__main__.ProcessScopeTests.test_exec_failure_removes_scope) ... ok
+20: test_invalid_executable_rejected_without_scope (__main__.ProcessScopeTests.test_invalid_executable_rejected_without_scope) ... ok
+20: test_kernel_denied_kill_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_kill_never_returns_stopped) ... ok
+20: test_kernel_denied_wait_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_wait_never_returns_stopped) ... ok
+20: test_leader_exit_does_not_hide_live_detached_child (__main__.ProcessScopeTests.test_leader_exit_does_not_hide_live_detached_child) ... ok
+20: test_ordinary_directory_rejected_before_execution (__main__.ProcessScopeTests.test_ordinary_directory_rejected_before_execution) ... ok
+20: test_parent_environment_is_not_exported (__main__.ProcessScopeTests.test_parent_environment_is_not_exported) ... ok
+20: test_stop_preserves_independent_scope (__main__.ProcessScopeTests.test_stop_preserves_independent_scope) ... ok
+20: test_unknown_protobuf_fields_rejected (__main__.ProcessScopeTests.test_unknown_protobuf_fields_rejected) ... ok
+20: 
+20: ----------------------------------------------------------------------
+20: Ran 10 tests in 0.169s
+20: 
+20: OK
+20: Finished with result: success
+20: Main processes terminated with: code=exited/status=0
+20: Service runtime: 238ms
+20: CPU time consumed: 185ms
+20: Memory peak: 1.5M
+20: Memory swap peak: 0B
+2/4 Test #20: authority-process-scope ..........   Passed    0.27 sec
+test 21
+    Start 21: process-scope-resources
+
+21: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source/tools/with_resource_delegate.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source/tests/core/test_process_scope_resources.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe"
+21: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build
+21: Environment variables: 
+21:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source
+21:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+21:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+21: Test timeout computed to be: 150
+21: {"unit": "spatial-m03-resources-ea4fd79731f94cd1b94f0dbf6ddf0747.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-ea4fd79731f94cd1b94f0dbf6ddf0747.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/witnesses", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source/tests/core/test_process_scope_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-ea4fd79731f94cd1b94f0dbf6ddf0747.service"]}
+21: Running as unit: spatial-m03-resources-ea4fd79731f94cd1b94f0dbf6ddf0747.service; invocation ID: 0899352cd33f4068a021afdaef0c5a95
+21: test_budget_cannot_be_replaced_after_prepare_or_start (__main__.ResourceScopeTests.test_budget_cannot_be_replaced_after_prepare_or_start) ... ok
+21: test_controls_exist_before_child_execution (__main__.ResourceScopeTests.test_controls_exist_before_child_execution) ... ok
+21: test_fork_and_detachment_share_one_process_budget (__main__.ResourceScopeTests.test_fork_and_detachment_share_one_process_budget) ... ok
+21: test_incomplete_and_invalid_budgets_leave_no_scope (__main__.ResourceScopeTests.test_incomplete_and_invalid_budgets_leave_no_scope) ... ok
+21: test_memory_exhaustion_kills_group_and_preserves_sibling (__main__.ResourceScopeTests.test_memory_exhaustion_kills_group_and_preserves_sibling) ... ok
+21: test_missing_device_component_does_not_select_device_zero (__main__.ResourceScopeTests.test_missing_device_component_does_not_select_device_zero) ... ok
+21: test_missing_io_controller_fails_before_execution (__main__.ResourceScopeTests.test_missing_io_controller_fails_before_execution) ... ok
+21: test_real_writes_obey_io_budget (__main__.ResourceScopeTests.test_real_writes_obey_io_budget) ... ok
+21: test_two_busy_children_share_cpu_quota (__main__.ResourceScopeTests.test_two_busy_children_share_cpu_quota) ... ok
+21: 
+21: ----------------------------------------------------------------------
+21: Ran 9 tests in 7.160s
+21: 
+21: OK
+21: Finished with result: success
+21: Main processes terminated with: code=exited/status=0
+21: Service runtime: 7.257s
+21: CPU time consumed: 609ms
+21: Memory peak: 2.4M
+21: Memory swap peak: 0B
+21: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+3/4 Test #21: process-scope-resources ..........   Passed    7.39 sec
+test 22
+    Start 22: broker-resources
+
+22: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source/tools/with_resource_delegate.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source/tests/core/test_broker_resources.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/workspaced"
+22: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build
+22: Environment variables: 
+22:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source
+22:  ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+22:  UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+22: Test timeout computed to be: 150
+22: {"unit": "spatial-m03-resources-23ae25d360ef440d89d6b5129fd37eb3.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-23ae25d360ef440d89d6b5129fd37eb3.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/witnesses", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/source/tests/core/test_broker_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/spatial-process-scope-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-02/debug/build/workspaced"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-23ae25d360ef440d89d6b5129fd37eb3.service"]}
+22: Running as unit: spatial-m03-resources-23ae25d360ef440d89d6b5129fd37eb3.service; invocation ID: eb850845c1324937b8148610183c0b07
+22: test_actor_capacity_preserves_other_actor (__main__.BrokerResourceTests.test_actor_capacity_preserves_other_actor) ... ok
+22: test_broker_crash_cleanup_preserves_independent_broker (__main__.BrokerResourceTests.test_broker_crash_cleanup_preserves_independent_broker) ... ok
+22: test_hierarchy_intersection_and_private_controls (__main__.BrokerResourceTests.test_hierarchy_intersection_and_private_controls) ... ok
+22: test_missing_configuration_denies_before_pending_record (__main__.BrokerResourceTests.test_missing_configuration_denies_before_pending_record) ... ok
+22: test_missing_io_controller_fails_before_store_mutation (__main__.BrokerResourceTests.test_missing_io_controller_fails_before_store_mutation) ... ok
+22: test_read_only_authority_survives_resource_integration (__main__.BrokerResourceTests.test_read_only_authority_survives_resource_integration) ... ok
+22: test_revocation_returns_capacity_and_preserves_independent_application (__main__.BrokerResourceTests.test_revocation_returns_capacity_and_preserves_independent_application) ... ok
+22: test_uncovered_storage_device_denies_before_pending_record (__main__.BrokerResourceTests.test_uncovered_storage_device_denies_before_pending_record) ... ok
+22: test_workspace_capacity_returns_after_checked_exit (__main__.BrokerResourceTests.test_workspace_capacity_returns_after_checked_exit) ... ok
+22: test_wrong_root_fails_before_any_store_mutation (__main__.BrokerResourceTests.test_wrong_root_fails_before_any_store_mutation) ... ok
+22: 
+22: ----------------------------------------------------------------------
+22: Ran 10 tests in 8.230s
+22: 
+22: OK
+22: Finished with result: success
+22: Main processes terminated with: code=exited/status=0
+22: Service runtime: 8.349s
+22: CPU time consumed: 1.469s
+22: Memory peak: 2.4M
+22: Memory swap peak: 0B
+22: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+4/4 Test #22: broker-resources .................   Passed    8.49 sec
+
+The following tests passed:
+	authority-prepared-launch
+	authority-process-scope
+	process-scope-resources
+	broker-resources
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =  16.40 sec

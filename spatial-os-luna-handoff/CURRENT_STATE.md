@@ -1,5 +1,40 @@
 # Implementation status
 
+## 2026-10-10: Broker resource enforcement passed focused qualification
+
+The work branch assigns workspace, actor, and application cgroups before releasing application startup.
+Explicit operator policy supplies memory, swap, process, CPU, and per-device I/O ceilings.
+The broker intersects these ceilings and reserves capacity before creating a pending process record.
+Missing configuration, unavailable controllers, and uncovered writable storage devices deny new application execution.
+Resource policy grants no execution or file authority. Existing authority checks remain separate.
+
+The selected evidence covers 44 checks per host/profile, or 176 passes with zero final failures and skips.
+Both hosts passed Debug and runtime sanitizers. The audit verified 439 attachments and scanned 304 logs.
+All 359 candidate source inputs and 41 locked files matched their recorded hashes.
+The witnesses cover kernel limits, capacity return, read-only access, revocation, and broker-crash cleanup.
+All six existing process-termination test bodies remain unchanged and passed with explicit resource provisioning.
+A real application wrote 16 MiB in 3.96 to 4.03 seconds under its 4 MiB/s limit.
+Kernel accounting recorded all 16 MiB on both hosts in both profiles.
+Read evidence/m03-broker-resources-2026-10-10/primary-review.json.
+
+Candidate01's missing Python protobuf dependency remains preserved as a fixture failure on both hosts.
+Candidate02 reproduced the old broker's unbudgeted launch before passing its ten new broker checks.
+Candidate03 exposed a witness error when the initial io.stat omitted wbytes on sb16-2.
+Candidate04 preserves raw initial and final counters. Final write accounting remains mandatory.
+The original candidate03 raw counter line was not captured; its exact contents cannot be reconstructed.
+
+Qualification combines candidate02 runtime results with additive candidate03/04 termination and I/O evidence.
+Production source matches candidate02. Current-source workspaced was not rebuilt after the test-only additions.
+All 31 exact transient services are unloaded. Controller delegation returned to its prior values.
+Normal host checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd. No runtime or operator state changed.
+
+M03 remains incomplete. Session launchers and older application fixtures still need explicit resource provisioning.
+The current branch denies their unconfigured application launches until that integration is complete.
+Storage quotas, broker Git/file I/O accounting, independent escape tests, and contention recovery remain pending.
+The full M03 gate, native GUI resource integration, physical devices, GPU, and live-model qualification remain unrun.
+These results do not prove that issuer fdatasync latency is resolved. Timeout and durability settings remain unchanged.
+M01 and M02 remain qualified at their recorded earlier pins. M03-M16 and full Spatial-M1 remain incomplete.
+
 ## 2026-10-10: Aggregate process-scope limits passed focused qualification
 
 The production process-scope primitive now accepts explicit memory, swap, process, CPU, and per-device I/O budgets.

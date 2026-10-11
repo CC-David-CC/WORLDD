@@ -7,6 +7,7 @@
 #include <sys/types.h>
 
 namespace spatial::supervisor {
+void validate_budget(const v1::ProcessScopeBudget& budget);
 // Owns one authority process subtree. Native cleanup and issuer retirement are separate.
 class ProcessScope final {
 public:
@@ -25,6 +26,9 @@ public:
     // Duplicates the retained live child handle. The caller must close the result.
     // This does not authorize an external transfer or prove process cleanup.
     int duplicate_child_pidfd() const;
+    // The PID remains owned and unreaped. Never use it as a durable identity.
+    pid_t direct_child_pid() const;
+    void enable_children();
     v1::ProcessScopeStopped stop();
 private:
     ProcessScope() = default;

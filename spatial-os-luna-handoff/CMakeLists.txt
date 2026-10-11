@@ -187,6 +187,8 @@ target_link_libraries(spatial-compositor-config PUBLIC spatial-scene)
 add_library(spatial-identity STATIC src/identity/keys.cpp)
 add_library(spatial-process-scope STATIC src/supervisor/process_scope.cpp)
 target_link_libraries(spatial-process-scope PUBLIC spatial-scene)
+add_library(spatial-workspace-resources STATIC src/workspace/resources.cpp)
+target_link_libraries(spatial-workspace-resources PUBLIC spatial-process-scope spatial-identity-tls)
 add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/supervisor/child_handle.cpp src/supervisor/child_handle_client.cpp src/workspace/native_launch.cpp ${launch_proto_sources} ${launch_proto_headers})
 target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope spatial-control-reply SQLite::SQLite3)
 add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
@@ -243,7 +245,7 @@ add_executable(spatial-app-init src/workspace/app_init.cpp)
 target_link_libraries(spatial-app-init PRIVATE spatial-scene)
 add_executable(workspaced src/workspace/main.cpp src/workspace/store.cpp src/workspace/git_command.cpp src/workspace/status.cpp src/workspace/process.cpp src/workspace/authority.cpp src/workspace/native_launch.cpp src/workspace/control.cpp src/workspace/control_channels.cpp)
 target_include_directories(workspaced PRIVATE src)
-target_link_libraries(workspaced PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
+target_link_libraries(workspaced PRIVATE spatial-workspace-resources spatial-scene SQLite::SQLite3 spatial-authority spatial-participant-runtime-lib)
 add_dependencies(workspaced spatial-app-init)
 add_executable(spatial-test-host src/testing/main.cpp src/platform/worker.cpp)
 target_link_libraries(spatial-test-host PRIVATE spatial-core)
@@ -251,6 +253,8 @@ add_dependencies(spatial-test-host worldd workspaced)
 
 include(CTest)
 if(BUILD_TESTING)
+    add_dependencies(workspaced broker-python-protobuf native-scope-python-protobuf scope-python-protobuf
+        python-protobuf security-python-protobuf issuer-python-protobuf grants-python-protobuf key-python-protobuf)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
     add_executable(spatial-native-scope-probe src/testing/native_scope_probe.cpp src/workspace/native_launch.cpp)
     target_link_libraries(spatial-native-scope-probe PRIVATE spatial-scene)
@@ -447,13 +451,21 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-process-scope-probe>)
     set_tests_properties(process-scope-resources PROPERTIES TIMEOUT 150
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME broker-resources COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_resources.py"
+        $<TARGET_FILE:spatial-process-scope-probe> $<TARGET_FILE:workspaced>)
+    set_tests_properties(broker-resources PROPERTIES TIMEOUT 150
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_executable(spatial-process-termination-probe src/testing/process_termination_probe.cpp src/workspace/process.cpp src/workspace/native_launch.cpp)
-    target_link_libraries(spatial-process-termination-probe PRIVATE spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
-    add_dependencies(spatial-process-termination-probe spatial-app-init)
+    target_link_libraries(spatial-process-termination-probe PRIVATE spatial-workspace-resources spatial-scene SQLite::SQLite3 spatial-authority spatial-issuer-watch-lib)
+    add_dependencies(spatial-process-termination-probe spatial-app-init broker-python-protobuf native-scope-python-protobuf
+        scope-python-protobuf python-protobuf security-python-protobuf issuer-python-protobuf grants-python-protobuf key-python-protobuf)
     add_test(NAME process-termination COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_process_termination.py" $<TARGET_FILE:spatial-process-termination-probe>)
-    set_tests_properties(process-termination PROPERTIES TIMEOUT 90
-        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    set_tests_properties(process-termination PROPERTIES TIMEOUT 150
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_test(NAME workspace-participant-races COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_participant_races.py"
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)

@@ -1,0 +1,90 @@
+{
+  "host": "sb16-2",
+  "status": "failed",
+  "started": 1791677822.091486,
+  "pid": 2542734,
+  "manifest_sha256": "7f94480491bb96936707e00384369362987fe6f8aa6d5421227c129464b0e379",
+  "runner_sha256": "d588eb5de7dc9fbcb47fdcc6de8510fdab3a2faa0d64f846577f73a03c586c54",
+  "commands": [
+    {
+      "label": "debug-configure",
+      "argv": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/source",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/debug/build",
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTING=ON",
+        "-DSPATIAL_INPUT_TESTS=OFF",
+        "-DSPATIAL_SANITIZERS=OFF"
+      ],
+      "started": 1791677822.10097,
+      "exit_code": 0,
+      "ended": 1791677823.2688155,
+      "sha256": "465eb1623888e56659e99bf79d9f1b63dfcb53488945c39531bf5c88658b7bc1"
+    },
+    {
+      "label": "debug-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/debug/build",
+        "--target",
+        "workspaced",
+        "spatial-process-scope-probe",
+        "spatial-process-termination-probe",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791677823.2833335,
+      "exit_code": 0,
+      "ended": 1791677883.5023406,
+      "sha256": "9d678109f094e571114860362b6f20d77efc5cfd7c02e2577f3f6fe43734f714"
+    },
+    {
+      "label": "debug-sync",
+      "argv": [
+        "sync",
+        "-f",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01"
+      ],
+      "started": 1791677883.543991,
+      "exit_code": 0,
+      "ended": 1791677884.1119466,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "baseline",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/source/tools/with_resource_delegate.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/source/tests/core/test_broker_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-broker-resources-01/debug/build/spatial-process-scope-probe",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m02-phase-gate-02/debug/build/workspaced",
+        "BrokerResourceTests.test_missing_configuration_denies_before_pending_record"
+      ],
+      "started": 1791677884.1504192,
+      "exit_code": 1,
+      "ended": 1791677884.6673105,
+      "sha256": "a06929de737ff1b4f31a56b6b5dffc6eabf984a059dbb0288a6e8eeae2ef9a22"
+    }
+  ],
+  "profiles": {},
+  "phase_complete": false,
+  "scope": "Broker resource integration. Launcher provisioning and storage remain pending.",
+  "error": "AssertionError: ",
+  "ended": 1791677884.6691542,
+  "attachments": {
+    "runner.py": "d588eb5de7dc9fbcb47fdcc6de8510fdab3a2faa0d64f846577f73a03c586c54",
+    "debug-build.log": "9d678109f094e571114860362b6f20d77efc5cfd7c02e2577f3f6fe43734f714",
+    "debug-configure.log": "465eb1623888e56659e99bf79d9f1b63dfcb53488945c39531bf5c88658b7bc1",
+    "debug-sync.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "manifest.json": "7f94480491bb96936707e00384369362987fe6f8aa6d5421227c129464b0e379",
+    "baseline.log": "a06929de737ff1b4f31a56b6b5dffc6eabf984a059dbb0288a6e8eeae2ef9a22"
+  }
+}

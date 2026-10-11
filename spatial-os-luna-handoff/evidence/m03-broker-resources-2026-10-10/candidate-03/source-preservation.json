@@ -1,0 +1,7 @@
+{
+  "basis": "candidate-04 manifest; unchanged files match integrated source",
+  "archive_sha256": "44ad39a1595bb6ad2bb1c3d9cfafd0eac438268dc51c2d674872f08efa9a470e",
+  "deltas": {
+    "tests/core/test_broker_resources.py": "0de81af4dec07a7e971ac649ed3d28e6705461fa6e6c77b08cb468cc4d10d208"
+  }
+}

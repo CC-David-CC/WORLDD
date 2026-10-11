@@ -5,6 +5,7 @@
 #include <climits>
 #include <csignal>
 #include <cstring>
+#include <dirent.h>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -62,14 +63,43 @@ void control(int directory, const char* name, const std::string& value) {
     check(size == static_cast<ssize_t>(value.size()), "Cannot write cgroup control");
 }
 void tick() { poll(nullptr, 0, 5); }
+void remove_empty_children(int directory, unsigned depth = 0) {
+    valid(depth <= 8, "Excessive owned cgroup nesting");
+    Fd duplicate(openat(directory, ".", O_RDONLY | O_DIRECTORY | O_CLOEXEC));
+    check(duplicate.value >= 0, "Cannot enumerate owned cgroups");
+    DIR* entries = fdopendir(duplicate.value);
+    check(entries != nullptr, "Cannot read owned cgroups");
+    duplicate.value = -1;
+    try {
+        for (;;) {
+            errno = 0; const auto* entry = readdir(entries);
+            if (!entry) { check(errno == 0, "Cannot enumerate owned cgroups"); break; }
+            const std::string name = entry->d_name;
+            if (name == "." || name == "..") continue;
+            struct stat info{};
+            check(fstatat(directory, name.c_str(), &info, AT_SYMLINK_NOFOLLOW) == 0, "Cannot inspect owned cgroup child");
+            if (!S_ISDIR(info.st_mode)) continue;
+            valid(info.st_uid == geteuid(), "Foreign cgroup child prevents cleanup");
+            Fd child(openat(directory, name.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC));
+            check(child.value >= 0, "Cannot pin owned cgroup child");
+            struct stat retained{};
+            check(fstat(child.value, &retained) == 0, "Cannot inspect retained cgroup child");
+            valid(retained.st_dev == info.st_dev && retained.st_ino == info.st_ino, "Cgroup child identity changed");
+            remove_empty_children(child.value, depth+1);
+            check(fstatat(directory, name.c_str(), &info, AT_SYMLINK_NOFOLLOW) == 0, "Cannot recheck cgroup child");
+            valid(retained.st_dev == info.st_dev && retained.st_ino == info.st_ino, "Cgroup child identity changed before removal");
+            check(unlinkat(directory, name.c_str(), AT_REMOVEDIR) == 0, "Cannot remove empty owned cgroup child");
+        }
+    } catch (...) { closedir(entries); throw; }
+    closedir(entries);
+}
 [[noreturn]] void child_failure(int gate, int error) {
     (void)send(gate, &error, sizeof(error), MSG_NOSIGNAL); _exit(126);
 }
 }
 
-std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path& root,
-                                                  const v1::ProcessScopeBudget* budget) {
-    if (budget) {
+void validate_budget(const v1::ProcessScopeBudget& value) {
+        const auto* budget = &value;
         validate_message(*budget);
         const auto page = sysconf(_SC_PAGESIZE);
         valid(page > 0, "Cannot determine memory page size");
@@ -92,7 +122,10 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path&
                   io.write_bytes_per_second() > 0 && io.write_bytes_per_second() <= maximum,
                   "I/O rates must be positive and bounded");
         }
-    }
+}
+std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path& root,
+                                                  const v1::ProcessScopeBudget* budget) {
+    if (budget) validate_budget(*budget);
     auto result = std::unique_ptr<ProcessScope>(new ProcessScope);
     result->parent_ = open(root.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
     check(result->parent_ >= 0, "Cannot open delegated cgroup");
@@ -134,6 +167,15 @@ std::unique_ptr<ProcessScope> ProcessScope::prepare(const std::filesystem::path&
                     " wbps=" + std::to_string(io.write_bytes_per_second()) + "\n");
     }
     return result;
+}
+
+void ProcessScope::enable_children() {
+    valid(!started_ && !removed_ && !populated(), "Child controllers require an empty prepared scope");
+    control(scope_, "cgroup.subtree_control", "+cpu +memory +pids +io\n");
+}
+pid_t ProcessScope::direct_child_pid() const {
+    valid(started_ && !removed_ && !reaped_ && child_ > 0, "No retained direct child");
+    return child_;
 }
 
 std::unique_ptr<ProcessScope> ProcessScope::launch(const std::filesystem::path& root,
@@ -283,6 +325,7 @@ v1::ProcessScopeStopped ProcessScope::stop() {
             if (waited == child_) { reaped_ = true; break; }
             valid(Clock::now() < deadline, "Authority child reap deadline exceeded"); tick();
         }
+        if (scope_ >= 0) remove_empty_children(scope_);
         if (!identity_.scope_name().empty()) {
             struct stat named{};
             check(fstatat(parent_, identity_.scope_name().c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0,
