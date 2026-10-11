@@ -1,0 +1,8 @@
+ninja: Entering directory `/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08'
+[1/578] Linking static target src/compiler/spirv/libvtn.a
+[2/578] Generating src/compiler/glsl/glcpp/glcpp-parse.[ch] with a custom command
+FAILED: src/compiler/glsl/glcpp/glcpp-parse.c src/compiler/glsl/glcpp/glcpp-parse.h 
+/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/parser-tools/image/usr/bin/bison -Wno-deprecated -o src/compiler/glsl/glcpp/glcpp-parse.c -p glcpp_parser_ --defines=src/compiler/glsl/glcpp/glcpp-parse.h ../mesa-25.2.8/src/compiler/glsl/glcpp/glcpp-parse.y
+/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/parser-tools/image/usr/bin/bison: m4 subprocess failed: No such file or directory
+[3/578] Generating src/git_sha1.h with a custom command
+ninja: build stopped: subcommand failed.

@@ -1,6 +1,11 @@
 Defect: Native-server software GLX provider leaks during shutdown.
 Status: Reproduced again on sb16 and sb16-2. M04 graphics qualification remains failed.
 
+2026-10-11 diagnosis narrows the allocation owners to Mesa EGL global display and device records.
+The source cleanup registration candidate passes a loaded-vendor A/B check on sb16.
+Full graphics qualification and the sb16-2 candidate remain pending.
+Read mesa-egl-default-cleanup-not-registered.txt for the exact limits.
+
 GLX-enabled ASan/UBSan Xvfb reports 3176 bytes in five allocations.
 Stacks pass through __glXDRIscreenProbe and glxdriswrast.c:439.
 Several allocation frames come from unloaded provider modules.

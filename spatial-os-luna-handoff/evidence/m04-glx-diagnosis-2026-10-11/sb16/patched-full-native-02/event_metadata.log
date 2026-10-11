@@ -1,0 +1,9 @@
+test_configure_notify_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_configure_notify_does_not_disclose_foreign_sibling) ... ok
+test_configure_notify_preserves_authorized_same_application_sibling (__main__.EventMetadataTests.test_configure_notify_preserves_authorized_same_application_sibling) ... ok
+test_filter_does_not_change_the_privileged_recipients_event (__main__.EventMetadataTests.test_filter_does_not_change_the_privileged_recipients_event) ... ok
+test_swapped_configure_notify_does_not_disclose_foreign_sibling (__main__.EventMetadataTests.test_swapped_configure_notify_does_not_disclose_foreign_sibling) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.383s
+
+OK

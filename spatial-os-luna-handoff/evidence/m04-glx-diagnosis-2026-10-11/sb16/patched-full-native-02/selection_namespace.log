@@ -1,0 +1,92 @@
+test_application_cannot_change_selection_namespace (__main__.SelectionNamespaceTests.test_application_cannot_change_selection_namespace) ... ok
+test_broker_cannot_change_selection_namespace (__main__.SelectionNamespaceTests.test_broker_cannot_change_selection_namespace) ... ok
+test_clearing_one_namespace_preserves_another_owner (__main__.SelectionNamespaceTests.test_clearing_one_namespace_preserves_another_owner) ... ok
+test_compositor_selects_namespace_and_observes_revocation_cleanup (__main__.SelectionNamespaceTests.test_compositor_selects_namespace_and_observes_revocation_cleanup) ... FAIL
+test_destroyed_owner_does_not_clear_another_namespace (__main__.SelectionNamespaceTests.test_destroyed_owner_does_not_clear_another_namespace) ... ok
+test_empty_namespace_conversion_does_not_contact_foreign_owner (__main__.SelectionNamespaceTests.test_empty_namespace_conversion_does_not_contact_foreign_owner) ... ok
+test_foreign_primary_ownership_does_not_change_empty_namespace (__main__.SelectionNamespaceTests.test_foreign_primary_ownership_does_not_change_empty_namespace) ... ok
+test_invalid_scope_preserves_the_trusted_selection_view (__main__.SelectionNamespaceTests.test_invalid_scope_preserves_the_trusted_selection_view) ... ok
+test_matching_application_names_in_different_workspaces_are_independent (__main__.SelectionNamespaceTests.test_matching_application_names_in_different_workspaces_are_independent) ... ok
+test_private_namespace_does_not_authorize_a_foreign_owner_window (__main__.SelectionNamespaceTests.test_private_namespace_does_not_authorize_a_foreign_owner_window) ... ok
+test_private_namespace_does_not_authorize_a_foreign_requestor (__main__.SelectionNamespaceTests.test_private_namespace_does_not_authorize_a_foreign_requestor) ... ok
+test_same_application_connections_share_primary (__main__.SelectionNamespaceTests.test_same_application_connections_share_primary) ... ok
+test_same_application_conversion_uses_public_selection_atom (__main__.SelectionNamespaceTests.test_same_application_conversion_uses_public_selection_atom) ... ok
+test_same_application_transfer_emits_public_selection_clear (__main__.SelectionNamespaceTests.test_same_application_transfer_emits_public_selection_clear) ... ok
+test_same_workspace_applications_have_independent_primary (__main__.SelectionNamespaceTests.test_same_workspace_applications_have_independent_primary) ... ok
+test_scope_operation_rejects_replay_and_preserves_view (__main__.SelectionNamespaceTests.test_scope_operation_rejects_replay_and_preserves_view) ... ok
+test_scope_operation_rejects_unknown_fields_and_missing_scope (__main__.SelectionNamespaceTests.test_scope_operation_rejects_unknown_fields_and_missing_scope) ... ok
+test_secondary_remains_independent_from_primary (__main__.SelectionNamespaceTests.test_secondary_remains_independent_from_primary) ... ok
+test_supervisor_selects_each_namespace_without_changing_identity (__main__.SelectionNamespaceTests.test_supervisor_selects_each_namespace_without_changing_identity) ... ok
+test_swapped_client_has_an_independent_namespace (__main__.SelectionNamespaceTests.test_swapped_client_has_an_independent_namespace) ... ok
+test_swapped_same_application_conversion_uses_public_selection_atom (__main__.SelectionNamespaceTests.test_swapped_same_application_conversion_uses_public_selection_atom) ... ok
+test_swapped_trusted_scope_operation_uses_the_separate_schema (__main__.SelectionNamespaceTests.test_swapped_trusted_scope_operation_uses_the_separate_schema) ... ok
+test_two_applications_can_own_primary_at_the_same_time (__main__.SelectionNamespaceTests.test_two_applications_can_own_primary_at_the_same_time) ... ok
+
+======================================================================
+FAIL: test_compositor_selects_namespace_and_observes_revocation_cleanup (__main__.SelectionNamespaceTests.test_compositor_selects_namespace_and_observes_revocation_cleanup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_security_identity.py", line 135, in close
+    self.assertFalse(timed_out,'Native server did not shut down: '+diagnostics)
+AssertionError: True is not false : Native server did not shut down: Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )
+_XSERVTransSocketUNIXCreateListener: ...SocketCreateListener() failed
+_XSERVTransMakeAllCOTSServerListeners: server already running
+Sync Extension 3.1
+libEGL warning: failed to open /dev/dri/card2: Permission denied
+
+libEGL warning: failed to open /dev/dri/card1: Permission denied
+
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xkb-compiled/server-1.xkm"', fp = 0x515000005d00
+Pclose: fp = 0x515000005d00
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xkb-compiled/server-1.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(837648).
+client(0): Reserved cmdname(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb) and cmdargs(-displayfd 5 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 3).
+client(200000): Reserved pid(837635).
+client(200000): Reserved cmdname(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth).
+AllocNewConnection: client index = 1, socket fd = 5, local = 1
+client(400000): Reserved pid(837635).
+client(400000): Reserved cmdname(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth).
+AllocNewConnection: client index = 2, socket fd = 8, local = 1
+client(600000): Reserved pid(837635).
+client(600000): Reserved cmdname(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth).
+AllocNewConnection: client index = 3, socket fd = 9, local = 1
+client(800000): Reserved pid(837635).
+client(800000): Reserved cmdname(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth).
+AllocNewConnection: client index = 4, socket fd = 10, local = 1
+(dix) removing device 9
+(dix) removing device 8
+client(400000): Released pid(837635).
+client(400000): Released cmdline(python3) and cmdargs(/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tests/native/test_selection_namespace.py /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth).
+
+
+----------------------------------------------------------------------
+Ran 23 tests in 6.186s
+
+FAILED (failures=1)

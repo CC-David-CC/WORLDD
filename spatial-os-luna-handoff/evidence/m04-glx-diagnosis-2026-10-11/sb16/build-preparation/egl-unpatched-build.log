@@ -1,0 +1,5 @@
+ninja: Entering directory `/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08'
+[1/16] Generating src/git_sha1.h with a custom command
+[2/4] Compiling C object src/egl/libEGL_mesa.so.0.0.0.p/main_eglglobals.c.o
+[3/4] Compiling C object src/egl/libEGL_mesa.so.0.0.0.p/main_eglglvnd.c.o
+[4/4] Linking target src/egl/libEGL_mesa.so.0.0.0

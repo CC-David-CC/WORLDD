@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-11: GLX leak diagnosis reaches a Mesa cleanup candidate
+
+Fresh startup/shutdown checks reproduce the 3176-byte leak on both hosts.
+Loader diagnostics identify Mesa EGL display and device records, including their libdrm allocations.
+The Mesa 25.2.8 release source retains default cleanup functions without a registration caller.
+A separate two-file GLVND cleanup candidate now exists under server/mesa.
+
+A controlled sb16 comparison uses the same native server and matching library dependencies.
+Both vendor libraries initialize and unload. The unpatched library leaks; the candidate reports no sanitizer error.
+Earlier apparent passes used a copied library with a missing dependency. Those results are invalid and preserved.
+The corrected broader native run fails one four-second shutdown assertion in the selection suite.
+The unchanged 23-case selection recheck passes. The initial timeout remains unresolved.
+
+The candidate build uses local tools and extracted development packages. System graphics libraries remain unchanged.
+This prototype supports GBM/surfaceless and softpipe. It does not qualify the installed vendor setup or native GPU sessions.
+Cross-host candidate validation, actual GLX rendering, lifecycle checks, and timeout diagnosis remain required.
+M04 remains incomplete. Read evidence/m04-glx-diagnosis-2026-10-11/primary-review.json.
+
 ## 2026-10-11: M04 selection namespaces and event metadata pass focused review
 
 Application selections now have independent namespace labels in real DIX records.

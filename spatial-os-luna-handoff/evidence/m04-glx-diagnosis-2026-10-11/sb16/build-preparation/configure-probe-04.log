@@ -1,0 +1,26 @@
+The Meson build system
+Version: 1.5.2
+Source dir: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/mesa-25.2.8
+Build dir: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-04
+Build type: native build
+Project name: mesa
+Project version: 25.2.8
+C compiler for the host machine: ccache cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C linker for the host machine: cc ld.bfd 2.42
+C++ compiler for the host machine: ccache c++ (gcc 13.3.0 "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C++ linker for the host machine: c++ ld.bfd 2.42
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Checking for size of "void*" : 8 
+Checking if "-mtls-dialect=gnu2" runs: YES
+Checking if "split TLSDESC" : links: YES 
+Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+Run-time dependency libglvnd found: YES 1.7.0
+Dependency vdpau skipped: feature gallium-vdpau disabled
+Program glslangValidator found: NO
+Dependency libva skipped: feature gallium-va disabled
+Program python3 found: YES 3.12.3 3.12.3 (/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-tools/bin/python3)
+
+src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/mesa-25.2.8/meson.build:933:2: ERROR: Problem encountered: Python (3.x) mako module >= 0.8.0 required to build mesa.
+
+A full log can be found at /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-04/meson-logs/meson-log.txt

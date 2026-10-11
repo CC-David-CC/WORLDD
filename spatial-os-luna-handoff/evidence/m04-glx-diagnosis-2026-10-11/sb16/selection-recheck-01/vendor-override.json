@@ -1,0 +1,19 @@
+{
+  "environment": {
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-diagnosis-2026-10-11/patched-ab-02/vendor.json",
+    "LD_LIBRARY_PATH": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/src/gallium/targets/dri:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/src/gbm:/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-08/subprojects/expat-2.5.0"
+  },
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/tools/qualify_atom_increment.py",
+    "--suite",
+    "selection_namespace",
+    "--server-build",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-event-metadata-2026-10-11/sanitize-build-02/run.json",
+    "--runtime-build",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize",
+    "--evidence",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-diagnosis-2026-10-11/selection-recheck-01"
+  ],
+  "exit_code": 0
+}

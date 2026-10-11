@@ -1,0 +1,9 @@
+The Meson build system
+Version: 1.3.2
+Source dir: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/mesa-25.2.8
+Build dir: /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe
+Build type: native build
+
+src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/mesa-25.2.8/meson.build:9:18: ERROR: Meson version is 1.3.2 but project requires >= 1.4.0
+
+A full log can be found at /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe/meson-logs/meson-log.txt

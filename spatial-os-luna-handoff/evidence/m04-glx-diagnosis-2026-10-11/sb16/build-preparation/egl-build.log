@@ -1,0 +1,117 @@
+ninja: Entering directory `/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/build-egl-probe-07'
+[1/967] Compiling C object subprojects/expat-2.5.0/libexpat.so.1.8.10.p/lib_xmlrole.c.o
+[2/967] Compiling C object subprojects/expat-2.5.0/libexpat.so.1.8.10.p/lib_xmlparse.c.o
+[3/967] Compiling C object src/c11/impl/libmesa_util_c11.a.p/time.c.o
+[4/967] Compiling C object src/c11/impl/libmesa_util_c11.a.p/threads_posix.c.o
+[5/967] Linking static target src/c11/impl/libmesa_util_c11.a
+[6/967] Compiling C object subprojects/expat-2.5.0/libexpat.so.1.8.10.p/lib_xmltok.c.o
+[7/967] Linking target subprojects/expat-2.5.0/libexpat.so.1.8.10
+[8/967] Generating symbol file subprojects/expat-2.5.0/libexpat.so.1.8.10.p/libexpat.so.1.8.10.symbols
+[9/967] Compiling C object src/util/blake3/libblake3.a.p/blake3.c.o
+[10/967] Compiling C object src/util/blake3/libblake3.a.p/blake3_dispatch.c.o
+[11/967] Compiling C object src/util/blake3/libblake3.a.p/blake3_sse2_x86-64_unix.S.o
+[12/967] Compiling C object src/util/blake3/libblake3.a.p/blake3_sse41_x86-64_unix.S.o
+[13/967] Compiling C object src/util/blake3/libblake3.a.p/blake3_avx2_x86-64_unix.S.o
+[14/967] Compiling C object src/util/blake3/libblake3.a.p/blake3_portable.c.o
+[15/967] Compiling C object src/util/blake3/libblake3.a.p/blake3_avx512_x86-64_unix.S.o
+[16/967] Linking static target src/util/blake3/libblake3.a
+[17/967] Generating src/util/driconf_static.h with a custom command
+[18/967] Generating src/util/shader_stats.h with a custom command (wrapped by meson to capture output)
+[19/967] Generating src/util/format/u_format_gen.h with a custom command (wrapped by meson to capture output)
+[20/967] Generating src/util/format/u_format_pack.h with a custom command (wrapped by meson to capture output)
+[21/967] Generating src/util/format/u_format_table.c with a custom command (wrapped by meson to capture output)
+[22/967] Compiling C object src/util/libmesa_util_simd.a.p/streaming-load-memcpy.c.o
+[23/967] Linking static target src/util/libmesa_util_simd.a
+[24/967] Generating src/util/format_srgb with a custom command (wrapped by meson to capture output)
+[25/967] Compiling C object src/util/libmesa_util.a.p/meson-generated_.._format_srgb.c.o
+[26/967] Compiling C object src/util/libmesa_util.a.p/anon_file.c.o
+[27/967] Compiling C object src/util/libmesa_util.a.p/bitscan.c.o
+[28/967] Compiling C object src/util/libmesa_util.a.p/blob.c.o
+[29/967] Compiling C object src/util/libmesa_util.a.p/build_id.c.o
+[30/967] Compiling C object src/util/libmesa_util.a.p/cnd_monotonic.c.o
+[31/967] Compiling C object src/util/libmesa_util.a.p/compress.c.o
+[32/967] Compiling C object src/util/libmesa_util.a.p/thread_sched.c.o
+[33/967] Compiling C object src/util/libmesa_util.a.p/crc32.c.o
+[34/967] Compiling C object src/util/libmesa_util.a.p/dag.c.o
+[35/967] Compiling C object src/util/libmesa_util.a.p/disk_cache.c.o
+[36/967] Compiling C object src/util/libmesa_util.a.p/disk_cache_os.c.o
+[37/967] Compiling C object src/util/libmesa_util.a.p/double.c.o
+[38/967] Compiling C object src/util/libmesa_util.a.p/fast_idiv_by_const.c.o
+[39/967] Compiling C object src/util/libmesa_util.a.p/float8.c.o
+[40/967] Compiling C object src/util/libmesa_util.a.p/fossilize_db.c.o
+[41/967] Compiling C object src/util/libmesa_util.a.p/futex.c.o
+[42/967] Compiling C object src/util/libmesa_util.a.p/half_float.c.o
+[43/967] Compiling C object src/util/libmesa_util.a.p/hash_table.c.o
+[44/967] Compiling C object src/util/libmesa_util.a.p/helpers.c.o
+[45/967] Compiling C object src/util/libmesa_util.a.p/u_idalloc.c.o
+[46/967] Compiling C object src/util/libmesa_util.a.p/log.c.o
+[47/967] Compiling C object src/util/libmesa_util.a.p/memstream.c.o
+[48/967] Compiling C object src/util/libmesa_util.a.p/mesa-sha1.c.o
+[49/967] Compiling C object src/util/libmesa_util.a.p/mesa-blake3.c.o
+[50/967] Compiling C object src/util/libmesa_util.a.p/os_time.c.o
+[51/967] Compiling C object src/util/libmesa_util.a.p/os_file.c.o
+[52/967] Compiling C object src/util/libmesa_util.a.p/os_file_notify.c.o
+[53/967] Compiling C object src/util/libmesa_util.a.p/os_memory_fd.c.o
+[54/967] Compiling C object src/util/libmesa_util.a.p/os_misc.c.o
+[55/967] Compiling C object src/util/libmesa_util.a.p/os_socket.c.o
+[56/967] Compiling C object src/util/libmesa_util.a.p/pb_slab.c.o
+[57/967] Compiling C object src/util/libmesa_util.a.p/perf_u_trace.c.o
+[58/967] Compiling C object src/util/libmesa_util.a.p/u_process.c.o
+[59/967] Compiling C++ object src/util/libmesa_util.a.p/u_qsort.cpp.o
+[60/967] Compiling C object src/util/libmesa_util.a.p/rwlock.c.o
+[61/967] Compiling C object src/util/libmesa_util.a.p/sha1_sha1.c.o
+[62/967] Compiling C object src/util/libmesa_util.a.p/ralloc.c.o
+[63/967] Compiling C object src/util/libmesa_util.a.p/rand_xor.c.o
+[64/967] Compiling C object src/util/libmesa_util.a.p/rb_tree.c.o
+[65/967] Compiling C object src/util/libmesa_util.a.p/register_allocate.c.o
+[66/967] Compiling C object src/util/libmesa_util.a.p/rgtc.c.o
+[67/967] Compiling C object src/util/libmesa_util.a.p/set.c.o
+[68/967] Compiling C object src/util/libmesa_util.a.p/simple_mtx.c.o
+[69/967] Compiling C object src/util/libmesa_util.a.p/slab.c.o
+[70/967] Compiling C object src/util/libmesa_util.a.p/softfloat.c.o
+[71/967] Compiling C object src/util/libmesa_util.a.p/sparse_array.c.o
+[72/967] Compiling C object src/util/libmesa_util.a.p/string_buffer.c.o
+[73/967] Compiling C object src/util/libmesa_util.a.p/strtod.c.o
+[74/967] Compiling C++ object src/util/libmesa_util.a.p/texcompress_astc_luts.cpp.o
+[75/967] Compiling C++ object src/util/libmesa_util.a.p/texcompress_astc_luts_wrap.cpp.o
+[76/967] Compiling C object src/util/libmesa_util.a.p/u_atomic.c.o
+[77/967] Compiling C object src/util/libmesa_util.a.p/u_call_once.c.o
+[78/967] Compiling C object src/util/libmesa_util.a.p/u_dl.c.o
+[79/967] Compiling C object src/util/libmesa_util.a.p/u_dynarray.c.o
+[80/967] Compiling C object src/util/libmesa_util.a.p/u_hash_table.c.o
+[81/967] Compiling C object src/util/libmesa_util.a.p/meson-generated_.._format_u_format_table.c.o
+[82/967] Compiling C object src/util/libmesa_util.a.p/u_queue.c.o
+[83/967] Compiling C object src/util/libmesa_util.a.p/u_thread.c.o
+[84/967] Compiling C object src/util/libmesa_util.a.p/u_vector.c.o
+[85/967] Compiling C object src/util/libmesa_util.a.p/u_mm.c.o
+[86/967] Compiling C object src/util/libmesa_util.a.p/u_math.c.o
+[87/967] Compiling C object src/util/libmesa_util.a.p/u_debug_memory.c.o
+[88/967] Compiling C object src/util/libmesa_util.a.p/u_debug.c.o
+[89/967] Compiling C object src/util/libmesa_util.a.p/u_cpu_detect.c.o
+[90/967] Compiling C object src/util/libmesa_util.a.p/u_worklist.c.o
+[91/967] Compiling C object src/util/libmesa_util.a.p/vl_zscan_data.c.o
+[92/967] Compiling C object src/util/libmesa_util.a.p/u_printf.c.o
+[93/967] Compiling C object src/util/libmesa_util.a.p/vma.c.o
+[94/967] Compiling C object src/util/libmesa_util.a.p/mesa_cache_db_multipart.c.o
+[95/967] Compiling C object src/util/libmesa_util.a.p/mesa_cache_db.c.o
+[96/967] Compiling C object src/util/libmesa_util.a.p/format_u_format.c.o
+[97/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_etc.c.o
+[98/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_bptc.c.o
+[99/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_latc.c.o
+[100/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_fxt1.c.o
+[101/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_other.c.o
+[102/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_rgtc.c.o
+[103/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_tests.c.o
+[104/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_unpack_neon.c.o
+[105/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_yuv.c.o
+[106/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_s3tc.c.o
+[107/967] Compiling C object src/util/libmesa_util.a.p/u_sync_provider.c.o
+FAILED: src/util/libmesa_util.a.p/u_sync_provider.c.o 
+ccache cc -Isrc/util/libmesa_util.a.p -Isrc/util -I../mesa-25.2.8/src/util -Iinclude -I../mesa-25.2.8/include -Isrc -I../mesa-25.2.8/src -Isrc/util/format -I../mesa-25.2.8/src/util/format -I/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glvnd-headers/image/usr/include -I/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/mesa-dril-diagnosis-20261011/glvnd-headers/image/usr/include/libdrm -fvisibility=hidden -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c11 -O2 -g -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS '-DPACKAGE_VERSION="25.2.8"' '-DPACKAGE_BUGREPORT="https://gitlab.freedesktop.org/mesa/mesa/-/issues"' -DHAVE_OPENGL=1 -DHAVE_OPENGL_ES_1=0 -DHAVE_OPENGL_ES_2=1 -DHAVE_SOFTPIPE -DHAVE_SWRAST -DVIDEO_CODEC_VC1DEC=0 -DVIDEO_CODEC_H264DEC=0 -DVIDEO_CODEC_H264ENC=0 -DVIDEO_CODEC_H265DEC=0 -DVIDEO_CODEC_H265ENC=0 -DVIDEO_CODEC_AV1DEC=0 -DVIDEO_CODEC_AV1ENC=0 -DVIDEO_CODEC_VP9DEC=0 -DHAVE_SURFACELESS_PLATFORM -DHAVE_DRM_PLATFORM -DUSE_LIBGLVND=1 -DGLAPI_EXPORT_PROTO_ENTRY_POINTS=1 -DALLOW_KCMP -DMESA_DEBUG=0 -DENABLE_SHADER_CACHE -DHAVE___BUILTIN_BSWAP32 -DHAVE___BUILTIN_BSWAP64 -DHAVE___BUILTIN_CLZ -DHAVE___BUILTIN_CLZLL -DHAVE___BUILTIN_CTZ -DHAVE___BUILTIN_EXPECT -DHAVE___BUILTIN_FFS -DHAVE___BUILTIN_FFSLL -DHAVE___BUILTIN_POPCOUNT -DHAVE___BUILTIN_POPCOUNTLL -DHAVE___BUILTIN_UNREACHABLE -DHAVE___BUILTIN_TYPES_COMPATIBLE_P -DHAVE_FUNC_ATTRIBUTE_CONST -DHAVE_FUNC_ATTRIBUTE_FLATTEN -DHAVE_FUNC_ATTRIBUTE_MALLOC -DHAVE_FUNC_ATTRIBUTE_PURE -DHAVE_FUNC_ATTRIBUTE_UNUSED -DHAVE_FUNC_ATTRIBUTE_WARN_UNUSED_RESULT -DHAVE_FUNC_ATTRIBUTE_WEAK -DHAVE_FUNC_ATTRIBUTE_FORMAT -DHAVE_FUNC_ATTRIBUTE_PACKED -DHAVE_FUNC_ATTRIBUTE_RETURNS_NONNULL -DHAVE_FUNC_ATTRIBUTE_ALIAS -DHAVE_FUNC_ATTRIBUTE_NORETURN -DHAVE_FUNC_ATTRIBUTE_OPTIMIZE -DHAVE_FUNC_ATTRIBUTE_VISIBILITY -DHAVE_UINT128 -DHAVE_REALLOCARRAY -DHAVE_FMEMOPEN -D_GNU_SOURCE -DUSE_SSE41 -DHAVE___BUILTIN_IA32_CLFLUSHOPT -DUSE_GCC_ATOMIC_BUILTINS -DUSE_X86_64_ASM -DMAJOR_IN_SYSMACROS -DHAS_SCHED_H -DHAS_SCHED_GETAFFINITY -DHAVE_LINUX_FUTEX_H -DHAVE_ENDIAN_H -DHAVE_DLFCN_H -DHAVE_SYS_SHM_H -DHAVE_CET_H -DHAVE_SYS_INOTIFY_H -DHAVE_LINUX_UDMABUF_H -DHAVE_STRTOF -DHAVE_MKOSTEMP -DHAVE_MEMFD_CREATE -DHAVE_RANDOM_R -DHAVE_FLOCK -DHAVE_STRTOK_R -DHAVE_GETRANDOM -DHAVE_POSIX_FALLOCATE -DHAVE_SECURE_GETENV -DHAVE_GNU_QSORT_R -DHAVE_STRUCT_TIMESPEC -DHAVE_PROGRAM_INVOCATION_NAME -DHAVE_ISSIGNALING -DHAVE_POSIX_MEMALIGN -DHAVE_DIRENT_D_TYPE -DHAVE_STRTOD_L -DHAVE_DLADDR -DHAVE_DL_ITERATE_PHDR -DHAVE_ZLIB -DHAVE_COMPRESSION -DHAVE_PTHREAD -DHAVE_PTHREAD_SETAFFINITY -DHAVE_LIBDRM -DHAVE_LIBUDEV -DLLVM_AVAILABLE=0 -DDRAW_LLVM_AVAILABLE=0 -DAMD_LLVM_AVAILABLE=0 -DGALLIVM_USE_ORCJIT=0 -DTHREAD_SANITIZER=0 -DHAVE_OPENMP -DHAVE_DRI -DHAVE_DRI2 -DHAVE_DRISW_KMS -mtls-dialect=gnu2 -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=return-type -Werror=empty-body -Werror=incompatible-pointer-types -Werror=int-conversion -Wimplicit-fallthrough -Wmisleading-indentation -Wno-missing-field-initializers -Wno-format-truncation -Wno-nonnull-compare -fno-math-errno -fno-trapping-math -fno-common -Wno-unknown-pragmas -Wno-unused-function -Werror=format -Wformat-security -ffunction-sections -fdata-sections -fPIC -pthread -Werror=pointer-arith -Werror=vla -MD -MQ src/util/libmesa_util.a.p/u_sync_provider.c.o -MF src/util/libmesa_util.a.p/u_sync_provider.c.o.d -o src/util/libmesa_util.a.p/u_sync_provider.c.o -c ../mesa-25.2.8/src/util/u_sync_provider.c
+In file included from ../mesa-25.2.8/src/util/u_sync_provider.c:8:
+/usr/include/xf86drm.h:40:10: fatal error: drm.h: No such file or directory
+   40 | #include <drm.h>
+      |          ^~~~~~~
+compilation terminated.
+[108/967] Compiling C object src/util/libmesa_util.a.p/format_u_format_zs.c.o
+ninja: build stopped: subcommand failed.

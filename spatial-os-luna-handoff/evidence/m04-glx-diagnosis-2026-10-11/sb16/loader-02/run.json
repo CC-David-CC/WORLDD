@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python3",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-glx-diagnosis-2026-10-11/loader-02/diagnose_startup.py",
+    "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize/spatial-security-auth"
+  ],
+  "exit_code": 1,
+  "server": {
+    "path": "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/xlibre-patched/b979f4660629da1eed4264eff720944a271301eb7fc998937d4e211f41d06532/source/build-sanitize/hw/vfb/Xvfb",
+    "sha256": "79fc4e9ef59145d107422715e38100ebb6c0f9214c47946fbc4868f13dcda2dd"
+  },
+  "diagnostic_sha256": "a5f74720ad45bffaa394e5bd3a4e93b8edf150d392323d44c5b1c078ef0889c3"
+}
