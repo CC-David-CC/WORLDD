@@ -21,7 +21,7 @@ std::chrono::seconds request_timeout(const std::string& frame) {
     if (frame.size() < 4) throw std::runtime_error("Truncated protobuf request");
     wire::Request request;
     if (!request.ParseFromArray(frame.data() + 4, static_cast<int>(frame.size() - 4)))
-        throw std::runtime_error("Invalid protobuf request");
+        return std::chrono::seconds(10); // The authority reports malformed payloads and preserves the next frame.
     if (request.has_git_repo_import()) return std::chrono::minutes(5);
     if (request.has_git_worktree_create() || request.has_git_status() ||
         request.has_git_worktree_remove() || request.has_git_operation())

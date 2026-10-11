@@ -67,7 +67,7 @@ namespace {
 using ScopeProvider = std::function<supervisor::ProcessScope&(std::span<const int>)>;
 GitResult git_command_impl(const ScopeProvider& prepare_scope, const std::filesystem::path& working_directory,
                       const std::vector<std::string>& arguments, const std::vector<GitMount>& requested_mounts,
-                      std::chrono::seconds timeout) {
+                      std::chrono::seconds timeout, const std::function<void()>& progress) {
     require(!arguments.empty() && arguments.size() <= 64 && timeout.count() > 0 && timeout <= std::chrono::minutes(5),
             "Invalid Git worker request");
     const char* bwrap = "/usr/local/libexec/spatial-bwrap";
@@ -182,6 +182,7 @@ GitResult git_command_impl(const ScopeProvider& prepare_scope, const std::filesy
     const auto deadline = std::chrono::steady_clock::now() + timeout;
     int status = -1;
     while (status < 0) {
+        if (progress) progress();
         if (std::chrono::steady_clock::now() >= deadline) {
             (void)scope.stop();
             throw WorldError(wire::TIMEOUT, "Git worker deadline exceeded; inspect operation state");
@@ -204,6 +205,7 @@ GitResult git_command_impl(const ScopeProvider& prepare_scope, const std::filesy
         }
     }
     while (!output_eof || !error_eof) {
+        if (progress) progress();
         pollfd descriptors[2]{{output_eof ? -1 : output_read.fd, POLLIN | POLLHUP, 0},
                               {error_eof ? -1 : error_read.fd, POLLIN | POLLHUP, 0}};
         const auto ready = poll(descriptors, 2, 100);
@@ -218,17 +220,17 @@ GitResult git_command_impl(const ScopeProvider& prepare_scope, const std::filesy
 }
 GitResult git_command(WorkspaceResources& resources, const std::filesystem::path& directory,
                       const std::vector<std::string>& arguments, const std::vector<GitMount>& mounts,
-                      std::chrono::seconds timeout) {
+                      std::chrono::seconds timeout, const std::function<void()>& progress) {
     std::unique_ptr<GitJobResources> job;
     return git_command_impl([&](std::span<const int> handles) -> supervisor::ProcessScope& {
         job = resources.prepare_git_job(handles);
         return job->scope();
-    }, directory, arguments, mounts, timeout);
+    }, directory, arguments, mounts, timeout, progress);
 }
 GitResult git_command(supervisor::ProcessScope& scope, const std::filesystem::path& directory,
                       const std::vector<std::string>& arguments, const std::vector<GitMount>& mounts,
                       std::chrono::seconds timeout) {
     return git_command_impl([&](std::span<const int>) -> supervisor::ProcessScope& { return scope; },
-                            directory, arguments, mounts, timeout);
+                            directory, arguments, mounts, timeout, {});
 }
 }

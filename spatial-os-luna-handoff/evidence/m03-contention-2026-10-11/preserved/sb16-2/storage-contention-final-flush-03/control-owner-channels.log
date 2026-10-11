@@ -1,0 +1,73 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 82
+    Start 82: control-owner-channels
+
+82: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py" "--native" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_control_owner_channels.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"
+82: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+82: Environment variables: 
+82:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+82: Test timeout computed to be: 180
+82: {"unit": "spatial-m03-resources-e67be31316bb45bb97eb3ef90fdd402f.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-e67be31316bb45bb97eb3ef90fdd402f.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-final-flush-03/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-final-flush-03/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_control_owner_channels.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-e67be31316bb45bb97eb3ef90fdd402f.service"]}
+82: Running as unit: spatial-m03-resources-e67be31316bb45bb97eb3ef90fdd402f.service; invocation ID: 783e8353e61f409e966acf54bf365af5
+82: test_admin_disconnect_fences_owners_without_stopping_application (__main__.ControlOwnerTests.test_admin_disconnect_fences_owners_without_stopping_application) ... ok
+82: test_administration_is_not_accepted_on_world_channel (__main__.ControlOwnerTests.test_administration_is_not_accepted_on_world_channel) ... ok
+82: test_changed_admin_sender_fences_channels (__main__.ControlOwnerTests.test_changed_admin_sender_fences_channels) ... ok
+82: test_duplicate_endpoint_cannot_receive_another_owner (__main__.ControlOwnerTests.test_duplicate_endpoint_cannot_receive_another_owner) ... ok
+82: test_empty_recovery_retains_fence_and_does_not_enable_rebinding (__main__.ControlOwnerTests.test_empty_recovery_retains_fence_and_does_not_enable_rebinding) ... ok
+82: test_exact_binding_required_for_inspection_and_fence (__main__.ControlOwnerTests.test_exact_binding_required_for_inspection_and_fence) ... ok
+82: test_fence_is_processed_during_root_process_wait (__main__.ControlOwnerTests.test_fence_is_processed_during_root_process_wait) ... ok
+82: test_fence_preserves_other_owner_and_live_applications (__main__.ControlOwnerTests.test_fence_preserves_other_owner_and_live_applications) ... ok
+82: test_invalid_bindings_cannot_create_owner (__main__.ControlOwnerTests.test_invalid_bindings_cannot_create_owner) ... ok
+82: test_invalid_descriptors_and_ancillary_truncation_do_not_leak (__main__.ControlOwnerTests.test_invalid_descriptors_and_ancillary_truncation_do_not_leak) ... ok
+82: test_lost_acquisition_reply_remains_inspectable_after_eof (__main__.ControlOwnerTests.test_lost_acquisition_reply_remains_inspectable_after_eof) ... ok
+82: test_malformed_unknown_and_oversized_packets_leave_admin_usable (__main__.ControlOwnerTests.test_malformed_unknown_and_oversized_packets_leave_admin_usable) ... ok
+82: test_owner_binding_cannot_grant_actor_control (__main__.ControlOwnerTests.test_owner_binding_cannot_grant_actor_control) ... ok
+82: test_query_cannot_transfer_a_descriptor (__main__.ControlOwnerTests.test_query_cannot_transfer_a_descriptor) ... ok
+82: test_recovery_covers_acquisition_whose_reply_was_lost (__main__.ControlOwnerTests.test_recovery_covers_acquisition_whose_reply_was_lost) ... ok
+82: test_recovery_is_idempotent_and_changed_receipt_is_rejected (__main__.ControlOwnerTests.test_recovery_is_idempotent_and_changed_receipt_is_rejected) ... ok
+82: test_recovery_rejects_missing_or_mismatched_cleanup_without_releasing (__main__.ControlOwnerTests.test_recovery_rejects_missing_or_mismatched_cleanup_without_releasing) ... ok
+82: test_recovery_rejects_unfenced_owner_without_effect (__main__.ControlOwnerTests.test_recovery_rejects_unfenced_owner_without_effect) ... ok
+82: test_recovery_rejects_unknown_owner_and_transferred_descriptors (__main__.ControlOwnerTests.test_recovery_rejects_unknown_owner_and_transferred_descriptors) ... ok
+82: test_recovery_releases_only_fenced_owner_and_preserves_applications (__main__.ControlOwnerTests.test_recovery_releases_only_fenced_owner_and_preserves_applications) ... ok
+82: test_recovery_reply_loss_is_reconciled_by_inspection (__main__.ControlOwnerTests.test_recovery_reply_loss_is_reconciled_by_inspection) ... ok
+82: test_registration_cannot_rebind_launch_or_endpoint (__main__.ControlOwnerTests.test_registration_cannot_rebind_launch_or_endpoint) ... ok
+82: test_revocation_event_goes_only_to_owning_world (__main__.ControlOwnerTests.test_revocation_event_goes_only_to_owning_world) ... ok
+82: test_same_actor_cannot_reuse_or_release_other_owner (__main__.ControlOwnerTests.test_same_actor_cannot_reuse_or_release_other_owner) ... ok
+82: test_tombstones_reject_rebinding_and_bound_owner_table (__main__.ControlOwnerTests.test_tombstones_reject_rebinding_and_bound_owner_table) ... ok
+82: test_transferred_channel_with_different_creator_is_rejected (__main__.ControlOwnerTests.test_transferred_channel_with_different_creator_is_rejected) ... ok
+82: test_two_owner_channels_have_distinct_reservations (__main__.ControlOwnerTests.test_two_owner_channels_have_distinct_reservations) ... ok
+82: test_unknown_fields_precede_native_attribution (__main__.ControlOwnerTests.test_unknown_fields_precede_native_attribution) ... ok
+82: test_unsupported_version_precedes_native_attribution (__main__.ControlOwnerTests.test_unsupported_version_precedes_native_attribution) ... ok
+82: test_world_channel_cannot_invoke_private_recovery (__main__.ControlOwnerTests.test_world_channel_cannot_invoke_private_recovery) ... ok
+82: 
+82: ----------------------------------------------------------------------
+82: Ran 30 tests in 112.393s
+82: 
+82: OK
+82: {"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-e67be31316bb45bb97eb3ef90fdd402f.service/adapter-fafe18697f6c4e799efa8572fcfe7bfa", "device": 31, "inode": 2117470, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-e67be31316bb45bb97eb3ef90fdd402f.service/adapter-fafe18697f6c4e799efa8572fcfe7bfa\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_control_owner_channels.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"], "exit_code": 0, "scope_removed": true}
+82: Finished with result: success
+82: Main processes terminated with: code=exited/status=0
+82: Service runtime: 1min 52.688s
+82: CPU time consumed: 1min 20.818s
+82: Memory peak: 2.4M
+82: Memory swap peak: 0B
+82: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+1/1 Test #82: control-owner-channels ...........   Passed  112.87 sec
+
+The following tests passed:
+	control-owner-channels
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) = 112.89 sec

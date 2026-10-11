@@ -1,0 +1,2 @@
+authority supervisor: Authority child exited before relay completion
+authority supervisor crash fencing unresolved: Issuer rejected owned authority fence challenge

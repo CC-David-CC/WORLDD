@@ -1,0 +1,2 @@
+authority supervisor: Broker handoff requires a broker native scope
+session broker rejected: Session supervisor failed: Broker handoff requires a broker native scope

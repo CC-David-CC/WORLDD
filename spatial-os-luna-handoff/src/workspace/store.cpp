@@ -19,6 +19,7 @@
 #include <optional>
 #include <set>
 #include <fstream>
+#include <future>
 #include <map>
 #include <cmath>
 #include <utility>
@@ -151,11 +152,26 @@ struct ExecutionStore::Impl {
     NativeLaunch* native = nullptr;
     WorkspaceResources* resources = nullptr;
     StorageClient* storage = nullptr;
+    std::function<void()> observer;
+    void filesystem_effect(std::function<void()> effect) {
+        if (!observer) { effect(); return; }
+        // Only filesystem I/O runs here. SQLite and authority remain on the broker thread.
+        // The future joins before handles or paths can leave their owning operation.
+        auto pending = std::async(std::launch::async, std::move(effect));
+        while (pending.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready) observer();
+        pending.get(); observer();
+    }
+    void sync_path(const std::filesystem::path& path, bool directory) {
+        filesystem_effect([path, directory] { spatial::sync_path(path, directory); });
+    }
+    void sync_tree(const std::filesystem::path& path) {
+        filesystem_effect([path] { spatial::sync_tree(path); });
+    }
     GitResult run_git(const std::filesystem::path& directory, const std::vector<std::string>& arguments,
                       std::vector<GitMount> mounts = {}, std::chrono::seconds timeout = std::chrono::seconds(60)) {
         if (!resources) throw WorldError(wire::UNAVAILABLE, "Administrative Git requires a configured worker resource boundary");
         if (mounts.empty()) mounts.push_back({directory, true});
-        return git_command(*resources, directory, arguments, mounts, timeout);
+        return git_command(*resources, directory, arguments, mounts, timeout, observer);
     }
     std::string checked(const std::filesystem::path& directory, const std::vector<std::string>& arguments,
                         std::vector<GitMount> mounts = {}, std::chrono::seconds timeout = std::chrono::seconds(60)) {
@@ -370,7 +386,9 @@ struct ExecutionStore::Impl {
             if (count <= 0) throw WorldError(wire::STORAGE_ERROR, "Cannot write Git completion receipt");
             used += static_cast<std::size_t>(count);
         }
-        if (fsync(file.fd) != 0) throw WorldError(wire::STORAGE_ERROR, "Cannot flush Git completion receipt");
+        filesystem_effect([fd = file.fd] {
+            if (fsync(fd) != 0) throw WorldError(wire::STORAGE_ERROR, "Cannot flush Git completion receipt");
+        });
         sync_path(state / "effects", true);
     }
     void finish(const std::string& id, const wire::WorktreeReply& record) {
@@ -480,7 +498,7 @@ wire::RepositoryReply ExecutionStore::import_repository(const wire::RepositoryIm
         {{source, false}, {target, true}}, std::chrono::minutes(5));
     if (line(impl_->checked(target, {"rev-parse", "--is-bare-repository"}, {{target, false}})) != "true")
         throw WorldError(wire::STORAGE_ERROR, "Import did not create a bare repository");
-    sync_tree(target); sync_path(target.parent_path(), true);
+    impl_->sync_tree(target); impl_->sync_path(target.parent_path(), true);
     {
         Transaction transaction(impl_->db.get());
         Query q(impl_->db.get(), "UPDATE repositories SET state='ready' WHERE id=?"); q.text(1, request.id()); q.step(); transaction.commit();
@@ -594,7 +612,7 @@ wire::WorktreeRemoveReply ExecutionStore::remove(const wire::WorktreeRemoveReque
     // Retain all project data. Git unregisters only an inaccessible private path.
     std::filesystem::create_directories(retired / "staging");
     std::filesystem::create_symlink(retired / "never-created", retired / "data");
-    sync_path(retired / "staging", true); sync_path(retired, true); sync_path(impl_->state / "retired", true);
+    impl_->sync_path(retired / "staging", true); impl_->sync_path(retired, true); impl_->sync_path(impl_->state / "retired", true);
     const auto worktrees_root = std::filesystem::canonical(impl_->state / "worktrees");
     const auto move_stage = worktrees_root / (".retirement-" + retired.filename().string());
     if (std::filesystem::exists(move_stage))
@@ -620,16 +638,16 @@ wire::WorktreeRemoveReply ExecutionStore::remove(const wire::WorktreeRemoveReque
     }
     if (rmdir(move_stage.c_str()) != 0)
         throw WorldError(wire::STORAGE_ERROR, "Cannot remove empty retirement staging directory");
-    sync_path(impl_->state / "worktrees", true); sync_path(retired / "staging", true); sync_path(retired, true);
+    impl_->sync_path(impl_->state / "worktrees", true); impl_->sync_path(retired / "staging", true); impl_->sync_path(retired, true);
     const auto observed = impl_->removable(registered, {{repo.path(), false}});
     if (observed.head() != record.head() || observed.branch() != record.branch())
         throw WorldError(wire::STORAGE_ERROR, "Git changed during retirement; retained worktree requires inspection");
     if (!record.head().empty()) impl_->checked(repo.path(), {"update-ref", impl_->retirement_ref(retired), record.head(), std::string(record.head().size(), '0')});
     std::filesystem::copy(admin, retired / "git", std::filesystem::copy_options::recursive | std::filesystem::copy_options::copy_symlinks);
-    sync_tree(retired / "git"); sync_tree(registered);
+    impl_->sync_tree(retired / "git"); impl_->sync_tree(registered);
     if (syscall(SYS_renameat2, AT_FDCWD, (retired / "staging").c_str(), AT_FDCWD, (retired / "data").c_str(), RENAME_EXCHANGE) != 0)
         throw WorldError(wire::STORAGE_ERROR, "Cannot reserve retired worktree path");
-    sync_path(retired, true);
+    impl_->sync_path(retired, true);
     const auto retained_marker = retired / "data/project/.git";
     struct stat marker_info{};
     if (lstat(retained_marker.c_str(), &marker_info) != 0 || !S_ISREG(marker_info.st_mode) ||
@@ -639,7 +657,7 @@ wire::WorktreeRemoveReply ExecutionStore::remove(const wire::WorktreeRemoveReque
     const auto removed_metadata = std::filesystem::remove_all(admin, remove_error);
     if (remove_error || !removed_metadata)
         throw WorldError(wire::STORAGE_ERROR, "Cannot unregister retired worktree metadata");
-    sync_tree(retired); sync_tree(repo.path()); sync_path(impl_->state / "retired", true);
+    impl_->sync_tree(retired); impl_->sync_tree(repo.path()); impl_->sync_path(impl_->state / "retired", true);
     File receipt; receipt.fd = open((retired / "complete").c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0600);
     if (receipt.fd < 0) throw WorldError(wire::STORAGE_ERROR, "Cannot create removal receipt");
     const auto bytes = record.SerializeAsString(); std::size_t used = 0;
@@ -649,8 +667,10 @@ wire::WorktreeRemoveReply ExecutionStore::remove(const wire::WorktreeRemoveReque
         if (count <= 0) throw WorldError(wire::STORAGE_ERROR, "Cannot write removal receipt");
         used += static_cast<std::size_t>(count);
     }
-    if (fsync(receipt.fd) != 0) throw WorldError(wire::STORAGE_ERROR, "Cannot flush removal receipt");
-    sync_path(retired, true);
+    impl_->filesystem_effect([fd = receipt.fd] {
+        if (fsync(fd) != 0) throw WorldError(wire::STORAGE_ERROR, "Cannot flush removal receipt");
+    });
+    impl_->sync_path(retired, true);
     impl_->removal_state(request.operation_id(), record.id(), true); return out;
 }
 wire::WorkspaceReply ExecutionStore::workspace_get(const std::string& id) {
@@ -864,7 +884,7 @@ wire::ProcessLaunchReply ExecutionStore::launch(const workspace::v1::LaunchReque
             if ((effective & updated) != effective) throw WorldError(wire::FORBIDDEN, "Process authority changed during storage preparation");
         } else if (!std::filesystem::create_directory(state)) throw std::runtime_error("Application state path already exists");
         for (const auto* name : {"home", "tmp", "cache", "config", "data"}) std::filesystem::create_directory(state / name);
-        sync_path(state, true); sync_path(state.parent_path(), true);
+        impl_->sync_path(state, true); impl_->sync_path(state.parent_path(), true);
         auto native = impl_->native ? impl_->native->issue(request.workspace(), id, current) : nullptr;
         auto process = std::make_unique<ApplicationProcess>(worktree.path(), repository.path(), state,
             (effective & (1u << wire::FILES_WRITE)) != 0, command, std::move(current), std::move(native), std::move(resources));
@@ -915,6 +935,7 @@ wire::ProcessWaitReply ExecutionStore::wait(const wire::ProcessWaitRequest& requ
 }
 void ExecutionStore::set_native_launch(NativeLaunch* native) { impl_->native = native; }
 void ExecutionStore::set_resources(WorkspaceResources* resources) { impl_->resources = resources; }
+void ExecutionStore::set_observer(std::function<void()> observer) { impl_->observer = std::move(observer); }
 void ExecutionStore::stop_all() {
     // Checked destruction cannot return after unconfirmed process termination.
     impl_->jobs.clear();

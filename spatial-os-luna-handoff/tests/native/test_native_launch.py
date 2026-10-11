@@ -17,6 +17,7 @@ import security_pb2 as security
 import test_security_identity as native
 from harness.git_fixture import GitRepo
 from harness.wire import frame, make_request, result_value, read_message
+from harness.resource_broker import ResourceBroker
 
 
 BROKER = native.PROBE.parent/'workspaced'
@@ -36,9 +37,17 @@ class Broker:
         self.state = fixture.root/'execution'
         self.log_path = fixture.root/'broker.log'
         self.log = self.log_path.open('wb')
+        self.resources = None; self.owner_log = None
         try:
-            self.proc = subprocess.Popen([str(BROKER), '--state-dir', str(self.state), '--native-security-fd', str(fd)],
-                                         stdin=child, stdout=child, stderr=self.log, pass_fds=(fd,))
+            command = [str(BROKER), '--state-dir', str(self.state), '--native-security-fd', str(fd)]
+            configuration = os.environ.get('SPATIAL_TEST_BROKER_CONFIG')
+            if configuration:
+                self.owner_log = (fixture.root/'broker-owner.log').open('wb')
+                self.resources = ResourceBroker(BROKER, command, child, self.log, self.owner_log,
+                    configuration, extra_fds={'--native-security-fd':fd})
+                self.proc = self.resources.process
+            else:
+                self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log, pass_fds=(fd,))
         finally:
             child.close()
             os.close(fd)
@@ -46,10 +55,12 @@ class Broker:
 
     def close(self):
         self.stream.close()
-        if self.proc.poll() is None:
+        if self.resources: self.resources.close()
+        elif self.proc.poll() is None:
             try: self.proc.wait(timeout=4)
             except subprocess.TimeoutExpired: self.proc.kill(); self.proc.wait(timeout=3)
         self.log.close()
+        if self.owner_log: self.owner_log.close()
         text = self.log_path.read_text(errors='replace')
         if os.environ.get('SPATIAL_SECURITY_EVIDENCE'):
             target = Path(os.environ['SPATIAL_SECURITY_EVIDENCE'])

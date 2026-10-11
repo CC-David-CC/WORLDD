@@ -40,7 +40,12 @@ def save():
 
 
 if operation == 'prepare':
-    assert len(sys.argv) == 5 and not receipt.exists() and not image.exists() and not volume.exists()
+    assert len(sys.argv) in (5,7) and not receipt.exists() and not image.exists() and not volume.exists()
+    volume_bytes = 512*mib
+    if len(sys.argv)==7:
+        assert sys.argv[5]=='--volume-bytes' and sys.argv[6].isdecimal()
+        volume_bytes=int(sys.argv[6])
+        assert 512*mib<=volume_bytes<=4*1024*mib and volume_bytes%mib==0
     record = dict(status='preparing', mounted=False, loop=None, policy_directory=None, commands=[])
     save()
     original = Path(sys.argv[4]).resolve(strict=True)
@@ -51,7 +56,7 @@ if operation == 'prepare':
     assert not config.resources.delegated_cgroup
     try:
         volume.mkdir()
-        with image.open('xb') as file: file.truncate(512*mib)
+        with image.open('xb') as file: file.truncate(volume_bytes)
         record['loop'] = run(['losetup', '--find', '--show', image]); save()
         run(['mkfs.btrfs', '-q', '-f', record['loop']])
         run(['mount', '-t', 'btrfs', '-o', 'rw,nodev,nosuid', record['loop'], volume])
@@ -61,7 +66,7 @@ if operation == 'prepare':
         record['policy_directory'] = str(policy_dir); save()
         owner = storage.StorageOwnerConfig(protocol_version=1, volume_root=str(volume),
             filesystem_id=uuid.UUID(run(['blkid', '-s', 'UUID', '-o', 'value', record['loop']])).bytes,
-            broker_uid=operator.pw_uid, volume_bytes=512*mib, control_plane_bytes=64*mib,
+            broker_uid=operator.pw_uid, volume_bytes=volume_bytes, control_plane_bytes=64*mib,
             filesystem_reserve_bytes=64*mib)
         owner.default_policy.total_bytes = 256*mib; owner.default_policy.actor_state_default_bytes = 48*mib
         for name in ['development', 'read-only']: owner.default_policy.profiles.add(name=name, state_bytes=32*mib)

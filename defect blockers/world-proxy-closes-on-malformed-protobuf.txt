@@ -1,0 +1,26 @@
+Defect: A complete malformed protobuf frame closes the world proxy.
+Status: Correction passes all 13 original protocol checks in Debug and ASan/UBSan on both hosts.
+Both corrected full gates are running. Full milestone qualification remains pending.
+Source: src/platform/worker.cpp, request_timeout.
+The timeout classifier throws before the frame reaches the authoritative handler.
+All three malformed-payload subcases fail the unchanged core-protocol recovery test.
+The following valid hello frame receives no reply. The test host exits with code 2.
+Evidence: sb16 local/m03-git-storage-20261011/m03-phase-gate-01/Debug/core.log.
+The exact frozen source is preserved in the gate source archive.
+
+Proposed correction:
+Use the ordinary ten-second timeout when a complete payload cannot be decoded for timeout classification.
+Forward its original bytes to the authoritative handler.
+That handler returns INVALID_ARGUMENT with request ID zero and preserves the following complete frame.
+Keep excessive-length and truncated-frame transport failures fatal.
+Keep ordinary Git deadlines at sixty seconds and import deadlines at five minutes.
+Run core-protocol, related transport checks, Git deadline regressions, and full qualification on both hosts.
+Do not change acceptance assertions or framing limits.
+
+Current result: The corrected source passes all 13 core-protocol checks in Debug on sb16.
+The three original malformed-payload subcases remain unchanged. Full two-host and sanitizer qualification remains pending.
+
+Reviewed current evidence:
+Read spatial-os-luna-handoff/evidence/m03-contention-2026-10-11/correction-02-sb16-sanitizer-review.json.
+Both first full sanitizer gates reproduced the original defect. Their failure evidence is archived and verified.
+The corrected sb16 complete gate is running. Do not close this blocker before full current-source qualification.

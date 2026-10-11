@@ -35,6 +35,11 @@ int main(int argc, char** argv) {
         const std::string mode = argc >= 3 ? argv[2] : "normal";
         std::vector<int> inherited;
         for (int i = 3; i < argc; ++i) inherited.push_back(std::stoi(argv[i]));
+        const auto release_inherited = [&] {
+            // The checked child owns its copies. Retained transport endpoints hide child EOF.
+            for (const int descriptor : inherited) close(descriptor);
+            inherited.clear();
+        };
         if (mode != "normal" && mode != "deny-write" && mode != "deny-wait") throw std::invalid_argument("Unknown probe mode");
         const int empty = open("/dev/null", O_RDWR | O_CLOEXEC);
         if (empty < 0) throw std::runtime_error("Cannot open private child streams");
@@ -51,6 +56,7 @@ int main(int argc, char** argv) {
                     if (process) { reply.mutable_error()->set_code(pb::ProcessScopeError::INVALID_STATE); }
                     else {
                         process = spatial::supervisor::ProcessScope::launch(argv[1], request.launch(), {empty, empty, empty}, inherited);
+                        release_inherited();
                         *reply.mutable_state() = process->state();
                         if (mode == "deny-wait") deny_wait();
                         if (mode == "deny-write") {
@@ -74,8 +80,10 @@ int main(int argc, char** argv) {
                     }
                 } else if (request.has_start() && process) {
                     process->start(request.start(), {empty, empty, empty}, inherited);
+                    release_inherited();
                     *reply.mutable_state() = process->state();
                 } else if (request.has_state() && process) *reply.mutable_state() = process->state();
+                else if (request.has_exit_status() && process) reply.mutable_exit_status()->set_code(process->exit_status());
                 else if (request.has_stop() && process) *reply.mutable_stopped() = process->stop();
                 else reply.mutable_error()->set_code(pb::ProcessScopeError::INVALID_STATE);
             } catch (const std::invalid_argument& error) {

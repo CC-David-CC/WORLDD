@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import select
+import socket
 import shutil
 import subprocess
 import sys
@@ -44,11 +45,11 @@ class ProcessScopeTests(unittest.TestCase):
             scope.rmdir()
         self.root.rmdir()
 
-    def probe(self, mode='normal', root=None):
+    def probe(self, mode='normal', root=None, inherited=()):
         log = (self.files/(mode+str(time.monotonic_ns())+'.log')).open('wb')
         self.addCleanup(log.close)
-        proc = subprocess.Popen([str(PROBE), str(root or self.root), mode],
-                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log)
+        proc = subprocess.Popen([str(PROBE), str(root or self.root), mode, *map(str,inherited)],
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=log, pass_fds=inherited)
         def cleanup():
             if proc.poll() is None:
                 proc.stdin.close()
@@ -104,6 +105,44 @@ class ProcessScopeTests(unittest.TestCase):
         self.assertEqual(len(select.select(pins, [], [], 0)[0]), 2)
         self.assertFalse((self.root/identity.scope_name).exists())
         self.assertEqual(self.stop(proc), receipt)
+
+    def test_retained_status_reports_actual_child_failure(self):
+        proc=self.probe();self.launch(proc,'raise SystemExit(7)')
+        deadline=time.monotonic()+3
+        while not self.call(proc,state=pb.ProcessScopeQuery()).state.direct_child_exited:
+            self.assertLess(time.monotonic(),deadline);time.sleep(.005)
+        reply=self.call(proc,exit_status=pb.ProcessScopeQuery())
+        self.assertEqual(reply.WhichOneof('outcome'),'exit_status',reply)
+        self.assertEqual(reply.exit_status.code,7)
+        self.stop(proc)
+        self.assertTrue(self.call(proc,exit_status=pb.ProcessScopeQuery()).HasField('error'))
+
+    def test_live_child_cannot_report_a_completed_status(self):
+        proc=self.probe();identity=self.launch(proc,'import time;time.sleep(30)')
+        pins=self.pins(identity);self.assertTrue(pins)
+        reply=self.call(proc,exit_status=pb.ProcessScopeQuery())
+        self.assertEqual(reply.WhichOneof('outcome'),'error',reply)
+        self.assertEqual(select.select(pins,[],[],0)[0],[])
+        self.assertFalse(self.call(proc,state=pb.ProcessScopeQuery()).state.direct_child_exited)
+        self.stop(proc)
+
+    def test_child_descriptor_close_is_visible_while_scope_owner_remains_alive(self):
+        for prepared in (False,True):
+            with self.subTest(prepared=prepared):
+                observer,child=socket.socketpair()
+                self.addCleanup(observer.close);self.addCleanup(child.close)
+                proc=self.probe(inherited=(child.fileno(),));child.close()
+                if prepared:
+                    self.assertEqual(self.call(proc,prepare=pb.ProcessScopeQuery()).WhichOneof('outcome'),'state')
+                request=pb.AuthorityProcessLaunch(executable='/usr/bin/python3',inherited_fds=[9],
+                    arguments=['-c','import os,time;os.close(9);time.sleep(30)'])
+                reply=self.call(proc,**({'start':request} if prepared else {'launch':request}))
+                self.assertEqual(reply.WhichOneof('outcome'),'state',reply)
+                observer.settimeout(2)
+                self.assertEqual(observer.recv(1),b'','Scope owner retained the child endpoint')
+                self.assertIsNone(proc.poll())
+                self.assertFalse(self.call(proc,state=pb.ProcessScopeQuery()).state.direct_child_exited)
+                self.stop(proc)
 
     def test_leader_exit_does_not_hide_live_detached_child(self):
         ready = self.files/'ready'; proc = self.probe()

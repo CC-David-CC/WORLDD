@@ -1,0 +1,67 @@
+{"unit": "spatial-m03-resources-d23db54929364fde8eaf5ead736b2776.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-d23db54929364fde8eaf5ead736b2776.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-06/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-06/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_contention.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "StorageContentionTests.test_native_storage_actor_revocation_during_bounded_git_import"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-d23db54929364fde8eaf5ead736b2776.service"]}
+Running as unit: spatial-m03-resources-d23db54929364fde8eaf5ead736b2776.service; invocation ID: ae6dcefd751c4356a7d45ff5c387d7b6
+test_native_storage_actor_revocation_during_bounded_git_import (__main__.StorageContentionTests.test_native_storage_actor_revocation_during_bounded_git_import) ... FAIL
+
+======================================================================
+FAIL: test_native_storage_actor_revocation_during_bounded_git_import (__main__.StorageContentionTests.test_native_storage_actor_revocation_during_bounded_git_import)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_contention.py", line 226, in test_native_storage_actor_revocation_during_bounded_git_import
+    self.until(lambda:self.barrier(client,revision),lambda value:value.complete)
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_session_application.py", line 202, in until
+    self.assertLess(time.monotonic(), deadline, repr(value))
+AssertionError: 20064.15392874 not less than 20064.149951965 : issuer_id: "\331\273A8\307\032\306\237Z-_\256\006\372C\026\213i\366zZ\335P\004\361\234\2063\260\316\250G"
+revision: 1
+target {
+  kind: ACTOR_TARGET
+  id: ">\031\371\2577\301\262\2747\366B\310\341*g\243\243\332\037KCX9\370a\345i\203\034qw4"
+}
+participant_count: 2
+pending_count: 2
+obligations {
+  registration {
+    participant {
+      id: "pppppppppppppppppppppppppppppppp"
+      public_key: "\264\224\305\315\344+OU\247\001eO\213\221~V\211\010\024\307-#\020\003\251]\326\364\235\003\334\227"
+      domains {
+        kind: WORKSPACE
+        id: "workspace-one"
+      }
+    }
+    registered_revision: 1
+    issuer_id: "\331\273A8\307\032\306\237Z-_\256\006\372C\026\213i\366zZ\335P\004\361\234\2063\260\316\250G"
+  }
+  generation: 1
+  service_incarnation: "!}+\342\203l[)6}\223mn\233[\314\367\n\220\022G\312\304#\245\267\231_\005\301\207k"
+}
+obligations {
+  registration {
+    participant {
+      id: "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+      public_key: "t\241s\326\355\000\2762\014\317:\3020\002\215\200k=\356\347\016\325\007\013_n\263\267\202\234h7"
+      domains {
+        kind: WORLD
+        id: "92203a7cbea706fe2a72a5a7935b2705"
+      }
+    }
+    registered_revision: 2
+    issuer_id: "\331\273A8\307\032\306\237Z-_\256\006\372C\026\213i\366zZ\335P\004\361\234\2063\260\316\250G"
+  }
+  generation: 1
+  service_incarnation: "\0017\002\306\210\017\233\177{mP\267\240N\275\310%\035\277w(\016\034\200\216y$\354T,\321\232"
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 32.903s
+
+FAILED (failures=1)
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-d23db54929364fde8eaf5ead736b2776.service/adapter-e8bcd2942c2e42038c75c6c2a5b0f34c", "device": 31, "inode": 1340752, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-d23db54929364fde8eaf5ead736b2776.service/adapter-e8bcd2942c2e42038c75c6c2a5b0f34c\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_storage_contention.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "StorageContentionTests.test_native_storage_actor_revocation_during_bounded_git_import"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 33.129s
+CPU time consumed: 10.337s
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-d23db54929364fde8eaf5ead736b2776.service: Unit spatial-m03-resources-d23db54929364fde8eaf5ead736b2776.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

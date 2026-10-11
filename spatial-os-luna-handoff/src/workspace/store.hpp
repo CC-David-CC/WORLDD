@@ -2,6 +2,7 @@
 #include "core/protocol.hpp"
 #include "broker.pb.h"
 #include <filesystem>
+#include <functional>
 #include <memory>
 
 namespace spatial {
@@ -32,6 +33,7 @@ public:
     void set_authority(WorkspaceAuthority* authority);
     void set_native_launch(NativeLaunch* native);
     void set_resources(WorkspaceResources* resources);
+    void set_observer(std::function<void()> observer);
     void reconcile_authority();
     void reap();
     void stop_all();

@@ -7,6 +7,7 @@ import signal
 import subprocess
 import unittest
 from unittest.mock import patch
+from google.protobuf import text_format
 
 import test_supervisor_broker_handoff as baseline
 import test_native_launch as native_launch
@@ -16,6 +17,11 @@ import process_scope_pb2 as process
 import security_pb2 as security
 from harness.git_fixture import GitRepo
 from harness.wire import frame, make_request, result_value
+
+scopes = baseline.supervisor.owned.existing
+if os.environ.get('SPATIAL_TEST_BROKER_CONFIG'):
+    if scopes.CGROUP.name == 'manager': scopes.CGROUP = scopes.CGROUP.parent
+    assert scopes.CGROUP.name.startswith('spatial-m03-resources-')
 
 
 class BrokerPipe:
@@ -50,12 +56,23 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
     record = native_launch.NativeLaunchTests.record
     release = native_launch.NativeLaunchTests.release
 
+    def setUp(self):
+        super().setUp()
+        if os.environ.get('SPATIAL_TEST_BROKER_CONFIG'):
+            self.assertTrue({'cpu','memory','pids','io'} <= set((self.cgroup/'cgroup.controllers').read_text().split()))
+            (self.cgroup/'cgroup.subtree_control').write_text('+cpu +memory +pids +io\n')
+
     def broker_config(self, target=38):
         config = self.config()
         config.broker_native_target_fd = target
         config.launch.CopyFrom(process.AuthorityProcessLaunch(
             executable=str(baseline.supervisor.owned.existing.PROBE.with_name('workspaced')),
             arguments=['--state-dir', str(self.root / 'execution'), '--native-security-fd', str(target)]))
+        resource_path = os.environ.get('SPATIAL_TEST_BROKER_CONFIG')
+        if resource_path:
+            resource = text_format.Parse(Path(resource_path).read_text(), broker.BrokerProcessConfig())
+            config.broker_resources.CopyFrom(resource.resources)
+            config.broker_resource_target_fd = 255
         return config
 
     def started_broker(self):
@@ -67,7 +84,9 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
         self.assertFalse(initial.view.HasField('ready'), 'Management must not receive native credentials')
         self.broker = BrokerPipe(self, proc)
         self.assertEqual(self.broker.call('system.hello')['implementation'], 'production')
-        members = (self.cgroup / initial.view.record.process.scope_name / 'cgroup.procs').read_text().split()
+        group = self.cgroup / initial.view.record.process.scope_name
+        if os.environ.get('SPATIAL_TEST_BROKER_CONFIG'): group /= 'broker-manager'
+        members = (group / 'cgroup.procs').read_text().split()
         self.assertEqual(len(members), 1)
         child_pid = int(members[0])
         pin = os.pidfd_open(child_pid)
@@ -180,8 +199,13 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
                 self.assertFalse(self.child_config.exists())
                 self.assertEqual(self.activation_rows(), [])
 
-    def mapped_broker(self, targets):
+    def mapped_broker(self, targets, with_resources=False):
         config = self.broker_config()
+        if not with_resources:
+            # Existing descriptor-only checks cover the participant and native handoff.
+            # This diagnostic broker runs hello only. Resource-bearing launches have separate checks below.
+            config.ClearField('broker_resources')
+            config.ClearField('broker_resource_target_fd')
         sources = []
         for target in targets:
             fd = os.memfd_create('selected-handoff-fixture', os.MFD_CLOEXEC)
@@ -213,6 +237,22 @@ class BrokerHandoffRegressionTests(baseline.BrokerHandoffTests):
 
     def test_exact_descriptor_capacity_launches_real_broker(self):
         proc, channel = self.mapped_broker(range(60, 74))
+        initial = self.message(channel, launch.AuthorityLaunchReply)
+        self.assertTrue(initial.HasField('view'), initial)
+        self.assertEqual(BrokerPipe(self, proc).call('system.hello')['implementation'], 'production')
+        reply = self.control(channel, stop=launch.AuthorityLaunchQuery())
+        self.assertEqual(reply.view.record.stage, launch.OWNED_SCOPES_STOPPED)
+        self.assertEqual(proc.wait(timeout=5), 0)
+        self.checked_cleanup()
+
+    def test_resource_descriptor_capacity_reserves_all_three_generated_descriptors(self):
+        proc, _ = self.mapped_broker(range(60, 74), with_resources=True)
+        self.assertEqual(proc.wait(timeout=5), 2)
+        self.assertFalse((self.journal / 'launch.db').exists())
+        self.assertFalse(self.child_config.exists())
+
+    def test_exact_resource_descriptor_capacity_launches_real_broker(self):
+        proc, channel = self.mapped_broker(range(60, 73), with_resources=True)
         initial = self.message(channel, launch.AuthorityLaunchReply)
         self.assertTrue(initial.HasField('view'), initial)
         self.assertEqual(BrokerPipe(self, proc).call('system.hello')['implementation'], 'production')

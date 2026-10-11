@@ -128,7 +128,11 @@ class WorldIdentityFixture(ClientFixture):
         reply=read_message(io.BytesIO(result.stdout),core.Reply);self.assertFalse(reply.HasField('error'),reply)
         self.configure_participant(config,[grants.Domain(kind=grants.WORLD,id=result_value(reply)['world_id'])])
     def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None):
-        config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(self.config_file()),admission=admission)
+        client_path=self.config_file()
+        client=text_format.Parse(client_path.read_text(),pb.IssuerTlsClientConfig())
+        client.ClearField('io_timeout_ms')
+        client_path.write_text(text_format.MessageToString(client))
+        config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(client_path),admission=admission)
         if admitted:config.admitted_actor_ids.append(self.identity.actor_id)
         if grants:config.actor_grants.add(actor_id=self.identity.actor_id,grants=grants)
         state=state or self.root/f'world-state-{len(self.worlds)}'

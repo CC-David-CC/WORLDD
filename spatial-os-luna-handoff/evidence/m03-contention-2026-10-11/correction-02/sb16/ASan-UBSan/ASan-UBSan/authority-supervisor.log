@@ -1,0 +1,52 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 8
+    Start 8: authority-supervisor
+
+8: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-supervisor-303048865a9a88d069fc74e5d23cec33cafb9c4150fbad371495619b9b342c12" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb" "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/m03-gate-corrections-02/ASan-UBSan/native" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_authority_supervisor.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-authority-launch-probe" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client"
+8: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+8: Test timeout computed to be: 120
+8: Running as unit: spatial-supervisor-303048865a9a88d069fc74e5d23cec33cafb9c4150fbad371495619b9b342c12.service; invocation ID: 83d75fc2229e4c329f92b05f4bc0ffb4
+8: test_production_supervisor_is_available_for_owned_authority_execution (__main__.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution) ... ok
+8: test_real_child_activates_releases_and_exits_without_manual_pumping (__main__.AuthoritySupervisorTests.test_real_child_activates_releases_and_exits_without_manual_pumping) ... ok
+8: test_revocation_requires_child_acknowledgement_with_automatic_delivery (__main__.AuthoritySupervisorTests.test_revocation_requires_child_acknowledgement_with_automatic_delivery) ... ok
+8: test_management_cannot_inject_participant_commands_or_repeat_start (__main__.AuthoritySupervisorTests.test_management_cannot_inject_participant_commands_or_repeat_start) ... ok
+8: test_explicit_stop_preserves_unresolved_issuer_generation (__main__.AuthoritySupervisorTests.test_explicit_stop_preserves_unresolved_issuer_generation) ... ok
+8: test_management_loss_stops_owned_child_and_records_cleanup (__main__.AuthoritySupervisorTests.test_management_loss_stops_owned_child_and_records_cleanup) ... ok
+8: test_child_death_is_failure_with_checked_cleanup (__main__.AuthoritySupervisorTests.test_child_death_is_failure_with_checked_cleanup) ... ok
+8: test_nonzero_exit_after_release_is_not_successful_completion (__main__.AuthoritySupervisorTests.test_nonzero_exit_after_release_is_not_successful_completion) ... ok
+8: test_excessive_management_frame_stops_owned_execution (__main__.AuthoritySupervisorTests.test_excessive_management_frame_stops_owned_execution) ... ok
+8: test_termination_signal_stops_owned_child_and_records_cleanup (__main__.AuthoritySupervisorTests.test_termination_signal_stops_owned_child_and_records_cleanup) ... ok
+8: test_existing_child_configuration_is_preserved_and_prevents_execution (__main__.AuthoritySupervisorTests.test_existing_child_configuration_is_preserved_and_prevents_execution) ... ok
+8: test_privileged_descriptor_mapping_is_rejected_before_ownership (__main__.AuthoritySupervisorTests.test_privileged_descriptor_mapping_is_rejected_before_ownership) ... ok
+8: test_privileged_descriptor_alias_is_rejected_before_ownership (__main__.AuthoritySupervisorTests.test_privileged_descriptor_alias_is_rejected_before_ownership) ... ok
+8: test_reopened_journal_cannot_replay_execution (__main__.AuthoritySupervisorTests.test_reopened_journal_cannot_replay_execution) ... ok
+8: 
+8: ----------------------------------------------------------------------
+8: Ran 14 tests in 15.989s
+8: 
+8: OK
+8: Finished with result: success
+8: Main processes terminated with: code=exited/status=0
+8: Service runtime: 16.110s
+8: CPU time consumed: 6.198s
+8: Memory peak: 768.0K
+8: Memory swap peak: 0B
+1/1 Test #8: authority-supervisor .............   Passed   16.13 sec
+
+The following tests passed:
+	authority-supervisor
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  16.13 sec

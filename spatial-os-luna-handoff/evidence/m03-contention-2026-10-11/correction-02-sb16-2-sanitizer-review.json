@@ -1,0 +1,62 @@
+{
+  "host": "sb16-2",
+  "status": "reviewed_corrected_sanitizer_profile_passed",
+  "phase_complete": false,
+  "attachments_verified": 509,
+  "source_inputs_verified": 396,
+  "source_exception": [
+    "tests/native/crosshost_revocation.py"
+  ],
+  "affected_suite_checks": 216,
+  "acceptance_passed": 151,
+  "suite_counts": {
+    "core-protocol": 13,
+    "worldd-lifecycle": 11,
+    "actor-runtime": 10,
+    "world-identity": 20,
+    "authenticated-resources": 1,
+    "native-application-launch": 21,
+    "authority-supervisor": 14,
+    "authority-approval-interruption": 4,
+    "authority-broker-handoff": 1,
+    "authority-broker-handoff-regressions": 11,
+    "authority-world-handoff": 1,
+    "authority-world-handoff-regressions": 13,
+    "authority-supervisor-fencing": 10,
+    "authority-control-binding": 6,
+    "authority-supervisor-crash-fencing": 10,
+    "session-application": 3,
+    "session-storage-owner": 2,
+    "session-storage-contention": 3,
+    "session-resources": 13,
+    "workspace-git": 49,
+    "P10": 151
+  },
+  "sanitizer_scan_findings": [],
+  "measurements": [
+    {
+      "test": "test_native_storage_actor_revocation_and_durable_issuer_under_writes",
+      "evidence": "evidence/m03-contention-2026-10-11/correction-02/sb16-2/ASan-UBSan/ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/contention.json",
+      "durable_policy_revision": 4,
+      "revocation_complete": true
+    },
+    {
+      "test": "test_native_storage_actor_revocation_during_bounded_git_import",
+      "evidence": "evidence/m03-contention-2026-10-11/correction-02/sb16-2/ASan-UBSan/ASan-UBSan/native/test_native_storage_actor_revocation_during_bounded_git_import/contention.json",
+      "nested_execution_rejected_without_effect": true,
+      "exit_during_git": {
+        "seconds": 0.40071487000386696,
+        "exited": 9,
+        "expected": 9,
+        "git_still_running": [],
+        "pending_reply": true
+      }
+    },
+    {
+      "test": "test_native_storage_credential_revocation_preserves_execution_under_writes",
+      "evidence": "evidence/m03-contention-2026-10-11/correction-02/sb16-2/ASan-UBSan/ASan-UBSan/native/test_native_storage_credential_revocation_preserves_execution_under_writes/contention.json",
+      "durable_policy_revision": 4,
+      "credential_loss_execution_continues": true
+    }
+  ]
+}

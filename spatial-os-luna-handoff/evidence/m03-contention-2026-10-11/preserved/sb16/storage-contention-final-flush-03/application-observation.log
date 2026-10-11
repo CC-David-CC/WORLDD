@@ -1,0 +1,128 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 84
+    Start 84: application-observation
+
+84: Test command: /usr/bin/python3 "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_resource_delegate.py" "--native" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py" "--" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_application_observation.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"
+84: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+84: Environment variables: 
+84:  PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source
+84: Test timeout computed to be: 180
+84: {"unit": "spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-final-flush-03/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-final-flush-03/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_application_observation.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service"]}
+84: Running as unit: spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service; invocation ID: f68b8f99aac04c6eb267bd5c3a85ea00
+84: test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application) ... FAIL
+84: test_authorized_aim_uses_same_filtered_scene (__main__.ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene) ... ok
+84: test_broker_reply_cannot_grant_control_without_observation (__main__.ApplicationObservationTests.test_broker_reply_cannot_grant_control_without_observation) ... ok
+84: test_broker_reply_cannot_substitute_application_identity (__main__.ApplicationObservationTests.test_broker_reply_cannot_substitute_application_identity) ... ok
+84: test_broker_reply_requires_explicit_observation_decision (__main__.ApplicationObservationTests.test_broker_reply_requires_explicit_observation_decision) ... ok
+84: test_broker_reply_requires_matching_group_count (__main__.ApplicationObservationTests.test_broker_reply_requires_matching_group_count) ... ok
+84: test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection) ... ok
+84: test_legacy_interaction_grant_cannot_control_labeled_application (__main__.ApplicationObservationTests.test_legacy_interaction_grant_cannot_control_labeled_application) ... ok
+84: test_legacy_world_grants_do_not_reveal_labeled_application (__main__.ApplicationObservationTests.test_legacy_world_grants_do_not_reveal_labeled_application) ... ok
+84: test_observe_does_not_enable_input_control (__main__.ApplicationObservationTests.test_observe_does_not_enable_input_control) ... ok
+84: test_observe_grant_without_workspace_access_does_not_reveal_application (__main__.ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application) ... ok
+84: test_observe_revocation_removes_metadata_but_preserves_process (__main__.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process) ... ok
+84: test_revocation_after_render_prevents_queued_metadata_export (__main__.ApplicationObservationTests.test_revocation_after_render_prevents_queued_metadata_export) ... ok
+84: test_revocation_before_post_render_check_returns_no_metadata (__main__.ApplicationObservationTests.test_revocation_before_post_render_check_returns_no_metadata) ... ok
+84: test_workspace_access_alone_does_not_reveal_application (__main__.ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application) ... ok
+84: test_world_admission_and_placement_do_not_grant_application_observation (__main__.ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation) ... ok
+84: 
+84: ======================================================================
+84: FAIL: test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application)
+84: ----------------------------------------------------------------------
+84: Traceback (most recent call last):
+84:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_application_observation.py", line 187, in test_application_scope_filters_other_live_application
+84:     self.setup_world();app,one=self.probe((-.6,0,-2));other,two=self.probe((.6,0,-2))
+84:                                                                 ^^^^^^^^^^^^^^^^^^^^^
+84:   File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_application_observation.py", line 140, in probe
+84:     self.assertTrue(result.HasField('action'), result)
+84: AssertionError: False is not true : protocol_version: 1
+84: request_id: 5
+84: error {
+84:   code: RESOURCE_EXHAUSTED
+84:   message: "Workspace or actor resource capacity is reserved"
+84: }
+84: 
+84: 
+84: ----------------------------------------------------------------------
+84: Ran 16 tests in 91.766s
+84: 
+84: FAILED (failures=1)
+84: {"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service/adapter-9c682c3487474cf99a26c10c1e14ea4e", "device": 31, "inode": 2316869, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service/adapter-9c682c3487474cf99a26c10c1e14ea4e\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_application_observation.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"], "exit_code": 1, "scope_removed": true}
+84: Finished with result: exit-code
+84: Main processes terminated with: code=exited/status=1
+84: Service runtime: 1min 31.994s
+84: CPU time consumed: 40.655s
+84: Memory peak: 2.5M
+84: Memory swap peak: 0B
+84: {"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service: Unit spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service not loaded.\n"}
+84: {"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+1/1 Test #84: application-observation ..........***Failed   92.14 sec
+{"unit": "spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-final-flush-03/scopes", "--setenv=SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb", "--setenv=SPATIAL_SECURITY_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/storage-contention-final-flush-03/native", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tools/with_adapter_resources.py", "--", "/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_application_observation.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service"]}
+Running as unit: spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service; invocation ID: f68b8f99aac04c6eb267bd5c3a85ea00
+test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application) ... FAIL
+test_authorized_aim_uses_same_filtered_scene (__main__.ApplicationObservationTests.test_authorized_aim_uses_same_filtered_scene) ... ok
+test_broker_reply_cannot_grant_control_without_observation (__main__.ApplicationObservationTests.test_broker_reply_cannot_grant_control_without_observation) ... ok
+test_broker_reply_cannot_substitute_application_identity (__main__.ApplicationObservationTests.test_broker_reply_cannot_substitute_application_identity) ... ok
+test_broker_reply_requires_explicit_observation_decision (__main__.ApplicationObservationTests.test_broker_reply_requires_explicit_observation_decision) ... ok
+test_broker_reply_requires_matching_group_count (__main__.ApplicationObservationTests.test_broker_reply_requires_matching_group_count) ... ok
+test_explicit_observation_shows_real_application_without_selection (__main__.ApplicationObservationTests.test_explicit_observation_shows_real_application_without_selection) ... ok
+test_legacy_interaction_grant_cannot_control_labeled_application (__main__.ApplicationObservationTests.test_legacy_interaction_grant_cannot_control_labeled_application) ... ok
+test_legacy_world_grants_do_not_reveal_labeled_application (__main__.ApplicationObservationTests.test_legacy_world_grants_do_not_reveal_labeled_application) ... ok
+test_observe_does_not_enable_input_control (__main__.ApplicationObservationTests.test_observe_does_not_enable_input_control) ... ok
+test_observe_grant_without_workspace_access_does_not_reveal_application (__main__.ApplicationObservationTests.test_observe_grant_without_workspace_access_does_not_reveal_application) ... ok
+test_observe_revocation_removes_metadata_but_preserves_process (__main__.ApplicationObservationTests.test_observe_revocation_removes_metadata_but_preserves_process) ... ok
+test_revocation_after_render_prevents_queued_metadata_export (__main__.ApplicationObservationTests.test_revocation_after_render_prevents_queued_metadata_export) ... ok
+test_revocation_before_post_render_check_returns_no_metadata (__main__.ApplicationObservationTests.test_revocation_before_post_render_check_returns_no_metadata) ... ok
+test_workspace_access_alone_does_not_reveal_application (__main__.ApplicationObservationTests.test_workspace_access_alone_does_not_reveal_application) ... ok
+test_world_admission_and_placement_do_not_grant_application_observation (__main__.ApplicationObservationTests.test_world_admission_and_placement_do_not_grant_application_observation) ... ok
+
+======================================================================
+FAIL: test_application_scope_filters_other_live_application (__main__.ApplicationObservationTests.test_application_scope_filters_other_live_application)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_application_observation.py", line 187, in test_application_scope_filters_other_live_application
+    self.setup_world();app,one=self.probe((-.6,0,-2));other,two=self.probe((.6,0,-2))
+                                                                ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_application_observation.py", line 140, in probe
+    self.assertTrue(result.HasField('action'), result)
+AssertionError: False is not true : protocol_version: 1
+request_id: 5
+error {
+  code: RESOURCE_EXHAUSTED
+  message: "Workspace or actor resource capacity is reserved"
+}
+
+
+----------------------------------------------------------------------
+Ran 16 tests in 91.766s
+
+FAILED (failures=1)
+{"scope": "/sys/fs/cgroup/system.slice/spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service/adapter-9c682c3487474cf99a26c10c1e14ea4e", "device": 31, "inode": 2316869, "removed": [], "unexpected_population": false, "configuration": "protocol_version: 1\ndelegated_cgroup: \"/sys/fs/cgroup/system.slice/spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service/adapter-9c682c3487474cf99a26c10c1e14ea4e\"\nresources {\n  protocol_version: 2\n  default_policy {\n    total {\n      memory_bytes: 536870912\n      swap_bytes: 0\n      processes: 64\n      cpu_microseconds: 200000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    actor_default {\n      memory_bytes: 268435456\n      swap_bytes: 0\n      processes: 32\n      cpu_microseconds: 100000\n      io {\n        major: 259\n        minor: 0\n        read_bytes_per_second: 67108864\n        write_bytes_per_second: 16777216\n      }\n    }\n    profiles {\n      name: \"development\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n    profiles {\n      name: \"read-only\"\n      maximum {\n        memory_bytes: 134217728\n        swap_bytes: 0\n        processes: 16\n        cpu_microseconds: 100000\n        io {\n          major: 259\n          minor: 0\n          read_bytes_per_second: 67108864\n          write_bytes_per_second: 16777216\n        }\n      }\n    }\n  }\n  broker_budget {\n    memory_bytes: 1073741824\n    swap_bytes: 0\n    processes: 128\n    cpu_microseconds: 400000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n  manager_budget {\n    memory_bytes: 268435456\n    swap_bytes: 0\n    processes: 32\n    cpu_microseconds: 200000\n    io {\n      major: 259\n      minor: 0\n      read_bytes_per_second: 67108864\n      write_bytes_per_second: 16777216\n    }\n  }\n}\n", "command": ["/usr/bin/python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_application_observation.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/identityd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-issuer-client", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/worldd", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth"], "exit_code": 1, "scope_removed": true}
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 1min 31.994s
+CPU time consumed: 40.655s
+Memory peak: 2.5M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service: Unit spatial-m03-resources-15d5a09844504b44902840eb02df60ee.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =  92.14 sec
+
+The following tests FAILED:
+	 84 - application-observation (Failed)
+Errors while running CTest

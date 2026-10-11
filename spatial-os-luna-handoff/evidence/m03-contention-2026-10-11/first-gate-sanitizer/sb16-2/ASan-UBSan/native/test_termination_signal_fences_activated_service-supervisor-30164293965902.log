@@ -1,0 +1,2 @@
+authority supervisor: Supervisor termination requested
+authority participant failed: code=26 request=0 stage=private_channel cause=Private participant channel closed

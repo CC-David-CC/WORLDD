@@ -22,7 +22,7 @@ command = ['sudo', '-n', 'systemd-run', '--unit='+unit, '--wait', '--pipe', '--c
            '-p', 'RuntimeMaxSec='+('240' if native else '120'),
            '-p', 'TimeoutStopSec=5s']
 for name in ('PYTHONPATH', 'ASAN_OPTIONS', 'LSAN_OPTIONS', 'UBSAN_OPTIONS', 'SPATIAL_SCOPE_EVIDENCE',
-             'SPATIAL_TEST_XSERVER', 'SPATIAL_SECURITY_EVIDENCE'):
+             'SPATIAL_TEST_XSERVER', 'SPATIAL_SECURITY_EVIDENCE', 'SPATIAL_XPROBE', 'SPATIAL_RENDER_EVIDENCE'):
     if name in os.environ:
         command.append('--setenv='+name+'='+os.environ[name])
 command += ['--', *sys.argv[2:]]

@@ -1,0 +1,26 @@
+{
+  "authority-b0ca83318872b0e9b015f486b796f4f29593f2ebf1047e9f8b04564d92f9cc6a": {
+    "memory.max": "536870912\n",
+    "memory.swap.max": "0\n",
+    "pids.max": "64\n",
+    "cpu.max": "200000 100000\n",
+    "io.max": "259:0 rbps=67108864 wbps=33554432 riops=max wiops=max\n",
+    "cgroup.procs": ""
+  },
+  "authority-b0ca83318872b0e9b015f486b796f4f29593f2ebf1047e9f8b04564d92f9cc6a/authority-1335f7907b5a3178e04b600ccc187e9595ff0fc0ce769452ee87cb753a3e9033": {
+    "memory.max": "268435456\n",
+    "memory.swap.max": "0\n",
+    "pids.max": "32\n",
+    "cpu.max": "100000 100000\n",
+    "io.max": "259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+    "cgroup.procs": ""
+  },
+  "authority-b0ca83318872b0e9b015f486b796f4f29593f2ebf1047e9f8b04564d92f9cc6a/authority-1335f7907b5a3178e04b600ccc187e9595ff0fc0ce769452ee87cb753a3e9033/authority-1b5e6e70ab9639542cb780fa06f638df9f289d21f8c468d324b5cf7b45b036a3": {
+    "memory.max": "134217728\n",
+    "memory.swap.max": "0\n",
+    "pids.max": "16\n",
+    "cpu.max": "100000 100000\n",
+    "io.max": "259:0 rbps=67108864 wbps=8388608 riops=max wiops=max\n",
+    "cgroup.procs": "455963\n455964\n455965\n455966\n455967\n"
+  }
+}

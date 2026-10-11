@@ -159,6 +159,21 @@ Do not infer successful completion from output files or reuse host PIDs as durab
 
 ## Qualification
 
+Pending filesystem and Git effects keep the broker's authority loop active.
+Filesystem flushes run in a joined worker within the existing broker resource boundary.
+SQLite operations remain on the broker thread.
+The broker completes each flush before recording ready state or acknowledging its effect.
+An error still leaves the operation failed or uncertain under its existing recovery rules.
+
+During these waits, managed world channels can request checked access and application control.
+They can release control without waiting for the administrative effect to finish.
+The broker rejects nested execution, management, and grant mutations with BUSY.
+The caller can retry after the pending effect returns its checked result.
+Normal authorization, native identity checks, and in-flight revocation checks still apply.
+This is an explicit scheduling contract. It does not grant additional actor authority.
+
+M03 contention qualification and its full phase gate remain pending.
+
 Both hosts passed Debug and ASan/UBSan qualification of the final source.
 Each build passed all 138 P00-P08 acceptance cases, 199 core checks, and 43 harness self-tests.
 There are zero assertion failures, errors, or skips. Thirteen later acceptance cases remain unrun.

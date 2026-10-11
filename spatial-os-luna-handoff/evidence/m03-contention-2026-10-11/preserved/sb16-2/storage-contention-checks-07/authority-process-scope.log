@@ -1,0 +1,50 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Parse Config file:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/DartConfiguration.tcl
+Test project /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 21
+    Start 21: authority-process-scope
+
+21: Test command: /usr/bin/systemd-run "--user" "--wait" "--pipe" "--collect" "--unit=spatial-scope-a7e3e6a2e9b173c6e890c5747a027f296e8e845b20d743b15d7ca25a31fbc06d" "--property=Delegate=yes" "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source" "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1" "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1" "/usr/bin/python3" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_authority_process_scope.py" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-scope-probe"
+21: Working Directory: /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize
+21: Test timeout computed to be: 120
+21: Running as unit: spatial-scope-a7e3e6a2e9b173c6e890c5747a027f296e8e845b20d743b15d7ca25a31fbc06d.service; invocation ID: 5f8a8ea834934407bbaaeefcee982a95
+21: test_detached_descendants_exit_before_receipt (__main__.ProcessScopeTests.test_detached_descendants_exit_before_receipt) ... ok
+21: test_exec_failure_removes_scope (__main__.ProcessScopeTests.test_exec_failure_removes_scope) ... ok
+21: test_invalid_executable_rejected_without_scope (__main__.ProcessScopeTests.test_invalid_executable_rejected_without_scope) ... ok
+21: test_kernel_denied_kill_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_kill_never_returns_stopped) ... ok
+21: test_kernel_denied_wait_never_returns_stopped (__main__.ProcessScopeTests.test_kernel_denied_wait_never_returns_stopped) ... ok
+21: test_leader_exit_does_not_hide_live_detached_child (__main__.ProcessScopeTests.test_leader_exit_does_not_hide_live_detached_child) ... ok
+21: test_live_child_cannot_report_a_completed_status (__main__.ProcessScopeTests.test_live_child_cannot_report_a_completed_status) ... ok
+21: test_ordinary_directory_rejected_before_execution (__main__.ProcessScopeTests.test_ordinary_directory_rejected_before_execution) ... ok
+21: test_parent_environment_is_not_exported (__main__.ProcessScopeTests.test_parent_environment_is_not_exported) ... ok
+21: test_retained_status_reports_actual_child_failure (__main__.ProcessScopeTests.test_retained_status_reports_actual_child_failure) ... ok
+21: test_stop_preserves_independent_scope (__main__.ProcessScopeTests.test_stop_preserves_independent_scope) ... ok
+21: test_unknown_protobuf_fields_rejected (__main__.ProcessScopeTests.test_unknown_protobuf_fields_rejected) ... ok
+21: 
+21: ----------------------------------------------------------------------
+21: Ran 12 tests in 0.541s
+21: 
+21: OK
+21: Finished with result: success
+21: Main processes terminated with: code=exited/status=0
+21: Service runtime: 636ms
+21: CPU time consumed: 529ms
+21: Memory peak: 768.0K
+21: Memory swap peak: 0B
+1/1 Test #21: authority-process-scope ..........   Passed    0.66 sec
+
+The following tests passed:
+	authority-process-scope
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.67 sec

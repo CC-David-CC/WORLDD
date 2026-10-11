@@ -60,7 +60,8 @@ spatial::wire::Reply dispatch(const spatial::wire::Request& request, spatial::Ex
 }
 spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Request& request, spatial::ExecutionStore& store,
                                             spatial::WorkspaceAuthority* authority, spatial::ControlLeases& controls,
-                                            const std::string& owner = {}, const std::string& native_server = {}) {
+                                            const std::string& owner = {}, const std::string& native_server = {},
+                                            bool during_effect = false) {
     namespace broker = spatial::workspace::v1;
     namespace wire = spatial::wire;
     broker::Reply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id());
@@ -70,6 +71,9 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         // Transport validation precedes attribution on every private channel.
         if (!owner.empty() && request.has_control_acquire() && request.control_acquire().application().server_id() != native_server)
             throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
+        if (during_effect && !request.has_access() && !request.has_application_access() &&
+                !request.has_control_acquire() && !request.has_control_release())
+            throw spatial::WorldError(wire::BUSY, "Workspace effect is pending; retry execution after its checked result");
         if (request.has_management()) {
             if (request.management().request_id() != request.request_id()) throw std::invalid_argument("Broker management identity mismatch");
             *reply.mutable_management() = dispatch(request.management(), store);
@@ -215,8 +219,12 @@ int main(int argc, char** argv) {
         if (control_fd >= 0) channels = std::make_unique<spatial::ControlChannels>(control_fd, control_peer, controls);
         struct ClearObserver {
             spatial::WorkspaceAuthority* authority;
-            ~ClearObserver() { if (authority) authority->set_observer([] {}); }
-        } clear_observer{authority.get()};
+            spatial::ExecutionStore& store;
+            ~ClearObserver() {
+                store.set_observer({});
+                if (authority) authority->set_observer([] {});
+            }
+        } clear_observer{authority.get(), store};
         // Issuer and process waits call this on the same broker thread.
         // Cached lease checks neither recurse into issuer I/O nor reap a borrowed job.
         if (authority) authority->set_observer([&] {
@@ -238,6 +246,35 @@ int main(int argc, char** argv) {
             if (native) native->check();
         };
         if (storage) storage->set_observer(enforce);
+        bool serving_effect = false;
+        const auto serve_effect = [&] {
+            if (!channels || serving_effect) return;
+            struct Guard {
+                bool& busy;
+                explicit Guard(bool& value) : busy(value) { busy = true; }
+                ~Guard() { busy = false; }
+            } guard(serving_effect);
+            // These callbacks run only during filesystem and Git waits, never while borrowing an application job.
+            // Keep release acknowledgements and checked access available without nesting storage effects.
+            channels->serve([&](const auto& request, const std::string& owner, const std::string& native_server) {
+                const auto cancellation = authority ? authority->cancellation_sequence() : 0;
+                auto reply = dispatch_broker(request, store, authority.get(), controls, owner, native_server, true);
+                enforce();
+                if (authority && !reply.has_error() && cancellation != authority->cancellation_sequence() &&
+                        !request.has_control_release()) {
+                    reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+                    reply.mutable_error()->set_code(spatial::wire::UNAUTHORIZED);
+                    reply.mutable_error()->set_message("Issuer revocation invalidated the in-flight broker result");
+                }
+                return reply;
+            });
+        };
+        store.set_observer([&] {
+            serve_effect(); enforce();
+            // This explicit effect wait is outside issuer callbacks. Do not recursively refresh from tick().
+            if (authority) { authority->keepalive(); enforce(); }
+            serve_effect();
+        });
         for (;;) {
             enforce();
             if (authority) { authority->keepalive(); enforce(); }

@@ -26,20 +26,33 @@ HOLD = "from pathlib import Path\nimport time\nPath('/state/data/ready').touch()
 
 
 class Broker(workspace.BrokerProcess):
-    def __init__(self, fixture, config, native_config=None):
+    def __init__(self, fixture, config, native_config=None, control_transport=None):
         self.stream, child = socket.socketpair(); self.sequence = 0
         self.path = fixture.root/f'broker-{len(fixture.brokers)}.log'
         self.log = self.path.open('wb'); self.fixture = fixture
         command = [str(workspace.BROKER), '--state-dir', str(fixture.execution), '--authority-config', str(config)]
-        fd = None
+        fd = None; extra_fds={};self.resources=None;self.owner_log=None
         if native_config is not None:
             fd = os.memfd_create('application-access-native', os.MFD_CLOEXEC | os.MFD_ALLOW_SEALING)
             os.write(fd, native_config.SerializeToString())
             fcntl.fcntl(fd, fcntl.F_ADD_SEALS, fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL)
             command += ['--native-security-fd', str(fd)]
+            extra_fds['--native-security-fd']=fd
+        if control_transport is not None:
+            control_fd,peer=control_transport
+            command+=['--control-supervisor-fd',str(control_fd),'--control-supervisor-pid',str(peer)]
+            extra_fds['--control-supervisor-fd']=control_fd
         try:
-            self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log,
-                                         pass_fds=() if fd is None else (fd,))
+            configuration=os.environ.get('SPATIAL_TEST_BROKER_CONFIG')
+            if configuration:
+                self.owner_log=(fixture.root/f'broker-owner-{len(fixture.brokers)}.log').open('wb')
+                self.resources=workspace.ResourceBroker(workspace.BROKER,command,child,self.log,self.owner_log,
+                    configuration,extra_fds=extra_fds)
+                self.proc=self.resources.process
+            else:
+                self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log,
+                                             pass_fds=tuple(extra_fds.values()))
+            self.pid=self.proc.pid
         finally:
             child.close()
             if fd is not None: os.close(fd)
@@ -50,9 +63,13 @@ class Broker(workspace.BrokerProcess):
         if self.stream.fileno() < 0: return
         if self.proc.poll() is None:
             self.stream.shutdown(socket.SHUT_WR)
-            try: self.proc.wait(timeout=5)
+            try:
+                if self.resources:self.resources.close()
+                else:self.proc.wait(timeout=5)
             except subprocess.TimeoutExpired: self.proc.kill(); self.proc.wait(timeout=3); raise
+        elif self.resources:self.resources.close()
         self.stream.close(); self.log.close()
+        if self.owner_log:self.owner_log.close()
         self.fixture.assertEqual(self.proc.returncode, 0, self.path.read_text())
 
 
@@ -107,6 +124,9 @@ class ApplicationAccessTests(workspace.WorldIdentityFixture):
         # Broker cleanup must precede native server cleanup.
         self.broker = Broker(self, self.config, self.native_config)
         self.addCleanup(self.broker.close)
+        # Resource and native bootstrap can exceed this fixture's three-second idle deadline.
+        # Start a fresh administrative connection before issuing another signed challenge.
+        self.owner_peer.close();self.owner_peer=self.connect()
         return self.launch_application()
 
     def launch_application(self, profile='development', claims=None):

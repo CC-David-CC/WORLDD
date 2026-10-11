@@ -16,11 +16,12 @@
     "Run the complete M03 phase gate after focused implementation checks pass."
   ],
   "known_limitations": [
-    "Per-process setrlimit remains. Explicit broker resource configuration now adds qualified aggregate application, actor, and workspace limits.",
-    "The root ext4 filesystem does not currently advertise project quotas. Do not claim storage quotas exist.",
-    "Project-scoped transient services have qualified I/O delegation on both hosts. Persistent operator deployment remains pending; ordinary user delegation remains cpu, memory, and pids.",
-    "A five-second client passed one bounded write-pressure trial. This does not establish worst-case latency.",
-    "Moving database work to a worker does not make durable commits complete faster or authorize stale authority decisions."
+    "The complete M03 gate remains pending. Focused evidence does not qualify the milestone.",
+    "The normal root ext4 filesystem does not provide the project storage quota. The dedicated checked Btrfs storage owner supplies bounded workspace storage.",
+    "Project-scoped services delegate I/O on both hosts. Ordinary user delegation still provides cpu, memory, and pids only.",
+    "Both persistent 4 GiB David volumes are provisioned. Provisioning does not start an operator broker or a spatial session.",
+    "The five-second client default remains. Earlier initialization timeout and startup EOF causes remain unproven.",
+    "Filesystem flushes use a joined worker. SQLite remains on the broker thread. Durable acknowledgement ordering remains unchanged."
   ],
   "availability_evidence": [
     "evidence/m02-gate-2026-10-10/writeback-snapshot-01/primary-review.json",
@@ -28,14 +29,13 @@
     "evidence/m02-gate-2026-10-10/issuer-client-defaults-01/primary-review.json"
   ],
   "remaining": [
-    "Provision controllers and explicit policy in remaining authenticated/direct-broker fixtures and operator entry points.",
-    "Extend authenticated application coverage through the qualified retained session resource handoff.",
-    "Include broker Git/file effects and all writable workspace paths in resource and storage accounting.",
-    "Qualify bounded persistent storage, independent escape attempts, and failure recovery.",
-    "Measure issuer availability under bounded competing writes, then run the full M03 gate on both hosts."
+    "Run complete M03 Debug, runtime sanitizer, harness, acceptance, bounded-storage integration, and applicable cross-host qualification.",
+    "Review aggregate exhaustion, descendant inheritance, escape attempts, sibling survival, storage accounting, and recovery evidence against every required invariant.",
+    "Keep unexplained startup failures visible. Capture complete service and kernel evidence if they recur.",
+    "Commit the reviewed coherent increment and push origin. Advance M03 only after its complete qualification audit passes."
   ],
   "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json",
-  "current_step": "combined_m03_execution_storage_io_implementation",
+  "current_step": "corrected_qualification_and_full_M03_gate",
   "qualified_primitive": {
     "evidence": "evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json",
     "passed": 108,
@@ -82,5 +82,60 @@
     "operator_deployment_qualified": false,
     "original_startup_failure_cause": "unknown"
   },
-  "remaining_increment": "docs/M03_REMAINING_INCREMENT.txt"
+  "remaining_increment": "docs/M03_REMAINING_INCREMENT.txt",
+  "operator_storage_and_production_profile": {
+    "status": "focused_qualification_passed",
+    "evidence": "evidence/m03-operator-storage-2026-10-11/primary-review.json",
+    "checks_per_host_per_profile": 115,
+    "total_passes": 460,
+    "phase_complete": false,
+    "operator_session_started": false
+  },
+  "contention_and_fixture_increment": {
+    "status": "reviewed_focused_qualification_passed",
+    "evidence": "evidence/m03-contention-2026-10-11/preserved-review.json",
+    "native_contention_cases_per_host_sanitizer": 3,
+    "preserved_baseline_application_exits_within_two_seconds": 0,
+    "corrected_application_exits": 9,
+    "corrected_exit_seconds": {
+      "sb16": 0.3712779860034061,
+      "sb16-2": 0.7376739589999488
+    },
+    "import_reply_still_pending": true,
+    "locked_files_unchanged": 41,
+    "existing_test_bodies_unchanged": 112,
+    "phase_complete": false,
+    "full_gate_queued_behind_checked_focused_runner": true,
+    "debug_cases_per_host": 367,
+    "debug_suites_per_host": 29,
+    "primary_review": "evidence/m03-contention-2026-10-11/primary-review.json",
+    "current_related_checks_per_host_per_profile": 216,
+    "current_acceptance_cases_per_host_per_profile": 151
+  },
+  "full_gate_candidate_01": {
+    "status": "terminal_failed_both_hosts",
+    "registered_suites": 135,
+    "sb16_debug_failed_suites": 6,
+    "sb16_debug_bounded_storage_git": "passed",
+    "P10_native_witness_environment_failure": "The resource delegate omitted SPATIAL_XPROBE. Thirty-three native cases errored on sb16. No assertions changed.",
+    "correction_manifest": "local/m03-gate-corrections-02.json",
+    "correction_files": 9,
+    "correction_status": "reviewed_selected_checks_passed_both_hosts",
+    "phase_complete": false,
+    "sb16_2_sanitizer_failed_suites": 4
+  },
+  "corrected_candidate_02": {
+    "selected_sb16": {
+      "status": "reviewed_passed",
+      "related_checks_per_profile": 216,
+      "acceptance_cases_per_profile": 151,
+      "debug_review": "evidence/m03-contention-2026-10-11/correction-02-sb16-debug-review.json",
+      "sanitizer_review": "evidence/m03-contention-2026-10-11/correction-02-sb16-sanitizer-review.json"
+    },
+    "selected_sb16_2": "reviewed_passed: 216 related checks and 151 acceptance cases per profile",
+    "full_gate_sb16": "running",
+    "full_gate_sb16_2": "running",
+    "crosshost": "eight scenarios prepared, unrun",
+    "phase_complete": false
+  }
 }

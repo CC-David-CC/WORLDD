@@ -1,0 +1,222 @@
+M03 bounded-write contention and revocation increment.
+
+Invariant:
+Confined competing writes cannot produce false durable acknowledgements.
+Issuer revocation stops actor-owned execution during a bounded administrative Git job.
+Credential revocation releases control and preserves independently authorized actor-owned execution.
+The production client retains its five-second default. Short fault deadlines remain unchanged.
+
+Selected checks, recorded before execution:
+tests/native/test_storage_contention.py uses the retained production session and checked storage owner.
+It runs a real bounded writer beside a confined native application.
+It independently inspects committed issuer revisions and process handles.
+It measures three acknowledged policy updates during repeated durable file writes.
+It checks actor revocation and credential revocation as separate cases.
+It checks actor process exit while a bounded 80 MiB Git import remains outstanding.
+Related native storage-owner, authority participant, Git, process lifetime, and issuer-default regressions follow any correction.
+Run focused Debug and ASan/UBSan checks on both hosts.
+The complete M03 phase gate remains pending.
+
+Current source checkpoint 32d8242 is reviewed and pushed to origin/m03/resource-boundary.
+No GitHub publishing is authorized by this increment.
+No compiler or cache optimization work is required.
+
+The initial fixture explicitly set timeout zero. The loader correctly rejected that value.
+The corrected fixture omits the optional timeout field to use the production default.
+The fixture now reserves a 1 GiB image for two separate repository budgets.
+The existing volume helper retains its 512 MiB default for earlier test cases.
+A new measurement label initially named the wrong protobuf oneof. This fixture error is corrected.
+All failed attempts retain their exact source and transcripts.
+
+Both hosts passed durable issuer updates and actor/credential revocation during bounded writes.
+The combined Git-import counterexample reproduced a production revocation delay on both hosts.
+All nine application handles remain live after two seconds during Btrfs fsync.
+Read defect blockers/broker-filesystem-flush-delays-revocation.txt.
+The production correction preserves filesystem flush ordering and SQLite operations.
+Its Debug and sanitizer qualification remain pending.
+
+The first correction stops all nine application processes during the pending import.
+Later checks show control release and workspace completion still need service during the wait.
+The broker now services checked access and control without nesting execution or storage requests.
+Other requests return BUSY through the same validated transport.
+The second correction lets the world acknowledge revocation. Workspace acknowledgement remains pending.
+
+The handoff requires a bounded helper after two unsuccessful production corrections.
+A read-only helper reviewed the current source and both hosts' preserved evidence over SSH.
+The primary agent reviewed that diagnosis and remains responsible for every changed file.
+The helper identified omitted workspace-query keepalive during long effects as the likely remaining cause.
+The earlier query exception was swallowed. The old logs do not prove its transport cause.
+The current correction keeps the original keepalive cadence, timeout, and no-reconnect behavior.
+A fixed diagnostic records future keepalive failures without actor data or credentials.
+Do not acknowledge revocation from an effect callback before its completion conditions hold.
+
+A new cgroup witness now tolerates removal between directory enumeration and its process read.
+It still requires every pinned application handle to exit within two seconds.
+Fixture source files and Git objects are flushed before native startup to separate preparatory writes from the tested producer.
+The reproduced five-second issuer initialization timeout remains preserved and unresolved.
+It does not prove a new production-source defect or explain the older startup EOF.
+
+The combined correction passes all three native contention cases under ASan/UBSan on both hosts.
+Storage-owner and retained native-application regressions also pass on both hosts.
+Broader regression found fifteen registered broker fixture commands without resource provisioning.
+The registrations now use the existing delegate and explicit adapter policy.
+The assertions remain unchanged. Four fixture files retain all 84 existing test bodies unchanged.
+Native and control descriptors receive explicit distinct targets through the existing owned launch.
+Fixtures retain the actual broker pidfd and child status separately from their scope owner.
+
+Explicit private-probe interface addition:
+ProcessScopeRequest.exit_status uses field 16 and an empty ProcessScopeQuery.
+ProcessScopeReply.exit_status uses field 13 and ProcessScopeExitStatus.code.
+The probe calls the existing production ProcessScope::exit_status() operation.
+Its code uses the production API's shell signal encoding.
+The query cannot report a completed status for a live or reaped child.
+Existing fields, schemas, locked acceptance files, and actor APIs retain their contracts.
+Two additive scope checks verify actual failure status and live-child rejection.
+The broader source now needs Debug and sanitizer qualification on both hosts.
+
+Primary source review found a removal-receipt fsync still running on the broker thread.
+The final correction uses the same joined filesystem worker for that receipt.
+The receipt descriptor remains owned until the worker returns.
+Flush completion still precedes the directory flush and ready-state transaction.
+The running checks-07 candidates retain their original source until both jobs finish.
+Selected final-flush regressions: workspace-git, session-storage-contention, and session-storage-owner.
+The 49 Git cases include clean retirement, retained files, retries, uncertain receipts, and failed acknowledgement recovery.
+Rebuild current Debug with input tests enabled. Run the 29 related suites on both hosts.
+Run the full M03 gate after the combined increment passes.
+
+The unchanged control-owner test reproduced a retained administrative endpoint in the private resource-scope probe.
+The probe now closes caller-supplied descriptors after checked child launch or checked prepared-scope start.
+A new socket regression requires EOF while both the scope owner and child remain alive.
+It tests both launch forms. Existing assertions and deadlines remain unchanged.
+The first final-flush runner selected an older input archive and did not deploy this probe correction.
+Its manifest and failed transcript remain preserved. The corrected runner checks the three-file archive before deployment.
+Selected additional regressions: authority-process-scope and the six remaining application/control suites.
+
+Both hosts pass all 30 control-owner checks after the descriptor handoff correction.
+Both hosts then reproduced RESOURCE_EXHAUSTED when the observation fixture requested its third application.
+The fixture retains one bootstrap application and needs two independent native witnesses.
+Its explicit actor budget now reserves 384 MiB and 48 processes inside the unchanged 512 MiB workspace budget.
+Each application retains its 128 MiB and 16-process profile. CPU, I/O, swap, deadlines, and assertions retain their limits.
+The inherited world-control and actor-pixel fixtures use the same explicit setup.
+The final related sanitizer checks run on both hosts. Current Debug builds and 29-suite checks follow.
+Sixteen omitted server source, patch, storage-bootstrap, and standalone integration files were restored before gate preparation.
+Restoration matches canonical source. The pinned server remains unchanged.
+
+The full M03 gate is queued behind each currently live focused runner using its pinned process handle.
+The queue requires both final sanitizer and Debug reports to pass. A failure stops that host queue.
+The gate verifies source and all 41 locked hashes, then runs complete Debug and ASan/UBSan profiles.
+Each profile runs the complete registered CTest matrix, harness checks, P00-P10 acceptance, and standalone bounded-storage Git integration.
+Cross-host and final primary evidence review still follow. Queueing does not establish a pass.
+
+Final related sanitizer checks pass on both hosts: 205 affected checks per host across the final correction and fixture reruns.
+All 49 Git checks, three contention cases, and two storage-owner cases pass on the final source on both hosts.
+Current-source Debug builds pass on sb16. Its three contention cases pass in Debug.
+Debug qualification continues. The full gate queues retain pinned live focused-run handles.
+No full M03 qualification or source integration is claimed yet.
+
+Cross-host qualification will exercise the production confinement profile.
+The existing crosshost_revocation.py fixture now inherits NativeStorageSessionTests.
+Its 30 existing function bodies and all cancellation/recovery assertions remain unchanged.
+The change is staged outside the frozen remote source. It does not modify running gate inputs.
+Both host interfaces were inspected. sb16 uses 10.0.7.49. sb16-2 uses 10.0.7.94 on its wired LAN.
+Selected cross-host checks: delay and crash recovery with each host delayed, in Debug and ASan/UBSan.
+Run eight cases after the complete host gates finish. Preserve all test keys outside Git.
+Generate current protobuf bindings from the unchanged crosshost_revocation.proto schema.
+
+The first full Debug gate on sb16 found further fixture gaps.
+An old native broker handoff regression supplied no administrative Git resource policy.
+Its proposed correction supplies the sealed template through the retained supervisor and the existing dedicated delegate.
+The authenticated kernel witness still treated broker.proc as the scope owner.
+The corrected witness compares resources.owner and independently verifies the kernel parent PID.
+One ordinary supervisor startup exceeded its inherited 700 ms fixture deadline.
+The issuer log records 1168 ms of event-loop work in the nearby startup interval.
+That is not a kernel-syscall diagnosis. Preserve the earlier unknown startup failures separately.
+Healthy supervisor configs now use the existing production default.
+The approval-interruption fault configs retain their 700 ms participant and 3000 ms approval deadlines.
+All 27 existing supervisor, broker-handoff, and approval-interruption test bodies remain unchanged.
+These changes are staged locally. The running remote gate source remains frozen.
+The complete first matrix continues to collect failures before the next coherent fixture correction is qualified.
+Issuer log retention now uses the enclosing native test name instead of runTest.
+This metadata change identifies future startup evidence without changing requests or deadlines.
+
+Both hosts now pass all 29 related Debug suites: 367 checks per host.
+The complete first M03 gate runs on both hosts.
+The sb16 Debug matrix completed 135 suites and failed six suites.
+Its standalone production bounded-storage Git integration passed.
+Core-protocol reproduces a proxy timeout-classifier defect on complete malformed frames.
+The classifier now selects the ordinary timeout and forwards the original bytes to the authority.
+Malformed payload recovery remains required. Truncated and oversized transport remains fatal.
+The native application-launch fixture also needs the existing explicit resource wrapper and retained broker child.
+World identity startup recorded a 709 ms client deadline while its issuer reported 1051 ms loop work.
+Its healthy world constructor now omits the client timeout field. Fault construction paths remain unchanged.
+The eight-file correction package is staged and unrun. The full first gate keeps its frozen inputs.
+
+The first P10 run executed all 151 cases. Thirty-three native cases errored because the independent witness path was absent.
+The resource delegate did not forward SPATIAL_XPROBE to its trusted test process.
+The staged correction forwards that path and SPATIAL_RENDER_EVIDENCE explicitly.
+Application environments remain separately filtered. No general environment passthrough is added.
+The now nine-file correction package includes this qualification-environment fix.
+
+The next combined correction is queued behind each live first-gate process handle.
+It cannot modify the frozen source until that process exits.
+It archives the exact previous source, then qualifies twenty affected suites and P10 in both profiles.
+Only successful correction checks start the next complete M03 gate.
+The production-profile cross-host runner now requires that next candidate, not the known failing first gate.
+
+The complete first Debug evidence is archived and hash-verified locally: 4405 attachments from sb16 and 4406 from sb16-2.
+Both ran all 135 suites. sb16 failed six suites. sb16-2 failed four suites.
+Both P10 runs passed 118 cases and errored 33 cases because witness propagation was missing.
+Both standalone production bounded-storage Git integrations passed.
+Read evidence/m03-contention-2026-10-11/first-gate-debug-review.json.
+Read requirement-coverage.json in the same directory for all nine M03 requirements and their independent witness sources.
+No failed, missing, pending, or unrun requirement is treated as passed.
+
+The first sb16 sanitizer matrix completed all 135 suites and all 151 P10 cases.
+Its production bounded-storage Git integration passed. The known first-candidate failures remain preserved.
+The verified correction deployed only after that gate process exited.
+Corrected Debug passes on sb16: protocol 13, world lifecycle 11, actors 10, world identity 20, authenticated resource witness 1, native application launch 21, and authority supervisor 14.
+The malformed-frame recovery assertion is unchanged and now passes.
+The stronger owner/child kernel witness also passes. Explicit fault-deadline regression is next.
+The first sb16-2 sanitizer gate is still live. Its correction queue remains pinned to that process.
+
+The original four approval-interruption cases pass with their unchanged fault deadlines.
+The broker-handoff suite then found a fixture capacity mismatch: resource delivery adds a third generated descriptor.
+The original two-descriptor diagnostic checks remain intact and run hello only.
+Two new cases check overflow rejection and exact capacity for all three resource-bearing descriptors.
+All nine original handoff test bodies remain unchanged.
+The second correction package preserves the previous failed source and resumes affected Debug checks on sb16.
+Its unchanged passed prefix is recorded separately. Both profiles still require current affected evidence.
+The pending sb16-2 queue uses the second package after its pinned first-gate process exits.
+
+The corrected handoff fixture now passes all eleven checks in Debug on sb16.
+The original nine bodies remain intact. Both new resource-bearing capacity checks pass.
+World handoff, handoff regressions, supervisor fencing, control binding, and crash fencing also pass.
+The retained application, storage-owner, and three storage-contention cases pass on the resumed source.
+The resumed combined run still needs session-resource, Git, P10, and sanitizer completion.
+
+The combined corrected sb16 Debug run passed all remaining affected suites and all 151 P00-P10 acceptance cases.
+The real independent native witness path now reaches the qualification process through the resource delegate.
+Current-source sanitizer compilation passed. The same selected matrix is running.
+Full phase qualification and the second host remain pending.
+
+Corrected sb16 qualification now passes both profiles: 216 related checks and 151 acceptance cases each.
+The archived Debug prefix has 95 checks and differs only in the later handoff fixture.
+The corrected sanitizer archive contains 509 verified attachments and zero detected sanitizer errors.
+The corrected Debug archive contains 324 attachments. The preserved prefix contains 213 attachments.
+The full gate-02 runs on sb16. sb16-2 remains on its live first sanitizer gate with correction queued.
+M03 completion and all eight production-profile cross-host scenarios remain pending.
+
+The first sb16-2 gate is terminal failed. Its sanitizer matrix completed all 135 suites with four known failed suites.
+Both production bounded-storage Git profiles passed. The queued correction started after the actual gate process exited.
+The first sanitizer archive has 4406 attachments and no excluded sensitive-pattern files. Local verification is running.
+
+Corrected sb16-2 Debug now passes 216 related checks and all 151 acceptance cases.
+All 509 retained attachments passed hash verification. Its sanitizer correction is running.
+The gate collector explicitly retains the independent kernel CPU, memory, process, I/O, hierarchy, and quota measurements.
+All nine M03 requirements now name concrete assertions and expected witness paths. Runtime completion remains pending.
+
+The coherent M03 contention increment now passes selected qualification on both hosts in both profiles.
+Each profile passes 216 related checks and all 151 acceptance cases. Both sanitizer scans have zero findings.
+Both corrected full gates are live. The eight production-profile cross-host cases remain unrun.
+The primary review is spatial-os-luna-handoff/evidence/m03-contention-2026-10-11/primary-review.json.
+Keep the cross-host fixture extension outside the checkpoint until it has runtime evidence.

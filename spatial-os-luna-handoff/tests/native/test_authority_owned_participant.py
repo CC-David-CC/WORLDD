@@ -20,6 +20,7 @@ class OwnedParticipantTests(existing.AuthorityLaunchTests):
     def setUp(self):
         super().setUp()
         self.issuer=self.issuer_fixture()
+        self.issuer._testMethodName=self._testMethodName
         def cleanup_issuer():
             self.issuer.tearDown()
             self.assertTrue(self.issuer.doCleanups(),'Issuer fixture cleanup failed')

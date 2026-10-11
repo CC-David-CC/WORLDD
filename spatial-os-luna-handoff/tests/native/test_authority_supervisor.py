@@ -24,16 +24,27 @@ class AuthoritySupervisorTests(owned.OwnedParticipantTests):
     revoke = relay.ParticipantRelayTests.revoke
     barrier = relay.ParticipantRelayTests.barrier
 
+    def healthy_client_config(self):
+        path = self.issuer.config_file()
+        config = text_format.Parse(path.read_text(), identity.IssuerTlsClientConfig())
+        config.ClearField('io_timeout_ms')
+        path.write_text(text_format.MessageToString(config))
+        return path
+
     def config(self):
         self.child_config = self.root / 'supervised-child.textproto'
+        runtime_path = self.runtime_config()
+        runtime = text_format.Parse(runtime_path.read_text(), identity.AuthorityParticipantRuntimeConfig())
+        runtime.issuer_client_config = str(self.healthy_client_config())
+        runtime_path.write_text(text_format.MessageToString(runtime))
         domains = []
         for domain in self.issuer.registration.participant.domains:
             domains += ['world' if domain.kind == grants.WORLD else 'workspace', domain.id]
         return pb.AuthoritySupervisorConfig(protocol_version=1,
             journal_directory=str(self.journal), delegated_cgroup=str(self.cgroup), binding=self.binding,
-            participant=pb.AuthorityParticipantAttach(runtime_config=str(self.runtime_config()),
+            participant=pb.AuthorityParticipantAttach(runtime_config=str(runtime_path),
                 domains=self.issuer.registration.participant.domains),
-            authorization=pb.AuthorityLaunchAuthorize(issuer_client_config=str(self.issuer.config_file()),
+            authorization=pb.AuthorityLaunchAuthorize(issuer_client_config=str(self.healthy_client_config()),
                 private_key_path=str(self.issuer.supervisor_key), supervision_revision=1, previous_generation=0),
             launch=process_pb.AuthorityProcessLaunch(executable=str(owned.existing.PROBE.with_name('spatial-participant-runtime-probe')),
                 arguments=[str(self.child_config), *domains]),

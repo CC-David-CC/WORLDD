@@ -1,0 +1,357 @@
+{
+  "host": "sb16-2",
+  "status": "passed",
+  "units": [
+    {
+      "unit": "spatial-m03-resources-047e1004a4ae4ff9b77296669b9f01ed.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-0980cb82b59c41379be936ce62642137.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-1448426257374820b5c95fcd388b851a.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-2070e10c6bd04912b3b87a134ed9979c.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-233d6b2bc4bb4caf8d92d5f138ada667.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-3cbfe960b65448ff99be507e7f6be967.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-3ed4b23998dc43b5838402f9207b6e58.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-48f15b0651914af098a5d732d4924843.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-517a95ee317e450ea160764709dc792e.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-8740b1ee1e514736a4bc7bfa8a6c96e3.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-8aecd3b4061341e0867103b501cb6ff6.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-8c231805f4804cf49fe4d025c5c831bf.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-9bca6014a80b4a3d856f5d47a77f1f92.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-a07aa975f9724bd48e84fe55819c8de4.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-b8df92e12cee47528e083f1b33602c47.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-c88fa3d6a1a44efd8c411e5611ec50c4.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-cb9b77d88a424dd3b1c3d7c08c9616a9.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-m03-resources-fb3d1a3af08a40b6b5b36ab7f3147829.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-03026632d2c5d85a4c04ebbb0a9f6dd1.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-242a7625d4a0e9c8cd5eddff6ccccd04.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-2a38d60314b70ece5e36ffdae4a2cf3e.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-32b616cbec390b575fa3613c106ed998.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-372cd5ca1dcc5d1046e4340a57a423c5.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-457617b2e670ede3bf2e66b48fb1618d.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-4bcd013c7c440031a69da6822c3bdf34.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-5d33f72866294edc607bbab993413111.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-7958b17f971c3b2c44599b1a5d9159d1.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-7b5e54af7c8474a325b7729c3272bd1e.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-85234f5feda03b261c70e43858f3f4c4.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-8aa0ad0627a9cd8bc7a804f981b100a8.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-9631f7a22ce829b613fb59d64fc75ff9.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-a0eaf0975eb983bfcc6743a2421cb553.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-a7f3275741d2fc534a70d37ecdedeb2d.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-adf56017af1d4b6082b319cd58766bd6.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-b077e94653b75f091bc324073fa3ae39.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-df2fc8f3fd093af9abff4bcd7c9279e0.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-f90995f1bfb74ff29d9d34de50085052.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    {
+      "unit": "spatial-storage-owner-fce027d2a176d70625cb5dd65ad316c4.service",
+      "query_exit": 0,
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    }
+  ],
+  "volumes": [
+    {
+      "evidence": "Debug/native/test_native_storage_credential_revocation_preserves_execution_under_writes/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    },
+    {
+      "evidence": "Debug/native/test_native_storage_session_retains_owner_and_confined_application/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    },
+    {
+      "evidence": "Debug/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    },
+    {
+      "evidence": "Debug/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    },
+    {
+      "evidence": "Debug/native/test_native_storage_actor_revocation_during_bounded_git_import/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    },
+    {
+      "evidence": "ASan-UBSan/native/test_native_storage_credential_revocation_preserves_execution_under_writes/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    },
+    {
+      "evidence": "ASan-UBSan/native/test_native_storage_session_retains_owner_and_confined_application/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    },
+    {
+      "evidence": "ASan-UBSan/native/test_native_storage_owner_loss_stops_execution_and_records_cleanup/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    },
+    {
+      "evidence": "ASan-UBSan/native/test_native_storage_actor_revocation_and_durable_issuer_under_writes/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    },
+    {
+      "evidence": "ASan-UBSan/native/test_native_storage_actor_revocation_during_bounded_git_import/volume-setup.json",
+      "cleanup_confirmed": true,
+      "mount_query_exit": 1,
+      "loop_query_exit": 0,
+      "loop_association": "",
+      "policy_directory_absent": true
+    }
+  ],
+  "phase_complete": false,
+  "scope": "Completed candidate UUID services, retained fixture volume mounts, loop associations, and private policies. Stable user-service names reused by a live gate are outside this snapshot.",
+  "reassessment": "No runtime cleanup was issued by this read-only audit."
+}

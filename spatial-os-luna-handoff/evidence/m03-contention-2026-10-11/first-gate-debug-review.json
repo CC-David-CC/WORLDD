@@ -1,0 +1,43 @@
+{
+  "status": "verified_failed_first_Debug_matrix",
+  "phase_complete": false,
+  "hosts": {
+    "sb16": {
+      "verified_attachments": 4405,
+      "core_suites": 135,
+      "failed_suites": [
+        "authority-supervisor",
+        "authority-broker-handoff-regressions",
+        "authenticated-resources",
+        "native-application-launch",
+        "world-identity",
+        "core-protocol"
+      ],
+      "P10_executed": 151,
+      "P10_statuses": {
+        "error": 33,
+        "passed": 118
+      },
+      "bounded_storage_git": "passed",
+      "archive_sha256": "5ad9ab530adb17245b26cf0270f1a7ccd943a5d08dd9cc95453a161f3ea5e132"
+    },
+    "sb16-2": {
+      "verified_attachments": 4406,
+      "core_suites": 135,
+      "failed_suites": [
+        "authority-broker-handoff-regressions",
+        "authenticated-resources",
+        "native-application-launch",
+        "core-protocol"
+      ],
+      "P10_executed": 151,
+      "P10_statuses": {
+        "error": 33,
+        "passed": 118
+      },
+      "bounded_storage_git": "passed",
+      "archive_sha256": "53fcaaa922d6f0909cc91eb078fe150b5c7d2280a6cdae7c2c03b3a1441e9759"
+    }
+  },
+  "disposition": "Preserve complete first matrix evidence. Combined correction is staged behind the live sanitizer processes. Missing native witness propagation is a qualification setup failure, not a passed native requirement."
+}

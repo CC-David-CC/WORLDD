@@ -38,7 +38,7 @@ class BrokerProcess:
         if configuration:
             self.owner_log = (fixture.root/f'broker-owner-{len(fixture.brokers)}.log').open('wb')
             self.resources = ResourceBroker(BROKER, command, child, self.log, self.owner_log, configuration)
-            self.proc = self.resources.owner
+            self.proc = self.resources.process
             self.pid = self.resources.pid
         else:
             self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log)

@@ -1,5 +1,103 @@
 # Implementation status
 
+## 2026-10-11: M03 contention increment passes selected qualification on both hosts
+
+Both hosts pass 216 related checks and all 151 acceptance cases in Debug and ASan/UBSan.
+The sb16 Debug result reuses the unchanged nine-suite prefix and checks the corrected remainder.
+Both sanitizer archives contain zero detected sanitizer errors. All current attachments passed hash verification.
+All forty-one locked files and 185 existing test bodies remain unchanged.
+The authenticated owner/child witness has one explicit correction that strengthens its kernel identity checks.
+
+Independent cleanup checks confirm ten released test volumes per host.
+They confirm 36 recorded UUID services unloaded on sb16 and 38 on sb16-2.
+Stable user-service names reused by live gates are outside those cleanup snapshots.
+
+Both corrected full gates are active. Eight production-profile cross-host cases remain unrun.
+The local cross-host fixture extension remains outside this checkpoint until it passes those cases.
+M03 remains incomplete. Read evidence/m03-contention-2026-10-11/primary-review.json.
+
+## 2026-10-11: Corrected M03 checks pass on sb16; full gate remains active
+
+Corrected sb16 qualification passes 216 related checks and 151 acceptance cases per build profile.
+Debug reuses nine unchanged passed suites from the first correction and verifies the corrected remainder.
+All twenty affected sanitizer suites passed. The archived sanitizer logs contain no detected sanitizer errors.
+The first correction and its descriptor-capacity failure remain preserved.
+
+The corrected complete gate now runs on sb16 with frozen source.
+The first sb16-2 sanitizer gate completed with four known failed suites.
+Its production bounded-storage Git checks passed in both profiles. Corrected combined checks now run.
+Both corrected full gates and eight production-profile cross-host cases remain required.
+M03 remains incomplete. M01 and M02 remain qualified.
+
+Read evidence/m03-contention-2026-10-11/correction-02-sb16-debug-review.json.
+Read correction-02-sb16-sanitizer-review.json and integration-source-review.json in the same directory.
+The separately staged cross-host fixture change remains unrun. Its thirty existing function bodies are unchanged.
+
+## 2026-10-11: First complete M03 gate found remaining integration defects
+
+Both hosts passed all 29 selected Debug suites: 367 checks per host.
+Both also passed 205 affected sanitizer checks across the combined correction.
+The first full M03 candidate now runs on both hosts with 135 registered suites.
+
+sb16 completed its Debug matrix with six failed suites.
+The standalone production bounded-storage Git integration passed.
+P10 executed all 151 cases. Thirty-three native cases lacked the independent witness path.
+The resource delegate must forward SPATIAL_XPROBE to the trusted qualification process.
+This changes no application environment or acceptance assertion.
+
+The gate reproduced a malformed-frame proxy regression.
+The timeout classifier rejected a complete payload before authoritative validation.
+The staged correction forwards it with the ordinary timeout.
+Truncated and oversized transport remains fatal. Git deadlines remain unchanged.
+Read ../defect blockers/world-proxy-closes-on-malformed-protobuf.txt.
+
+Two older native broker fixtures lack explicit Git worker resource provisioning.
+The staged fixtures use the existing retained resource handoff and dedicated delegate.
+The authenticated kernel witness now checks the actual broker and its actual scope-owner parent.
+Its earlier proc attribute refers to the retained broker, not the owner.
+Healthy supervisor and world startup use the existing production timeout default.
+Explicit approval-interruption fault deadlines remain 700 ms and 3000 ms.
+Server loop-work logs exceed the old healthy 700 ms allowance.
+Those logs do not identify the underlying kernel syscall.
+
+The nine-file correction is staged and unrun.
+Each correction queue holds the actual first-gate process handle.
+It waits for terminal completion, preserves source, and runs twenty related suites plus P10 in both profiles.
+Only a successful correction run starts the next full candidate.
+The current remote candidate remains frozen throughout its first complete matrix.
+
+Production-profile cross-host tests are prepared as a separate fixture extension.
+They require successful full current-source gates before execution.
+All thirty existing cross-host function bodies and assertions remain unchanged.
+M03 remains incomplete. M01 and M02 remain qualified.
+
+## 2026-10-11: M03 contention correction passes native sanitizer regressions
+
+Both hosts reproduced actor revocation blocked behind a broker Btrfs filesystem flush.
+The correction runs filesystem flushes in a joined worker and services authority during pending effects.
+SQLite remains on the broker thread. Durable flush ordering remains unchanged.
+Checked control channels remain available. Nested execution and management receive BUSY.
+The effect wait retains the existing issuer keepalive cadence and deadline.
+
+The preserved baseline retains all nine application processes after two seconds.
+Corrected checks stop all nine within 0.371 seconds on sb16 and 0.738 seconds on sb16-2.
+Both import replies remain pending during those exit measurements.
+Both hosts pass the three new native contention cases under ASan/UBSan.
+Read evidence/m03-contention-2026-10-11/preserved-review.json for source and failure evidence.
+
+Broader regression found fixture provisioning, descriptor retention, and reservation mismatches.
+The private scope probe now releases supplied child endpoints after checked launch.
+Both hosts pass its 13 scope checks and all 30 control-owner checks.
+Observation fixtures explicitly fund their three existing applications without changing individual profiles.
+Both hosts pass all 16 observation checks and all 25 world application-control checks.
+All 41 locked files and 112 existing test bodies remain unchanged.
+
+Current-source final sanitizer and Debug checks remain in progress.
+The complete M03 gate is queued behind checked focused-run completion on each host.
+A failed focused result prevents that host gate from starting.
+Cross-host reassessment and final primary review remain required.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
 ## 2026-10-11: Operator storage and production confinement passed focused qualification
 
 Both hosts passed 115 selected checks in Debug and ASan/UBSan. Total: 460 passes.

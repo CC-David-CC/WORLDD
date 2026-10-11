@@ -14,7 +14,11 @@ class AuthenticatedResourceTests(WorkspaceAuthorityTests):
         self.until(lambda:(self.project/'ready').exists(), bool)
         identities = world.management('runtime.identities')
         self.assertEqual(identities['workspaced_pid'], self.broker.pid)
-        self.assertNotEqual(self.broker.pid, self.broker.proc.pid)
+        self.assertEqual(self.broker.pid, self.broker.proc.pid)
+        self.assertNotEqual(self.broker.pid, self.broker.resources.owner.pid)
+        parent = next(line.split()[1] for line in Path(f'/proc/{self.broker.pid}/status').read_text().splitlines()
+            if line.startswith('PPid:'))
+        self.assertEqual(int(parent), self.broker.resources.owner.pid)
         def group(pid):
             return Path('/sys/fs/cgroup')/Path(f'/proc/{pid}/cgroup').read_text().strip().split('::',1)[1].lstrip('/')
         manager = group(self.broker.pid)
@@ -35,7 +39,7 @@ class AuthenticatedResourceTests(WorkspaceAuthorityTests):
         if os.environ.get('SPATIAL_SCOPE_EVIDENCE'):
             destination = Path(os.environ['SPATIAL_SCOPE_EVIDENCE'])/'authenticated-kernel.json'
             destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text(json.dumps(dict(broker_pid=self.broker.pid, owner_pid=self.broker.proc.pid,
+            destination.write_text(json.dumps(dict(broker_pid=self.broker.pid, owner_pid=self.broker.resources.owner.pid,
                 manager=str(manager),application=str(application),limits=limits,broker_fds=descriptors),indent=2)+'\n')
         (self.project/'release').touch(); self.wait_job(world,process)
 

@@ -1,0 +1,8 @@
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+control owner channel fenced: Private participant channel closed
+authority supervisor: Authority child exited before relay completion
+Session launch failed after checked cleanup: Authority child exited before relay completion
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+authority participant failed: code=26 request=0 stage=private_channel cause=Private participant channel closed
+worldd: Broker authority channel closed
+authority participant failed: code=26 request=0 stage=private_channel cause=Private participant channel closed

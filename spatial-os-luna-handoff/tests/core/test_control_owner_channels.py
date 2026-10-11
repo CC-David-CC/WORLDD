@@ -22,17 +22,8 @@ class OwnedBroker(leases.LeaseBroker):
     def __init__(self, *args, **kwargs):
         self.admin, child = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
         self.admin.settimeout(5)
-        original = subprocess.Popen
-
-        def launch(command, **options):
-            command = [*command, '--control-supervisor-fd', str(child.fileno()),
-                       '--control-supervisor-pid', str(os.getpid())]
-            options['pass_fds'] = (*options.get('pass_fds', ()), child.fileno())
-            return original(command, **options)
-
         try:
-            with patch.object(access.subprocess, 'Popen', launch):
-                super().__init__(*args, **kwargs)
+            super().__init__(*args,control_transport=(child.fileno(),os.getpid()),**kwargs)
         finally:
             child.close()
 
@@ -42,14 +33,17 @@ class OwnedBroker(leases.LeaseBroker):
         if self.proc.poll() is None:
             self.stream.shutdown(socket.SHUT_WR)
             try:
-                self.proc.wait(timeout=8)
+                if self.resources:self.resources.close()
+                else:self.proc.wait(timeout=8)
             except subprocess.TimeoutExpired:
                 self.proc.kill()
                 self.proc.wait(timeout=3)
                 raise
+        elif self.resources:self.resources.close()
         self.stream.close()
         self.admin.close()
         self.log.close()
+        if self.owner_log:self.owner_log.close()
         text = self.path.read_text()
         # Some tests deliberately retain fenced reservations without requesting checked recovery.
         if self.proc.returncode == 2:

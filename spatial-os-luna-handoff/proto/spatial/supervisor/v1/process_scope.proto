@@ -22,6 +22,8 @@ message ProcessScopeState {
 }
 message ProcessScopeStopped { ProcessScopeIdentity identity = 1; }
 message ProcessScopeQuery {}
+// Retained direct-child status from ProcessScope::exit_status(), with shell signal encoding.
+message ProcessScopeExitStatus { int32 code = 1; }
 // Trusted owner input. Top-level scalars are explicit; only swap may be zero.
 // CPU uses a fixed 100000 microsecond period. These limits do not grant authority.
 message ProcessScopeBudget {
@@ -47,6 +49,7 @@ message ProcessScopeRequest {
     ProcessScopeQuery prepare = 13;
     AuthorityProcessLaunch start = 14;
     ProcessScopeBudget prepare_budget = 15;
+    ProcessScopeQuery exit_status = 16;
   }
 }
 message ProcessScopeError {
@@ -68,5 +71,6 @@ message ProcessScopeReply {
     ProcessScopeState state = 10;
     ProcessScopeStopped stopped = 11;
     ProcessScopeError error = 12;
+    ProcessScopeExitStatus exit_status = 13;
   }
 }

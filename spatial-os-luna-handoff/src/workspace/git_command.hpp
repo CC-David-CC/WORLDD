@@ -2,6 +2,7 @@
 #include "supervisor/process_scope.hpp"
 #include <chrono>
 #include <filesystem>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -21,7 +22,8 @@ struct GitMount {
 // Production callers validate the same pinned mounts before reserving worker resources.
 GitResult git_command(WorkspaceResources& resources, const std::filesystem::path& directory,
                       const std::vector<std::string>& arguments, const std::vector<GitMount>& mounts,
-                      std::chrono::seconds timeout = std::chrono::seconds(60));
+                      std::chrono::seconds timeout = std::chrono::seconds(60),
+                      const std::function<void()>& progress = {});
 // Low-level entry point for independently provisioned worker scopes.
 GitResult git_command(supervisor::ProcessScope& scope, const std::filesystem::path& directory,
                       const std::vector<std::string>& arguments, const std::vector<GitMount>& mounts,
