@@ -1,5 +1,107 @@
 # Implementation status
 
+## 2026-10-11: Scoped healthy issuer setup passes qualification on both hosts
+
+Both hosts pass all 33 related suites and 282 checks in Debug and ASan/UBSan.
+Primary review verified 903 attachments per profile and zero sanitizer error patterns.
+All fourteen original supervisor bodies and all forty-one locked files remain unchanged.
+Production binaries, production deadlines, durability, base fixtures, and explicit fault settings stay unchanged.
+The raw healthy peer uses one five-second request deadline. Initialization has a separate fifteen-second fixture allowance.
+The original killed initializer's cause remains unknown. Its failure evidence is preserved.
+
+Complete local gate reassessment covers 135 suites and 1740 Python checks per host/profile.
+Each retains passed full harness, acceptance, and bounded-storage evidence.
+The corrected runner uses fresh evidence paths. Its earlier path-collision failures remain preserved.
+
+Both cross-host preflights pass with matching source and fixture digests.
+No cross-host scenario has run on this candidate yet.
+The separately staged production-storage cross-host fixture remains uncommitted until its scenarios pass.
+Eight cross-host cases and the final nine-requirement M03 adoption audit remain required.
+M03 remains incomplete. M04-M16 remain ahead.
+Read evidence/m03-contention-2026-10-11/healthy-setup-primary-source-review.json.
+
+## 2026-10-11: Three corrected profiles pass; the last sanitizer profile runs on sb16-2
+
+Both corrected sb16 profiles and corrected sb16-2 Debug pass 33 related suites and 282 checks each.
+Primary review verified 903 attachments per corrected profile.
+The fresh native import revocation witnesses stop nine applications in 0.456, 0.802, and 0.434 seconds.
+Each import reply remains pending during the stop measurement.
+
+The complete frozen sb16-2 sanitizer profile also passed.
+It includes 135 core suites, 51 harness checks, 151 acceptance cases, and five bounded-storage scenarios.
+Primary review verified 4884 attachments, zero sanitizer error patterns, and independent kernel measurements.
+Its scoped fixture correction now runs with fresh evidence paths in the final sanitizer profile.
+
+The cross-host runner checks completed local receipts, source inputs, bindings, server bytes, and installed helper bytes.
+The sb16 preflight passed. No cross-host scenario has run on this candidate.
+Commit the fixture correction after both hosts pass its selected profiles.
+Then run the eight cross-host cases and complete the nine-requirement M03 adoption audit.
+M03 remains incomplete. M04-M16 remain ahead.
+
+## 2026-10-11: Both corrected profiles and complete local gate reassessment pass on sb16
+
+Debug and ASan/UBSan each pass all 33 related suites and 282 checks.
+Primary review verified 903 attachments per profile and no sanitizer error patterns.
+The native import revocation witness reports nine exits in 0.456 seconds for Debug and 0.802 seconds for sanitizers.
+The import reply remains pending during both stop measurements. Nested execution has no filesystem effect.
+
+Local gate reassessment combines 33 fresh suites with 102 unaffected frozen suites per profile.
+Production binaries, unchanged component sources, and locked contracts match their frozen pins.
+Each combined profile covers 135 suites and 1740 Python checks, plus the standalone initializer-lifecycle suite.
+Both profiles retain passed full harness, acceptance, and bounded-storage integration evidence.
+The earlier failed supervisor result remains preserved and is replaced only by its fresh qualified result.
+This is local sb16 qualification. It does not complete M03.
+
+The sb16-2 full sanitizer core matrix passed all 135 suites. Its remaining gate commands are active.
+Its corrected fixture queue still waits for exact terminal completion.
+Both corrected sb16-2 profiles, eight cross-host scenarios, and the final M03 adoption audit remain required.
+The scoped fixture correction remains uncommitted until selected checks pass on both hosts and profiles.
+Read evidence/m03-contention-2026-10-11/healthy-setup-04-sb16-primary-reassessment.json.
+
+## 2026-10-11: Corrected healthy-setup Debug qualification passes on sb16
+
+The corrected runner uses fresh CMake test environments and retains unchanged production binary hashes.
+All 33 selected Debug suites pass: 282 checks, zero failures, and zero skips.
+Primary review verified 903 archived attachments and three native storage-contention witnesses.
+Actor revocation stops all nine affected applications in 0.456 seconds while the import reply remains pending.
+The test also rejects nested execution without a filesystem effect.
+All fourteen original supervisor bodies and all forty-one locked files remain unchanged.
+
+The corresponding sb16 sanitizer run remains active.
+The sb16-2 frozen sanitizer gate remains active. Its correction queue waits for exact terminal completion.
+No new fixture commit is integrated before selected qualification passes on both hosts and profiles.
+Final gate reassessment and eight cross-host scenarios remain required. M03 remains incomplete.
+Read evidence/m03-contention-2026-10-11/healthy-setup-04-sb16-debug-review.json.
+
+## 2026-10-11: Both full Debug profiles pass; scoped issuer setup correction is under qualification
+
+Both hosts passed 135 core suites, 51 harness checks, 151 acceptance cases, and five bounded-storage scenarios.
+Primary review verified all 4884 archived attachments per Debug profile.
+Each Debug core transcript contains 1737 Python checks and one additional initializer-lifecycle suite.
+
+The complete sb16 sanitizer core run passed 134 suites and failed authority-supervisor in two setup operations.
+Its harness, acceptance, and bounded-storage checks passed. Review verified 4879 archived attachments.
+The retained logs contain no AddressSanitizer, LeakSanitizer, or UBSan error patterns.
+This is a failed profile. Do not count its failed supervisor suite as qualified.
+The sb16-2 sanitizer gate remains active.
+
+The completed read-only monitor captured later initializer and request-handling waits in ext4 journal commit paths.
+It does not establish the original killed initializer's exact cause.
+A scoped healthy supervisor fixture now uses absolute five-second requests and a separate fifteen-second initialization allowance.
+All fourteen original supervisor test bodies and all forty-one locked files remain unchanged.
+Base fixtures, production deadlines, durability, and explicit fault settings stay unchanged.
+Three fixture checks passed with both hosts' build bindings. Those checks do not execute sanitizer binaries.
+
+Thirty-three related real-runtime suites are under qualification in Debug and ASan/UBSan on both hosts.
+The sb16 queue started after preserving its terminal frozen gate. The sb16-2 queue waits for its own frozen gate.
+The first correction runner retained old evidence paths embedded by CMake.
+Four Debug suites hit existing-directory setup errors. The complete supervisor suite passed in both profiles.
+Runner-04 regenerates test commands with fresh evidence paths and verifies unchanged binary hashes.
+Its queues wait for each exact predecessor before configuration. Prior archives remain intact.
+Complete evidence reassessment, eight cross-host scenarios, and M03 adoption remain pending.
+M03 remains incomplete. M04-M16 remain ahead.
+Read evidence/m03-contention-2026-10-11/healthy-setup-primary-source-review.json.
+
 ## 2026-10-11: M03 contention increment passes selected qualification on both hosts
 
 Both hosts pass 216 related checks and all 151 acceptance cases in Debug and ASan/UBSan.

@@ -220,3 +220,32 @@ Each profile passes 216 related checks and all 151 acceptance cases. Both saniti
 Both corrected full gates are live. The eight production-profile cross-host cases remain unrun.
 The primary review is spatial-os-luna-handoff/evidence/m03-contention-2026-10-11/primary-review.json.
 Keep the cross-host fixture extension outside the checkpoint until it has runtime evidence.
+
+Full sb16 Debug gate-02 passes all 135 suites, 51 harness checks, 151 acceptance cases, and five bounded-storage scenarios.
+The full sanitizer gate reproduced two authority-supervisor setup errors after the focused qualification had passed.
+A raw fixture TLS peer retains a two-second socket deadline. Its issuer log records 2437 ms of event-loop work.
+A separate identityd --init exceeded its five-second subprocess deadline. Its exact syscall cause remains unknown.
+The failed block, retained issuer log, and all 397 frozen source inputs are archived and hash-verified.
+A read-only monitor records live issuer syscalls, kernel waits, I/O, and host pressure after the failure.
+It does not use ptrace, change processes, or modify the frozen gate source.
+The reviewed selected checkpoint remains bf66730 on origin. M03 is not qualified and needs failure resolution.
+
+2026-10-11: Both full Debug profiles pass and received primary evidence review.
+Each includes 135 suites, 1737 Python checks, 51 harness checks, 151 acceptance cases, and five bounded-storage scenarios.
+The sb16-2 raw revocation witness reports nine exits in 1.047 seconds while the import reply remains pending.
+The completed read-only monitor captures later ext4 journal waits; it does not trace the original killed initializer.
+The scoped healthy setup correction changes two fixture files and preserves every original supervisor test body.
+Thirty-three related suites are queued for both hosts and build profiles after each frozen gate finishes.
+M03 remains incomplete. Do not claim a phase pass or production latency repair from fixture checks.
+
+The first healthy-setup runtime runner found a harness error: CTest commands retain old evidence paths from CMake configuration.
+Four Debug suites hit existing-directory setup errors. The supervisor suite itself passes in Debug and sanitizer runs.
+Original complete gate archives remain intact. The first correction transcripts remain preserved separately.
+Runner-04 regenerates test commands under fresh per-profile evidence paths and verifies unchanged binary hashes.
+It waits for the exact predecessor process before configuration. Both corrected queues are live.
+No failed setup result is counted as PASS. See defect blockers/qualification-reuses-old-evidence-directory.txt.
+
+Both corrected hosts and profiles now pass all 33 suites and 282 checks each: 1128 selected checks.
+All original supervisor bodies and locked files remain unchanged. Production binaries and fault deadlines remain unchanged.
+Local full-gate reassessment is reviewed on both hosts. Cross-host preflights match source and fixture digests.
+Eight cross-host cases and final M03 adoption remain pending. No new GitHub publication is authorized or performed.

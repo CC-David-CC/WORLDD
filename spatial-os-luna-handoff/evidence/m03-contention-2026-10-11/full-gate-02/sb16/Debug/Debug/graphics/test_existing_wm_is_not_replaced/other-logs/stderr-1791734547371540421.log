@@ -1,0 +1,4 @@
+spatialwm: X request failed: 10
+worldd: Compositor exited during request
+workspaced: Workspace supervisor disconnected
+spatial-test-host: World authority exited

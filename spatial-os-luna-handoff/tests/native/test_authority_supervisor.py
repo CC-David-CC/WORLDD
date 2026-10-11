@@ -9,6 +9,7 @@ import socket
 import struct
 import subprocess
 import time
+import threading
 from google.protobuf import text_format
 from harness.wire import frame
 import issuer_pb2 as identity
@@ -19,10 +20,14 @@ import process_scope_pb2 as process_pb
 import security_pb2 as security
 import test_authority_participant_relay as relay
 import test_authority_owned_participant as owned
+from healthy_issuer_setup import DeadlinePeer, HealthySupervisorIssuer
 
 class AuthoritySupervisorTests(owned.OwnedParticipantTests):
     revoke = relay.ParticipantRelayTests.revoke
     barrier = relay.ParticipantRelayTests.barrier
+
+    def issuer_fixture(self):
+        return HealthySupervisorIssuer('runTest')
 
     def healthy_client_config(self):
         path = self.issuer.config_file()
@@ -291,6 +296,80 @@ class AuthoritySupervisorTests(owned.OwnedParticipantTests):
         self.assertEqual(other.wait(timeout=5), 2); self.assertEqual(self.read_record(), before)
         self.assertEqual(self.child_config.read_bytes(), child_before); self.assertEqual(self.activation_rows(), [])
 
+class HealthySetupPolicyTests(unittest.TestCase):
+    def exchange(self, responder, timeout=.2):
+        client, server = socket.socketpair()
+        client.settimeout(2)
+        self.addCleanup(client.close)
+        self.addCleanup(server.close)
+        failures = []
+
+        def serve():
+            try:
+                responder(server)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            except BaseException as error:
+                failures.append(error)
+
+        thread = threading.Thread(target=serve)
+        thread.start()
+
+        def finish():
+            client.close()
+            thread.join(timeout=2)
+            self.assertFalse(thread.is_alive(), 'Fixture witness failed to stop')
+            self.assertEqual(failures, [])
+
+        self.addCleanup(finish)
+        return DeadlinePeer(client, timeout=timeout), server
+
+    def test_trickled_reply_cannot_extend_absolute_request_deadline(self):
+        def respond(server):
+            server.recv(4096)
+            data = frame(identity.IssuerReply(protocol_version=1, request_id=1))
+            for byte in data:
+                server.sendall(bytes([byte]))
+                time.sleep(.07)
+
+        peer, _ = self.exchange(respond, timeout=.2)
+        started = time.monotonic()
+        with self.assertRaises(TimeoutError):
+            peer.call(info=identity.IssuerInfoRequest())
+        elapsed = time.monotonic() - started
+        self.assertGreater(elapsed, .15)
+        self.assertLess(elapsed, .5)
+        self.assertEqual(peer.stream.gettimeout(), 2)
+        self.assertEqual(peer.sequence, 1)
+        peer.close()
+
+    def test_fragmented_valid_reply_preserves_checked_identity(self):
+        def respond(server):
+            server.recv(4096)
+            data = frame(identity.IssuerReply(protocol_version=1, request_id=1))
+            for byte in data:
+                server.sendall(bytes([byte]))
+
+        peer, _ = self.exchange(respond)
+        reply = peer.call(info=identity.IssuerInfoRequest())
+        self.assertEqual((reply.protocol_version, reply.request_id), (1, 1))
+        self.assertEqual(peer.stream.gettimeout(), 2)
+
+    def test_wrong_reply_identity_is_rejected_without_replay(self):
+        def respond(server):
+            server.recv(4096)
+            server.sendall(frame(identity.IssuerReply(protocol_version=1, request_id=9)))
+            server.settimeout(.5)
+            self.assertEqual(server.recv(4096), b'', 'Rejected reply caused request replay')
+
+        peer, _ = self.exchange(respond)
+        with self.assertRaisesRegex(AssertionError, 'Wrong issuer reply identity'):
+            peer.call(info=identity.IssuerInfoRequest())
+        self.assertEqual(peer.sequence, 1)
+        self.assertEqual(peer.stream.gettimeout(), 2)
+        peer.close()
+
 if __name__=='__main__':
     suite=unittest.TestSuite(AuthoritySupervisorTests(n) for n in AuthoritySupervisorTests.__dict__ if n.startswith('test_'))
+    suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(HealthySetupPolicyTests))
     raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

@@ -1,0 +1,5 @@
+Storage owner unit: spatial-storage-owner-ffb65aa6443a3eb86911bbc95a7febb7.service
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+authority participant failed: code=26 request=0 stage=private_channel cause=Private participant channel closed
+worldd: identity service disabled at identity_sessions.cpp:192
+authority participant failed: code=26 request=0 stage=private_channel cause=Private participant channel closed

@@ -1,0 +1,5 @@
+Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )
+
+Fatal server error:
+Invalid spatial security bootstrap
+

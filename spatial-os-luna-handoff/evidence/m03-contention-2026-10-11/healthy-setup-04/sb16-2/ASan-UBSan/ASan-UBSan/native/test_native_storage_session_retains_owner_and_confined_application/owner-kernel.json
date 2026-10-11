@@ -1,0 +1,12 @@
+{
+  "unit": "spatial-storage-owner-06835ab17b50a6ce716b3dfa14f73cbb.service",
+  "owner_pid": 677286,
+  "broker_pid": 677282,
+  "broker_pidfd": [
+    "pos:\t0\nflags:\t02\nmnt_id:\t5\nino:\t680344\nPid:\t677282\nNSpid:\t677282\n",
+    "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t680344\nPid:\t677282\nNSpid:\t677282\n",
+    "pos:\t0\nflags:\t02000002\nmnt_id:\t5\nino:\t680344\nPid:\t677282\nNSpid:\t677282\n"
+  ],
+  "io_max": "7:14 rbps=67108864 wbps=16777216 riops=max wiops=max\n259:0 rbps=67108864 wbps=16777216 riops=max wiops=max\n",
+  "executable_sha256": "e7a75903305ec0c43fa16baae291b12e25b2885f9b8f11d1e5515a5a15e2ee9f"
+}

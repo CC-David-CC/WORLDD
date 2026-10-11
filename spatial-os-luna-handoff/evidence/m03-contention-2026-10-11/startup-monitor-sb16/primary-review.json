@@ -1,0 +1,84 @@
+{
+  "status": "reviewed_completed_read_only_monitor",
+  "samples": 524,
+  "jbd2_wait_samples": {
+    "init": 11,
+    "serving": 21
+  },
+  "longest_consecutive_observed_spans": [
+    {
+      "pid": 600958,
+      "initialization": false,
+      "syscall": "75",
+      "observed_span_seconds": 1.0102990300001693
+    },
+    {
+      "pid": 600105,
+      "initialization": true,
+      "syscall": "74",
+      "observed_span_seconds": 0.0
+    },
+    {
+      "pid": 600569,
+      "initialization": true,
+      "syscall": "75",
+      "observed_span_seconds": 0.0
+    },
+    {
+      "pid": 600605,
+      "initialization": true,
+      "syscall": "75",
+      "observed_span_seconds": 0.0
+    },
+    {
+      "pid": 600716,
+      "initialization": true,
+      "syscall": "75",
+      "observed_span_seconds": 0.0
+    },
+    {
+      "pid": 600902,
+      "initialization": true,
+      "syscall": "74",
+      "observed_span_seconds": 0.0
+    },
+    {
+      "pid": 600958,
+      "initialization": false,
+      "syscall": "75",
+      "observed_span_seconds": 0.0
+    },
+    {
+      "pid": 601361,
+      "initialization": true,
+      "syscall": "75",
+      "observed_span_seconds": 0.0
+    },
+    {
+      "pid": 603434,
+      "initialization": false,
+      "syscall": "75",
+      "observed_span_seconds": 0.0
+    },
+    {
+      "pid": 603988,
+      "initialization": false,
+      "syscall": "75",
+      "observed_span_seconds": 0.0
+    }
+  ],
+  "limitations": [
+    "Later processes only; original killed initializer not observed.",
+    "One-second sampling does not prove complete syscall duration."
+  ],
+  "files": {
+    "review.json": {
+      "sha256": "ebcaa65999b34c05c95b73145c212d605f46cb7eb6b85b18156eb5fcbd3e9240",
+      "bytes": 43530
+    },
+    "samples.jsonl": {
+      "sha256": "865103f16ee3cc82db10392ec594bab735b229f5398416eecee28201072c5605",
+      "bytes": 832696
+    }
+  }
+}

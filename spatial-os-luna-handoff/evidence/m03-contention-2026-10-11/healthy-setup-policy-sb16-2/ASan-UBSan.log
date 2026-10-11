@@ -1,0 +1,15 @@
+Running as unit: spatial-fixture-policy-6501b08493f4444d937222b0a3730e8a.service; invocation ID: 81a365d83d8b4b76b753d8c3555f2b02
+test_fragmented_valid_reply_preserves_checked_identity (fixture_policy_module.HealthySetupPolicyTests.test_fragmented_valid_reply_preserves_checked_identity) ... ok
+test_trickled_reply_cannot_extend_absolute_request_deadline (fixture_policy_module.HealthySetupPolicyTests.test_trickled_reply_cannot_extend_absolute_request_deadline) ... ok
+test_wrong_reply_identity_is_rejected_without_replay (fixture_policy_module.HealthySetupPolicyTests.test_wrong_reply_identity_is_rejected_without_replay) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.213s
+
+OK
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 385ms
+CPU time consumed: 175ms
+Memory peak: 768.0K
+Memory swap peak: 0B

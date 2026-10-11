@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="33"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="sb16"
+	time="524"
+	timestamp="2026-10-11T13:26:02"
+	>
+	<testcase name="supervisor-handoff-lifetime" classname="supervisor-handoff-lifetime" time="2.56878" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-handoff-lifetime-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 3dfd7723beb54a3bbf1f441336edf313
+test_selected_endpoint_has_no_supervisor_copy_after_handoff (__main__.HandoffTests.test_selected_endpoint_has_no_supervisor_copy_after_handoff) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.07760857299581403, "operation": "initialize", "outcome": "exit_0", "test": "test_selected_endpoint_has_no_supervisor_copy_after_handoff"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009382687996549066, "operation": "connect", "outcome": "connected", "test": "test_selected_endpoint_has_no_supervisor_copy_after_handoff"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05230331100028707, "operation": "request", "outcome": "received", "test": "test_selected_endpoint_has_no_supervisor_copy_after_handoff"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011043692000384908, "operatio...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-supervisor" classname="authority-supervisor" time="13.0085" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-supervisor-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: f7f9639477934722899ad895f5f5e55c
+test_production_supervisor_is_available_for_owned_authority_execution (__main__.AuthoritySupervisorTests.test_production_supervisor_is_available_for_owned_authority_execution) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.05935233399941353, "operation": "initialize", "outcome": "exit_0", "test": "test_production_supervisor_is_available_for_owned_authority_execution"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0093854239967186, "operation": "connect", "outcome": "connected", "test": "test_production_supervisor_is_available_for_owned_authority_execution"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05151896500319708, "operation": "request", "outcome": "received", "test": "test_production_supervisor_is_available_for_owned_authority_execution"}
+Healthy issuer timing {"deadline_seconds":...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-approval-interruption" classname="authority-approval-interruption" time="6.76795" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-approval-interruption-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: f27a3eb10d31432881a22868b4cc87f4
+test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch (__main__.ApprovalInterruptionTests.test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.07622331899619894, "operation": "initialize", "outcome": "exit_0", "test": "test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009262617997592315, "operation": "connect", "outcome": "connected", "test": "test_participant_loss_during_committed_approval_stops_scopes_and_allows_fresh_launch"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0524114069994539, "operation": "request", "outcome": "received", "test": "test_participant_loss_during_committed_ap...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-broker-handoff" classname="authority-broker-handoff" time="1.09231" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-broker-handoff-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 35598920b32f4df88b989c41d45e28d2
+test_supervised_real_broker_receives_native_configuration (__main__.BrokerHandoffTests.test_supervised_real_broker_receives_native_configuration) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.07578384700173046, "operation": "initialize", "outcome": "exit_0", "test": "test_supervised_real_broker_receives_native_configuration"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009369050996610895, "operation": "connect", "outcome": "connected", "test": "test_supervised_real_broker_receives_native_configuration"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.052439402003074065, "operation": "request", "outcome": "received", "test": "test_supervised_real_broker_receives_native_configuration"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.011373014000128023, "operation": "...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-broker-handoff-regressions" classname="authority-broker-handoff-regressions" time="8.93975" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-db7d4d9524f5416cb4e618812c2016e4.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-db7d4d9524f5416cb4e618812c2016e4.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-world-handoff" classname="authority-world-handoff" time="1.35424" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-world-handoff-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 5298114218fe4a37bad2d3db0b3f5bd7
+test_supervised_world_starts_real_compositor_with_owned_native_configuration (__main__.WorldNativeHandoffTests.test_supervised_world_starts_real_compositor_with_owned_native_configuration) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.3058079649999854, "operation": "initialize", "outcome": "exit_0", "test": "test_supervised_world_starts_real_compositor_with_owned_native_configuration"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009311839996371418, "operation": "connect", "outcome": "connected", "test": "test_supervised_world_starts_real_compositor_with_owned_native_configuration"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05210516000079224, "operation": "request", "outcome": "received", "test": "test_supervised_world_starts_real_compositor_with_owned_native_configuration"}
+Heal...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-world-handoff-regressions" classname="authority-world-handoff-regressions" time="7.57866" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-world-handoff-regressions-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 09682fb7b7a84006a5991a82df6faf31
+test_owned_world_renders_real_application_pixels_and_releases_held_input (__main__.WorldHandoffRegressionTests.test_owned_world_renders_real_application_pixels_and_releases_held_input) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.06935607400373556, "operation": "initialize", "outcome": "exit_0", "test": "test_owned_world_renders_real_application_pixels_and_releases_held_input"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009344780999526847, "operation": "connect", "outcome": "connected", "test": "test_owned_world_renders_real_application_pixels_and_releases_held_input"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.0516794050054159, "operation": "request", "outcome": "received", "test": "test_owned_world_renders_real_application_pixels_and_releases_held_input"}
+Healthy ...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-supervisor-fencing" classname="authority-supervisor-fencing" time="11.3488" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-supervisor-fencing-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 05b2b2639dd640b58f37d659d083973d
+test_supervisor_fences_its_actual_activated_child_before_checked_cleanup (__main__.SupervisorFencingBaselineTests.test_supervisor_fences_its_actual_activated_child_before_checked_cleanup) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.06397675799962599, "operation": "initialize", "outcome": "exit_0", "test": "test_supervisor_fences_its_actual_activated_child_before_checked_cleanup"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009053702000528574, "operation": "connect", "outcome": "connected", "test": "test_supervisor_fences_its_actual_activated_child_before_checked_cleanup"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05153138199966634, "operation": "request", "outcome": "received", "test": "test_supervisor_fences_its_actual_activated_child_before_checked_cleanup"}
+Healthy iss...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-control-binding" classname="authority-control-binding" time="5.7519" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-control-binding-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 8d5520b7e0e4442291703483d0f03d3d
+test_prepared_owner_matches_activation_and_exact_issuer_fence (__main__.BindingTests.test_prepared_owner_matches_activation_and_exact_issuer_fence) ... ok
+test_reopened_authorized_record_cannot_reconstruct_control_owner (__main__.BindingTests.test_reopened_authorized_record_cannot_reconstruct_control_owner) ... ok
+test_failed_authorization_commit_cannot_expose_owner (__main__.BindingTests.test_failed_authorization_commit_cannot_expose_owner) ... ok
+test_query_rejects_nested_unknown_owner_selector_without_mutation (__main__.BindingTests.test_query_rejects_nested_unknown_owner_selector_without_mutation) ... ok
+test_broker_native_role_cannot_become_world_control_owner (__main__.BrokerBindingTests.test_broker_native_role_cannot_become_world_control_owner) ... ok
+test_production_supervisor_returns_exact_owned_binding_without_stopping_child (__main__.Supe...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-supervisor-crash-fencing" classname="authority-supervisor-crash-fencing" time="11.9863" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-supervisor-crash-fencing-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: f0370f59bb8147579b42bc4835caaecb
+test_child_crash_fences_exact_generation_and_preserves_obligation (__main__.SupervisorCrashFencingTests.test_child_crash_fences_exact_generation_and_preserves_obligation) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.05476541200187057, "operation": "initialize", "outcome": "exit_0", "test": "test_child_crash_fences_exact_generation_and_preserves_obligation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009403727002791129, "operation": "connect", "outcome": "connected", "test": "test_child_crash_fences_exact_generation_and_preserves_obligation"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05252415600261884, "operation": "request", "outcome": "received", "test": "test_child_crash_fences_exact_generation_and_preserves_obligation"}
+Healthy issuer timing {"deadline_seconds": ...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-participant-relay" classname="authority-participant-relay" time="10.2646" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-participant-relay-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 6bbdcad7bf0a4d4e88556c07eab17029
+test_channel_configuration_requires_owned_approval_and_contains_no_signing_material (__main__.ParticipantRelayTests.test_channel_configuration_requires_owned_approval_and_contains_no_signing_material) ... ok
+test_channel_requires_approval_and_a_valid_unique_target (__main__.ParticipantRelayTests.test_channel_requires_approval_and_a_valid_unique_target) ... ok
+test_relay_excludes_external_polling_and_commands (__main__.ParticipantRelayTests.test_relay_excludes_external_polling_and_commands) ... ok
+test_real_owned_child_activates_and_releases_exact_approved_generation (__main__.ParticipantRelayTests.test_real_owned_child_activates_and_releases_exact_approved_generation) ... ok
+test_parent_receipt_and_child_delivery_do_not_acknowledge_revocation (__main__.ParticipantRelayTests.test_parent_receipt_and_child_delivery_do_not_acknowledge_revocation) ... ...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="authority-owned-participant" classname="authority-owned-participant" time="9.18474" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-owned-participant-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 8d91dc7b6db44e66b7def191821e61af
+test_supervised_child_cannot_execute_without_durable_authorization (__main__.OwnedParticipantTests.test_supervised_child_cannot_execute_without_durable_authorization) ... ok
+test_coordinator_owns_real_authenticated_participant_connection (__main__.OwnedParticipantTests.test_coordinator_owns_real_authenticated_participant_connection) ... ok
+test_child_observes_durable_exact_approval_and_retained_connection_activates (__main__.OwnedParticipantTests.test_child_observes_durable_exact_approval_and_retained_connection_activates) ... ok
+test_identity_mismatch_is_rejected_before_attaching_a_worker (__main__.OwnedParticipantTests.test_identity_mismatch_is_rejected_before_attaching_a_worker) ... ok
+test_wrong_supervisor_keys_cannot_approve_or_start_the_owned_launch (__main__.OwnedParticipantTests.test_wrong_supervisor_keys_cannot_approve_or_start_the_owned_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-supervisor-registry" classname="identity-supervisor-registry" time="9.06506" status="run">
+		<properties/>
+		<system-out>test_owner_binds_exact_registration_through_production_client (__main__.SupervisorRegistryTests.test_owner_binds_exact_registration_through_production_client) ... ok
+test_stale_revision_cannot_replace_supervisor (__main__.SupervisorRegistryTests.test_stale_revision_cannot_replace_supervisor) ... ok
+test_service_and_supervisor_keys_cannot_bind_themselves (__main__.SupervisorRegistryTests.test_service_and_supervisor_keys_cannot_bind_themselves) ... ok
+test_active_generation_cannot_be_adopted_or_cleared (__main__.SupervisorRegistryTests.test_active_generation_cannot_be_adopted_or_cleared) ... ok
+test_binding_requires_launch_authorization_on_old_and_new_service_connections (__main__.SupervisorRegistryTests.test_binding_requires_launch_authorization_on_old_and_new_service_connections) ... ok
+test_key_roles_stay_separate_in_both_directions (__main__.SupervisorRegistryTests.test_key_roles_stay_separate_in_both_directions) ... ok
+test_pending_actor_enrollment_cannot_reuse_new_supervisor_key (__main__.SupervisorRegist...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-issuer" classname="identity-issuer" time="2.29611" status="run">
+		<properties/>
+		<system-out>test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed (__main__.IssuerTests.test_another_key_cannot_read_or_change_policy_and_attempt_is_consumed) ... ok
+test_challenge_binds_issuer_incarnation_owner_operation_and_audience (__main__.IssuerTests.test_challenge_binds_issuer_incarnation_owner_operation_and_audience) ... ok
+test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation (__main__.IssuerTests.test_changed_operation_payload_and_purpose_do_not_authorize_stored_operation) ... ok
+test_competing_revision_updates_have_one_winner (__main__.IssuerTests.test_competing_revision_updates_have_one_winner) ... ok
+test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy (__main__.IssuerTests.test_explicit_initialization_creates_distinct_durable_issuer_and_manual_policy) ... ok
+test_initialization_and_startup_never_replace_missing_or_existing_identity (__main__.IssuerTests.test_initialization_and_startup_never_replace_missing_or_existing_identity) ... ok
+test_inv...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="identity-tls" classname="identity-tls" time="10.1392" status="run">
+		<properties/>
+		<system-out>test_connection_limit_rejects_excess_peer_then_recovers (__main__.TlsTests.test_connection_limit_rejects_excess_peer_then_recovers) ... ok
+test_connections_share_enrollment_authentication_and_revocation (__main__.TlsTests.test_connections_share_enrollment_authentication_and_revocation) ... ok
+test_disconnect_mid_payload_does_not_kill_issuer (__main__.TlsTests.test_disconnect_mid_payload_does_not_kill_issuer) ... ok
+test_encrypted_private_key_fails_without_prompting (__main__.TlsTests.test_encrypted_private_key_fails_without_prompting) ... ok
+test_excessive_frame_closes_only_offending_peer (__main__.TlsTests.test_excessive_frame_closes_only_offending_peer) ... ok
+test_expired_service_certificate_rejected (__main__.TlsTests.test_expired_service_certificate_rejected) ... ok
+test_idle_timeout_reclaims_peer (__main__.TlsTests.test_idle_timeout_reclaims_peer) ... ok
+test_independent_client_rejects_wrong_server_name_and_trust (__main__.TlsTests.test_independent_client_rejects_wrong_server_name_and_trust) ... ok
+test...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="issuer-client" classname="issuer-client" time="10.7198" status="run">
+		<properties/>
+		<system-out>test_bad_reply_envelopes_poison_client (__main__.ClientTests.test_bad_reply_envelopes_poison_client) ... ok
+test_bootstrap_invalid_local_revision_does_not_send_or_poison (__main__.ClientTests.test_bootstrap_invalid_local_revision_does_not_send_or_poison) ... ok
+test_bootstrap_profile_publication_and_exact_read_reach_real_issuer (__main__.ClientTests.test_bootstrap_profile_publication_and_exact_read_reach_real_issuer) ... ok
+test_bootstrap_substituted_or_malformed_reply_poisons_client (__main__.ClientTests.test_bootstrap_substituted_or_malformed_reply_poisons_client) ... ok
+test_bootstrap_valid_fragmented_reply_and_error_keep_client_usable (__main__.ClientTests.test_bootstrap_valid_fragmented_reply_and_error_keep_client_usable) ... ok
+test_client_certificate_must_be_trusted_by_issuer (__main__.ClientTests.test_client_certificate_must_be_trusted_by_issuer) ... ok
+test_client_reaches_real_issuer_and_preserves_caller_request_ids (__main__.ClientTests.test_client_reaches_real_issuer_and_preserves_caller_request_id...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="issuer-client-defaults" classname="issuer-client-defaults" time="8.5969" status="run">
+		<properties/>
+		<system-out>test_explicit_short_timeout_is_preserved_and_never_replays (__main__.ClientDefaultTests.test_explicit_short_timeout_is_preserved_and_never_replays) ... ok
+test_omitted_timeout_accepts_valid_reply_after_two_seconds (__main__.ClientDefaultTests.test_omitted_timeout_accepts_valid_reply_after_two_seconds) ... ok
+test_omitted_timeout_is_bounded_and_never_replays (__main__.ClientDefaultTests.test_omitted_timeout_is_bounded_and_never_replays) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 8.512s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="supervisor-child-handle" classname="supervisor-child-handle" time="7.1205" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-child-handle-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 74d8f3977add429699f15b37ff2a8e0c
+test_transferred_pidfd_matches_real_broker_and_observes_cleanup (__main__.ChildHandleTests.test_transferred_pidfd_matches_real_broker_and_observes_cleanup) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.06765047000226332, "operation": "initialize", "outcome": "exit_0", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009339176998764742, "operation": "connect", "outcome": "connected", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.052760756996576674, "operation": "request", "outcome": "received", "test": "test_transferred_pidfd_matches_real_broker_and_observes_cleanup"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.01084714...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-broker" classname="session-broker" time="2.84962" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-session-broker-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: ce33d6cc843e44cab530f44278975f7b
+test_real_broker_root_and_administration_share_verified_live_child (__main__.SessionBrokerTests.test_real_broker_root_and_administration_share_verified_live_child) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.06819104199530557, "operation": "initialize", "outcome": "exit_0", "test": "test_real_broker_root_and_administration_share_verified_live_child"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.009299637997173704, "operation": "connect", "outcome": "connected", "test": "test_real_broker_root_and_administration_share_verified_live_child"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05223936200491153, "operation": "request", "outcome": "received", "test": "test_real_broker_root_and_administration_share_verified_live_child"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_se...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-world" classname="session-world" time="16.393" status="run">
+		<properties/>
+		<system-out>Running as unit: spatial-session-world-3dcb4c50621e8849df0a0bf2e4418ef925747a21ae097b66132b3b4bd6c047bc.service; invocation ID: 2032a9641a4c45dc8c0bde2adf791637
+test_actual_world_owner_registers_and_broker_survives_world_shutdown (__main__.SessionWorldTests.test_actual_world_owner_registers_and_broker_survives_world_shutdown) ... Healthy issuer timing {"deadline_seconds": 15, "elapsed_seconds": 0.08683420599845704, "operation": "initialize", "outcome": "exit_0", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.00927891000173986, "operation": "connect", "outcome": "connected", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+Healthy issuer timing {"deadline_seconds": 5, "elapsed_seconds": 0.05219859300268581, "operation": "request", "outcome": "received", "test": "test_actual_world_owner_registers_and_broker_survives_world_shutdown"}
+Healthy issuer timing {"deadline_seconds": 5, "ela...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-resources" classname="session-resources" time="28.7022" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-25ac7bd391154c779f767dd641ae3b8d.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-25ac7bd391154c779f767dd641ae3b8d.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-operator-revocation" classname="session-operator-revocation" time="14.1348" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-85c4d66a685b488cbab5caff5728582c.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-85c4d66a685b488cbab5caff5728582c.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-application" classname="session-application" time="12.383" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-fc20518ecd364666909764548b74eb8a.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-fc20518ecd364666909764548b74eb8a.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-storage-owner" classname="session-storage-owner" time="15.9086" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-6eb0a5309b984c098631a82d1f035cc2.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-6eb0a5309b984c098631a82d1f035cc2.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-storage-contention" classname="session-storage-contention" time="43.1023" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-59faaa11a526491abd7ea55a924be3f6.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-59faaa11a526491abd7ea55a924be3f6.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-dependent-cleanup" classname="session-dependent-cleanup" time="20.8006" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-396870c5cd9a4d94aac5b4192bf5adf0.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-396870c5cd9a4d94aac5b4192bf5adf0.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-coordinator-retirement" classname="session-coordinator-retirement" time="36.4462" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-e15fcf37791f4ac5819c1e455e3221ab.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-e15fcf37791f4ac5819c1e455e3221ab.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-broker-cleanup" classname="session-broker-cleanup" time="15.9799" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-5ef7c25027d846fa900b7d8773571eb1.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-5ef7c25027d846fa900b7d8773571eb1.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-broker-retirement" classname="session-broker-retirement" time="39.5716" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-5b0bdd4e49a9439ea12ef2bf2e69a743.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-5b0bdd4e49a9439ea12ef2bf2e69a743.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-stopped-broker-dependency" classname="session-stopped-broker-dependency" time="44.3882" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-ffcc82f91038421f920389d55c13058b.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-ffcc82f91038421f920389d55c13058b.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-deferred-fence" classname="session-deferred-fence" time="59.5604" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-afebd7d9e7364714a503f40a10b38409.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-afebd7d9e7364714a503f40a10b38409.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-replacement" classname="session-replacement" time="15.8287" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-70427d0b7b3c491fa878f5294394292a.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-70427d0b7b3c491fa878f5294394292a.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="session-broker-replacement" classname="session-broker-replacement" time="20.2865" status="run">
+		<properties/>
+		<system-out>{"unit": "spatial-m03-resources-38e814b145ae4c33b8f9e3a5b193cf7f.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-38e814b145ae4c33b8f9e3a5b193cf7f.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=1536M", "-p", "MemorySwapMax=0", "-p", "TasksMax=256", "-p", "CPUQuota=400%", "-p", "RuntimeMaxSec=240", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/operator-storage-debug-01/build/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDE...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

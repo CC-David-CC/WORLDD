@@ -1,0 +1,3 @@
+Git worker exited with status 1: 
+authority supervisor: Private participant channel closed
+authority supervisor crash fencing unresolved: Issuer rejected owned authority fence challenge

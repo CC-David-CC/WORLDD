@@ -1,0 +1,933 @@
+Argument -noreset is removed in XLibre (for more context: https://github.com/orgs/X11Libre/discussions/424 )
+_XSERVTransSocketUNIXCreateListener: ...SocketCreateListener() failed
+_XSERVTransMakeAllCOTSServerListeners: server already running
+Sync Extension 3.1
+libEGL warning: failed to open /dev/dri/card2: Permission denied
+
+libEGL warning: failed to open /dev/dri/card1: Permission denied
+
+[dix] Could not init font path element /usr/share/fonts/X11/TTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/OTF, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/100dpi, removing from list!
+[dix] Could not init font path element /usr/share/fonts/X11/75dpi, removing from list!
+Popen: `"/usr/bin/xkbcomp" -w 1 "-R/usr/share/X11/xkb" -xkm "-" -em1 "The XKEYBOARD keymap compiler (xkbcomp) reports:" -emp "> " -eml "Errors from xkbcomp are not fatal to the X server" "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-1.xkm"', fp = 0x63843013bbd0
+Pclose: fp = 0x63843013bbd0
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Could not resolve keysym XF86CameraAccessEnable
+> Warning:          Could not resolve keysym XF86CameraAccessDisable
+> Warning:          Could not resolve keysym XF86CameraAccessToggle
+> Warning:          Could not resolve keysym XF86NextElement
+> Warning:          Could not resolve keysym XF86PreviousElement
+> Warning:          Could not resolve keysym XF86AutopilotEngageToggle
+> Warning:          Could not resolve keysym XF86MarkWaypoint
+> Warning:          Could not resolve keysym XF86Sos
+> Warning:          Could not resolve keysym XF86NavChart
+> Warning:          Could not resolve keysym XF86FishingChart
+> Warning:          Could not resolve keysym XF86SingleRangeRadar
+> Warning:          Could not resolve keysym XF86DualRangeRadar
+> Warning:          Could not resolve keysym XF86RadarOverlay
+> Warning:          Could not resolve keysym XF86TraditionalSonar
+> Warning:          Could not resolve keysym XF86ClearvuSonar
+> Warning:          Could not resolve keysym XF86SidevuSonar
+> Warning:          Could not resolve keysym XF86NavInfo
+Errors from xkbcomp are not fatal to the X server
+Loaded XKB keymap /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xkb-compiled/server-1.xkm, defined=0x7f
+(dix) initialising device 6
+(dix) initialising device 7
+(dix) enabling device 6
+(dix) enabling device 7
+client(0): Reserved pid(632801).
+client(0): Reserved cmdname(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb) and cmdargs(-displayfd 6 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 4).
+client(200000): Reserved pid(632791).
+client(200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 1, socket fd = 6, local = 1
+client(400000): Reserved pid(632791).
+client(400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 2, socket fd = 8, local = 1
+client(600000): Reserved pid(632791).
+client(600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 3, socket fd = 9, local = 1
+client(800000): Reserved pid(632791).
+client(800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 4, socket fd = 10, local = 1
+client(a00000): Reserved pid(632791).
+client(a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 5, socket fd = 11, local = 1
+client(c00000): Reserved pid(632791).
+client(c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 6, socket fd = 12, local = 1
+client(e00000): Reserved pid(632791).
+client(e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 7, socket fd = 13, local = 1
+client(1000000): Reserved pid(632791).
+client(1000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 8, socket fd = 14, local = 1
+client(1200000): Reserved pid(632791).
+client(1200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 9, socket fd = 15, local = 1
+client(1400000): Reserved pid(632791).
+client(1400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 10, socket fd = 16, local = 1
+client(1600000): Reserved pid(632791).
+client(1600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 11, socket fd = 17, local = 1
+client(1800000): Reserved pid(632791).
+client(1800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 12, socket fd = 18, local = 1
+client(1a00000): Reserved pid(632791).
+client(1a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 13, socket fd = 19, local = 1
+client(1c00000): Reserved pid(632791).
+client(1c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 14, socket fd = 20, local = 1
+client(1e00000): Reserved pid(632791).
+client(1e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 15, socket fd = 21, local = 1
+client(2000000): Reserved pid(632791).
+client(2000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 16, socket fd = 22, local = 1
+client(2200000): Reserved pid(632791).
+client(2200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 17, socket fd = 23, local = 1
+client(2400000): Reserved pid(632791).
+client(2400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 18, socket fd = 24, local = 1
+client(2600000): Reserved pid(632791).
+client(2600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 19, socket fd = 25, local = 1
+client(2800000): Reserved pid(632791).
+client(2800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 20, socket fd = 26, local = 1
+client(2a00000): Reserved pid(632791).
+client(2a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 21, socket fd = 27, local = 1
+client(2c00000): Reserved pid(632791).
+client(2c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 22, socket fd = 28, local = 1
+client(2e00000): Reserved pid(632791).
+client(2e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 23, socket fd = 29, local = 1
+client(3000000): Reserved pid(632791).
+client(3000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 24, socket fd = 30, local = 1
+client(3200000): Reserved pid(632791).
+client(3200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 25, socket fd = 31, local = 1
+client(3400000): Reserved pid(632791).
+client(3400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 26, socket fd = 32, local = 1
+client(3600000): Reserved pid(632791).
+client(3600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 27, socket fd = 33, local = 1
+client(3800000): Reserved pid(632791).
+client(3800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 28, socket fd = 34, local = 1
+client(3a00000): Reserved pid(632791).
+client(3a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 29, socket fd = 35, local = 1
+client(3c00000): Reserved pid(632791).
+client(3c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 30, socket fd = 36, local = 1
+client(3e00000): Reserved pid(632791).
+client(3e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 31, socket fd = 37, local = 1
+client(4000000): Reserved pid(632791).
+client(4000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 32, socket fd = 38, local = 1
+client(4200000): Reserved pid(632791).
+client(4200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 33, socket fd = 39, local = 1
+client(4400000): Reserved pid(632791).
+client(4400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 34, socket fd = 40, local = 1
+client(4600000): Reserved pid(632791).
+client(4600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 35, socket fd = 41, local = 1
+client(4800000): Reserved pid(632791).
+client(4800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 36, socket fd = 42, local = 1
+client(4a00000): Reserved pid(632791).
+client(4a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 37, socket fd = 43, local = 1
+client(4c00000): Reserved pid(632791).
+client(4c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 38, socket fd = 44, local = 1
+client(4e00000): Reserved pid(632791).
+client(4e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 39, socket fd = 45, local = 1
+client(5000000): Reserved pid(632791).
+client(5000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 40, socket fd = 46, local = 1
+client(5200000): Reserved pid(632791).
+client(5200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 41, socket fd = 47, local = 1
+client(5400000): Reserved pid(632791).
+client(5400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 42, socket fd = 48, local = 1
+client(5600000): Reserved pid(632791).
+client(5600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 43, socket fd = 49, local = 1
+client(5800000): Reserved pid(632791).
+client(5800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 44, socket fd = 50, local = 1
+client(5a00000): Reserved pid(632791).
+client(5a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 45, socket fd = 51, local = 1
+client(5c00000): Reserved pid(632791).
+client(5c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 46, socket fd = 52, local = 1
+client(5e00000): Reserved pid(632791).
+client(5e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 47, socket fd = 53, local = 1
+client(6000000): Reserved pid(632791).
+client(6000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 48, socket fd = 54, local = 1
+client(6200000): Reserved pid(632791).
+client(6200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 49, socket fd = 55, local = 1
+client(6400000): Reserved pid(632791).
+client(6400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 50, socket fd = 56, local = 1
+client(6600000): Reserved pid(632791).
+client(6600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 51, socket fd = 57, local = 1
+client(6800000): Reserved pid(632791).
+client(6800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 52, socket fd = 58, local = 1
+client(6a00000): Reserved pid(632791).
+client(6a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 53, socket fd = 59, local = 1
+client(6c00000): Reserved pid(632791).
+client(6c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 54, socket fd = 60, local = 1
+client(6e00000): Reserved pid(632791).
+client(6e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 55, socket fd = 61, local = 1
+client(7000000): Reserved pid(632791).
+client(7000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 56, socket fd = 62, local = 1
+client(7200000): Reserved pid(632791).
+client(7200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 57, socket fd = 63, local = 1
+client(7400000): Reserved pid(632791).
+client(7400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 58, socket fd = 64, local = 1
+client(7600000): Reserved pid(632791).
+client(7600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 59, socket fd = 65, local = 1
+client(7800000): Reserved pid(632791).
+client(7800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 60, socket fd = 66, local = 1
+client(7a00000): Reserved pid(632791).
+client(7a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 61, socket fd = 67, local = 1
+client(7c00000): Reserved pid(632791).
+client(7c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 62, socket fd = 68, local = 1
+client(7e00000): Reserved pid(632791).
+client(7e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 63, socket fd = 69, local = 1
+client(8000000): Reserved pid(632791).
+client(8000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 64, socket fd = 70, local = 1
+client(8200000): Reserved pid(632791).
+client(8200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 65, socket fd = 71, local = 1
+client(8400000): Reserved pid(632791).
+client(8400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 66, socket fd = 72, local = 1
+client(8600000): Reserved pid(632791).
+client(8600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 67, socket fd = 73, local = 1
+client(8800000): Reserved pid(632791).
+client(8800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 68, socket fd = 74, local = 1
+client(8a00000): Reserved pid(632791).
+client(8a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 69, socket fd = 75, local = 1
+client(8c00000): Reserved pid(632791).
+client(8c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 70, socket fd = 76, local = 1
+client(8e00000): Reserved pid(632791).
+client(8e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 71, socket fd = 77, local = 1
+client(9000000): Reserved pid(632791).
+client(9000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 72, socket fd = 78, local = 1
+client(9200000): Reserved pid(632791).
+client(9200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 73, socket fd = 79, local = 1
+client(9400000): Reserved pid(632791).
+client(9400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 74, socket fd = 80, local = 1
+client(9600000): Reserved pid(632791).
+client(9600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 75, socket fd = 81, local = 1
+client(9800000): Reserved pid(632791).
+client(9800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 76, socket fd = 82, local = 1
+client(9a00000): Reserved pid(632791).
+client(9a00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 77, socket fd = 83, local = 1
+client(9c00000): Reserved pid(632791).
+client(9c00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 78, socket fd = 84, local = 1
+client(9e00000): Reserved pid(632791).
+client(9e00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 79, socket fd = 85, local = 1
+client(a000000): Reserved pid(632791).
+client(a000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 80, socket fd = 86, local = 1
+client(a200000): Reserved pid(632791).
+client(a200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 81, socket fd = 87, local = 1
+client(a400000): Reserved pid(632791).
+client(a400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 82, socket fd = 88, local = 1
+client(a600000): Reserved pid(632791).
+client(a600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 83, socket fd = 89, local = 1
+client(a800000): Reserved pid(632791).
+client(a800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 84, socket fd = 90, local = 1
+client(aa00000): Reserved pid(632791).
+client(aa00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 85, socket fd = 91, local = 1
+client(ac00000): Reserved pid(632791).
+client(ac00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 86, socket fd = 92, local = 1
+client(ae00000): Reserved pid(632791).
+client(ae00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 87, socket fd = 93, local = 1
+client(b000000): Reserved pid(632791).
+client(b000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 88, socket fd = 94, local = 1
+client(b200000): Reserved pid(632791).
+client(b200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 89, socket fd = 95, local = 1
+client(b400000): Reserved pid(632791).
+client(b400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 90, socket fd = 96, local = 1
+client(b600000): Reserved pid(632791).
+client(b600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 91, socket fd = 97, local = 1
+client(b800000): Reserved pid(632791).
+client(b800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 92, socket fd = 98, local = 1
+client(ba00000): Reserved pid(632791).
+client(ba00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 93, socket fd = 99, local = 1
+client(bc00000): Reserved pid(632791).
+client(bc00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 94, socket fd = 100, local = 1
+client(be00000): Reserved pid(632791).
+client(be00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 95, socket fd = 101, local = 1
+client(c000000): Reserved pid(632791).
+client(c000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 96, socket fd = 102, local = 1
+client(c200000): Reserved pid(632791).
+client(c200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 97, socket fd = 103, local = 1
+client(c400000): Reserved pid(632791).
+client(c400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 98, socket fd = 104, local = 1
+client(c600000): Reserved pid(632791).
+client(c600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 99, socket fd = 105, local = 1
+client(c800000): Reserved pid(632791).
+client(c800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 100, socket fd = 106, local = 1
+client(ca00000): Reserved pid(632791).
+client(ca00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 101, socket fd = 107, local = 1
+client(cc00000): Reserved pid(632791).
+client(cc00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 102, socket fd = 108, local = 1
+client(ce00000): Reserved pid(632791).
+client(ce00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 103, socket fd = 109, local = 1
+client(d000000): Reserved pid(632791).
+client(d000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 104, socket fd = 110, local = 1
+client(d200000): Reserved pid(632791).
+client(d200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 105, socket fd = 111, local = 1
+client(d400000): Reserved pid(632791).
+client(d400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 106, socket fd = 112, local = 1
+client(d600000): Reserved pid(632791).
+client(d600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 107, socket fd = 113, local = 1
+client(d800000): Reserved pid(632791).
+client(d800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 108, socket fd = 114, local = 1
+client(da00000): Reserved pid(632791).
+client(da00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 109, socket fd = 115, local = 1
+client(dc00000): Reserved pid(632791).
+client(dc00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 110, socket fd = 116, local = 1
+client(de00000): Reserved pid(632791).
+client(de00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 111, socket fd = 117, local = 1
+client(e000000): Reserved pid(632791).
+client(e000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 112, socket fd = 118, local = 1
+client(e200000): Reserved pid(632791).
+client(e200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 113, socket fd = 119, local = 1
+client(e400000): Reserved pid(632791).
+client(e400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 114, socket fd = 120, local = 1
+client(e600000): Reserved pid(632791).
+client(e600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 115, socket fd = 121, local = 1
+client(e800000): Reserved pid(632791).
+client(e800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 116, socket fd = 122, local = 1
+client(ea00000): Reserved pid(632791).
+client(ea00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 117, socket fd = 123, local = 1
+client(ec00000): Reserved pid(632791).
+client(ec00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 118, socket fd = 124, local = 1
+client(ee00000): Reserved pid(632791).
+client(ee00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 119, socket fd = 125, local = 1
+client(f000000): Reserved pid(632791).
+client(f000000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 120, socket fd = 126, local = 1
+client(f200000): Reserved pid(632791).
+client(f200000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 121, socket fd = 127, local = 1
+client(f400000): Reserved pid(632791).
+client(f400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 122, socket fd = 128, local = 1
+client(f600000): Reserved pid(632791).
+client(f600000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 123, socket fd = 129, local = 1
+client(f800000): Reserved pid(632791).
+client(f800000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 124, socket fd = 130, local = 1
+client(fa00000): Reserved pid(632791).
+client(fa00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 125, socket fd = 131, local = 1
+client(fc00000): Reserved pid(632791).
+client(fc00000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 126, socket fd = 132, local = 1
+client(fc00000): Released pid(632791).
+client(fc00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 9
+(dix) removing device 8
+client(400000): Released pid(632791).
+client(400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 11
+(dix) removing device 10
+client(600000): Released pid(632791).
+client(600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 13
+(dix) removing device 12
+client(800000): Released pid(632791).
+client(800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 15
+(dix) removing device 14
+client(a00000): Released pid(632791).
+client(a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 17
+(dix) removing device 16
+client(c00000): Released pid(632791).
+client(c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 19
+(dix) removing device 18
+client(e00000): Released pid(632791).
+client(e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 21
+(dix) removing device 20
+client(1000000): Released pid(632791).
+client(1000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 23
+(dix) removing device 22
+client(1200000): Released pid(632791).
+client(1200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 25
+(dix) removing device 24
+client(1400000): Released pid(632791).
+client(1400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 27
+(dix) removing device 26
+client(1600000): Released pid(632791).
+client(1600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 29
+(dix) removing device 28
+client(1800000): Released pid(632791).
+client(1800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 31
+(dix) removing device 30
+client(1a00000): Released pid(632791).
+client(1a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 33
+(dix) removing device 32
+client(1c00000): Released pid(632791).
+client(1c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 35
+(dix) removing device 34
+client(1e00000): Released pid(632791).
+client(1e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 37
+(dix) removing device 36
+client(2000000): Released pid(632791).
+client(2000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 39
+(dix) removing device 38
+client(2200000): Released pid(632791).
+client(2200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 41
+(dix) removing device 40
+client(2400000): Released pid(632791).
+client(2400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 43
+(dix) removing device 42
+client(2600000): Released pid(632791).
+client(2600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 45
+(dix) removing device 44
+client(2800000): Released pid(632791).
+client(2800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 47
+(dix) removing device 46
+client(2a00000): Released pid(632791).
+client(2a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 49
+(dix) removing device 48
+client(2c00000): Released pid(632791).
+client(2c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 51
+(dix) removing device 50
+client(2e00000): Released pid(632791).
+client(2e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 53
+(dix) removing device 52
+client(3000000): Released pid(632791).
+client(3000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 55
+(dix) removing device 54
+client(3200000): Released pid(632791).
+client(3200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 57
+(dix) removing device 56
+client(3400000): Released pid(632791).
+client(3400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 59
+(dix) removing device 58
+client(3600000): Released pid(632791).
+client(3600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 61
+(dix) removing device 60
+client(3800000): Released pid(632791).
+client(3800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 63
+(dix) removing device 62
+client(3a00000): Released pid(632791).
+client(3a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 65
+(dix) removing device 64
+client(3c00000): Released pid(632791).
+client(3c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 67
+(dix) removing device 66
+client(3e00000): Released pid(632791).
+client(3e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 69
+(dix) removing device 68
+client(4000000): Released pid(632791).
+client(4000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 71
+(dix) removing device 70
+client(4200000): Released pid(632791).
+client(4200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 73
+(dix) removing device 72
+client(4400000): Released pid(632791).
+client(4400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 75
+(dix) removing device 74
+client(4600000): Released pid(632791).
+client(4600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 77
+(dix) removing device 76
+client(4800000): Released pid(632791).
+client(4800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 79
+(dix) removing device 78
+client(4a00000): Released pid(632791).
+client(4a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 81
+(dix) removing device 80
+client(4c00000): Released pid(632791).
+client(4c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 83
+(dix) removing device 82
+client(4e00000): Released pid(632791).
+client(4e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 85
+(dix) removing device 84
+client(5000000): Released pid(632791).
+client(5000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 87
+(dix) removing device 86
+client(5200000): Released pid(632791).
+client(5200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 89
+(dix) removing device 88
+client(5400000): Released pid(632791).
+client(5400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 91
+(dix) removing device 90
+client(5600000): Released pid(632791).
+client(5600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 93
+(dix) removing device 92
+client(5800000): Released pid(632791).
+client(5800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 95
+(dix) removing device 94
+client(5a00000): Released pid(632791).
+client(5a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 97
+(dix) removing device 96
+client(5c00000): Released pid(632791).
+client(5c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 99
+(dix) removing device 98
+client(5e00000): Released pid(632791).
+client(5e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 101
+(dix) removing device 100
+client(6000000): Released pid(632791).
+client(6000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 103
+(dix) removing device 102
+client(6200000): Released pid(632791).
+client(6200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 105
+(dix) removing device 104
+client(6400000): Released pid(632791).
+client(6400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 107
+(dix) removing device 106
+client(6600000): Released pid(632791).
+client(6600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 109
+(dix) removing device 108
+client(6800000): Released pid(632791).
+client(6800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 111
+(dix) removing device 110
+client(6a00000): Released pid(632791).
+client(6a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 113
+(dix) removing device 112
+client(6c00000): Released pid(632791).
+client(6c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 115
+(dix) removing device 114
+client(6e00000): Released pid(632791).
+client(6e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 117
+(dix) removing device 116
+client(7000000): Released pid(632791).
+client(7000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 119
+(dix) removing device 118
+client(7200000): Released pid(632791).
+client(7200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 121
+(dix) removing device 120
+client(7400000): Released pid(632791).
+client(7400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 123
+(dix) removing device 122
+client(7600000): Released pid(632791).
+client(7600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 125
+(dix) removing device 124
+client(7800000): Released pid(632791).
+client(7800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 127
+(dix) removing device 126
+client(7a00000): Released pid(632791).
+client(7a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 129
+(dix) removing device 128
+client(7c00000): Released pid(632791).
+client(7c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 131
+(dix) removing device 130
+client(7e00000): Released pid(632791).
+client(7e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 133
+(dix) removing device 132
+client(8000000): Released pid(632791).
+client(8000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 135
+(dix) removing device 134
+client(8200000): Released pid(632791).
+client(8200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 137
+(dix) removing device 136
+client(8400000): Released pid(632791).
+client(8400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 139
+(dix) removing device 138
+client(8600000): Released pid(632791).
+client(8600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 141
+(dix) removing device 140
+client(8800000): Released pid(632791).
+client(8800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 143
+(dix) removing device 142
+client(8a00000): Released pid(632791).
+client(8a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 145
+(dix) removing device 144
+client(8c00000): Released pid(632791).
+client(8c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 147
+(dix) removing device 146
+client(8e00000): Released pid(632791).
+client(8e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 149
+(dix) removing device 148
+client(9000000): Released pid(632791).
+client(9000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 151
+(dix) removing device 150
+client(9200000): Released pid(632791).
+client(9200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 153
+(dix) removing device 152
+client(9400000): Released pid(632791).
+client(9400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 155
+(dix) removing device 154
+client(9600000): Released pid(632791).
+client(9600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 157
+(dix) removing device 156
+client(9800000): Released pid(632791).
+client(9800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 159
+(dix) removing device 158
+client(9a00000): Released pid(632791).
+client(9a00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 161
+(dix) removing device 160
+client(9c00000): Released pid(632791).
+client(9c00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 163
+(dix) removing device 162
+client(9e00000): Released pid(632791).
+client(9e00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 165
+(dix) removing device 164
+client(a000000): Released pid(632791).
+client(a000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 167
+(dix) removing device 166
+client(a200000): Released pid(632791).
+client(a200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 169
+(dix) removing device 168
+client(a400000): Released pid(632791).
+client(a400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 171
+(dix) removing device 170
+client(a600000): Released pid(632791).
+client(a600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 173
+(dix) removing device 172
+client(a800000): Released pid(632791).
+client(a800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 175
+(dix) removing device 174
+client(aa00000): Released pid(632791).
+client(aa00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 177
+(dix) removing device 176
+client(ac00000): Released pid(632791).
+client(ac00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 179
+(dix) removing device 178
+client(ae00000): Released pid(632791).
+client(ae00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 181
+(dix) removing device 180
+client(b000000): Released pid(632791).
+client(b000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 183
+(dix) removing device 182
+client(b200000): Released pid(632791).
+client(b200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 185
+(dix) removing device 184
+client(b400000): Released pid(632791).
+client(b400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 187
+(dix) removing device 186
+client(b600000): Released pid(632791).
+client(b600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 189
+(dix) removing device 188
+client(b800000): Released pid(632791).
+client(b800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 191
+(dix) removing device 190
+client(ba00000): Released pid(632791).
+client(ba00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 193
+(dix) removing device 192
+client(bc00000): Released pid(632791).
+client(bc00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 195
+(dix) removing device 194
+client(be00000): Released pid(632791).
+client(be00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 197
+(dix) removing device 196
+client(c000000): Released pid(632791).
+client(c000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 199
+(dix) removing device 198
+client(c200000): Released pid(632791).
+client(c200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 201
+(dix) removing device 200
+client(c400000): Released pid(632791).
+client(c400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 203
+(dix) removing device 202
+client(c600000): Released pid(632791).
+client(c600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 205
+(dix) removing device 204
+client(c800000): Released pid(632791).
+client(c800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 207
+(dix) removing device 206
+client(ca00000): Released pid(632791).
+client(ca00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 209
+(dix) removing device 208
+client(cc00000): Released pid(632791).
+client(cc00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 211
+(dix) removing device 210
+client(ce00000): Released pid(632791).
+client(ce00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 213
+(dix) removing device 212
+client(d000000): Released pid(632791).
+client(d000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 215
+(dix) removing device 214
+client(d200000): Released pid(632791).
+client(d200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 217
+(dix) removing device 216
+client(d400000): Released pid(632791).
+client(d400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 219
+(dix) removing device 218
+client(d600000): Released pid(632791).
+client(d600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 221
+(dix) removing device 220
+client(d800000): Released pid(632791).
+client(d800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 223
+(dix) removing device 222
+client(da00000): Released pid(632791).
+client(da00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 225
+(dix) removing device 224
+client(dc00000): Released pid(632791).
+client(dc00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 227
+(dix) removing device 226
+client(de00000): Released pid(632791).
+client(de00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 229
+(dix) removing device 228
+client(e000000): Released pid(632791).
+client(e000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 231
+(dix) removing device 230
+client(e200000): Released pid(632791).
+client(e200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 233
+(dix) removing device 232
+client(e400000): Released pid(632791).
+client(e400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 235
+(dix) removing device 234
+client(e600000): Released pid(632791).
+client(e600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 237
+(dix) removing device 236
+client(e800000): Released pid(632791).
+client(e800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 239
+(dix) removing device 238
+client(ea00000): Released pid(632791).
+client(ea00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 241
+(dix) removing device 240
+client(ec00000): Released pid(632791).
+client(ec00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 243
+(dix) removing device 242
+client(ee00000): Released pid(632791).
+client(ee00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 245
+(dix) removing device 244
+client(f000000): Released pid(632791).
+client(f000000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 247
+(dix) removing device 246
+client(f200000): Released pid(632791).
+client(f200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 249
+(dix) removing device 248
+client(f400000): Released pid(632791).
+client(f400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 251
+(dix) removing device 250
+client(f600000): Released pid(632791).
+client(f600000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 253
+(dix) removing device 252
+client(f800000): Released pid(632791).
+client(f800000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 255
+(dix) removing device 254
+client(fa00000): Released pid(632791).
+client(fa00000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+client(400000): Reserved pid(632791).
+client(400000): Reserved cmdname(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+AllocNewConnection: client index = 2, socket fd = 8, local = 1
+(dix) removing device 9
+(dix) removing device 8
+client(400000): Released pid(632791).
+client(400000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+client(200000): Released pid(632791).
+client(200000): Released cmdline(/usr/bin/python3) and cmdargs(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/native/test_application_input.py /home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-security-auth).
+(dix) removing device 2
+(dix) removing device 3
+(dix) removing device 5
+(dix) removing device 4
+(dix) removing device 7
+(dix) removing device 6
+client(0): Released pid(632801).
+client(0): Released cmdline(/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/xlibre-patched/96cd5ea7cdca292239c98d2c3c7cbd41cc37964d13b4bdc5f2d4159aa751af5b/source/build/hw/vfb/Xvfb) and cmdargs(-displayfd 6 -screen 0 128x128x24 -nolisten tcp -noreset -ac +byteswappedclients -spatial-security-fd 4).

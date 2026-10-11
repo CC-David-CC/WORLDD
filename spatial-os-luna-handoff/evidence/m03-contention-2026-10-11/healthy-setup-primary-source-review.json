@@ -1,0 +1,56 @@
+{
+  "status": "primary_review_and_selected_qualification_passed",
+  "changed_source_files": [
+    "tests/native/healthy_issuer_setup.py",
+    "tests/native/test_authority_supervisor.py"
+  ],
+  "locked_files_unchanged": 41,
+  "original_supervisor_test_bodies_unchanged": 14,
+  "added_fixture_checks": 3,
+  "production_code_changed": false,
+  "base_issuer_and_tls_fixtures_changed": false,
+  "fault_test_bodies_changed": false,
+  "fixture_initialization_deadline_seconds": 15,
+  "fixture_connection_deadline_seconds": 5,
+  "fixture_request_absolute_deadline_seconds": 5,
+  "no_automatic_retry": true,
+  "review_details": [
+    "Deadline includes send, prefix, and payload; receive fragments share the same deadline.",
+    "Protocol version and request identity remain checked. Excessive reply length remains rejected.",
+    "Initializer captures non-secret process diagnostics before a setup timeout; no durability setting changes.",
+    "A distinct issuer_fixture hook confines the policy to supervisor-derived healthy fixtures. Existing overriding fixtures keep their implementation.",
+    "Connection errors close the raw socket. Fixture cleanup owns established peers.",
+    "Original fault and authority assertions stay unchanged. New checks execute alongside the complete supervisor suite.",
+    "Scoped fixture unit checks passed with both hosts and both build binding profiles. These checks do not execute sanitizer binaries.",
+    "All 33 selected suites passed on both hosts in Debug and runtime ASan/LeakSanitizer/UBSan. Every archived attachment passed hash verification."
+  ],
+  "phase_complete": false,
+  "selected_profiles": {
+    "sb16/Debug": {
+      "review": "evidence/m03-contention-2026-10-11/healthy-setup-04-sb16-debug-review.json",
+      "checks": 282,
+      "suites": 33,
+      "attachments": 903
+    },
+    "sb16/ASan-UBSan": {
+      "review": "evidence/m03-contention-2026-10-11/healthy-setup-04-sb16-sanitizer-review.json",
+      "checks": 282,
+      "suites": 33,
+      "attachments": 903
+    },
+    "sb16-2/Debug": {
+      "review": "evidence/m03-contention-2026-10-11/healthy-setup-04-sb16-2-debug-review.json",
+      "checks": 282,
+      "suites": 33,
+      "attachments": 903
+    },
+    "sb16-2/ASan-UBSan": {
+      "review": "evidence/m03-contention-2026-10-11/healthy-setup-04-sb16-2-sanitizer-review.json",
+      "checks": 282,
+      "suites": 33,
+      "attachments": 903
+    }
+  },
+  "selected_checks_total": 1128,
+  "crosshost_existing_fixture_change": "Remains separately uncommitted until its eight scenarios pass."
+}
