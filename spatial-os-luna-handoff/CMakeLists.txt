@@ -655,9 +655,18 @@ if(BUILD_TESTING)
     set_tests_properties(authority-bootstrap PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME workspace-authority COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_workspace_authority.py" $<TARGET_FILE:identityd>
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
     set_tests_properties(workspace-authority PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME authenticated-resources COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_authenticated_resources.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(authenticated-resources PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME identity-keys COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_identity_keys.py" $<TARGET_FILE:spatial-key>)

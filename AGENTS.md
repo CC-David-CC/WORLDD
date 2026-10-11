@@ -330,7 +330,9 @@ Run related integration scenarios when components connect.
 Run focused sanitizers for process, descriptor, memory, input, and lifetime changes.
 Broaden testing early when shared infrastructure changes or focused failures reveal wider effects.
 Do not repeat the complete cumulative matrix after every small change.
-Keep small, reviewable Git commits so regressions can be isolated.
+Implement substantial, coherent milestone increments.
+Run related regressions across the combined change before moving to the next milestone.
+Keep reviewable commits and preserve history so reproduced regressions can be isolated.
 Use git bisect only with a reproducible failure and known good and bad commits.
 Preserve failing evidence. Do not treat unrun tests as passed.
 Run the full required Debug, sanitizer, harness, and acceptance suites on both hosts at the phase gate.

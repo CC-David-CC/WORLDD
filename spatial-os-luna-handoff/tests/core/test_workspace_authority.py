@@ -14,6 +14,7 @@ import issuer_pb2 as issuer
 import world_session_pb2 as session
 from harness.git_fixture import GitRepo
 from harness.wire import frame, make_request, result_value
+from harness.resource_broker import ResourceBroker
 from test_world_identity import WorldIdentityFixture, WorldProcess, WORLD, receive
 import test_world_authority as world_authority
 
@@ -31,7 +32,17 @@ class BrokerProcess:
         self.log = (fixture.root/f'broker-{len(fixture.brokers)}.log').open('wb')
         command = [str(BROKER), '--state-dir', str(state)]
         if config: command += ['--authority-config', str(config)]
-        self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log)
+        self.resources = None
+        configuration = os.environ.get('SPATIAL_TEST_BROKER_CONFIG')
+        self.owner_log = None
+        if configuration:
+            self.owner_log = (fixture.root/f'broker-owner-{len(fixture.brokers)}.log').open('wb')
+            self.resources = ResourceBroker(BROKER, command, child, self.log, self.owner_log, configuration)
+            self.proc = self.resources.owner
+            self.pid = self.resources.pid
+        else:
+            self.proc = subprocess.Popen(command, stdin=child, stdout=child, stderr=self.log)
+            self.pid = self.proc.pid
         child.close(); fixture.brokers.append(self)
 
     def call(self, method, **args):
@@ -51,6 +62,13 @@ class BrokerProcess:
 
     def close(self):
         if self.stream.fileno()<0:return
+        if self.resources:
+            try:
+                self.stream.shutdown(socket.SHUT_WR)
+                self.resources.close()
+            finally:
+                self.stream.close(); self.log.close(); self.owner_log.close()
+            return
         if self.proc.poll() is None:
             try:self.stream.shutdown(socket.SHUT_WR)
             except OSError:pass
@@ -132,7 +150,7 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
         self.assertEqual(world.management('process.wait', id=process.process_id, timeout_seconds=5), {'exit_code':0})
 
     def descendants(self):
-        todo = [self.broker.proc.pid]; found = set()
+        todo = [self.broker.pid]; found = set()
         while todo:
             parent = todo.pop()
             try: children = Path(f'/proc/{parent}/task/{parent}/children').read_text().split()

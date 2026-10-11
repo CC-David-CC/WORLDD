@@ -35,7 +35,7 @@
     "Measure issuer availability under bounded competing writes, then run the full M03 gate on both hosts."
   ],
   "prerequisite_evidence": "evidence/m03-io-prerequisites-2026-10-10/primary-review.json",
-  "current_step": "authenticated_resource_fixture_qualification",
+  "current_step": "combined_m03_execution_storage_io_implementation",
   "qualified_primitive": {
     "evidence": "evidence/m03-resource-boundary-2026-10-10/candidate-02/primary-review.json",
     "passed": 108,
@@ -71,12 +71,16 @@
     "operator_deployment_qualified": false
   },
   "authenticated_resource_fixture": {
-    "status": "draft_qualification_in_progress",
-    "evidence": "evidence/m03-authenticated-resources-2026-10-10/checkpoint-review.json",
+    "status": "focused_qualification_passed",
+    "evidence": "evidence/m03-authenticated-resources-2026-10-10/primary-review.json",
+    "passed": 144,
+    "failed_final": 0,
+    "skipped": 0,
     "production_source_changed": false,
     "existing_test_bodies_unchanged": 40,
-    "integrated": false,
-    "original_startup_failure_cause": "unknown",
-    "phase_complete": false
-  }
+    "phase_complete": false,
+    "operator_deployment_qualified": false,
+    "original_startup_failure_cause": "unknown"
+  },
+  "remaining_increment": "docs/M03_REMAINING_INCREMENT.txt"
 }

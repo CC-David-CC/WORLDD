@@ -1,3 +1,14 @@
+Authenticated resource fixture final checkpoint, 2026-10-10
+
+Candidate04 passed 144 selected checks across both hosts and build profiles.
+The primary audit verified 980 attachments and scanned 934 logs. All 41 locked files remain unchanged.
+All 32 transient services are unloaded. Normal operator checkouts and runtime remain unchanged.
+Read evidence/m03-authenticated-resources-2026-10-10/primary-review.json.
+The earlier startup EOF remains unexplained. Its missing detailed logs cannot be recovered.
+This qualification does not claim repaired storage latency or a completed M03 phase.
+David requested larger coherent milestone increments and regression work before moving on.
+Read docs/M03_REMAINING_INCREMENT.txt. Complete its combined scope and full M03 gate before M04.
+
 Authenticated fixture draft checkpoint, 2026-10-10
 
 The draft resource fixture uses the production owner, sealed policy, and actual broker PID.

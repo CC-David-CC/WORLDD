@@ -61,7 +61,7 @@ class WorldProcess:
         command=[str(WORLD),'--state-dir',str(state),'--identity-config',str(config)]
         if runtime_config: command+=['--config',str(runtime_config)]
         if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
-        if broker: command+=['--workspace-fd',str(broker.stream.fileno()),'--workspace-pid',str(broker.proc.pid)]
+        if broker: command+=['--workspace-fd',str(broker.stream.fileno()),'--workspace-pid',str(getattr(broker,'pid',broker.proc.pid))]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
         self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
             pass_fds=tuple(server.fileno() for _,server in pairs)+(tuple([broker.stream.fileno()]) if broker else ()))

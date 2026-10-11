@@ -1,5 +1,34 @@
 # Implementation status
 
+## 2026-10-10: Authenticated resource fixture passed focused qualification
+
+The fixture now provisions authenticated launches through the production process-scope owner and sealed policy interface.
+Worlds receive the actual broker PID. Checked shutdown removes the owned broker scope.
+The kernel witness confirms application limits after a real actor launch and confirms policy descriptor closure.
+Production source and protobuf schemas remain unchanged. Forty existing test bodies remain unchanged.
+
+Candidate04 passed 36 selected checks per host/profile: 144 passes, zero failures or skips.
+Both hosts passed Debug and runtime sanitizers with issuer, broker, owner, and world logs retained.
+The audit verified 980 attachments and scanned 934 logs without selected sanitizer findings.
+All 369 frozen inputs and 41 locked files matched their hashes.
+All 32 exact transient services are unloaded. Normal checkouts remain clean at b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd.
+Read evidence/m03-authenticated-resources-2026-10-10/primary-review.json.
+
+Earlier candidate02's sb16 world startup EOF remains unexplained. Its detailed service logs were deleted by a runner omission.
+The original transcript and scope receipt remain preserved. Later diagnostics and qualification do not erase that failure.
+Candidate01's missing Python binding and the ptrace/LeakSanitizer diagnostic conflict also remain preserved.
+No claim of repaired fdatasync latency follows from these passes.
+Five native world-identity cases were not selected. Other fixtures and operator deployment remain pending.
+Current CMake registration was reviewed; selected tests ran through explicit CLI commands with qualified production binaries.
+No operator runtime changed. Timeouts and database durability remain unchanged.
+
+David requested larger coherent changes followed by regression work on 2026-10-10.
+Next, implement the remaining M03 execution, bounded storage, and competing-I/O scope as one combined increment.
+Run regressions across that increment, then the complete M03 phase gate before proceeding to M04.
+Read docs/M03_REMAINING_INCREMENT.txt for the combined scope and qualification boundary.
+M01 and M02 remain qualified. M03-M16 and full Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Authenticated resource fixture remains a draft during startup diagnosis
 
 The draft fixture binds explicit broker resources through the existing production process-scope owner.

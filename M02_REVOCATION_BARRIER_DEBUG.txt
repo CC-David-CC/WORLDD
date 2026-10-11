@@ -1419,3 +1419,14 @@ Build writeback is flushed before checks. Existing deadlines and database durabi
 No claim of repaired fdatasync latency follows from these runs. Full M03 storage-pressure and recovery work remains pending.
 Read spatial-os-luna-handoff/evidence/m03-authenticated-resources-2026-10-10/checkpoint-review.json.
 The source fixture remains a draft. No operator runtime changed.
+
+
+2026-10-10: Authenticated resource fixture final focused review
+Candidate04 passed 144 checks across both hosts in Debug and runtime sanitizers.
+Primary review verified 980 attachments and scanned 934 logs. All 369 inputs and 41 locked files matched their hashes.
+All 32 exact transient services are unloaded. Normal host checkouts remain unchanged.
+The earlier sb16 startup EOF remains unexplained. Its detailed logs were lost; its transcript is preserved.
+Fresh passes do not establish repaired fdatasync latency. Storage pressure and recovery remain required.
+David requested larger coherent changes. The next increment combines remaining M03 launch provisioning, bounded storage, broker I/O, and contention work.
+Regress the combined change, resolve reproduced failures, and run the full M03 phase gate before proceeding to M04.
+Read spatial-os-luna-handoff/docs/M03_REMAINING_INCREMENT.txt.
