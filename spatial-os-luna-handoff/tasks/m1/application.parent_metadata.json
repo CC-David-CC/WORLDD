@@ -1,0 +1,28 @@
+{
+  "id": "application.parent_metadata",
+  "phase": "M04",
+  "profile": "tasks/spatial-m1.json",
+  "contract": "docs/NATIVE_PARENT_METADATA.txt",
+  "status": "focused_Debug_and_native_sanitizer_checks_passed_full_M04_pending",
+  "invariant": "Native replies and core event delivery do not disclose unauthorized parent or child window identities.",
+  "production_roots": [
+    "server/xlibre/spatialpolicy.c",
+    "server/patches/0010-private-parent-metadata.patch"
+  ],
+  "counterexample_suite": "tests/native/test_parent_metadata.py",
+  "mutation_suite": "tools/qualify_parent_mutations.py",
+  "required_evidence": [
+    "Missing-feature failures and passing controls on both preceding native servers.",
+    "Both byte orders for unauthorized parent and child-event metadata.",
+    "Public root, same-application, and privileged positive controls.",
+    "Debug and GLX-enabled native-server ASan/UBSan checks on both hosts.",
+    "Related native identity, resource, event, selection, extension, and input regressions.",
+    "Three isolated native bypass mutations with exact failure IDs."
+  ],
+  "limitations": [
+    "The witness covers six core child-event types. Other event and extension paths require their own evidence.",
+    "Private Mesa cleanup validation does not qualify native GPU sessions or the installed vendor setup.",
+    "Focused qualification does not complete M04 or Spatial-M1."
+  ],
+  "review": "evidence/m04-parent-metadata-2026-10-11/primary-review.json"
+}

@@ -1,0 +1,17 @@
+{
+  "phase": "M04",
+  "phase_complete": false,
+  "selected_before_execution": true,
+  "invariant": "An owned window does not disclose unauthorized parent identities through QueryTree or ReparentNotify. Unavailable parents use None. Public roots, same-application parents and privileged recipients keep their actual IDs.",
+  "checks": [
+    "Native parent query and event, both byte orders",
+    "Same-application and privileged positive controls",
+    "Public root positive controls",
+    "Related event/resource/identity/input/selection regressions after correction"
+  ],
+  "hosts": [
+    "sb16",
+    "sb16-2"
+  ],
+  "baseline": "Current 1deed3a native server before any parent metadata production change"
+}

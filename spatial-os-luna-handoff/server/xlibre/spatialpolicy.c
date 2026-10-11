@@ -21,8 +21,18 @@ static DevPrivateKeyRec selection_namespace_key;
 
 Bool SpatialSecurityFilterEvent(ClientPtr client, const xEvent *event, xEvent *filtered)
 {
-    if (SpatialSecurityPrivileged(client) ||
-        (event->u.u.type & 0x7f) != ConfigureNotify ||
+    if (SpatialSecurityPrivileged(client)) return FALSE;
+    if ((event->u.u.type & 0x7f) == ReparentNotify) {
+        XID parent_id = event->u.reparent.parent;
+        if (parent_id == None || SpatialSecurityVisibleResource(client, parent_id)) return FALSE;
+        WindowPtr parent;
+        if (dixLookupWindow(&parent, parent_id, serverClient, DixReadAccess) == Success &&
+            parent == parent->drawable.pScreen->root) return FALSE;
+        *filtered = *event;
+        filtered->u.reparent.parent = None;
+        return TRUE;
+    }
+    if ((event->u.u.type & 0x7f) != ConfigureNotify ||
         event->u.configureNotify.aboveSibling == None ||
         SpatialSecurityVisibleResource(client, event->u.configureNotify.aboveSibling)) return FALSE;
     *filtered = *event;
@@ -174,7 +184,36 @@ static void receive_access(CallbackListPtr *list, void *unused, void *data)
 {
     XaceReceiveAccessRec *rec = data;
     (void)list; (void)unused;
-    if (!SpatialSecurityVisibleResource(rec->client, rec->pWin->drawable.id)) rec->status = BadAccess;
+    if (!SpatialSecurityVisibleResource(rec->client, rec->pWin->drawable.id)) {
+        rec->status = BadAccess;
+        return;
+    }
+    /* A subscription to an owned parent does not grant its foreign children.
+     * Inspect native core fields before any per-recipient byte swapping.
+     * Generic extension events do not use this core layout.
+     */
+    for (int i = 0; i < rec->count; ++i) {
+        const xEvent *event = &rec->events[i];
+        XID subject = None;
+        switch (event->u.u.type & 0x7f) {
+        case CreateNotify: subject = event->u.createNotify.window; break;
+        case DestroyNotify: subject = event->u.destroyNotify.window; break;
+        case UnmapNotify: subject = event->u.unmapNotify.window; break;
+        case MapNotify: subject = event->u.mapNotify.window; break;
+        case MapRequest: subject = event->u.mapRequest.window; break;
+        case ReparentNotify: subject = event->u.reparent.window; break;
+        case ConfigureNotify: subject = event->u.configureNotify.window; break;
+        case ConfigureRequest: subject = event->u.configureRequest.window; break;
+        case GravityNotify: subject = event->u.gravity.window; break;
+        case ResizeRequest: subject = event->u.resizeRequest.window; break;
+        case CirculateNotify:
+        case CirculateRequest: subject = event->u.circulate.window; break;
+        }
+        if (subject != None && !SpatialSecurityVisibleResource(rec->client, subject)) {
+            rec->status = BadAccess;
+            return;
+        }
+    }
 }
 
 static void server_access(CallbackListPtr *list, void *unused, void *data)

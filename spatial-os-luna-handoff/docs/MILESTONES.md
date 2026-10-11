@@ -43,6 +43,10 @@ The private Mesa cleanup candidate now passes actual GLX rendering and selected 
 Each host passes 186 selected native checks, 100 shutdown repetitions, and 32 pixel-checked context cycles.
 The original shutdown timeout remains unexplained. Native GPU and full M04 gates remain pending.
 Read evidence/m04-glx-validation-2026-10-11/primary-review.json.
+Parent query and core child-event metadata now pass 214 selected checks per host and profile.
+Three isolated bypasses are detected on each host. CMake registers 140 core suites.
+Read evidence/m04-parent-metadata-2026-10-11/primary-review.json.
+Additional event paths, broader integration, native graphics, and the complete M04 gate remain pending.
 The existing five-second client default remains. Bounded disk pressure defeated 700 ms and two-second clients.
 One successful five-second pressure trial does not establish a worst-case latency bound.
 Storage-pressure availability remains mandatory M03 and M1 performance work.

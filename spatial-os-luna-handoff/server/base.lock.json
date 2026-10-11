@@ -38,7 +38,8 @@
     "server/patches/0006-global-server-access.patch",
     "server/patches/0007-xkb-doodad-copy-cleanup.patch",
     "server/patches/0008-application-atom-privacy.patch",
-    "server/patches/0009-private-configure-event-metadata.patch"
+    "server/patches/0009-private-configure-event-metadata.patch",
+    "server/patches/0010-private-parent-metadata.patch"
   ],
   "overlays": {
     "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",

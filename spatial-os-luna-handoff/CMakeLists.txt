@@ -938,6 +938,14 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_event_metadata.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-event-metadata PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME native-parent-metadata COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_parent_metadata.py" $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(native-parent-metadata PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME qualification-parent-mutation-parser COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_parent_mutation_parser.py")
+        set_tests_properties(qualification-parent-mutation-parser PROPERTIES TIMEOUT 30
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME native-atom-privacy COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_atom_privacy.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-atom-privacy PROPERTIES TIMEOUT 180

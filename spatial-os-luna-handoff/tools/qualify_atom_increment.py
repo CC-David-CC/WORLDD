@@ -11,7 +11,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 SUITES = ('atom_privacy', 'security_identity', 'resource_isolation',
-          'selection_isolation', 'selection_namespace', 'event_metadata', 'extension_isolation',
+          'selection_isolation', 'selection_namespace', 'event_metadata', 'parent_metadata', 'extension_isolation',
           'application_input', 'actor_binding')
 
 

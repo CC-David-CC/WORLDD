@@ -1,0 +1,93 @@
+{
+  "status": "passed",
+  "reassessed_mutations": [
+    {
+      "name": "query-parent",
+      "detected": true,
+      "errors": [],
+      "failures": [
+        "test_query_tree_hides_foreign_parent",
+        "test_swapped_query_tree_hides_foreign_parent"
+      ]
+    },
+    {
+      "name": "reparent-event",
+      "detected": true,
+      "errors": [],
+      "failures": [
+        "test_reparent_notify_hides_foreign_parent",
+        "test_swapped_reparent_notify_hides_foreign_parent"
+      ]
+    },
+    {
+      "name": "child-event",
+      "detected": true,
+      "errors": [],
+      "failures": [
+        "test_foreign_child_configure_event_is_not_delivered",
+        "test_foreign_child_create_event_is_not_delivered",
+        "test_foreign_child_destroy_event_is_not_delivered",
+        "test_foreign_child_map_event_is_not_delivered",
+        "test_foreign_child_reparent_event_is_not_delivered",
+        "test_foreign_child_unmap_event_is_not_delivered",
+        "test_swapped_foreign_child_configure_event_is_not_delivered",
+        "test_swapped_foreign_child_create_event_is_not_delivered",
+        "test_swapped_foreign_child_destroy_event_is_not_delivered",
+        "test_swapped_foreign_child_map_event_is_not_delivered",
+        "test_swapped_foreign_child_reparent_event_is_not_delivered",
+        "test_swapped_foreign_child_unmap_event_is_not_delivered"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "profile": "debug",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "debug",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-debug",
+        "-V",
+        "-R",
+        "^qualification-parent-mutation-parser$"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "sanitize",
+      "command": [
+        "cmake",
+        "-S",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff",
+        "-B",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize"
+      ],
+      "exit_code": 0
+    },
+    {
+      "profile": "sanitize",
+      "command": [
+        "ctest",
+        "--test-dir",
+        "/home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/local/selection-runtime-sanitize",
+        "-V",
+        "-R",
+        "^qualification-parent-mutation-parser$"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "parser_sha256": "0050edf4f35e0cf0a645a49029552f36f8cc883115b9ff43b5eb4a319d60e6f4",
+  "regression_sha256": "5b32177422dff5a8193737127321eb954410b7fbe148e65aeaaa397b197fe0d5",
+  "cmake_sha256": "c2cb93ca95973c658bd8b417a36653d65b6f7b297418a0031ca1806eb2f13f1d"
+}

@@ -1,0 +1,11 @@
+atom_privacy 0 15
+security_identity 0 22
+resource_isolation 0 36
+selection_isolation 0 14
+selection_namespace 0 23
+event_metadata 0 4
+parent_metadata 0 28
+extension_isolation 0 32
+application_input 0 15
+actor_binding 0 25
+passed /home/dflanag3/src/spacial_desktop-m04-20261011/spatial-os-luna-handoff/evidence/m04-parent-metadata-2026-10-11/corrected-01/debug-selected

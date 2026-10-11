@@ -1,5 +1,31 @@
 # Implementation status
 
+## 2026-10-11: Parent and child-event metadata pass focused native qualification
+
+Owned windows no longer disclose unauthorized parents through QueryTree or ReparentNotify.
+Core structure-event delivery checks its subject window before recipient byte swapping.
+An owned parent's event subscription does not grant observation of foreign children.
+Public roots, same-application views, and privileged recipients remain usable.
+The additive policy is recorded in docs/NATIVE_PARENT_METADATA.txt.
+No Protocol Buffer schema or locked acceptance requirement changes.
+
+The final baseline reproduces 16 security failures and 12 passing controls per host.
+The first witness's extra privileged-case fixture failure remains preserved and excluded from that defect count.
+Each host passes 214 selected native checks in Debug and ASan/UBSan with GLX enabled.
+The combined increment has 856 passed native checks across four profiles.
+All three isolated bypasses produce their exact expected failures on each host.
+The stricter mutation parser also rejects extra unittest errors.
+Its five regression checks pass in both configured profiles on both hosts.
+The parser rechecks the saved native outcomes without rebuilding unchanged production source.
+CMake registers 140 core suites. The complete cumulative matrix remains unrun.
+All forty-one locked files remain unchanged.
+
+The event witness covers six child-event types in both byte orders.
+Other asynchronous paths, broader integration, and the full M04 gate remain pending.
+The private Mesa graphics limits and unexplained original shutdown timeout remain recorded.
+M01-M03 remain qualified. M04 remains incomplete.
+Read evidence/m04-parent-metadata-2026-10-11/primary-review.json.
+
 ## 2026-10-11: Private Mesa candidate renders and passes selected checks on both hosts
 
 Each host passes 186 GLX-enabled native security checks with the cleanup candidate.
