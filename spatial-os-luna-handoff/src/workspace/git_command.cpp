@@ -1,10 +1,12 @@
 #include "workspace/git_command.hpp"
+#include "workspace/resources.hpp"
 #include "world/store.hpp"
 #include <algorithm>
 #include <array>
 #include <cerrno>
 #include <fcntl.h>
 #include <iostream>
+#include <functional>
 #include <poll.h>
 #include <set>
 #include <sys/stat.h>
@@ -61,7 +63,9 @@ void append_read(int fd, std::string& output, std::size_t limit) {
 }
 }
 
-GitResult git_command(supervisor::ProcessScope& scope, const std::filesystem::path& working_directory,
+namespace {
+using ScopeProvider = std::function<supervisor::ProcessScope&(std::span<const int>)>;
+GitResult git_command_impl(const ScopeProvider& prepare_scope, const std::filesystem::path& working_directory,
                       const std::vector<std::string>& arguments, const std::vector<GitMount>& requested_mounts,
                       std::chrono::seconds timeout) {
     require(!arguments.empty() && arguments.size() <= 64 && timeout.count() > 0 && timeout <= std::chrono::minutes(5),
@@ -102,6 +106,9 @@ GitResult git_command(supervisor::ProcessScope& scope, const std::filesystem::pa
     const auto cwd = std::filesystem::canonical(working_directory);
     require(std::any_of(mounts.begin(), mounts.end(), [&](const auto& mount) { return inside(cwd, mount.path); }),
             "Git worker working directory is outside its mounts");
+    std::vector<int> directory_handles;
+    for (const auto& file : mount_fds) directory_handles.push_back(file.fd);
+    auto& scope = prepare_scope(directory_handles);
 
     std::vector<std::string> command{bwrap, "--unshare-all", "--unshare-user", "--disable-userns",
         "--die-with-parent", "--new-session", "--cap-drop", "ALL", "--hostname", "spatial-git-worker",
@@ -206,5 +213,21 @@ GitResult git_command(supervisor::ProcessScope& scope, const std::filesystem::pa
     // This is the broker's private diagnostic stream, separate from actor replies.
     if (status != 0) std::cerr << "Git worker exited with status " << status << ": " << diagnostics << '\n';
     return {status, std::move(output)};
+}
+}
+GitResult git_command(WorkspaceResources& resources, const std::filesystem::path& directory,
+                      const std::vector<std::string>& arguments, const std::vector<GitMount>& mounts,
+                      std::chrono::seconds timeout) {
+    std::unique_ptr<GitJobResources> job;
+    return git_command_impl([&](std::span<const int> handles) -> supervisor::ProcessScope& {
+        job = resources.prepare_git_job(handles);
+        return job->scope();
+    }, directory, arguments, mounts, timeout);
+}
+GitResult git_command(supervisor::ProcessScope& scope, const std::filesystem::path& directory,
+                      const std::vector<std::string>& arguments, const std::vector<GitMount>& mounts,
+                      std::chrono::seconds timeout) {
+    return git_command_impl([&](std::span<const int>) -> supervisor::ProcessScope& { return scope; },
+                            directory, arguments, mounts, timeout);
 }
 }

@@ -155,8 +155,7 @@ struct ExecutionStore::Impl {
                       std::vector<GitMount> mounts = {}, std::chrono::seconds timeout = std::chrono::seconds(60)) {
         if (!resources) throw WorldError(wire::UNAVAILABLE, "Administrative Git requires a configured worker resource boundary");
         if (mounts.empty()) mounts.push_back({directory, true});
-        auto job = resources->prepare_git_job();
-        return git_command(job->scope(), directory, arguments, mounts, timeout);
+        return git_command(*resources, directory, arguments, mounts, timeout);
     }
     std::string checked(const std::filesystem::path& directory, const std::vector<std::string>& arguments,
                         std::vector<GitMount> mounts = {}, std::chrono::seconds timeout = std::chrono::seconds(60)) {

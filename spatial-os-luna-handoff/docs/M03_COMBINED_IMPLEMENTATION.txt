@@ -1,5 +1,17 @@
 M03 combined implementation checkpoint
 
+2026-10-11 resumed Git I/O correction
+The resumed goal replaces the requested pause. Both hosts reproduced the original failing Git-device regression.
+Production Git now pins its complete mount set before resource preparation.
+The resource owner validates those same held descriptors against the broker I/O budget.
+Btrfs inspection reopens the held object through /proc/self/fd and verifies its device and inode.
+The application path reuses this descriptor-based device resolver.
+No worker starts before validation. Keep the existing quota policy, confinement, limits, and deadlines.
+Selected checks: the uncovered-device regression, all broker-resources and workspace-git cases on both hosts.
+Include process-scope resources, process termination, workspace context, and worldd lifecycle for shared callers.
+Repeat real Btrfs/Git/application integration to verify loop and backing-device resolution under sanitizers.
+Preserve the resumed baseline failure. Complete M03 provisioning and the full gate remain pending.
+
 The combined increment is active. Do not integrate individual draft functions as completed milestones.
 Complete storage ownership, broker effects, launch provisioning, and contention recovery before broad regression qualification.
 

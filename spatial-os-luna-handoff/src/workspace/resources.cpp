@@ -116,10 +116,11 @@ void validate_policy(const workspace::v1::WorkspaceResourcePolicy& policy, bool 
         (void)intersect(policy.total(), profile.maximum());
     }
 }
-void validate_devices(const Budget& budget, const std::array<std::filesystem::path, 3>& paths) {
+void validate_device_handles(const Budget& budget, std::span<const int> directories) {
     std::set<Device> covered, observed;
     for (const auto& io : budget.io()) covered.emplace(io.major(), io.minor());
     std::function<void(const std::filesystem::path&, unsigned)> filesystem_device;
+    std::function<void(int, unsigned)> descriptor_device;
     const auto block_device = [&](dev_t number, unsigned depth) {
         const auto link = std::filesystem::path("/sys/dev/block") /
             (std::to_string(device_major(number)) + ":" + std::to_string(device_minor(number)));
@@ -146,13 +147,19 @@ void validate_devices(const Budget& budget, const std::array<std::filesystem::pa
         }
     };
     filesystem_device = [&](const std::filesystem::path& path, unsigned depth) {
-        require(depth < 8, "Storage device nesting exceeds supported bounds");
         identity::tls_detail::Fd file(open(path.c_str(), O_PATH | O_NOFOLLOW | O_CLOEXEC));
+        check(file.value >= 0, "Cannot pin workspace storage device");
+        descriptor_device(file.value, depth);
+    };
+    descriptor_device = [&](int descriptor, unsigned depth) {
+        require(depth < 8, "Storage device nesting exceeds supported bounds");
         struct stat info{}; struct statfs filesystem{};
-        check(file.value >= 0 && fstat(file.value, &info) == 0 && fstatfs(file.value, &filesystem) == 0,
+        check(descriptor >= 0 && fstat(descriptor, &info) == 0 && fstatfs(descriptor, &filesystem) == 0,
               "Cannot identify workspace storage device");
         if (filesystem.f_type == BTRFS_SUPER_MAGIC) {
-            identity::tls_detail::Fd query(open(path.c_str(), O_RDONLY | O_NOFOLLOW | O_CLOEXEC));
+            // Reopen the held object, rather than resolving its caller-owned path again.
+            const auto held = "/proc/self/fd/" + std::to_string(descriptor);
+            identity::tls_detail::Fd query(open(held.c_str(), O_RDONLY | O_CLOEXEC));
             struct stat pinned{};
             check(query.value >= 0 && fstat(query.value, &pinned) == 0 && pinned.st_dev == info.st_dev && pinned.st_ino == info.st_ino,
                   "Cannot pin quota filesystem query authority");
@@ -170,11 +177,21 @@ void validate_devices(const Budget& budget, const std::array<std::filesystem::pa
             block_device(block.st_rdev, depth);
         } else block_device(info.st_dev, depth);
     };
-    for (const auto& path : paths) {
+    for (const auto descriptor : directories) {
         struct stat info{};
-        check(stat(path.c_str(), &info) == 0 && S_ISDIR(info.st_mode), "Workspace writable boundary requires a directory");
-        filesystem_device(path, 0);
+        check(descriptor >= 0 && fstat(descriptor, &info) == 0 && S_ISDIR(info.st_mode),
+              "Workspace storage boundary requires a directory");
+        descriptor_device(descriptor, 0);
     }
+}
+void validate_devices(const Budget& budget, const std::array<std::filesystem::path, 3>& paths) {
+    std::array<identity::tls_detail::Fd, 3> files;
+    std::array<int, 3> handles;
+    for (std::size_t index = 0; index < paths.size(); ++index) {
+        files[index].reset(open(paths[index].c_str(), O_PATH | O_NOFOLLOW | O_CLOEXEC));
+        handles[index] = files[index].value;
+    }
+    validate_device_handles(budget, handles);
 }
 
 struct Group {
@@ -399,7 +416,9 @@ supervisor::ProcessScope& GitJobResources::scope() { return *impl_->scope; }
 ApplicationResources::ApplicationResources(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 ApplicationResources::~ApplicationResources() = default;
 supervisor::ProcessScope& ApplicationResources::scope() { return *impl_->scope; }
-std::unique_ptr<GitJobResources> WorkspaceResources::prepare_git_job() {
+std::unique_ptr<GitJobResources> WorkspaceResources::prepare_git_job(std::span<const int> directory_handles) {
+    require(!directory_handles.empty() && directory_handles.size() <= 12, "Git worker requires bounded directory handles");
+    validate_device_handles(impl_->config.broker_budget(), directory_handles);
     Budget budget;
     budget.set_memory_bytes(256ULL * 1024 * 1024);
     budget.set_swap_bytes(0);

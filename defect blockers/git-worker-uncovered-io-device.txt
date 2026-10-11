@@ -1,4 +1,12 @@
 Administrative Git accepts an uncovered storage device
+Correction verified on 2026-10-11 after the goal resumed.
+Production validates the exact pinned mount descriptors before reserving or starting its Git worker.
+The uncovered-source fixture now returns INVALID_ARGUMENT without repository or operation records.
+Each host passed 106 selected regressions and repeated the real 288 MiB quota-volume integration.
+Read spatial-os-luna-handoff/evidence/m03-git-io-device-2026-10-11/primary-review.json.
+All 41 locked files remain unchanged. Complete M03 qualification remains pending.
+
+Historical reproducer and proposal
 Confirmed on sb16 and sb16-2 on 2026-10-11. Open at the requested pause.
 
 The resource configuration names a valid whole block device other than the project disk.

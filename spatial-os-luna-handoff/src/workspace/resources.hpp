@@ -4,6 +4,7 @@
 #include <array>
 #include <filesystem>
 #include <memory>
+#include <span>
 
 namespace spatial {
 void validate_resource_config(const workspace::v1::BrokerResourceConfig& configuration);
@@ -40,7 +41,7 @@ public:
     ~WorkspaceResources();
     std::unique_ptr<ApplicationResources> prepare(const workspace::v1::LaunchRequest& request,
         const std::array<std::filesystem::path, 3>& writable_paths);
-    std::unique_ptr<GitJobResources> prepare_git_job();
+    std::unique_ptr<GitJobResources> prepare_git_job(std::span<const int> directory_handles);
 private:
     friend class ApplicationResources;
     friend class GitJobResources;

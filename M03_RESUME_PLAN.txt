@@ -1,5 +1,11 @@
 Paused M03 checkpoint, 2026-10-11
 
+Resumed on 2026-10-11 at David's request. The active goal supersedes the historical pause below.
+Resume steps 1 through 6 are complete for the Git I/O-device correction.
+Both hosts passed 106 selected regressions and repeated the real quota-volume integration.
+Next: step 7, production-required storage-owner launch and explicit operator provisioning.
+Read spatial-os-luna-handoff/evidence/m03-git-io-device-2026-10-11/primary-review.json.
+
 David requested a pause, a checkpoint on both Git remotes, and reboot of both world hosts.
 The overall goal is paused. Do not resume implementation until David requests it.
 The checkpoint branch is m03/resource-boundary. This is unfinished development work.

@@ -1,0 +1,35 @@
+{"unit": "spatial-m03-resources-7df9a05289da47f69003a2095f3fc993.service", "command": ["sudo", "-n", "systemd-run", "--unit=spatial-m03-resources-7df9a05289da47f69003a2095f3fc993.service", "--wait", "--pipe", "--collect", "--service-type=exec", "--uid=dflanag3", "--working-directory=/home/dflanag3", "-p", "Delegate=cpu memory pids io", "-p", "DelegateSubgroup=manager", "-p", "MemoryMax=512M", "-p", "MemorySwapMax=0", "-p", "TasksMax=128", "-p", "CPUQuota=200%", "-p", "RuntimeMaxSec=120", "-p", "TimeoutStopSec=5s", "--setenv=PYTHONPATH=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/python:/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source", "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1", "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1", "--setenv=SPATIAL_SCOPE_EVIDENCE=/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/io-device-resume-before/scopes", "--", "python3", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/spatial-process-scope-probe", "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/sanitize/workspaced", "BrokerResourceTests.test_uncovered_git_device_denies_before_repository_mutation", "-v"], "recovery": ["sudo", "-n", "systemctl", "stop", "spatial-m03-resources-7df9a05289da47f69003a2095f3fc993.service"]}
+Running as unit: spatial-m03-resources-7df9a05289da47f69003a2095f3fc993.service; invocation ID: dba6381b36f641a3a4adcd8e9f5d41ac
+test_uncovered_git_device_denies_before_repository_mutation (__main__.BrokerResourceTests.test_uncovered_git_device_denies_before_repository_mutation) ... FAIL
+
+======================================================================
+FAIL: test_uncovered_git_device_denies_before_repository_mutation (__main__.BrokerResourceTests.test_uncovered_git_device_denies_before_repository_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-git-storage-20261011/source/tests/core/test_broker_resources.py", line 405, in test_uncovered_git_device_denies_before_repository_mutation
+    self.assertEqual(reply.management.error.code, core.INVALID_ARGUMENT, reply)
+AssertionError: 0 != 1 : protocol_version: 1
+request_id: 1
+management {
+  protocol_version: 1
+  request_id: 1
+  repository {
+    id: "repo"
+    path: "/tmp/tmp1c_p_prl/broker-state-0/repositories/93e4deccb5f4a498659e41e2e3b6bce4.git"
+    source: "/tmp/tmp1c_p_prl/source-repo"
+  }
+}
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.807s
+
+FAILED (failures=1)
+Finished with result: exit-code
+Main processes terminated with: code=exited/status=1
+Service runtime: 1.012s
+CPU time consumed: 589ms
+Memory peak: 2.4M
+Memory swap peak: 0B
+{"cleanup_exit": 5, "cleanup_stderr": "Failed to stop spatial-m03-resources-7df9a05289da47f69003a2095f3fc993.service: Unit spatial-m03-resources-7df9a05289da47f69003a2095f3fc993.service not loaded.\n"}
+{"unit_after": "LoadState=not-found\nActiveState=inactive\n", "query_exit": 0}

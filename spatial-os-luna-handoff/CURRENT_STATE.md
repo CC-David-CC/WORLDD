@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-11: M03 resumed at Git I/O-device validation
+
+David resumed the full project goal. The earlier pause record remains historical.
+Both hosts retain their isolated builds and passwordless SSH/sudo access after reboot.
+Both reproduced the uncovered Git-device import failure from the saved checkpoint.
+The production correction validates the same pinned mount descriptors before reserving a Git worker.
+Both hosts passed 106 selected regression cases under ASan/UBSan, including all 18 broker-resource cases.
+Both passed the repeated 288 MiB Btrfs/Git/application integration with complete application-log inspection.
+The primary review verified 270 attachments and matched 361 source inputs on each host.
+All 41 locked files remain unchanged. Read evidence/m03-git-io-device-2026-10-11/primary-review.json.
+The uncovered-device defect is corrected within this tested scope. M03 remains incomplete.
+Next, finish mandatory storage provisioning and contention/revocation evidence, then run the complete M03 gate.
+
 ## 2026-10-11: M03 paused for checkpoint and host reboot
 
 David requested a pause and reboot of sb16 and sb16-2.
