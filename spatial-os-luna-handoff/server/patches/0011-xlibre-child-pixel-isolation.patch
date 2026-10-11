@@ -1,0 +1,89 @@
+--- a/dix/dispatch.c
++++ b/dix/dispatch.c
+@@ -1835,6 +1835,10 @@
+     else
+         pSrc = pDst;
+ 
++    if (pGC->subWindowMode == IncludeInferiors &&
++        SpatialSecurityHasForeignInferiors(client, pSrc))
++        return BadAccess;
++
+     pRgn = (*pGC->ops->CopyArea) (pSrc, pDst, pGC, stuff->srcX, stuff->srcY,
+                                   stuff->width, stuff->height,
+                                   stuff->dstX, stuff->dstY);
+@@ -1873,6 +1877,10 @@
+     }
+     else
+         psrcDraw = pdstDraw;
++
++    if (pGC->subWindowMode == IncludeInferiors &&
++        SpatialSecurityHasForeignInferiors(client, psrcDraw))
++        return BadAccess;
+ 
+     /* Check to see if stuff->bitPlane has exactly ONE good bit set */
+     if (stuff->bitPlane == 0 || (stuff->bitPlane & (stuff->bitPlane - 1)) ||
+@@ -2245,6 +2253,7 @@
+     long widthBytesLine, length;
+     Mask plane = 0;
+     RegionPtr pVisibleRegion = NULL;
++    RegionPtr filteredVisibleRegion = NULL;
+ 
+     if ((format != XYPixmap) && (format != ZPixmap)) {
+         client->errorValue = format;
+@@ -2351,6 +2360,11 @@
+ 
+     if (pDraw->type == DRAWABLE_WINDOW) {
+         pVisibleRegion = &((WindowPtr) pDraw)->borderClip;
++        rc = SpatialSecurityFilterWindowImage(client, pDraw, &filteredVisibleRegion);
++        if (rc != Success)
++            return rc;
++        if (filteredVisibleRegion)
++            pVisibleRegion = filteredVisibleRegion;
+         pDraw->pScreen->SourceValidate(pDraw, x, y, width, height,
+                                        IncludeInferiors);
+     }
+@@ -2368,6 +2382,7 @@
+             char *pBuf = x_rpcbuf_reserve(&rpcbuf, (nlines * widthBytesLine));
+             if (!pBuf) {
+                 x_rpcbuf_clear(&rpcbuf);
++                if (filteredVisibleRegion) RegionDestroy(filteredVisibleRegion);
+                 return BadAlloc;
+             }
+ 
+@@ -2400,6 +2415,7 @@
+                     char *pBuf = x_rpcbuf_reserve(&rpcbuf, (nlines * widthBytesLine));
+                     if (!pBuf) {
+                         x_rpcbuf_clear(&rpcbuf);
++                        if (filteredVisibleRegion) RegionDestroy(filteredVisibleRegion);
+                         return BadAlloc;
+                     }
+ 
+@@ -2429,6 +2445,7 @@
+         swapl(&reply.visual);
+     }
+ 
++    if (filteredVisibleRegion) RegionDestroy(filteredVisibleRegion);
+     return X_SEND_REPLY_WITH_RPCBUF(client, reply, rpcbuf);
+ }
+ 
+--- a/dix/dix_priv.h
++++ b/dix/dix_priv.h
+@@ -110,6 +110,8 @@
+                            unsigned short *pblue);
+ 
+ void DeleteWindowFromAnySaveSet(WindowPtr pWin);
++
++#include "spatialsecurity.h"
+ 
+ #define VALIDATE_DRAWABLE_AND_GC(drawID, pDraw, mode)                   \
+     do {                                                                \
+@@ -123,6 +125,9 @@
+             return BadMatch;                                            \
+         if (pGC->serialNumber != pDraw->serialNumber)                   \
+             ValidateGC(pDraw, pGC);                                     \
++        if (pGC->subWindowMode == IncludeInferiors &&                    \
++            SpatialSecurityHasForeignInferiors(client, pDraw))           \
++            return BadAccess;                                           \
+     } while (0)
+ 
+ int dixLookupGC(GCPtr *result,

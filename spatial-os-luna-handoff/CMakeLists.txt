@@ -942,6 +942,10 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_parent_metadata.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-parent-metadata PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME native-topology-pixels COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_topology_pixels.py" $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(native-topology-pixels PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME qualification-parent-mutation-parser COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_parent_mutation_parser.py")
         set_tests_properties(qualification-parent-mutation-parser PROPERTIES TIMEOUT 30

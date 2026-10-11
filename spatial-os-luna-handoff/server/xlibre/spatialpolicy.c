@@ -14,10 +14,100 @@
 #include "dix/screensaver_priv.h"
 #include "render/picturestr_priv.h"
 #include "Xext/xacestr.h"
+#include "regionstr.h"
 #include "windowstr.h"
 #include "spatialsecurity.h"
 
 static DevPrivateKeyRec selection_namespace_key;
+
+static Bool has_foreign_viewable_child(ClientPtr client, WindowPtr parent)
+{
+    WindowPtr child = parent->firstChild;
+    while (child) {
+        if (child->viewable) {
+            if (!SpatialSecurityVisibleResource(client, child->drawable.id) &&
+                RegionNotEmpty(&child->borderClip))
+                return TRUE;
+            if (child->firstChild) {
+                child = child->firstChild;
+                continue;
+            }
+        }
+
+        while (child != parent && !child->nextSib)
+            child = child->parent;
+        if (child == parent)
+            break;
+        child = child->nextSib;
+    }
+    return FALSE;
+}
+
+Bool SpatialSecurityHasForeignInferiors(ClientPtr client, DrawablePtr drawable)
+{
+    if (!SpatialSecurityEnabled() || SpatialSecurityPrivileged(client) ||
+        drawable->type != DRAWABLE_WINDOW)
+        return FALSE;
+    return has_foreign_viewable_child(client, (WindowPtr) drawable);
+}
+
+static Bool collect_window_pixel_regions(ClientPtr client, WindowPtr parent,
+                                         RegionPtr foreign, RegionPtr same_app)
+{
+    WindowPtr child = parent->firstChild;
+    while (child) {
+        if (child->viewable) {
+            RegionPtr target = SpatialSecurityVisibleResource(client, child->drawable.id)
+                ? same_app : foreign;
+            if (!RegionUnion(target, target, &child->borderClip))
+                return FALSE;
+            if (child->firstChild) {
+                child = child->firstChild;
+                continue;
+            }
+        }
+
+        while (child != parent && !child->nextSib)
+            child = child->parent;
+        if (child == parent)
+            break;
+        child = child->nextSib;
+    }
+    return TRUE;
+}
+
+int SpatialSecurityFilterWindowImage(ClientPtr client, DrawablePtr drawable,
+                                     RegionPtr *filtered_region)
+{
+    RegionPtr foreign, same_app, filtered;
+    *filtered_region = NULL;
+    if (!SpatialSecurityEnabled() || SpatialSecurityPrivileged(client) ||
+        drawable->type != DRAWABLE_WINDOW)
+        return Success;
+
+    foreign = RegionCreate(NULL, 0);
+    same_app = RegionCreate(NULL, 0);
+    filtered = RegionDuplicate(&((WindowPtr) drawable)->borderClip);
+    if (!foreign || !same_app || !filtered)
+        goto bad_alloc;
+    if (!collect_window_pixel_regions(client, (WindowPtr) drawable,
+                                      foreign, same_app) ||
+        !RegionIntersect(same_app, same_app, filtered) ||
+        !RegionSubtract(filtered, filtered, foreign) ||
+        !RegionUnion(filtered, filtered, same_app))
+        goto bad_alloc;
+
+    RegionDestroy(foreign);
+    RegionDestroy(same_app);
+    *filtered_region = filtered;
+    return Success;
+
+bad_alloc:
+    if (foreign) RegionDestroy(foreign);
+    if (same_app) RegionDestroy(same_app);
+    if (filtered) RegionDestroy(filtered);
+    return BadAlloc;
+}
 
 Bool SpatialSecurityFilterEvent(ClientPtr client, const xEvent *event, xEvent *filtered)
 {
@@ -87,6 +177,15 @@ static void resource_access(CallbackListPtr *list, void *unused, void *data)
         if (rec->rtype == PictureType && (rec->access_mode & DixReadAccess)) {
             PicturePtr picture = rec->res;
             if (picture->pDrawable && picture->pDrawable->type == DRAWABLE_WINDOW) {
+                rec->status = BadAccess;
+                return;
+            }
+        }
+        if (rec->rtype == PictureType) {
+            PicturePtr picture = rec->res;
+            if (picture->pDrawable && picture->pDrawable->type == DRAWABLE_WINDOW &&
+                picture->subWindowMode == IncludeInferiors &&
+                SpatialSecurityHasForeignInferiors(rec->client, picture->pDrawable)) {
                 rec->status = BadAccess;
                 return;
             }

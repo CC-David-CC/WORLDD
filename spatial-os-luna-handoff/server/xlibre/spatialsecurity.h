@@ -2,6 +2,7 @@
 #ifndef SPATIAL_SECURITY_H
 #define SPATIAL_SECURITY_H
 #include "dix.h"
+#include "regionstr.h"
 #include <stdint.h>
 
 // Server-local private object label. Transport uses SelectionScope protobuf.
@@ -31,4 +32,7 @@ Bool SpatialSecurityApplicationIdentity(ClientPtr client, XID id,
 void SpatialSecurityPolicyInit(void);
 void SpatialSecurityPolicyReset(void);
 Bool SpatialSecurityFilterEvent(ClientPtr client, const xEvent *event, xEvent *filtered);
+Bool SpatialSecurityHasForeignInferiors(ClientPtr client, DrawablePtr drawable);
+int SpatialSecurityFilterWindowImage(ClientPtr client, DrawablePtr drawable,
+                                     RegionPtr *filtered_region);
 #endif

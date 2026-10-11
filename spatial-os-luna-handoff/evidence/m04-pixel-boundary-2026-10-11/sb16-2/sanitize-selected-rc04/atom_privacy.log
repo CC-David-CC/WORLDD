@@ -1,0 +1,20 @@
+test_application_declaration_budget_is_enforced_and_isolated (__main__.AtomPrivacyTests.test_application_declaration_budget_is_enforced_and_isolated) ... ok
+test_broker_does_not_disclose_application_atom (__main__.AtomPrivacyTests.test_broker_does_not_disclose_application_atom) ... ok
+test_declarations_insert_older_global_ids_in_sorted_order (__main__.AtomPrivacyTests.test_declarations_insert_older_global_ids_in_sorted_order) ... ok
+test_declarations_survive_creator_disconnect_while_peer_is_live (__main__.AtomPrivacyTests.test_declarations_survive_creator_disconnect_while_peer_is_live) ... ok
+test_explicitly_interned_name_remains_usable (__main__.AtomPrivacyTests.test_explicitly_interned_name_remains_usable) ... ok
+test_final_disconnect_does_not_retain_application_declarations (__main__.AtomPrivacyTests.test_final_disconnect_does_not_retain_application_declarations) ... ok
+test_foreign_atom_existence_is_not_disclosed (__main__.AtomPrivacyTests.test_foreign_atom_existence_is_not_disclosed) ... ok
+test_foreign_atom_name_is_not_disclosed (__main__.AtomPrivacyTests.test_foreign_atom_name_is_not_disclosed) ... ok
+test_matching_application_name_in_other_workspace_is_private (__main__.AtomPrivacyTests.test_matching_application_name_in_other_workspace_is_private) ... ok
+test_predefined_atoms_remain_public (__main__.AtomPrivacyTests.test_predefined_atoms_remain_public) ... ok
+test_privileged_compositor_can_inspect_application_atom (__main__.AtomPrivacyTests.test_privileged_compositor_can_inspect_application_atom) ... ok
+test_repeated_declaration_does_not_exhaust_the_budget (__main__.AtomPrivacyTests.test_repeated_declaration_does_not_exhaust_the_budget) ... ok
+test_same_application_connections_share_atom_names (__main__.AtomPrivacyTests.test_same_application_connections_share_atom_names) ... ok
+test_same_workspace_does_not_disclose_atom_name (__main__.AtomPrivacyTests.test_same_workspace_does_not_disclose_atom_name) ... ok
+test_swapped_client_cannot_disclose_atom_name (__main__.AtomPrivacyTests.test_swapped_client_cannot_disclose_atom_name) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 4.082s
+
+OK

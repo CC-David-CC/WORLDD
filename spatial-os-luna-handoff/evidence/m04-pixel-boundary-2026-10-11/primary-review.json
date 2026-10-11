@@ -1,0 +1,58 @@
+{
+  "phase": "M04",
+  "issue": "Cross-application window pixels exposed through visible inferiors",
+  "status": "local-integration-candidate-passed-focused-checks",
+  "phase_complete": false,
+  "baseline": {
+    "hosts": ["sb16", "sb16-2"],
+    "get_image_foreign_child_pixels_exposed": true,
+    "copy_area_copied_foreign_pixels": true,
+    "poly_fill_rectangle_changed_foreign_child_pixels": true,
+    "baseline_pixel": "0xc3a57b",
+    "poly_fill_result_pixel": "0x789abc"
+  },
+  "implementation": {
+    "get_image": "Duplicate the parent visible region. Subtract visible foreign descendant regions. Restore same-application descendant regions clipped to the original parent region. Fail with BadAlloc if region construction fails.",
+    "core_include_inferiors": "Return BadAccess for foreign visible descendants on drawing destinations and CopyArea/CopyPlane sources.",
+    "render_include_inferiors": "Reject picture access when a window picture includes foreign visible descendants.",
+    "tree_walk": "Iterative traversal avoids recursion on attacker-controlled window depth.",
+    "privileged_and_same_application_access": "Preserved and covered by positive controls."
+  },
+  "focused_pixel_tests": {
+    "test_count": 14,
+    "debug": {"sb16": "passed", "sb16-2": "passed"},
+    "asan_ubsan": {"sb16": "passed", "sb16-2": "passed"},
+    "coverage": [
+      "GetImage native and swapped byte order",
+      "Parent pixels outside foreign child",
+      "Same-application and privileged reads",
+      "CopyArea and CopyPlane source reads",
+      "PolyFillRectangle destination writes",
+      "Render IncludeInferiors writes",
+      "Same-application IncludeInferiors copy and drawing",
+      "Privileged Render IncludeInferiors access"
+    ]
+  },
+  "selected_m04_regressions": {
+    "test_count_per_run": 228,
+    "debug_glx_enabled": {"sb16": "passed", "sb16-2": "passed"},
+    "asan_ubsan_glx_disabled": {"sb16": "passed", "sb16-2": "passed"},
+    "all_four_host_profile_runs_passed": true
+  },
+  "cmake_registration": {
+    "test": "native-topology-pixels",
+    "sb16": "registered",
+    "sb16-2": "registered"
+  },
+  "sanitizer_scope": "GLX is disabled in the focused sanitizer profile because the separate Mesa GLX teardown leak is already recorded. Render and the native security suites remain enabled.",
+  "github": {
+    "fork": "CC-David-CC/xserver",
+    "upstream_master_is_ancestor_of_fork_master": true,
+    "standalone_upstream_pr_ready": false,
+    "reason": "The passing fix calls SpatialSecurity APIs from this project's downstream policy extension. Those APIs and immutable application labels are absent from XLibre upstream, so the current change does not compile as a standalone upstream patch."
+  },
+  "evidence": {
+    "sb16": "sb16/",
+    "sb16-2": "sb16-2/"
+  }
+}
