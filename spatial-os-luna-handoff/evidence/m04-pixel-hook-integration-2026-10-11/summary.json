@@ -1,0 +1,31 @@
+﻿{
+    "milestone":  "M04",
+    "purpose":  "SpatialSecurity policy integration with XACE pixel-isolation hooks",
+    "branch":  "m04/xlibre-security",
+    "integration_commit":  "a89ec13",
+    "base_xlibre_commit":  "f844d7a86c10fd5cc89083e7daf97b862b8ca1fd",
+    "hosts":  [
+                  {
+                      "name":  "sb16",
+                      "build_status":  "passed",
+                      "server_unit":  "passed",
+                      "xorg_sha256":  "d9cf65c153250159735348244722c68aad70210acfd7fbef4789aea4897e3f0c",
+                      "xvfb_sha256":  "cbe33aa2e06008c671ffa9f82ce5dab488efc8b62c20a54124f169c20af05f6f",
+                      "pixel_acceptance_tests":  14,
+                      "pixel_acceptance_status":  "passed",
+                      "build_log":  "sb16/server-build/run.json",
+                      "pixel_test_log":  "sb16/native-pixels/test.log"
+                  },
+                  {
+                      "name":  "sb16-2",
+                      "build_status":  "passed",
+                      "server_unit":  "passed",
+                      "xorg_sha256":  "d9cf65c153250159735348244722c68aad70210acfd7fbef4789aea4897e3f0c",
+                      "xvfb_sha256":  "cbe33aa2e06008c671ffa9f82ce5dab488efc8b62c20a54124f169c20af05f6f",
+                      "pixel_acceptance_tests":  14,
+                      "pixel_acceptance_status":  "passed",
+                      "build_log":  "sb16-2/server-build/run.json",
+                      "pixel_test_log":  "sb16-2/native-pixels/test.log"
+                  }
+              ]
+}
