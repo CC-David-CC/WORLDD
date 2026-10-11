@@ -1,0 +1,20 @@
+3040536 1791682276.257168 +++ exited with 0 +++
+3040535 1791682276.257250 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3040536, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+3040537 1791682276.265517 +++ exited with 0 +++
+3040535 1791682276.265629 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3040537, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+3040538 1791682276.273204 +++ exited with 0 +++
+3040535 1791682276.273341 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3040538, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+3040539 1791682276.283825 +++ exited with 0 +++
+3040535 1791682276.283862 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3040539, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+3040540 1791682276.336447 fsync(6)      = 0 <0.013796>
+3040540 1791682276.350663 fsync(5)      = 0 <0.007405>
+3040540 1791682276.366511 fdatasync(6)  = 0 <0.010600>
+3040540 1791682276.377502 fdatasync(7)  = 0 <0.007600>
+3040540 1791682276.385451 fdatasync(6)  = 0 <0.002905>
+3040540 1791682276.389496 fdatasync(5)  = 0 <0.011924>
+3040540 1791682276.401938 fdatasync(6)  = 0 <0.008457>
+3040540 1791682276.410843 fsync(3)      = 0 <0.009651>
+3040540 1791682276.430209 --- SIGABRT {si_signo=SIGABRT, si_code=SI_TKILL, si_pid=3040540, si_uid=1000} ---
+3040540 1791682276.537785 +++ killed by SIGABRT (core dumped) +++
+3040535 1791682276.537818 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=3040540, si_uid=1000, si_status=SIGABRT, si_utime=3 /* 0.03 s */, si_stime=2 /* 0.02 s */} ---
+3040535 1791682276.554591 +++ exited with 1 +++

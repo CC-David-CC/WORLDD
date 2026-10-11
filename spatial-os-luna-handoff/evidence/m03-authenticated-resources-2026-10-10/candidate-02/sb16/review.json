@@ -1,0 +1,196 @@
+{
+  "host": "sb16",
+  "status": "failed",
+  "started": 1791681910.736024,
+  "commands": [
+    {
+      "label": "debug-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build",
+        "--target",
+        "identityd",
+        "spatial-issuer-client",
+        "world-session-python-protobuf",
+        "key-python-protobuf",
+        "issuer-python-protobuf",
+        "grants-python-protobuf",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791681910.7461534,
+      "exit_code": 0,
+      "ended": 1791681910.8111837,
+      "sha256": "63af52e537a73321825f721438a1d2e7d4aabec942cff7446031399aa5b7bd40"
+    },
+    {
+      "label": "baseline",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/worldd",
+        "WorkspaceAuthorityTests.test_authenticated_workspace_selection_and_confined_process"
+      ],
+      "started": 1791681910.8116138,
+      "exit_code": 1,
+      "ended": 1791681913.8969765,
+      "sha256": "eb52d5869e7a592f31b9f179f469aa53a645b5a0db8638300fc0a75816e78048"
+    },
+    {
+      "label": "debug-workspace-authority",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tools/with_adapter_resources.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/worldd"
+      ],
+      "started": 1791681913.904092,
+      "exit_code": 0,
+      "ended": 1791681980.1735303,
+      "sha256": "c1365118a19b026412b75fea5eae9fbe682209b599a5deb5766c256b57c232d8"
+    },
+    {
+      "label": "debug-authenticated-resources",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tools/with_adapter_resources.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tests/core/test_authenticated_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/worldd"
+      ],
+      "started": 1791681980.1742113,
+      "exit_code": 0,
+      "ended": 1791681983.4662478,
+      "sha256": "5f03c3ad74a7fe206347c523d6eaef32ebc6567fd43d841e7b8c3f620bba1ed9"
+    },
+    {
+      "label": "debug-world-identity",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tests/core/test_world_identity.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/worldd",
+        "WorldIdentityTests.test_actor_channel_does_not_expose_management",
+        "WorldIdentityTests.test_anonymous_channel_cannot_act_or_inspect",
+        "WorldIdentityTests.test_caller_token_cannot_select_another_actor",
+        "WorldIdentityTests.test_credential_revocation_preserves_another_credential_for_actor",
+        "WorldIdentityTests.test_current_status_blocks_actions_after_committed_revocation",
+        "WorldIdentityTests.test_idle_session_keeps_issuer_checks_available",
+        "WorldIdentityTests.test_private_world_requires_separate_admission",
+        "WorldIdentityTests.test_proof_is_bound_to_its_channel",
+        "WorldIdentityTests.test_public_admission_does_not_grant_action_authority",
+        "WorldIdentityTests.test_revocation_between_challenge_and_completion_prevents_entry",
+        "WorldIdentityTests.test_revoked_credential_cannot_enter",
+        "WorldIdentityTests.test_session_reconnect_restores_saved_room_and_pose",
+        "WorldIdentityTests.test_world_audience_and_random_binding_are_checked",
+        "WorldIdentityTests.test_world_session_derives_identity_and_uses_real_actor",
+        "WorldIdentityTests.test_wrong_key_and_replayed_completion_fail"
+      ],
+      "started": 1791681983.4668431,
+      "exit_code": 0,
+      "ended": 1791682005.1031237,
+      "sha256": "edd467eeeb9f28e42b62c259b6c43cbfdd8d11bfa93cf0fe9ea77cc9489cc810"
+    },
+    {
+      "label": "runtime-sanitize-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build",
+        "--target",
+        "identityd",
+        "spatial-issuer-client",
+        "world-session-python-protobuf",
+        "key-python-protobuf",
+        "issuer-python-protobuf",
+        "grants-python-protobuf",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791682005.2904296,
+      "exit_code": 0,
+      "ended": 1791682017.8382952,
+      "sha256": "65f32f577780c9ff17e08c1d37678ed3769511e96e886c07e0e39a52e2f265d0"
+    },
+    {
+      "label": "runtime-sanitize-workspace-authority",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tools/with_adapter_resources.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-02/source/tests/core/test_workspace_authority.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/worldd"
+      ],
+      "started": 1791682017.8387911,
+      "exit_code": 1,
+      "ended": 1791682101.872375,
+      "sha256": "6febeca62d8bcefaa502969f8fd3bc869ad3d3e1ba4daf2ff5a3d0b761a09b6e"
+    }
+  ],
+  "profiles": {
+    "debug": {
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "binaries": {
+        "identityd": "74e6a2a1679fb1c2331a7338819af1b00e9a2da007e319dd8946f01567108364",
+        "spatial-issuer-client": "9b86688e1202862ea8a1105f97a60e7468217d3026cff678070bdaacad0b44ed",
+        "worldd": "a14526395c165844924671e9d2707454888a83b215b2585f74b7fcb252787b39",
+        "workspaced": "6437641d77916181d905e2e647d19d6d7325b3afd45524647c6a28a15c989f94",
+        "spatial-process-scope-probe": "418673495426942cfb492ec2475c748e1ae6586fcba43cbe88a7a2483d695306"
+      }
+    }
+  },
+  "phase_complete": false,
+  "manifest_sha256": "59e6ae0774e0520130eea456ca259b4a1578bd912a2cd84d284a0fa66b31f1c2",
+  "runner_sha256": "f65b9a7e7d6440650420ca0ac7c7486c94055a8f5eac2c8f4965769a5f12146f",
+  "production_basis": "m03-adapter-resources-01",
+  "attachments": {
+    "debug-workspace-authority.log": "c1365118a19b026412b75fea5eae9fbe682209b599a5deb5766c256b57c232d8",
+    "runtime-sanitize-build.log": "65f32f577780c9ff17e08c1d37678ed3769511e96e886c07e0e39a52e2f265d0",
+    "runner.py": "f65b9a7e7d6440650420ca0ac7c7486c94055a8f5eac2c8f4965769a5f12146f",
+    "debug-build.log": "63af52e537a73321825f721438a1d2e7d4aabec942cff7446031399aa5b7bd40",
+    "baseline.log": "eb52d5869e7a592f31b9f179f469aa53a645b5a0db8638300fc0a75816e78048",
+    "debug-world-identity.log": "edd467eeeb9f28e42b62c259b6c43cbfdd8d11bfa93cf0fe9ea77cc9489cc810",
+    "debug-authenticated-resources.log": "5f03c3ad74a7fe206347c523d6eaef32ebc6567fd43d841e7b8c3f620bba1ed9",
+    "runtime-sanitize-workspace-authority.log": "6febeca62d8bcefaa502969f8fd3bc869ad3d3e1ba4daf2ff5a3d0b761a09b6e",
+    "manifest.json": "59e6ae0774e0520130eea456ca259b4a1578bd912a2cd84d284a0fa66b31f1c2",
+    "runtime-sanitize/witnesses/adapter-provisioning-adapter-99604534f8eb43ac977096e8d372b6dd.json": "f15421b72efe038365b20a3f69ebdcacb8a7ea5c306230b7d086c87f896ebe17",
+    "debug/witnesses/adapter-provisioning-adapter-a5de2c41daec4e1fa77a4cd4bb5f5749.json": "40ba64ebca563b2e6737af5daa96f6ca40ee1dc5f77e5bdf6311ec07847d0b81",
+    "debug/witnesses/authenticated-kernel.json": "7b0ec8f9aa88d9b6cb3cd756dde6346d0dc3d6094edb1e86b9852479729ba469",
+    "debug/witnesses/adapter-provisioning-adapter-05f527cc54f1458ab9bd817f3e155673.json": "de9bdf3b5e5d5449f944e5f3278dca613c0f2cb7aa1c4cfaf4098758e91702c4"
+  },
+  "baseline": "expected_unconfigured_authenticated_launch_denial",
+  "error": "RuntimeError('runtime-sanitize-workspace-authority failed')",
+  "ended": 1791682101.8729398
+}

@@ -1,0 +1,399 @@
+{
+  "status": "qualification_in_progress",
+  "phase": "M03",
+  "phase_complete": false,
+  "base_commit": "6ebd4ebd32934e6f3360eadda0f697e193321911",
+  "hosts": {
+    "sb16": {
+      "candidate02_status": "failed",
+      "debug_selected_passed": 36,
+      "runtime_workspace_passed": 19,
+      "runtime_workspace_errors": 1,
+      "runtime_world_identity": "unrun",
+      "candidate03_kernel_passed": 2,
+      "cleanup": {
+        "host": "sb16",
+        "terminal_qualifiers": {
+          "01": "failed",
+          "02": "failed",
+          "03": "passed_review_pending"
+        },
+        "units": [
+          "spatial-m03-resources-4f9b72480a1c41a48cda14f8e3b9bb57.service",
+          "spatial-m03-resources-54fe5342f4a84d28be33878db8664464.service",
+          "spatial-m03-resources-62b6070468434d2a818ebb03965b526c.service",
+          "spatial-m03-resources-7f1e9cd8c5574719810c3d2c2cc2b035.service",
+          "spatial-m03-resources-aaeda50869a0493e843ec9dad917440c.service",
+          "spatial-m03-resources-ce57c6b6b73a4688af11a24a65f64883.service",
+          "spatial-m03-resources-f6b2d6a4e141494aaca84cfab9e0942e.service"
+        ],
+        "commands": [
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-4f9b72480a1c41a48cda14f8e3b9bb57.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-54fe5342f4a84d28be33878db8664464.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-62b6070468434d2a818ebb03965b526c.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-7f1e9cd8c5574719810c3d2c2cc2b035.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-aaeda50869a0493e843ec9dad917440c.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-ce57c6b6b73a4688af11a24a65f64883.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-f6b2d6a4e141494aaca84cfab9e0942e.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "git",
+              "-C",
+              "/home/dflanag3/src/spacial_desktop",
+              "rev-parse",
+              "HEAD"
+            ],
+            "exit_code": 0,
+            "stdout": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "git",
+              "-C",
+              "/home/dflanag3/src/spacial_desktop",
+              "status",
+              "--porcelain"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "sudo",
+              "-n",
+              "true"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": ""
+          }
+        ],
+        "root_subtree_control": "cpu memory pids",
+        "user_controllers": "cpu memory pids",
+        "normal_checkout_head": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+        "normal_checkout_status": "",
+        "ssh_recovery": true
+      }
+    },
+    "sb16-2": {
+      "candidate02_status": "passed_review_pending",
+      "debug_selected_passed": 36,
+      "runtime_workspace_passed": 20,
+      "runtime_workspace_errors": 0,
+      "runtime_world_identity": "15 passed",
+      "candidate03_kernel_passed": 2,
+      "cleanup": {
+        "host": "sb16-2",
+        "terminal_qualifiers": {
+          "01": "failed",
+          "02": "passed_review_pending",
+          "03": "passed_review_pending"
+        },
+        "units": [
+          "spatial-m03-resources-2c530ed630174206a16a839a0cd60aed.service",
+          "spatial-m03-resources-340616d6bbf04687a0543b4c63a2ac5a.service",
+          "spatial-m03-resources-3fe625a1f0234344b9978d006d7d5677.service",
+          "spatial-m03-resources-446ee422000c4ec8a90e7968de9693f3.service",
+          "spatial-m03-resources-76bf5387903a40cca58ede20de1c0325.service",
+          "spatial-m03-resources-ab2e0f39ea3f49e8bae25094e030f3cd.service",
+          "spatial-m03-resources-c911dc6748dd4919b21c34d23af34281.service",
+          "spatial-m03-resources-f52e329441884eddb7ed5fec365d5c7c.service"
+        ],
+        "commands": [
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-2c530ed630174206a16a839a0cd60aed.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-340616d6bbf04687a0543b4c63a2ac5a.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-3fe625a1f0234344b9978d006d7d5677.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-446ee422000c4ec8a90e7968de9693f3.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-76bf5387903a40cca58ede20de1c0325.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-ab2e0f39ea3f49e8bae25094e030f3cd.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-c911dc6748dd4919b21c34d23af34281.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "systemctl",
+              "show",
+              "spatial-m03-resources-f52e329441884eddb7ed5fec365d5c7c.service",
+              "-p",
+              "ActiveState",
+              "-p",
+              "LoadState"
+            ],
+            "exit_code": 0,
+            "stdout": "LoadState=not-found\nActiveState=inactive\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "git",
+              "-C",
+              "/home/dflanag3/src/spacial_desktop",
+              "rev-parse",
+              "HEAD"
+            ],
+            "exit_code": 0,
+            "stdout": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd\n",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "git",
+              "-C",
+              "/home/dflanag3/src/spacial_desktop",
+              "status",
+              "--porcelain"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "argv": [
+              "sudo",
+              "-n",
+              "true"
+            ],
+            "exit_code": 0,
+            "stdout": "",
+            "stderr": ""
+          }
+        ],
+        "root_subtree_control": "cpu memory pids",
+        "user_controllers": "cpu memory pids",
+        "normal_checkout_head": "b5902eaaad0a9d0ce3cb272d37f0d0936a6575cd",
+        "normal_checkout_status": "",
+        "ssh_recovery": true
+      }
+    }
+  },
+  "verified_attachments": 262,
+  "source_files": 369,
+  "locked_files": 41,
+  "existing_test_bodies_unchanged": 40,
+  "fixture_integrated": false,
+  "diagnostics": {
+    "01": {
+      "status": "complete_diagnostic",
+      "exit_codes": [
+        1,
+        1,
+        1
+      ],
+      "unloaded_units": 3,
+      "qualification": false
+    },
+    "02": {
+      "status": "complete_diagnostic",
+      "exit_codes": [
+        0,
+        0,
+        0
+      ],
+      "unloaded_units": 3,
+      "qualification": false
+    },
+    "03": {
+      "status": "complete_diagnostic",
+      "exit_codes": [
+        0
+      ],
+      "unloaded_units": 1,
+      "qualification": false
+    }
+  },
+  "active_qualification": {
+    "sb16": 62766,
+    "sb16-2": 8574
+  },
+  "candidate04_archive_sha256": "ae47ec3c63403a0abfa02b12901b21488d06e9828bd74cdcea4b7e57202d381a",
+  "failure_disposition": [
+    "Candidate01: missing generated world_session_pb2 stopped baseline before tests on both hosts.",
+    "Candidate02 sb16 sanitizer: one world startup EOF before the grant-revocation case launched an application. Exact server cause remains unknown.",
+    "Candidate02 runner omitted SPATIAL_SECURITY_EVIDENCE. Detailed failed service logs were deleted. Raw suite transcript and provisioning receipt remain preserved.",
+    "Diagnostic01: all three attempts failed because LeakSanitizer cannot run under ptrace. This does not explain the original world startup failure.",
+    "Diagnostic02: three isolated cases passed with full sanitizers and retained service logs. Diagnostic03: all twenty workspace cases passed with those settings. These diagnostics do not erase the original failure."
+  ],
+  "next": "Candidate04 fresh qualification on both hosts with both evidence variables enabled and build writeback flushed before testing. Preserve all previous failures. Finish primary review before fixture integration."
+}

@@ -1,0 +1,51 @@
+{
+  "units": [
+    "spatial-m03-resources-1cef04cf09a942d4bb49aaf6e960727f.service",
+    "spatial-m03-resources-64ab3c7240e9416c9c029165c94126b6.service",
+    "spatial-m03-resources-a0fa35d2efcd4ba6b5f33d154bc94974.service"
+  ],
+  "commands": [
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-1cef04cf09a942d4bb49aaf6e960727f.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-64ab3c7240e9416c9c029165c94126b6.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "systemctl",
+        "show",
+        "spatial-m03-resources-a0fa35d2efcd4ba6b5f33d154bc94974.service",
+        "-p",
+        "LoadState",
+        "-p",
+        "ActiveState"
+      ],
+      "exit_code": 0,
+      "stdout": "LoadState=not-found\nActiveState=inactive\n",
+      "stderr": ""
+    }
+  ]
+}

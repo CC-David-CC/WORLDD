@@ -1,0 +1,134 @@
+{
+  "host": "sb16",
+  "status": "passed_review_pending",
+  "started": 1791682147.656183,
+  "commands": [
+    {
+      "label": "debug-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build",
+        "--target",
+        "identityd",
+        "spatial-issuer-client",
+        "world-session-python-protobuf",
+        "key-python-protobuf",
+        "issuer-python-protobuf",
+        "grants-python-protobuf",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791682147.6661415,
+      "exit_code": 0,
+      "ended": 1791682147.6984134,
+      "sha256": "c2ed93ffd93c840755c0e91392ae593b1b52de9b7aaf6c208123feaceb1dde2e"
+    },
+    {
+      "label": "debug-authenticated-resources",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_adapter_resources.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tests/core/test_authenticated_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/debug/build/worldd"
+      ],
+      "started": 1791682147.6988816,
+      "exit_code": 0,
+      "ended": 1791682150.928501,
+      "sha256": "8088a3a7d46545ae5540dc66d743f0a95d06f29dfac71c8c30cc34dff5e77d2d"
+    },
+    {
+      "label": "runtime-sanitize-build",
+      "argv": [
+        "cmake",
+        "--build",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build",
+        "--target",
+        "identityd",
+        "spatial-issuer-client",
+        "world-session-python-protobuf",
+        "key-python-protobuf",
+        "issuer-python-protobuf",
+        "grants-python-protobuf",
+        "--parallel",
+        "2"
+      ],
+      "started": 1791682151.106712,
+      "exit_code": 0,
+      "ended": 1791682151.1462235,
+      "sha256": "c2ed93ffd93c840755c0e91392ae593b1b52de9b7aaf6c208123feaceb1dde2e"
+    },
+    {
+      "label": "runtime-sanitize-authenticated-resources",
+      "argv": [
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tools/with_adapter_resources.py",
+        "--",
+        "python3",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-authenticated-resources-03/source/tests/core/test_authenticated_resources.py",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/identityd",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/spatial-issuer-client",
+        "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/m03-adapter-resources-01/runtime-sanitize/build/worldd"
+      ],
+      "started": 1791682151.1466925,
+      "exit_code": 0,
+      "ended": 1791682155.1811218,
+      "sha256": "39eb33d197d7e979e662befd9be00c554943d6b45811a3631ab6c9ed97cee99b"
+    }
+  ],
+  "profiles": {
+    "debug": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "binaries": {
+        "identityd": "74e6a2a1679fb1c2331a7338819af1b00e9a2da007e319dd8946f01567108364",
+        "spatial-issuer-client": "9b86688e1202862ea8a1105f97a60e7468217d3026cff678070bdaacad0b44ed",
+        "worldd": "a14526395c165844924671e9d2707454888a83b215b2585f74b7fcb252787b39",
+        "workspaced": "6437641d77916181d905e2e647d19d6d7325b3afd45524647c6a28a15c989f94",
+        "spatial-process-scope-probe": "418673495426942cfb492ec2475c748e1ae6586fcba43cbe88a7a2483d695306"
+      }
+    },
+    "runtime-sanitize": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "binaries": {
+        "identityd": "a51fbd036aadadaf15ad0763f67c111cbc52ad3e87c4793db3ae017609fc4b87",
+        "spatial-issuer-client": "61cc04d6384f992e90c5b83c57d40cc743c6db244047e5a2eef357a3fc7fa8f7",
+        "worldd": "1fd41220bf7b10fcc01d15412bee9e93512b481f0e0778a76ec25eb6367609f0",
+        "workspaced": "2d9cd46aa4075fb0a3332a42753c45ec54e119be0dc1adec21e8ac54abb64485",
+        "spatial-process-scope-probe": "42cb77abf93c95fed4b0957c82e4dd5e2d8e78a1c616437d2da35b13c8ef1b56"
+      }
+    }
+  },
+  "phase_complete": false,
+  "manifest_sha256": "8de1c453190fba86db9a1c39035278f34bf99da75254be2e99b75a0085f8f4d4",
+  "runner_sha256": "2bb8cd0e8dfcd87bedb673716d7434daa94e5c2d32126c90bafcfb8cbb300df5",
+  "production_basis": "m03-adapter-resources-01",
+  "attachments": {
+    "runtime-sanitize-build.log": "c2ed93ffd93c840755c0e91392ae593b1b52de9b7aaf6c208123feaceb1dde2e",
+    "runner.py": "2bb8cd0e8dfcd87bedb673716d7434daa94e5c2d32126c90bafcfb8cbb300df5",
+    "debug-build.log": "c2ed93ffd93c840755c0e91392ae593b1b52de9b7aaf6c208123feaceb1dde2e",
+    "runtime-sanitize-authenticated-resources.log": "39eb33d197d7e979e662befd9be00c554943d6b45811a3631ab6c9ed97cee99b",
+    "debug-authenticated-resources.log": "8088a3a7d46545ae5540dc66d743f0a95d06f29dfac71c8c30cc34dff5e77d2d",
+    "manifest.json": "8de1c453190fba86db9a1c39035278f34bf99da75254be2e99b75a0085f8f4d4",
+    "runtime-sanitize/witnesses/adapter-provisioning-adapter-6b244b6395e545a0b2963b737bd596be.json": "4843212864820d5c91f74b9a88d674acfb7a53c39120eef86484db2a62153c46",
+    "runtime-sanitize/witnesses/authenticated-kernel.json": "0e9dd6b9987ff69b351f4396bc71eb0c6d035de7ecf77346bd4e19033f9ddc27",
+    "debug/witnesses/authenticated-kernel.json": "2a8118e47c7b682bcbec3969af3fbe474a3f764d8a4606a1ec249f2e1bbbcdb7",
+    "debug/witnesses/adapter-provisioning-adapter-d35ce15b2c2346eb87c3b82b895bdb23.json": "516aa6eab851c8b3a494b149c1d2a4599230e0d7ac92ec748509eefcfcb9d77d"
+  },
+  "ended": 1791682155.9557652
+}

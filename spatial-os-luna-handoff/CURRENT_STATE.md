@@ -1,5 +1,31 @@
 # Implementation status
 
+## 2026-10-10: Authenticated resource fixture remains a draft during startup diagnosis
+
+The draft fixture binds explicit broker resources through the existing production process-scope owner.
+It sends a sealed policy descriptor and passes the actual broker PID to the world.
+All forty existing workspace-authority and world-identity test bodies remain unchanged.
+Production source and protobuf schemas remain unchanged from the qualified adapter increment.
+
+Both hosts passed 36 selected Debug checks. sb16-2 passed all 36 selected sanitizer checks.
+The sb16 sanitizer workspace suite passed nineteen cases and errored during one world startup.
+The failure occurred before that revocation test launched an application. Its exact server cause remains unknown.
+The runner omitted the existing service-log retention variable. Those detailed failure logs cannot be recovered.
+The failed suite transcript and scope receipt remain preserved.
+Read evidence/m03-authenticated-resources-2026-10-10/checkpoint-review.json.
+
+The new kernel witness passed alone in both profiles on both hosts after evidence-directory creation was corrected.
+Three isolated sb16 diagnostics passed with full sanitizers and retained service logs.
+A complete twenty-case sb16 sanitizer diagnostic also passed. These passes do not erase the original startup error.
+An earlier tracer diagnostic failed because LeakSanitizer cannot run under ptrace. Its evidence remains preserved.
+
+Candidate04 now runs fresh qualification on both hosts with service-log retention enabled.
+Build writeback is flushed before checks. Application budgets, issuer deadlines, and database durability remain unchanged.
+The fixture remains uncommitted. No operator checkout or runtime changed.
+M03 remains incomplete. Storage quotas, broker Git/file accounting, remaining fixtures, and contention recovery remain pending.
+M01 and M02 remain qualified at their recorded pins. M04-M16 and full Spatial-M1 remain incomplete.
+
+
 ## 2026-10-10: Non-native broker adapter resource provisioning passed focused qualification
 
 The adapter now binds explicit broker resource policy to an owned process scope before broker startup.

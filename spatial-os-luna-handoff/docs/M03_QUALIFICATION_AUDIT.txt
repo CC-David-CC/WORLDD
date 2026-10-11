@@ -1,3 +1,15 @@
+Authenticated fixture draft checkpoint, 2026-10-10
+
+The draft resource fixture uses the production owner, sealed policy, and actual broker PID.
+Forty existing test bodies remain unchanged. Production source remains unchanged.
+Candidate02 passed Debug on both hosts and sanitizer qualification on sb16-2.
+One sb16 sanitizer world startup closed its channel before an application launch.
+The failed suite transcript is preserved. Detailed service logs were lost because the runner omitted retention configuration.
+Do not claim a known fdatasync cause for that failure.
+Isolated and complete-suite diagnostics passed with full sanitizers and service logs retained.
+Fresh candidate04 qualification runs on both hosts. The fixture remains uncommitted pending review.
+Read evidence/m03-authenticated-resources-2026-10-10/checkpoint-review.json.
+
 Current M03 checkpoint, 2026-10-10
 
 Aggregate resource primitives, broker policy enforcement, and retained native-session handoff passed focused qualification.

@@ -1394,3 +1394,28 @@ Finish bounded storage and broker/background write accounting. Then repeat conte
 Remaining authenticated/direct-broker fixtures and operator deployment need explicit provisioning.
 No new contention, full phase gate, physical input, native GPU, live-model, or power-loss test ran.
 M01 and M02 remain qualified. M03 is active; M04-M16 and full Spatial-M1 remain incomplete.
+
+
+2026-10-10: Authenticated resource fixture qualification failure
+Candidate01 stopped before tests because world_session_pb2 was not generated. Both hosts preserve that runner failure.
+Candidate02 passed all 36 selected Debug checks on both hosts. sb16-2 passed all 36 sanitizer checks.
+sb16 sanitizer workspace-authority passed 19 cases and errored during world startup in test_grant_revocation_kills_confined_process_without_recipient_request.
+The exception is EOFError: worldd closed the channel. It occurred before that test launched an application.
+The runner omitted SPATIAL_SECURITY_EVIDENCE. Detailed issuer, world, broker, and owner logs were deleted with the temporary fixture.
+The suite transcript and provisioning receipt remain preserved. The exact underlying server exception cannot be recovered.
+Do not attribute this failure to fdatasync, memory, or sanitizer findings without additional evidence.
+A diagnostic run will enable the existing service-log retention and trace only sync syscalls.
+Candidate03 fixes standalone kernel-witness evidence-directory creation. sb16 passed that one case in both profiles.
+The fixture increment remains uncommitted and unqualified. M03 and full Spatial-M1 remain incomplete.
+
+
+2026-10-10: Authenticated fixture diagnostic update
+Diagnostic01 failed three times because LeakSanitizer cannot run under strace/ptrace. Those failures do not explain the original EOF.
+Diagnostic02 passed three isolated sb16 cases with full sanitizers and retained service logs, without ptrace.
+Diagnostic03 passed all twenty workspace-authority cases with those settings. Original startup cause remains unknown.
+Candidate03 kernel witness passed alone on both hosts in both profiles.
+Candidate04 runs fresh qualification with SPATIAL_SCOPE_EVIDENCE and SPATIAL_SECURITY_EVIDENCE enabled.
+Build writeback is flushed before checks. Existing deadlines and database durability remain unchanged.
+No claim of repaired fdatasync latency follows from these runs. Full M03 storage-pressure and recovery work remains pending.
+Read spatial-os-luna-handoff/evidence/m03-authenticated-resources-2026-10-10/checkpoint-review.json.
+The source fixture remains a draft. No operator runtime changed.
