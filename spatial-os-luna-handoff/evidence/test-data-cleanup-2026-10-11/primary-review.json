@@ -1,0 +1,138 @@
+{
+  "date": "2026-10-11",
+  "reviewer": "Primary agent; no local model or subagents",
+  "source_checkpoint": "a0e498655addde7b35e4f01fb0dd1a118cdadb8a",
+  "authorization": "User requested deletion of old test data no longer needed on sb16 and sb16-2.",
+  "scope": "Enumerated inactive test payloads and superseded spatial_runtime CMake outputs under the exact project local directory.",
+  "guard_checks": [
+    "Exact canonical path containment and protected-path exclusions",
+    "Plan inode and device identity checked before deletion",
+    "Current and per-process namespace mounts inspected",
+    "All loop backing files inspected",
+    "Process executable, cwd, descriptors and absolute command arguments inspected",
+    "Current build dependencies excluded",
+    "Protected path identities and pinned Xserver hash verified after deletion",
+    "Retained evidence files verified by SHA256 after deletion",
+    "Every selected deleted path confirmed absent",
+    "Downloaded compressed receipts verified against host receipt hashes"
+  ],
+  "hosts": [
+    {
+      "host": "sb16",
+      "verification": "passed",
+      "passes": [
+        {
+          "receipt": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/obsolete-test-data-cleanup-applied-20261011.json",
+          "receipt_sha256": "c36036c508c39218315bbd5589ad12fe5a31ece35b32fae9cd8b1033c2d93752",
+          "deleted": 21194,
+          "retained_evidence_verified": 5117,
+          "reclaimed_gib": 16.47089385986328,
+          "protected_paths_verified": 5,
+          "blocked": []
+        },
+        {
+          "receipt": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/obsolete-test-builds-cleanup-applied-20261011.json",
+          "receipt_sha256": "9d3afabdb018d46dc549910c63edf30c89e51eb8b575e504f90456bd50eef440",
+          "deleted": 185,
+          "retained_evidence_verified": 874,
+          "reclaimed_gib": 138.81247329711914,
+          "protected_paths_verified": 5,
+          "blocked": []
+        },
+        {
+          "receipt": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/obsolete-diagnostic-builds-cleanup-applied-20261011.json",
+          "receipt_sha256": "aff90d98139aedaa03dea3d1ae21e8513679b54d80aa2d3431a4c8858bfe8fa9",
+          "deleted": 4,
+          "retained_evidence_verified": 11,
+          "reclaimed_gib": 6.613491058349609,
+          "protected_paths_verified": 5,
+          "blocked": []
+        }
+      ],
+      "total_reclaimed_gib": 161.89685821533203,
+      "free_gib": 165.02566528320312
+    },
+    {
+      "host": "sb16-2",
+      "verification": "passed",
+      "passes": [
+        {
+          "receipt": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/obsolete-test-data-cleanup-applied-20261011.json",
+          "receipt_sha256": "98b13366cb83e57d174f137b8c1c00b000749a8ab671a2986e52717e02249035",
+          "deleted": 21117,
+          "retained_evidence_verified": 5109,
+          "reclaimed_gib": 30.476566314697266,
+          "protected_paths_verified": 5,
+          "blocked": []
+        },
+        {
+          "receipt": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/obsolete-test-builds-cleanup-applied-20261011.json",
+          "receipt_sha256": "90acc23c6d25e204ad816fdf92c811498262f0d5f1e06444d0548651a89c359b",
+          "deleted": 115,
+          "retained_evidence_verified": 526,
+          "reclaimed_gib": 79.43142318725586,
+          "protected_paths_verified": 5,
+          "blocked": []
+        },
+        {
+          "receipt": "/home/dflanag3/src/spacial_desktop/spatial-os-luna-handoff/local/obsolete-diagnostic-builds-cleanup-applied-20261011.json",
+          "receipt_sha256": "445e9867905d505b35886521c326197b29ae4f1e102187374c27436f2642584c",
+          "deleted": 5,
+          "retained_evidence_verified": 13,
+          "reclaimed_gib": 8.984367370605469,
+          "protected_paths_verified": 5,
+          "blocked": []
+        }
+      ],
+      "total_reclaimed_gib": 118.8923568725586,
+      "free_gib": 167.90421295166016
+    }
+  ],
+  "implementation_changes": false,
+  "test_contract_changes": false,
+  "runtime_tests": "No runtime tests were rerun. This task deleted obsolete artifacts and verified cleanup. Existing milestone status remains unchanged.",
+  "milestone_status": {
+    "M01": "qualified",
+    "M02": "qualified",
+    "M03": "incomplete; full phase gate pending",
+    "M04-M16": "incomplete"
+  },
+  "preserved": [
+    "Current source and sanitizer build",
+    "Pinned XLibre builds and source",
+    "M02 phase-gate-02 prerequisite",
+    "Current direct-owner and broker-launch recovery baselines",
+    "Latest native storage candidate six",
+    "Source snapshots, reports, traces, captures and protobuf cleanup evidence",
+    "Repositories outside the enumerated disposable trial payloads",
+    "Installed recovery helpers and normal login sessions"
+  ],
+  "deleted_payload_recovery": "Deleted historical databases, images, disposable repositories and compiled outputs are not recoverable from the cleanup receipts. Exact retained source and test evidence support recreation.",
+  "first_attempt": "A helper NameError stopped both first apply attempts before mutation. The corrected helper completed all three cleanup passes.",
+  "artifact_sha256": {
+    "cleanup-obsolete-diagnostic-builds.py": "a7ac0ebcc107409e76dafb10f81c26a96f65b7e2443758ba2f6e603339418741",
+    "cleanup-obsolete-test-builds.py": "62f368979522b9c669a586875604b1b48607f8a31683f1154aecb63fb5084312",
+    "cleanup-obsolete-test-data.py": "d3a37ddc0ee05a9d83e8c8ce0d87334f4cb0fce9658f2a476ad35bb3510226d0",
+    "verify-cleanup.py": "afc9fb2574fd15f0e38e8792c7ecbf209355959ff08eba29240aca7d2467d391",
+    "sb16/obsolete-diagnostic-builds-cleanup-applied-20261011.json.gz": "cc8f33d8bd6fd02dab784257f17aa53873accb3539fc8f200e125a255ffec488",
+    "sb16/obsolete-diagnostic-builds-cleanup-plan-20261011.json.gz": "73ff77c6f9581e4ceaca6f745b0362032ee667a281228c161c15b8e2243cb9c6",
+    "sb16/obsolete-test-builds-cleanup-applied-20261011.json.gz": "9ce024ef64568cd45ef24e1af0223295dcce4a31a44373afeaffd9d858783574",
+    "sb16/obsolete-test-builds-cleanup-plan-20261011.json.gz": "e553c9bca17bdf96af4e9a2cf63d68b1c9d7e5045242fddbb705bb882d852c4c",
+    "sb16/obsolete-test-data-cleanup-applied-20261011.json.gz": "cd8ae257f4f9365e98cdcba13fb57b08d9dd567aa8aed557353148cb86d1d5bf",
+    "sb16/obsolete-test-data-cleanup-plan-20261011.json.gz": "ef4ae7ba90f0ca0711a166fdc799680bad6be4bf4f168885e6c6a64e37c54119",
+    "sb16/obsolete-test-data-cleanup-verified-20261011.json": "5e334823296c4c02b33dd90abd5f0d536ee58faae5b768c724643a2c24b88a04",
+    "sb16-2/obsolete-diagnostic-builds-cleanup-applied-20261011.json.gz": "1c50fdc5832e71b43ae0244e0e16480e0a7c8f37aa905ac73c4d7f758ee1d246",
+    "sb16-2/obsolete-diagnostic-builds-cleanup-plan-20261011.json.gz": "0fa1bebfe57d7f57e07cf7ad2b6281f15f0754253db490f0b6907897b3c34c2a",
+    "sb16-2/obsolete-test-builds-cleanup-applied-20261011.json.gz": "369cfa5a701da2d7913a767b0effc1628be7e75c89f117469b7b709d757ab4ad",
+    "sb16-2/obsolete-test-builds-cleanup-plan-20261011.json.gz": "e5149e3a11e4dd8665f6fd8cc36977fc4efd0b9bf3e9e1adacb625bd27d41c5b",
+    "sb16-2/obsolete-test-data-cleanup-applied-20261011.json.gz": "4f145d1c09ce04de0351d86ec29c3ce3be1beb7f65da1acd0a44b5971c26014e",
+    "sb16-2/obsolete-test-data-cleanup-plan-20261011.json.gz": "3b23381ad0896cd406fd7e6b7648eb69c1b45a6c266cf712ea460ce383bf433b",
+    "sb16-2/obsolete-test-data-cleanup-verified-20261011.json": "89c278bcd965990354ed0bdc4752bf64a3fbf375ee73c25c94d44853cb682029"
+  },
+  "executed_helper_sha256": {
+    "cleanup-obsolete-diagnostic-builds.py": "3d296e5ba51fb93e426bd839686b28d56345ffffded91b6099f45ba38c90bc7d",
+    "cleanup-obsolete-test-builds.py": "bbee43079becb42fd9ed1eb17fe43fe74af7fae7b1e5f8e2342798d062348f10",
+    "cleanup-obsolete-test-data.py": "d3a37ddc0ee05a9d83e8c8ce0d87334f4cb0fce9658f2a476ad35bb3510226d0"
+  },
+  "script_line_endings": "Tracked helper copies use LF. Executed helper hashes record the original uploaded bytes."
+}

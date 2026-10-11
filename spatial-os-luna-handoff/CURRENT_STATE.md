@@ -1,5 +1,16 @@
 # Implementation status
 
+## 2026-10-11: Obsolete test data removed from both hosts
+
+The user authorized cleanup of old test data.
+Guarded deletion freed 161.9 GiB on sb16 and 118.9 GiB on sb16-2.
+All selected deletion paths were confirmed absent.
+All 11,650 retained evidence files passed hash verification.
+Current source, builds, pinned XLibre, and recovery baselines remain intact.
+Read evidence/test-data-cleanup-2026-10-11/primary-review.json and ../TEST_DATA_CLEANUP_NOTES.txt.
+No production implementation or test contract changed.
+M01 and M02 remain qualified. M03-M16 remain incomplete.
+
 ## 2026-10-11: Retained native storage-session checks passed on both hosts
 
 Both hosts passed two native storage-owner cases under ASan/UBSan.
