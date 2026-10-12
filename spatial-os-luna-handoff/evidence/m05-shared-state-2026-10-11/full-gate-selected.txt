@@ -1,0 +1,18 @@
+M05 full phase gate selection
+
+Freeze a reviewed commit in a new detached checkout on each authorized host.
+Do not overwrite the current focused-test checkouts or retained M04 results.
+Reuse the verified XLibre and private software EGL receipts after checking their source and binary hashes.
+Run tools/qualify_m04_gate.py with --milestone M05.
+The historical filename remains compatible with the existing M04 commands.
+The M05 option records the milestone, uses an M05 build directory, and requires world-shared-state in the inventory.
+It preserves the complete local matrix: all CTest suites, harness tests, P00-P10 acceptance, and bounded Git storage.
+Run Debug and ASan/UBSan on each host, with two build jobs and one CTest job.
+Do not change source or mix candidate builds while qualification runs.
+
+After both local builds and checks finish, run the cross-host M05 layer against the frozen candidate binaries.
+Include test_world_remote_keys.py, test_world_topology.py, and test_session_crosshost_recovery.py.
+Run both directions in Debug and ASan/UBSan with distinct service evidence directories.
+Reconcile earlier unchanged M04 cross-host requirements against the changed M05 paths.
+Audit all artifacts and exact requirements before marking M05 qualified.
+The runner reports phase_complete=false. Passing commands alone do not qualify the phase.
