@@ -1,5 +1,19 @@
 # Implementation status
 
+## 2026-10-12: Geometry Debug fixtures require correction
+
+Combined host-session builds passed all four Debug/ASan ON/OFF profiles. Evidence is committed as 1ecd27f.
+Geometry source 8bdda76 is checkpointed on box-git and remains unqualified.
+Both hosts passed deployment preflight and the hostile-peer command.
+Each first Debug geometry run completed nine tests with three failures. Both runtime attempts stopped and cleaned up.
+Revocation returned FORBIDDEN, while the fixture expected UNAUTHORIZED for an actor who remains registered.
+The headless object-grab assertion failed. Real edit coverage is moving to the existing native authority test.
+The oversized snapshot returned RESOURCE_EXHAUSTED, while the fixture expected INVALID_ARGUMENT.
+Reviewed fixture corrections preserve authority rules and explicitly record the tested snapshot guard.
+Fresh Debug checks will use a hashed two-file test overlay with unchanged production binaries.
+The remaining seven suites and all geometry sanitizer checks are unrun. No geometry qualification is claimed.
+Native geometry presentation, the full M06 gate, and M07-M16 remain pending.
+
 ## 2026-10-12: Host-session evidence integrated; geometry artifacts frozen
 
 Host-session evidence is integrated as fe8867d and verified on box-git.

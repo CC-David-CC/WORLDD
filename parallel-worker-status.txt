@@ -1,4 +1,8 @@
 Current checkpoint, 2026-10-12:
+Combined host-session four-profile build evidence is committed as1ecd27f; build job is terminal.
+Geometry task8bdda76 is box-git verified and UNQUALIFIED. First Debug runs stopped with3 fixture failures each.
+Both runtime slots are clean. Reviewed fixture corrections and a hashed test overlay precede Debug02 retries.
+No geometry sanitizer pass or M06 gate completion is claimed.
 Host-session evidence fe8867d is integrated and box-git verified; both raw archives passed primary hash verification.
 Geometry run04 artifacts are frozen. Input staging and launcher corrections precede runtime qualification.
 Combined host-session Debug ON/OFF and ASan ON builds passed; ASan OFF remains active on a5500.
