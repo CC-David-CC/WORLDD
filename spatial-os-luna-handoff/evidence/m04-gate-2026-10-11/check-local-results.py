@@ -29,6 +29,9 @@ for name, expected in gate['source_sha256'].items():
     check(digest(root / name) == expected, 'Source changed: ' + name)
 for name, expected in gate['installed_helpers'].items():
     check(digest(Path(name)) == expected, 'Installed helper changed: ' + name)
+vendor_config = Path(gate['graphics']['__EGL_VENDOR_LIBRARY_FILENAMES'])
+vendor = Path(json.loads(vendor_config.read_text())['ICD']['library_path'])
+check(digest(vendor) == gate['vendor_sha256'], 'Qualified graphics vendor changed')
 expected_commands = {'configure', 'build', 'inventory', 'harness', 'core', 'P10', 'bounded-storage-git'}
 for profile, row in gate['profiles'].items():
     target = out / profile

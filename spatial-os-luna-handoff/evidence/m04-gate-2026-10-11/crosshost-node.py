@@ -33,6 +33,9 @@ for name, expected in gate['source_sha256'].items():
     assert digest(root / name) == expected, name
 for name, expected in gate['installed_helpers'].items():
     assert digest(Path(name)) == expected, name
+vendor_config = Path(gate['graphics']['__EGL_VENDOR_LIBRARY_FILENAMES'])
+vendor = Path(json.loads(vendor_config.read_text())['ICD']['library_path'])
+assert digest(vendor) == gate['vendor_sha256'], 'Qualified graphics vendor changed'
 profile = gate['profiles'][args.profile]
 assert profile['status'] == 'commands_passed_needs_review'
 build = root / 'local/m04-gate-m04-full-gate-01' / args.profile
