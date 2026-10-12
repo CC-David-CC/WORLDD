@@ -53,6 +53,9 @@ Invoke the installed script with bash. File transfer may not preserve its execut
 Pass checkout, expected branch, model, task file, and a new checkout-local run directory as arguments.
 Transfer this literal script; do not generate its body through an interpolated PowerShell string.
 The script preserves the worker exit status and refuses an existing run directory.
+The launcher owns launch.txt, exit.txt, command.exit, wrapper.exit, and terminal-status.txt.
+Workers must not create or modify these receipts. Write findings in the task handoff instead.
+An exit receipt cannot establish completion while the recorded worker process is still alive.
 Keep the exact task, launch script, model, base commit, stdout, stderr, and final report.
 Write the exit code even when the worker fails. Avoid set -e around the worker command.
 Transfer multiline scripts as files. Do not embed nested Python and shell scripts in PowerShell command strings.
