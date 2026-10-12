@@ -1,5 +1,22 @@
 # Implementation status
 
+## 2026-10-12: Held-input transitions pass the focused native matrix
+
+Task checkpoint 9222918f5 passed on both hosts in Debug and ASan/UBSan: four test executions.
+The native fixture checks held-input release, stale-generation rejection, return restoration, and private denial.
+It preserves actual application and retained service identities.
+The checkpoint is on box-git but awaits related lifecycle regressions before milestone integration.
+Read evidence/m06-held-input-2026-10-12/focused-review.txt.
+
+TLS diagnosis confirmed that the old eight-peer fixture limit was too small for three supervised worlds.
+The scoped fixture now uses the production-default capacity of 32. Deadlines remain unchanged.
+The final launcher uses the qualified M06 XACE backend with scoped input support.
+The old M04 backend caused the later native denial; no additional server patch was needed.
+Earlier combined80 results remain limited to their recorded backend and source.
+
+Cross-host runtime, production host-session qualification, remote presentation/routing integration,
+and the final M06 gate remain incomplete. M07-M16 remain pending.
+
 ## 2026-10-12: Held-input runtime exposes fixture setup defects
 
 The namespace PID correction compiled in both profiles and passed source review.

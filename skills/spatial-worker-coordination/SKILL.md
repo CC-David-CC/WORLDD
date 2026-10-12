@@ -132,6 +132,8 @@ Compare the worker base with integrated fixes to imported fixtures and packaging
 Apply needed fixes only after the worker stops. Record the resulting source and rebuild affected artifacts.
 Do not silently combine new fixture source with old binaries. Record and review any test-only overlay explicitly.
 Verify artifact hashes after transfer to each test host.
+Match reused XLibre receipt extension_sources to the candidate's patch, overlay, and protocol hashes.
+Verify the actual server binaries and wrapper targets. An older passing server may lack a newly required capability.
 Check the runtime launcher's required broker configuration, delegated cgroup, helper paths, and service dependencies before qualification.
 Use each suite's declared CMake launch environment. Record its delegation and resource-wrapper requirements before deployment.
 Do not apply one suite's broker wrapper to all suites. Different fixtures can observe different cgroup ownership paths.
