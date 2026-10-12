@@ -1,5 +1,16 @@
 # Implementation status
 
+## 2026-10-12: M06 real-service qualification exposes setup gaps
+
+Both hosts ran 18 integration cases in Debug and ASan/UBSan.
+Each execution passed 12 cases, failed three, and errored on three.
+Workspace cases lacked required Git worker configuration. Crash recovery lacked prior authority retirement.
+The issuer correctly refused unsafe restart. Corrections must preserve these production checks.
+Read evidence/m06-realworld-attempt01-2026-10-12/review.txt and its four runtime logs.
+The native controller test stopped at a missing generated Python binding. Native behavior remains unverified.
+The final host-controller fixture passed 11 cases per host and profile, totaling 44 executions.
+Both worker branches remain unintegrated. M06 is incomplete. M07-M16 remain pending.
+
 ## 2026-10-12: M06 combined actor client and sequencing checks pass
 
 Combined source 9275727 passes 119 cases on both hosts in Debug and ASan/UBSan: 476 executions.

@@ -1,0 +1,24 @@
+M06 real-service attempt 01
+
+Both required hosts ran Debug and ASan/UBSan.
+Each execution ran 18 tests: 12 passed, 3 failed, and 3 errored.
+These results do not qualify M06.
+
+Workspace tests failed because administrative Git had no configured worker resource boundary.
+The deployment launcher unset SPATIAL_TEST_BROKER_CONFIG.
+Correct the launcher and provision the existing confined ResourceBroker.
+Do not bypass the Git security boundary.
+
+Crash tests errored while restarting worldd.
+The issuer rejected activation because the previous service generation required cleanup.
+Service log: Service already has an active generation; cleanup is required.
+Use production cleanup and retirement before restart. Preserve the no-replay assertions.
+
+Runtime archives:
+Debug 90d57cae1d5065e2b5e5afa42ef8221df66e1185fd267de0c98c6db3d6878804
+ASan fc5b6bc637c51fe11e0233e585050de0d73db247b130a220c6623024c8db87d0
+Remote evidence remains under /home/dflanag3/spatial-test-artifacts/m06-realworld-20261012-01 on both hosts.
+
+Correction assigned to middle-child, branch m06/actor-realworld-integration.
+Persistent session: spatial-m06-world-integration03.
+Worker source remains unintegrated. Runtime reruns remain UNRUN.

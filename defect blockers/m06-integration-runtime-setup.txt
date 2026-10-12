@@ -1,0 +1,19 @@
+M06 integration setup defects
+
+Confirmed on sb16 and sb16-2 in Debug and ASan/UBSan.
+
+1. Real-world workspace tests omit the configured Git worker resource boundary.
+Restore ResourceBroker configuration and delegated cgroup setup.
+Keep confinement enforced.
+
+2. Crash tests restart a world before retiring its previous authority generation.
+The issuer correctly rejects activation.
+Use actual supervisor cleanup and retirement before restarting.
+Keep durable-state and no-replay assertions.
+
+3. Native integration bundle lacks compositor_native_pb2.py.
+Build the required generated Python bindings and verify test imports on runtime hosts.
+
+Evidence: spatial-os-luna-handoff/evidence/m06-realworld-attempt01-2026-10-12.
+Native attempt logs remain on both hosts under spatial-test-artifacts/m06-native-20261012-01.
+These defects block the affected integration checks, not all M06 development.
