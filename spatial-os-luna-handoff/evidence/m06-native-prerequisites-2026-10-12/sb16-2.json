@@ -1,0 +1,22 @@
+{
+  "host": "sb16-2",
+  "kind": "read-only native prerequisites",
+  "profiles": [
+    {
+      "profile": "Debug",
+      "wrapper": "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/Debug/server-launch/Xvfb",
+      "wrapper_sha256": "ca8cd6d8b812512ed7e54df8f7196f017865f26b41900219e7eb8e53d3c40f39",
+      "server": "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/local/xlibre-patched/5ab2930b2a786e82ea76bdcc999ef4af3bd4ee9d8b70c7738a39963115dc1325/source/build/hw/vfb/Xvfb",
+      "server_sha256": "9ce8ef70bb2b5060984b1717bedd08ede678fc0587510ff9c47ffef0bce8785d",
+      "dependency_paths_present": true
+    },
+    {
+      "profile": "ASan-UBSan",
+      "wrapper": "/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/ASan-UBSan/server-launch/Xvfb",
+      "wrapper_sha256": "771b879b6ffdf7c2def4432226c5af4bba88c146776d0d8b63a63d6387d97ed3",
+      "server": "/home/dflanag3/src/spacial_desktop-m04-hooks/spatial-os-luna-handoff/local/xlibre-patched/5ab2930b2a786e82ea76bdcc999ef4af3bd4ee9d8b70c7738a39963115dc1325/source/build-sanitize/hw/vfb/Xvfb",
+      "server_sha256": "eedb85f63080c999fc30f7fe198978923ea541df8c82ddcfb09a1ba735023e88",
+      "dependency_paths_present": true
+    }
+  ]
+}
