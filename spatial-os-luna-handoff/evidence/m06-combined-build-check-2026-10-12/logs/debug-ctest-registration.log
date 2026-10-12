@@ -1,0 +1,7 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial-m06-combined-build-check-20261012/local/m06-combined-build-check-20261012/debug
+Test project /home/dflanag3/src/spacial-m06-combined-build-check-20261012/local/m06-combined-build-check-20261012/debug
+  Test  #4: actor-transition-real-world
+  Test  #5: actor-transition-crosshost
+  Test #96: host-actor-controller-native
+
+Total Tests: 3

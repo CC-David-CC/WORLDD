@@ -31,7 +31,10 @@ The remaining source differences are unrelated transition/recovery test drivers.
 Cross-host worker checkpoint c93e02b is integrated as 23a2554 after primary source and evidence review.
 All 12 semantic cases, two slow-stop checks, and one injected-startup cleanup check passed.
 Read evidence/m06-crosshost-transitions-2026-10-12/primary-review.json for the scope and preserved initial cleanup failure.
-The CMake conflict retained both real-world and cross-host registrations. Combined build validation remains pending.
+The CMake conflict retained both real-world and cross-host registrations.
+Combined source 38f6605 configured and built all three selected targets in Debug and ASan/UBSan on a5500.
+Both CTest inventories contain the real-world, cross-host, and native host-controller registrations; no runtime tests ran there.
+Read evidence/m06-combined-build-check-2026-10-12. All six command exits were zero; the malformed aggregate exit remains unknown.
 No native presentation claim follows from the headless cross-host checks.
 Gate tooling is integrated as a10744b. All 12 static checks passed; its complete deployed workflow remains unrun.
 Production host-session deployment and focused qualification are active on both runtime hosts.
