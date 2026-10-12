@@ -1,5 +1,25 @@
 # Implementation status
 
+## 2026-10-11: Both local M04 gates completed; fixture corrections reviewed
+
+Both hosts completed Debug and ASan/UBSan qualification on frozen candidate f74c6b5.
+Each profile executed 141 core suites, 51 harness checks, 151 acceptance cases, and five storage scenarios.
+Harness, acceptance, and storage scenarios passed in all four host/profile combinations.
+The original core runs failed two storage fixture suites on both hosts.
+The sb16 sanitizer run also failed two authority setup suites on their old healthy-client deadlines.
+Original failures remain preserved. No additional artifact-audit errors or sanitizer markers were found.
+
+The storage fixture now resolves its permitted local directory from its own checkout.
+Two setup fixtures now use the accepted five-second healthy-client budget.
+Explicit deadline overrides, assertions, relay ordering, and server idle deadlines remain intact.
+Both correction groups passed on both hosts in both profiles: 40 checks total.
+The primary review verified copied log hashes and integrated the deadline changes at 04e1029.
+Read evidence/m04-gate-2026-10-11/sb16-correction-review.txt and sb16-2-correction-review.txt.
+
+Four changed-path bypass mutations passed review on sb16. The corresponding sb16-2 runs are active.
+Cross-host scenarios and final source/requirement reconciliation remain pending.
+M04 remains incomplete. M05 and later milestones retain their full requirements.
+
 ## 2026-10-11: Expanded core event checks detect isolated bypasses
 
 Nineteen added checks cover map/configure redirection, gravity, circulation, and resize redirection.
