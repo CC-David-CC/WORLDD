@@ -1,0 +1,6 @@
+test_three_live_worlds_keep_private_authority_during_shared_loss (__main__.WorldTopologyTests.test_three_live_worlds_keep_private_authority_during_shared_loss) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 27.892s
+
+OK

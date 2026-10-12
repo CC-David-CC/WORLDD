@@ -1,0 +1,18 @@
+M05 simultaneous three-world topology
+
+Run test_three_live_worlds_keep_private_authority_during_shared_loss in both authority directions.
+Use one reachable production issuer, one private authority per host, and one shared authority.
+Run production actor requests over TLS and retain independent remote actor signing.
+Check distinct identities, private admission, public entry without action grants, and explicit delegated rights.
+Check actor visibility and shared committed edits in the native software compositor.
+Check independent private state while the shared world is unavailable.
+Restart each world and check stable identities and committed contents.
+Reject stale shared authentication proofs after restart.
+Keep the separately tested supervised crash recovery requirement; this topology test uses graceful authority stop.
+
+Build the test-only world_topology.proto endpoint binding on both hosts.
+The remote launcher reports a protobuf endpoint, then execs production worldd.
+SSH is trusted fixture administration. Actors retain the production actor transport and authority checks.
+Run Debug first, preserve failures, then run both profiles after correction.
+Keep remote state in a unique fixture directory. Stop its process before exact-directory cleanup.
+The complete M05 phase gate remains pending.

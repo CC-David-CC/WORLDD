@@ -75,8 +75,14 @@ int main(int argc, char** argv) {
                         !replacement_native.erase(start.native_fd()))
                         throw std::runtime_error("Unknown replacement fixture configuration");
                     spatial::identity::tls_detail::Fd native(start.native_fd());
+                    spatial::identity::tls_detail::Fd listener;
+                    if (start.has_actor_listener_fd()) {
+                        if (!replacement_native.erase(start.actor_listener_fd()))
+                            throw std::runtime_error("Unknown replacement actor listener descriptor");
+                        listener.reset(start.actor_listener_fd());
+                    }
                     owner = coordinator.start_world(start.configuration_path() + ".owned",
-                        load(start.configuration_path().c_str()), native.value, -1, 1);
+                        load(start.configuration_path().c_str()), native.value, listener.value, 1);
                     transfer_actor(owner);
                     *reply.mutable_started()->mutable_owner() = owner;
                     *reply.mutable_started()->mutable_record() = coordinator.world_launch(owner);

@@ -1,0 +1,18 @@
+test_three_live_worlds_keep_private_authority_during_shared_loss (__main__.WorldTopologyTests.test_three_live_worlds_keep_private_authority_during_shared_loss) ... ERROR
+
+======================================================================
+ERROR: test_three_live_worlds_keep_private_authority_during_shared_loss (__main__.WorldTopologyTests.test_three_live_worlds_keep_private_authority_during_shared_loss)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_topology.py", line 163, in test_three_live_worlds_keep_private_authority_during_shared_loss
+    self.assertEqual(self.observed_object(owner).pose, self.observed_object(viewer).pose)
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/test_world_shared_state.py", line 108, in observed_object
+    return next(item for item in reply.action.observation.visible if item.id == name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration
+
+----------------------------------------------------------------------
+Ran 1 test in 18.593s
+
+FAILED (errors=1)

@@ -1,0 +1,53 @@
+M05 simultaneous topology review, 2026-10-12
+
+The primary agent reviewed CMakeLists.txt, world_topology.proto,
+world_topology_launcher.py, test_world_topology.py, and the reused fixtures.
+The launcher creates one TCP listener and emits a bounded protobuf endpoint receipt.
+It then execs production worldd. All world behavior remains in production code.
+The launcher also removes only an owned fixture directory under the required /tmp prefix.
+The controller closes the exact launched process before removing its fixture directory.
+Remote actor signing retains the independently verified remote-key mechanism.
+Authority and TLS service credentials use trusted disposable fixture provisioning.
+No production authority rule, runtime timeout, or locked acceptance file changes.
+
+Final results
+topology03 passes on sb16 and sb16-2 in Debug and ASan/UBSan: four scenario executions.
+Each run starts one private world per host and one shared world under a single issuer.
+It asserts three distinct world IDs while all three processes are active.
+Private admission rejects the other actor. Public entry supplies no implicit action grants or workspace selection.
+An explicit delegation enables shared observation and manipulation.
+The native compositor renders the other actor and both actors observe a committed object movement.
+Identically named private markers retain independent content.
+The shared authority stops before either client closes its connection.
+The local and remote clients observe transport loss; the old endpoint refuses connections.
+Both private actors still inspect their live worlds during the outage.
+All three authorities restart with unchanged identities and persisted marker or object content.
+The shared replacement rejects an old authentication proof and permits a freshly authenticated manipulation lease.
+Graceful final shutdown precedes world-log retention. Remote temporary directories are absent after both runners finish.
+Each host audit covers 79 retained files, including endpoint protobuf receipts and earlier failures.
+No sanitizer error markers occur in those logs.
+Audit files record source hashes, retained artifact hashes, and runtime binary hashes.
+
+Preserved fixture failures
+topology01 failed on both hosts because the remote actor was beside the object and could not see it.
+The corrected pose keeps both the actor marker and object inside their observers' actual forward views.
+topology02 failed on both hosts because a private actor reconnected before closing its current controller.
+Production correctly returned IN_USE. The fixture now closes that controller before reconnecting.
+Assertions and production controller exclusion remain intact.
+Only topology03 represents the final test source.
+
+Command
+Use the environment and build paths in remote-keys-review.txt.
+Replace remote-keys02 with topology03 in evidence paths.
+Replace test_world_remote_keys.py with test_world_topology.py in the invocation.
+Build world-topology-python-protobuf on both hosts before launching either controller.
+The controllers run concurrently, using separate issuer and world fixture state.
+Each controller places the shared authority locally and the other private authority remotely.
+
+Scope limits
+This scenario stops authorities gracefully. Earlier supervised-remote-review.txt covers checked crash recovery.
+Remote private-world state remains on the remote host. It is never copied to simulate persistence.
+Private authorities exercise real state and actor channels without a private native compositor in this scenario.
+The shared world exercises native software EGL rendering. Physical presentation remains a later gate.
+Actor world transitions and workspace-selection restoration remain M06 requirements.
+Full Debug, sanitizer, harness, acceptance, and integration qualification on a frozen M05 candidate remains pending.

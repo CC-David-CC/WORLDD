@@ -1,0 +1,10 @@
+test_abrupt_authority_loss_requires_supervised_retirement (__main__.RemoteKeyWorldTests.test_abrupt_authority_loss_requires_supervised_retirement) ... ok
+test_actor_population_is_visible_in_shared_room (__main__.RemoteKeyWorldTests.test_actor_population_is_visible_in_shared_room) ... ok
+test_private_worlds_keep_distinct_identity_and_independent_persistent_state (__main__.RemoteKeyWorldTests.test_private_worlds_keep_distinct_identity_and_independent_persistent_state) ... ok
+test_public_admission_does_not_create_private_admission_or_action_authority (__main__.RemoteKeyWorldTests.test_public_admission_does_not_create_private_admission_or_action_authority) ... ok
+test_two_tls_actors_share_committed_object_and_recover_same_world (__main__.RemoteKeyWorldTests.test_two_tls_actors_share_committed_object_and_recover_same_world) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 55.250s
+
+OK

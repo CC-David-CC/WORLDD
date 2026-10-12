@@ -1,0 +1,25 @@
+{
+  "host": "sb16",
+  "candidate": "6b9619e5b00be3011068b11c2c7d8ed48d5a0c47",
+  "profile": "Debug",
+  "status": "profile_artifacts_verified",
+  "phase_complete": false,
+  "core_suites": 142,
+  "harness_tests": 51,
+  "acceptance_tests": 151,
+  "storage_scenarios": 5,
+  "failed": 0,
+  "skipped": 0,
+  "scanned_logs": 4853,
+  "sanitizer_findings": [],
+  "source_files_verified": 419,
+  "runtime_binaries_verified": 46,
+  "audit_sha256": "b4ffe0d07bb04e20b67a1332c57eb78b61cb348a2542dcc20c412f7efab60f7f",
+  "artifacts": {
+    "core.xml": "c8591e2d8905e1cbe6f81c01c094098afa3298a2d9757d4523d6a9489e412e3b",
+    "P10.json": "4d0d06bae3b8cb88ebd06974a6b0b421a5ec6f8171753966863adf6aa67f2dda",
+    "harness.log": "258ee8cb50863c15bbd0e992eb05ac11785210e8314855c199c2ec384f7fdc50",
+    "inventory.log": "0bff46c8953094db9a022535d520d7651909b8059de855cd9c3624af3e9b5cb9",
+    "bounded-storage-git/review.json": "8987ae9c7b4ce9cc227612f51963144a421d9fec5a9c27878da3891b4aa0989a"
+  }
+}

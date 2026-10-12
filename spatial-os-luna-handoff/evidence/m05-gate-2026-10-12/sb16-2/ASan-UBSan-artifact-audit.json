@@ -1,0 +1,25 @@
+{
+  "host": "sb16-2",
+  "candidate": "6b9619e5b00be3011068b11c2c7d8ed48d5a0c47",
+  "profile": "ASan-UBSan",
+  "status": "profile_artifacts_verified",
+  "phase_complete": false,
+  "core_suites": 142,
+  "harness_tests": 51,
+  "acceptance_tests": 151,
+  "storage_scenarios": 5,
+  "failed": 0,
+  "skipped": 0,
+  "scanned_logs": 4853,
+  "sanitizer_findings": [],
+  "source_files_verified": 419,
+  "runtime_binaries_verified": 46,
+  "audit_sha256": "b4ffe0d07bb04e20b67a1332c57eb78b61cb348a2542dcc20c412f7efab60f7f",
+  "artifacts": {
+    "core.xml": "a24ced78ca2255ba7264512b249440f9ad5c581887f3346adcd3377d23446685",
+    "P10.json": "4ac1f791d1375b02f0ba68f63f63c7481c35a75c122feaa09c21b2cff86c50e8",
+    "harness.log": "4f4b00d3bc3f02b1d97e816819aa864e34922c74c2c91517f6f778bf1fa811e0",
+    "inventory.log": "99ca39b341cb659688ff7f021d2b0b706cd6ea2dc21d1f8bb209b30d61747636",
+    "bounded-storage-git/review.json": "ff2e6cc00014dda8dba2ee5e2d14ec9f1373c5491937bcf819a587ae5587ef7c"
+  }
+}

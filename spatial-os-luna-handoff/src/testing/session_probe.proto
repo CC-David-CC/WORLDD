@@ -9,6 +9,7 @@ import "issuer.proto";
 message SessionWorldStart {
   string configuration_path = 1;
   int32 native_fd = 2; // One of the fixture's explicitly inherited sealed configurations.
+  optional int32 actor_listener_fd = 3; // Explicitly inherited listener; production validates its socket type.
 }
 message SessionWorldStarted {
   spatial.workspace.v1.ControlOwner owner = 1;

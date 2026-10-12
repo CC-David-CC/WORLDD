@@ -1,0 +1,13 @@
+TLS witness connected: ('10.0.7.94', 58870) -> ('10.0.7.49', 54995) TLSv1.3
+Traceback (most recent call last):
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/world_tls_witness.py", line 65, in <module>
+    main()
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/world_tls_witness.py", line 57, in main
+    reply = packet(stream.recv, session.WorldSessionReply)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/world_tls_witness.py", line 24, in packet
+    header = exact(read, 4, allow_eof)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff/tests/core/world_tls_witness.py", line 18, in exact
+    raise EOFError('Truncated actor frame')
+EOFError: Truncated actor frame

@@ -1,0 +1,45 @@
+M05 supervised cross-host recovery review
+
+Scope
+The primary agent reviewed session_application_probe.cpp, session_probe.proto,
+world_tls_witness.py, and test_session_crosshost_recovery.py.
+This increment changes test infrastructure. Production recovery and authority checks remain in production components.
+The test-only protobuf adds optional actor_listener_fd at field 3.
+The adapter consumes only explicitly inherited descriptors. RAII closes them after forwarding.
+SessionCoordinator retains and validates a listening TCP socket before launching worldd.
+It rejects private UNIX coordinator channels and non-listening descriptors.
+The negative regression checks an unregistered descriptor and unchanged activation state.
+No locked acceptance file or production schema changes in this increment.
+
+Behavior
+The original actor commits one object movement, then makes another uncommitted movement.
+The fixture kills the actual world authority and performs checked fencing and issuer retirement.
+The replacement retains world identity and increments the authority generation.
+The replacement actor connects through TLS 1.3 from the other physical host.
+It cannot inspect the world before fresh authentication.
+It sees the committed movement and can obtain a new manipulation lease.
+The unrelated native application remains responsive.
+The inherited local replacement suite also checks revoked admission and stale generation rejection.
+
+Execution
+Both hosts rebuilt spatial-session-application-probe and session-probe-python in Debug and ASan-UBSan.
+remote-recovery02 runs two remote cases and four local cases per host/profile: 24 executions.
+The suites shared a service-log directory. Some inherited method names could overwrite service logs.
+remote-recovery03 repeats only the remote suite with separate service directories: eight executions.
+All 32 executions passed. Each host/profile ran six distinct cases and repeated the two remote cases.
+The unique test methods are two remote cases and four local cases.
+Each raw run records its exact command and resource cleanup receipt.
+Both remote-recovery-audit.json files record source, binary, and retained file SHA-256 hashes.
+They record all results, TLS endpoints, sanitizer scans, and absent temporary credential directories.
+No AddressSanitizer, LeakSanitizer, or UBSan error markers appeared in retained logs.
+The initial setup failures remain in remote-recovery-first-Debug.log on each host.
+Those runs lacked forwarded SPATIAL_REMOTE_HOST. The corrected command sets peer variables inside the resource wrapper.
+No runtime timeout or acceptance assertion was relaxed.
+
+Limits
+The actor before the crash uses a local channel. Its replacement uses the remote TLS transport.
+The authority-host fixture still creates the actor signature. This does not prove independent remote key provisioning.
+SIGKILL prevents exit-time leak checking of the killed process. Graceful replacement shutdown retains sanitizer coverage.
+The display uses the retained private software EGL XLibre launcher. This does not qualify physical GPU output.
+The combined private/shared topology and complete M05 phase gate remain pending.
+M01-M04 remain qualified. M05 remains in progress. M06-M16 remain pending qualification.

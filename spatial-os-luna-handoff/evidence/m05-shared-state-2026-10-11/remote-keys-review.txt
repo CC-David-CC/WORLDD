@@ -1,0 +1,55 @@
+M05 remote actor key review, completed 2026-10-12
+
+The primary agent reviewed test_world_remote_keys.py and its inherited test paths.
+RemoteActorKey calls production spatial-key generate and sign on the other authorized host.
+Its private key never appears in a copy command or local file.
+The trusted fixture sends signing requests through SSH using framed Protocol Buffers.
+Only the generated public key and KeyProof return through stdout.
+Each proof passes independent OpenSSL signature verification before the production issuer or world uses it.
+Both enrollment purpose 1 and authentication purpose 2 appear in every key receipt.
+Every fixture checks key mode 0600 and removes its exact temporary key and directory.
+TLS client certificates still use disposable fixture provisioning. They are separate from actor signing keys.
+This is test orchestration, not an SSH interface granted to runtime model actors.
+
+Results
+remote-keys01 passed five cases per host/profile: twenty preliminary executions.
+Review found inherited world logs could be copied before shutdown.
+The final fixture closes worlds before inherited log retention and scans final logs for sanitizer errors.
+remote-keys02 passed five cases per host/profile: twenty final executions.
+The five cases cover actor population, committed shared edits and restart,
+private world identity and state, public/private admission, and the abrupt-loss generation guard.
+No test assertion, production source, protocol schema, or locked acceptance file was relaxed or changed.
+Each host audit scans 212 retained logs and finds no sanitizer error markers.
+Each host has twenty generated/signature/removal receipts across the two runs and profiles.
+Neither host retains a spatial-m05-key temporary directory after both runners finish.
+The final source hashes and retained output hashes are recorded in remote-keys-audit.json.
+The audit also records spatial-key, identityd, and worldd hashes for both profiles.
+The first-run source lacked finish_worlds; only remote-keys02 represents the final source.
+
+Invocation on each host
+ROOT=/home/dflanag3/src/spacial_desktop-m05-20261011/spatial-os-luna-handoff
+BUILD=$ROOT/local/m05-actor-population-01/PROFILE
+PROFILE is Debug or ASan-UBSan. PEER is the other authorized host.
+ADDRESS is the authority host LAN address: sb16=10.0.7.49, sb16-2=10.0.7.94.
+PYTHONPATH=$BUILD/python:$ROOT
+SPATIAL_REMOTE_HOST=$PEER
+SPATIAL_WORLD_ADDRESS=$ADDRESS
+SPATIAL_REMOTE_PYTHONPATH=$BUILD/python
+SPATIAL_REMOTE_WITNESS=$ROOT/tests/core/world_tls_witness.py
+SPATIAL_REMOTE_KEY_BINARY=$BUILD/spatial-key
+SPATIAL_SECURITY_EVIDENCE=$ROOT/local/m05-actor-population-01/remote-keys02-PROFILE-services
+SPATIAL_TEST_XSERVER=/home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-full-gate-01/PROFILE/server-launch/Xvfb
+SPATIAL_TEST_XSERVER_LOG=$SPATIAL_SECURITY_EVIDENCE/xserver.log
+ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+python3 $ROOT/tools/with_test_display.py -- python3 $ROOT/tests/core/test_world_remote_keys.py $BUILD/identityd $BUILD/spatial-issuer-client $BUILD/worldd
+
+Limits and next requirement
+The private-world isolation case starts its private authorities on one host per invocation.
+Running that case in both directions does not prove simultaneous private authorities on separate hosts.
+The combined topology must run three authorities together under one issuer.
+Use docs/M05_TOPOLOGY_CHECKS.txt for its explicit remaining assertions and full-gate sequence.
+Actor SSH signing is a fixture mechanism. It does not establish the final human or model key-management interface.
+SIGKILL cannot supply exit-time leak evidence for the killed process.
+Software EGL does not qualify physical GPU output or final performance.
+M01-M04 remain qualified. M05 remains incomplete. M06-M16 remain pending qualification.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the complete local M04 gate on one frozen project checkout."""
+"""Run the complete local M04 or M05 gate on one frozen project checkout."""
 import argparse
 import hashlib
 import json
@@ -18,6 +18,7 @@ def digest(path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--milestone', choices=('M04', 'M05'), default='M04')
     parser.add_argument('--candidate', required=True)
     parser.add_argument('--server-debug-receipt', type=Path, required=True)
     parser.add_argument('--server-sanitize-receipt', type=Path, required=True)
@@ -48,7 +49,7 @@ def main():
     locked = json.loads((ROOT / 'acceptance.lock.json').read_text())['files']
     for name, expected in locked.items():
         assert digest(ROOT / name) == expected, name
-    record = dict(host=host, candidate=commit, status='running', phase_complete=False,
+    record = dict(host=host, candidate=commit, milestone=args.milestone, status='running', phase_complete=False,
                   runner_pid=os.getpid(), started=time.time(), source_sha256=inputs,
                   locked_files_verified=len(locked), graphics=graphics_env,
                   vendor_sha256=digest(vendor), profiles={})
@@ -80,7 +81,7 @@ def main():
                                 'server = ' + repr(str(server)) + '\n'
                                 'os.execve(server, [server, *sys.argv[1:]], env)\n')
             launcher.chmod(0o755)
-            build = ROOT / 'local' / ('m04-gate-' + out.name) / profile
+            build = ROOT / 'local' / (args.milestone.lower() + '-gate-' + out.name) / profile
             env = {**os.environ, 'PYTHONPATH': str(build / 'python') + ':' + str(ROOT),
                    'SPATIAL_TEST_XSERVER': str(launcher),
                    'SPATIAL_SECURITY_EVIDENCE': str(target / 'native'),
@@ -131,6 +132,8 @@ def main():
                     required = {'native-parent-metadata', 'native-topology-pixels',
                                 'native-device-administration', 'native-global-isolation',
                                 'native-application-launch', 'authority-supervisor'}
+                    if args.milestone == 'M05':
+                        required.add('world-shared-state')
                     assert required <= registered, sorted(required - registered)
                     row['registered_suites'] = sorted(registered)
                     save()

@@ -1,5 +1,59 @@
 # Implementation status
 
+## 2026-10-12: M05 qualified on both hosts
+
+Frozen source 6b9619e5b00be3011068b11c2c7d8ed48d5a0c47 passed both full local profiles and cross-host qualification.
+Each host/profile passed 142 core suites, 51 harness tests, 151 acceptance cases, and five storage scenarios.
+All 32 cross-host case executions passed. Artifact hashes, remote-key removal, and cleanup receipts were reviewed.
+No failures, skips, or sanitizer findings occurred in the frozen matrix.
+Read evidence/m05-gate-2026-10-12/M05-final-review.txt for requirement coverage, commands, provenance, and limits.
+
+M01-M05 are qualified. M06 actor world transitions is next; M06-M16 remain pending qualification.
+Transitions must preserve XLibre and compositor identities and restore per-world actor context.
+Current M05 evidence does not qualify that transition behavior or physical hardware.
+The historical entries below preserve earlier checkpoints and their then-pending work.
+
+## 2026-10-12: M05 simultaneous private/shared topology passes focused checks
+
+One private authority runs on each host while a third shared authority serves both actors.
+All three use one production issuer and distinct persisted world identities.
+Both shared-authority placements pass in Debug and ASan/UBSan: four final scenario executions.
+The checks cover private admission, public admission without implicit action grants, actor visibility, and shared committed edits.
+Both clients observe shared-authority loss. Both private worlds remain usable during that loss.
+All three worlds retain their identities and committed contents after restart. Stale shared authentication is rejected.
+Temporary state directories are removed after shutdown. No sanitizer findings appear in retained logs.
+Read evidence/m05-shared-state-2026-10-11/topology-review.txt for failures, source pins, and exact limits.
+
+M05 focused integration is ready for full qualification. The complete both-host gate remains pending.
+M05 is not qualified yet. M06-M16 remain pending qualification.
+
+## 2026-10-12: M05 actor keys remain on their originating hosts
+
+The second actor now generates and signs with its key on the other host during cross-host qualification.
+Only public keys and protobuf proofs return to the authority-host fixture.
+OpenSSL independently verifies each production spatial-key signature before use.
+Key permissions and temporary-key removal pass explicit checks.
+
+All five selected scenarios pass on both hosts in Debug and ASan/UBSan: twenty final case executions.
+Twenty preliminary executions also pass. Final runs finish worlds before retaining and scanning shutdown logs.
+Read evidence/m05-shared-state-2026-10-11/remote-keys-review.txt for the exact scope.
+The simultaneous three-world topology remains unrun. Read docs/M05_TOPOLOGY_CHECKS.txt for its assertions.
+M05 remains in progress. Its full both-host phase gate remains pending.
+
+## 2026-10-11: M05 supervised recovery accepts a remote actor
+
+Both hosts pass supervised crash recovery with the replacement actor connected from the other host through TLS.
+The recovered world retains committed edits and rejects uncommitted previews and abandoned manipulation leases.
+The actor must authenticate again. The unrelated application remains responsive.
+An unregistered listener descriptor cannot activate a replacement generation.
+The test adapter forwards an explicitly inherited listener through the existing production coordinator validation.
+
+Both Debug and ASan/UBSan pass the two-case remote suite and four-case local replacement suite.
+Separate remote reruns preserve unique service logs. These runs total 32 case executions, including eight repeated checks.
+Read evidence/m05-shared-state-2026-10-11/supervised-remote-review.txt for evidence and limits.
+Fixture signing remains on the authority host. Independent remote key provisioning remains pending.
+The combined private/shared topology and complete M05 gate remain pending. M05 is not qualified.
+
 ## 2026-10-11: M05 supervised crash persistence passes focused checks
 
 Both hosts pass the four-case session replacement suite in Debug and ASan/UBSan.

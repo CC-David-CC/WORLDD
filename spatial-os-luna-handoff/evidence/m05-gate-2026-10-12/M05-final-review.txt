@@ -1,0 +1,97 @@
+M05 final primary review, 2026-10-12
+
+Decision
+M05 is qualified at frozen source 6b9619e5b00be3011068b11c2c7d8ed48d5a0c47.
+Both hosts ran this exact source in Debug and ASan/UBSan.
+The primary agent reviewed the source, assertions, execution records, and retained artifacts.
+M01-M04 remain qualified. M06-M16 and complete Spatial-M1 qualification remain pending.
+
+Requirement evidence
+1. Independent private worlds on both hosts: passed.
+   world_topology runs one private world per host and a third shared authority simultaneously.
+   Three live authorities have distinct persistent identities and independent state directories.
+   Identically named private markers retain different contents after restart.
+   Each private world rejects the other actor without explicit admission.
+2. One shared persistent world: passed.
+   Local and remote TLS actors observe the same world identity and committed object movement.
+   Production spatialwm renders actor markers from authoritative live poses.
+   world_remote_keys includes shared state, population, movement, restoration, and occlusion checks.
+3. Admission separate from workspace and action authority: passed.
+   Public admission accepts a registered actor without implicit grants or workspace selection.
+   Explicit delegation permits shared actions. Private admission remains separately denied.
+   Full local gates retain bootstrap, authority, and revocation regression suites.
+4. Stable identity and persistent state: passed.
+   The topology scenario restarts all three authorities and checks saved identities and contents.
+   Shared-state scenarios verify saved room and pose and reject stale authentication proofs.
+   Supervised recovery preserves committed edits and discards previews and abandoned leases after SIGKILL.
+5. Authority failure and recovery: passed.
+   Shared-authority shutdown produces local and remote transport loss and a closed endpoint.
+   Both private worlds remain responsive during that outage.
+   Direct crash recovery cannot bypass generation retirement.
+   Supervised recovery uses actual fencing, dependent cleanup, issuer retirement, and fresh remote authentication.
+   An unknown inherited listener descriptor cannot activate a replacement authority.
+6. Separate actor keys and production transport: passed.
+   Remote actor keys stay on their originating host with mode 600.
+   Production spatial-key signs protobuf requests. Independent OpenSSL verification checks the signatures.
+   Only public keys and proofs return to the trusted fixture controller.
+   SSH provisions fixtures; it is not an actor execution capability.
+
+Completed matrix
+Each host/profile passed 142 core suites, 51 harness tests, 151 acceptance cases, and five storage scenarios.
+All four profiles have zero failed or skipped results. Acceptance selected all 151 baseline cases.
+Both run.json records verify all 41 locked files and record 419 source hashes.
+Each profile audit verifies 46 runtime binary hashes, the native server, launcher, and installed helpers.
+Each profile audit scans 4,853 logs without sanitizer findings and verifies storage cleanup.
+Debug-artifact-audit.json and ASan-UBSan-artifact-audit.json reside under each host directory.
+The five primary result artifacts per profile are retained and match those audit hashes.
+Full service logs remain in the frozen host checkout under local/m05-full-gate-01.
+
+Cross-host runs repeat three suites in both directions and both profiles: 32 case executions.
+world_remote_keys contributes five cases, world_topology one, and session_crosshost_recovery two per direction/profile.
+Both cross-host runners exited zero and verified identical prerequisites before and after execution.
+Each cross-host audit verifies 178 artifacts, 174 logs, 12 remote-key receipts, and four protobuf endpoint receipts.
+Temporary key, topology, and recovery directories are absent on both hosts.
+Native recovery wrappers report removed scopes, zero exit status, and inactive services.
+All 356 cross-host artifacts are retained locally and match their recorded hashes.
+No sanitizer findings, omitted cases, skipped cases, or runtime failures occurred in this frozen matrix.
+
+Commands and provenance
+Both host checkouts: /home/dflanag3/src/spacial_desktop-m05-gate-20261012
+Local gate: tools/qualify_m04_gate.py --milestone M05 --candidate 6b9619e5b00be3011068b11c2c7d8ed48d5a0c47
+Exact stage commands, server receipts, hashes, and timestamps are in HOST/run.json.
+Cross-host commands and peer environments are in HOST/crosshost/run.json.
+The retained run_m05_crosshost_gate.py is the exact executed runner.
+Its SHA-256 is f616b7224fafa66ba114aaa25ca2690a406147fd168248e8da6a9cdef210965f.
+The retained audit scripts describe the primary artifact checks.
+The first cross-host auditor incorrectly required OK at end of file.
+Recovery logs append successful resource-wrapper cleanup receipts after OK.
+The corrected auditor recognizes the test-summary line and checks those cleanup receipts explicitly.
+No runtime test, assertion, timeout, source file, or locked contract changed for that correction.
+Earlier focused fixture failures remain under evidence/m05-shared-state-2026-10-11.
+
+Prior milestone evidence
+m04-crosshost-source-comparison.json and m04-crosshost-reassessment.txt retain the source review.
+The new local and cross-host gates satisfy that review's conditional prerequisites.
+The eight historical M04 cancellation scenarios remain evidence for unchanged authority and native input paths.
+They are not counted as new M05 executions or as shared-world evidence.
+The M05 production changes add actor scene markers and live poses, plus explicit additive render protobuf fields.
+The replacement-listener addition is test plumbing through the existing validated production launch path.
+No XLibre, identity, broker, or supervisor production implementation changed from qualified M04.
+
+Milestone allocation and limits
+CONTRACT.md says cross-world transition qualification remains mandatory under M05 and M06.
+tasks/spatial-m1.json, MILESTONES.md, and M05_ENTRY_AUDIT.txt allocate transition behavior to M06.
+This review qualifies the M05 multi-world foundation in that sequence.
+It does not qualify actor transitions, per-world selection restoration, or unchanged compositor identity during transitions.
+Those explicit requirements remain mandatory under M06. No locked contract or test was changed.
+Software EGL output does not qualify physical GPU output or input devices.
+Private topology authorities use real state and actor channels without private compositor presentation in that scenario.
+The shared authority uses production native software rendering.
+Remote application streaming, remote application input, and workspace migration remain outside M1.
+Real-model tasks, application restoration, physical devices, performance, and soak requirements remain pending.
+This qualification does not establish complete Spatial-M1 or unrelated LOCAL_READY status.
+
+Next
+Commit and publish this reviewed evidence checkpoint to origin and the authorized project GitHub repository.
+Start M06 on a new work branch from the checkpoint.
+Preserve the frozen M05 checkouts, binaries, service logs, and normal login/SSH recovery routes.
