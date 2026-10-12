@@ -1,0 +1,38 @@
+M06 integration sequence after the first real-service run
+
+M06 remains incomplete. M07-M16 remain pending.
+Preserve the current XACE runtime. CallbackList remains separate.
+
+1. Complete the current deployment corrections.
+Run workspace-selection cases through the configured ResourceBroker and delegated cgroup.
+Build all native Python bindings through declared CMake dependencies.
+Run the native controller case on both hosts in Debug and ASan/UBSan.
+Preserve earlier failures and review each new result before integration.
+
+2. Port three crash-transition regressions to retained native ownership.
+Use SessionCoordinator to launch both worlds and retain their exact owners.
+Inject the existing departure-before-commit, departure-after-commit, and activation faults.
+Use production stop_world, recover_world, and retire_world operations.
+Restart the same durable world through a new checked generation.
+Authenticate fresh actor channels. Verify durable context and no replay.
+Reuse test_session_application.py and test_session_replacement.py recovery patterns.
+Do not create a headless retirement shortcut, fabricate receipts, or edit authority databases.
+Keep the failed direct-launch cases recorded until equivalent supported-runtime assertions pass.
+Record any test relocation explicitly. Do not silently remove required coverage.
+
+3. Complete production entrypoint integration.
+HostActorController currently has fixture and test-runner callers.
+Verify and connect the actual runtime actor-control entrypoint.
+Keep semantic actor operations, generation fencing, and authority checks intact.
+
+4. Close remaining integration coverage.
+Verify held-input release across transitions and rejection of delayed source messages.
+Verify real cross-host TLS transitions with authenticated worlds on both qualification hosts.
+Preserve source and destination failure uncertainty and checked recovery behavior.
+Recheck related session-world, replacement, retirement, and authority integration suites.
+
+5. Freeze and qualify the M06 candidate.
+Review all worker changes and integrate coherent commits through box-git.
+Run the full required Debug, sanitizer, harness, acceptance, and cross-host M06 gate on both hosts.
+Report passed, failed, blocked, skipped, pending, and unrun requirements separately.
+Advance the milestone only when its actual requirements have evidence.
