@@ -44,6 +44,10 @@ Check packaging scripts are nonempty and invoke their intended entrypoint before
 After packaging, compare archived source hashes with the corrected checkout. Exit zero alone cannot detect a no-op packager.
 
 Use a persistent tmux session and a unique run directory for each attempt.
+For builds and test commands, use `bash scripts/run-command.sh CHECKOUT NEW_RUN_DIR COMMAND ARG...` inside tmux.
+Resolve that script from the installed skill. Pass arguments directly; do not construct shell code around exit-status variables.
+Read command.exit for the command result and wrapper.exit for the launcher result. COMPLETE means returned, not passed.
+An interrupted wrapper may leave its child running. A missing command.exit remains unknown; inspect the exact child before retrying.
 Use [scripts/run-worker.sh](scripts/run-worker.sh) for remote Codex launches in tmux.
 Invoke the installed script with bash. File transfer may not preserve its executable bit.
 Pass checkout, expected branch, model, task file, and a new checkout-local run directory as arguments.
