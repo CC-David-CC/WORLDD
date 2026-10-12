@@ -40,6 +40,8 @@ Allow only one build process per build directory. Use flock with a directory-spe
 For a long build, poll the original tool session. Do not submit the same build again while it runs.
 Use an output-specific flock for bundle packaging too. Two archive writers can corrupt the same output.
 Write archives to a unique temporary path. Validate them before atomically replacing the final artifact.
+Check packaging scripts are nonempty and invoke their intended entrypoint before launch.
+After packaging, compare archived source hashes with the corrected checkout. Exit zero alone cannot detect a no-op packager.
 
 Use a persistent tmux session and a unique run directory for each attempt.
 Use [scripts/run-worker.sh](scripts/run-worker.sh) for remote Codex launches in tmux.
@@ -88,6 +90,10 @@ Check production failure paths before asserting that an error proves no side eff
 Do not infer protocol guarantees from test fixtures written with the same assumption.
 
 ## Local Git checkpoints
+
+Read [references/git-handoff.md](references/git-handoff.md) when checking in, pushing, or handing work to another worker.
+Use its checked Git helper for ordinary staged commits and explicit box-git pushes.
+The primary agent and Luna use the same receipt and review rules.
 
 Origin for this project is dflanag3@box-git:/srv/data/git/spacial_desktop.git.
 Preserve repository remotes, history, and repository-restricted SSH keys.
