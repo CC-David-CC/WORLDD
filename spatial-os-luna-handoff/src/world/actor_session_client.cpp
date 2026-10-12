@@ -1,16 +1,25 @@
 #include "world/actor_session_client.hpp"
 #include "core/protocol.hpp"
 #include "identity/keys.hpp"
+#include "identity/tls_support.hpp"
+#include "actor_session_client.pb.h"
+#include <google/protobuf/text_format.h>
+#include <openssl/err.h>
+#include <openssl/x509v3.h>
 
 #include <array>
 #include <cerrno>
+#include <csignal>
 #include <fcntl.h>
 #include <poll.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <unistd.h>
 
 #include <stdexcept>
+#include <optional>
 #include <utility>
 
 namespace spatial {
@@ -54,8 +63,10 @@ enum class Lifecycle { New, Prepared, Active, Departed, Failed };
 struct ActorSessionClient::Impl {
     // Declare ownership before key loading so every constructor exception closes the fd.
     OwnedDescriptor channel;
+    identity::tls_detail::Context tls_context{nullptr, SSL_CTX_free};
+    std::unique_ptr<SSL, decltype(&SSL_free)> tls{nullptr, SSL_free};
     pb::SignedCredential credential;
-    identity::KeyPair key;
+    std::optional<identity::KeyPair> key;
     pb::ActorCredential claims;
     std::string world;
     std::string audience;
@@ -71,6 +82,81 @@ struct ActorSessionClient::Impl {
           key(identity::KeyPair::load(key_path)), world(std::move(expected_world)),
           timeout(io_timeout) {
         validate_configuration();
+    }
+
+    explicit Impl(const std::filesystem::path& config_path)
+        : channel(-1), timeout(std::chrono::seconds(5)) {
+        namespace tls_detail = identity::tls_detail;
+        struct sigaction disposition{};
+        require(sigaction(SIGPIPE, nullptr, &disposition) == 0 && disposition.sa_handler == SIG_IGN,
+                "Actor TLS client process must ignore SIGPIPE");
+        identity::v1::ActorSessionClientTlsConfig config;
+        require(google::protobuf::TextFormat::ParseFromString(tls_detail::load_config(config_path), &config),
+                "Invalid actor client TLS configuration");
+        validate_message(config);
+        require(config.protocol_version() == 1 && config.port() > 0 && config.port() <= 65535 &&
+                    !config.server_name().empty() && config.server_name().find('\0') == std::string::npos &&
+                    !config.expected_world_id().empty() && !config.address().empty() &&
+                    config.address().find('\0') == std::string::npos,
+                "Invalid actor client TLS configuration fields");
+        if (config.has_io_timeout_ms()) timeout = std::chrono::milliseconds(config.io_timeout_ms());
+        require(timeout >= std::chrono::milliseconds(50) && timeout <= std::chrono::seconds(60),
+                "Actor client I/O timeout is out of range");
+        credential = config.actor_credential();
+        world = config.expected_world_id();
+        key.emplace(identity::KeyPair::load(config.actor_signing_key_path()));
+        sockaddr_in ipv4{}; sockaddr_in6 ipv6{};
+        const sockaddr* address = nullptr;
+        socklen_t address_size = 0;
+        int family = 0;
+        if (inet_pton(AF_INET, config.address().c_str(), &ipv4.sin_addr) == 1) {
+            family = ipv4.sin_family = AF_INET; ipv4.sin_port = htons(config.port());
+            address = reinterpret_cast<const sockaddr*>(&ipv4); address_size = sizeof(ipv4);
+        } else if (inet_pton(AF_INET6, config.address().c_str(), &ipv6.sin6_addr) == 1) {
+            family = ipv6.sin6_family = AF_INET6; ipv6.sin6_port = htons(config.port());
+            address = reinterpret_cast<const sockaddr*>(&ipv6); address_size = sizeof(ipv6);
+        } else throw std::runtime_error("Actor endpoint must be numeric IPv4 or IPv6");
+        validate_actor_credential();
+        tls_context = tls_detail::make_context(false, config.certificate_path(),
+                                               config.private_key_path(), config.server_ca_path());
+        channel.reset(socket(family, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP));
+        require(channel.get() >= 0, "Cannot create actor TLS socket");
+        tls.reset(SSL_new(tls_context.get()));
+        require(tls && SSL_set_fd(tls.get(), channel.get()) == 1, "Cannot create actor TLS session");
+        SSL_set_hostflags(tls.get(), X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS | X509_CHECK_FLAG_NEVER_CHECK_SUBJECT);
+        require(SSL_set1_host(tls.get(), config.server_name().c_str()) == 1 &&
+                    SSL_set_tlsext_host_name(tls.get(), config.server_name().c_str()) == 1,
+                "Cannot set actor TLS server name");
+        const auto deadline = Clock::now() + timeout;
+        const auto wait = [&](short events) {
+            for (;;) {
+                const auto left = std::chrono::duration_cast<std::chrono::milliseconds>(deadline-Clock::now()).count();
+                require(left > 0, "Actor TLS connection deadline expired");
+                pollfd fd{channel.get(), events, 0};
+                const int ready = poll(&fd, 1, static_cast<int>(left));
+                if (ready < 0 && errno == EINTR) continue;
+                require(ready > 0 && !(fd.revents & (POLLERR|POLLHUP|POLLNVAL)), "Actor TLS connection failed or timed out");
+                return;
+            }
+        };
+        if (connect(channel.get(), address, address_size) < 0) {
+            require(errno == EINPROGRESS, "Cannot connect to actor world");
+            wait(POLLOUT);
+            int error = 0; socklen_t size = sizeof(error);
+            require(getsockopt(channel.get(), SOL_SOCKET, SO_ERROR, &error, &size) == 0 && error == 0,
+                    "Actor world connection failed");
+        }
+        for (;;) {
+            require(Clock::now() < deadline, "Actor TLS connection deadline expired");
+            ERR_clear_error();
+            const int result = SSL_connect(tls.get());
+            if (result == 1) break;
+            const int error = SSL_get_error(tls.get(), result);
+            if (error == SSL_ERROR_WANT_READ) wait(POLLIN);
+            else if (error == SSL_ERROR_WANT_WRITE) wait(POLLOUT);
+            else throw std::runtime_error("Actor TLS mutual authentication failed");
+        }
+        require(SSL_get_verify_result(tls.get()) == X509_V_OK, "Actor TLS server certificate verification failed");
     }
 
     void validate_configuration() {
@@ -102,6 +188,10 @@ struct ActorSessionClient::Impl {
         require(status >= 0 && fcntl(fd, F_SETFL, status | O_NONBLOCK) == 0,
                 "Cannot make actor channel nonblocking");
 
+        validate_actor_credential();
+    }
+
+    void validate_actor_credential() {
         require(!credential.content().payload().empty() &&
                     credential.proof().purpose() == pb::ISSUER_CREDENTIAL &&
                     credential.content().purpose() == pb::ISSUER_CREDENTIAL &&
@@ -109,7 +199,7 @@ struct ActorSessionClient::Impl {
                     claims.ParseFromString(credential.content().payload()),
                 "Invalid signed actor credential");
         validate_message(claims);
-        require(claims.protocol_version() == 1 && claims.public_key() == key.public_key() &&
+        require(claims.protocol_version() == 1 && claims.public_key() == key->public_key() &&
                     claims.actor_id().size() == 32 && claims.issuer_id().size() == 32 &&
                     credential.proof().public_key().size() == 32 &&
                     credential.proof().signature().size() == 64 && !world.empty(),
@@ -120,6 +210,8 @@ struct ActorSessionClient::Impl {
     void fail() noexcept {
         state = Lifecycle::Failed;
         prepared_transition.clear();
+        tls.reset();
+        tls_context.reset();
         channel.reset();
     }
 
@@ -130,19 +222,38 @@ struct ActorSessionClient::Impl {
     void transfer(void* buffer, std::size_t size, bool writing, Clock::time_point deadline) {
         auto* bytes = static_cast<char*>(buffer);
         std::size_t offset = 0;
+        const auto wait = [&](short events) {
+            for (;;) {
+                const auto left = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - Clock::now()).count();
+                require(left > 0, "Actor channel deadline expired");
+                pollfd descriptor{channel.get(), events, 0};
+                const int ready = poll(&descriptor, 1, static_cast<int>(left));
+                if (ready < 0 && errno == EINTR) continue;
+                require(ready > 0 && !(descriptor.revents & POLLNVAL),
+                        "Actor channel transport lost or timed out");
+                // Let I/O classify EOF/errors and drain queued or SSL-buffered bytes.
+                if (descriptor.revents & (events | POLLERR | POLLHUP)) return;
+            }
+        };
         while (offset < size) {
-            const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(
-                deadline - Clock::now()).count();
-            require(remaining > 0, "Actor channel deadline expired");
-            pollfd descriptor{channel.get(), static_cast<short>(writing ? POLLOUT : POLLIN), 0};
-            const int ready = poll(&descriptor, 1, static_cast<int>(remaining));
-            if (ready < 0 && errno == EINTR) continue;
-            // A peer may close after queuing a complete reply. Drain readable bytes.
-            require(ready > 0 && !(descriptor.revents & (POLLERR | POLLNVAL)) &&
-                        (!(descriptor.revents & POLLHUP) ||
-                         (!writing && (descriptor.revents & POLLIN))),
-                    "Actor channel transport lost or timed out");
-            const auto count = writing
+            require(Clock::now() < deadline, "Actor channel deadline expired");
+            if (!tls) wait(static_cast<short>(writing ? POLLOUT : POLLIN));
+            ssize_t count;
+            if (tls) {
+                std::size_t transferred = 0;
+                ERR_clear_error();
+                const int result = writing ? SSL_write_ex(tls.get(), bytes + offset, size - offset, &transferred)
+                                           : SSL_read_ex(tls.get(), bytes + offset, size - offset, &transferred);
+                if (result != 1) {
+                    const int error = SSL_get_error(tls.get(), result);
+                    if (error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
+                        wait(static_cast<short>(error == SSL_ERROR_WANT_READ ? POLLIN : POLLOUT));
+                        continue;
+                    }
+                    throw std::runtime_error("Actor TLS channel closed during exchange");
+                }
+                count = static_cast<ssize_t>(transferred);
+            } else count = writing
                 ? send(channel.get(), bytes + offset, size - offset, MSG_NOSIGNAL | MSG_DONTWAIT)
                 : recv(channel.get(), bytes + offset, size - offset, MSG_DONTWAIT);
             if (count < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) continue;
@@ -233,7 +344,7 @@ struct ActorSessionClient::Impl {
             validate_challenge(challenge);
             pb::WorldSessionRequest complete;
             complete.mutable_complete()->set_nonce(challenge.nonce());
-            *complete.mutable_complete()->mutable_proof() = key.sign(challenge.signing_request());
+            *complete.mutable_complete()->mutable_proof() = key->sign(challenge.signing_request());
             auto reply = exchange(std::move(complete), transition.empty()
                 ? pb::WorldSessionReply::kOpened : pb::WorldSessionReply::kPrepared);
             if (transition.empty()) {
@@ -260,7 +371,15 @@ ActorSessionClient::ActorSessionClient(int descriptor, pb::SignedCredential cred
                                        std::chrono::milliseconds timeout)
     : impl_(std::make_unique<Impl>(descriptor, std::move(credential),
                                   std::move(key_path), std::move(world), timeout)) {}
-ActorSessionClient::~ActorSessionClient() = default;
+ActorSessionClient::ActorSessionClient(std::filesystem::path tls_config_path)
+    : impl_(std::make_unique<Impl>(tls_config_path)) {}
+ActorSessionClient::~ActorSessionClient() {
+    if (impl_ && impl_->tls && impl_->channel.get() >= 0 && impl_->state != Lifecycle::Failed) {
+        // Nonblocking best-effort close_notify. Never wait beyond the active operation deadline.
+        ERR_clear_error();
+        (void)SSL_shutdown(impl_->tls.get());
+    }
+}
 
 pb::WorldSessionReply ActorSessionClient::authenticate(
     std::string room, std::string transition, const core::v1::Pose* pose) {

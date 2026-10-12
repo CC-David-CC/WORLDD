@@ -5,12 +5,17 @@
 #include <memory>
 
 namespace spatial {
-// Owns one inherited private AF_UNIX stream. Any uncertain exchange permanently fails it.
+// Owns one private local stream or mutually authenticated TLS connection.
+// Any uncertain exchange permanently fails it.
 class ActorSessionClient {
 public:
     ActorSessionClient(int descriptor, identity::v1::SignedCredential credential,
                        std::filesystem::path key_path, std::string expected_world,
                        std::chrono::milliseconds timeout = std::chrono::seconds(5));
+    // Opens one bounded TLS 1.3 connection using a private textproto configuration.
+    // The application must ignore SIGPIPE before construction and throughout this lifetime.
+    // The library checks this contract. It never changes signal disposition.
+    ActorSessionClient(std::filesystem::path tls_config_path);
     ~ActorSessionClient();
     ActorSessionClient(const ActorSessionClient&) = delete;
     ActorSessionClient& operator=(const ActorSessionClient&) = delete;
