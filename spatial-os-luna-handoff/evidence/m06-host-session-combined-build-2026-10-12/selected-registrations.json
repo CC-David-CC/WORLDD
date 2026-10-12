@@ -1,0 +1,330 @@
+{
+  "debug": {
+    "host-session-startup": {
+      "backtrace": 1,
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/core/test_host_session_startup.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-host-session"
+      ],
+      "name": "host-session-startup",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 60.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on"
+        }
+      ]
+    },
+    "actor-transition-real-world": {
+      "backtrace": 9,
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/core/test_actor_transition_integration.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/identityd",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-issuer-client",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/worldd",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-actor-transition-integration-driver"
+      ],
+      "name": "actor-transition-real-world",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 300.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on"
+        }
+      ]
+    },
+    "actor-transition-crosshost": {
+      "backtrace": 11,
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/core/test_actor_transition_crosshost.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-actor-transition-crosshost-probe",
+        "/tmp/registration-only-host-session-plan.pb"
+      ],
+      "name": "actor-transition-crosshost",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 720.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on"
+        }
+      ]
+    },
+    "host-actor-controller-native": {
+      "backtrace": 193,
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/native/test_host_actor_controller.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-security-auth",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/identityd",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-issuer-client"
+      ],
+      "name": "host-actor-controller-native",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff",
+            "SPATIAL_TEST_XSERVER=",
+            "SPATIAL_SECURITY_EVIDENCE=",
+            "ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+            "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 300.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on"
+        }
+      ]
+    },
+    "host-session-production-native": {
+      "backtrace": 195,
+      "command": [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-host-session-native-a3f8a710c50a6a9866b5b82b40a4e36a53c86ce0307d3b7b659f26711e52f097",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff",
+        "--setenv=SPATIAL_TEST_XSERVER=",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/native/test_host_session_production.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-security-auth",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/identityd",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-issuer-client",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on/spatial-host-session"
+      ],
+      "name": "host-session-production-native",
+      "properties": [
+        {
+          "name": "TIMEOUT",
+          "value": 1200.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/debug-on"
+        }
+      ]
+    }
+  },
+  "asan": {
+    "host-session-startup": {
+      "backtrace": 1,
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/core/test_host_session_startup.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-host-session"
+      ],
+      "name": "host-session-startup",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 60.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on"
+        }
+      ]
+    },
+    "actor-transition-real-world": {
+      "backtrace": 9,
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/core/test_actor_transition_integration.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/identityd",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-issuer-client",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/worldd",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-actor-transition-integration-driver"
+      ],
+      "name": "actor-transition-real-world",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 300.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on"
+        }
+      ]
+    },
+    "actor-transition-crosshost": {
+      "backtrace": 11,
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/core/test_actor_transition_crosshost.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-actor-transition-crosshost-probe",
+        "/tmp/registration-only-host-session-plan.pb"
+      ],
+      "name": "actor-transition-crosshost",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 720.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on"
+        }
+      ]
+    },
+    "host-actor-controller-native": {
+      "backtrace": 193,
+      "command": [
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tools/with_resource_delegate.py",
+        "--native",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tools/with_adapter_resources.py",
+        "--",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/native/test_host_actor_controller.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-security-auth",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/identityd",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-issuer-client"
+      ],
+      "name": "host-actor-controller-native",
+      "properties": [
+        {
+          "name": "ENVIRONMENT",
+          "value": [
+            "PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff",
+            "SPATIAL_TEST_XSERVER=",
+            "SPATIAL_SECURITY_EVIDENCE=",
+            "ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+            "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+          ]
+        },
+        {
+          "name": "TIMEOUT",
+          "value": 300.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on"
+        }
+      ]
+    },
+    "host-session-production-native": {
+      "backtrace": 195,
+      "command": [
+        "/usr/bin/systemd-run",
+        "--user",
+        "--wait",
+        "--pipe",
+        "--collect",
+        "--unit=spatial-host-session-native-f6316b47790fe2d71327a25070064b001e26cf0d92b8fdbbf0280868636ec64c",
+        "--property=Delegate=yes",
+        "--setenv=PYTHONPATH=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/python:/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff",
+        "--setenv=SPATIAL_TEST_XSERVER=",
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=",
+        "--setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1",
+        "--setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+        "/usr/bin/python3",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff/tests/native/test_host_session_production.py",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/spatial-os-luna-handoff",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-authority-launch-probe",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-security-auth",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/identityd",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-issuer-client",
+        "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on/spatial-host-session"
+      ],
+      "name": "host-session-production-native",
+      "properties": [
+        {
+          "name": "TIMEOUT",
+          "value": 1200.0
+        },
+        {
+          "name": "WORKING_DIRECTORY",
+          "value": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/asan-on"
+        }
+      ]
+    }
+  }
+}

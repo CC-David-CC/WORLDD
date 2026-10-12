@@ -1,0 +1,1 @@
+Selected: Debug and ASan ON/OFF host-session builds; ON crosshost/integration/native-driver dependencies and CTest inventories. OFF generated Python import closure checked statically. Runtime UNRUN; purpose is integrated CMake ownership and dependency verification.

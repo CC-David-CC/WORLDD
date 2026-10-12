@@ -1,0 +1,234 @@
+{
+  "commit": "2954de07c8646da6a0dfc7ffbcf9fdd8d59846fe",
+  "status": "",
+  "files": [
+    {
+      "path": "/home/dflanag3/m06-host-session-integrated-build.sh",
+      "name": "build-command.sh",
+      "sha256": "ded2e8706006518bbca1c1f6d5c25fbec59f08658099257692f8c164103a839f",
+      "size": 3369
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/argv.nul",
+      "name": "argv.nul",
+      "sha256": "6707352edb68e7033f80b7a6ca6399bd711fe30a240a985c500a642f9fc4dcb8",
+      "size": 57
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/argv.shell-quoted.txt",
+      "name": "argv.shell-quoted.txt",
+      "sha256": "4c38346e31411c8240d95295d88e40960135f11ec4c9304daf61e7ca32247766",
+      "size": 63
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/command-receipt.txt",
+      "name": "command-receipt.txt",
+      "sha256": "bfe7ba50ce9d3146a1d743800fde95f1891cdff0057e9688219345480349ef2f",
+      "size": 262
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/command.exit",
+      "name": "command.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/selected-checks.txt",
+      "name": "selected-checks.txt",
+      "sha256": "ff95862c9ec2ae85b0eef8760b61807b8449f35beded98ff363f14694b0c128e",
+      "size": 266
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/stderr.log",
+      "name": "stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/stdout.log",
+      "name": "stdout.log",
+      "sha256": "9d4ce998786dc23ac21b630a5dadbaf8040801cf2d06b81b5e1fd3541d054699",
+      "size": 1027
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-inventory.exit",
+      "name": "steps/asan-inventory.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-inventory.log",
+      "name": "steps/asan-inventory.log",
+      "sha256": "288319f83197cffe8173159a08a17d92f74446a2ddf6d89b7222b5f3f6ae5c9a",
+      "size": 191315
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-off-bindings.exit",
+      "name": "steps/asan-off-bindings.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-off-bindings.log",
+      "name": "steps/asan-off-bindings.log",
+      "sha256": "446727e22800164fa6a5fbdfdf54d0b8d7cb265f47d2141dfafc937d9fd04f1b",
+      "size": 81
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-off-build.exit",
+      "name": "steps/asan-off-build.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-off-build.log",
+      "name": "steps/asan-off-build.log",
+      "sha256": "ce385616d42ae2faf02cc490e19ac398033e9a04128385eb217d02d84a86dcf9",
+      "size": 10572
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-off-configure.exit",
+      "name": "steps/asan-off-configure.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-off-configure.log",
+      "name": "steps/asan-off-configure.log",
+      "sha256": "68ae84845b4040f6b20177519406dafa40282457921d9952cc62434130709dec",
+      "size": 1961
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-on-bindings.exit",
+      "name": "steps/asan-on-bindings.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-on-bindings.log",
+      "name": "steps/asan-on-bindings.log",
+      "sha256": "446727e22800164fa6a5fbdfdf54d0b8d7cb265f47d2141dfafc937d9fd04f1b",
+      "size": 81
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-on-build.exit",
+      "name": "steps/asan-on-build.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-on-build.log",
+      "name": "steps/asan-on-build.log",
+      "sha256": "54a23a9a3bdf3dcb4a43c697ff36de954edd227a83252a26576d5537dbcc024e",
+      "size": 21107
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-on-configure.exit",
+      "name": "steps/asan-on-configure.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/asan-on-configure.log",
+      "name": "steps/asan-on-configure.log",
+      "sha256": "62b3aa3b2523bdea4fc5a8b7998f80edfa9d8d7eca64d5328ef658d03d6dc9b7",
+      "size": 1975
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-inventory.exit",
+      "name": "steps/debug-inventory.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-inventory.log",
+      "name": "steps/debug-inventory.log",
+      "sha256": "e2b2bc32c36f139930816d089ef60e1512164bf8a6772e8f4a36acc1c4fd2d34",
+      "size": 191825
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-off-bindings.exit",
+      "name": "steps/debug-off-bindings.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-off-bindings.log",
+      "name": "steps/debug-off-bindings.log",
+      "sha256": "446727e22800164fa6a5fbdfdf54d0b8d7cb265f47d2141dfafc937d9fd04f1b",
+      "size": 81
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-off-build.exit",
+      "name": "steps/debug-off-build.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-off-build.log",
+      "name": "steps/debug-off-build.log",
+      "sha256": "1de9f0e763f0856ff54dcb57ad98a534609550d5604e7c6ac2018b6772fca835",
+      "size": 10572
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-off-configure.exit",
+      "name": "steps/debug-off-configure.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-off-configure.log",
+      "name": "steps/debug-off-configure.log",
+      "sha256": "cf689211c910accde2329073a667e7da3ae56a4f7b056b232977f7157c891dc1",
+      "size": 1962
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-on-bindings.exit",
+      "name": "steps/debug-on-bindings.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-on-bindings.log",
+      "name": "steps/debug-on-bindings.log",
+      "sha256": "446727e22800164fa6a5fbdfdf54d0b8d7cb265f47d2141dfafc937d9fd04f1b",
+      "size": 81
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-on-build.exit",
+      "name": "steps/debug-on-build.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-on-build.log",
+      "name": "steps/debug-on-build.log",
+      "sha256": "ac1dedb7ff3e49e1fe5d3f847cb9307df1e95d9ac525a272ec7a4d9d0fcadce2",
+      "size": 21107
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-on-configure.exit",
+      "name": "steps/debug-on-configure.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/steps/debug-on-configure.log",
+      "name": "steps/debug-on-configure.log",
+      "sha256": "cfe674c4512df87b78cbf3fc5c98b4f3f14d58e50ec311b1cad8a358fa665ab7",
+      "size": 1976
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/terminal-status.txt",
+      "name": "terminal-status.txt",
+      "sha256": "a4bccf5c13ef5ff8311e59b34d492bc7072a55298723601a6a9c127053aee8fc",
+      "size": 9
+    },
+    {
+      "path": "/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012/local/integrated-build01/wrapper.exit",
+      "name": "wrapper.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    }
+  ]
+}

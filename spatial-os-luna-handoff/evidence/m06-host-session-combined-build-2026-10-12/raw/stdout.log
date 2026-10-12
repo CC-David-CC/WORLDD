@@ -1,0 +1,30 @@
+START debug-on-configure
+END debug-on-configure 0
+START debug-on-build
+END debug-on-build 0
+START debug-inventory
+END debug-inventory 0
+START debug-on-bindings
+END debug-on-bindings 0
+START debug-off-configure
+END debug-off-configure 0
+START debug-off-build
+END debug-off-build 0
+START debug-off-bindings
+END debug-off-bindings 0
+START asan-on-configure
+END asan-on-configure 0
+START asan-on-build
+END asan-on-build 0
+START asan-inventory
+END asan-inventory 0
+START asan-on-bindings
+END asan-on-bindings 0
+START asan-off-configure
+END asan-off-configure 0
+START asan-off-build
+END asan-off-build 0
+START asan-off-bindings
+END asan-off-bindings 0
+debug ['actor-transition-crosshost', 'actor-transition-real-world', 'host-actor-controller-native', 'host-session-production-native', 'host-session-startup'] registration only; runtime UNRUN
+asan ['actor-transition-crosshost', 'actor-transition-real-world', 'host-actor-controller-native', 'host-session-production-native', 'host-session-startup'] registration only; runtime UNRUN

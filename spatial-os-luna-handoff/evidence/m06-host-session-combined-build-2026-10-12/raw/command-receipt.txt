@@ -1,0 +1,8 @@
+host=G164
+started_utc=2026-10-12T14:17:54Z
+checkout=/home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012
+commit=2954de07c8646da6a0dfc7ffbcf9fdd8d59846fe
+branch=m06/host-session-integrated-check-20261012
+git_status_begin
+?? local/
+git_status_end
