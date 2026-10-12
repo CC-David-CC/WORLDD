@@ -1,0 +1,239 @@
+{
+  "host": "sb16",
+  "candidate": "f74c6b579c6149f41e1cbd17b025eb92fd453009",
+  "profiles": [
+    "Debug"
+  ],
+  "phase_complete": false,
+  "nodes": [
+    {
+      "case": "Debug-delay-forward01",
+      "mode": "controller",
+      "result": {
+        "status": "passed",
+        "issuer_host": "sb16",
+        "delayed_host": "sb16-2",
+        "scenario": "delay",
+        "bundle": "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/local/m04-crosshost-01/runs/Debug-delay-forward01/controller/private-bundle",
+        "control_port": 53703,
+        "issuer_port": 52029,
+        "issuer_id": "9bbab2def92c28359d5972aad9ea472887078977d8912d02699acb6164d8e7ff",
+        "active_participants": 4,
+        "exact_active_generations": 4,
+        "committed_revision": 1,
+        "pending_obligation_observed": true,
+        "native_cancellation_hosts": [
+          "sb16",
+          "sb16-2"
+        ],
+        "applications_survived": 2,
+        "complete_by_acknowledgement": true,
+        "retired_worlds": 0
+      }
+    },
+    {
+      "case": "Debug-delay-forward01",
+      "mode": "worker",
+      "result": {
+        "status": "passed",
+        "host": "sb16",
+        "scenario": "delay",
+        "production_issuer": "9bbab2def92c28359d5972aad9ea472887078977d8912d02699acb6164d8e7ff",
+        "ready": true,
+        "cancelled": true
+      }
+    },
+    {
+      "case": "Debug-delay-reverse01",
+      "mode": "controller",
+      "result": {
+        "status": "passed",
+        "issuer_host": "sb16",
+        "delayed_host": "sb16",
+        "scenario": "delay",
+        "bundle": "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/local/m04-crosshost-01/runs/Debug-delay-reverse01/controller/private-bundle",
+        "control_port": 37045,
+        "issuer_port": 35591,
+        "issuer_id": "30e219c1f7b78e37125a76cb91b77ce48526df4d32fb0af5b6b26b12cdcce313",
+        "active_participants": 4,
+        "exact_active_generations": 4,
+        "committed_revision": 1,
+        "pending_obligation_observed": true,
+        "native_cancellation_hosts": [
+          "sb16",
+          "sb16-2"
+        ],
+        "applications_survived": 2,
+        "complete_by_acknowledgement": true,
+        "retired_worlds": 0
+      }
+    },
+    {
+      "case": "Debug-delay-reverse01",
+      "mode": "worker",
+      "result": {
+        "status": "passed",
+        "host": "sb16",
+        "scenario": "delay",
+        "production_issuer": "30e219c1f7b78e37125a76cb91b77ce48526df4d32fb0af5b6b26b12cdcce313",
+        "ready": true,
+        "cancelled": true
+      }
+    },
+    {
+      "case": "Debug-crash-forward01",
+      "mode": "controller",
+      "result": {
+        "status": "passed",
+        "issuer_host": "sb16",
+        "delayed_host": "sb16-2",
+        "scenario": "crash",
+        "bundle": "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/local/m04-crosshost-01/runs/Debug-crash-forward01/controller/private-bundle",
+        "control_port": 47441,
+        "issuer_port": 46177,
+        "issuer_id": "176c37b9c1242f2e6aea2cbe5299313d19ac21ddb7a4d59e8856a4636ffdb269",
+        "active_participants": 4,
+        "exact_active_generations": 4,
+        "committed_revision": 1,
+        "pending_obligation_observed": true,
+        "native_cancellation_hosts": [
+          "sb16",
+          "sb16-2"
+        ],
+        "applications_survived": 2,
+        "complete_by_acknowledgement": false,
+        "retired_worlds": 1
+      }
+    },
+    {
+      "case": "Debug-crash-forward01",
+      "mode": "worker",
+      "result": {
+        "status": "passed",
+        "host": "sb16",
+        "scenario": "crash",
+        "production_issuer": "176c37b9c1242f2e6aea2cbe5299313d19ac21ddb7a4d59e8856a4636ffdb269",
+        "ready": true,
+        "cancelled": true
+      }
+    },
+    {
+      "case": "Debug-crash-reverse01",
+      "mode": "controller",
+      "result": {
+        "status": "passed",
+        "issuer_host": "sb16",
+        "delayed_host": "sb16",
+        "scenario": "crash",
+        "bundle": "/home/dflanag3/src/spacial_desktop-m04-fixture-20261011/spatial-os-luna-handoff/local/m04-crosshost-01/runs/Debug-crash-reverse01/controller/private-bundle",
+        "control_port": 46619,
+        "issuer_port": 44547,
+        "issuer_id": "2ee4a56c3a9593f33634a292fc6504887e8324ab14b4b1d7fba2776f2bbcb31c",
+        "active_participants": 4,
+        "exact_active_generations": 4,
+        "committed_revision": 1,
+        "pending_obligation_observed": true,
+        "native_cancellation_hosts": [
+          "sb16",
+          "sb16-2"
+        ],
+        "applications_survived": 2,
+        "complete_by_acknowledgement": false,
+        "retired_worlds": 1
+      }
+    },
+    {
+      "case": "Debug-crash-reverse01",
+      "mode": "worker",
+      "result": {
+        "status": "passed",
+        "host": "sb16",
+        "scenario": "crash",
+        "production_issuer": "2ee4a56c3a9593f33634a292fc6504887e8324ab14b4b1d7fba2776f2bbcb31c",
+        "ready": true,
+        "crashed": true,
+        "recovered": true,
+        "retired": true
+      }
+    }
+  ],
+  "files": {
+    "runs/Debug-delay-forward01/controller/pending-barrier.pb": "0a30fe066180ec7fd1d063b7314afb4f0ccc7d471829cee49912ca1bb90481ef",
+    "runs/Debug-delay-forward01/controller/complete-barrier.pb": "4ad28ec2579a8351459d60b53ebd7919e31542c2de509d8f8023336d9b98fc5d",
+    "runs/Debug-delay-forward01/controller-review.json": "3004cbde300ffb7dc84bb8da5b6cc288f7efa1233d903babd567f97b35286807",
+    "runs/Debug-delay-forward01/controller/result.json": "31243c20ce55537ad5bbdc4b7f5a1c892c57cebf30b6ddd18c3626953a5bec96",
+    "runs/Debug-delay-forward01/worker-review.json": "2fdc2fe94794da987b6c2221308f82818b97bbc7582e700f8aec12e7ed1d0d9c",
+    "runs/Debug-delay-forward01/worker/result.json": "fac0fd5d6fa37dc61e4536d923710a145780dcf09909e61b4d40629f406446af",
+    "runs/Debug-delay-reverse01/controller/pending-barrier.pb": "e820ac8da7272085746148d5114cfc061e8753a24a6431dbd368a1c18e46ccdd",
+    "runs/Debug-delay-reverse01/controller/complete-barrier.pb": "eb73aad37cc5dbe6c35464c84b048687cc156a3b536cde2a94e30409f9f7ca9b",
+    "runs/Debug-delay-reverse01/controller-review.json": "44c014f4d51e201b8d9f6eca931b5edf8bd8dedb864c935e5989cbd2e0686508",
+    "runs/Debug-delay-reverse01/controller/result.json": "481a3745905014228979f36eb3da85b5ce13dbce64b4cf9bca76aa321bd0f841",
+    "runs/Debug-delay-reverse01/worker-review.json": "c3560cd68b87580dcdf0b1ed784ef6aea5fb6abd3d5a7377e18835cad043fd7b",
+    "runs/Debug-delay-reverse01/worker/result.json": "aa08ee739720e4f35b9261d4a034d4ce78a06cc22cf1adf9fd57e621631eb2ab",
+    "runs/Debug-crash-forward01/controller/pending-barrier.pb": "7f814a70ed0d07bd0a9f14816c043d0cbf937087f3512671371d2909a3d79c88",
+    "runs/Debug-crash-forward01/controller/complete-barrier.pb": "3d32446b03a183b29dbb09b42b29b80fdd3f43fe7d863aa010fee45a466c4c04",
+    "runs/Debug-crash-forward01/controller/crashed-barrier.pb": "f61d37c6adc84bad9c715ce9b77d67f0fd673723a9023e320888209ff50e4aa1",
+    "runs/Debug-crash-forward01/controller/recovered-barrier.pb": "f61d37c6adc84bad9c715ce9b77d67f0fd673723a9023e320888209ff50e4aa1",
+    "runs/Debug-crash-forward01/controller-review.json": "9df80d46aacc9fa590dde219e4e7ae96477f4c9de86334fd321ec5acaae00c72",
+    "runs/Debug-crash-forward01/controller/result.json": "bccd6e9d13cadd61faa4801b161fda2edcfa7b5af73e49a3da02f224b8a33560",
+    "runs/Debug-crash-forward01/worker-review.json": "5f4f9bfd0df41f3bb84684e3ef4090f77d0eb1a71777e30ce23a75f58c6eef27",
+    "runs/Debug-crash-forward01/worker/result.json": "60f2e4868e8eb27683d4763cfb2a51b635d0c21b01ee23bb313c4a6e88994e89",
+    "runs/Debug-crash-reverse01/controller/pending-barrier.pb": "147e520ce8014a2e8ec0693457e90b9256c031e620625ac8287dac9f0c21aa97",
+    "runs/Debug-crash-reverse01/controller/complete-barrier.pb": "857ffc3414a7e824b9a6fa0672d08533aeddb1326c7c9e7f786d09f9dda8b038",
+    "runs/Debug-crash-reverse01/controller/crashed-barrier.pb": "6d60456e612140158a0033d7cb1458466317a91fb90659e87534a2681377ab9e",
+    "runs/Debug-crash-reverse01/controller/recovered-barrier.pb": "6d60456e612140158a0033d7cb1458466317a91fb90659e87534a2681377ab9e",
+    "runs/Debug-crash-reverse01/controller-review.json": "9c2cba2f7fcc3fa021ba9c42c4ffcd801c32e31e3233087640234c399b384f59",
+    "runs/Debug-crash-reverse01/controller/result.json": "0651a8f762241e430fc900c8f40fafc97abcdaff2b225a7f2264b45383c866ad",
+    "runs/Debug-crash-reverse01/worker-review.json": "1b44f25b24100a9eb45f6919e1bcbeb6bbbadb8304f0cc80b04c2de1cbadbacf",
+    "runs/Debug-crash-reverse01/worker/result.json": "41c12fcad7876d4d58add255c1a1786e438324c93ea5c0ab1706ec0bcc3b0135",
+    "runs/Debug-crash-forward01/controller.log": "5b35aa248cf63e885a3e51b01605d56f0fd6025ee906b809a4a3af5cf99104b7",
+    "runs/Debug-crash-forward01/worker.log": "c71595b12c438408436554f827d4b5f7538d4bebffe5809250bdfa7dcac35989",
+    "runs/Debug-crash-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runs/Debug-crash-forward01/controller/native/runTest-issuer-1223151.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-bootstrap-broker.log": "a61ee2aaa7d44e0a8b148851c08b7ed39ab8eec8501a60aac3639096d95b65db",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-probe.jsonl.log": "78e1d2dff47dcdfcc31a114b8c7576b123e755cb3d29ba5e579dcede33fbcf56",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-coordinator.log": "25bdd8d71263e5d3ac369dbd41e75a2a1ff8e7c4d05d9061fb2a27c1fbcdf112",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-server-0.log": "022af348fb3335aaf9731c20c8650755ab2ba29149ca02ff1c9c762d98e06441",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16-confinement.json.log": "5ab8060f899ada99b27130f0cf93d82bdb96499ba31221f2292db492e2d0381e",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16/prepare.log": "099207d9bd9ade69d7ee258b0be738887ebfe89ee12de0d4c76e285ccc81f89e",
+    "runs/Debug-crash-forward01/worker/native/test_native_storage_crosshost_sb16/cleanup.log": "425209a734b6a84b81c9a9fa082f2901c6a8eba708bfc24923d250042d85f220",
+    "runs/Debug-delay-reverse01/controller.log": "245b118d5cf11c6e028bc79b4319d95653f15f9cd7fa09b526a5309897ab3eea",
+    "runs/Debug-delay-reverse01/worker.log": "1545e686febdbbff732198afd8ef66506e00f1578d56e7bc9119c6048686c77c",
+    "runs/Debug-delay-reverse01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runs/Debug-delay-reverse01/controller/native/runTest-issuer-1222356.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-bootstrap-broker.log": "8667c5716b76e784d2a094da0e0a37c9fa5cd66822559fccd13255e09fd6c0ca",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-coordinator.log": "9ab811e3a62716a8550922fddda5569538c061d10ed6fbbdcd5dd440d803be74",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-server-0.log": "d9ab6ee5a20180b746792aaf1b37febe18382c9f8ce67719c17a81ed7f97dd9a",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16-confinement.json.log": "5ab8060f899ada99b27130f0cf93d82bdb96499ba31221f2292db492e2d0381e",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16/prepare.log": "8cf5b010cd9fdb0a1469ef7c06b2296aab3ee7f8e2a62257d80904463f4ac68f",
+    "runs/Debug-delay-reverse01/worker/native/test_native_storage_crosshost_sb16/cleanup.log": "602c019f032ac1217e3f0a57c63bb56a9557bcdb376289ddd427d26299820687",
+    "runs/Debug-delay-forward01/controller.log": "3befb91f1177064d3857f6a9a0f029ab3fcdd3c1a0b990f22315112fd70d37ff",
+    "runs/Debug-delay-forward01/worker.log": "e3c6e5f3a891041b99a48ed17b88146ade0c61b37f15384f786dfd2e3413e339",
+    "runs/Debug-delay-forward01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runs/Debug-delay-forward01/controller/native/runTest-issuer-1221611.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-bootstrap-broker.log": "b338a101f265ef1dd060223c8457d4f24b2c15f4623331d0dac33c5657ba2b70",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-probe.jsonl.log": "b72cf87fd74db9bb640924b1e867d20ceb7a93355285e51c852d1923abc844a2",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-coordinator.log": "8bb87838f4529741ce621742dd92845774c15f91e879eb9d461623aa5c00f296",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-server-0.log": "b778b754c6552decdcbdcf96fe67ac82a6546898234df81cf1b1b2e7ab7f169d",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16-confinement.json.log": "5ab8060f899ada99b27130f0cf93d82bdb96499ba31221f2292db492e2d0381e",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16/prepare.log": "750546f8de514d75307da9fb7d81ea24b2a3cc0ee12897f08dca6483219b28b8",
+    "runs/Debug-delay-forward01/worker/native/test_native_storage_crosshost_sb16/cleanup.log": "0d7b565c3f8cc387f2b7a5d3a4919ba61713162b2130d497aee166aaa14d2ef4",
+    "runs/Debug-crash-reverse01/controller.log": "2cb4040ff58c01569e6f3ad3cf21b9ddb152c4eb5f26d09e685e852132a8f5dd",
+    "runs/Debug-crash-reverse01/worker.log": "d587cffa5f852f802b512977de14cf839023ef5bca9ec76a3d7f1056c13e07ba",
+    "runs/Debug-crash-reverse01/controller/tls-0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runs/Debug-crash-reverse01/controller/native/runTest-issuer-1223977.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-bootstrap-broker.log": "8fe09fdeed411cb6c269d7e223cc3f4da8f9232c2d9ea5ce3c4427a91a0d5d67",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-probe.jsonl.log": "f7357b854c5da18d57eb88e72c83a2e8302b2172e7b5b637eae6d483217ba6f2",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-coordinator.log": "5b4d9a5e719426caa14066481133bfd32d041225bbefdf11d18498e56815de36",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-server-0.log": "0f6e6840bde4df2c28da94820f3548d6945ae642b912631f28d32f7cdaa292e4",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16-confinement.json.log": "5ab8060f899ada99b27130f0cf93d82bdb96499ba31221f2292db492e2d0381e",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16/prepare.log": "08e0536dc0771fe386a366bf6d2f31dcde4ff030ee945351db6f4b721c3c1220",
+    "runs/Debug-crash-reverse01/worker/native/test_native_storage_crosshost_sb16/cleanup.log": "3f30ca94fe70a336287febc7decc0f9dc0b9471de085c2a2642922ba3d6a312d"
+  },
+  "status": "ready_for_primary_review",
+  "excluded_directories": [
+    "private-bundle",
+    "volume"
+  ]
+}
