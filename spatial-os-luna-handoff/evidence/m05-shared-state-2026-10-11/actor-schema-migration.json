@@ -1,0 +1,10 @@
+{
+  "status": "additive-only",
+  "additions": [
+    "RenderConfig.actor_color",
+    "RenderConfig.actor_size",
+    "RenderScene.actors"
+  ],
+  "previous_sha256": "82b7260a8ccb486d0e3e35884570886f57d659645b63782fd0ecbebdaf651cb8",
+  "current_sha256": "c88d7cf22e7b0ea45509433cdf8c2063fde1c8b376d48101130022e2bcbd68a1"
+}
