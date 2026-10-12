@@ -1,0 +1,48 @@
+﻿{
+    "status":  "passed-focused-regressions",
+    "source_commit":  "a89ec13",
+    "phase_complete":  false,
+    "reports":  [
+                    {
+                        "host":  "sb16",
+                        "profile":  "related-debug-01",
+                        "passed":  228,
+                        "source_unchanged":  true,
+                        "suite_log_hashes_verified":  true,
+                        "native_server_sanitizers":  false,
+                        "core_only":  false
+                    },
+                    {
+                        "host":  "sb16",
+                        "profile":  "related-sanitize-01",
+                        "passed":  228,
+                        "source_unchanged":  true,
+                        "suite_log_hashes_verified":  true,
+                        "native_server_sanitizers":  true,
+                        "core_only":  true
+                    },
+                    {
+                        "host":  "sb16-2",
+                        "profile":  "related-debug-01",
+                        "passed":  228,
+                        "source_unchanged":  true,
+                        "suite_log_hashes_verified":  true,
+                        "native_server_sanitizers":  false,
+                        "core_only":  false
+                    },
+                    {
+                        "host":  "sb16-2",
+                        "profile":  "related-sanitize-01",
+                        "passed":  228,
+                        "source_unchanged":  true,
+                        "suite_log_hashes_verified":  true,
+                        "native_server_sanitizers":  true,
+                        "core_only":  true
+                    }
+                ],
+    "limits":  [
+                   "Sanitizer runs disable GLX.",
+                   "Native GPU, the complete M04 gate, and later milestones remain unqualified."
+               ],
+    "next":  "Audit M04 requirement coverage and remaining independent attacks before freezing the full phase gate."
+}

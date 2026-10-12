@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-11: XACE pixel hooks pass related Debug and sanitizer regressions
+
+SpatialSecurity now registers window-image and drawable-access callbacks.
+The pinned XLibre patch provides generic XACE hooks instead of direct SpatialSecurity calls in DIX.
+GetImage excludes foreign child pixels. IncludeInferiors requests cannot access foreign child regions.
+Same-application and privileged controls remain usable.
+
+Both hosts build the Debug and ASan/UBSan servers and pass server unit checks.
+Each host passes 228 selected checks in each profile, for 912 total.
+The checks cover pixels, resources, identities, metadata, selections, extensions, and input authority.
+Copied suite logs match their recorded hashes. Source hashes remain unchanged during each run.
+No sanitizer findings appear in the collected logs.
+Sanitizer runs disable GLX because the installed-vendor teardown limitation remains recorded.
+These checks do not qualify native graphics or complete M04.
+
+M01-M03 remain qualified. M04 requires a remaining-requirements audit and its full phase gate.
+Read evidence/m04-pixel-hook-integration-2026-10-11/regression-review.json.
+
 ## 2026-10-11: Parent and child-event metadata pass focused native qualification
 
 Owned windows no longer disclose unauthorized parents through QueryTree or ReparentNotify.

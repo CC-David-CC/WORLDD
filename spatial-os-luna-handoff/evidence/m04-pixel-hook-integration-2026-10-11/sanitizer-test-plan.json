@@ -1,0 +1,33 @@
+﻿{
+    "phase":  "M04",
+    "candidate":  "a89ec13",
+    "prior_goal_turn":  "progress",
+    "invariant":  "SpatialSecurity callbacks enforce foreign-child pixel isolation through XACE hooks.",
+    "hosts":  [
+                  "sb16",
+                  "sb16-2"
+              ],
+    "checks":  {
+                   "selected_suites":  [
+                                           "topology_pixels",
+                                           "resource_isolation",
+                                           "security_identity",
+                                           "extension_isolation",
+                                           "selection_isolation",
+                                           "selection_namespace",
+                                           "event_metadata",
+                                           "parent_metadata",
+                                           "atom_privacy",
+                                           "application_input",
+                                           "actor_binding"
+                                       ],
+                   "native_server_build":  "ASan and UBSan; unit and modesetting symbol tests",
+                   "purpose":  "Exercise the new region lifetime and callback paths plus related resource, metadata, selection, and input authority boundaries."
+               },
+    "sanitizer_scope":  "Core-X initially; GLX disabled due recorded installed-vendor teardown leak. This does not qualify native graphics.",
+    "phase_complete":  false,
+    "build_sessions":  {
+                           "sb16-2":  50790,
+                           "sb16":  69648
+                       }
+}
