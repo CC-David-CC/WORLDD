@@ -1,0 +1,24 @@
+M06 held-input run02: application process identity review
+
+Status: source defect observed in a live draft on 2026-10-12.
+Recheck the terminal worker source before correction or qualification.
+Do not edit the live worker's files.
+
+Observed draft:
+host_actor_native_checks.hpp reads the witness ready event's pid.
+It passes that number to process_start(), which reads host /proc/PID/stat.
+native/xprobe.c emits getpid() in that ready event.
+workspace/process.cpp launches the application with CLONE_NEWPID.
+Therefore the witness PID belongs to the application's PID namespace.
+It does not identify the same process in the host PID namespace.
+The current check can fail or pin an unrelated host process.
+
+Required correction:
+Resolve the actual witness through the application's owned process boundary.
+Verify its PID namespace and namespace-local PID before pinning its host identity.
+Use a pidfd and start identity, or an equivalent checked process handle.
+Do not select a host process by the namespace-local PID alone.
+Check the same application remains alive across each transition.
+Keep independent native event acknowledgements as separate evidence.
+
+Runtime checks for this draft remain unrun.

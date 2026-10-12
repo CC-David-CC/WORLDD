@@ -1,0 +1,40 @@
+spatialwm: 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4; llvmpipe (LLVM 20.1.2, 256 bits)
+native-checkpoint=1 selected=b473a82727557d8937c1a9bece10b024 A-binding=protocol_version: 1 world_id: "b473a82727557d8937c1a9bece10b024" service_incarnation: "\304\277\365\236\245\270\271\021Y\322&\276;\270\013\005\234\226& \027Dh;\251\242\321\323\235\001{\227" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "1e4205b211329903c2ac8df5c165ac2f" service_incarnation: "/\320B\311}\213\246(\200\224\337\334\300\332\207\0102\266G\305r\216)_\355\211\334\025\323\201y\224" authority_generation: 1 presentation_generation: 2
+native-checkpoint=1 pid=1607065 start=10720834
+native-checkpoint=1 pid=1607102 start=10721039
+native-checkpoint=1 pid=1607123 start=10721105
+native-checkpoint=1 pid=1607129 start=10721187
+native-checkpoint=1 pid=1607190 start=10721269
+native-checkpoint=2 selected=b473a82727557d8937c1a9bece10b024 A-binding=protocol_version: 1 world_id: "b473a82727557d8937c1a9bece10b024" service_incarnation: "\304\277\365\236\245\270\271\021Y\322&\276;\270\013\005\234\226& \027Dh;\251\242\321\323\235\001{\227" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "1e4205b211329903c2ac8df5c165ac2f" service_incarnation: "/\320B\311}\213\246(\200\224\337\334\300\332\207\0102\266G\305r\216)_\355\211\334\025\323\201y\224" authority_generation: 1 presentation_generation: 2
+native-checkpoint=2 pid=1607065 start=10720834
+native-checkpoint=2 pid=1607102 start=10721039
+native-checkpoint=2 pid=1607123 start=10721105
+native-checkpoint=2 pid=1607129 start=10721187
+native-checkpoint=2 pid=1607190 start=10721269
+native-checkpoint=3 selected=1e4205b211329903c2ac8df5c165ac2f A-binding=protocol_version: 1 world_id: "b473a82727557d8937c1a9bece10b024" service_incarnation: "\304\277\365\236\245\270\271\021Y\322&\276;\270\013\005\234\226& \027Dh;\251\242\321\323\235\001{\227" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "1e4205b211329903c2ac8df5c165ac2f" service_incarnation: "/\320B\311}\213\246(\200\224\337\334\300\332\207\0102\266G\305r\216)_\355\211\334\025\323\201y\224" authority_generation: 1 presentation_generation: 2
+native-checkpoint=3 pid=1607065 start=10720834
+native-checkpoint=3 pid=1607102 start=10721039
+native-checkpoint=3 pid=1607123 start=10721105
+native-checkpoint=3 pid=1607129 start=10721187
+native-checkpoint=3 pid=1607190 start=10721269
+native-checkpoint=4 selected=b473a82727557d8937c1a9bece10b024 A-binding=protocol_version: 1 world_id: "b473a82727557d8937c1a9bece10b024" service_incarnation: "\304\277\365\236\245\270\271\021Y\322&\276;\270\013\005\234\226& \027Dh;\251\242\321\323\235\001{\227" authority_generation: 1 presentation_generation: 1 B-binding=protocol_version: 1 world_id: "1e4205b211329903c2ac8df5c165ac2f" service_incarnation: "/\320B\311}\213\246(\200\224\337\334\300\332\207\0102\266G\305r\216)_\355\211\334\025\323\201y\224" authority_generation: 1 presentation_generation: 2
+native-checkpoint=4 pid=1607065 start=10720834
+native-checkpoint=4 pid=1607102 start=10721039
+native-checkpoint=4 pid=1607123 start=10721105
+native-checkpoint=4 pid=1607129 start=10721187
+native-checkpoint=4 pid=1607190 start=10721269
+retained-native-identity pid=1607065 start=10720834
+retained-native-identity pid=1607102 start=10721039
+retained-native-identity pid=1607123 start=10721105
+retained-native-identity pid=1607129 start=10721187
+retained-native-identity pid=1607190 start=10721269
+PASS native-host-controller-A-B-A-denial-retained-owners-and-processes
+worldd: Broker authority channel closed
+authority supervisor: Private participant channel closed
+Session launch failed after checked cleanup: Private participant channel closed
+worldd: Broker authority channel closed
+authority supervisor: Private participant channel closed
+Session launch failed after checked cleanup: Private participant channel closed
+worldd: Broker authority channel closed
+authority supervisor: Private participant channel closed
+Session launch failed after checked cleanup: Private participant channel closed

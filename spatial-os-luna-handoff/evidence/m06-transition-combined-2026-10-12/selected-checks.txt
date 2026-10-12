@@ -1,0 +1,18 @@
+Combined source selected before execution:
+b7b684e1b83e3f67fa8237968759e1980f79685e
+Branch m06/recovery-combined-candidate on a5500.
+Worktree /home/dflanag3/src/spacial-m06-retained-recovery-20261012.
+Tracked source was clean before branch switch. Old branches and artifacts remain preserved.
+
+Selected suites per host/profile:
+actor-transition-real-world:15 cases, real issuer/world/broker/workspace semantics and framing.
+actor-transition-recovery:4 cases, before/after-commit departure and activation with checked native recovery.
+host-actor-controller-native:1 case, retained host-controller consumer and native A-B-A/private denial.
+Total80 cases across sb16 and sb16-2 Debug and ASan/UBSan.
+
+Build three matching targets in fresh directories, normal CMake configure, -j2 and flock.
+Package full executable/config/generated-binding/test-fixture closure with hashes.
+Run each suite in a separate delegated resource service and private existing XACE server.
+Keep sanitizer checks enabled. Preserve every exit, failure, source pin, and artifact hash.
+No inference, test-host compilation, source edits, commits, or pushes are authorized for this task.
+Qualification and M06 gate results remain pending until logs prove them.

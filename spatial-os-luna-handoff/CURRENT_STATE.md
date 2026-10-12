@@ -1,5 +1,23 @@
 # Implementation status
 
+## 2026-10-12: Combined M06 transition checks pass
+
+Combined source b7b684e passed all 80 selected executions on sb16 and sb16-2 in Debug and ASan/UBSan.
+Each host/profile passed 15 real-service, four retained recovery, and one native host-controller case.
+Four initial host-controller setup errors came from an incorrect resource-wrapper combination.
+The corrected launcher follows the declared CMake environment. No source changed for that retry.
+Failure logs and final results remain in evidence/m06-transition-combined-2026-10-12.
+These focused results do not complete the M06 gate.
+
+Production host-session review still requires production protobuf packaging and two stronger lifetime/deadline regressions.
+Cross-host provisioning has compiled; runtime qualification remains unrun.
+The held-input correction worker remains active after the incomplete Luna draft.
+A live-draft review found namespace-local application PIDs used as host PIDs.
+Recheck and resolve that finding before accepting its process-continuity evidence.
+See ../defect blockers/m06-held-input-namespace-pid-review.txt.
+
+M01-M05 remain qualified. M06 remains active. M07-M16 remain pending.
+
 ## 2026-10-12: M06 four-case native recovery passes focused qualification
 
 All four recovery cases passed on both hosts in Debug and ASan/UBSan: 16 executions.

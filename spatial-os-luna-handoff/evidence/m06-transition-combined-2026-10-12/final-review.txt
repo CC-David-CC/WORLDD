@@ -1,0 +1,75 @@
+M06 COMBINED TRANSITION QUALIFICATION - FINAL REVIEW
+Date: 2026-10-12
+Source: b7b684e1b83e3f67fa8237968759e1980f79685e
+Branch: m06/recovery-combined-candidate
+
+RESULT
+All 80 selected checks passed. All 12 final suite commands exited zero.
+Final failures: 0. Final skips: 0. Selected blocked or unrun checks: 0.
+
+Host       Profile    Realworld    Recovery    Host controller    Total
+sb16       Debug      15           4           1                  20
+sb16       ASan       15           4           1                  20
+sb16-2     Debug      15           4           1                  20
+sb16-2     ASan       15           4           1                  20
+
+results.json maps each result to its exact final log.
+The recovery cases cover departure before commit, departure after commit,
+activation rollback, and activation after durable commit.
+Each final test log reports its expected count and OK.
+
+PRESERVED INITIAL FAILURE
+Attempt01 passed all 76 realworld and recovery checks.
+Its four host-controller commands failed during fixture setup.
+The launcher incorrectly applied the adapter resource wrapper to that suite.
+SessionWorldTests.ready() read an empty parent broker cgroup.procs.
+The configured broker instead occupied the broker-manager child cgroup.
+
+Attempt02 changed only the host-controller launcher.
+It used the suite's declared systemd Delegate=yes environment.
+It reused the same verified source and binaries.
+All four host-controller checks then passed.
+The initial logs and nonzero exit receipts remain in this evidence directory.
+No source change, assertion relaxation, or production security change occurred.
+
+Do not apply this host-only launcher to the future held-input fixture.
+That fixture inherits SessionApplicationTests and requires adapter resources.
+
+BUILD AND ARTIFACTS
+Both profiles built on a5500 with -j2 and separate build directories.
+No compilation occurred on either test host.
+The source remained pinned and tracked-clean after qualification.
+Untracked local build and deployment artifacts remained outside source control.
+
+Debug archive SHA256:
+1b639d4892e944754be2bfb77d841bf161bbbce16787bbd0d4e2c8b3b900d74f
+ASan archive SHA256:
+24b6b7256be0c794caf14814e3432a3146f0e1453517f04f96cfff348390b839
+
+source.sha256 records source hashes.
+debug-files.sha256 and asan-files.sha256 record complete bundle hashes.
+static-closure.json records generated binding closure checks.
+Both test hosts verified transferred artifact hashes.
+The runtime used the existing XACE server wrappers.
+
+Deployment on each test host:
+/home/dflanag3/spatial-test-artifacts/m06-transition-combined-20261012-01
+Host-controller launcher correction on each test host:
+/home/dflanag3/spatial-test-artifacts/m06-transition-combined-host-20261012-02
+
+DIAGNOSTIC AND SECRET REVIEW
+The sanitizer scan inspected 174 logs per host, 348 logs total.
+No AddressSanitizer, LeakSanitizer, or runtime-error diagnostic matched.
+Both sanitizer-scan JSON files retain the scan counts and roots.
+The scanner source contains diagnostic search terms; those are not failures.
+The selected evidence scan found no private-key, bearer-token, or known fleet-token markers.
+Review found no credential values in the selected logs.
+
+LIMITS AND HANDOFF
+This result qualifies the selected combined transition increment only.
+It does not complete the full M06 gate or Spatial-M1 acceptance.
+Cross-host scenarios, physical input, performance, and other gate requirements remain separate.
+All assigned runtime jobs are terminal. Their exit receipts are preserved.
+This worker made no commits or pushes.
+The primary agent may review, commit, and integrate this evidence with the frozen candidate.
+This evidence directory is now frozen for that handoff.
