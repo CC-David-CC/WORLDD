@@ -24,6 +24,8 @@ Do not force one branch into multiple linked writable worktrees.
 Give each worker a bounded production outcome and explicit regression cases.
 State artifact names, build profiles, permitted execution hosts, and completion requirements.
 Include this skill's installed path in the task so the worker reads it.
+Keep this repository copy canonical. Install matching copies on the controller and coding hosts.
+Verify installed file hashes after updates. Existing workers receive changed instructions at their next bounded attempt.
 Start with Luna medium. Escalate a failed implementation with concrete review findings.
 Do not escalate merely because a worker is slow.
 
@@ -97,6 +99,10 @@ If the worker sandbox denies .git writes, hand exact paths and status to the con
 The controller performs the authorized commit. Do not bypass the sandbox or retry the same denied Git write.
 
 Push explicit branches to origin without force. Verify the remote branch resolves to the expected commit.
+Record a checkpoint receipt: host, checkout, branch, base, commit, qualification status, and remaining dirty paths.
+Record the destination ref and its verified remote commit after a push.
+Distinguish LOCAL COMMIT, BOX-GIT VERIFIED, and INTEGRATED. One state does not imply the next.
+If a push fails, preserve the local commit and report the failure. Do not recreate the commit to retry transport.
 On a rejected push, fetch and inspect divergence. Do not overwrite the other worker's history.
 GitHub publication remains a separate authorization decision.
 
@@ -109,6 +115,9 @@ Send concrete defects back with the failed invariant and required regression.
 Keep evidence from earlier failures.
 
 Freeze source hashes or a commit before distributing binaries.
+Compare the worker base with integrated fixes to imported fixtures and packaging before deployment.
+Apply needed fixes only after the worker stops. Record the resulting source and rebuild affected artifacts.
+Do not silently combine new fixture source with old binaries. Record and review any test-only overlay explicitly.
 Verify artifact hashes after transfer to each test host.
 Check the runtime launcher's required broker configuration, delegated cgroup, helper paths, and service dependencies before qualification.
 Inspect imported fixtures for generated bindings, executable-adjacent runtime configuration, and helper binaries before packaging.
