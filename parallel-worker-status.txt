@@ -1,4 +1,8 @@
 Current checkpoint, 2026-10-12:
+Host-session task ee416fc passed400 focused checks across bothhosts/profiles and is integrated as2954de0.
+a5500 tmux spatial-host-session-integrated-build01 builds combined ON/OFF Debug/ASan source2954de0; no runtime there.
+Geometry runtime waits for corrected fullnative/OFF bundle and selected CTest command verification.
+Older live-job entries below are historical and superseded by these updates.
 Geometry Luna run01 is terminal and unqualified; reviewed defects require a bounded Sol medium correction.
 Host-session Debug24 passed on each host; OFF startup20 passed. Default-GLX sanitizer cleanup failed on both hosts.
 Corrected GLX-enabled sanitizer reruns now use the qualified wrapper and patched Mesa dependency closure.

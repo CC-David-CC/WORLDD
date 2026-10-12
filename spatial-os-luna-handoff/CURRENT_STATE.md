@@ -1,5 +1,18 @@
 # Implementation status
 
+## 2026-10-12: Production host-session integrated after 400 focused checks
+
+Task ee416fc passed 400 selected checks on sb16 and sb16-2: startup 20, native 96, and related callers 284.
+Corrected runs used the qualified XACE wrapper with GLX enabled, leak detection enabled, and no suppressions.
+All selected checks passed with no skips. Earlier raw-Mesa failures and the failed launcher attempt remain preserved.
+Source is integrated as 2954de0. The merge retains resource-wrapped native checks and one actor-client Python generator.
+Combined ON/OFF Debug and ASan build validation is active on a5500 in spatial-host-session-integrated-build01.
+Build checkout: /home/dflanag3/src/spacial-m06-host-session-integrated-check-20261012, pinned at 2954de0.
+Runtime on that combined source and the full M06 gate remain pending.
+Geometry run02 remains unqualified. Its CTest registration, queued-revocation witness, and complete native/OFF bundle are being corrected.
+Geometry runtime qualification and foreground native presentation still precede the M06 gate.
+M07-M16 remain pending. No full Spatial-M1 qualification is claimed.
+
 ## 2026-10-12: Cross-host evidence checkpoint; geometry correction required
 
 The cross-host evidence audit verified 83 files and the focused results recorded below.
