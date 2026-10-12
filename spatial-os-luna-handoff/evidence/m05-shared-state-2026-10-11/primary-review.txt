@@ -1,0 +1,34 @@
+M05 local shared-state baseline review
+
+Decision: the selected local baseline passes. M05 remains incomplete.
+Production binaries are retained from the qualified M04 candidate f74c6b5.
+The dedicated source checkout is 04e1029 on both hosts.
+This increment changes one test and its CMake registration. Production code is unchanged.
+
+Each host passes three new cases in Debug and ASan/UBSan: twelve case executions.
+Each host also passes world-remote-security, world-remote-lifecycle, and world-authority in both profiles.
+All twelve related suite executions pass without skips in their JUnit reports.
+Remote scans cover 466 log files per host. No ASan, LeakSanitizer, or UBSan markers were found.
+Copied related logs and XML hashes match their remote originals. See each remote-audit.json.
+The canonical test hash matches both recorded baseline manifests.
+
+The primary review inspected the complete new fixture and its CMake registration.
+Two signed actor identities use production TLS and protobuf sessions against one real worldd.
+Shared object edits use actor actions. Trusted management creates only the fixture object and checkpoints.
+Native spatialwm supplies observed geometry. The test checks exclusive manipulation and committed poses.
+Restart preserves world identity and actor context. Old authentication proof is rejected.
+Separate private authorities retain distinct identities, rooms, and actor poses.
+Public admission does not grant private admission, observation, navigation, or workspace selection.
+
+Limits
+Both actors in each execution run on the same host as their authority.
+These results do not prove the required cross-host shared world or remote actor population.
+Restart is graceful. Abrupt authority loss and recovery need separate evidence.
+CMake registration is source-reviewed; these new cases were invoked directly with retained binaries.
+The registered CTest invocation must be verified in the M05 build.
+No full M05 phase gate has run. Physical graphics and input remain later qualification requirements.
+
+Next
+Run one private authority per host and a single shared authority with actors on both hosts.
+Verify shared geometry and actor population, durable edits, admission, authority loss, and recovery.
+Then freeze the coherent M05 candidate and run the required full both-host gate.

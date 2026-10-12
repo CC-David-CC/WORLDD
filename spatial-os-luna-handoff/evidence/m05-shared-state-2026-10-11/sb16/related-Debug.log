@@ -1,0 +1,12 @@
+Internal ctest changing into directory: /home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug
+Test project /home/dflanag3/src/spacial_desktop-m04-gate-20261011/spatial-os-luna-handoff/local/m04-gate-m04-full-gate-01/Debug
+    Start  46: world-remote-security
+1/3 Test  #46: world-remote-security ............   Passed   36.02 sec
+    Start  47: world-remote-lifecycle
+2/3 Test  #47: world-remote-lifecycle ...........   Passed   16.80 sec
+    Start 108: world-authority
+3/3 Test #108: world-authority ..................   Passed   55.71 sec
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) = 108.54 sec
