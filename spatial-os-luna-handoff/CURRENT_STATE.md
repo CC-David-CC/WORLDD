@@ -1,5 +1,16 @@
 # Implementation status
 
+## 2026-10-12: Host-session evidence integrated; geometry artifacts frozen
+
+Host-session evidence is integrated as fe8867d and verified on box-git.
+Primary verified 1139 archived payload hashes per host, including the terminal launcher receipts.
+Read evidence/m06-host-session-production-2026-10-12 for the 400 focused checks and preserved failures.
+Geometry run04 builds and packaging passed on middle-child. All nine selected registrations have commands.
+The frozen sidecar binds both archives, source hashes, inventories, and separate Debug OFF bindings.
+Geometry runtime checks remain unrun. Launcher review requires timeout, skip, sanitizer, and sidecar checks before execution.
+Combined host-session Debug ON/OFF and ASan ON builds passed. ASan OFF is still running on a5500.
+Native geometry presentation and the complete M06 gate remain pending. M07-M16 remain pending.
+
 ## 2026-10-12: Production host-session integrated after 400 focused checks
 
 Task ee416fc passed 400 selected checks on sb16 and sb16-2: startup 20, native 96, and related callers 284.

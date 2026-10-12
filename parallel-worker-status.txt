@@ -1,4 +1,8 @@
 Current checkpoint, 2026-10-12:
+Host-session evidence fe8867d is integrated and box-git verified; both raw archives passed primary hash verification.
+Geometry run04 artifacts are frozen. Input staging and launcher corrections precede runtime qualification.
+Combined host-session Debug ON/OFF and ASan ON builds passed; ASan OFF remains active on a5500.
+The older entries below describe prior states. Geometry runtime and native presentation remain unrun.
 Host-session task ee416fc passed400 focused checks across bothhosts/profiles and is integrated as2954de0.
 a5500 tmux spatial-host-session-integrated-build01 builds combined ON/OFF Debug/ASan source2954de0; no runtime there.
 Geometry runtime waits for corrected fullnative/OFF bundle and selected CTest command verification.
