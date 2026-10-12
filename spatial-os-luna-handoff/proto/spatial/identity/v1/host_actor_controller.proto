@@ -1,0 +1,33 @@
+syntax = "proto3";
+package spatial.identity.v1;
+
+import "core.proto";
+import "actor_transition.proto";
+
+// Semantic request accepted by the trusted host actor controller.
+message HostActorTransitionRequest {
+  uint32 protocol_version = 1;
+  bytes transition_id = 2;
+  string destination_world_id = 3;
+  uint64 departure_sequence = 4;
+  string destination_room = 5;
+  spatial.core.v1.Pose destination_pose = 6;
+}
+
+enum HostSelectionState {
+  HOST_SELECTION_UNSPECIFIED = 0;
+  HOST_SELECTION_NOT_ATTEMPTED = 1;
+  HOST_SELECTION_CONFIRMED = 2;
+  HOST_SELECTION_UNCERTAIN = 3;
+}
+
+message HostActorTransitionResult {
+  uint32 protocol_version = 1;
+  uint64 operation_generation = 2;
+  ActorTransitionResult actor_transition = 3;
+  HostSelectionState host_selection = 4;
+  bool actor_control_available = 5;
+  string detail = 6;
+  // Local validation only; actor/server facts stay in actor_transition.
+  spatial.core.v1.Error request_error = 7;
+}

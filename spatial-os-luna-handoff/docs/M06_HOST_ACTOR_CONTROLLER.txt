@@ -1,0 +1,63 @@
+M06 host actor controller increment, run02 correction
+Status: implemented; compile-only evidence. Runtime qualification UNRUN.
+No M06 or native session qualification is claimed.
+
+HostActorController owns its active ActorSessionClient. Trusted setup registers retained
+world owners and fresh actor-channel factories. Registration may include the starting
+world. A transition to the current world remains invalid. Registration does not admit
+an actor, grant authority, attach a presentation, or select a foreground world.
+
+The production constructor uses SessionCoordinator::inspect_presentation and
+SessionCoordinator::select_world. Selection follows confirmed destination activation.
+The controller never detaches, retires, or stops a world.
+
+current_client() is removed. The actor path forwards only semantic inspect and action
+operations. Each call carries the context generation. A successful transition or a
+preparation attempt advances the generation; callers must adopt the returned generation.
+Invalid requests and busy operations do not advance it. Old generations reject locally.
+The controller holds one mutex through bounded client exchanges and host selection.
+Concurrent inspect, action, and transition calls reject while another operation owns it.
+Trusted factories and presentation callbacks must remain bounded and must not reenter
+the controller. They are not exposed to actors. Status getters acquire the same mutex.
+The fixture constructor remains a trusted test seam, not an actor action interface.
+
+Request validation calls existing validate_message before effects. Unknown fields,
+nested unknown fields, nonfinite values, and malformed poses reject locally.
+Unsupported versions retain UNSUPPORTED_VERSION. HostActorTransitionResult appends
+request_error as field 7. Actor/server result facts remain in actor_transition.
+This new draft schema addition does not change locked acceptance tests or contracts.
+All throwing setup precedes the in-flight guard. A scope guard clears transitioning_
+on every exit. Exceptions after effects begin leave control fenced without replay.
+
+Preparation denial preserves source semantic access and leaves selection unchanged.
+Matched server errors preserve their typed error and existing uncertainty.
+Uncertain departure or activation fences control. Confirmed activation with uncertain
+selection retains a quarantined destination channel and separate actor/host facts.
+The controller does not retry, reconnect, or replay. Channels close on destruction.
+Probe scopes destroy controllers before joining EOF witnesses.
+
+Implemented fixture cases (11): setup-copy exception recovery; inspect fences action
+and transition; A-B-A with fresh channels, exact retained owners, request validation,
+and stale generation rejection; success ordering; denied preparation preserves inspect
+and action; wrong mapping; departure error; activation error; mismatched selection;
+nonstandard selection exception; selection transport exception with no replay.
+These private wire peers do not prove native or TLS integration.
+
+Concrete native extension:
+- src/testing/host_actor_native_runner.cpp extends session_world_probe.cpp startup and cleanup.
+- src/testing/host_actor_native_checks.hpp uses the actual SessionCoordinator and its
+  PresentationOwner, three retained world launches, and authenticated actor-only channels.
+- tests/native/test_host_actor_controller.py supplies real issuer enrollment, native
+  scopes, shared compositor, and private world admission policies.
+- host-actor-controller-native is registered in CMake. The runner target builds its
+  production dependencies and generated Python bindings.
+The native case denies entry to a third private world, proves source inspect/action and
+foreground usability, then runs A-B-A. It verifies exact retained bindings and launch
+records, world-local actor context, and PID/start identities for XLibre, spatialwm,
+and all worldd processes before and after each step. Runtime execution is UNRUN.
+Selection uncertainty is covered by the wire fixture; no native fault injection is claimed.
+
+Evidence lives at checkout ROOT local/m06-host-controller/run02-*.
+Selected checks precede changes in run02-selected-tests.txt.
+See run02-report.txt for exact artifacts, commands, hashes, and unrun requirements.
+No client/coordinator library or descriptor check was changed by this correction.

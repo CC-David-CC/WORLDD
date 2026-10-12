@@ -34,6 +34,7 @@ protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/id
 protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
 protobuf_generate_cpp(actor_client_tls_proto_sources actor_client_tls_proto_headers proto/spatial/identity/v1/actor_session_client.proto)
 protobuf_generate_cpp(actor_transition_proto_sources actor_transition_proto_headers proto/spatial/identity/v1/actor_transition.proto)
+protobuf_generate_cpp(host_actor_controller_proto_sources host_actor_controller_proto_headers proto/spatial/identity/v1/host_actor_controller.proto)
 protobuf_generate_cpp(grants_proto_sources grants_proto_headers proto/spatial/authority/v1/grants.proto)
 protobuf_generate_cpp(scope_proto_sources scope_proto_headers proto/spatial/supervisor/v1/process_scope.proto)
 protobuf_generate_cpp(launch_proto_sources launch_proto_headers proto/spatial/supervisor/v1/launch.proto)
@@ -231,7 +232,7 @@ endforeach()
 string(SHA256 build_hash "${build_material}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
 
-add_library(spatial-protobuf STATIC ${presentation_proto_sources} ${presentation_proto_headers} ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${actor_client_tls_proto_sources} ${actor_client_tls_proto_headers} ${actor_transition_proto_sources} ${actor_transition_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers} ${selection_scope_proto_sources} ${selection_scope_proto_headers})
+add_library(spatial-protobuf STATIC ${presentation_proto_sources} ${presentation_proto_headers} ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${actor_client_tls_proto_sources} ${actor_client_tls_proto_headers} ${actor_transition_proto_sources} ${actor_transition_proto_headers} ${host_actor_controller_proto_sources} ${host_actor_controller_proto_headers} ${grants_proto_sources} ${grants_proto_headers} ${security_proto_sources} ${security_proto_headers} ${selection_scope_proto_sources} ${selection_scope_proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
 target_sources(spatial-protobuf PRIVATE ${scope_proto_sources} ${scope_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${storage_proto_sources} ${storage_proto_headers})
@@ -1164,7 +1165,47 @@ add_library(spatial-control-admin STATIC src/supervisor/control_admin.cpp)
 target_link_libraries(spatial-control-admin PUBLIC spatial-control-reply)
 add_library(spatial-session-broker STATIC src/supervisor/session_broker.cpp src/supervisor/session_launch.cpp src/supervisor/session_coordinator.cpp)
 target_link_libraries(spatial-session-broker PUBLIC spatial-authority-launch spatial-core spatial-control-admin)
+add_library(spatial-host-actor-controller STATIC src/supervisor/host_actor_controller.cpp)
+target_link_libraries(spatial-host-actor-controller PUBLIC spatial-session-broker spatial-actor-transition spatial-protobuf)
 if(BUILD_TESTING)
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_controller_pb2.py"
+        "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_pb2.py"
+        COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+            ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/host_actor_controller.proto
+            ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/actor_transition.proto
+        DEPENDS proto/spatial/identity/v1/host_actor_controller.proto proto/spatial/identity/v1/actor_transition.proto
+            protobuf::protoc VERBATIM)
+    add_custom_target(host-actor-python-protobuf DEPENDS
+        "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_controller_pb2.py"
+        "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_pb2.py")
+    add_executable(spatial-host-actor-native-runner src/testing/host_actor_native_runner.cpp)
+    target_link_libraries(spatial-host-actor-native-runner PRIVATE spatial-host-actor-controller)
+    add_dependencies(spatial-host-actor-native-runner host-actor-python-protobuf world-session-python-protobuf
+        compositor-python-protobuf
+        spatial-authority-launch-probe spatial-security-auth identityd spatial-issuer-client
+        spatial-authority-supervisor worldd spatialwm workspaced)
+    add_test(NAME host-actor-controller-native COMMAND systemd-run --user --wait --pipe --collect
+        --unit=spatial-host-actor-native-${build_hash} --property=Delegate=yes
+        "--setenv=PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}"
+        "--setenv=SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER}"
+        "--setenv=SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}"
+        --setenv=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1
+        --setenv=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_host_actor_controller.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(host-actor-controller-native PROPERTIES TIMEOUT 240)
+    add_executable(spatial-host-actor-controller-probe src/testing/host_actor_controller_probe.cpp)
+    target_link_libraries(spatial-host-actor-controller-probe PRIVATE spatial-host-actor-controller Threads::Threads)
+    add_test(NAME host-actor-controller COMMAND $<TARGET_FILE:spatial-host-actor-controller-probe>)
+    set_tests_properties(host-actor-controller PROPERTIES TIMEOUT 45)
     add_executable(spatial-control-admin-probe src/testing/control_admin_probe.cpp)
     target_link_libraries(spatial-control-admin-probe PRIVATE spatial-control-admin)
     add_dependencies(spatial-control-admin-probe broker-python-protobuf security-python-protobuf python-protobuf)
