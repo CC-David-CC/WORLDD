@@ -3,10 +3,21 @@
 #include <chrono>
 #include <filesystem>
 #include <memory>
+#include <stdexcept>
+#include <utility>
 
 namespace spatial {
+// A validated, matching server error. This does not prove absence of effects.
+class ActorSessionRejected : public std::runtime_error {
+public:
+    explicit ActorSessionRejected(core::v1::Error error)
+        : std::runtime_error(error.message()), error_(std::move(error)) {}
+    const core::v1::Error& error() const noexcept { return error_; }
+private:
+    core::v1::Error error_;
+};
 // Owns one private local stream or mutually authenticated TLS connection.
-// Any uncertain exchange permanently fails it.
+// Mutating errors and uncertain exchanges permanently fail it.
 class ActorSessionClient {
 public:
     ActorSessionClient(int descriptor, identity::v1::SignedCredential credential,
@@ -26,6 +37,8 @@ public:
     identity::v1::WorldSessionReply inspect();
     identity::v1::WorldSessionReply action(const core::v1::ActorActionRequest& action);
     bool failed() const noexcept;
+    const std::string& expected_world() const noexcept;
+    std::string expected_actor_id() const;
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

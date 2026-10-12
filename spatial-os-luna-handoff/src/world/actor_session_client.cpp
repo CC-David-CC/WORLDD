@@ -294,9 +294,16 @@ struct ActorSessionClient::Impl {
                         reply.request_id() == request_id,
                     "Invalid actor reply envelope");
             validate_message(reply);
-            require(!reply.has_error(), "World rejected actor session request");
+            if (reply.has_error()) {
+                // A matching Error diagnoses the response, not the effects.
+                // Only inspect is non-mutating. No mutating error promises reuse.
+                if (!request.has_inspect()) fail();
+                throw ActorSessionRejected(reply.error());
+            }
             require(reply.outcome_case() == expected, "Unexpected actor session reply outcome");
             return reply;
+        } catch (const ActorSessionRejected&) {
+            throw;
         } catch (...) {
             fail();
             throw;
@@ -359,6 +366,8 @@ struct ActorSessionClient::Impl {
                 state = Lifecycle::Prepared;
             }
             return reply;
+        } catch (const ActorSessionRejected&) {
+            throw;
         } catch (...) {
             fail();
             throw;
@@ -398,6 +407,8 @@ pb::WorldSessionReply ActorSessionClient::activate(std::string transition) {
         impl_->prepared_transition.clear();
         impl_->state = Lifecycle::Active;
         return reply;
+    } catch (const ActorSessionRejected&) {
+        throw;
     } catch (...) {
         impl_->fail();
         throw;
@@ -418,6 +429,8 @@ pb::WorldSessionReply ActorSessionClient::depart(std::uint64_t sequence, std::st
                 "Departure receipt identity mismatch");
         impl_->state = Lifecycle::Departed;
         return reply;
+    } catch (const ActorSessionRejected&) {
+        throw;
     } catch (...) {
         impl_->fail();
         throw;
@@ -437,6 +450,9 @@ pb::WorldSessionReply ActorSessionClient::action(const core::v1::ActorActionRequ
     *request.mutable_action() = action;
     return impl_->exchange(std::move(request), pb::WorldSessionReply::kAction);
 }
+
+const std::string& ActorSessionClient::expected_world() const noexcept { return impl_->world; }
+std::string ActorSessionClient::expected_actor_id() const { return impl_->expected_actor_id(); }
 
 bool ActorSessionClient::failed() const noexcept {
     return impl_->state == Lifecycle::Failed;

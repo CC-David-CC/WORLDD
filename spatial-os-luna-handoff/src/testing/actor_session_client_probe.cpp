@@ -378,14 +378,30 @@ void bad_challenge(Fixture& f, const std::string& fault) {
 
 void bad_envelope(Fixture& f, const std::string& fault) {
     session(f, [&](auto& client, int peer) {
-        rejects([&] { client.authenticate(); }); failed_no_replay(client, peer, f);
+        if (fault == "error") {
+            bool typed = false;
+            try { client.authenticate(); }
+            catch (const ActorSessionRejected& e) {
+                typed = e.error().code() == core::v1::FORBIDDEN;
+            }
+            check(typed, "checked server error lost typed diagnostics");
+            failed_no_replay(client, peer, f);
+        } else {
+            rejects([&] { client.authenticate(); }); failed_no_replay(client, peer, f);
+        }
     }, [&](int fd) {
         receive(fd, pb::WorldSessionRequest::kBegin, 1);
         auto reply = reply_for(1); *reply.mutable_challenge() = challenge_for(f);
         if (fault == "version") reply.set_protocol_version(2);
         if (fault == "request-id") reply.set_request_id(99);
         if (fault == "outcome") reply.mutable_opened();
-        if (fault == "error") reply.mutable_error()->set_message("fixture denial");
+        if (fault == "error") {
+            reply.mutable_error()->set_code(core::v1::FORBIDDEN);
+            reply.mutable_error()->set_message("fixture denial");
+        }
+        if (fault == "error-wrong-id") {
+            reply.mutable_error()->set_message("fixture denial"); reply.set_request_id(99);
+        }
         if (fault == "missing-outcome") reply.clear_outcome();
         if (fault == "unknown-field") reply.GetReflection()->MutableUnknownFields(&reply)->AddVarint(999, 1);
         send_reply(fd, reply);
@@ -470,6 +486,32 @@ void uncertain_loss(Fixture& f, const std::string& stage) {
     });
 }
 
+// Error messages deliberately match across codes and stages. Effects are not parsed from prose.
+void mutating_error(Fixture& f, const std::string& stage, core::v1::ErrorCode code) {
+    session(f, [&](auto& client, int peer) {
+        client.authenticate({}, stage == "activate" ? f.transition : "");
+        bool typed = false;
+        try {
+            if (stage == "activate") client.activate(f.transition);
+            else if (stage == "depart") client.depart(1, f.transition);
+            else client.action({});
+        } catch (const ActorSessionRejected& e) {
+            typed = e.error().code() == code && e.error().message() == "fixture response";
+        }
+        check(typed, "matched mutating error lost diagnostics");
+        failed_no_replay(client, peer, f);
+    }, [&](int fd) {
+        handshake(fd, f, stage == "activate");
+        const auto operation = stage == "activate" ? pb::WorldSessionRequest::kActivate :
+            stage == "depart" ? pb::WorldSessionRequest::kDepart : pb::WorldSessionRequest::kAction;
+        receive(fd, operation, 3);
+        auto reply = reply_for(3);
+        reply.mutable_error()->set_code(code);
+        reply.mutable_error()->set_message("fixture response");
+        send_reply(fd, reply);
+    });
+}
+
 void backpressure(Fixture& f) {
     session(f, [&](auto& client, int peer) {
         client.authenticate();
@@ -541,7 +583,7 @@ int main() {
         for (const std::string fault : {"purpose", "issuer", "credential", "audience", "nonce",
                 "nonce-length", "binding", "version", "lifetime", "incarnation", "payload"})
             run("challenge-" + fault, [&] { bad_challenge(fixture, fault); });
-        for (const std::string fault : {"version", "request-id", "outcome", "error", "missing-outcome", "unknown-field"})
+        for (const std::string fault : {"version", "request-id", "outcome", "error", "error-wrong-id", "missing-outcome", "unknown-field"})
             run("envelope-" + fault, [&] { bad_envelope(fixture, fault); });
         for (const std::string stage : {"opened", "prepared", "activate", "depart"}) {
             for (const std::string fault : {"actor", "world"})
@@ -553,6 +595,10 @@ int main() {
             run("frame-" + fault, [&] { bad_frame(fixture, fault); });
         for (const std::string stage : {"activate", "depart", "action"})
             run("uncertain-loss-no-replay-" + stage, [&] { uncertain_loss(fixture, stage); });
+        for (const std::string stage : {"depart", "activate", "action"})
+            for (const auto code : {core::v1::STORAGE_ERROR, core::v1::INTERNAL_ERROR, core::v1::FORBIDDEN})
+                run("mutating-error-no-replay-" + stage + "-" + std::to_string(code),
+                    [&] { mutating_error(fixture, stage, code); });
         run("write-backpressure", [&] { backpressure(fixture); });
         run("buffered-final-reply", [&] { buffered_final_reply(fixture); });
         std::cout << count << " actor-session-client probe cases passed\n";
